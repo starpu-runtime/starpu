@@ -307,18 +307,14 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	{
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}
-	else {
+	else 
+	{
 		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 
-		if(sched_ctx->modified)
-		{
-			_starpu_actually_remove_workers_from_sched_ctx(sched_ctx);
-			_starpu_actually_add_workers_to_sched_ctx(sched_ctx);
-			sched_ctx->modified = 0;
-		}
-			
+		PTHREAD_MUTEX_LOCK(&sched_ctx->changing_ctx_mutex);
 		ret = sched_ctx->sched_policy->push_task(task, sched_ctx->id);
+		PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
 	}
 
 	_starpu_profiling_set_task_push_end_time(task);
@@ -355,8 +351,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 		{
 			sched_ctx = worker->sched_ctx[i];
 			
-			if(sched_ctx != NULL &&
-			   sched_ctx->workerids_to_add[worker->workerid] == NO_RESIZE)
+			if(sched_ctx != NULL)
 			{
 				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
 				if(sched_ctx_mutex != NULL)
@@ -434,7 +429,7 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 
 void _starpu_wait_on_sched_event(void)
 {
-	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+ 	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
 	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 

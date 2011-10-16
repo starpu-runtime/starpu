@@ -42,12 +42,6 @@ struct starpu_sched_ctx {
 	
 	/* list of indices of workers */
 	int workerids[STARPU_NMAXWORKERS]; 
-
-	/* list of workers, those checked have to be deleted */
-	int workerids_to_remove[STARPU_NMAXWORKERS]; 
-
-	/* list of workers, those checked have to be added */
-	int workerids_to_add[STARPU_NMAXWORKERS]; 
 	
 	/* number of threads in contex */
 	int nworkers; 
@@ -70,7 +64,6 @@ struct starpu_sched_ctx {
 	/* a structure containing a series of criteria determining the resize procedure */
 	struct starpu_sched_ctx_hypervisor_criteria *criteria;
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
-	unsigned modified;
 };
 
 struct starpu_machine_config_s;

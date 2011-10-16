@@ -124,7 +124,7 @@ void starpu_add_workers_to_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsig
 
 void starpu_remove_workers_from_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
 
-int* starpu_get_workers_of_ctx(unsigned sched_ctx);
+int* starpu_get_workers_of_ctx(unsigned sched_ctx, int *nworkers);
 
 void starpu_require_resize(unsigned sched_ctx, int *workers_to_be_moved, unsigned nworkers_to_be_moved);
 

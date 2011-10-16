@@ -96,7 +96,6 @@ static void heft_init(unsigned sched_ctx_id)
 	hd->idle_power = 0.0;
 	
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-
 	unsigned nworkers_ctx = sched_ctx->nworkers;
 	sched_ctx->policy_data = (void*)hd;
 
@@ -273,7 +272,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_task_length[worker_ctx] = starpu_task_expected_length(task, perf_arch, nimpl);
 				local_data_penalty[worker_ctx] = starpu_task_expected_data_transfer_time(memory_node, task);
 				local_power[worker_ctx] = starpu_task_expected_power(task, perf_arch, nimpl);
-				//_STARPU_DEBUG("Scheduler heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker_ctx],local_power[worker_ctx],worker,nimpl);
+				//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker_ctx],local_power[worker_ctx],worker,nimpl);
 			}
 			
 			double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
@@ -427,7 +426,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		 * entry */
 		if (ret != 1)
 			PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
-
 	}
 	else 
 	{
