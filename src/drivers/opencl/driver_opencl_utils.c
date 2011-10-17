@@ -200,6 +200,9 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
         unsigned int dev;
         unsigned int nb_devices;
 
+	if (!starpu_opencl_worker_get_count())
+		return CL_SUCCESS;
+
         nb_devices = _starpu_opencl_get_device_count();
         // Iterate over each device
         for(dev = 0; dev < nb_devices; dev ++) {
