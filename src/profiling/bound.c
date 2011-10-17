@@ -592,7 +592,7 @@ void starpu_bound_print_lp(FILE *output)
 			for (w = 0; w < nw; w++) {
 				char name[32];
 				starpu_worker_get_name(w, name, sizeof(name));
-				fprintf(output, "/* worker %s */\n", name);
+				fprintf(output, "/* worker %s */\n0", name);
 				for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 					if (times[w*nt+t] != -1.0)
 						fprintf(output, "\t%+f * w%dt%dn", (float) times[w*nt+t], w, t);
@@ -603,7 +603,7 @@ void starpu_bound_print_lp(FILE *output)
 
 			fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-				fprintf(output, "/* task %s key %x */\n", tp->cl->model->symbol, (unsigned) tp->footprint);
+				fprintf(output, "/* task %s key %x */\n0", tp->cl->model->symbol, (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
 					if (times[w*nt+t] != -1.0)
 						fprintf(output, "\t+w%dt%dn", w, t);
