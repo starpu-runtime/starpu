@@ -763,6 +763,17 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 
 		/* Total worker execution time */
 		glp_add_rows(lp, nw);
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			int someone = 0;
+			for (w = 0; w < nw; w++)
+				if (times[w*nt+t] != -1.)
+					someone = 1;
+			if (!someone) {
+				/* This task does not have any performance model at all, abort */
+				glp_delete_prob(lp);
+				return NULL;
+			}
+		}
 		for (w = 0; w < nw; w++) {
 			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
