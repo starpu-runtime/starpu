@@ -180,7 +180,7 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
         char located_file_name[1024];
 
 	// Do not try to load and compile the file if there is no devices
-	nb_devices = _starpu_opencl_get_device_count();
+	nb_devices = starpu_opencl_worker_get_count();
 	if (nb_devices == 0) return EXIT_SUCCESS;
 
         // Locate source file
