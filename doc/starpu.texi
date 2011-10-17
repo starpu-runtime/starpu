@@ -3177,6 +3177,7 @@ generate a Paje trace when starpu_shutdown is called.
 * Data Interfaces::             
 * Data Partition::              
 * Codelets and Tasks::          Methods to construct tasks
+* Scheduling Contexts::         Methods to manage the scheduling contexts
 * Explicit Dependencies::       Explicit Dependencies
 * Implicit Data Dependencies::  Implicit Data Dependencies
 * Performance Model API::       
