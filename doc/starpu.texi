@@ -1551,6 +1551,7 @@ TODO: improve!
 * Task submission::
 * Task priorities::
 * Task scheduling policy::
+* Task scheduling contexts::
 * Performance model calibration::
 * Task distribution vs Data transfer::
 * Data prefetch::
@@ -1653,6 +1654,32 @@ parallel tasks (still experimental).
 
 The @b{pgreedy} (parallel greedy) scheduler is similar to greedy, it also
 supports parallel tasks (still experimental).
+
+@node Task scheduling contexts
+@section Task scheduling contexts
+By default, the application submits tasks to an initial context, which disposes of all the computation ressources available to StarPU (all the workers). If the application programmer plans to launch several parallel kernels simultaneusly, these kernels will be executed within this initial context, using a single scheduler (@pxref{Task scheduling policy}).
+
+Meanwhile, if the application programmer is aware of the demands of these kernels and of the specificity of the machine used to execute them, the workers can be divided between several contexts. Thus, the scheduling contexts will isolate the execution of each kernel and they will permit the use of a scheduling policy proper to each one of them.
+
+In order to create the contexts, you have to know the indentifiers of the workers running within StarPU. By passing a set of workers together with the scheduling policy to the function @code{starpu_create_sched_ctx}, you will get an identifier of the context created which you will use to indicate the context you want to submit the tasks to.
+
+@cartouche
+@smallexample
+/* @b{the list of ressources the context will manage} */
+int workerids[4] = @{1, 3, 10@};
+
+/* @b{indicate the scheduling policy to be used within the context, the list of 
+   workers assigned to it, the number of workers, the name of the context} */
+int id_ctx = starpu_create_sched_ctx("heft", workerids, 4, "my_ctx");
+
+/* @b{let StarPU know that the folowing tasks will be submitted to this context} */
+starpu_set_sched_ctx(id);
+
+/* @b{submit the task to StarPU} */
+starpu_task_submit(task);
+
+@end smallexample
+@end cartouche
 
 @node Performance model calibration
 @section Performance model calibration
@@ -4200,6 +4227,48 @@ because there is no task being executed at the moment.
 Output on @code{stderr} some statistics on the codelet @var{cl}.
 @end deftypefun
 
+@node Scheduling Contexts
+@section Scheduling Contexts
+@menu
+* starpu_create_sched_ctx:: Create a scheduling context
+* starpu_delete_sched_ctx:: Delete a scheduling context
+* starpu_add_workers_to_sched_ctx:: Add workers to scheduling context at runtime
+* starpu_remove_workers_from_sched_ctx:: Remove workers from scheduling context at runtime
+* starpu_get_workers_of_sched_ctx:: Get the workers assigned to a scheduling context
+@end menu
+
+@node starpu_create_sched_ctx
+@subsection @code{starpu_create_sched_ctx} -- Create a scheduling context
+@deftypefun unsigned starpu_create_sched_ctx (const char *@var{policy_name}, int *@var{workerids_ctx}, int @var{nworkers_ctx}, const char *@var{sched_ctx_name})
+This function creates a scheduling context which uses the scheduling policy indicated in the first argument and assigns the workers indicated in the second argument to execute the tasks submitted to it.
+
+The return value represents the identifier of the context that has just been created. It will be further used to indicate the context the tasks will be submitted to. The return value should be at most @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@node starpu_delete_sched_ctx
+@subsection @code{starpu_delete_sched_ctx} -- Delete a scheduling context
+@deftypefun void starpu_delete_sched_ctx (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id})
+This function deletes the scheduling context indicated by the first argument and lets the scheduling context indicated in the second argument take over its workers.
+@end deftypefun
+
+@node starpu_add_workers_to_sched_ctx
+@subsection @code{starpu_add_workers_to_sched_ctx} -- Add workers to scheduling context at runtime
+@deftypefun void starpu_add_workers_to_sched_ctx (int *@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
+This function adds the workers indicated in the first argument to the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@node starpu_remove_workers_from_sched_ctx
+@subsection @code{starpu_remove_workers_from_sched_ctx} -- Remove workers from scheduling context at runtime
+@deftypefun void starpu_remove_workers_from_sched_ctx (int *@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
+This function removes the workers indicated in the first argument from the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@node starpu_get_workers_of_sched_ctx
+@subsection @code{starpu_get_workers_of_sched_ctx} -- Get the workers assigned to a scheduling context
+@deftypefun int* starpu_get_workers_of_sched_ctx (unsigned @var{sched_ctx}, int *@var{nworkers})
+This function returns the list of workers assigned to the context indicated in the first argument, as well as the number of workers in the context. The first argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}
+@end deftypefun
+
 
 @c Callbacks : what can we put in callbacks ?
 
@@ -4805,7 +4874,6 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 
 @menu
 * struct starpu_sched_policy_s::  
-* starpu_worker_set_sched_condition::
 * starpu_sched_set_min_priority::       Set the minimum priority level
 * starpu_sched_set_max_priority::       Set the maximum priority level
 * starpu_push_local_task::		Assign a task to a worker
@@ -4817,14 +4885,14 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 @table @asis
 @item @emph{Description}:
 This structure contains all the methods that implement a scheduling policy.  An
-application may specify which scheduling strategy in the @code{sched_policy}
-field of the @code{starpu_conf} structure passed to the @code{starpu_init}
-function.
+application may specify which scheduling strategy should be used for the initial context in the @code{sched_policy} field of the @code{starpu_conf} structure passed to the @code{starpu_init} function. For the other contexts it may be specified at the creation of the context.
 
 @item @emph{Fields}:
 @table @asis
 @item @code{init_sched}:
 Initialize the scheduling policy.
+@item @code{init_sched_for_workers}:
+Initialize the scheduling policy for a set of workers which are added during the execution of the program.
 @item @code{deinit_sched}:
 Cleanup the scheduling policy.
 @item @code{push_task}:
@@ -4854,20 +4922,6 @@ Name of the policy (optionnal).
 Description of the policy (optionnal).
 @end table
 @end table
-
-
-@node starpu_worker_set_sched_condition
-@subsection @code{starpu_worker_set_sched_condition} -- Specify the condition variable associated to a worker
-@deftypefun void starpu_worker_set_sched_condition (int @var{workerid}, pthread_cond_t *@var{sched_cond}, pthread_mutex_t *@var{sched_mutex})
-When there is no available task for a worker, StarPU blocks this worker on a
-condition variable. This function specifies which condition variable (and the
-associated mutex) should be used to block (and to wake up) a worker. Note that
-multiple workers may use the same condition variable. For instance, in the case
-of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.
-The initialization method of a scheduling strategy (@code{init_sched}) must
-call this function once per worker.
-@end deftypefun
 
 @node starpu_sched_set_min_priority
 @subsection @code{starpu_sched_set_min_priority}
