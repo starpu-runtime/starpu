@@ -163,7 +163,6 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			return (_starpu_get_node_kind(handling_node) != STARPU_OPENCL_RAM);
 #else
 			/* Direct GPU-GPU transfers are not allowed in general */
-#error erf
 			return 0;
 #endif
 		case STARPU_OPENCL_RAM:
