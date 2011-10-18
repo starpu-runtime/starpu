@@ -107,9 +107,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
                 float_array[1], float_array[2], float_array[3]);
 
-	STARPU_ASSERT(float_array[0] == niter);
-
-	if (float_array[0] != float_array[1] + float_array[2] + float_array[3]) {
+	if (float_array[0] != niter || float_array[0] != float_array[1] + float_array[2] + float_array[3]) {
 		FPRINTF(stderr, "Incorrect result\n");
 		return 1;
 	}
