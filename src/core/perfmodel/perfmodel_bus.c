@@ -65,6 +65,7 @@ static int nopencl = 0;
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
+static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
 static size_t cuda_size = SIZE;
 #endif
@@ -168,6 +169,53 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	cudaThreadExit();
 }
+
+#ifdef HAVE_CUDA_MEMCPY_PEER
+static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
+{
+	/* Initiliaze CUDA context on the source */
+	cudaSetDevice(src);
+
+	/* Allocate a buffer on the device */
+	unsigned char *s_buffer;
+	cudaMalloc((void **)&s_buffer, cuda_size);
+	assert(s_buffer);
+	cudaMemset(s_buffer, 0, cuda_size);
+
+	/* Initiliaze CUDA context on the destination */
+	cudaSetDevice(dst);
+
+	/* Allocate a buffer on the device */
+	unsigned char *d_buffer;
+	cudaMalloc((void **)&d_buffer, cuda_size);
+	assert(d_buffer);
+	cudaMemset(d_buffer, 0, cuda_size);
+
+	unsigned iter;
+	double timing;
+	struct timeval start;
+	struct timeval end;
+
+	/* Measure upload bandwidth */
+	gettimeofday(&start, NULL);
+	for (iter = 0; iter < NITER; iter++)
+	{
+		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, cuda_size);
+		cudaThreadSynchronize();
+	}
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	cudadev_timing_dtod[src+1][dst+1] = timing/NITER;
+
+	/* Free buffers */
+	cudaFree(d_buffer);
+	cudaSetDevice(src);
+	cudaFree(s_buffer);
+
+	cudaThreadExit();
+}
+#endif
 #endif
 
 #ifdef STARPU_USE_OPENCL
@@ -404,7 +452,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 static void benchmark_all_gpu_devices(void)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	int i;
+	int i, j;
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
@@ -431,8 +479,6 @@ static void benchmark_all_gpu_devices(void)
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
 
-	/* TODO: measure bandwidth between GPU-GPU */
-
 #ifdef STARPU_USE_CUDA
 	ncuda = _starpu_get_cuda_device_count();
 	for (i = 0; i < ncuda; i++)
@@ -441,6 +487,16 @@ static void benchmark_all_gpu_devices(void)
 		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, 'C');
 	}
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	for (i = 0; i < ncuda; i++)
+	{
+		for (j = 0; j < ncuda; j++) {
+			fprintf(stderr," CUDA %d -> %d...", i, j);
+			/* measure bandwidth between Host and Device i */
+			measure_bandwidth_between_dev_and_dev_cuda(i, j);
+		}
+	}
+#endif
 #endif
 #ifdef STARPU_USE_OPENCL
         nopencl = _starpu_opencl_get_device_count();
@@ -761,6 +817,7 @@ static void write_bus_latency_file_content(void)
 				latency = 0.0;
 			}
 			else {
+				/* µs */
                                 latency = ((src && dst)?2000.0:500.0);
 			}
 
@@ -892,21 +949,29 @@ static void write_bus_bandwidth_file_content(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 			else if (src != dst)
 			{
-				double slowness_src_to_ram=0.0, slowness_ram_to_dst=0.0;
+				double slowness = 0.0;
 				/* Total bandwidth is the harmonic mean of bandwidths */
 #ifdef STARPU_USE_CUDA
-				if (src && src <= ncuda)
-					slowness_src_to_ram = cudadev_timing_dtoh[src]/cuda_size;
-				if (dst && dst <= ncuda)
-					slowness_ram_to_dst = cudadev_timing_htod[dst]/cuda_size;
+#ifdef HAVE_CUDA_MEMCPY_PEER
+				if (src && src <= ncuda && dst && dst <= ncuda)
+					/* Direct GPU-GPU transfert */
+					slowness = cudadev_timing_dtod[src][dst]/cuda_size;
+				else
+#endif
+				{
+					if (src && src <= ncuda)
+						slowness += cudadev_timing_dtoh[src]/cuda_size;
+					if (dst && dst <= ncuda)
+						slowness += cudadev_timing_htod[dst]/cuda_size;
+				}
 #endif
 #ifdef STARPU_USE_OPENCL
 				if (src > ncuda)
-					slowness_src_to_ram = opencldev_timing_dtoh[src-ncuda]/opencl_size;
+					slowness += opencldev_timing_dtoh[src-ncuda]/opencl_size;
 				if (dst > ncuda)
-					slowness_ram_to_dst = opencldev_timing_htod[dst-ncuda]/opencl_size;
+					slowness += opencldev_timing_htod[dst-ncuda]/opencl_size;
 #endif
-				bandwidth = 1.0/(slowness_src_to_ram + slowness_ram_to_dst);
+				bandwidth = 1.0/slowness;
 			}
 #endif
 			else {
@@ -1097,6 +1162,7 @@ void _starpu_load_bus_performance_files(void)
 	load_bus_bandwidth_file();
 }
 
+/* (in µs) */
 double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size)
 {
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
