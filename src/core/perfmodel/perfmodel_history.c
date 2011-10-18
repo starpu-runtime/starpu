@@ -414,7 +414,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 	}
 
 	/* Writing stuff */
-	char *name;
+	char *name = "unknown";
 	unsigned substract_to_arch = 0;
 	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
@@ -452,7 +452,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 				fprintf(f, "%u\n", number_of_archs[3]);
 				break;
 			default:
-				STARPU_ASSERT(0);
+				break;
 		}
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
