@@ -215,7 +215,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned me
 	if (size == 0)
 		return 0.0;
 
-	uint32_t src_node = _starpu_select_src_node(handle);
+	uint32_t src_node = _starpu_select_src_node(handle, memory_node);
 	return _starpu_predict_transfer_time(src_node, memory_node, size);
 }
 

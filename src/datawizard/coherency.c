@@ -22,7 +22,8 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/profiling.h>
 
-uint32_t _starpu_select_src_node(starpu_data_handle handle)
+static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
+uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination)
 {
 	unsigned src_node = 0;
 	unsigned i;
@@ -33,6 +34,9 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 	uint32_t node;
 
 	uint32_t src_node_mask = 0;
+	size_t size = _starpu_data_get_size(handle);
+	double cost = INFINITY;
+
 	for (node = 0; node < nnodes; node++)
 	{
 		if (handle->per_node[node].state != STARPU_INVALID) {
@@ -44,7 +48,39 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 	/* we should have found at least one copy ! */
 	STARPU_ASSERT(src_node_mask != 0);
 
-	/* find the node that will be the actual source */
+	/* Without knowing the size, we won't know the cost */
+	if (!size)
+		cost = 0;
+
+	/* Check whether we have transfer cost for all nodes, if so, take the minimum */
+	if (cost)
+		for (i = 0; i < nnodes; i++)
+		{
+			if (src_node_mask & (1<<i))
+			{
+				double time = _starpu_predict_transfer_time(i, destination, size);
+				unsigned handling_node;
+
+				/* Avoid indirect transfers */
+				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
+					continue;
+
+				if (time == 0.0) {
+					/* No estimation, will have to revert to dumb strategy */
+					cost = 0.0;
+					break;
+				} else if (time < cost) {
+					cost = time;
+					src_node = i;
+				}
+			}
+		}
+
+	if (cost)
+		/* Could estimate through cost, return that */
+		return src_node;
+
+	/* Revert to dumb strategy: take RAM unless only a GPU has it */
 	for (i = 0; i < nnodes; i++)
 	{
 		if (src_node_mask & (1<<i))
@@ -53,13 +89,15 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 			src_node = i;
 
 			/* however GPU are expensive sources, really !
-			 * 	other should be ok */
-		 
-			if (_starpu_get_node_kind(i) != STARPU_CUDA_RAM && _starpu_get_node_kind(i) != STARPU_OPENCL_RAM)	
+			 * 	Unless peer transfer is supported.
+			 * 	Other should be ok */
+
+			if (
+#ifndef HAVE_CUDA_MEMCPY_PEER
+					_starpu_get_node_kind(i) != STARPU_CUDA_RAM &&
+#endif
+					_starpu_get_node_kind(i) != STARPU_OPENCL_RAM)	
 				break ;
-		 
-			/* XXX do a better algorithm to distribute the memory copies */
-			/* TODO : use the "requesting_node" as an argument to do so */
 		}
 	}
 
@@ -125,6 +163,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			return (_starpu_get_node_kind(handling_node) != STARPU_OPENCL_RAM);
 #else
 			/* Direct GPU-GPU transfers are not allowed in general */
+#error erf
 			return 0;
 #endif
 		case STARPU_OPENCL_RAM:
@@ -325,7 +364,7 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 	/* if the data is in write only mode, there is no need for a source */
 	if (mode & STARPU_R)
 	{
-		src_node = _starpu_select_src_node(handle);
+		src_node = _starpu_select_src_node(handle, requesting_node);
 		STARPU_ASSERT(src_node != requesting_node);
 	}
 

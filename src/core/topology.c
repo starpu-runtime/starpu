@@ -693,6 +693,18 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
+#ifdef HAVE_CUDA_MEMCPY_PEER
+				unsigned worker2;
+				for (worker2 = 0; worker2 < worker; worker2++)
+				{
+					struct starpu_worker_s *workerarg = &config->workers[worker];
+					if (workerarg->arch == STARPU_CUDA_WORKER) {
+						unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
+						_starpu_register_bus(memory_node2, memory_node);
+						_starpu_register_bus(memory_node, memory_node2);
+					}
+				}
+#endif
 				break;
 #endif
 
