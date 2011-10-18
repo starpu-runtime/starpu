@@ -502,13 +502,13 @@ static void benchmark_all_gpu_devices(void)
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
-	{
-		for (j = 0; j < ncuda; j++) {
-			fprintf(stderr," CUDA %d -> %d...", i, j);
-			/* measure bandwidth between Host and Device i */
-			measure_bandwidth_between_dev_and_dev_cuda(i, j);
-		}
-	}
+		for (j = 0; j < ncuda; j++)
+			if (i != j)
+			{
+				fprintf(stderr," CUDA %d -> %d...", i, j);
+				/* measure bandwidth between Host and Device i */
+				measure_bandwidth_between_dev_and_dev_cuda(i, j);
+			}
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL
