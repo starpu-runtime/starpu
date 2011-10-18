@@ -1765,10 +1765,10 @@ to choose the performance model to be displayed. The result looks like:
 @example
 $ starpu_perfmodel_display -s starpu_dlu_lu_model_22
 performance model for cpu
-# hash		size		mean		dev		n
-880805ba	98304          	2.731309e+02   	6.010210e+01   	1240
-b50b6605	393216         	1.469926e+03   	1.088828e+02   	1240
-5c6c3401	1572864        	1.125983e+04   	3.265296e+03   	1240
+# hash    size     mean          dev           n
+880805ba  98304    2.731309e+02  6.010210e+01  1240
+b50b6605  393216   1.469926e+03  1.088828e+02  1240
+5c6c3401  1572864  1.125983e+04  3.265296e+03  1240
 @end example
 
 Which shows that for the LU 22 kernel with a 1.5MiB matrix, the average
@@ -2231,17 +2231,17 @@ performance of the 22 kernel:
 @example
 $ starpu_perfmodel_display -s starpu_slu_lu_model_22
 performance model for cpu
-# hash		size		mean		dev		n
-57618ab0	19660800       	2.851069e+05   	1.829369e+04   	109
+# hash      size       mean          dev           n
+57618ab0    19660800   2.851069e+05  1.829369e+04  109
 performance model for cuda_0
-# hash		size		mean		dev		n
-57618ab0	19660800       	1.164144e+04   	1.556094e+01   	315
+# hash      size       mean          dev           n
+57618ab0    19660800   1.164144e+04  1.556094e+01  315
 performance model for cuda_1
-# hash		size		mean		dev		n
-57618ab0	19660800       	1.164271e+04   	1.330628e+01   	360
+# hash      size       mean          dev           n
+57618ab0    19660800   1.164271e+04  1.330628e+01  360
 performance model for cuda_2
-# hash		size		mean		dev		n
-57618ab0	19660800       	1.166730e+04   	3.390395e+02   	456
+# hash      size       mean          dev           n
+57618ab0    19660800   1.166730e+04  3.390395e+02  456
 @end example
 
 We can see that for the given size, over a sample of a few hundreds of
