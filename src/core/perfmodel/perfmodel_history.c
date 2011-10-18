@@ -215,6 +215,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_
 	for (arch = archmin; arch < archmax; arch++) {
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &nimpls);
+		STARPU_ASSERT(ret == 1);
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
 		for (impl = 0; impl < implmax; impl++) {
@@ -230,6 +231,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_
 	if (skiparch > 0) {
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &nimpls);
+		STARPU_ASSERT(ret == 1);
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
 		for (arch = 0; arch < skiparch; arch ++) {
@@ -251,7 +253,6 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 	unsigned archmin = 0;
 	unsigned max_gordondevs = 1; /* XXX : we need a STARPU_MAXGORDONDEVS cst */
 	unsigned narchs;
-	int nimpls;
 
 	/* We could probably write a clean loop here, but the code would not
 	 * really be easier to read. */
@@ -451,7 +452,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 				fprintf(f, "%u\n", number_of_archs[3]);
 				break;
 			default:
-				break;
+				STARPU_ASSERT(0);
 		}
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
