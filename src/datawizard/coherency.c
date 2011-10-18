@@ -25,7 +25,7 @@
 static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
 uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination)
 {
-	unsigned src_node = 0;
+	int src_node = -1;
 	unsigned i;
 
 	unsigned nnodes = _starpu_get_memory_nodes_count();
@@ -76,7 +76,7 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination
 			}
 		}
 
-	if (cost)
+	if (cost && src_node != -1)
 		/* Could estimate through cost, return that */
 		return src_node;
 
@@ -100,6 +100,8 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination
 				break ;
 		}
 	}
+
+	STARPU_ASSERT(src_node != -1);
 
 	return src_node;
 }
