@@ -41,6 +41,8 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 int main(int argc, char **argv)
 {
+	int ret = 0;
+
 	starpu_init(NULL);
 
 #ifdef STARPU_SLOW_MACHINE
@@ -109,7 +111,7 @@ int main(int argc, char **argv)
 
 	if (float_array[0] != niter || float_array[0] != float_array[1] + float_array[2] + float_array[3]) {
 		FPRINTF(stderr, "Incorrect result\n");
-		return 1;
+		ret = 1;
 	}
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
@@ -119,5 +121,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }
