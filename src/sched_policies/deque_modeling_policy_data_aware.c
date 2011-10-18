@@ -383,7 +383,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 	
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 
-	 _starpu_get_job_associated_to_task(task)->nimpl = 0;//best_impl;
+	 _starpu_get_job_associated_to_task(task)->nimpl = best_impl;
 
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best, model_best, prio);
