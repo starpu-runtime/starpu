@@ -426,7 +426,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	return 0;
 }
 
-/* XXX this is broken : we need to find a way to fix that ! */
+/* XXX this is broken : We need to properly call cudaDeviceEnablePeerAccess(), and avoid crossing NUMA nodes... */
 #ifdef NO_STRIDE
 static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, int is_async, cudaStream_t stream)
 {
