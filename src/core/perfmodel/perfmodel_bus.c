@@ -116,15 +116,13 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 
-
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-	cudaHostAlloc((void **)&h_buffer, size, 0);
-	assert(h_buffer);
+	cures = cudaHostAlloc((void **)&h_buffer, size, 0);
+	assert(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
-
 
 	/* Fill them */
 	memset(h_buffer, 0, size);
@@ -132,7 +130,6 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
-
 
 	unsigned iter;
 	double timing;
@@ -352,7 +349,7 @@ static int find_numa_node(hwloc_obj_t obj)
 
 	STARPU_ASSERT(current->depth == HWLOC_OBJ_NODE);
 
-	return current->logical_index; 
+	return current->logical_index;
 }
 #endif
 
@@ -369,7 +366,7 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 	/* If no NUMA node was found, we assume that we have a single memory
 	 * bank. */
 	const unsigned no_node_obj_was_found = (nnuma_nodes == 0);
-	
+
 	unsigned is_available_per_numa_node[nnuma_nodes];
 	double dev_timing_htod_per_numa_node[nnuma_nodes];
 	double dev_timing_dtoh_per_numa_node[nnuma_nodes];
@@ -388,9 +385,9 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 		if (!no_node_obj_was_found)
 		{
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(hwtopology, cpu_depth, cpu);
-	
+
 			numa_id = find_numa_node(obj);
-	
+
 			if (is_available_per_numa_node[numa_id])
 			{
 				/* We reuse the previous numbers for that NUMA node */
