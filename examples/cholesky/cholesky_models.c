@@ -26,6 +26,7 @@
  */
 
 #include <starpu.h>
+#include "cholesky.h"
 
 /* #define USE_PERTURBATION	1 */
 
