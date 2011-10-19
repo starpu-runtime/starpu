@@ -33,3 +33,25 @@
 
 //#define STARPU_TEST_OUTPUT
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
+
+#define PTHREAD_MUTEX_INIT(mutex, attr) { int p_ret = pthread_mutex_init((mutex), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_init: %s\n", strerror(p_ret)); STARPU_ABORT(); }}
+#define PTHREAD_MUTEX_DESTROY(mutex) { int p_ret = pthread_mutex_destroy(mutex); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_destroy: %s\n", strerror(p_ret)); STARPU_ABORT(); }}
+#define PTHREAD_MUTEX_LOCK(mutex) { int p_ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_lock : %s\n", strerror(p_ret)); STARPU_ABORT(); }}
+#define PTHREAD_MUTEX_UNLOCK(mutex) { int p_ret = pthread_mutex_unlock(mutex); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_unlock : %s\n", strerror(p_ret)); STARPU_ABORT(); }}
+
+#define PTHREAD_RWLOCK_INIT(rwlock, attr) { int p_ret = pthread_rwlock_init((rwlock), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_RWLOCK_RDLOCK(rwlock) { int p_ret = pthread_rwlock_rdlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_rdlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_RWLOCK_WRLOCK(rwlock) { int p_ret = pthread_rwlock_wrlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_wrlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_RWLOCK_UNLOCK(rwlock) { int p_ret = pthread_rwlock_unlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_unlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_RWLOCK_DESTROY(rwlock) { int p_ret = pthread_rwlock_destroy(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+
+#define PTHREAD_COND_INIT(cond, attr) { int p_ret = pthread_cond_init((cond), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_DESTROY(cond) { int p_ret = pthread_cond_destroy(cond); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_SIGNAL(cond) { int p_ret = pthread_cond_signal(cond); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_signal : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_BROADCAST(cond) { int p_ret = pthread_cond_broadcast(cond); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_broadcast : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_WAIT(cond, mutex) { int p_ret = pthread_cond_wait((cond), (mutex)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_wait : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+
+#define PTHREAD_BARRIER_INIT(barrier, attr, count) { int p_ret = pthread_barrier_init((barrier), (attr), (count)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_barrier_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_BARRIER_DESTROY(barrier) { int p_ret = pthread_barrier_destroy((barrier)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_barrier_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define PTHREAD_BARRIER_WAIT(barrier) { int p_ret = pthread_barrier_wait(barrier); if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == PTHREAD_BARRIER_SERIAL_THREAD)))) { fprintf(stderr, "pthread_barrier_wait : %s\n", strerror(p_ret)); STARPU_ABORT();}}

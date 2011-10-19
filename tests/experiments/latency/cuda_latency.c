@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,11 +70,11 @@ void send_data(unsigned src, unsigned dst)
 #endif
 
 	/* Tell the other GPU that data is in RAM */
-	pthread_mutex_lock(&mutex_gpu);
+	PTHREAD_MUTEX_LOCK(&mutex_gpu);
 	data_is_available[src] = 0;
 	data_is_available[dst] = 1;
-	pthread_cond_signal(&cond_gpu);
-	pthread_mutex_unlock(&mutex_gpu);
+	PTHREAD_COND_SIGNAL(&cond_gpu);
+	PTHREAD_MUTEX_UNLOCK(&mutex_gpu);
 	//fprintf(stderr, "SEND on %d\n", src);
 }
 
@@ -83,12 +83,12 @@ void recv_data(unsigned src, unsigned dst)
 	cudaError_t cures;
 
 	/* Wait for the data to be in RAM */
-	pthread_mutex_lock(&mutex_gpu);
+	PTHREAD_MUTEX_LOCK(&mutex_gpu);
 	while (!data_is_available[dst])
 	{
-		pthread_cond_wait(&cond_gpu, &mutex_gpu);
+		PTHREAD_COND_WAIT(&cond_gpu, &mutex_gpu);
 	}
-	pthread_mutex_unlock(&mutex_gpu);
+	PTHREAD_MUTEX_UNLOCK(&mutex_gpu);
 	//fprintf(stderr, "RECV on %d\n", dst);
 
 	/* Upload data */
@@ -119,9 +119,9 @@ void *launch_gpu_thread(void *arg)
 	cudaMalloc(&gpu_buffer[id], buffer_size);
 	cudaStreamCreate(&stream[id]);
 
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	thread_is_initialized[id] = 1;
-	pthread_cond_signal(&cond);
+	PTHREAD_COND_SIGNAL(&cond);
 
 	if (id == 0)
 	{
@@ -134,9 +134,9 @@ void *launch_gpu_thread(void *arg)
 	nready_gpu++;
 
 	while (!ready)
-		pthread_cond_wait(&cond_go, &mutex);
+		PTHREAD_COND_WAIT(&cond_go, &mutex);
 
-	pthread_mutex_unlock(&mutex);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	unsigned iter;
 	for (iter = 0; iter < niter; iter++)
@@ -151,10 +151,10 @@ void *launch_gpu_thread(void *arg)
 		}
 	}
 
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	nready_gpu--;
-	pthread_cond_signal(&cond_go);
-	pthread_mutex_unlock(&mutex);
+	PTHREAD_COND_SIGNAL(&cond_go);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	return NULL;
 }
@@ -162,9 +162,9 @@ void *launch_gpu_thread(void *arg)
 int main(int argc, char **argv)
 {
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
-	pthread_cond_init(&cond_go, NULL);
+	PTHREAD_MUTEX_INIT(&mutex, NULL);
+	PTHREAD_COND_INIT(&cond, NULL);
+	PTHREAD_COND_INIT(&cond_go, NULL);
 
 	unsigned id;
 	for (id = 0; id < 2; id++)
@@ -172,12 +172,12 @@ int main(int argc, char **argv)
 		thread_is_initialized[id] = 0;
 		pthread_create(&thread[0], NULL, launch_gpu_thread, &id);
 
-		pthread_mutex_lock(&mutex);
+		PTHREAD_MUTEX_LOCK(&mutex);
 		while (!thread_is_initialized[id])
 		{
-			 pthread_cond_wait(&cond, &mutex);
+			 PTHREAD_COND_WAIT(&cond, &mutex);
 		}
-		pthread_mutex_unlock(&mutex);
+		PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 
 	struct timeval start;
@@ -186,18 +186,18 @@ int main(int argc, char **argv)
 	/* Start the ping pong */
 	gettimeofday(&start, NULL);
 
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	ready = 1;
-	pthread_cond_broadcast(&cond_go);
-	pthread_mutex_unlock(&mutex);
+	PTHREAD_COND_BROADCAST(&cond_go);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	/* Wait for the end of the ping pong */
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	while (nready_gpu > 0)
 	{
-		pthread_cond_wait(&cond_go, &mutex);
+		PTHREAD_COND_WAIT(&cond_go, &mutex);
 	}
-	pthread_mutex_unlock(&mutex);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	gettimeofday(&end, NULL);
 	

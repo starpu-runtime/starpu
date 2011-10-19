@@ -40,10 +40,10 @@ static void callback(void *arg __attribute__ ((unused)))
 		task->regenerate = 0;
 		FPRINTF(stderr, "Stop !\n");
 
-		pthread_mutex_lock(&mutex);
+		PTHREAD_MUTEX_LOCK(&mutex);
 		completed = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
+		PTHREAD_COND_SIGNAL(&cond);
+		PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 }
 
@@ -103,10 +103,10 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	if (!completed)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+		PTHREAD_COND_WAIT(&cond, &mutex);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	gettimeofday(&end, NULL);
 

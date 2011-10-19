@@ -67,9 +67,9 @@ static void callback_task_D(void *arg __attribute__((unused)))
 	if (loop_cnt == niter)
 	{
 		/* We are done */
-		pthread_mutex_lock(&mutex);
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
+		PTHREAD_MUTEX_LOCK(&mutex);
+		PTHREAD_COND_SIGNAL(&cond);
+		PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 	else {
 		/* Let's go for another iteration */
@@ -121,10 +121,10 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(&taskD); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* Wait for the termination of all loops */
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	if (loop_cnt < niter)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+		PTHREAD_COND_WAIT(&cond, &mutex);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	STARPU_ASSERT(check_cnt == (4*loop_cnt));
 
