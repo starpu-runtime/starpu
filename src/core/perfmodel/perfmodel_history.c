@@ -986,7 +986,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t 
 			
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			struct starpu_data_handle_t *handle = task->buffers[i].handle;
+			starpu_data_handle handle = task->buffers[i].handle;
 
 			STARPU_ASSERT(handle->ops);
 			STARPU_ASSERT(handle->ops->display);
