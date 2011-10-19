@@ -21,6 +21,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/profiling.h>
+#include <math.h>
 
 static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
 uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination)
