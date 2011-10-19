@@ -22,8 +22,6 @@
 #include <unistd.h>
 #include "../common/helper.h"
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
-
 static unsigned ntasks = 65536;
 
 static void dummy_func(void *descr[], void *arg)

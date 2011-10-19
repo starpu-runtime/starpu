@@ -28,7 +28,6 @@
 
 #define N	100
 #define K	256
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 /*
  * In this test, we maintain a vector v = (a,b,c).

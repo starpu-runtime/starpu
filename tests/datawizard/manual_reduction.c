@@ -26,7 +26,6 @@
 
 #define INIT_VALUE	42
 #define NTASKS		10000
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned variable;
 static starpu_data_handle variable_handle;

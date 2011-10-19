@@ -24,7 +24,6 @@
 
 #define NLOOPS		1000
 #define VECTORSIZE	1024
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static starpu_data_handle v_handle;
 

@@ -32,7 +32,6 @@
 #else
 #  define BLOCK_SIZE (64*1024*1024)
 #endif
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned ntasks = 1000;
 

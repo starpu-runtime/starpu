@@ -24,8 +24,6 @@
 starpu_data_handle fork_handles[N];
 unsigned forks[N];
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
-
 static void eat_kernel(void *descr[], void *arg)
 {
 }

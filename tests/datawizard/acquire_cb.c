@@ -17,8 +17,6 @@
 #include <starpu.h>
 #include "../common/helper.h"
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
-
 unsigned token = 0;
 starpu_data_handle token_handle;
 

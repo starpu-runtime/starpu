@@ -23,7 +23,6 @@
 #include "../common/helper.h"
 
 #define VECTORSIZE	1024
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned *A, *B, *C, *D;
 starpu_data_handle A_handle, B_handle, C_handle, D_handle;
