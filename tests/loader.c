@@ -26,12 +26,14 @@
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
+static int   timeout;
 
 static void test_cleaner(int sig)
 {
 	pid_t child_gid;
 
 	// send signal to all loader family members
+	fprintf(stderr, "Test is blocked since %d seconds ... mark it as failed\n", timeout);
 	child_gid = getpgid(child_pid);
 	kill(-child_gid, SIGKILL);
 	exit(EXIT_FAILURE);
@@ -39,7 +41,6 @@ static void test_cleaner(int sig)
 
 int main(int argc, char *argv[])
 {
-	int   timeout;
 	int   child_exit_status;
 	char *test_name;
 	int   status;
