@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include "../../common/helper.h"
 
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
@@ -22,7 +23,6 @@
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
-
 
 static unsigned var = 0;
 static starpu_data_handle handle;
@@ -42,7 +42,7 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
-	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL); 
+	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 }
 #endif
 
@@ -84,7 +84,10 @@ static starpu_codelet increment_cl = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -106,22 +109,30 @@ int main(int argc, char **argv)
 		for (t = 0; t < ntasks; t++)
 		{
 			struct starpu_task *task = starpu_task_create();
-	
+
 			task->cl = &increment_cl;
-	
+
 			task->buffers[0].mode = STARPU_RW;
 			task->buffers[0].handle = handle;
-	
-			int ret = starpu_task_submit(task);
-			STARPU_ASSERT(!ret);
 
+			int ret = starpu_task_submit(task);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
 	starpu_data_unregister(handle);
 	STARPU_ASSERT(var == ntasks*nloops);
-	
+
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_data_unregister(handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

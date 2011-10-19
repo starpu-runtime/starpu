@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define NLOOPS		128
 #define VECTORSIZE	1024
@@ -40,7 +41,7 @@ static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 
 	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
-	
+
 	memcpy(tmp, v, nx*elemsize);
 
 	unsigned i;
@@ -61,7 +62,10 @@ static starpu_codelet cl_f = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	A = (unsigned *) calloc(VECTORSIZE, sizeof(unsigned));
 
@@ -78,15 +82,17 @@ int main(int argc, char **argv)
 		task_f->buffers[1].handle = B_handle;
 		task_f->buffers[1].mode = STARPU_SCRATCH;
 
-		int ret = starpu_task_submit(task_f);
-		if (ret == -ENODEV)
-			goto enodev;
+		ret = starpu_task_submit(task_f);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	/* Make sure that data A is in main memory */
-	starpu_data_acquire(A_handle, STARPU_R);	
+	ret = starpu_data_acquire(A_handle, STARPU_R);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 	/* Check result */
 	unsigned i;
@@ -97,11 +103,16 @@ int main(int argc, char **argv)
 
 	starpu_data_release(A_handle);
 
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(B_handle);
 	starpu_shutdown();
 
 	return 0;
 
 enodev:
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(B_handle);
+	starpu_shutdown();
 	/* No one can execute that task, this is not a bug, just an incomplete
 	 * test :) */
 	return 77;

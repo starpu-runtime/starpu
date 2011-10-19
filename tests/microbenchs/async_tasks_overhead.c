@@ -22,6 +22,7 @@
 
 #include <starpu.h>
 #include <starpu_profiling.h>
+#include "../common/helper.h"
 
 static unsigned ntasks = 65536;
 
@@ -112,6 +113,7 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int ret;
 	unsigned i;
 	double timing;
 	struct timeval start;
@@ -119,7 +121,8 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	init_gordon_kernel();
 
@@ -143,10 +146,12 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 	{
 		int ret = starpu_task_submit(tasks[i]);
-		STARPU_ASSERT(!ret);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	gettimeofday(&end, NULL);
 
@@ -197,4 +202,11 @@ int main(int argc, char **argv)
 	free(tasks);
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

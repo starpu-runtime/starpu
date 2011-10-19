@@ -25,6 +25,7 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
+#include "../common/helper.h"
 
 #ifdef STARPU_SLOW_MACHINE
 #  define BLOCK_SIZE (64*1024)
@@ -63,7 +64,7 @@ static int mb = 256;
 
 int main(int argc, char **argv)
 {
-	int i;
+	int i, ret;
 	int taskid;
 
 #ifdef STARPU_HAVE_HWLOC
@@ -82,7 +83,8 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Allocate %d buffers and create %u tasks\n", mb, ntasks);
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	float **host_ptr_array;
 	starpu_data_handle *handle_array;
@@ -109,10 +111,13 @@ int main(int argc, char **argv)
 		task->buffers[1].mode = STARPU_R;
 		task->buffers[2].handle = handle_array[(taskid+2)%mb];
 		task->buffers[2].mode = STARPU_R;
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	for (i = 0; i < mb; i++)
 	{
@@ -123,4 +128,11 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

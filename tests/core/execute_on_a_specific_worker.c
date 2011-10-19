@@ -84,6 +84,8 @@ static starpu_codelet cl = {
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	starpu_init(NULL);
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));

@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -31,7 +32,10 @@ struct timeval end;
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned ngpus = starpu_cuda_worker_get_count();
 

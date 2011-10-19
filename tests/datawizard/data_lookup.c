@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include "../common/helper.h"
 
 static void task(void **buffers, void *args)
 {
@@ -58,11 +59,14 @@ static int test_lazy_allocation()
 				 STARPU_VALUE, &count, sizeof(size_t),
 				 0);
 	if (ret == -ENODEV) return ret;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+
 	/* yes, we do not perform the computation but we did detect that no one
 	 * could perform the kernel, so this is not an error from StarPU */
 
 	/* Acquire the handle, forcing a local allocation.  */
-	starpu_data_acquire(handle, STARPU_R);
+	ret = starpu_data_acquire(handle, STARPU_R);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 	/* Make sure we have a local pointer to it.  */
 	pointer = starpu_handle_get_local_ptr(handle);
@@ -91,12 +95,12 @@ static int test_lazy_allocation()
 static void test_filters()
 {
 #define CHILDREN_COUNT 10
-	int err, i;
+	int ret, i;
 	int *ptr, *children_pointers[CHILDREN_COUNT];
 	starpu_data_handle handle;
 
-	err = starpu_malloc((void**)&ptr, VECTOR_SIZE * sizeof(*ptr));
-	assert(err == 0);
+	ret = starpu_malloc((void**)&ptr, VECTOR_SIZE * sizeof(*ptr));
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)ptr,
 				    VECTOR_SIZE, sizeof(*ptr));
@@ -141,20 +145,21 @@ static void test_filters()
 
 int main(int argc, char *argv[])
 {
-	int err;
+	int ret;
 	size_t i;
 	void *vectors[VECTOR_COUNT], *variables[VARIABLE_COUNT];
 	starpu_data_handle vector_handles[VECTOR_COUNT];
 	starpu_data_handle variable_handles[VARIABLE_COUNT];
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Register data regions.  */
 
 	for(i = 0; i < VARIABLE_COUNT; i++)
 	{
-		err = starpu_malloc(&variables[i], sizeof(float));
-		assert(err == 0);
+		ret = starpu_malloc(&variables[i], sizeof(float));
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_variable_data_register(&variable_handles[i], 0,
 					      (uintptr_t)variables[i],
 					      sizeof(float));
@@ -162,8 +167,8 @@ int main(int argc, char *argv[])
 
 	for(i = 0; i < VECTOR_COUNT; i++)
 	{
-		err = starpu_malloc(&vectors[i], VECTOR_SIZE * sizeof(float));
-		assert(err == 0);
+		ret = starpu_malloc(&vectors[i], VECTOR_SIZE * sizeof(float));
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_vector_data_register(&vector_handles[i], 0,
 					    (uintptr_t)vectors[i],
 					    VECTOR_SIZE, sizeof(float));
@@ -219,8 +224,8 @@ int main(int argc, char *argv[])
 		starpu_free(vectors[i]);
 	}
 
-	err = test_lazy_allocation();
-	if (err == -ENODEV) goto enodev;
+	ret = test_lazy_allocation();
+	if (ret == -ENODEV) goto enodev;
 	test_filters();
 
 	starpu_shutdown();
@@ -231,5 +236,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../common/helper.h"
 
 #define N	10000
 
@@ -91,10 +92,15 @@ static starpu_codelet cl = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
 
-	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
-	starpu_malloc((void **)&v2, VECTORSIZE*sizeof(unsigned));
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	ret = starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	ret = starpu_malloc((void **)&v2, VECTORSIZE*sizeof(unsigned));
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&v_handle2, 0, (uintptr_t)v2, VECTORSIZE, sizeof(unsigned));
@@ -115,8 +121,8 @@ int main(int argc, char **argv)
 		task->callback_arg = NULL;
 
 		int ret = starpu_task_submit(task);
-		if (ret == -ENODEV)
-			goto enodev;
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	pthread_mutex_lock(&mutex);
@@ -124,6 +130,8 @@ int main(int argc, char **argv)
 		pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
+	starpu_data_unregister(v_handle);
+	starpu_data_unregister(v_handle2);
 	starpu_free(v);
 	starpu_free(v2);
 	starpu_shutdown();
@@ -131,6 +139,11 @@ int main(int argc, char **argv)
 	return 0;
 
 enodev:
+	starpu_data_unregister(v_handle);
+	starpu_data_unregister(v_handle2);
+	starpu_free(v);
+	starpu_free(v2);
+	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

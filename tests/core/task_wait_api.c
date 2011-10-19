@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -50,7 +51,10 @@ static struct starpu_task *create_dummy_task(void)
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	FPRINTF(stderr, "{ A } -> { B }\n");
 	fflush(stderr);
@@ -63,10 +67,12 @@ int main(int argc, char **argv)
 	/* B depends on A */
 	starpu_task_declare_deps_array(taskB, 1, &taskA);
 
-	starpu_task_submit(taskB);
-	starpu_task_submit(taskA);
+	ret = starpu_task_submit(taskB);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskA); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait(taskB);
+	ret = starpu_task_wait(taskB); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
 
@@ -81,13 +87,13 @@ int main(int argc, char **argv)
 	struct starpu_task *tasksCDEF[4] = {taskC, taskD, taskE, taskF};
 	starpu_task_declare_deps_array(taskG, 4, tasksCDEF);
 
-	starpu_task_submit(taskC);
-	starpu_task_submit(taskD);
-	starpu_task_submit(taskG);
-	starpu_task_submit(taskE);
-	starpu_task_submit(taskF);
+	ret = starpu_task_submit(taskC); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskD); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskG); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskE); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskF); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait(taskG);
+	ret = starpu_task_wait(taskG); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
 
@@ -105,17 +111,24 @@ int main(int argc, char **argv)
 	starpu_task_declare_deps_array(taskK, 2, tasksHI);
 	starpu_task_declare_deps_array(taskL, 2, tasksHI);
 
-	starpu_task_submit(taskH);
-	starpu_task_submit(taskI);
-	starpu_task_submit(taskJ);
-	starpu_task_submit(taskK);
-	starpu_task_submit(taskL);
+	ret = starpu_task_submit(taskH); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskI); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskJ); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskK); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait(taskJ);
-	starpu_task_wait(taskK);
-	starpu_task_wait(taskL);
+	ret = starpu_task_wait(taskJ); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
+	ret = starpu_task_wait(taskK); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
+	ret = starpu_task_wait(taskL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -47,9 +48,10 @@ int main(int argc, char **argv)
 {
         float foo;
 	starpu_data_handle float_array_handle;
-        int i;
+        int i, ret;
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER) == 0)
 	{
@@ -80,23 +82,26 @@ int main(int argc, char **argv)
 		task_gpu->buffers[0].mode = STARPU_RW;
 
 		ret = starpu_task_submit(task_cpu);
-		if (STARPU_UNLIKELY(ret == -ENODEV))
-		{
-			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
-		}
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_submit(task_gpu);
-		if (STARPU_UNLIKELY(ret == -ENODEV))
-		{
-			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
-		}
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
         }
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	starpu_data_unregister(float_array_handle);
         starpu_shutdown();
 
         return 0;
+
+enodev:
+	starpu_data_unregister(float_array_handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

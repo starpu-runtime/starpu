@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define NLOOPS	128
 
@@ -51,7 +52,8 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned loop;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	struct starpu_task *taskA, *taskB;
 
@@ -70,21 +72,22 @@ int main(int argc, char **argv)
 		taskB->detach = 0;
 
 		ret = starpu_task_submit(taskA);
-		STARPU_ASSERT(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		starpu_task_declare_deps_array(taskB, 1, &taskA);
 
 		ret = starpu_task_submit(taskB);
-		STARPU_ASSERT(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_wait(taskB);
-		STARPU_ASSERT(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_wait(taskA);
-		STARPU_ASSERT(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_shutdown();
 

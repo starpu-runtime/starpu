@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define VECTORSIZE	1024
 
@@ -90,7 +91,8 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* The buffer should never be explicitely allocated */
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
@@ -102,12 +104,11 @@ int main(int argc, char **argv)
 		task->detach = 0;
 
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-			goto enodev;
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	ret = starpu_task_wait(task);
-	if (ret)
-		exit(-1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	task = starpu_task_create();
 		task->cl = &display_cl;
@@ -116,21 +117,21 @@ int main(int argc, char **argv)
 		task->detach = 0;
 
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-			goto enodev;
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	ret = starpu_task_wait(task);
-	if (ret)
-		exit(-1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	/* this should get rid of automatically allocated buffers */
 	starpu_data_unregister(v_handle);
-
 	starpu_shutdown();
 
 	return 0;
 
 enodev:
+	starpu_data_unregister(v_handle);
+	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

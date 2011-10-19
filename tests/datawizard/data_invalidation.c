@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define NLOOPS		1000
 #define VECTORSIZE	1024
@@ -90,7 +91,8 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* The buffer should never be explicitely allocated */
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
@@ -106,28 +108,26 @@ int main(int argc, char **argv)
 		memset_task->buffers[0].handle = v_handle;
 		memset_task->buffers[0].mode = STARPU_W;
 		memset_task->detach = 0;
-	
+
 		ret = starpu_task_submit(memset_task);
-		if (ret == -ENODEV)
-				goto enodev;
-	
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 		ret = starpu_task_wait(memset_task);
-		if (ret)
-			exit(-1);
-		
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
+
 		check_content_task = starpu_task_create();
 		check_content_task->cl = &check_content_cl;
 		check_content_task->buffers[0].handle = v_handle;
 		check_content_task->buffers[0].mode = STARPU_R;
 		check_content_task->detach = 0;
-	
+
 		ret = starpu_task_submit(check_content_task);
-		if (ret == -ENODEV)
-				goto enodev;
-	
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 		ret = starpu_task_wait(check_content_task);
-		if (ret)
-			exit(-1);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 		starpu_data_invalidate(v_handle);
 	}
@@ -140,8 +140,10 @@ int main(int argc, char **argv)
 	return 0;
 
 enodev:
+	starpu_data_unregister(v_handle);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

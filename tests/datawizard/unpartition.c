@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define NITER		1000
 #define VECTORSIZE	1024
@@ -65,9 +66,11 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_malloc((void **)&buffer, VECTORSIZE);
+	ret = starpu_malloc((void **)&buffer, VECTORSIZE);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 
@@ -83,34 +86,38 @@ int main(int argc, char **argv)
 	for (iter = 0; iter < NITER; iter++)
 	{
 		starpu_data_map_filters(v_handle, 1, &f);
-	
+
 		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 0));
-		if (ret == -ENODEV)
-			goto enodev;
-	
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 1));
-		if (ret == -ENODEV)
-			goto enodev;
-	
-		starpu_task_wait_for_all();
-	
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		ret = starpu_task_wait_for_all();
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
 		starpu_data_unpartition(v_handle, 0);
-	
+
 		ret = use_handle(v_handle);
-		if (ret == -ENODEV)
-			goto enodev;
-	
-		starpu_task_wait_for_all();
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		ret = starpu_task_wait_for_all();
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	}
 
 	starpu_data_unregister(v_handle);
 	starpu_free(buffer);
-
 	starpu_shutdown();
 
 	return 0;
 
 enodev:
+	starpu_data_unregister(v_handle);
+	starpu_free(buffer);
+	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

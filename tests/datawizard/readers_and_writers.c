@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 static unsigned book = 0;
 static starpu_data_handle book_handle;
@@ -34,7 +35,10 @@ static starpu_codelet rw_cl = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize the resource */
 	starpu_vector_data_register(&book_handle, 0, (uintptr_t)&book, 1, sizeof(unsigned));
@@ -54,12 +58,23 @@ int main(int argc, char **argv)
 		task->buffers[0].handle = book_handle;
 
 		int ret = starpu_task_submit(task);
-		STARPU_ASSERT(!ret);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
+	starpu_data_unregister(book_handle);
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_data_unregister(book_handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

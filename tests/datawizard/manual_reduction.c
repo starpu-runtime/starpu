@@ -15,6 +15,8 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
+
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
@@ -36,7 +38,7 @@ static starpu_data_handle per_worker_handle[STARPU_NMAXWORKERS];
 static void initialize_per_worker_handle(void *arg __attribute__((unused)))
 {
 	int workerid = starpu_worker_get_id();
-	
+
 	/* Allocate memory on the worker, and initialize it to 0 */
 	switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
@@ -53,10 +55,10 @@ static void initialize_per_worker_handle(void *arg __attribute__((unused)))
 			cl_mem ptr = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(variable), NULL, NULL);
 			/* Poor's man memset */
 			unsigned zero = 0;
-			clEnqueueWriteBuffer(queue, ptr, CL_TRUE, 0, sizeof(variable), (void *)&zero, 0, NULL, NULL); 
+			clEnqueueWriteBuffer(queue, ptr, CL_TRUE, 0, sizeof(variable), (void *)&zero, 0, NULL, NULL);
 			per_worker[workerid] = (uintptr_t)ptr;
 			}
-			
+
 			break;
 #endif
 #ifdef STARPU_USE_CUDA
@@ -105,7 +107,7 @@ static void cpu_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 	*val = *val + 1;
 }
 
-#ifdef STARPU_USE_CUDA 
+#ifdef STARPU_USE_CUDA
 /* dummy CUDA implementation */
 static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 {
@@ -130,7 +132,7 @@ static void opencl_func_incr(void *descr[], void *cl_arg __attribute__((unused))
 
 	clEnqueueReadBuffer(queue, d_val, CL_TRUE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
 	h_val++;
-	clEnqueueWriteBuffer(queue, d_val, CL_TRUE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL); 
+	clEnqueueWriteBuffer(queue, d_val, CL_TRUE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
 }
 #endif
 
@@ -151,10 +153,12 @@ int main(int argc, char **argv)
 {
 	unsigned worker;
 	unsigned i;
+	int ret;
 
 	variable = INIT_VALUE;
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -188,7 +192,7 @@ int main(int argc, char **argv)
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_ASSERT(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 
@@ -206,7 +210,7 @@ int main(int argc, char **argv)
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_ASSERT(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_data_unregister(variable_handle);
@@ -225,5 +229,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

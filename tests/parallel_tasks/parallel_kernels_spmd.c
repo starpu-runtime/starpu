@@ -18,16 +18,10 @@
 #include <starpu.h>
 #include <limits.h>
 #include <unistd.h>
+#include "../common/helper.h"
 
 #define N	1000
 #define VECTORSIZE	1024
-
-//static pthread_mutex_t mutex;
-//static pthread_cond_t cond;
-//static unsigned finished = 0;
-
-starpu_data_handle v_handle;
-static unsigned *v;
 
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -62,6 +56,10 @@ static starpu_codelet cl = {
 
 int main(int argc, char **argv)
 {
+	int ret;
+	starpu_data_handle v_handle;
+	unsigned *v;
+
         struct starpu_conf conf = {
                 .sched_policy_name = "pheft",
                 .ncpus = -1,
@@ -74,7 +72,8 @@ int main(int argc, char **argv)
                 .calibrate = 1
         };
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
@@ -94,16 +93,16 @@ int main(int argc, char **argv)
 			task->buffers[0].mode = STARPU_R;
 
 			int ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-				goto enodev;
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_free(v);
 	starpu_shutdown();
-
 	return 0;
 
 enodev:
@@ -111,5 +110,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

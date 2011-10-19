@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define VECTORSIZE	1024
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -69,7 +70,10 @@ static starpu_codelet cl_h = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	A = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
 	B = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
@@ -81,12 +85,12 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&C_handle, 0, (uintptr_t)C, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&D_handle, 0, (uintptr_t)D, VECTORSIZE, sizeof(unsigned));
 
-	#if 0
+#if 0
 	starpu_data_set_sequential_consistency_flag(A_handle, 0);
 	starpu_data_set_sequential_consistency_flag(B_handle, 0);
 	starpu_data_set_sequential_consistency_flag(C_handle, 0);
 	starpu_data_set_sequential_consistency_flag(D_handle, 0);
-	#endif
+#endif
 
 	/* 	f(Ar, Brw): sleep 
 	 *	g(Br; Crw); sleep, var = 42
@@ -98,7 +102,9 @@ int main(int argc, char **argv)
 	task_f->buffers[0].mode = STARPU_R;
 	task_f->buffers[1].handle = B_handle;
 	task_f->buffers[1].mode = STARPU_RW;
-	starpu_task_submit(task_f);
+	ret = starpu_task_submit(task_f);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	struct starpu_task *task_g = starpu_task_create();
 	task_g->cl = &cl_g;
@@ -106,7 +112,9 @@ int main(int argc, char **argv)
 	task_g->buffers[0].mode = STARPU_R;
 	task_g->buffers[1].handle = C_handle;
 	task_g->buffers[1].mode = STARPU_RW;
-	starpu_task_submit(task_g);
+	ret = starpu_task_submit(task_g);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	struct starpu_task *task_h = starpu_task_create();
 	task_h->cl = &cl_h;
@@ -114,9 +122,12 @@ int main(int argc, char **argv)
 	task_h->buffers[0].mode = STARPU_R;
 	task_h->buffers[1].handle = D_handle;
 	task_h->buffers[1].mode = STARPU_RW;
-	starpu_task_submit(task_h);
+	ret = starpu_task_submit(task_h);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	free(A);
 	free(B);
@@ -126,4 +137,15 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	free(A);
+	free(B);
+	free(C);
+	free(D);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

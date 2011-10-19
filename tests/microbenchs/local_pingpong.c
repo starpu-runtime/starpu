@@ -22,6 +22,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <debug/starpu_debug_helpers.h>
+#include "../common/helper.h"
 
 static size_t vector_size = 1;
 
@@ -43,7 +44,10 @@ struct timeval end;
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Create a piece of data */
 	starpu_malloc((void **)&v, vector_size);

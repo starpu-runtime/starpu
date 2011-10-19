@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -43,14 +44,14 @@ static starpu_codelet increment_cl = {
 unsigned token = 0;
 starpu_data_handle token_handle;
 
-void increment_token()
+int increment_token()
 {
 	struct starpu_task *task = starpu_task_create();
         task->synchronous = 1;
 	task->cl = &increment_cl;
 	task->buffers[0].handle = token_handle;
 	task->buffers[0].mode = STARPU_RW;
-	starpu_task_submit(task);
+	return starpu_task_submit(task);
 }
 
 void callback(void *arg __attribute__ ((unused)))
@@ -61,8 +62,11 @@ void callback(void *arg __attribute__ ((unused)))
 int main(int argc, char **argv)
 {
 	int i;
+	int ret;
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
         FPRINTF(stderr, "Token: %u\n", token);
@@ -70,13 +74,18 @@ int main(int argc, char **argv)
 	for(i=0; i<ntasks; i++)
 	{
 		/* synchronize data in RAM */
-                starpu_data_acquire(token_handle, STARPU_R);
+                ret = starpu_data_acquire(token_handle, STARPU_R);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+
                 token ++;
                 starpu_data_release(token_handle);
 
-                increment_token();
+                ret = increment_token();
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-                starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
+                ret = starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 	}
 
 	starpu_data_unregister(token_handle);
@@ -87,4 +96,12 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_data_unregister(token_handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

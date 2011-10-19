@@ -24,6 +24,8 @@
 #include <gordon.h>
 #endif
 
+#include "../common/helper.h"
+
 #define N	100
 #define K	256
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -74,7 +76,10 @@ void cpu_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_GORDON
 	unsigned elf_id = gordon_register_elf_plugin("./datawizard/sync_and_notify_data_gordon_kernels.spuelf");
@@ -127,12 +132,13 @@ int main(int argc, char **argv)
 			task->synchronous = 1;
 
 			ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-				goto enodev;
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		/* synchronize v in RAM */
-		starpu_data_acquire(v_handle, STARPU_RW);
+		ret = starpu_data_acquire(v_handle, STARPU_RW);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 		/* increment b */
 		v[1]++;
@@ -166,17 +172,19 @@ int main(int argc, char **argv)
 			task->synchronous = 1;
 
 			ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-				goto enodev;
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 	}
 
-	starpu_data_acquire(v_handle, STARPU_RW);
+	ret = starpu_data_acquire(v_handle, STARPU_RW);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 	FPRINTF(stderr, "V = {%u, %u, %u}\n", v[0], v[1], v[2]);
 
 	starpu_data_release(v_handle);
+	starpu_data_unregister(v_handle);
 
 	starpu_shutdown();
 
@@ -186,6 +194,8 @@ int main(int argc, char **argv)
 	return 0;
 
 enodev:
+	starpu_data_unregister(v_handle);
+	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

@@ -22,6 +22,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../common/helper.h"
 
 #define NTASKS	10000
 #define VECTORSIZE	1024
@@ -34,9 +35,6 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static unsigned finished = 0;
 static unsigned cnt = NTASKS;
-
-starpu_data_handle handle;
-static float *buffer;
 
 static void callback(void *arg)
 {
@@ -74,7 +72,12 @@ static char symbolname[128];
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+	starpu_data_handle handle;
+	float *buffer;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* create data */
 	starpu_malloc((void **)&buffer, NTASKS*VECTORSIZE*sizeof(char));
@@ -108,8 +111,8 @@ int main(int argc, char **argv)
 		task->callback_arg = NULL;
 
 		int ret = starpu_task_submit(task);
-		if (ret == -ENODEV)
-			goto enodev;
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	pthread_mutex_lock(&mutex);
@@ -127,5 +130,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

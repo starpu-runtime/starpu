@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../common/helper.h"
 
 #define NBUFFERS	64
 #define NITER		128
@@ -46,7 +47,7 @@ static starpu_codelet cl = {
 	.nbuffers = 1
 };
 
-void use_handle(starpu_data_handle handle)
+int use_handle(starpu_data_handle handle)
 {
 	int ret;
 	struct starpu_task *task;
@@ -58,12 +59,7 @@ void use_handle(starpu_data_handle handle)
 		task->detach = 0;
 
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-	{
-		/* No one can execute such a task, but that's not a failure
-		 * of the test either. */
-		exit(0);
-	}
+	return ret;
 }
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -84,13 +80,17 @@ void callback_sync_data(void *arg __attribute__ ((unused)))
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Allocate all buffers and register them to StarPU */
 	unsigned b;
 	for (b = 0; b < NBUFFERS; b++)
 	{
-		starpu_malloc((void **)&buffer[b], VECTORSIZE);
+		ret = starpu_malloc((void **)&buffer[b], VECTORSIZE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_vector_data_register(&v_handle[b], 0,
 				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
 		starpu_data_set_sequential_consistency_flag(v_handle[b], 0);
@@ -101,10 +101,14 @@ int main(int argc, char **argv)
 	{
 		/* Use the buffers on the different workers so that it may not
 		 * be in main memory anymore */
-		for (b = 0; b < NBUFFERS; b++)
-			use_handle(v_handle[b]);
-	
-		starpu_task_wait_for_all();
+		for (b = 0; b < NBUFFERS; b++) {
+			ret = use_handle(v_handle[b]);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		}
+
+		ret = starpu_task_wait_for_all();
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 		pthread_mutex_lock(&mutex);
 		n_synced_buffers = 0;
@@ -113,8 +117,9 @@ int main(int argc, char **argv)
 		/* Grab the different pieces of data into main memory */
 		for (b = 0; b < NBUFFERS; b++)
 		{
-			starpu_data_acquire_cb(v_handle[b], STARPU_RW,
-					callback_sync_data, NULL);
+			ret = starpu_data_acquire_cb(v_handle[b], STARPU_RW,
+						     callback_sync_data, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 		}
 
 		/* Wait for all buffers to be available */
@@ -139,4 +144,11 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

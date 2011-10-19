@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define N 16
 #define M 4
@@ -64,13 +65,15 @@ int main(int argc, char **argv)
         int i, ret;
 	float *f;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare x */
 	starpu_variable_data_register(&x_handle, 0, (uintptr_t)&x, sizeof(x));
 
 	/* Allocate and Declare f */
-	starpu_malloc((void**)&f, N * sizeof(*f));
+	ret = starpu_malloc((void**)&f, N * sizeof(*f));
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 	memset(f, 0, N * sizeof(*f));
 	starpu_vector_data_register(&f_handle, 0, (uintptr_t)f, N, sizeof(*f));
 
@@ -84,6 +87,7 @@ int main(int argc, char **argv)
 	/* Compute which portion we will work on */
         ret = starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
 	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	/* And submit the corresponding task */
 #ifdef __GCC__
@@ -96,7 +100,8 @@ int main(int argc, char **argv)
 	starpu_data_acquire_cb(x_handle, STARPU_W, callback, NULL);
 #endif
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	starpu_data_unpartition(f_handle, 0);
 	starpu_data_unregister(f_handle);
 	starpu_data_unregister(x_handle);
@@ -121,5 +126,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

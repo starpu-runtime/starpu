@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define NITER	10
 
@@ -33,7 +34,7 @@ static starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
-static void create_dummy_task(starpu_tag_t tag)
+static int create_dummy_task(starpu_tag_t tag)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -42,17 +43,15 @@ static void create_dummy_task(starpu_tag_t tag)
 	task->cl = &dummy_codelet;
 	
 	int ret = starpu_task_submit(task);
-	if (ret)
-	{
-		fprintf(stderr, "Warning, no worker can execute the tasks\n");
-		/* This is not a bug from StarPU so we return a valid value. */
-		exit(0);
-	}
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_tag_t sync_tags[NITER];
 
@@ -71,16 +70,26 @@ int main(int argc, char **argv)
 		{
 			deps[d] = sync_tag + d + 1; 
 
-			create_dummy_task(deps[d]);
+			ret = create_dummy_task(deps[d]);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		starpu_create_sync_task(sync_tag, ndeps, deps, NULL, NULL);
 	}
 
 	/* Wait all the synchronization tasks */
-	starpu_tag_wait_array(NITER, sync_tags);
+	ret = starpu_tag_wait_array(NITER, sync_tags);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait_array");
 
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

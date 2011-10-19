@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 #define VECTORSIZE	1024
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -110,16 +111,27 @@ static starpu_codelet check_content_cl = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
-	starpu_insert_task(&memset_cl, STARPU_W, v_handle, 0);
-        starpu_task_wait_for_all();
+	ret = starpu_insert_task(&memset_cl, STARPU_W, v_handle, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	starpu_insert_task(&check_content_cl, STARPU_R, v_handle, 0);
-        starpu_task_wait_for_all();
+        ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
+	ret = starpu_insert_task(&check_content_cl, STARPU_R, v_handle, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+
+        ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_data_unregister(v_handle);
+
 	starpu_shutdown();
 	return 0;
 }

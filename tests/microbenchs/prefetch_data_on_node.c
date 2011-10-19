@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../common/helper.h"
 
 #define N	1000
 
@@ -70,7 +71,10 @@ static starpu_codelet cl = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
@@ -84,7 +88,8 @@ int main(int argc, char **argv)
 		{
 			/* synchronous prefetch */
 			unsigned node = starpu_worker_get_memory_node(worker);
-			starpu_data_prefetch_on_node(v_handle, node, 0);
+			ret = starpu_data_prefetch_on_node(v_handle, node, 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_prefetch_on_node");
 
 			/* execute a task */
 			struct starpu_task *task = starpu_task_create();
@@ -107,7 +112,8 @@ int main(int argc, char **argv)
 		{
 			/* asynchronous prefetch */
 			unsigned node = starpu_worker_get_memory_node(worker);
-			starpu_data_prefetch_on_node(v_handle, node, 1);
+			ret = starpu_data_prefetch_on_node(v_handle, node, 1);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_prefetch_on_node");
 
 			/* execute a task */
 			struct starpu_task *task = starpu_task_create();
@@ -122,12 +128,13 @@ int main(int argc, char **argv)
 			task->synchronous = 0;
 
 			int ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-				goto enodev;
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
 		}
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_free(v);
 	starpu_shutdown();
@@ -139,5 +146,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

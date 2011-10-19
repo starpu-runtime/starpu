@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #ifdef STARPU_USE_CUDA
 static void memset_cuda(void *descr[], void *arg)
@@ -46,7 +47,7 @@ static struct starpu_perfmodel_t nl_model = {
 	.symbol = "non_linear_memset_regression_based"
 };
 
-static starpu_codelet memset_cl = 
+static starpu_codelet memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
@@ -57,7 +58,7 @@ static starpu_codelet memset_cl =
 	.nbuffers = 1
 };
 
-static starpu_codelet nl_memset_cl = 
+static starpu_codelet nl_memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
@@ -80,13 +81,13 @@ static void test_memset(int nelems, starpu_codelet *codelet)
 	for (loop = 0; loop < nloops; loop++)
 	{
 		struct starpu_task *task = starpu_task_create();
-	
+
 		task->cl = codelet;
 		task->buffers[0].handle = handle;
 		task->buffers[0].mode = STARPU_W;
-	
+
 		int ret = starpu_task_submit(task);
-		assert(!ret);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
         starpu_data_unregister(handle);
@@ -110,14 +111,15 @@ int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
 	starpu_data_handle handle;
-	struct starpu_task *task = starpu_task_create();
+	int ret;
 
 	starpu_conf_init(&conf);
 
 	conf.sched_policy_name = "eager";
 	conf.calibrate = 2;
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	int size;
 	for (size = 1024; size < 16777216; size *= 2)
@@ -129,7 +131,8 @@ int main(int argc, char **argv)
 		test_memset(size, &nl_memset_cl);
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	/* Now create a dummy task just to estimate its duration according to the regression */
 
@@ -137,6 +140,7 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
 
+	struct starpu_task *task = starpu_task_create();
 	task->cl = &memset_cl;
 	task->buffers[0].handle = handle;
 	task->buffers[0].mode = STARPU_W;

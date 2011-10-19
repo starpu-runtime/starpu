@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 /* number of philosophers */
 #define N	16
@@ -37,7 +38,7 @@ static starpu_codelet eating_cl = {
 	.nbuffers = 2
 };
 
-void submit_one_task(unsigned p)
+int submit_one_task(unsigned p)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -52,12 +53,15 @@ void submit_one_task(unsigned p)
 	task->buffers[1].mode = STARPU_RW;
 
 	int ret = starpu_task_submit(task);
-	STARPU_ASSERT(!ret);
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize the forks */
 	unsigned f;
@@ -75,10 +79,13 @@ int main(int argc, char **argv)
 	{
 		/* select one philosopher randomly */
 		unsigned philosopher = rand() % N;
-		submit_one_task(philosopher);
+		ret = submit_one_task(philosopher);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	FPRINTF(stderr, "waiting done\n");
 	for (f = 0; f < N; f++)
@@ -89,4 +96,15 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	for (f = 0; f < N; f++)
+	{
+		starpu_data_unregister(fork_handles[f]);
+	}
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

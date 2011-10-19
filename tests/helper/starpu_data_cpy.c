@@ -15,13 +15,17 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 int var1, var2;
 starpu_data_handle var1_handle, var2_handle;
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	var1 = 42;
 	var2 = 0;
@@ -29,7 +33,8 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&var1_handle, 0, (uintptr_t)&var1, sizeof(var1));
 	starpu_variable_data_register(&var2_handle, 0, (uintptr_t)&var2, sizeof(var2));
 
-	starpu_data_cpy(var2_handle, var1_handle, 0, NULL, NULL);
+	ret = starpu_data_cpy(var2_handle, var1_handle, 0, NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_cpy");
 
 	starpu_data_acquire(var2_handle, STARPU_R);
 	STARPU_ASSERT(var2 == 42);

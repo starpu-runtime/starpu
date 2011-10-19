@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../common/helper.h"
 
 starpu_data_handle void_handle;
 
@@ -48,7 +49,8 @@ int main(int argc, char **argv)
 	ntasks /= 10;
 #endif
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	critical_var = 0;
 
@@ -62,10 +64,10 @@ int main(int argc, char **argv)
 			task->cl = &cl;
 			task->buffers[0].handle = void_handle;
 			task->buffers[0].mode = STARPU_RW;
-	
+
 		ret = starpu_task_submit(task);
-		if (ret == -ENODEV)
-			goto enodev;
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_data_unregister(void_handle);
@@ -80,5 +82,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

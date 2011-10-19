@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -27,7 +28,7 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static starpu_codelet dummy_codelet = 
+static starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = dummy_func,
@@ -76,24 +77,27 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	FPRINTF(stderr, "{ A } -> { B }\n");
 	fflush(stderr);
 
 	struct starpu_task *taskA, *taskB;
-	
+
 	taskA = create_dummy_task(tagA);
 	taskB = create_dummy_task(tagB);
 
 	/* B depends on A */
 	starpu_tag_declare_deps(tagB, 1, tagA);
 
-	starpu_task_submit(taskB);
-	starpu_task_submit(taskA);
+	ret = starpu_task_submit(taskB); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskA); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
 
-	starpu_tag_wait(tagB);
-	
+	ret = starpu_tag_wait(tagB); STARPU_CHECK_RETURN_VALUE(ret, "starpu_wait");
+
 	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
 
 	struct starpu_task *taskC, *taskD, *taskE, *taskF, *taskG;
@@ -107,16 +111,16 @@ int main(int argc, char **argv)
 	/* NB: we could have used starpu_tag_declare_deps_array instead */
 	starpu_tag_declare_deps(tagG, 4, tagC, tagD, tagE, tagF);
 
-	starpu_task_submit(taskC);
-	starpu_task_submit(taskD);
-	starpu_task_submit(taskG);
-	starpu_task_submit(taskE);
-	starpu_task_submit(taskF);
+	ret = starpu_task_submit(taskC); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskD); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskG); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskE); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskF); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
 
-	starpu_tag_wait(tagG);
+	ret = starpu_tag_wait(tagG); STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 
 	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
-	
+
 	struct starpu_task *taskH, *taskI, *taskJ, *taskK, *taskL;
 
 	taskH = create_dummy_task(tagH);
@@ -131,13 +135,13 @@ int main(int argc, char **argv)
 
 	starpu_tag_t tagJKL[3] = {tagJ, tagK, tagL};
 
-	starpu_task_submit(taskH);
-	starpu_task_submit(taskI);
-	starpu_task_submit(taskJ);
-	starpu_task_submit(taskK);
-	starpu_task_submit(taskL);
+	ret = starpu_task_submit(taskH); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskI); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskJ); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskK); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+	ret = starpu_task_submit(taskL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
 
-	starpu_tag_wait_array(3, tagJKL);
+	ret = starpu_tag_wait_array(3, tagJKL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait_array");
 
 	starpu_shutdown();
 
