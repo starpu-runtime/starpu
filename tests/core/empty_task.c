@@ -21,6 +21,8 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include "../common/helper.h"
+
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned ntasks = 65536;
@@ -47,13 +49,15 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int ret;
 	double timing;
 	struct timeval start;
 	struct timeval end;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
@@ -68,11 +72,13 @@ int main(int argc, char **argv)
 
 		task->detach = 0;
 		task->destroy = 1;
-		
-		int ret = starpu_task_submit(task);
-		STARPU_ASSERT(!ret);
 
-		starpu_task_wait(task);
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		ret = starpu_task_wait(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	}
 
 	gettimeofday(&end, NULL);
@@ -85,4 +91,11 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

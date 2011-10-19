@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define NLOOPS	128
 
@@ -60,10 +61,11 @@ static struct starpu_task *create_dummy_task(void)
 
 int main(int argc, char **argv)
 {
-	//	int ret;
+	int ret;
 	unsigned loop;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	struct starpu_task *taskA, *taskB;
 
@@ -75,12 +77,22 @@ int main(int argc, char **argv)
 		taskA->callback_func = callback;
 		taskA->callback_arg = taskB;
 
-		starpu_task_submit(taskA);
+		ret = starpu_task_submit(taskA);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

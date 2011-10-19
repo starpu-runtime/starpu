@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -58,10 +59,12 @@ int main(int argc, char **argv)
 	double timing;
 	struct timeval start;
 	struct timeval end;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	struct starpu_task task;
 
@@ -76,8 +79,12 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < ntasks; i++)
 	{
-		starpu_task_submit(&task);
+		ret = starpu_task_submit(&task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 		starpu_task_wait(&task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	}
 
 	gettimeofday(&end, NULL);
@@ -91,4 +98,11 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

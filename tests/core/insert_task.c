@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -44,7 +45,8 @@ int main(int argc, char **argv)
 	float ffactor=10.0;
         starpu_data_handle data_handles[2];
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	x = 1;
 	starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x, sizeof(x));
@@ -59,11 +61,14 @@ int main(int argc, char **argv)
 				 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
 				 0);
 	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-        starpu_task_wait_for_all();
+        ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
         for(i=0 ; i<2 ; i++) {
-                starpu_data_acquire(data_handles[i], STARPU_R);
+                ret = starpu_data_acquire(data_handles[i], STARPU_R);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
         }
         FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
@@ -88,7 +93,8 @@ int main(int argc, char **argv)
 	starpu_task_submit(task);
         starpu_task_wait_for_all();
         for(i=0 ; i<2 ; i++) {
-                starpu_data_acquire(data_handles[i], STARPU_R);
+                ret = starpu_data_acquire(data_handles[i], STARPU_R);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
         }
         FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
@@ -97,6 +103,7 @@ int main(int argc, char **argv)
 	return 0;
 
 enodev:
+	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

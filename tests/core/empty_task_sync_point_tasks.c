@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,12 +16,13 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 
-static starpu_codelet dummy_codelet = 
+static starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = dummy_func,
@@ -33,15 +34,18 @@ static starpu_codelet dummy_codelet =
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* {A,B,C} -> D -> {E,F}, D is empty */
 	struct starpu_task *taskA = starpu_task_create();
 	taskA->cl = &dummy_codelet;
-	
+
 	struct starpu_task *taskB = starpu_task_create();
 	taskB->cl = &dummy_codelet;
-	
+
 	struct starpu_task *taskC = starpu_task_create();
 	taskC->cl = &dummy_codelet;
 
@@ -59,14 +63,15 @@ int main(int argc, char **argv)
 	starpu_task_declare_deps_array(taskE, 1, &taskD);
 	starpu_task_declare_deps_array(taskF, 1, &taskD);
 
-	starpu_task_submit(taskA);
-	starpu_task_submit(taskB);
-	starpu_task_submit(taskC);
-	starpu_task_submit(taskD);
-	starpu_task_submit(taskE);
-	starpu_task_submit(taskF);
+	ret = starpu_task_submit(taskA); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskB); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskC); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskD); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskE); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(taskF); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_shutdown();
 

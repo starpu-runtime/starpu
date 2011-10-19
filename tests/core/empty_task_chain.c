@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define N	4
 
@@ -23,7 +24,8 @@ int main(int argc, char **argv)
 {
 	int i, ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	struct starpu_task **tasks = (struct starpu_task **) malloc(N*sizeof(struct starpu_task *));
 
@@ -36,7 +38,8 @@ int main(int argc, char **argv)
 		{
 			starpu_task_declare_deps_array(tasks[i], 1, &tasks[i-1]);
 			ret = starpu_task_submit(tasks[i]);
-			STARPU_ASSERT(!ret);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		if (i == (N-1))
@@ -44,12 +47,21 @@ int main(int argc, char **argv)
 	}
 
 	ret = starpu_task_submit(tasks[0]);
-	STARPU_ASSERT(!ret);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait(tasks[N-1]);
+	ret = starpu_task_wait(tasks[N-1]);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	starpu_shutdown();
 	free(tasks);
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

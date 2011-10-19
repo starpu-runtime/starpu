@@ -19,6 +19,8 @@
 #include <starpu.h>
 #include <pthread.h>
 
+#include "../common/helper.h"
+
 static unsigned niter = 16384;
 
 /*
@@ -48,7 +50,7 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 	STARPU_ATOMIC_ADD(&check_cnt, 1);
 }
 
-static starpu_codelet dummy_codelet = 
+static starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = dummy_func,
@@ -84,8 +86,10 @@ int main(int argc, char **argv)
 //	double timing;
 //	struct timeval start;
 //	struct timeval end;
+	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;
@@ -111,10 +115,10 @@ int main(int argc, char **argv)
 	struct starpu_task *depsD_array[2] = {&taskB, &taskC};
 	starpu_task_declare_deps_array(&taskD, 2, depsD_array);
 
-	starpu_task_submit(&taskA);
-	starpu_task_submit(&taskB);
-	starpu_task_submit(&taskC);
-	starpu_task_submit(&taskD);
+	ret = starpu_task_submit(&taskA); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(&taskB); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(&taskC); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(&taskD); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* Wait for the termination of all loops */
 	pthread_mutex_lock(&mutex);
@@ -123,15 +127,21 @@ int main(int argc, char **argv)
 	pthread_mutex_unlock(&mutex);
 
 	STARPU_ASSERT(check_cnt == (4*loop_cnt));
-	
+
 	/* Cleanup the statically allocated tasks */
 	starpu_task_deinit(&taskA);
 	starpu_task_deinit(&taskB);
 	starpu_task_deinit(&taskC);
 	starpu_task_deinit(&taskD);
 
-
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

@@ -22,6 +22,8 @@
 #include <starpu.h>
 #include <stdlib.h>
 
+#include "../common/helper.h"
+
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #define N	10
@@ -35,13 +37,15 @@ int main(int argc, char **argv)
 
 	double init_timing = 0.0;
 	double shutdown_timing = 0.0;
+	int ret;
 
 	for (iter = 0; iter < N; iter++)
 	{
 		gettimeofday(&start, NULL);
 		/* Initialize StarPU */
-		starpu_init(NULL);
+		ret = starpu_init(NULL);
 		gettimeofday(&end, NULL);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 		init_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 		gettimeofday(&start, NULL);

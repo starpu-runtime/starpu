@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -57,7 +58,7 @@ static void init_gordon_kernel(void)
 #endif
 }
 
-static void inject_one_task(void)
+static int inject_one_task(void)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -67,7 +68,7 @@ static void inject_one_task(void)
 	task->callback_arg = NULL;
 
 	int ret = starpu_task_submit(task);
-	STARPU_ASSERT(!ret);
+	return ret;
 }
 
 static struct starpu_conf conf = {
@@ -111,6 +112,7 @@ int main(int argc, char **argv)
 	double timing;
 	struct timeval start;
 	struct timeval end;
+	int ret;
 
 	parse_args(argc, argv);
 
@@ -118,7 +120,8 @@ int main(int argc, char **argv)
 	ntasks /= 10;
 #endif
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	init_gordon_kernel();
 
@@ -127,10 +130,13 @@ int main(int argc, char **argv)
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)
 	{
-		inject_one_task();
+		ret = inject_one_task();
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	gettimeofday(&end, NULL);
 
@@ -142,4 +148,11 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }

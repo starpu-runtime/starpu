@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
@@ -48,11 +49,10 @@ static struct starpu_codelet_t dummy_cl = {
 
 int main(int argc, char **argv)
 {
-//	double timing;
-//	struct timeval start;
-//	struct timeval end;
+	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_SLOW_MACHINE
 	ntasks /= 10;
@@ -73,12 +73,14 @@ int main(int argc, char **argv)
 		task->callback_func = check_task_callback;
 		task->callback_arg = task;
 
-		int ret = starpu_task_submit(task);
-		STARPU_ASSERT(!ret);
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
-	
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
 	FPRINTF(stderr, "#empty tasks : %u\n", ntasks);
 
 	/* We repeat the same experiment with null codelets */
@@ -94,12 +96,21 @@ int main(int argc, char **argv)
 		task->callback_arg = task;
 
 		int ret = starpu_task_submit(task);
-		STARPU_ASSERT(!ret);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return 77;
 }
