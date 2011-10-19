@@ -275,8 +275,8 @@ void *_starpu_cuda_worker(void *arg)
 	struct starpu_task *task;
 	int res;
 
-	pthread_cond_t *sched_cond = args->sched_cond;
-	pthread_mutex_t *sched_mutex = args->sched_mutex;
+	pthread_cond_t *sched_cond = &args->sched_cond;
+	pthread_mutex_t *sched_mutex = &args->sched_mutex;
 
 	while (_starpu_machine_is_running())
 	{

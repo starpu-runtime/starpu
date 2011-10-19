@@ -69,8 +69,8 @@ struct starpu_worker_s {
 	int worker_size; /* size of the worker in case we use a combined worker */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
-	pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
-	pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
+	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
+	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_worker_set_s *set; /* in case this worker belongs to a set */
 	struct starpu_job_list_s *terminated_jobs; /* list of pending jobs which were executed */
@@ -225,4 +225,5 @@ unsigned _starpu_execute_registered_progression_hooks(void);
 
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
 struct starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
+
 #endif // __WORKERS_H__

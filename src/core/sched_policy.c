@@ -205,7 +205,7 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config, struct st
 	sched_ctx->sched_policy->init_sched(sched_ctx->id);
 }
 
-void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config, struct starpu_sched_ctx *sched_ctx)
+void _starpu_deinit_sched_policy(struct starpu_sched_ctx *sched_ctx)
 {
         struct starpu_sched_policy_s *policy = sched_ctx->sched_policy;
 	if (policy->deinit_sched)
@@ -334,10 +334,10 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 	if (profiling)
 		starpu_clock_gettime(&pop_start_time);
 	
-	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
-	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 	
 	
 	/* get tasks from the stacks of the strategy */
@@ -359,8 +359,8 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 					PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
 					if (sched_ctx->sched_policy->pop_task)
 					{
-						PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
 						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+						PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
 						break;
 					}
 					PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
@@ -431,18 +431,18 @@ void _starpu_wait_on_sched_event(void)
 {
  	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
-	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
 	if (_starpu_machine_is_running())
 	{
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-		pthread_cond_wait(worker->sched_cond, worker->sched_mutex);
+		pthread_cond_wait(&worker->sched_cond, &worker->sched_mutex);
 #endif
 	}
 
-	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so

@@ -19,6 +19,7 @@
 /* Policy attributing tasks randomly to workers */
 
 #include <core/workers.h>
+#include <core/sched_ctx.h>
 #include <sched_policies/fifo_queues.h>
 
 static int _random_push_task(struct starpu_task *task, unsigned prio, struct starpu_sched_ctx *sched_ctx)
@@ -46,7 +47,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio, struct sta
 	double alpha = 0.0;
 	for (worker_ctx = 0; worker_ctx < nworkers; worker_ctx++)
 	{
-        worker = sched_ctx->workerids[worker_ctx];
+		worker = sched_ctx->workerids[worker_ctx];
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
@@ -74,25 +75,18 @@ static int random_push_task(struct starpu_task *task, unsigned sched_ctx_id)
     return _random_push_task(task, 0, sched_ctx);
 }
 
-static void initialize_random_policy_for_workers(unsigned sched_ctx_id, unsigned nnew_workers) 
+static void initialize_random_policy_for_workers(unsigned sched_ctx_id, int *workerids, unsigned nnew_workers) 
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-	unsigned nworkers_ctx = sched_ctx->nworkers;
-
-	struct starpu_machine_config_s *config = (struct starpu_machine_config_s *)_starpu_get_machine_config();
-	unsigned ntotal_workers = config->topology.nworkers;
-
-	unsigned all_workers = nnew_workers == ntotal_workers ? ntotal_workers : nworkers_ctx + nnew_workers;
-
-	unsigned workerid_ctx;
+	unsigned i;
 	int workerid;
-	for (workerid_ctx = nworkers_ctx; workerid_ctx < all_workers; workerid_ctx++)
+	for (i = 0; i < nnew_workers; i++)
 	{
-		workerid = sched_ctx->workerids[workerid_ctx];
+		workerid = sched_ctx->workerids[i];
 		struct starpu_worker_s *workerarg = _starpu_get_worker_struct(workerid);
-		sched_ctx->sched_mutex[workerid_ctx] = workerarg->sched_mutex;
-		sched_ctx->sched_cond[workerid_ctx] = workerarg->sched_cond;
+		sched_ctx->sched_mutex[workerid] = &workerarg->sched_mutex;
+		sched_ctx->sched_cond[workerid] = &workerarg->sched_cond;
 	}
 }
 
@@ -110,8 +104,8 @@ static void initialize_random_policy(unsigned sched_ctx_id)
 	{
 		workerid = sched_ctx->workerids[workerid_ctx];
 		struct starpu_worker_s *workerarg = _starpu_get_worker_struct(workerid);
-		sched_ctx->sched_mutex[workerid_ctx] = workerarg->sched_mutex;
-		sched_ctx->sched_cond[workerid_ctx] = workerarg->sched_cond;
+		sched_ctx->sched_mutex[workerid] = &workerarg->sched_mutex;
+		sched_ctx->sched_cond[workerid] = &workerarg->sched_cond;
 	}
 }
 

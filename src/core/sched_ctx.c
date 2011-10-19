@@ -332,12 +332,16 @@ void _starpu_delete_all_sched_ctxs()
 {
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	  {
+	{
 		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(i);
-		_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
-			free_sched_ctx_mem(sched_ctx);
-	  }
+		{
+			_starpu_deinit_sched_policy(sched_ctx);		
+			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
+			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+				free_sched_ctx_mem(sched_ctx);
+		}
+	}
 	return;
 }
 
@@ -598,10 +602,9 @@ pthread_cond_t *_starpu_get_sched_cond(struct starpu_sched_ctx *sched_ctx, int w
 	return sched_ctx->sched_cond[workerid];
 }
 
-int* starpu_get_workers_of_ctx(unsigned sched_ctx_id, int *nworkers)
+int* starpu_get_workers_of_ctx(unsigned sched_ctx_id)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	*nworkers = sched_ctx->nworkers;
 	return sched_ctx->workerids;
 }
 
@@ -623,5 +626,52 @@ unsigned _starpu_get_nsched_ctxs()
 	return config->topology.nsched_ctxs;
 }
 
+unsigned starpu_get_nworkers_of_ctx(unsigned sched_ctx_id)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->nworkers;
+}
 
+void starpu_set_sched_ctx_policy_data(unsigned sched_ctx_id, void* policy_data)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->policy_data = policy_data;
+}
 
+void* starpu_get_sched_ctx_policy_data(unsigned sched_ctx_id)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->policy_data;
+}
+
+void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->sched_mutex[workerid] = sched_mutex;
+	sched_ctx->sched_cond[workerid] = sched_cond;
+}
+
+void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	*sched_mutex = sched_ctx->sched_mutex[workerid];
+	*sched_cond = sched_ctx->sched_cond[workerid];
+}
+
+void starpu_worker_init_sched_condition(unsigned sched_ctx_id, int workerid)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->sched_mutex[workerid] = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+	sched_ctx->sched_cond[workerid] = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
+	PTHREAD_MUTEX_INIT(sched_ctx->sched_mutex[workerid], NULL);
+	PTHREAD_COND_INIT(sched_ctx->sched_cond[workerid], NULL);
+}
+
+void starpu_worker_deinit_sched_condition(unsigned sched_ctx_id, int workerid)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	PTHREAD_MUTEX_DESTROY(sched_ctx->sched_mutex[workerid]);
+	PTHREAD_COND_DESTROY(sched_ctx->sched_cond[workerid]);
+	free(sched_ctx->sched_mutex[workerid]);
+	free(sched_ctx->sched_cond[workerid]);
+}

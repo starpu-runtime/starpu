@@ -151,8 +151,8 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
 
-	printf("%2.2f %2.2f ", rv[0].flops);
-	printf("%2.2f %2.2f %2.2f\n", rv[0].avg_timing, timing);
+	printf("%2.2f ", rv[0].flops);
+	printf("%2.2f %2.2f\n", rv[0].avg_timing, timing);
 }
 
 void start_2ndbench(void (*bench)(unsigned, unsigned))
@@ -175,8 +175,8 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
 
-	printf("%2.2f %2.2f ", rv[1].flops);
-	printf("%2.2f %2.2f %2.2f\n", rv[1].avg_timing, timing);
+	printf("%2.2f ", rv[1].flops);
+	printf("%2.2f %2.2f\n", rv[1].avg_timing, timing);
 }
 
 void construct_contexts(void (*bench)(unsigned, unsigned))

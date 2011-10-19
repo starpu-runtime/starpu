@@ -124,21 +124,21 @@ void starpu_add_workers_to_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsig
 
 void starpu_remove_workers_from_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
 
-int* starpu_get_workers_of_ctx(unsigned sched_ctx, int *nworkers);
+int* starpu_get_workers_of_ctx(unsigned sched_ctx);
 
-void starpu_require_resize(unsigned sched_ctx, int *workers_to_be_moved, unsigned nworkers_to_be_moved);
+unsigned starpu_get_nworkers_of_ctx(unsigned sched_ctx);
 
+void starpu_set_sched_ctx_policy_data(unsigned sched_ctx, void* policy_data);
 
-/* When there is no available task for a worker, StarPU blocks this worker on a
-condition variable. This function specifies which condition variable (and the
-associated mutex) should be used to block (and to wake up) a worker. Note that
-multiple workers may use the same condition variable. For instance, in the case
-of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.  The initialization method of a
-scheduling strategy (init_sched) must call this function once per worker. */
-#if !defined(_MSC_VER)
-void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
-#endif
+void* starpu_get_sched_ctx_policy_data(unsigned sched_ctx);
+
+void starpu_worker_set_sched_condition(unsigned sched_ctx, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
+
+void starpu_worker_get_sched_condition(unsigned sched_ctx, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
+
+void starpu_worker_init_sched_condition(unsigned sched_ctx, int workerid);
+
+void starpu_worker_deinit_sched_condition(unsigned sched_ctx, int workerid);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);

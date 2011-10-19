@@ -128,8 +128,8 @@ void *_starpu_cpu_worker(void *arg)
 
 	int res;
 
-	pthread_cond_t *sched_cond = cpu_arg->sched_cond;
-	pthread_mutex_t *sched_mutex = cpu_arg->sched_mutex;
+	pthread_cond_t *sched_cond = &cpu_arg->sched_cond;
+	pthread_mutex_t *sched_mutex = &cpu_arg->sched_mutex;
 
 	while (_starpu_machine_is_running())
 	{

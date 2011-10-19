@@ -20,7 +20,7 @@
 #export STARPU_DIR=$HOME/sched_ctx/build
 
 #source sched.sh isole 0 0 0 
-source sched_no_ctxs.sh
+#source sched_no_ctxs.sh
 source sched_no_ctxs.sh 1stchole -chole1
 source sched_no_ctxs.sh 2ndchole -chole2
  

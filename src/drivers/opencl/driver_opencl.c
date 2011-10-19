@@ -425,8 +425,8 @@ void *_starpu_opencl_worker(void *arg)
 	struct starpu_task *task;
 	int res;
 
-	pthread_cond_t *sched_cond = args->sched_cond;
-        pthread_mutex_t *sched_mutex = args->sched_mutex;
+	pthread_cond_t *sched_cond = &args->sched_cond;
+        pthread_mutex_t *sched_mutex = &args->sched_mutex;
 
 	while (_starpu_machine_is_running())
 	{
@@ -447,7 +447,7 @@ void *_starpu_opencl_worker(void *arg)
 			continue;
 		};
 
-		PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+		PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);

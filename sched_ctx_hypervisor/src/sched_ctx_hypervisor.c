@@ -106,8 +106,9 @@ static int compute_priority_per_sched_ctx(unsigned sched_ctx)
 	int i;
 	int total_priority = 0;
 
-	int nworkers_ctx = 0;
-	int *workers = starpu_get_workers_of_ctx(sched_ctx, &nworkers_ctx);
+	int nworkers_ctx = starpu_get_nworkers_of_ctx(sched_ctx);
+	int *workers = starpu_get_workers_of_ctx(sched_ctx);
+
 	sched_ctx_wrapper->current_nprocs = nworkers_ctx;
 
 	for(i = 0; i < sched_ctx_wrapper->current_nprocs; i++)
@@ -140,8 +141,8 @@ static struct sched_ctx_wrapper* find_highest_priority_sched_ctx(unsigned sched_
 
 static int* sort_workers_by_priority(unsigned sched_ctx, int worker)
 {
-	int nworkers_ctx = 0;
-	int *workers = starpu_get_workers_of_ctx(sched_ctx, &nworkers_ctx);
+	int nworkers_ctx = starpu_get_nworkers_of_ctx(sched_ctx);
+	int *workers = starpu_get_workers_of_ctx(sched_ctx);
 	
 	struct sched_ctx_wrapper *sched_ctx_wrapper = &hypervisor.sched_ctx_wrapper[sched_ctx];
 	sched_ctx_wrapper->current_nprocs = nworkers_ctx;

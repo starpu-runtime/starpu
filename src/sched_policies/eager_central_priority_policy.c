@@ -41,6 +41,12 @@ struct starpu_priority_taskq_s {
 	unsigned total_ntasks;
 };
 
+typedef struct eager_central_prio_data{
+	struct starpu_priority_taskq_s *taskq;
+	pthread_mutex_t sched_mutex;
+	pthread_cond_t sched_cond;
+} eager_central_prio_data;
+
 /*
  * Centralized queue with priorities 
  */
@@ -67,21 +73,20 @@ static void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *prior
 	free(priority_queue);
 }
 
-static void initialize_eager_center_priority_policy_for_workers(unsigned sched_ctx_id, unsigned nnew_workers) 
+static void initialize_eager_center_priority_policy_for_workers(unsigned sched_ctx_id, int *workerids, unsigned nnew_workers) 
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct eager_central_prio_data *data = (struct eager_central_prio_data*)sched_ctx->policy_data;
+
 	unsigned nworkers_ctx = sched_ctx->nworkers;
 
-	struct starpu_machine_config_s *config = (struct starpu_machine_config_s *)_starpu_get_machine_config();
-	unsigned ntotal_workers = config->topology.nworkers;
-
-	unsigned all_workers = nnew_workers == ntotal_workers ? ntotal_workers : nworkers_ctx + nnew_workers;
-
-	unsigned workerid_ctx;
-	for (workerid_ctx = nworkers_ctx; workerid_ctx < all_workers; workerid_ctx++)
+	unsigned i;
+	int workerid;
+	for (i = 0; i < nnew_workers; i++)
 	{
-		sched_ctx->sched_mutex[workerid_ctx] = sched_ctx->sched_mutex[0];
-		sched_ctx->sched_cond[workerid_ctx] = sched_ctx->sched_cond[0];
+		workerid = workerids[i];
+		sched_ctx->sched_mutex[workerid] = &data->sched_mutex;
+		sched_ctx->sched_cond[workerid] = &data->sched_cond;
 	}
 
 }
@@ -89,27 +94,27 @@ static void initialize_eager_center_priority_policy_for_workers(unsigned sched_c
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id) 
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct eager_central_prio_data *data = (struct eager_central_prio_data*)malloc(sizeof(struct eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
 	starpu_sched_set_min_priority(MIN_LEVEL);
 	starpu_sched_set_max_priority(MAX_LEVEL);
 
 	/* only a single queue (even though there are several internaly) */
-	struct starpu_priority_taskq_s *taskq = _starpu_create_priority_taskq();
-	sched_ctx->policy_data = (void*) taskq;
+	data->taskq = _starpu_create_priority_taskq();
+	sched_ctx->policy_data = (void*) data;
 
-	pthread_cond_t *global_sched_cond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
-	pthread_mutex_t *global_sched_mutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
-
-	PTHREAD_MUTEX_INIT(global_sched_mutex, NULL);
-	PTHREAD_COND_INIT(global_sched_cond, NULL);
+	PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
+	PTHREAD_COND_INIT(&data->sched_cond, NULL);
 
 	int nworkers = sched_ctx->nworkers;
 	int workerid_ctx;
+	int workerid;
 	for (workerid_ctx = 0; workerid_ctx < nworkers; workerid_ctx++)
 	{
-		sched_ctx->sched_mutex[workerid_ctx] = global_sched_mutex;
-		sched_ctx->sched_cond[workerid_ctx] = global_sched_cond;
+		workerid = sched_ctx->workerids[workerid_ctx];
+		sched_ctx->sched_mutex[workerid] = &data->sched_mutex;
+		sched_ctx->sched_cond[workerid] = &data->sched_cond;
 	}
 }
 
@@ -117,26 +122,37 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
 	/* TODO check that there is no task left in the queue */
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	struct starpu_priority_taskq_s *taskq = (struct starpu_priority_taskq_s*)sched_ctx->policy_data;
+	struct eager_central_prio_data *data = (struct eager_central_prio_data*)sched_ctx->policy_data;
 
 	/* deallocate the task queue */
-	_starpu_destroy_priority_taskq(taskq);
+	_starpu_destroy_priority_taskq(data->taskq);
 
-	PTHREAD_MUTEX_DESTROY(sched_ctx->sched_mutex[0]);
-        PTHREAD_COND_DESTROY(sched_ctx->sched_cond[0]);
-        free(sched_ctx->sched_mutex[0]);
-        free(sched_ctx->sched_cond[0]);
+	PTHREAD_MUTEX_DESTROY(&data->sched_mutex);
+        PTHREAD_COND_DESTROY(&data->sched_cond);
 
-        free(taskq);
+        free(data);
+
+	unsigned nworkers_ctx = sched_ctx->nworkers;
+	int workerid;
+	unsigned workerid_ctx;
+	for (workerid_ctx = 0; workerid_ctx < nworkers_ctx; workerid_ctx++)
+	{
+		workerid = sched_ctx->workerids[workerid_ctx];
+		sched_ctx->sched_mutex[workerid] = NULL;
+		sched_ctx->sched_cond[workerid] = NULL;
+	}
+	
 }
 
 static int _starpu_priority_push_task(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	struct starpu_priority_taskq_s *taskq = (struct starpu_priority_taskq_s*)sched_ctx->policy_data;
+	struct eager_central_prio_data *data = (struct eager_central_prio_data*)sched_ctx->policy_data;
+
+	struct starpu_priority_taskq_s *taskq = data->taskq;
 
 	/* wake people waiting for a task */
-	PTHREAD_MUTEX_LOCK(sched_ctx->sched_mutex[0]);
+	PTHREAD_MUTEX_LOCK(&data->sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 1);
 	
@@ -146,8 +162,8 @@ static int _starpu_priority_push_task(struct starpu_task *task, unsigned sched_c
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 
-	PTHREAD_COND_SIGNAL(sched_ctx->sched_cond[0]);
-	PTHREAD_MUTEX_UNLOCK(sched_ctx->sched_mutex[0]);
+	PTHREAD_COND_SIGNAL(&data->sched_cond);
+	PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
 
 	return 0;
 }
@@ -157,18 +173,20 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	struct starpu_task *task = NULL;
 
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	struct starpu_priority_taskq_s *taskq = (struct starpu_priority_taskq_s*)sched_ctx->policy_data;
+	struct eager_central_prio_data *data = (struct eager_central_prio_data*)sched_ctx->policy_data;
+	
+	struct starpu_priority_taskq_s *taskq = data->taskq;
 
 	/* block until some event happens */
-	PTHREAD_MUTEX_LOCK(sched_ctx->sched_mutex[0]);
+	PTHREAD_MUTEX_LOCK(&data->sched_mutex);
 
 	if ((taskq->total_ntasks == 0) && _starpu_machine_is_running())
 	{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		PTHREAD_MUTEX_UNLOCK(sched_ctx->sched_mutex[0]);
+		PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
 		return NULL;
 #else
-		PTHREAD_COND_WAIT(sched_ctx->sched_cond[0], sched_ctx->sched_mutex[0]);
+		PTHREAD_COND_WAIT(&data->sched_cond, &data->sched_mutex);
 #endif
 	}
 
@@ -186,7 +204,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		} while (!task && priolevel-- > 0);
 	}
 
-	PTHREAD_MUTEX_UNLOCK(sched_ctx->sched_mutex[0]);
+	PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
 
 	return task;
 }

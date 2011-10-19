@@ -29,7 +29,7 @@ struct starpu_sched_policy_s *_starpu_get_sched_policy( struct starpu_sched_ctx 
 void _starpu_init_sched_policy(struct starpu_machine_config_s *config, 
 			       struct starpu_sched_ctx *sched_ctx, const char *policy_name);
 
-void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config, struct starpu_sched_ctx *sched_ctx);
+void _starpu_deinit_sched_policy(struct starpu_sched_ctx *sched_ctx);
 
 int _starpu_push_task(starpu_job_t task, unsigned job_is_already_locked);
 /* pop a task that can be executed on the worker */

@@ -36,9 +36,6 @@
 static pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
 
-static pthread_mutex_t local_list_sched_mutex[STARPU_NMAXWORKERS]; 
-static pthread_cond_t local_list_sched_cond[STARPU_NMAXWORKERS];
-
 static int init_count;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
@@ -150,8 +147,8 @@ static struct starpu_worker_set_s gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 {
-	pthread_cond_t *cond = workerarg->sched_cond;
-	pthread_mutex_t *mutex = workerarg->sched_mutex;
+	pthread_cond_t *cond = &workerarg->sched_cond;
+	pthread_mutex_t *mutex = &workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -186,10 +183,10 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 		/* mutex + cond only for the local list */
 		/* we have a single local list */
 		/* afterwards there would be a mutex + cond for the list of each strategy */
-		PTHREAD_MUTEX_INIT(&local_list_sched_mutex[worker], NULL);
-		PTHREAD_COND_INIT(&local_list_sched_cond[worker], NULL);
 
-		starpu_worker_set_sched_condition(worker, &local_list_sched_cond[worker], &local_list_sched_mutex[worker]);
+		PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+		PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
 		 * may be executed by another thread than that of the Gordon
@@ -736,12 +733,6 @@ starpu_worker_status _starpu_worker_get_status(int workerid)
 void _starpu_worker_set_status(int workerid, starpu_worker_status status)
 {
 	config.workers[workerid].status = status;
-}
-
-void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex)
-{
-	config.workers[workerid].sched_cond = sched_cond;
-	config.workers[workerid].sched_mutex = sched_mutex;
 }
 
 struct starpu_sched_ctx* _starpu_get_initial_sched_ctx(void){

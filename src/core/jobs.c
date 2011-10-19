@@ -237,12 +237,12 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 	else {
 		_starpu_decrement_nsubmitted_tasks();
 	}
+
 	if(workerid >= 0)
 	{
 		_starpu_decrement_nsubmitted_tasks_of_worker(workerid);
 		_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
-	}
-			
+	}			
 }
 
 /* This function is called when a new task is submitted to StarPU 
@@ -388,15 +388,15 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	if (back)
 		starpu_task_list_push_back(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
-	PTHREAD_COND_BROADCAST(worker->sched_cond);
-	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 	return 0;
 }

@@ -92,14 +92,11 @@ void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
 /* Return the corresponding index of the workerid in the ctx table */
 int _starpu_get_index_in_ctx_of_workerid(unsigned sched_ctx, unsigned workerid);
 
-/* Get the mutex corresponding to the global workerid */
-pthread_mutex_t *_starpu_get_sched_mutex(struct starpu_sched_ctx *sched_ctx, int worker);
-
-/* Get the cond corresponding to the global workerid */
-pthread_cond_t *_starpu_get_sched_cond(struct starpu_sched_ctx *sched_ctx, int worker);
-
 /* Get the total number of sched_ctxs created till now */
 unsigned _starpu_get_nsched_ctxs();
+
+/* Get the mutex corresponding to the global workerid */
+pthread_mutex_t *_starpu_get_sched_mutex(struct starpu_sched_ctx *sched_ctx, int worker);
 
 /* Treat add workers requests */
 void _starpu_actually_add_workers_to_sched_ctx(struct starpu_sched_ctx *sched_ctx);
