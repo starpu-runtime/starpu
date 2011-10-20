@@ -85,8 +85,8 @@ int main(int argc, char **argv)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-		starpu_tag_wait(tag);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
+		ret = starpu_tag_wait(tag);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	}
 
 	gettimeofday(&end, NULL);

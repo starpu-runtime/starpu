@@ -72,11 +72,13 @@ static void callback_task_D(void *arg __attribute__((unused)))
 		PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 	else {
+		int ret;
+
 		/* Let's go for another iteration */
-		starpu_task_submit(&taskA);
-		starpu_task_submit(&taskB);
-		starpu_task_submit(&taskC);
-		starpu_task_submit(&taskD);
+		ret = starpu_task_submit(&taskA); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		ret = starpu_task_submit(&taskB); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		ret = starpu_task_submit(&taskC); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		ret = starpu_task_submit(&taskD); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 }
 

@@ -45,7 +45,7 @@ static starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
-void inject_one_task(void)
+int inject_one_task(void)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -54,7 +54,9 @@ void inject_one_task(void)
 	task->callback_func = NULL;
 	task->synchronous = 1;
 
-	starpu_task_submit(task);
+	int ret;
+	ret = starpu_task_submit(task);
+	return ret;
 }
 
 static void parse_args(int argc, char **argv)

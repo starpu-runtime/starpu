@@ -93,7 +93,8 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(taskF); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_tag_t tag_array[2] = {tagE, tagF};
-	starpu_tag_wait_array(2, tag_array);
+	ret = starpu_tag_wait_array(2, tag_array);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait_array");
 
 	starpu_shutdown();
 

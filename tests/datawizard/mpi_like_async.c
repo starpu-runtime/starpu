@@ -249,6 +249,7 @@ static void *thread_func(void *arg)
 	unsigned iter;
 	struct thread_data *thread_data = (struct thread_data *) arg;
 	unsigned index = thread_data->index;
+	int ret;
 
 	starpu_variable_data_register(&thread_data->handle, 0, (uintptr_t)&thread_data->val, sizeof(unsigned));
 
@@ -274,7 +275,8 @@ static void *thread_func(void *arg)
 		}
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	return NULL;
 }

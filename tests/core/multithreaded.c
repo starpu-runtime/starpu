@@ -46,7 +46,8 @@ static starpu_codelet dummy_codelet =
 
 void *thread_func(void *arg __attribute__((unused)))
 {
-	int i;
+	int i, ret;
+
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -60,7 +61,8 @@ void *thread_func(void *arg __attribute__((unused)))
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	return NULL;
 }
