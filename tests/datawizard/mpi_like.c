@@ -88,22 +88,22 @@ static void increment_handle(struct thread_data *thread_data)
 static void recv_handle(struct thread_data *thread_data)
 {
 	starpu_data_acquire(thread_data->handle, STARPU_W);
-	pthread_mutex_lock(&thread_data->recv_mutex);
+	PTHREAD_MUTEX_LOCK(&thread_data->recv_mutex);
 
 	/* We wait for the previous thread to notify that the data is available */
 	while (!thread_data->recv_flag)
-		pthread_cond_wait(&thread_data->recv_cond, &thread_data->recv_mutex);
+		PTHREAD_COND_WAIT(&thread_data->recv_cond, &thread_data->recv_mutex);
 
 	/* We overwrite thread's data with the received value */
 	thread_data->val = thread_data->recv_buf;
 
 	/* Notify that we read the value */
 	thread_data->recv_flag = 0;
-	pthread_cond_signal(&thread_data->recv_cond);
+	PTHREAD_COND_SIGNAL(&thread_data->recv_cond);
 
 //	FPRINTF(stderr, "Thread %d received value %d from thread %d\n", thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
 
-	pthread_mutex_unlock(&thread_data->recv_mutex);
+	PTHREAD_MUTEX_UNLOCK(&thread_data->recv_mutex);
 	starpu_data_release(thread_data->handle);
 }
 
@@ -115,16 +115,16 @@ static void send_handle(struct thread_data *thread_data)
 
 //	FPRINTF(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
 	/* send the message */
-	pthread_mutex_lock(&neighbour_data->recv_mutex);
+	PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
 	neighbour_data->recv_buf = thread_data->val;
 	neighbour_data->recv_flag = 1;
-	pthread_cond_signal(&neighbour_data->recv_cond);
+	PTHREAD_COND_SIGNAL(&neighbour_data->recv_cond);
 
 	/* wait until it's received (ie. neighbour's recv_flag is set back to 0) */
 	while (neighbour_data->recv_flag)
-		pthread_cond_wait(&neighbour_data->recv_cond, &neighbour_data->recv_mutex);
+		PTHREAD_COND_WAIT(&neighbour_data->recv_cond, &neighbour_data->recv_mutex);
 	
-	pthread_mutex_unlock(&neighbour_data->recv_mutex);
+	PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
 
 	starpu_data_release(thread_data->handle);
 }
@@ -168,8 +168,8 @@ int main(int argc, char **argv)
 	{
 		problem_data[t].index = t;
 		problem_data[t].val = 0;
-		pthread_cond_init(&problem_data[t].recv_cond, NULL);
-		pthread_mutex_init(&problem_data[t].recv_mutex, NULL);
+		PTHREAD_COND_INIT(&problem_data[t].recv_cond, NULL);
+		PTHREAD_MUTEX_INIT(&problem_data[t].recv_mutex, NULL);
 		problem_data[t].recv_flag = 0;
 		problem_data[t].neighbour = &problem_data[(t+1)%NTHREADS];
 	}
