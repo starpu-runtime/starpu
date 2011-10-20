@@ -23,7 +23,7 @@
 #include <pthread.h>
 
 #include <starpu.h>
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#include "../common/helper.h"
 
 pthread_t threads[16];
 
@@ -94,10 +94,12 @@ int main(int argc, char **argv)
 	double timing;
 	struct timeval start;
 	struct timeval end;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_SLOW_MACHINE
 	ntasks /= 10;

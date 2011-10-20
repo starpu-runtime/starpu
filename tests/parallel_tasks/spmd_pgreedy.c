@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <limits.h>
 #include <unistd.h>
+#include "../common/helper.h"
 
 #define N	1000
 #define VECTORSIZE	1024
@@ -53,13 +54,17 @@ static starpu_codelet cl = {
 
 int main(int argc, char **argv)
 {
+	int ret;
+
         struct starpu_conf conf;
 	starpu_conf_init(&conf);
-        conf.sched_policy_name = "pgreedy",
+        conf.sched_policy_name = "pgreedy";
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
+	ret = starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;//, worker;

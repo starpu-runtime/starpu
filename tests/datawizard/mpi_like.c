@@ -18,10 +18,10 @@
 #include <starpu.h>
 #include <errno.h>
 #include <pthread.h>
+#include "../common/helper.h"
 
 #define NTHREADS	4
 #define NITER		128
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 //static pthread_cond_t cond;
 //static pthread_mutex_t mutex;
@@ -160,7 +160,8 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned t;
 	for (t = 0; t < NTHREADS; t++)

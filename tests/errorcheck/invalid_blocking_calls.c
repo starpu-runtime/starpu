@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define TAG	0x42
 
@@ -37,7 +38,7 @@ static void wrong_func(void *descr[], void *arg)
 		exit(-1);
 }
 
-static starpu_codelet wrong_codelet = 
+static starpu_codelet wrong_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = wrong_func,
@@ -64,7 +65,8 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* register a piece of data */
 	starpu_vector_data_register(&handle, 0, (uintptr_t)&data,
@@ -106,5 +108,6 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
 	return 77;
 }

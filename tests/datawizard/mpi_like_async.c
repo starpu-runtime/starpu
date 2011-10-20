@@ -17,10 +17,10 @@
 
 #include <starpu.h>
 #include <pthread.h>
+#include "../common/helper.h"
 
 #define NTHREADS	16
 #define NITER		128
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 //#define DEBUG_MESSAGES	1
 
@@ -284,7 +284,8 @@ int main(int argc, char **argv)
 	int ret;
 	void *retval;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Create a thread to perform blocking calls */
 	pthread_t progress_thread;

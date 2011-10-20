@@ -18,48 +18,50 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define NUM_THREADS 5
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 void *launch_starpu(void *id)
-{ 
-   starpu_init(NULL);
-   return NULL;
+{
+	int ret;
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	return NULL;
 }
 
 int main(int argc, char **argv)
-{ 
-  unsigned i;
-  double timing;
-  struct timeval start;
-  struct timeval end;
+{
+	unsigned i;
+	double timing;
+	struct timeval start;
+	struct timeval end;
 
-  pthread_t threads[NUM_THREADS];
-  
-  gettimeofday(&start, NULL);
+	pthread_t threads[NUM_THREADS];
 
-  for (i = 0; i < NUM_THREADS; ++i)
-    {
-      int ret = pthread_create(&threads[i], NULL, launch_starpu, NULL);
-      STARPU_ASSERT(ret == 0);
-    }
+	gettimeofday(&start, NULL);
 
-  for (i = 0; i < NUM_THREADS; ++i)
-    {
-      int ret = pthread_join(threads[i], NULL);
-      STARPU_ASSERT(ret == 0);
-    }
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		int ret = pthread_create(&threads[i], NULL, launch_starpu, NULL);
+		STARPU_ASSERT(ret == 0);
+	}
 
-  gettimeofday(&end, NULL);
+	for (i = 0; i < NUM_THREADS; ++i)
+	{
+		int ret = pthread_join(threads[i], NULL);
+		STARPU_ASSERT(ret == 0);
+	}
 
-  timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	gettimeofday(&end, NULL);
 
-  FPRINTF(stderr, "Success : %d threads launching simultaneously starpu_init\n", NUM_THREADS);
-  FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
-  FPRINTF(stderr, "Per task: %f usecs\n", timing/NUM_THREADS);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-  starpu_shutdown();
+	FPRINTF(stderr, "Success : %d threads launching simultaneously starpu_init\n", NUM_THREADS);
+	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
+	FPRINTF(stderr, "Per task: %f usecs\n", timing/NUM_THREADS);
 
-  return 0;
+	starpu_shutdown();
+
+	return 0;
 }
