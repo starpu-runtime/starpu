@@ -226,6 +226,7 @@ int main(int argc, char **argv)
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
+	starpu_task_wait_for_all();
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
