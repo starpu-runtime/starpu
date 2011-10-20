@@ -23,7 +23,7 @@
 //
 //#define STARPU_CHECK_MALLOC(ptr) {if (!ptr) { fprintf(stderr, "starpu_malloc failed\n"); return 1; }}
 //#define STARPU_CHECK_MALLOC_HAS_FAILED(ptr) {if (ptr) { fprintf(stderr, "starpu_malloc should have failed\n"); return 1; }}
-#define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { perror(message); return 1; }}
+#define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { perror(message); STARPU_ASSERT(0); }}
 #define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { perror(message); return 1; }}
 //
 //#define STARPU_CHECK_MALLOC_THREAD(ptr) {if (!ptr) { fprintf(stderr, "starpu_malloc failed\n"); return ALL_IS_NOT_OK; }}
