@@ -320,7 +320,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-debug (-O0)\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
 #endif
 #endif
 #if 0
@@ -329,22 +329,22 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 #endif
 #ifdef STARPU_MEMORY_STATUS
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-memory-status\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-memory-status, which slows down a bit\n");
 #endif
 #ifdef STARPU_VERBOSE
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-verbose\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --with-fxt\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --with-fxt, which slows down a bit\n");
 #endif
 #ifdef STARPU_PERF_DEBUG
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-perf-debug\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-perf-debug, which slows down a bit\n");
 #endif
 #ifdef STARPU_MODEL_DEBUG
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-model-debug\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
 #endif
 #ifdef STARPU_DATA_STATS
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-stats\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
 
 	PTHREAD_MUTEX_LOCK(&init_mutex);
