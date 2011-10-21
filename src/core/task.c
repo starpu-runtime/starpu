@@ -223,6 +223,8 @@ int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 /* application should submit new tasks to StarPU through this function */
 int starpu_task_submit(struct starpu_task *task)
 {
+	STARPU_ASSERT(task);
+
 	int ret;
 	unsigned is_sync = task->synchronous;
         _STARPU_LOG_IN();
@@ -239,7 +241,6 @@ int starpu_task_submit(struct starpu_task *task)
 		task->detach = 0;
 	}
 
-	STARPU_ASSERT(task);
 
 	if (task->cl)
 	{
