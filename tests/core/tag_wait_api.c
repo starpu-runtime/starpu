@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	FPRINTF(stderr, "{ A } -> { B }\n");
+	FPRINTF(stderr, "{ A } -> { B }\n");
 	fflush(stderr);
 
 	struct starpu_task *taskA, *taskB;
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_tag_wait(tagB); STARPU_CHECK_RETURN_VALUE(ret, "starpu_wait");
 
-	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
+	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
 
 	struct starpu_task *taskC, *taskD, *taskE, *taskF, *taskG;
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_tag_wait(tagG); STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 
-	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
+	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
 
 	struct starpu_task *taskH, *taskI, *taskJ, *taskK, *taskL;
 
