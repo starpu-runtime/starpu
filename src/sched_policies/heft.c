@@ -38,8 +38,8 @@ static double _gamma = STARPU_DEFAULT_GAMMA;
 static double idle_power = 0.0;
 
 static double exp_start[STARPU_NMAXWORKERS]; /* of the first queued task */
-static double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];   /* of the set of queued tasks */
-static double exp_len[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];   /* of the last queued task */
+static double exp_end[STARPU_NMAXWORKERS];   /* of the set of queued tasks */
+static double exp_len[STARPU_NMAXWORKERS];   /* of the last queued task */
 static double ntasks[STARPU_NMAXWORKERS];
 
 const float alpha_minimum=0;
@@ -88,8 +88,8 @@ static void heft_init(struct starpu_machine_topology_s *topology,
 	{
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
 			exp_start[workerid] = starpu_timing_now();
-			exp_len[workerid][nimpl] = 0.0;
-			exp_end[workerid][nimpl] = exp_start[workerid];
+			exp_len[workerid] = 0.0;
+			exp_end[workerid] = exp_start[workerid];
 		}
 		ntasks[workerid] = 0;
 
@@ -110,9 +110,9 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
 	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
-	exp_len[workerid][nimpl] -= model + transfer_model;
+	exp_len[workerid] -= model + transfer_model;
 	exp_start[workerid] = starpu_timing_now();
-	exp_end[workerid][nimpl] = exp_start[workerid] + exp_len[workerid][nimpl];
+	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
 	ntasks[workerid]--;
 	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
@@ -133,31 +133,31 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	exp_start[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
-	exp_end[workerid][nimpl] = exp_start[workerid] + exp_len[workerid][nimpl];
+	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
 
 	/* If there is no prediction available, we consider the task has a null length */
 	if (predicted != -1.0)
 	{
 		task->predicted = predicted;
-		exp_end[workerid][nimpl] += predicted;
-		exp_len[workerid][nimpl] += predicted;
+		exp_end[workerid] += predicted;
+		exp_len[workerid] += predicted;
 	}
 
 	/* If there is no prediction available, we consider the task has a null length */
 	if (predicted_transfer != -1.0)
 	{
-		if (starpu_timing_now() + predicted_transfer < exp_end[workerid][nimpl]) {
+		if (starpu_timing_now() + predicted_transfer < exp_end[workerid]) {
 			/* We may hope that the transfer will be finished by
 			 * the start of the task. */
 			predicted_transfer = 0;
 		} else {
 			/* The transfer will not be finished by then, take the
 			 * remainder into account */
-			predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[workerid][nimpl];
+			predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[workerid];
 		}
 		task->predicted_transfer = predicted_transfer;
-		exp_end[workerid][nimpl] += predicted_transfer;
-		exp_len[workerid][nimpl] += predicted_transfer;
+		exp_end[workerid] += predicted_transfer;
+		exp_len[workerid] += predicted_transfer;
 	}
 
 	ntasks[workerid]++;
@@ -179,22 +179,22 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	exp_start[best_workerid] = STARPU_MAX(exp_start[best_workerid], starpu_timing_now());
-	exp_end[best_workerid][nimpl] = exp_start[best_workerid] + exp_len[best_workerid][nimpl];
+	exp_end[best_workerid] = exp_start[best_workerid] + exp_len[best_workerid];
 
-	exp_end[best_workerid][nimpl] += predicted;
-	exp_len[best_workerid][nimpl] += predicted;
+	exp_end[best_workerid] += predicted;
+	exp_len[best_workerid] += predicted;
 
-	if (starpu_timing_now() + predicted_transfer < exp_end[best_workerid][nimpl]) {
+	if (starpu_timing_now() + predicted_transfer < exp_end[best_workerid]) {
 		/* We may hope that the transfer will be finished by
 		 * the start of the task. */
 		predicted_transfer = 0;
 	} else {
 		/* The transfer will not be finished by then, take the
 		 * remainder into account */
-		predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[best_workerid][nimpl];
+		predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[best_workerid];
 	}
-	exp_end[best_workerid][nimpl] += predicted_transfer;
-	exp_len[best_workerid][nimpl] += predicted_transfer;
+	exp_end[best_workerid] += predicted_transfer;
+	exp_len[best_workerid] += predicted_transfer;
 
 	ntasks[best_workerid]++;
 	PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
@@ -204,8 +204,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if (starpu_top_status_get())
 		starputop_task_prevision(task, best_workerid, 
-					(unsigned long long)(exp_end[best_workerid][nimpl]-predicted)/1000,
-					(unsigned long long)exp_end[best_workerid][nimpl]/1000);
+					(unsigned long long)(exp_end[best_workerid]-predicted)/1000,
+					(unsigned long long)exp_end[best_workerid]/1000);
 
 	if (starpu_get_prefetch_flag())
 	{
@@ -218,7 +218,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 static void compute_all_performance_predictions(struct starpu_task *task,
 					double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
-					double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
+					double *exp_end,
 					double *max_exp_endp,
 					double *best_exp_endp,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
@@ -244,9 +244,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) {
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
-			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker][nimpl];
-			if (exp_end[worker][nimpl] > max_exp_end)
-				max_exp_end = exp_end[worker][nimpl];
+			exp_end[worker] = exp_start[worker] + exp_len[worker];
+			if (exp_end[worker] > max_exp_end)
+				max_exp_end = exp_end[worker];
 
 			if (!starpu_worker_may_execute_task(worker, task, nimpl))
 			{
@@ -298,12 +298,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (unknown)
 				continue;
 
-			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker][nimpl] + local_task_length[worker][nimpl];
+			exp_end[worker] = exp_start[worker] + exp_len[worker] + local_task_length[worker][nimpl];
 
-			if (exp_end[worker][nimpl] < best_exp_end)
+			if (exp_end[worker] < best_exp_end)
 			{
 				/* a better solution was found */
-				best_exp_end = exp_end[worker][nimpl];
+				best_exp_end = exp_end[worker];
 				nimpls[worker] = nimpl;
 			}
 
