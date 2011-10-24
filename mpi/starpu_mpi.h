@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,10 @@
 
 #include <starpu.h>
 #include <mpi.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef void *starpu_mpi_req;
 
@@ -56,5 +60,9 @@ int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size,
 		starpu_data_handle *data_handle, int *source, int *mpi_tag,
 		MPI_Comm *comm, starpu_tag_t tag);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_MPI_H__

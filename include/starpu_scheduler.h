@@ -29,6 +29,10 @@
 #include <hwloc.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct starpu_task;
 
 struct starpu_machine_topology_s {
@@ -179,5 +183,9 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode);
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __STARPU_SCHEDULER_H__ */

@@ -25,6 +25,10 @@
 #  include <pthread.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct starpu_task_bundle_entry {
 	struct starpu_task *task;
 	struct starpu_task_bundle_entry *next;
@@ -77,5 +81,9 @@ double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle, enu
 double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle *bundle, unsigned memory_node);
 /* Return the expected power consumption of the entire task bundle in J. */
 double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enum starpu_perf_archtype arch, unsigned nimpl);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_TASK_BUNDLE_H__

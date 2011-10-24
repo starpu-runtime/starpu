@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,10 @@
 #define __STARPU_TASK_LIST_H__
 
 #include <starpu_task.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct starpu_task_list {
 	struct starpu_task *head;
@@ -51,4 +55,9 @@ struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list);
 /* Remove the element at the back of the list */
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list);
 						
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __STARPU_TASK_LIST_H__ */
