@@ -83,14 +83,12 @@ static void heft_init(struct starpu_machine_topology_s *topology,
 	starputop_register_parameter_float("HEFT_GAMMA", &_gamma, gamma_minimum,gamma_maximum,param_modified);
 	starputop_register_parameter_float("HEFT_IDLE_POWER", &idle_power, idle_power_minimum,idle_power_maximum,param_modified);
 
-	unsigned workerid, nimpl;
+	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
-			exp_start[workerid] = starpu_timing_now();
-			exp_len[workerid] = 0.0;
-			exp_end[workerid] = exp_start[workerid];
-		}
+		exp_start[workerid] = starpu_timing_now();
+		exp_len[workerid] = 0.0;
+		exp_end[workerid] = exp_start[workerid]; 
 		ntasks[workerid] = 0;
 
 		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
@@ -105,7 +103,6 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	int workerid = starpu_worker_get_id();
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
-	unsigned int nimpl = _starpu_get_job_associated_to_task(task)->nimpl;
 	
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
@@ -119,12 +116,12 @@ static void heft_post_exec_hook(struct starpu_task *task)
 
 static void heft_push_task_notify(struct starpu_task *task, int workerid)
 {
-	unsigned nimpl = _starpu_get_job_associated_to_task(task)->nimpl;
 	/* Compute the expected penality */
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
-	double predicted = starpu_task_expected_length(task, perf_arch, nimpl);
+	double predicted = starpu_task_expected_length(task, perf_arch,
+			_starpu_get_job_associated_to_task(task)->nimpl);
 
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 
@@ -167,11 +164,6 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, double predicted_transfer, int prio)
 {
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
-
-	/* it would be quite bad if j was NULL, but we could always try going a little further */
-	unsigned int nimpl = j?j->nimpl:0;
-
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
