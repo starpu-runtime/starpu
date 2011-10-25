@@ -37,7 +37,7 @@ void starpu_bound_stop(void);
 /* Print the DAG that was recorded */
 void starpu_bound_print_dot(FILE *output);
 
-/* Get theoretical upper bound (needs glpk support) */
+/* Get theoretical upper bound (in ms) (needs glpk support) */
 void starpu_bound_compute(double *res, double *integer_res, int integer);
 
 /* Emit Linear Programming system on output for the recorded tasks in lp format */

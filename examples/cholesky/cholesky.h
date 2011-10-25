@@ -30,6 +30,7 @@
 
 #include <common/blas.h>
 #include <starpu.h>
+#include <starpu_bound.h>
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define NMAXBLOCKS	32
@@ -61,6 +62,7 @@ static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
 static unsigned noprio = 0;
 static unsigned check = 0;
+static unsigned bound = 0;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
@@ -101,6 +103,10 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-no-prio") == 0) {
 			noprio = 1;
+		}
+
+		if (strcmp(argv[i], "-bound") == 0) {
+			bound = 1;
 		}
 
 		if (strcmp(argv[i], "-check") == 0) {

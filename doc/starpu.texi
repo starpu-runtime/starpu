@@ -1429,9 +1429,9 @@ problem corresponding to the schedule of your tasks. Run it through
 @code{lp_solve} or any other linear programming solver, and that will give you a
 lower bound for the total execution time of your tasks. If StarPU was compiled
 with the glpk library installed, @code{starpu_bound_compute} can be used to
-solve it immediately and get the optimized minimum. Its @code{integer}
+solve it immediately and get the optimized minimum, in ms. Its @code{integer}
 parameter allows to decide whether integer resolution should be computed
-and returned.
+and returned too.
 
 The @code{deps} parameter tells StarPU whether to take tasks and implicit data
 dependencies into account. It must be understood that the linear programming

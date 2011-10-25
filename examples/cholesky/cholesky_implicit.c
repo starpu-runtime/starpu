@@ -80,6 +80,8 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 	gettimeofday(&start, NULL);
 
+	if (bound)
+		starpu_bound_start(0, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -120,6 +122,8 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	}
 
 	starpu_task_wait_for_all();
+	if (bound)
+		starpu_bound_stop();
 
 	starpu_data_unpartition(dataA, 0);
 
@@ -133,6 +137,11 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 	double flop = (1.0f*n*n*n)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	if (bound) {
+		double res;
+		starpu_bound_compute(&res, NULL, 0);
+		FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+	}
 }
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
