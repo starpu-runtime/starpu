@@ -35,7 +35,7 @@ starpu_codelet stencil5_cl = {
         .nbuffers = 5
 };
 
-#define NITER_DEF 2000
+#define NITER_DEF 500
 #define X         15
 #define Y         50
 
