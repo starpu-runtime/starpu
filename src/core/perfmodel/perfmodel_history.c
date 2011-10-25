@@ -881,7 +881,13 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Not calibrated enough */
-		return -1.0;
+		exp = -1.0;
+
+	if (exp == -1.0 && !model->benchmarking) {
+		_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+		_starpu_set_calibrate_flag(1);
+		model->benchmarking = 1;
+	}
 
 	return exp;
 }
