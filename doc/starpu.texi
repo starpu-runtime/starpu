@@ -2517,10 +2517,16 @@ be given to StarPU by calling @code{starpu_data_set_rank}.
 @smallexample
 /* Returns the MPI node number where data is */
 int my_distrib(int x, int y, int nb_nodes) @{
-	/* Cyclic distrib */
-	return ((int)(x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * sqrt(nb_nodes))) % nb_nodes;
-        //	/* Linear distrib */
-        //	return x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * X;
+  /* Block distrib */
+  return ((int)(x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * sqrt(nb_nodes))) % nb_nodes;
+
+  // /* Other examples useful for other kinds of computations */
+  // /* / distrib */
+  // return (x+y) % nb_nodes;
+
+  // /* Block cyclic distrib */
+  // unsigned side = sqrt(nb_nodes);
+  // return x % side + (y % side) * size;
 @}
 @end smallexample
 @end cartouche
@@ -2542,11 +2548,12 @@ data which will be needed by the tasks that we will execute.
     for(x = 0; x < X; x++) @{
         for (y = 0; y < Y; y++) @{
             int mpi_rank = my_distrib(x, y, size);
-             if (mpi_rank == rank)
+             if (mpi_rank == my_rank)
                 /* Owning data */
                 starpu_variable_data_register(&data_handles[x][y], 0,
                                               (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
-            else if (rank == mpi_rank+1 || rank == mpi_rank-1)
+            else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
+                  || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
                 /* I don't own that index, but will need it for my computations */
                 starpu_variable_data_register(&data_handles[x][y], -1,
                                               (uintptr_t)NULL, sizeof(unsigned));
