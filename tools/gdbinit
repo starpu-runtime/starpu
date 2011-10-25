@@ -177,7 +177,7 @@ define starpu-print-data
   else
     set $n = 0
     while $n < descr.nnodes
-      set $replicate = $data->per_node[$n]
+      set $replicate = &$data->per_node[$n]
       printf "Node %2d:", $n
       if $replicate->state == 0
         printf " OWNER"
