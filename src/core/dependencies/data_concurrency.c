@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -249,8 +249,12 @@ static unsigned unlock_one_requester(starpu_data_requester_t r)
 void _starpu_notify_data_dependencies(starpu_data_handle handle)
 {
 	/* A data access has finished so we remove a reference. */
+	PTHREAD_MUTEX_LOCK(&handle->refcnt_mutex);
 	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;
+	if (!handle->refcnt)
+		PTHREAD_COND_BROADCAST(&handle->refcnt_cond);
+	PTHREAD_MUTEX_UNLOCK(&handle->refcnt_mutex);
 
 	/* The handle has been destroyed in between (eg. this was a temporary
 	 * handle created for a reduction.) */

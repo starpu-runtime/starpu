@@ -99,6 +99,11 @@ struct starpu_data_state_t {
 	/* the number of requests currently in the scheduling engine
 	 * (not in the req_list anymore) */
 	unsigned refcnt;
+	/* Condition to make application wait for all transfers before freeing handle */
+	/* TODO: rather free the handle asynchronously? */
+	pthread_mutex_t refcnt_mutex;
+	pthread_cond_t refcnt_cond;
+
 	starpu_access_mode current_mode;
 	/* protect meta data */
 	starpu_spinlock_t header_lock;
