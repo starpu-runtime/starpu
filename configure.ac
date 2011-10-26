@@ -697,6 +697,7 @@ AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
+	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
 	CFLAGS="$CFLAGS -O3"
 fi
