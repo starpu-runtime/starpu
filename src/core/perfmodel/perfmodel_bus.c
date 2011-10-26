@@ -66,7 +66,9 @@ static int nopencl = 0;
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
+#ifdef HAVE_CUDA_MEMCPY_PEER
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
+#endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -462,7 +464,10 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 static void benchmark_all_gpu_devices(void)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	int i, j;
+	int i;
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	int j;
+#endif
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
