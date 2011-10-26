@@ -106,9 +106,11 @@ struct starpu_data_state_t {
 
 	/* Condition to make application wait for all transfers before freeing handle */
 	/* busy_count is the number of handle->refcnt, handle->per_node[*]->refcnt, and number of starpu_data_requesters */
-	/* Core code which releases busy_count has to broadcast busy_cond to
-	 * let starpu_data_unregister proceed */
+	/* Core code which releases busy_count has to call
+	 * _starpu_data_check_not_busy to let starpu_data_unregister proceed */
 	unsigned busy_count;
+	/* Is starpu_data_unregister waiting for busy_count? */
+	unsigned busy_waiting;
 	pthread_mutex_t busy_mutex;
 	pthread_cond_t busy_cond;
 

@@ -163,11 +163,9 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 
 			src_replicate->refcnt--;
 			dst_replicate->refcnt--;
-			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 			STARPU_ASSERT(handle->busy_count >= 2);
-			if (!(handle->busy_count -= 2))
-				PTHREAD_COND_BROADCAST(&handle->busy_cond);
-			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+			handle->busy_count -= 2;
+			_starpu_data_check_not_busy(handle);
 
 			break;
 		case STARPU_SHARED:
@@ -803,11 +801,9 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
-			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 			STARPU_ASSERT(handle->busy_count > 0);
-			if (!--handle->busy_count)
-				PTHREAD_COND_BROADCAST(&handle->busy_cond);
-			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+			handle->busy_count--;
+			_starpu_data_check_not_busy(handle);
 		}
 
 	} while((allocated_memory == -ENOMEM) && attempts++ < 2);

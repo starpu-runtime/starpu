@@ -253,11 +253,9 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 	/* A data access has finished so we remove a reference. */
 	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;
-	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	STARPU_ASSERT(handle->busy_count > 0);
-	if (!--handle->busy_count)
-		PTHREAD_COND_BROADCAST(&handle->busy_cond);
-	PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+	handle->busy_count--;
+	_starpu_data_check_not_busy(handle);
 
 	/* The handle has been destroyed in between (eg. this was a temporary
 	 * handle created for a reduction.) */
@@ -343,11 +341,9 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 			starpu_data_requester_delete(r);
 			
 			_starpu_spin_lock(&handle->header_lock);
-			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 			STARPU_ASSERT(handle->busy_count > 0);
-			if (!--handle->busy_count)
-				PTHREAD_COND_BROADCAST(&handle->busy_cond);
-			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+			handle->busy_count--;
+			_starpu_data_check_not_busy(handle);
 		}
 	}
 }

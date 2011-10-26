@@ -533,11 +533,9 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 	replicate->refcnt--;
 	STARPU_ASSERT(replicate->refcnt >= 0);
 
-	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	STARPU_ASSERT(handle->busy_count > 0);
-	if (!--handle->busy_count)
-		PTHREAD_COND_BROADCAST(&handle->busy_cond);
-	PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+	handle->busy_count--;
+	_starpu_data_check_not_busy(handle);
 
 	/* In case there was a temporary handle (eg. used for reduction), this
 	 * handle may have requested to be destroyed when the data is released

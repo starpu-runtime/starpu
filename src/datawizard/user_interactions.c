@@ -339,11 +339,9 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		if (!async) {
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
-			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 			STARPU_ASSERT(handle->busy_count > 0);
-			if (!--handle->busy_count)
-				PTHREAD_COND_BROADCAST(&handle->busy_cond);
-			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+			handle->busy_count--;
+			_starpu_data_check_not_busy(handle);
 		}
 
 		_starpu_notify_data_dependencies(handle);

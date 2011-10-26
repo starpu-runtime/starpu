@@ -278,24 +278,19 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	/* Remove a reference on the destination replicate  */
 	STARPU_ASSERT(dst_replicate->refcnt > 0);
 	dst_replicate->refcnt--;
+	STARPU_ASSERT(handle->busy_count > 0);
+	handle->busy_count--;
 
 	/* In case the source was "locked" by the request too */
 	if (mode & STARPU_R)
 	{
 		STARPU_ASSERT(src_replicate->refcnt > 0);
 		src_replicate->refcnt--;
-	}
-
-	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
-	STARPU_ASSERT(handle->busy_count > 0);
-	handle->busy_count--;
-	if (mode & STARPU_R) {
 		STARPU_ASSERT(handle->busy_count > 0);
 		handle->busy_count--;
 	}
-	if (!handle->busy_count)
-		PTHREAD_COND_BROADCAST(&handle->busy_cond);
-	PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+
+	_starpu_data_check_not_busy(handle);
 
 	r->refcnt--;
 

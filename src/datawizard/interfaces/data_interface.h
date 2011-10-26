@@ -27,6 +27,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 	STARPU_ATTRIBUTE_INTERNAL;
 
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
+extern void _starpu_data_check_not_busy(starpu_data_handle handle) STARPU_ATTRIBUTE_INTERNAL;
 extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
 
 extern void _starpu_data_register_ram_pointer(starpu_data_handle handle,

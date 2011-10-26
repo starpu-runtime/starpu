@@ -104,6 +104,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->req_list = starpu_data_requester_list_new();
 	handle->refcnt = 0;
 	handle->busy_count = 0;
+	handle->busy_waiting = 0;
 	PTHREAD_MUTEX_INIT(&handle->busy_mutex, NULL);
 	PTHREAD_COND_INIT(&handle->busy_cond, NULL);
 	_starpu_spin_init(&handle->header_lock);
@@ -368,6 +369,18 @@ struct unregister_callback_arg {
 	pthread_cond_t cond;
 }; 
 
+/* Check whether we should tell starpu_data_unregister that the data handle is
+ * not busy any more.
+ * The header is supposed to be locked */
+void _starpu_data_check_not_busy(starpu_data_handle handle)
+{
+	if (!handle->busy_count && handle->busy_waiting) {
+		PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+		PTHREAD_COND_BROADCAST(&handle->busy_cond);
+		PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+	}
+}
+
 static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 {
 	int ret;
@@ -434,6 +447,11 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 		if ((handle->refcnt > 0) && handle->lazy_unregister)
 			return;
 	}
+
+	_starpu_spin_lock(&handle->header_lock);
+	/* Tell holders of references that we're starting waiting */
+	handle->busy_waiting = 1;
+	_starpu_spin_unlock(&handle->header_lock);
 
 	/* Wait for all requests to finish (notably WT requests) */
 	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
