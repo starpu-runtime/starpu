@@ -322,6 +322,7 @@ int main(int argc, char **argv)
 	for (t = 0; t < NTHREADS; t++)
 	{
 		ret = pthread_join(problem_data[t].thread, &retval);
+		STARPU_ASSERT(!ret);
 		STARPU_ASSERT(retval == NULL);
 	}
 
