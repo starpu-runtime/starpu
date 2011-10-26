@@ -155,8 +155,9 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->req_list = starpu_data_requester_list_new();
 		child->reduction_req_list = starpu_data_requester_list_new();
 		child->refcnt = 0;
-		PTHREAD_MUTEX_INIT(&child->refcnt_mutex, NULL);
-		PTHREAD_COND_INIT(&child->refcnt_cond, NULL);
+		child->busy_count = 0;
+		PTHREAD_MUTEX_INIT(&child->busy_mutex, NULL);
+		PTHREAD_COND_INIT(&child->busy_cond, NULL);
 		child->reduction_refcnt = 0;
 		_starpu_spin_init(&child->header_lock);
 

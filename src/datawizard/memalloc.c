@@ -156,12 +156,18 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			/* TODO use request !! */
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
+			handle->busy_count+=2;
 
 			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
 			src_replicate->refcnt--;
 			dst_replicate->refcnt--;
+			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+			STARPU_ASSERT(handle->busy_count >= 2);
+			if (!(handle->busy_count -= 2))
+				PTHREAD_COND_BROADCAST(&handle->busy_cond);
+			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 			break;
 		case STARPU_SHARED:
@@ -782,6 +788,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 				reclaim = starpu_memstrategy_data_size_coefficient*handle->data_size;
 
 			replicate->refcnt++;
+			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
 
 			STARPU_TRACE_START_MEMRECLAIM(dst_node);
@@ -795,6 +802,12 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 		                _starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 
 			replicate->refcnt--;
+			STARPU_ASSERT(replicate->refcnt >= 0);
+			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+			STARPU_ASSERT(handle->busy_count > 0);
+			if (!--handle->busy_count)
+				PTHREAD_COND_BROADCAST(&handle->busy_cond);
+			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 		}
 
 	} while((allocated_memory == -ENOMEM) && attempts++ < 2);

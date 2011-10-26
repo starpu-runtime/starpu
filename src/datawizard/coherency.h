@@ -96,17 +96,21 @@ struct starpu_task_wrapper_list {
 
 struct starpu_data_state_t {
 	struct starpu_data_requester_list_s *req_list;
-	/* the number of requests currently in the scheduling engine
-	 * (not in the req_list anymore) */
+	/* the number of requests currently in the scheduling engine (not in
+	 * the req_list anymore), i.e. the number of holders of the
+	 * current_mode rwlock */
 	unsigned refcnt;
-	/* Condition to make application wait for all transfers before freeing handle */
-	/* TODO: rather free the handle asynchronously? */
-	pthread_mutex_t refcnt_mutex;
-	pthread_cond_t refcnt_cond;
-
 	starpu_access_mode current_mode;
 	/* protect meta data */
 	starpu_spinlock_t header_lock;
+
+	/* Condition to make application wait for all transfers before freeing handle */
+	/* busy_count is the number of handle->refcnt, handle->per_node[*]->refcnt, and number of starpu_data_requesters */
+	/* Core code which releases busy_count has to broadcast busy_cond to
+	 * let starpu_data_unregister proceed */
+	unsigned busy_count;
+	pthread_mutex_t busy_mutex;
+	pthread_cond_t busy_cond;
 
 	/* In case we user filters, the handle may describe a sub-data */
 	struct starpu_data_state_t *root_handle; /* root of the tree */

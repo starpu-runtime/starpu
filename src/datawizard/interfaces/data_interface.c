@@ -103,8 +103,9 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	/* initialize the new lock */
 	handle->req_list = starpu_data_requester_list_new();
 	handle->refcnt = 0;
-	PTHREAD_MUTEX_INIT(&handle->refcnt_mutex, NULL);
-	PTHREAD_COND_INIT(&handle->refcnt_cond, NULL);
+	handle->busy_count = 0;
+	PTHREAD_MUTEX_INIT(&handle->busy_mutex, NULL);
+	PTHREAD_COND_INIT(&handle->busy_cond, NULL);
 	_starpu_spin_init(&handle->header_lock);
 
 	/* first take care to properly lock the data */
@@ -425,11 +426,7 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 					PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
 				PTHREAD_MUTEX_UNLOCK(&arg.mutex);
 			}
-			_starpu_spin_lock(&handle->header_lock);
-			STARPU_ASSERT(handle->refcnt > 0);
-			/* Drop the reference count we've acquired by submitting an R data request */
-			handle->refcnt--;
-			_starpu_spin_unlock(&handle->header_lock);
+			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
 	}
 	else {
@@ -439,10 +436,12 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 	}
 
 	/* Wait for all requests to finish (notably WT requests) */
-	PTHREAD_MUTEX_LOCK(&handle->refcnt_mutex);
-	while (handle->refcnt)
-		PTHREAD_COND_WAIT(&handle->refcnt_cond, &handle->refcnt_mutex);
+	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+	while (handle->busy_count)
+		PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
 
+	/* Wait for finished requests to release the handle */
+	_starpu_spin_lock(&handle->header_lock);
 	_starpu_data_free_interfaces(handle);
 
 	/* Destroy the data now */

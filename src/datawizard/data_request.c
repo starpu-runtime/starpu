@@ -110,12 +110,14 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 	_starpu_spin_lock(&r->lock);
 
 	dst_replicate->refcnt++;
+	handle->busy_count++;
 
 	if (mode & STARPU_R)
 	{
 		unsigned src_node = src_replicate->memory_node;
 		dst_replicate->request[src_node] = r;
 		src_replicate->refcnt++;
+		handle->busy_count++;
 	}
 	else {
 		unsigned dst_node = dst_replicate->memory_node;
@@ -283,6 +285,17 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 		STARPU_ASSERT(src_replicate->refcnt > 0);
 		src_replicate->refcnt--;
 	}
+
+	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+	STARPU_ASSERT(handle->busy_count > 0);
+	handle->busy_count--;
+	if (mode & STARPU_R) {
+		STARPU_ASSERT(handle->busy_count > 0);
+		handle->busy_count--;
+	}
+	if (!handle->busy_count)
+		PTHREAD_COND_BROADCAST(&handle->busy_cond);
+	PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	r->refcnt--;
 
@@ -573,7 +586,8 @@ void _starpu_update_prefetch_status(starpu_data_request_t r){
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
 	{
 		struct starpu_data_request_s *next_req = r->next_req[chained_req];
-		_starpu_update_prefetch_status(next_req);		
+		if (next_req->prefetch)
+			_starpu_update_prefetch_status(next_req);
 	}
 
 	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[r->handling_node]);

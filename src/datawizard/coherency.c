@@ -283,8 +283,10 @@ static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_
 			/* in case the exisiting request did not imply a memory
 			 * transfer yet, we have to increment the refcnt now
 			 * (so that the source remains valid) */
-			if (!(r->mode & STARPU_R))
+			if (!(r->mode & STARPU_R)) {
 				replicate->refcnt++;
+				replicate->handle->busy_count++;
+			}
 
 			r->mode |= STARPU_R;
 		}
@@ -459,8 +461,10 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, struct starpu_data_rep
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
-	if (!is_prefetch)
+	if (!is_prefetch) {
 		dst_replicate->refcnt++;
+		dst_replicate->handle->busy_count++;
+	}
 
 	starpu_data_request_t r;
 	r = create_request_to_fetch_data(handle, dst_replicate, mode,
@@ -527,8 +531,13 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 		_starpu_datawizard_progress(local_node, 1);
 
 	replicate->refcnt--;
-
 	STARPU_ASSERT(replicate->refcnt >= 0);
+
+	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+	STARPU_ASSERT(handle->busy_count > 0);
+	if (!--handle->busy_count)
+		PTHREAD_COND_BROADCAST(&handle->busy_cond);
+	PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* In case there was a temporary handle (eg. used for reduction), this
 	 * handle may have requested to be destroyed when the data is released

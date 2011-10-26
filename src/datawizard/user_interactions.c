@@ -130,6 +130,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 #endif
 	_starpu_spin_lock(&handle->header_lock);
 	handle->per_node[0].refcnt++;
+	handle->busy_count++;
 	_starpu_spin_unlock(&handle->header_lock);
 
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -334,10 +335,17 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		/* remove the "lock"/reference */
 
 		_starpu_spin_lock(&handle->header_lock);
+
 		if (!async) {
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
+			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+			STARPU_ASSERT(handle->busy_count > 0);
+			if (!--handle->busy_count)
+				PTHREAD_COND_BROADCAST(&handle->busy_cond);
+			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 		}
+
 		_starpu_notify_data_dependencies(handle);
 		_starpu_spin_unlock(&handle->header_lock);
 

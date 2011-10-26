@@ -141,6 +141,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		/* there cannot be multiple writers or a new writer
 		 * while the data is in read mode */
 		
+		handle->busy_count++;
 		/* enqueue the request */
 		starpu_data_requester_t r = starpu_data_requester_new();
 			r->mode = mode;
@@ -161,6 +162,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	}
 	else {
 		handle->refcnt++;
+		handle->busy_count++;
 
 		handle->current_mode = mode;
 
@@ -249,20 +251,22 @@ static unsigned unlock_one_requester(starpu_data_requester_t r)
 void _starpu_notify_data_dependencies(starpu_data_handle handle)
 {
 	/* A data access has finished so we remove a reference. */
-	PTHREAD_MUTEX_LOCK(&handle->refcnt_mutex);
 	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;
-	if (!handle->refcnt)
-		PTHREAD_COND_BROADCAST(&handle->refcnt_cond);
-	PTHREAD_MUTEX_UNLOCK(&handle->refcnt_mutex);
+	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+	STARPU_ASSERT(handle->busy_count > 0);
+	if (!--handle->busy_count)
+		PTHREAD_COND_BROADCAST(&handle->busy_cond);
+	PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* The handle has been destroyed in between (eg. this was a temporary
 	 * handle created for a reduction.) */
 	if (handle->lazy_unregister && handle->refcnt == 0)
 	{
+		_starpu_spin_unlock(&handle->header_lock);
 		starpu_data_unregister_no_coherency(handle);
 		/* Warning: in case we unregister the handle, we must be sure
-		 * that the application will not try to unlock the header after
+		 * that the caller will not try to unlock the header after
 		 * !*/
 		return;
 	}
@@ -309,6 +313,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 			/* The data is now attributed to that request so we put a
 			 * reference on it. */
 			handle->refcnt++;
+			handle->busy_count++;
 		
 			starpu_access_mode previous_mode = handle->current_mode;
 			handle->current_mode = r_mode;
@@ -338,6 +343,11 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 			starpu_data_requester_delete(r);
 			
 			_starpu_spin_lock(&handle->header_lock);
+			PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+			STARPU_ASSERT(handle->busy_count > 0);
+			if (!--handle->busy_count)
+				PTHREAD_COND_BROADCAST(&handle->busy_cond);
+			PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 		}
 	}
 }

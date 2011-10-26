@@ -150,7 +150,8 @@ define starpu-print-data
   set $data = (starpu_data_handle) $arg0
   printf "Data handle %p\n", $data
   printf "Home node %d\n", $data->home_node
-  printf "Requests %d\n", $data->refcnt
+  printf "RWlock refs %d\n", $data->refcnt
+  printf "Busy count %d\n", $data->busy_count
   printf "Current mode "
   starpu-print-mode $data->current_mode
   printf "\n"
@@ -178,7 +179,7 @@ define starpu-print-data
     set $n = 0
     while $n < descr.nnodes
       set $replicate = &$data->per_node[$n]
-      printf "Node %2d:", $n
+      printf "Node %2d (%2d):", $n, $replicate->refcnt
       if $replicate->state == 0
         printf " OWNER"
       end

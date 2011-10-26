@@ -50,6 +50,7 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 				STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
 				STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
 				handle->refcnt++;
+				handle->busy_count++;
 				handle->current_mode = STARPU_R;
 
 				starpu_data_request_t r;
