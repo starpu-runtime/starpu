@@ -230,12 +230,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		}
 	}
 	va_end(varg_list);
-        assert(do_execute != -1);
+	assert(do_execute != -1 && "StarPU needs to see a W data which will tell it where to execute the task");
 
         if (inconsistent_execute == 1) {
                 if (execute == -1) {
-                        _STARPU_MPI_DEBUG("Different tasks are owning W data. Needs to specify which one is to execute the codelet\n");
-                        return -EINVAL;
+                        _STARPU_ERROR("Different tasks are owning W data. Needs to specify which one is to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
                 }
                 else {
                         do_execute = (me == execute);
@@ -254,7 +253,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         if (data && arg_type & STARPU_R) {
                                 int mpi_rank = starpu_data_get_rank(data);
 				int mpi_tag = starpu_data_get_tag(data);
-				STARPU_ASSERT(mpi_tag >= 0);
+				STARPU_ASSERT(mpi_tag >= 0 && "StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank");
                                 /* The task needs to read this data */
                                 if (do_execute && mpi_rank != me && mpi_rank != -1) {
                                         /* I will have to execute but I don't have the data, receive */
@@ -337,7 +336,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                 if (arg_type & STARPU_W) {
                                         int mpi_rank = starpu_data_get_rank(data);
 					int mpi_tag = starpu_data_get_tag(data);
-					STARPU_ASSERT(mpi_tag >= 0);
+					STARPU_ASSERT(mpi_tag >= 0 && "StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank");
                                         if (mpi_rank == me) {
                                                 if (execute != -1 && me != execute) {
                                                         _STARPU_MPI_DEBUG("Receive data %p back from the task %d which executed the codelet ...\n", data, dest);
