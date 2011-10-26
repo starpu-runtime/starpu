@@ -103,17 +103,17 @@ void sched_ctx_hypervisor_increase_priority(unsigned sched_ctx, int priority_ste
 static int compute_priority_per_sched_ctx(unsigned sched_ctx)
 {
 	struct sched_ctx_wrapper *sched_ctx_wrapper = &hypervisor.sched_ctx_wrapper[sched_ctx];
-	int i;
 	int total_priority = 0;
 
-	int nworkers_ctx = starpu_get_nworkers_of_ctx(sched_ctx);
-	int *workers = starpu_get_workers_of_ctx(sched_ctx);
-
-	sched_ctx_wrapper->current_nprocs = nworkers_ctx;
-
-	for(i = 0; i < sched_ctx_wrapper->current_nprocs; i++)
-		total_priority += sched_ctx_wrapper->priority[workers[i]] + sched_ctx_wrapper->current_idle_time[workers[i]];
-
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+	int worker;
+	workers->init_cursor(workers);
+	while(workers->has_next(workers))
+	{
+		worker = workers->get_next(workers);
+		total_priority += sched_ctx_wrapper->priority[worker] + sched_ctx_wrapper->current_idle_time[worker];
+	}
+	workers->init_cursor(workers);
 	return total_priority;
 }
 
@@ -139,39 +139,42 @@ static struct sched_ctx_wrapper* find_highest_priority_sched_ctx(unsigned sched_
 	return sched_ctx_wrapper;
 }
 
-static int* sort_workers_by_priority(unsigned sched_ctx, int worker)
+static int* get_first_workers_by_priority(unsigned sched_ctx, int req_worker, int nworkers)
 {
-	int nworkers_ctx = starpu_get_nworkers_of_ctx(sched_ctx);
-	int *workers = starpu_get_workers_of_ctx(sched_ctx);
-	
 	struct sched_ctx_wrapper *sched_ctx_wrapper = &hypervisor.sched_ctx_wrapper[sched_ctx];
-	sched_ctx_wrapper->current_nprocs = nworkers_ctx;
 
-	int curr_workers[nworkers_ctx];
+	int curr_workers[nworkers];
+	int i;
+	for(i = 0; i < nworkers; i++)
+		curr_workers[i] = -1;
 
-	int k;
-	for(k = 0; k < nworkers_ctx; k++)
-		curr_workers[k] = workers[k];
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+	int index;
+	int worker;
+	int considered = 0;
 
-	unsigned i;
-	int temp;
-	for(i = 1; i < nworkers_ctx; i++)
+	workers->init_cursor(workers);
+	for(index = 0; index < nworkers; index++)
 	{
-		if(curr_workers[i] == worker)
+		while(workers->has_next(workers))
 		{
-			temp = curr_workers[0];
-			curr_workers[0] = curr_workers[i];
-			curr_workers[i] = temp;
-		}
-		else if(sched_ctx_wrapper->priority[workers[i - 1]] >
-			sched_ctx_wrapper->priority[workers[i]])
-		{
-			temp = curr_workers[i - 1];
-			curr_workers[i - 1] = curr_workers[i];
-			curr_workers[i] = temp;
+			worker = workers->get_next(workers);
+			for(i = 0; i < index; i++)
+			{
+				if(curr_workers[i] == worker)
+				{
+					considered = 1;
+					break;
+				}
+			}
+			
+			if(!considered && (curr_workers[index] < 0 || 
+					  sched_ctx_wrapper->priority[worker] >
+					  sched_ctx_wrapper->priority[curr_workers[index]]))
+				curr_workers[index] = worker;
 		}
 	}
-
+	workers->deinit_cursor(workers);
 	return curr_workers;
 }
 
@@ -181,9 +184,6 @@ static void resize_ctxs_if_possible(unsigned sched_ctx, int worker)
 	struct sched_ctx_wrapper *current_sched_ctx = &hypervisor.sched_ctx_wrapper[sched_ctx];
 	if(highest_priority_sched_ctx != NULL && current_sched_ctx->sched_ctx != STARPU_NMAX_SCHED_CTXS)
 	{	
-		/* sort workers by priority in order to find the first ones with the lowest
-		   priority in the current ctx and move them to the ctx with the highest priority*/
-		int *ordered_workers = sort_workers_by_priority(sched_ctx, worker);
 		unsigned nworkers_to_be_moved = 0;
 		
 		unsigned potential_nprocs = highest_priority_sched_ctx->current_nprocs +
@@ -193,22 +193,14 @@ static void resize_ctxs_if_possible(unsigned sched_ctx, int worker)
 		   potential_nprocs > current_sched_ctx->min_nprocs)
 			nworkers_to_be_moved = hypervisor.resize_granularity;
 		
+
 		if(nworkers_to_be_moved > 0)
 		{
-			int workers_to_be_moved[nworkers_to_be_moved];
-			
-			int i, j = 0;
-			for(i = 0; i < current_sched_ctx->current_nprocs; i++)
-				workers_to_be_moved[j++] = ordered_workers[i];
-			
-//			printf("high prio %d\n", highest_priority_sched_ctx->sched_ctx);
-//			printf("curr %d\n", current_sched_ctx->sched_ctx);
-			
-//			printf("n = %d %d\n", nworkers_to_be_moved, workers_to_be_moved[0]);
+			int *workers_to_be_moved = get_first_workers_by_priority(sched_ctx, worker, nworkers_to_be_moved);
+						
 			starpu_remove_workers_from_sched_ctx(workers_to_be_moved, nworkers_to_be_moved, sched_ctx);
 			starpu_add_workers_to_sched_ctx(workers_to_be_moved, nworkers_to_be_moved, highest_priority_sched_ctx->sched_ctx);
 			reset_ctx_wrapper_info(sched_ctx);
-//			printf("done resize \n");
 		}
 	}
 }

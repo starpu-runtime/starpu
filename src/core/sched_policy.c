@@ -36,30 +36,30 @@ int starpu_get_prefetch_flag(void)
  *	Predefined policies
  */
 
-extern struct starpu_sched_policy_s _starpu_sched_ws_policy;
-extern struct starpu_sched_policy_s _starpu_sched_prio_policy;
-extern struct starpu_sched_policy_s _starpu_sched_random_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dm_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy_s _starpu_sched_eager_policy;
-extern struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy_s _starpu_sched_pgreedy_policy;
+/* extern struct starpu_sched_policy_s _starpu_sched_ws_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_prio_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_random_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_dm_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_dmda_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_eager_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy; */
+/* extern struct starpu_sched_policy_s _starpu_sched_pgreedy_policy; */
 extern struct starpu_sched_policy_s heft_policy;
 
 static struct starpu_sched_policy_s *predefined_policies[] = {
-	&_starpu_sched_ws_policy,
-	&_starpu_sched_prio_policy,
-	&_starpu_sched_dm_policy,
-	&_starpu_sched_dmda_policy,
-	&heft_policy,
-	&_starpu_sched_dmda_ready_policy,
-	&_starpu_sched_dmda_sorted_policy,
-	&_starpu_sched_random_policy,
-	&_starpu_sched_eager_policy,
-	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_pgreedy_policy
+	/* &_starpu_sched_ws_policy, */
+	/* &_starpu_sched_prio_policy, */
+	/* &_starpu_sched_dm_policy, */
+	/* &_starpu_sched_dmda_policy, */
+	&heft_policy
+	/* &_starpu_sched_dmda_ready_policy, */
+	/* &_starpu_sched_dmda_sorted_policy, */
+	/* &_starpu_sched_random_policy, */
+	/* &_starpu_sched_eager_policy, */
+	/* &_starpu_sched_parallel_heft_policy, */
+	/* &_starpu_sched_pgreedy_policy */
 };
 
 struct starpu_sched_policy_s *_starpu_get_sched_policy(struct starpu_sched_ctx *sched_ctx)
@@ -95,7 +95,8 @@ static void load_sched_policy(struct starpu_sched_policy_s *sched_policy, struct
 	policy->pop_every_task = sched_policy->pop_every_task;
 	policy->push_task_notify = sched_policy->push_task_notify;
 	policy->policy_name = sched_policy->policy_name;
-	policy->init_sched_for_workers = sched_policy->init_sched_for_workers;
+	policy->add_workers = sched_policy->add_workers;
+	policy->remove_workers = sched_policy->remove_workers;
 }
 
 static struct starpu_sched_policy_s *find_sched_policy_from_name(const char *policy_name)
@@ -312,9 +313,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 
-		PTHREAD_MUTEX_LOCK(&sched_ctx->changing_ctx_mutex);
 		ret = sched_ctx->sched_policy->push_task(task, sched_ctx->id);
-		PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
 	}
 
 	_starpu_profiling_set_task_push_end_time(task);
@@ -402,7 +401,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 			{
 				if(sched_ctx != NULL && sched_ctx->criteria != NULL)
 				{
-					sched_ctx->criteria->update_current_idle_time(sched_ctx->id, worker->workerid, 1.0, sched_ctx->nworkers);
+					sched_ctx->criteria->update_current_idle_time(sched_ctx->id, worker->workerid, 1.0, sched_ctx->workers->nworkers);
 				}
 			}
 		}

@@ -71,9 +71,6 @@ struct starpu_sched_policy_s {
 	/* Initialize the scheduling policy. */
 	void (*init_sched)(unsigned ctx_id);
 
-	/* Initialize the scheduling policy only for certain workers. */
-	void (*init_sched_for_workers)(unsigned ctx_id, int *workerids, unsigned nworkers);
-
 	/* Cleanup the scheduling policy. */
 	void (*deinit_sched)(unsigned ctx_id);
 
@@ -100,12 +97,35 @@ struct starpu_sched_policy_s {
 	/* This method is called every time a task has been executed. (optionnal) */
 	void (*post_exec_hook)(struct starpu_task *, unsigned ctx_id);
 
+	/* Initialize the scheduling policy for added workers. */
+	void (*add_workers)(unsigned ctx_id, int *workerids, unsigned nworkers);
+
+	/* Deinitialize the scheduling policy for removed workers. */
+	void (*remove_workers)(unsigned ctx_id, int *workerids, unsigned nworkers);
+
 	/* Name of the policy (optionnal) */
 	const char *policy_name;
 
 	/* Description of the policy (optionnal) */
 	const char *policy_description;
 };
+
+struct worker_collection {
+	void *workerids;
+	unsigned nworkers;
+	pthread_key_t cursor_key;
+	int type;
+	unsigned (*has_next)(struct worker_collection *workers);
+	int (*get_next)(struct worker_collection *workers);
+	int (*add)(struct worker_collection *workers, int worker);
+	int (*remove)(struct worker_collection *workers, int worker);
+	void* (*init)(struct worker_collection *workers);
+	void (*deinit)(struct worker_collection *workers);
+	void (*init_cursor)(struct worker_collection *workers);
+	void (*deinit_cursor)(struct worker_collection *workers);
+};
+
+#define WORKER_LIST 0
 
 struct starpu_sched_ctx_hypervisor_criteria {
 	void (*update_current_idle_time)(unsigned sched_ctx, int worker, double idle_time, unsigned current_nprocs);
@@ -124,10 +144,6 @@ void starpu_add_workers_to_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsig
 
 void starpu_remove_workers_from_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
 
-int* starpu_get_workers_of_ctx(unsigned sched_ctx);
-
-unsigned starpu_get_nworkers_of_ctx(unsigned sched_ctx);
-
 void starpu_set_sched_ctx_policy_data(unsigned sched_ctx, void* policy_data);
 
 void* starpu_get_sched_ctx_policy_data(unsigned sched_ctx);
@@ -139,6 +155,12 @@ void starpu_worker_get_sched_condition(unsigned sched_ctx, int workerid, pthread
 void starpu_worker_init_sched_condition(unsigned sched_ctx, int workerid);
 
 void starpu_worker_deinit_sched_condition(unsigned sched_ctx, int workerid);
+
+void starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
+
+struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id);
+
+pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);

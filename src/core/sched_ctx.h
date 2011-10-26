@@ -39,13 +39,9 @@ struct starpu_sched_ctx {
 
 	/* data necessary for the policy */
 	void *policy_data;
-	
-	/* list of indices of workers */
-	int workerids[STARPU_NMAXWORKERS]; 
-	
-	/* number of threads in contex */
-	int nworkers; 
 
+	struct worker_collection *workers;
+	
 	/* mutext for temp_nworkers_in_ctx*/
 	pthread_mutex_t changing_ctx_mutex;
 
@@ -60,6 +56,7 @@ struct starpu_sched_ctx {
 
 	/* table of sched mutex corresponding to each worker in this ctx */
 	pthread_mutex_t **sched_mutex;
+
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of criteria determining the resize procedure */
 	struct starpu_sched_ctx_hypervisor_criteria *criteria;
@@ -97,11 +94,5 @@ unsigned _starpu_get_nsched_ctxs();
 
 /* Get the mutex corresponding to the global workerid */
 pthread_mutex_t *_starpu_get_sched_mutex(struct starpu_sched_ctx *sched_ctx, int worker);
-
-/* Treat add workers requests */
-void _starpu_actually_add_workers_to_sched_ctx(struct starpu_sched_ctx *sched_ctx);
-
-/* Treat remove workers requests */
-void _starpu_actually_remove_workers_from_sched_ctx(struct starpu_sched_ctx *sched_ctx);
 
 #endif // __SCHED_CONTEXT_H__
