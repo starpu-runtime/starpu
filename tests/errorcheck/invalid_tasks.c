@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include "../common/helper.h"
 
+#ifdef STARPU_USE_CPU
 static void dummy_func(void *descr[], void *arg)
 {
 }
@@ -29,9 +30,11 @@ static starpu_codelet cuda_only_cl =
 	.model = NULL,
 	.nbuffers = 0
 };
+#endif
 
 int main(int argc, char **argv)
 {
+#ifdef STARPU_USE_CPU
 	int ret;
 
 	/* We force StarPU to use 1 CPU only */
@@ -61,4 +64,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+#else
+	fprintf(stderr,"WARNING: Can not test this without CPUs\n");
+	return 77;
+#endif
 }
