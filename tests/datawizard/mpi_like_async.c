@@ -332,6 +332,7 @@ int main(int argc, char **argv)
 	PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
 	ret = pthread_join(progress_thread, &retval);
+	STARPU_ASSERT(!ret);
 	STARPU_ASSERT(retval == NULL);
 
 	/* We check that the value in the "last" thread is valid */
