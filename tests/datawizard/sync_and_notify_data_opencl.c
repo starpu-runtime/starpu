@@ -34,7 +34,6 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "incA", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = 0;
 	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -65,7 +64,6 @@ void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "incC", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = 0;
 	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
