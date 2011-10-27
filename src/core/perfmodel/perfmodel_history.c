@@ -275,10 +275,10 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &narchs);
 	STARPU_ASSERT(ret == 1);
+	archmin += STARPU_MAXCPUS;
 	_STARPU_DEBUG("Parsing %u CUDA devices\n", narchs);
 	if (narchs > 0)
 	{
-		archmin += STARPU_MAXCPUS;
 		parse_arch(f, model, scan_history,
 				archmin,
 				archmin + STARPU_MIN(narchs, STARPU_MAXCUDADEVS),
@@ -290,10 +290,10 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 	ret = fscanf(f, "%u\n", &narchs);
 	STARPU_ASSERT(ret == 1);
 
+	archmin += STARPU_MAXCUDADEVS;
 	_STARPU_DEBUG("Parsing %u OpenCL devices\n", narchs);
 	if (narchs > 0)
 	{
-		archmin += STARPU_MAXCUDADEVS;
 		parse_arch(f, model, scan_history,
 				archmin,
 				archmin + STARPU_MIN(narchs, STARPU_MAXOPENCLDEVS),
@@ -305,10 +305,10 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 	ret = fscanf(f, "%u\n", &narchs);
 	STARPU_ASSERT(ret == 1);
 
+	archmin += STARPU_MAXOPENCLDEVS;
 	_STARPU_DEBUG("Parsing %u Gordon devices\n", narchs);
 	if (narchs > 0)
 	{
-		archmin += STARPU_MAXOPENCLDEVS;
 		parse_arch(f, model, scan_history,
 				archmin,
 				archmin + max_gordondevs,
