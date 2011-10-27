@@ -184,6 +184,7 @@ int main(int argc, char **argv)
 	{
 		void *retval;
 		ret = pthread_join(problem_data[t].thread, &retval);
+		STARPU_ASSERT(!ret);
 		STARPU_ASSERT(retval == NULL);
 	}
 
