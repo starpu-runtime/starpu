@@ -71,21 +71,23 @@ uint32_t _starpu_may_submit_opencl_task(void)
 
 static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet_t *cl, unsigned nimpl)
 {
-	if (!nimpl)
-		return 1;
 	switch(arch) {
 	case STARPU_CPU_WORKER:
-		return cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS &&
-			cl->cpu_funcs[nimpl] != NULL;
+		if (cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
+			return cl->cpu_funcs[nimpl] != NULL;
+		return nimpl == 0;
 	case STARPU_CUDA_WORKER:
-		return cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS &&
-			cl->cuda_funcs[nimpl] != NULL;
+		if (cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
+			return cl->cuda_funcs[nimpl] != NULL;
+		return nimpl == 0;
 	case STARPU_OPENCL_WORKER:
-		return cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS &&
-			cl->opencl_funcs[nimpl] != NULL;
+		if (cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
+			return cl->opencl_funcs[nimpl] != NULL;
+		return nimpl == 0;
 	case STARPU_GORDON_WORKER:
-		return cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS &&
-			cl->gordon_funcs[nimpl] != 0;
+		if (cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
+			return cl->gordon_funcs[nimpl] != 0;
+		return nimpl == 0;
 	default:
 		STARPU_ASSERT(!"Unknown arch type");
 	}
