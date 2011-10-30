@@ -71,21 +71,23 @@ uint32_t _starpu_may_submit_opencl_task(void)
 
 static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet_t *cl, unsigned nimpl)
 {
+	if (!nimpl)
+		return 1;
 	switch(arch) {
 	case STARPU_CPU_WORKER:
-		return !(cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS &&
-			cl->cpu_funcs[nimpl] == NULL);
+		return cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS &&
+			cl->cpu_funcs[nimpl] != NULL;
 	case STARPU_CUDA_WORKER:
-		return !(cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS &&
-			cl->cuda_funcs[nimpl] == NULL);
+		return cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS &&
+			cl->cuda_funcs[nimpl] != NULL;
 	case STARPU_OPENCL_WORKER:
-		return !(cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS &&
-			cl->opencl_funcs[nimpl] == NULL);
+		return cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS &&
+			cl->opencl_funcs[nimpl] != NULL;
 	case STARPU_GORDON_WORKER:
-		return !(cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS &&
-			cl->gordon_funcs[nimpl] == 0);
+		return cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS &&
+			cl->gordon_funcs[nimpl] != 0;
 	default:
-		return 0;
+		STARPU_ASSERT(!"Unknown arch type");
 	}
 }
 
@@ -95,7 +97,7 @@ int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, 
 	/* TODO: check that the task operand sizes will fit on that device */
 	/* TODO: call application-provided function for various cases like
 	 * double support, shared memory size limit, etc. */
-	return !!((task->cl->where & config.workers[workerid].worker_mask) &&
+	return ((task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 }
 
