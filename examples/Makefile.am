@@ -152,7 +152,6 @@ examplebin_PROGRAMS +=				\
 	basic_examples/mult			\
 	basic_examples/block			\
 	basic_examples/variable			\
-	basic_examples/mult_impl                \
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
