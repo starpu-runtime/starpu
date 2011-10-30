@@ -147,7 +147,11 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 	char arch_name[256];
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256, nimpl);
 
-	fprintf(stderr,"Arch: %s\n", arch_name);
+	struct starpu_per_arch_perfmodel_t *arch_model =
+		&model->per_arch[arch][nimpl];
+
+	if (arch_model->regression.valid || arch_model->regression.nl_valid)
+		fprintf(stderr,"Arch: %s\n", arch_name);
 
 #ifdef STARPU_USE_FXT
 	if (!no_fxt_file && archtype_is_found[arch])
@@ -156,9 +160,6 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 		fprintf(gnuplot_file, "\"< grep -w \\^%d %s\" using 2:3 title \"%s\"", arch, data_file_name, arch_name);
 	}
 #endif
-
-	struct starpu_per_arch_perfmodel_t *arch_model =
-		&model->per_arch[arch][nimpl];
 
 	/* Only display the regression model if we could actually build a model */
 	if (arch_model->regression.valid)
