@@ -216,8 +216,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					int *forced_worker, unsigned int *forced_impl,
-					struct starpu_task_bundle *bundle,
-					unsigned int *nimpls)
+					struct starpu_task_bundle *bundle)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
@@ -233,7 +232,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	unsigned nimpl;
 
 	for (worker = 0; worker < nworkers; worker++) {
-		nimpls[worker] = 0;
 		for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) {
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
@@ -295,11 +293,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker] + local_task_length[worker][nimpl];
 
 			if (exp_end[worker][nimpl] < best_exp_end)
-			{
 				/* a better solution was found */
 				best_exp_end = exp_end[worker][nimpl];
-				nimpls[worker] = nimpl;
-			}
 
 			if (local_power[worker][nimpl] == -1.0)
 				local_power[worker][nimpl] = 0.;
@@ -330,7 +325,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	double local_power[nworkers][STARPU_MAXIMPLEMENTATIONS];
 	double exp_end[nworkers][STARPU_MAXIMPLEMENTATIONS];
 	double max_exp_end = 0.0;
-	unsigned int  nimpls[nworkers];
 
 	double best_exp_end;
 
@@ -345,7 +339,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 					&max_exp_end, &best_exp_end,
 					local_data_penalty,
 					local_power, &forced_worker, &forced_impl,
-					bundle, nimpls);
+					bundle);
 
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
@@ -405,8 +399,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		 * length for the entire bundle, but not for the task alone. */
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(best);
 		unsigned memory_node = starpu_worker_get_memory_node(best);
-		model_best = starpu_task_expected_length(task, perf_arch,
-				_starpu_get_job_associated_to_task(task)->nimpl);
+		model_best = starpu_task_expected_length(task, perf_arch, selected_impl);
 		transfer_model_best = starpu_task_expected_data_transfer_time(memory_node, task);
 
 		/* Remove the task from the bundle since we have made a
@@ -427,7 +420,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 	
-	_starpu_get_job_associated_to_task(task)->nimpl = nimpls[best];
+	_starpu_get_job_associated_to_task(task)->nimpl = selected_impl;
 
 	return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio);
 }
