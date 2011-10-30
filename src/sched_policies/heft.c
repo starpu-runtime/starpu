@@ -215,7 +215,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double *best_exp_endp,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
-					int *forced_best,
+					int *forced_worker, unsigned int *forced_impl,
 					struct starpu_task_bundle *bundle,
 					unsigned int *nimpls)
 {
@@ -223,6 +223,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	double max_exp_end = DBL_MIN;
 	double best_exp_end = DBL_MAX;
 	int ntasks_best = -1;
+	unsigned int nimpl_best = 0;
 	double ntasks_best_end = 0.0;
 
 	/* A priori, we know all estimations */
@@ -274,6 +275,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				) {
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
+				nimpl_best = nimpl;
 			}
 
 			if (local_task_length[worker][nimpl] == -1.0)
@@ -305,7 +307,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		}
 	}
 
-	*forced_best = unknown?ntasks_best:-1;
+	*forced_worker = unknown?ntasks_best:-1;
+	*forced_impl = unknown?nimpl_best:-1;
 
 	*best_exp_endp = best_exp_end;
 	*max_exp_endp = max_exp_end;
@@ -319,7 +322,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	
 	/* this flag is set if the corresponding worker is selected because
 	   there is no performance prediction available yet */
-	int forced_best;
+	int forced_worker;
+	unsigned int forced_impl;
 
 	double local_task_length[nworkers][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS];
@@ -340,13 +344,15 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					&max_exp_end, &best_exp_end,
 					local_data_penalty,
-					local_power, &forced_best, bundle,
-					nimpls);
+					local_power, &forced_worker, &forced_impl,
+					bundle, nimpls);
 
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
-	if (forced_best != -1)
-		return push_task_on_best_worker(task, forced_best, 0.0, 0.0, prio);
+	if (forced_worker != -1) {
+		_starpu_get_job_associated_to_task(task)->nimpl = forced_impl;
+		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0, prio);
+	}
 
 	/*
 	 *	Determine which worker optimizes the fitness metric which is a
