@@ -62,12 +62,10 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 			func(task->interfaces, task->cl_arg);
 		}
 		else {
-			if (cl->cpu_funcs[j->nimpl] != NULL) {
-				/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
-				cl_func func = cl->cpu_funcs[j->nimpl];
-				STARPU_ASSERT(func);
-				func(task->interfaces, task->cl_arg);
-			}
+			/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
+			cl_func func = cl->cpu_funcs[j->nimpl];
+			STARPU_ASSERT(func);
+			func(task->interfaces, task->cl_arg);
 		}
 	}
 

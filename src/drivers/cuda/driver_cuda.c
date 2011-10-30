@@ -218,12 +218,10 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		func(task->interfaces, task->cl_arg);
 	}
 	else {
-		if (cl->cuda_funcs[j->nimpl] != NULL) {
-			/* _STARPU_DEBUG("Cuda driver : running kernel * (%d)\n", j->nimpl); */
-			cl_func func = cl->cuda_funcs[j->nimpl];
-			STARPU_ASSERT(func);
-			func(task->interfaces, task->cl_arg);
-		}
+		/* _STARPU_DEBUG("Cuda driver : running kernel * (%d)\n", j->nimpl); */
+		cl_func func = cl->cuda_funcs[j->nimpl];
+		STARPU_ASSERT(func);
+		func(task->interfaces, task->cl_arg);
 	}
 
 	_starpu_driver_end_job(args, j, &codelet_end, 0);
