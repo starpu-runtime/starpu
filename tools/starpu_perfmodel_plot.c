@@ -162,7 +162,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 #endif
 
 	/* Only display the regression model if we could actually build a model */
-	if (arch_model->regression.valid)
+	if (arch_model->regression.valid && !arch_model->regression.nl_valid)
 	{
 		print_comma(gnuplot_file, first);
 	
