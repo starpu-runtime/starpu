@@ -125,8 +125,9 @@ static void heft_init(unsigned sched_ctx_id)
 	starputop_register_parameter_float("HEFT_IDLE_POWER", &hd->idle_power, idle_power_minimum,idle_power_maximum,param_modified);
 }
 
-static void heft_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
+static void heft_post_exec_hook(struct starpu_task *task)
 {
+	unsigned sched_ctx_id = task->sched_ctx;
 	int workerid = starpu_worker_get_id();
 	STARPU_ASSERT(workerid >= 0);
 
@@ -145,8 +146,9 @@ static void heft_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-static void heft_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+static void heft_push_task_notify(struct starpu_task *task, int workerid)
 {
+	unsigned sched_ctx_id = task->sched_ctx;
 	/* Compute the expected penality */
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
 
@@ -344,7 +346,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	struct starpu_task_bundle *bundle = task->bundle;
 
-	workers->init_cursor(workers);
+	if(workers->init_cursor)
+		workers->init_cursor(workers);
 
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					    &max_exp_end, &best_exp_end,
@@ -427,14 +430,16 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		model_best = local_task_length[best_id_ctx];
 	}
 
-	workers->deinit_cursor(workers);
+	if(workers->init_cursor)
+		workers->deinit_cursor(workers);
 
 	_starpu_increment_nsubmitted_tasks_of_worker(best);
 	return push_task_on_best_worker(task, best, model_best, prio, sched_ctx_id);
 }
 
-static int heft_push_task(struct starpu_task *task, unsigned sched_ctx_id)
+static int heft_push_task(struct starpu_task *task)
 {
+	unsigned sched_ctx_id = task->sched_ctx;;
 	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	int ret_val = -1;
 	if (task->priority > 0)

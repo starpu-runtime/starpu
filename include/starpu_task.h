@@ -272,10 +272,6 @@ void starpu_task_destroy(struct starpu_task *task);
 
 int starpu_task_submit(struct starpu_task *task);
 	
-void starpu_set_sched_ctx(unsigned *sched_ctx);
-
-unsigned starpu_get_sched_ctx();
-
 /* This function blocks until the task was executed. It is not possible to
  * synchronize with a task more than once. It is not possible to wait
  * synchronous or detached tasks.

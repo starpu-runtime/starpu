@@ -249,7 +249,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	{
 		sched_ctx = worker->sched_ctx[i];
 		if (sched_ctx != NULL && sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
-			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
+			sched_ctx->sched_policy->push_task_notify(task, workerid);
 	}
 	
 	if (is_basic_worker)
@@ -313,7 +313,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 
-		ret = sched_ctx->sched_policy->push_task(task, sched_ctx->id);
+		ret = sched_ctx->sched_policy->push_task(task);
 	}
 
 	_starpu_profiling_set_task_push_end_time(task);
@@ -358,7 +358,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 					PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
 					if (sched_ctx->sched_policy->pop_task)
 					{
-						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+						task = sched_ctx->sched_policy->pop_task();
 						PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
 						break;
 					}
@@ -401,7 +401,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 			{
 				if(sched_ctx != NULL && sched_ctx->criteria != NULL)
 				{
-					sched_ctx->criteria->update_current_idle_time(sched_ctx->id, worker->workerid, 1.0, sched_ctx->workers->nworkers);
+					sched_ctx->criteria->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
 				}
 			}
 		}
@@ -416,14 +416,14 @@ struct starpu_task *_starpu_pop_every_task(struct starpu_sched_ctx *sched_ctx)
 	STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
 
 	/* TODO set profiling info */
-	return sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
+	return sched_ctx->sched_policy->pop_every_task();
 }
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	if (sched_ctx->sched_policy->post_exec_hook)
-		sched_ctx->sched_policy->post_exec_hook(task, sched_ctx->id);
+		sched_ctx->sched_policy->post_exec_hook(task);
 }
 
 void _starpu_wait_on_sched_event(void)

@@ -165,8 +165,13 @@ static void _starpu_add_workers_to_sched_ctx(struct starpu_sched_ctx *sched_ctx,
 			workers_to_add[i] = worker;
 		}
 	}
-	if(added_workers && *n_added_workers > 0)
-		sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);	
+
+
+	if(added_workers)
+	{
+		if(*n_added_workers > 0)
+			sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);	
+	}
 	else
 		sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);		
 	return;
@@ -622,4 +627,11 @@ pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return &sched_ctx->changing_ctx_mutex;
+}
+
+unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx_id)
+{
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->workers->nworkers;
+
 }

@@ -25,4 +25,6 @@ lib_LTLIBRARIES = libsched_ctx_hypervisor.la
 
 libsched_ctx_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu.la
 
-libsched_ctx_hypervisor_la_SOURCES = sched_ctx_hypervisor.c
+libsched_ctx_hypervisor_la_SOURCES = 	\
+	sched_ctx_hypervisor.c		\
+	hypervisor_policies/simple_policy.c

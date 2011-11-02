@@ -69,39 +69,39 @@ struct starpu_machine_topology_s {
  * field of the starpu_conf structure passed to the starpu_init function. */
 struct starpu_sched_policy_s {
 	/* Initialize the scheduling policy. */
-	void (*init_sched)(unsigned ctx_id);
+	void (*init_sched)(unsigned sched_ctx_id);
 
 	/* Cleanup the scheduling policy. */
-	void (*deinit_sched)(unsigned ctx_id);
+	void (*deinit_sched)(unsigned sched_ctx_id);
 
 	/* Insert a task into the scheduler. */
-        int (*push_task)(struct starpu_task *, unsigned ctx_id);
+        int (*push_task)(struct starpu_task *);
 	/* Notify the scheduler that a task was directly pushed to the worker
 	 * without going through the scheduler. This method is called when a
 	 * task is explicitely assigned to a worker. This method therefore
 	 * permits to keep the timing state of the scheduler coherent even
 	 * when StarPU bypasses the scheduling strategy. */
-	void (*push_task_notify)(struct starpu_task *, int workerid, unsigned ctx_id);
+	void (*push_task_notify)(struct starpu_task *, int workerid);
 
 
 	/* Get a task from the scheduler. The mutex associated to the worker is
 	 * already taken when this method is called. */
-	struct starpu_task *(*pop_task)(unsigned ctx_id);
+	struct starpu_task *(*pop_task)();
 
 	 /* Remove all available tasks from the scheduler (tasks are chained by
 	  * the means of the prev and next fields of the starpu_task
 	  * structure). The mutex associated to the worker is already taken
 	  * when this method is called. */
-	struct starpu_task *(*pop_every_task)(unsigned ctx_id);
+	struct starpu_task *(*pop_every_task)();
 
 	/* This method is called every time a task has been executed. (optionnal) */
-	void (*post_exec_hook)(struct starpu_task *, unsigned ctx_id);
+	void (*post_exec_hook)(struct starpu_task *);
 
 	/* Initialize the scheduling policy for added workers. */
-	void (*add_workers)(unsigned ctx_id, int *workerids, unsigned nworkers);
+	void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
 	/* Deinitialize the scheduling policy for removed workers. */
-	void (*remove_workers)(unsigned ctx_id, int *workerids, unsigned nworkers);
+	void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
 	/* Name of the policy (optionnal) */
 	const char *policy_name;
@@ -128,8 +128,8 @@ struct worker_collection {
 #define WORKER_LIST 0
 
 struct starpu_sched_ctx_hypervisor_criteria {
-	void (*update_current_idle_time)(unsigned sched_ctx, int worker, double idle_time, unsigned current_nprocs);
-	void (*update_current_working_time)(unsigned sched_ctx, int worker, double working_time, unsigned current_nprocs);
+	void (*idle_time_cb)(unsigned sched_ctx, int worker, double idle_time);
+	void (*working_time_cb)(unsigned sched_ctx, double working_time);
 };
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
@@ -161,6 +161,12 @@ void starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int ty
 struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id);
 
 pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
+
+void starpu_set_sched_ctx(unsigned *sched_ctx);
+
+unsigned starpu_get_sched_ctx();
+
+unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);

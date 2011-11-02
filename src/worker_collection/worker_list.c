@@ -89,13 +89,15 @@ static int list_remove(struct worker_collection *workers, int worker)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
-
+	
+	int found_worker = -1;
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
 		if(workerids[i] == worker)
 		{
 			workerids[i] = -1;
+			found_worker = worker;
 			break;
 		}
 	}
@@ -103,7 +105,7 @@ static int list_remove(struct worker_collection *workers, int worker)
 	_rearange_workerids(workerids, nworkers);
 	workers->nworkers--;
 
-	return;
+	return found_worker;
 }
 
 static void _init_workers(int *workerids)
@@ -140,6 +142,7 @@ static void list_init_cursor(struct worker_collection *workers)
 static void list_deinit_cursor(struct worker_collection *workers)
 {
 	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
+	*cursor = 0;
 	free(cursor);
 }
 
