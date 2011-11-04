@@ -170,6 +170,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 		/* CUDA - CUDA transfer */
 		STARPU_ASSERT(copy_methods->cuda_to_cuda || copy_methods->cuda_to_cuda_async);
 		if (!req || !copy_methods->cuda_to_cuda_async) {
+			STARPU_ASSERT(copy_methods->cuda_to_cuda);
 			/* this is not associated to a request so it's synchronous */
 			copy_methods->cuda_to_cuda(src_interface, src_node, dst_interface, dst_node);
 		}
