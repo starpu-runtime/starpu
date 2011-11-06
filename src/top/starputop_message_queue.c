@@ -100,6 +100,7 @@ starputop_message_queue_t* starputop_message_queue_new(void)
 	if( NULL == p )
 	{
 		fprintf(stderr, "LINE: %d, malloc() failed\n", __LINE__);
+		return NULL;
 	}
 
 	p->head = p->tail = NULL;

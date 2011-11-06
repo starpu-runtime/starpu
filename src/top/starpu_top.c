@@ -135,6 +135,7 @@ void starputop_init_and_wait(const char* server_name){
 
 	//init locked queue before adding the first message
 	starputop_mt = starputop_message_queue_new();
+	STARPU_ASSERT(starputop_mt);
 
 	//waiting for UI to connect
 	printf("%s:%d launching network threads\n", __FILE__, __LINE__);
