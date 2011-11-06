@@ -77,9 +77,11 @@ struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_que
 		deque_queue->njobs--;
 		
 		STARPU_TRACE_JOB_POP(j, 0);
+
+		return j->task;
 	}
-	
-	return j->task;
+
+	return NULL;
 }
 
 struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
