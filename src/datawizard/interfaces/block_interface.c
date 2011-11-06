@@ -692,6 +692,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
                                                                         src_block->nx*src_block->elemsize,
                                                                         layer*src_block->ldz*src_block->elemsize+j*src_block->ldy*src_block->elemsize+
                                                                         src_block->offset, NULL);
+				if (STARPU_UNLIKELY(err))
+					STARPU_OPENCL_REPORT_ERROR(err);
                         }
                         //                        const size_t buffer_origin[3] = {src_block->offset, 0, 0};
                         //                        const size_t host_origin[3] = {layer*src_block->ldz*src_block->elemsize, 0, 0};
