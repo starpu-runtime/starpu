@@ -377,8 +377,8 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 	unsigned src_nodes[4], dst_nodes[4], handling_nodes[4];
 	int nhops = determine_request_path(handle, src_node, requesting_node, mode, 4,
 					src_nodes, dst_nodes, handling_nodes);
-	STARPU_ASSERT(nhops <= 4);
 
+	STARPU_ASSERT(nhops >= 1 && nhops <= 4);
 	starpu_data_request_t requests[nhops];
 
 	/* Did we reuse a request for that hop ? */
