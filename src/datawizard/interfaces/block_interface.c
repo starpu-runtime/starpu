@@ -591,7 +591,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 {
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
-        int err,ret;
+        int err, ret = 0;
 
 	uint32_t nx = src_block->nx;
 	uint32_t ny = src_block->ny;
@@ -658,7 +658,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 {
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
-        int err, ret;
+        int err, ret = 0;
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
 	 * plans within the block, we can avoid many small transfers that way */
