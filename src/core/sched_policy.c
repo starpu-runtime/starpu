@@ -350,7 +350,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 		{
 			sched_ctx = worker->sched_ctx[i];
 			
-			if(sched_ctx != NULL)
+			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
 				if(sched_ctx_mutex != NULL)

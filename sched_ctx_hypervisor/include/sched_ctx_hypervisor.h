@@ -8,6 +8,7 @@
 #define HYPERVISOR_MIN_PROCS 4
 #define HYPERVISOR_MAX_PROCS 5
 #define HYPERVISOR_GRANULARITY 6
+#define HYPERVISOR_FIXED_PROCS 7
 
 struct starpu_sched_ctx_hypervisor_criteria* sched_ctx_hypervisor_init(int type);
 

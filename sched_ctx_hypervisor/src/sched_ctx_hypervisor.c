@@ -30,7 +30,7 @@ struct starpu_sched_ctx_hypervisor_criteria* sched_ctx_hypervisor_init(int type)
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
-		hypervisor.sched_ctxs[i] = -1;
+		hypervisor.sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].sched_ctx = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].data = NULL;
 		int j;
@@ -65,29 +65,29 @@ static int _get_first_free_sched_ctx(int *sched_ctxs, unsigned nsched_ctxs)
 {
         int i;
         for(i = 0; i < nsched_ctxs; i++)
-                if(sched_ctxs[i] == -1)
+                if(sched_ctxs[i] == STARPU_NMAX_SCHED_CTXS)
                         return i;
 
-        return -1;
+        return STARPU_NMAX_SCHED_CTXS;
 }
 
-/* rearange array of sched_ctxs in order not to have {-1, -1, 5, -1, 7}    
-   and have instead {5, 7, -1, -1, -1}                                    
+/* rearange array of sched_ctxs in order not to have {MAXVAL, MAXVAL, 5, MAXVAL, 7}    
+   and have instead {5, 7, MAXVAL, MAXVAL, MAXVAL}                                    
    it is easier afterwards to iterate the array                           
 */
 static void _rearange_sched_ctxs(int *sched_ctxs, int old_nsched_ctxs)
 {
-        int first_free_id = -1;
+        int first_free_id = STARPU_NMAX_SCHED_CTXS;
         int i;
         for(i = 0; i < old_nsched_ctxs; i++)
         {
-                if(sched_ctxs[i] != -1)
+                if(sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS)
                 {
                         first_free_id = _get_first_free_sched_ctx(sched_ctxs, old_nsched_ctxs);
-                        if(first_free_id != -1)
+                        if(first_free_id != STARPU_NMAX_SCHED_CTXS)
 			{
                                 sched_ctxs[first_free_id] = sched_ctxs[i];
-				sched_ctxs[i] = -1;
+				sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 			}
                 }
 	}
@@ -100,7 +100,7 @@ void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx)
         {
                 if(hypervisor.sched_ctxs[i] == sched_ctx)
                 {
-                        hypervisor.sched_ctxs[i] = -1;
+                        hypervisor.sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 			break;
                 }
         }
@@ -132,7 +132,8 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 }
 
 static void _sched_ctx_hypervisor_resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move)
-{	
+{
+	printf("resize ctx %d with %d\n", sender_sched_ctx, workers_to_move[0]);
 	starpu_remove_workers_from_sched_ctx(workers_to_move, nworkers_to_move, sender_sched_ctx);
 	starpu_add_workers_to_sched_ctx(workers_to_move, nworkers_to_move, receiver_sched_ctx);
 	

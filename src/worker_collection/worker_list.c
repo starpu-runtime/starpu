@@ -3,11 +3,11 @@
 
 static unsigned list_has_next(struct worker_collection *workers)
 {
-	unsigned nworkers = workers->nworkers;
+	int nworkers = (int)workers->nworkers;
 
 	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
 
-	unsigned ret = *cursor < (nworkers - 1);
+	unsigned ret = *cursor < nworkers;
 
 	if(!ret) *cursor = 0;
 
@@ -17,13 +17,15 @@ static unsigned list_has_next(struct worker_collection *workers)
 static int list_get_next(struct worker_collection *workers)
 {
 	int *workerids = (int *)workers->workerids;
-	unsigned nworkers = workers->nworkers;
+	int nworkers = (int)workers->nworkers;
 
 	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
 
-	STARPU_ASSERT(*cursor < (nworkers - 1));
+	STARPU_ASSERT(*cursor < nworkers);
 
-	return workerids[(*cursor)++];
+	int ret = workerids[(*cursor)++];
+
+	return ret;
 }
 
 static unsigned _worker_belongs_to_ctx(struct worker_collection *workers, int workerid)
@@ -50,7 +52,8 @@ static int list_add(struct worker_collection *workers, int worker)
 		workerids[(*nworkers)++] = worker;
 		return worker;
 	}
-	else return -1;
+	else 
+		return -1;
 }
 
 static int _get_first_free_worker(int *workerids, int nworkers)
