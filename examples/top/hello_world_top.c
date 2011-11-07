@@ -129,17 +129,20 @@ int main(int argc, char **argv)
 											names_len,
 											callback_name_changed);
 	starputop_param * number_of_addition_param = 
-			starputop_register_parameter_integer(
-									"Number of Millions of addition", 
-									&number_of_addition, 
-									0,
-									50, 
-									callback_number_addition_changed);
+			starputop_register_parameter_integer("Number of Millions of addition", 
+							     &number_of_addition, 
+							     0,
+							     50, 
+							     callback_number_addition_changed);
+	STARPU_ASSERT(number_of_addition_param != NULL);
+
 	starputop_param * stop5_param = 
 			starputop_register_parameter_boolean("Stop after 5 task ?", 
-												&stop_after_5_task,
-												NULL);
+							     &stop_after_5_task,
+							     NULL);
+	STARPU_ASSERT(stop5_param != NULL);
 
+	
 
 	//all parameters are initialized, we can connect to UI
 	starputop_init_and_wait("Serveur de test HelloWorld");
