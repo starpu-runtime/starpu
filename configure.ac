@@ -122,7 +122,7 @@ else
 fi
 
 # Define slow machine
-AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--disable-slow-machine],
+AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--enable-slow-machine],
 				   [Lower default values for the testcases run by make check])],
 				   enable_slow_machine=$enableval, enable_slow_machine=false)
 if  test x$enable_slow_machine = xyes; then
@@ -1038,7 +1038,7 @@ if test x$QMAKE != xnot-found; then
 					QWT_PRI=system
 				])
 			AC_ARG_WITH(qwt-lib,
-				[AS_HELP_STRING([--with-qwt-lib=<path>],
+				[AS_HELP_STRING([--with-qwt-lib=<name>],
 				[specify installed libqwt library name])],
 				[
 					STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
