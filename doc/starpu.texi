@@ -1349,8 +1349,9 @@ for further executions, and can be observed by using the
 @code{starpu_perfmodel_display} command, or drawn by using
 the @code{starpu_perfmodel_plot}.  The models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
-@code{export STARPU_HOSTNAME=some_global_name}.  The following is a small code
-example.
+@code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done when using a task scheduler which makes use of it, such as @code{heft} or @code{dmda}.
+
+The following is a small code example.
 
 If e.g. the code is recompiled with other compilation options, or several
 variants of the code are used, the symbol string should be changed to reflect
@@ -2214,7 +2215,7 @@ schedulable yet are shown in grey.
 @node Codelet performance
 @section Performance of codelets
 
-The performance model of codelets can be examined by using the
+The performance model of codelets (described in @ref{Performance model example}) can be examined by using the
 @code{starpu_perfmodel_display} tool:
 
 @example
