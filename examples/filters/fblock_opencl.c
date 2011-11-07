@@ -18,6 +18,14 @@
 #include <starpu.h>
 #include <starpu_opencl.h>
 
+#define CHECK_CL_SET_KERNEL_ARG(kernel, n, size, ptr)       \
+do {                                                        \
+	int err;                                            \
+	err = clSetKernelArg(kernel, n, size, ptr);         \
+	if (err != CL_SUCCESS)                              \
+       		STARPU_OPENCL_REPORT_ERROR(err);            \
+} while (0)
+
 extern struct starpu_opencl_program opencl_program;
 
 void opencl_func(void *buffers[], void *cl_arg)
@@ -41,15 +49,13 @@ void opencl_func(void *buffers[], void *cl_arg)
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "fblock_opencl", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = 0;
-	err = clSetKernelArg(kernel, 0, sizeof(block), &block);
-	err = clSetKernelArg(kernel, 1, sizeof(nx), &nx);
-	err = clSetKernelArg(kernel, 2, sizeof(ny), &ny);
-	err = clSetKernelArg(kernel, 3, sizeof(nz), &nz);
-	err = clSetKernelArg(kernel, 4, sizeof(ldy), &ldy);
-	err = clSetKernelArg(kernel, 5, sizeof(ldz), &ldz);
-	err |= clSetKernelArg(kernel, 6, sizeof(*factor), factor);
-	if (err) STARPU_OPENCL_REPORT_ERROR(err);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 0, sizeof(block), &block);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 1, sizeof(nx), &nx);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 2, sizeof(ny), &ny);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 3, sizeof(nz), &nz);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 4, sizeof(ldy), &ldy);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 5, sizeof(ldz), &ldz);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 6, sizeof(*factor), factor);
 
 	{
 		size_t global=nx*ny*nz;
