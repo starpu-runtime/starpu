@@ -502,8 +502,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	{
 		for (worker = 0; worker < nworkers; worker++)
 		{
-			fifo = queue_array[worker];
-	
 			if (!starpu_worker_may_execute_task(worker, task, 0))
 			{
 				/* no one on that queue may execute this task */
