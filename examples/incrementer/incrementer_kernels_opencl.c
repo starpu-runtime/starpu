@@ -33,7 +33,6 @@ void opencl_codelet(void *descr[], void *_args)
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "incrementer", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = 0;
 	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
