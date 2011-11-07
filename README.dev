@@ -14,6 +14,23 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+Contents
+========
+
+- Developer Warnings
+- Installing StarPU on Windows
+
+
+
+
+Developer Warnings
+------------------
+
+They are enabled only if the STARPU_DEVEL environment variable is
+defined to a non-empty value, when calling configure.
+
+
+
 Installing StarPU on windows
 ----------------------------
 
@@ -180,6 +197,3 @@ autogen.sh part.
    export PATH=<StarPU installation directory>/bin:$PATH
 
 
-Developers warning
-------------------
-They are only enabled if the STARPU_DEVEL environment is defined to a non-empty value.
