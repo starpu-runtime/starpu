@@ -203,10 +203,7 @@ int _starpu_regression_non_linear_power(struct starpu_history_list_t *ptr, doubl
 		}
 
 		if (fabs(err - STARPU_MIN(err1, err2)) < EPS)
-		{
-			err = STARPU_MIN(err1, err2);
 			break;
-		}
 
 		err = STARPU_MIN(err1, err2);
 	}
