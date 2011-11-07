@@ -101,8 +101,8 @@ int main(int argc, char **argv)
 			task->synchronous = 1;
 
 			int ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-				goto enodev;
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
 			int ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
