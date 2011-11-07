@@ -113,7 +113,8 @@ enodev:
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
 	starpu_shutdown();
-	/* No one can execute that task, this is not a bug, just an incomplete
-	 * test :) */
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	fprintf(stderr, "WARNING: No one can execute this task\n");
 	return 77;
 }
