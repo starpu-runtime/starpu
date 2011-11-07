@@ -92,15 +92,15 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
 		starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
 	}
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	fprintf(stderr, "#tasks : %u\n#buffers : %u\n", ntasks, nbuffers);
 
