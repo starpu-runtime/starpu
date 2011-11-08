@@ -437,12 +437,14 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 #endif
         }
 
+#ifdef STARPU_HAVE_HWLOC
 	if (!no_node_obj_was_found)
 	{
 		free(is_available_per_numa_node);
 		free(dev_timing_htod_per_numa_node);
 		free(dev_timing_dtoh_per_numa_node);
 	}
+#endif /* STARPU_HAVE_HWLOC */
 }
 
 static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_htod, double *dev_timing_dtoh,
