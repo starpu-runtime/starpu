@@ -89,8 +89,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	unsigned nworkers = starpu_worker_get_count();
-
 	starpu_variable_data_register(&handle, 0, (uintptr_t)&var, sizeof(unsigned));
 
 	/* Create a mask with all the memory nodes, so that we can ask StarPU
