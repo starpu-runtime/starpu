@@ -268,8 +268,6 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_
                         return err;
                 }
         }
-
-        return CL_SUCCESS;
 }
 
 cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)

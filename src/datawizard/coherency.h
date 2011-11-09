@@ -79,7 +79,7 @@ LIST_TYPE(starpu_data_replicate,
 	 */
 	uint8_t requested[STARPU_MAXNODES];
 	struct starpu_data_request_s *request[STARPU_MAXNODES];
-);
+)
 
 struct starpu_data_requester_list_s;
 

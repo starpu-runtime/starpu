@@ -410,8 +410,8 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 		break;
 	}
 	if (msg)
-		printf("oops in %s (%s:%u) (%s) ... <%s> (%d) \n", func, file, line, msg, errormsg, status);
+		printf("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg, errormsg, status);
 	else
-		printf("oops in %s (%s:%u) ... <%s> (%d) \n", func, file, line, errormsg, status);
+		printf("oops in %s (%s:%d) ... <%s> (%d) \n", func, file, line, errormsg, status);
 
 }

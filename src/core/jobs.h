@@ -128,7 +128,7 @@ LIST_TYPE(starpu_job,
 	/* Parallel workers may have to synchronize before/after the execution of a parallel task. */
 	pthread_barrier_t before_work_barrier;
 	pthread_barrier_t after_work_barrier;
-);
+)
 
 /* Create an internal starpu_job_t structure to encapsulate the task. */
 starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);

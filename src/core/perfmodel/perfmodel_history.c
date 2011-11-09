@@ -206,10 +206,9 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 
 static void parse_arch(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history, unsigned archmin, unsigned archmax, int skiparch)
 {
-	unsigned arch, impl;
 	struct starpu_per_arch_perfmodel_t dummy;
-	int nimpls, implmax, skipimpl;
-	unsigned ret;
+	int nimpls, implmax, skipimpl, impl;
+	unsigned ret, arch;
 	
 
 	for (arch = archmin; arch < archmax; arch++) {

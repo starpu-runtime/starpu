@@ -51,7 +51,7 @@ const float gamma_maximum=10000.0;
 const float idle_power_minimum=0;
 const float idle_power_maximum=10000.0;
 
-void param_modified(struct starputop_param_t* d){
+static void param_modified(struct starputop_param_t* d){
 	//just to show parameter modification
 	fprintf(stderr,"%s has been modified : alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n", 
 		d->name, alpha,beta,_gamma,idle_power);

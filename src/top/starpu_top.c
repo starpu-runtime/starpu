@@ -114,7 +114,7 @@ static void starputop_send_devices_info()
 		char dev_name[64];
 		starputop_get_device_type(i,dev_type);
 		starpu_worker_get_name(i, dev_name,64);
-		snprintf(message, 128, "%d;%s;%s\n", i, dev_type, dev_name);
+		snprintf(message, 128, "%u;%s;%s\n", i, dev_type, dev_name);
 		starputop_message_add(starputop_mt,message);    
 	}
 
