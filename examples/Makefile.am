@@ -40,6 +40,8 @@ endif
 
 EXTRA_DIST = 					\
 	basic_examples/vector_scal_opencl_kernel.cl \
+	basic_examples/multiformat_opencl_kernel.cl  \
+	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
 	common/blas_model.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
@@ -123,7 +125,8 @@ noinst_HEADERS = 				\
 	spmv/matrix_market/mmio.h		\
 	spmv/matrix_market/mm_to_bcsr.h		\
 	spmv/spmv.h				\
-	spmv/dw_block_spmv.h
+	spmv/dw_block_spmv.h                    \
+	basic_examples/multiformat_types.h
 
 #####################################
 # What to install and what to check #
@@ -152,6 +155,7 @@ examplebin_PROGRAMS +=				\
 	basic_examples/mult			\
 	basic_examples/block			\
 	basic_examples/variable			\
+	basic_examples/multiformat              \
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -212,6 +216,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/mult			\
 	basic_examples/block			\
 	basic_examples/variable			\
+	basic_examples/multiformat              \
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -295,6 +300,29 @@ basic_examples_vector_scal_fortran_SOURCES +=	\
 basic_examples_vector_scal_fortran_LDADD =	\
 	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
+endif
+
+#######################
+# Multiformat example #
+#######################
+basic_examples_multiformat_SOURCES =                                    \
+	basic_examples/multiformat.c                                    \
+	basic_examples/multiformat_conversion_codelets.c
+
+if STARPU_USE_CUDA
+basic_examples_multiformat_SOURCES+=                                     \
+	basic_examples/multiformat_cuda.cu                               \
+	basic_examples/multiformat_conversion_codelets_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+basic_examples_multiformat_SOURCES+=                                     \
+	basic_examples/multiformat_opencl.c                              \
+	basic_examples/multiformat_conversion_codelets_opencl.c          
+
+nobase_STARPU_OPENCL_DATA_DATA+=                                         \
+	basic_examples/multiformat_opencl_kernel.cl                      \
+	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl
 endif
 
 #################

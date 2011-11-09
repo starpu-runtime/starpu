@@ -387,3 +387,26 @@ void _starpu_set_current_task(struct starpu_task *task)
 {
 	pthread_setspecific(current_task_key, task);
 }
+
+double _starpu_task_get_conversion_time(struct starpu_task *task)
+{
+	int i;
+	double conversion_time = 0.0;
+
+	for (i = 0; i < task->cl->nbuffers; i++) {
+		starpu_data_handle handle = task->buffers[i].handle;
+		unsigned int id = starpu_get_handle_interface_id(handle);
+		if (id == STARPU_MULTIFORMAT_INTERFACE_ID) {
+			starpu_multiformat_interface_t *tmp;
+			uint32_t node = starpu_worker_get_memory_node(task->workerid);
+			tmp = starpu_data_get_interface_on_node(handle, node);
+			conversion_time += tmp->conversion_time;
+			/* XXX : this may not be the right place to reset this field,
+			 * but we need to make sure the conversion time won't be counted 
+                         * twice */
+			tmp->conversion_time = 0;
+		}
+	}
+
+	return conversion_time;
+}

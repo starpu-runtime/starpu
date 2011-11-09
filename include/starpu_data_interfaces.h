@@ -314,6 +314,56 @@ uint32_t starpu_bcsr_get_r(starpu_data_handle);
 uint32_t starpu_bcsr_get_c(starpu_data_handle);
 size_t starpu_bcsr_get_elemsize(starpu_data_handle);
 
+/*
+ * Multiformat interface
+ */
+struct starpu_multiformat_data_interface_ops {
+	size_t cpu_elemsize;
+#ifdef STARPU_USE_OPENCL
+	size_t opencl_elemsize;
+	void *cpu_to_opencl_cl;
+	void *opencl_to_cpu_cl;
+#endif
+#ifdef STARPU_USE_CUDA
+	size_t cuda_elemsize;
+	void *cpu_to_cuda_cl;
+	void *cuda_to_cpu_cl;
+#endif
+};
+
+typedef struct starpu_multiformat_interface_s {
+	void *cpu_ptr;
+#ifdef STARPU_USE_CUDA
+	void *cuda_ptr;
+#endif
+#ifdef STARPU_USE_OPENCL
+	void *opencl_ptr;
+#endif
+	uintptr_t dev_handle;
+	size_t offset;
+	uint32_t nx;
+	struct starpu_multiformat_data_interface_ops *ops;
+	double conversion_time;
+} starpu_multiformat_interface_t;
+
+void starpu_multiformat_data_register(starpu_data_handle *handle,
+				      uint32_t home_node,
+				      void *ptr,
+				      uint32_t nobjects,
+				      struct starpu_multiformat_data_interface_ops *format_ops);
+
+#define STARPU_MULTIFORMAT_GET_PTR(interface)  (((starpu_multiformat_interface_t *)(interface))->cpu_ptr)
+
+#ifdef STARPU_USE_CUDA
+#define STARPU_MULTIFORMAT_GET_CUDA_PTR(interface) (((starpu_multiformat_interface_t *)(interface))->cuda_ptr)
+#endif
+
+#ifdef STARPU_USE_OPENCL
+#define STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface) (((starpu_multiformat_interface_t *)(interface))->opencl_ptr)
+#endif
+
+#define STARPU_MULTIFORMAT_GET_NX(interface)  (((starpu_multiformat_interface_t *)(interface))->nx)
+
 #define STARPU_MATRIX_INTERFACE_ID	0
 #define STARPU_BLOCK_INTERFACE_ID	1
 #define STARPU_VECTOR_INTERFACE_ID	2
@@ -321,7 +371,8 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle);
 #define STARPU_BCSR_INTERFACE_ID	4
 #define STARPU_VARIABLE_INTERFACE_ID	5
 #define STARPU_VOID_INTERFACE_ID	6
-#define STARPU_NINTERFACES_ID		7 /* number of data interfaces */
+#define STARPU_MULTIFORMAT_INTERFACE_ID 7
+#define STARPU_NINTERFACES_ID		8 /* number of data interfaces */
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 

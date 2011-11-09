@@ -99,6 +99,9 @@ typedef struct starpu_codelet_t {
 	 * In the case of parallel codelets, accounts for all units. */
 	struct starpu_perfmodel_t *power_model;
 
+	/* Conversion model of the codelet */
+	struct starpu_perfmodel_t *conversion_model;
+
 	/* statistics collected at runtime: this is filled by StarPU and should
 	 * not be accessed directly (use the starpu_display_codelet_stats
 	 * function instead for instance). */

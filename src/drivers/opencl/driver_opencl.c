@@ -28,6 +28,8 @@
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
 
+double _starpu_task_get_conversion_time(struct starpu_task *task);
+
 static pthread_mutex_t big_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
@@ -564,6 +566,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 		 * codelet back, and try it later */
 		return -EAGAIN;
 	}
+	double conversion_time = _starpu_task_get_conversion_time(task);
 
 	_starpu_driver_start_job(args, j, &codelet_start, 0);
 
@@ -582,7 +585,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	_starpu_driver_end_job(args, j, &codelet_end, 0);
 
 	_starpu_driver_update_job_feedback(j, args, args->perf_arch,
-							&codelet_start, &codelet_end);
+							&codelet_start, &codelet_end, conversion_time);
 
 	_starpu_push_task_output(task, mask);
 

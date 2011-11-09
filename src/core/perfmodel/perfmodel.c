@@ -196,6 +196,11 @@ double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_arc
 	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
 }
 
+double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+{
+	return starpu_model_expected_perf(task, task->cl->conversion_model, arch, nimpl);
+}
+
 /* Predict the transfer time (in µs) to move a handle to a memory node */
 double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode)
 {

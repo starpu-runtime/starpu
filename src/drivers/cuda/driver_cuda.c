@@ -26,6 +26,9 @@
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
 
+
+double _starpu_task_get_conversion_time(struct starpu_task *task);
+
 /* the number of CUDA devices */
 static int ncudagpus;
 
@@ -198,6 +201,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		return -EAGAIN;
 	}
 
+	double conversion_time = _starpu_task_get_conversion_time(task);
 	if (calibrate_model)
 	{
 		cures = cudaStreamSynchronize(starpu_cuda_get_local_transfer_stream());
@@ -226,7 +230,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	_starpu_driver_end_job(args, j, &codelet_end, 0);
 
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end);
+	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end, conversion_time);
 
 	_starpu_push_task_output(task, mask);
 
