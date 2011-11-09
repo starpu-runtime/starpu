@@ -50,7 +50,7 @@ static struct starpu_bus_profiling_info bus_profiling_info[STARPU_MAXNODES][STAR
 static struct node_pair busid_to_node_pair[STARPU_MAXNODES*STARPU_MAXNODES]; 
 static unsigned busid_cnt = 0;
 
-static void _do_starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info);
+static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info);
 
 /*
  *	Global control of profiling
@@ -80,7 +80,7 @@ int starpu_profiling_status_set(int status)
 			struct starpu_bus_profiling_info *bus_info;
 			bus_info = busid_to_node_pair[busid].bus_info;
 
-			_do_starpu_bus_reset_profiling_info(bus_info);;
+			_starpu_bus_reset_profiling_info(bus_info);
 		}
 	}
 
@@ -132,7 +132,7 @@ struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(str
  *	Worker profiling
  */
 
-static void _do_starpu_worker_reset_profiling_info(int workerid)
+static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 {
 	starpu_clock_gettime(&worker_info[workerid].start_time);
 
@@ -175,7 +175,7 @@ static void _do_starpu_worker_reset_profiling_info(int workerid)
 void _starpu_worker_reset_profiling_info(int workerid)
 {
 	PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-	_do_starpu_worker_reset_profiling_info(workerid);
+	_starpu_worker_reset_profiling_info_with_lock(workerid);
 	PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 }
 
@@ -288,7 +288,7 @@ int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profilin
 		memcpy(info, &worker_info[workerid], sizeof(struct starpu_worker_profiling_info));
 	}
 
-	_do_starpu_worker_reset_profiling_info(workerid);
+	_starpu_worker_reset_profiling_info_with_lock(workerid);
 
 	PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 
@@ -334,7 +334,7 @@ void _starpu_initialize_busid_matrix(void)
 	busid_cnt = 0;
 }
 
-static void _do_starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info)
+static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info)
 {
 	starpu_clock_gettime(&bus_info->start_time);
 	bus_info->transferred_bytes = 0;
@@ -354,7 +354,7 @@ int _starpu_register_bus(int src_node, int dst_node)
 	busid_to_node_pair[busid].dst = dst_node;
 	busid_to_node_pair[busid].bus_info = &bus_profiling_info[src_node][dst_node];
 
-	_do_starpu_bus_reset_profiling_info(&bus_profiling_info[src_node][dst_node]);
+	_starpu_bus_reset_profiling_info(&bus_profiling_info[src_node][dst_node]);
 
 	return busid;
 }
@@ -397,7 +397,7 @@ int starpu_bus_get_profiling_info(int busid, struct starpu_bus_profiling_info *b
 		memcpy(bus_info, &bus_profiling_info[src_node][dst_node], sizeof(struct starpu_bus_profiling_info));
 	}
 
-	_do_starpu_bus_reset_profiling_info(&bus_profiling_info[src_node][dst_node]);
+	_starpu_bus_reset_profiling_info(&bus_profiling_info[src_node][dst_node]);
 
 	return 0;
 } 
