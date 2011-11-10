@@ -73,7 +73,8 @@ int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_
 	}
 	else {
 		char *last = strrchr(located_file_name, '/');
-		if (last) {
+		if (!last) strcpy(located_dir_name, "");
+		else {
 			sprintf(located_dir_name, "%s", located_file_name);
 			located_dir_name[strlen(located_file_name)-strlen(last)+1] = '\0';
 		}
@@ -215,7 +216,9 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
         if(!opencl_program_source)
                 _STARPU_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
-	if (build_options)
+	if (!strcmp(located_dir_name, ""))
+		strcpy(new_build_options, build_options);
+	else if (build_options)
 		sprintf(new_build_options, "-I %s %s", located_dir_name, build_options);
 	else
 		sprintf(new_build_options, "-I %s", located_dir_name);
