@@ -13,7 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-#include "examples/basic_examples/multiformat_types.h"
+#include "multiformat_types.h"
 __kernel void cpu_to_opencl_opencl(__global struct struct_of_arrays *src,
 				__global struct point *dst,
 				unsigned int n)

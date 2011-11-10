@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "examples/basic_examples/multiformat_types.h"
+#include "multiformat_types.h"
 __kernel void multiformat_opencl(__global struct point* val, int nx)
 {
         const int i = get_global_id(0);
