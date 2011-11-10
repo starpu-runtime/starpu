@@ -392,6 +392,14 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 							  
 			break;
 		}
+		case cudaMemcpyDeviceToDevice:
+		{
+			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
+			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
+			if (STARPU_UNLIKELY(status))
+				STARPU_CUDA_REPORT_ERROR(status);
+			break;
+		}
 		default:
 			STARPU_ASSERT(0);
 	}
@@ -418,9 +426,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 	dst_multiformat = (starpu_multiformat_interface_t *) dst_interface;
 
 	size_t size;
-#ifdef STARPU_USE_CUDA
 	cudaError_t status;
-#endif
 
 	switch (kind) {
 		case cudaMemcpyHostToDevice:
@@ -462,6 +468,14 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 
 			break;
 		}
+		case cudaMemcpyDeviceToDevice:
+		{
+			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
+			status = cudaMemcpyAsync(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind, stream);
+			if (STARPU_UNLIKELY(status))
+				STARPU_CUDA_REPORT_ERROR(status);
+			break;
+		}
 		default:
 			STARPU_ASSERT(0);
 	}
@@ -479,18 +493,89 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_
 	return copy_cuda_common_async(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToHost);
 }
 
-static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+#ifdef HAVE_CUDA_MEMCPY_PEER
+static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
+				void *dst_interface, unsigned dst_node,
+				cudaStream_t stream)
 {
-	/* TODO */
-	STARPU_ASSERT(0);
-}
+	starpu_multiformat_interface_t *src_multiformat;
+	starpu_multiformat_interface_t *dst_multiformat;
 
-static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					void *dst_interface, unsigned dst_node, cudaStream_t stream)
-{
-	/* TODO */
-	STARPU_ASSERT(0);
+	src_multiformat = (starpu_multiformat_interface_t *) src_interface;
+	dst_multiformat = (starpu_multiformat_interface_t *) dst_interface;
+
+	STARPU_ASSERT(src_multiformat != NULL);
+	STARPU_ASSERT(dst_multiformat != NULL);
+	STARPU_ASSERT(src_multiformat->ops != NULL);
+
+	cudaError_t status;
+	int size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
+	int src_dev = starpu_memory_node_to_devid(src_node);
+	int dst_dev = starpu_memory_node_to_devid(dst_node);
+
+	if (stream)
+	{
+		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		status = cudaMemcpyPeerAsync(dst_multiformat->cuda_ptr, dst_dev,
+					     src_multiformat->cuda_ptr, src_dev,
+					     size, stream);
+		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+	}
+	else
+	{
+		status = cudaMemcpyPeer(dst_multiformat->cuda_ptr, dst_dev,
+					src_multiformat->cuda_ptr, src_dev,
+					size);
+	}
+
+	if (STARPU_UNLIKELY(status != cudaSuccess))
+		STARPU_CUDA_REPORT_ERROR(status);
+
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, length);
+
+	return 0;
 }
 #endif
+static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+{
+	if (src_node == dst_node)
+	{
+		return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
+	}
+	else
+	{
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		return copy_cuda_peer_common(src_interface, src_node,
+					     dst_interface, dst_node,
+					     NULL);
+#else
+		STARPU_ASSERT(0);
+#endif
+	}
+}
+
+static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
+				   void *dst_interface, unsigned dst_node,
+				   cudaStream_t stream)
+{
+	if (src_node == dst_node)
+	{
+		return copy_cuda_common_async(src_interface, src_node,
+					      dst_interface, dst_node,
+					      stream, cudaMemcpyDeviceToDevice);
+	}
+	else
+	{
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		return copy_cuda_peer_common(src_interface, src_node,
+					     dst_interface, dst_node,
+					     stream);
+#else
+		STARPU_ASSERT(0);
+#endif
+	}
+}
+#endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
