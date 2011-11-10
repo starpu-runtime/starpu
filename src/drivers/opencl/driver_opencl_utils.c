@@ -39,27 +39,47 @@ char *_starpu_opencl_program_dir;
 #define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
 
 static
-int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_name) {
+int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_name, char *located_dir_name) {
+	int ret = EXIT_FAILURE;
+
         _STARPU_DEBUG("Trying to locate <%s>\n", source_file_name);
         if (access(source_file_name, R_OK) == 0) {
                 strcpy(located_file_name, source_file_name);
-                return EXIT_SUCCESS;
+		ret = EXIT_SUCCESS;
         }
-        if (_starpu_opencl_program_dir) {
-                sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
-                _STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-                if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
-        }
-        sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
-        _STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-        if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
-        sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
-        _STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-        if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
 
-        strcpy(located_file_name, "");
-        _STARPU_ERROR("Cannot locate file <%s>\n", source_file_name);
-        return EXIT_FAILURE;
+	if (ret == EXIT_FAILURE && _starpu_opencl_program_dir) {
+		sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
+		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
+	}
+
+	if (ret == EXIT_FAILURE) {
+		sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
+		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
+	}
+
+	if (ret == EXIT_FAILURE) {
+		sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
+		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
+	}
+
+	if (ret == EXIT_FAILURE) {
+		strcpy(located_file_name, "");
+		strcpy(located_dir_name, "");
+		_STARPU_ERROR("Cannot locate file <%s>\n", source_file_name);
+	}
+	else {
+		char *last = strrchr(located_file_name, '/');
+		if (last) {
+			sprintf(located_dir_name, "%s", located_file_name);
+			located_dir_name[strlen(located_file_name)-strlen(last)+1] = '\0';
+		}
+	}
+
+        return ret;
 }
 
 cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs,
@@ -178,21 +198,30 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
 {
 	int nb_devices;
         char located_file_name[1024];
+        char located_dir_name[1024];
+	char new_build_options[1024];
 
 	// Do not try to load and compile the file if there is no devices
 	nb_devices = starpu_opencl_worker_get_count();
 	if (nb_devices == 0) return EXIT_SUCCESS;
 
         // Locate source file
-        _starpu_opencl_locate_file(source_file_name, located_file_name);
+        _starpu_opencl_locate_file(source_file_name, located_file_name, located_dir_name);
         _STARPU_DEBUG("Source file name : <%s>\n", located_file_name);
+        _STARPU_DEBUG("Source directory name : <%s>\n", located_dir_name);
 
         // Load the compute program from disk into a cstring buffer
         char *opencl_program_source = _starpu_opencl_load_program_source(located_file_name);
         if(!opencl_program_source)
                 _STARPU_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
-        return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs, build_options);
+	if (build_options)
+		sprintf(new_build_options, "-I %s %s", located_dir_name, build_options);
+	else
+		sprintf(new_build_options, "-I %s", located_dir_name);
+	_STARPU_DEBUG("Build options: <%s>\n", new_build_options);
+
+        return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs, new_build_options);
 }
 
 cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
