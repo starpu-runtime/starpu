@@ -531,7 +531,7 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, length);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 
 	return 0;
 }
