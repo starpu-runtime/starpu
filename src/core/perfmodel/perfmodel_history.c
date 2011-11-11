@@ -775,6 +775,8 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 
 	parse_model_file(f, model, 1);
 
+	STARPU_ASSERT(fclose(f) == 0);
+
 	return 0;
 }
 
