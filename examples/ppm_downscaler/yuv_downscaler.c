@@ -119,20 +119,22 @@ int main(int argc, char **argv)
 /*	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes); */
 	assert((filesize % sizeof(struct yuv_frame)) == 0);
 
+	struct yuv_frame *yuv_in_buffer = (struct yuv_frame *) malloc(nframes*FRAMESIZE);
+	assert(yuv_in_buffer);
+
+/*	fprintf(stderr, "Alloc output file ...\n"); */
+	struct yuv_new_frame *yuv_out_buffer = (struct yuv_new_frame *) calloc(nframes, NEW_FRAMESIZE);
+	assert(yuv_out_buffer);
+
 	/* fetch input data */
 	FILE *f_in = fopen(filename_in, "r");
 	assert(f_in);
-
-	struct yuv_frame *yuv_in_buffer = (struct yuv_frame *) malloc(nframes*FRAMESIZE);
-	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
 
 	/* allocate room for an output buffer */
 	FILE *f_out = fopen(filename_out, "w+");
 	assert(f_out);
 
-/*	fprintf(stderr, "Alloc output file ...\n"); */
-	struct yuv_new_frame *yuv_out_buffer = (struct yuv_new_frame *) calloc(nframes, NEW_FRAMESIZE);
-	assert(yuv_out_buffer);
+	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
 
 	starpu_data_handle *frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
 	starpu_data_handle *frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
@@ -278,6 +280,12 @@ int main(int argc, char **argv)
 
 	/* partition the layers into smaller parts */
 	starpu_shutdown();
+
+	if (fclose(f_in) != 0)
+		fprintf(stderr, "Could not close %s properly\n", filename_in);
+
+	if (fclose(f_out) != 0)
+		fprintf(stderr, "Could not close %s properly\n", filename_out);
 
 	return 0;
 }
