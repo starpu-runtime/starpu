@@ -53,6 +53,7 @@ struct ppm_image *file_to_ppm(char *filename)
 	assert(ppm);
 	
 	FILE *file = fopen(filename, "r");
+	assert(file);
 
 	/* read the file's dimensions */
 	ret = fscanf(file, "P6\n%d %d\n%d\n", &ppm->ncols, &ppm->nlines, &ppm->coldepth);
