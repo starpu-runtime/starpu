@@ -105,6 +105,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 	cudaStream_t stream;
 #endif
 
+	_starpu_comm_amounts_inc(src_node, dst_node, handle->ops->get_size(handle));
+
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
 
