@@ -3864,8 +3864,8 @@ scheduled (which may however have to wait for a task completion).
 
 There are several ways to register a memory region so that it can be
 managed by StarPU.  The functions below allow the registration of
-vectors, 2D matrices, and 3D matrices, as well as BCSR and CSR sparse
-matrices.
+vectors, 2D matrices, 3D matrices, BCSR and CSR sparse matrices, as well
+as data that can be represented in different ways.
 
 @deftypefun void starpu_variable_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
 Register the @var{size}-byte element pointed to by @var{ptr}, which is
@@ -3934,6 +3934,52 @@ Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
+@deftypefun void starpu_multiformat_data_register(starpu_data_handle *handle, uint32_t home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
+Register a piece of data that can be represented in different ways, depending upon
+the processing unit that manipulates it. IT allows the programmer, for instance, to
+use an array of structures when working on a CPU, and a structure of arrays when
+working on a GPU.
+
+@example
+#define NX 1024
+struct point array_of_structs[NX];
+starpu_data_handle handle;
+
+/*
+ * The conversion of a piece of data is itself a task, though it is created,
+ * submitted and destroyed by StarPU internals and not by the user. Therefore,
+ * we have to define two codelets.
+ * Note that the conversion from the CPU format to the GPU format has to be
+ * executed on the GPU, and the conversion from the GPU to the CPU has to be
+ * executed on the CPU.
+ */
+#ifdef STARPU_USE_OPENCL
+void cpu_to_opencl_opencl_func(void *buffers[], void *args);
+starpu_codelet cpu_to_opencl_cl = @{
+	.where = STARPU_OPENCL,
+	.opencl_func = cpu_to_opencl_opencl_func,
+	.nbuffers = 1
+@};
+
+void opencl_to_cpu_func(void *buffers[], void *args);
+starpu_codelet opencl_to_cpu_cl = @{
+	.where = STARPU_CPU,
+	.cpu_func = opencl_to_cpu_func,
+	.nbuffers = 1
+@};
+#endif
+
+struct starpu_multiformat_data_interface_ops format_ops = @{
+#ifdef STARPU_USE_OPENCL
+	.opencl_elemsize = 2 * sizeof(float),
+	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
+	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
+#endif
+	.cpu_elemsize = ...
+@};
+starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
+@end example
+@end deftypefun
 @node Data Partition
 @section Data Partition
 
