@@ -3935,11 +3935,19 @@ Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun void starpu_multiformat_data_register(starpu_data_handle *handle, uint32_t home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
+@deftypefun void starpu_multiformat_data_register(starpu_data_handle *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops});
 Register a piece of data that can be represented in different ways, depending upon
 the processing unit that manipulates it. It allows the programmer, for instance, to
 use an array of structures when working on a CPU, and a structure of arrays when
 working on a GPU.
+
+@var{nobjects} is the number of elements in the data. @var{format_ops} describes
+the format itself: @code{cpu_elemsize} is the size of each element on CPUs,
+@code{opencl_elemsize} is the size of each element on OpenCL devices,
+@code{cuda_elemsize} is the size of each element on CUDA devices.
+@code{cpu_to_opencl_cl}, @code{opencl_to_cpu_cl}, @code{cpu_to_cuda_cl}, and
+@code{cuda_to_cpu_cl} are pointers to codelets which convert between the various
+formats.
 
 @example
 #define NX 1024
@@ -3950,8 +3958,8 @@ starpu_data_handle handle;
  * The conversion of a piece of data is itself a task, though it is created,
  * submitted and destroyed by StarPU internals and not by the user. Therefore,
  * we have to define two codelets.
- * Note that the conversion from the CPU format to the GPU format has to be
- * executed on the GPU, and the conversion from the GPU to the CPU has to be
+ * Note that for now the conversion from the CPU format to the GPU format has to
+ * be executed on the GPU, and the conversion from the GPU to the CPU has to be
  * executed on the CPU.
  */
 #ifdef STARPU_USE_OPENCL
@@ -3976,7 +3984,8 @@ struct starpu_multiformat_data_interface_ops format_ops = @{
 	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
 	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
 #endif
-	.cpu_elemsize = ...
+	.cpu_elemsize = 2 * sizeof(float),
+	...
 @};
 starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
 @end example
