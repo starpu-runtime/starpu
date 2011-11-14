@@ -130,8 +130,8 @@ void _starpu_display_comm_amounts(void)
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		for (src = 0; src < STARPU_MAXNODES; src++)
 		{
-			sum += (unsigned long)comm_amount[src][dst];
-			sum += (unsigned long)comm_amount[dst][src];
+			sum += comm_amount[src][dst];
+			sum += comm_amount[dst][src];
 		}
 
 	fprintf(stderr, "\nData transfers stats:\nTOTAL transfers %f MB\n", (float)sum/1024/1024);
