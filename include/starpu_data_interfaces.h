@@ -321,13 +321,13 @@ struct starpu_multiformat_data_interface_ops {
 	size_t cpu_elemsize;
 #ifdef STARPU_USE_OPENCL
 	size_t opencl_elemsize;
-	void *cpu_to_opencl_cl;
-	void *opencl_to_cpu_cl;
+	struct starpu_codelet_t *cpu_to_opencl_cl;
+	struct starpu_codelet_t *opencl_to_cpu_cl;
 #endif
 #ifdef STARPU_USE_CUDA
 	size_t cuda_elemsize;
-	void *cpu_to_cuda_cl;
-	void *cuda_to_cpu_cl;
+	struct starpu_codelet_t *cpu_to_cuda_cl;
+	struct starpu_codelet_t *cuda_to_cpu_cl;
 #endif
 };
 
