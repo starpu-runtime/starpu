@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,11 +110,12 @@ void _starpu_display_alloc_cache_stats(void)
 
 /* measure the amount of data transfers between each pair of nodes */
 #ifdef STARPU_DATA_STATS
-
 static size_t comm_ammount[STARPU_MAXNODES][STARPU_MAXNODES];
+#endif /* STARPU_DATA_STATS */
 
 void _starpu_display_comm_amounts(void)
 {
+#ifdef STARPU_DATA_STATS
 	unsigned src, dst;
 
 	unsigned long sum = 0;
@@ -128,23 +129,16 @@ void _starpu_display_comm_amounts(void)
 	fprintf(stderr, "\nData transfers stats:\nTOTAL transfers %ld MB\n", sum/(1024*1024));
 
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-	for (src = dst + 1; src < STARPU_MAXNODES; src++)
-	{
-		if (comm_ammount[src][dst])
-			fprintf(stderr, "\t%d <-> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n",
-				src, dst, ((unsigned long)comm_ammount[src][dst] + (unsigned long)comm_ammount[dst][src])/(1024*1024),
-				src, dst, ((unsigned long)comm_ammount[src][dst])/(1024*1024),
-				dst, src, ((unsigned long)comm_ammount[dst][src])/(1024*1024));
-	}
-}
-
-#else
-
-void _starpu_display_comm_amounts(void)
-{
-}
-
+		for (src = dst + 1; src < STARPU_MAXNODES; src++)
+		{
+			if (comm_ammount[src][dst])
+				fprintf(stderr, "\t%d <-> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n",
+					src, dst, ((unsigned long)comm_ammount[src][dst] + (unsigned long)comm_ammount[dst][src])/(1024*1024),
+					src, dst, ((unsigned long)comm_ammount[src][dst])/(1024*1024),
+					dst, src, ((unsigned long)comm_ammount[dst][src])/(1024*1024));
+		}
 #endif
+}
 
 #ifdef STARPU_MEMORY_STATUS
 void _starpu_display_data_stats(void)
