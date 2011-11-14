@@ -3935,7 +3935,7 @@ Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun void starpu_multiformat_data_register(starpu_data_handle *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops});
+@deftypefun void starpu_multiformat_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops});
 Register a piece of data that can be represented in different ways, depending upon
 the processing unit that manipulates it. It allows the programmer, for instance, to
 use an array of structures when working on a CPU, and a structure of arrays when
