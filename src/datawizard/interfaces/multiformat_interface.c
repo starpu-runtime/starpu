@@ -520,14 +520,17 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 					     src_multiformat->cuda_ptr, src_dev,
 					     size, stream);
 		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-	}
-	else
-	{
-		status = cudaMemcpyPeer(dst_multiformat->cuda_ptr, dst_dev,
-					src_multiformat->cuda_ptr, src_dev,
-					size);
+		/* All good ! Still, returning -EAGAIN, because we will need to
+                   check the transfert completion later */
+		if (status == cudaSuccess)
+			return -EAGAIN;
 	}
 
+	/* Either a synchronous transfert was requested, or the asynchronous one
+           failed. */
+	status = cudaMemcpyPeer(dst_multiformat->cuda_ptr, dst_dev,
+				src_multiformat->cuda_ptr, src_dev,
+				size);
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
 
