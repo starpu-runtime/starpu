@@ -14,13 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #include "multiformat_types.h"
-__kernel void cpu_to_opencl_opencl(__global struct struct_of_arrays *src,
-				__global struct point *dst,
-				unsigned int n)
+__kernel void cpu_to_opencl_opencl(__global struct point *src,
+				   __global struct struct_of_arrays *dst,
+				   unsigned int n)
 {
 	const unsigned int i = get_global_id(0);
 	if (i < n) {
-		dst[i].x = src->x[i];
-		dst[i].y = src->y[i];
+		dst->x[i] = src[i].x;
+		dst->y[i] = src[i].y;
 	}
 }

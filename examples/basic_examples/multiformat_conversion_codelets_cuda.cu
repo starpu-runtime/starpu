@@ -17,24 +17,26 @@
 #include <starpu_cuda.h>
 #include "multiformat_types.h"
 
-static __global__ void cpu_to_cuda_cuda(struct struct_of_arrays *src,
-	struct point *dst, unsigned n)
+static __global__ void cpu_to_cuda_cuda(struct point *src,
+	struct struct_of_arrays *dst, unsigned n)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
 
-	if (i >= n)
-		return;
-	dst[i].x = src->x[i];
-	dst[i].y = src->y[i];
+	if (i < n) {
+		dst->x[i] = src[i].x;
+		dst->y[i] = src[i].y;
+	}
 
 }
 
 extern "C" void cpu_to_cuda_cuda_func(void *buffers[], void *_args)
 {
-	struct struct_of_arrays *src;
-	src = (struct struct_of_arrays *) STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
-	struct point *dst;
-	dst = (struct point *) STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
+	struct point *src;
+	struct struct_of_arrays *dst;
+
+	src = (struct point *) STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	dst = (struct struct_of_arrays *) STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
+
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 
 	unsigned threads_per_block = 64;

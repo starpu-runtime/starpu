@@ -19,25 +19,25 @@
 #ifdef STARPU_USE_CUDA
 void cpu_to_cuda(void *buffers[], void *arg)
 {
-	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
-	struct point *dst = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
-	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
-	int i;
-	for (i = 0; i < n; i++) {
-		dst[i].x = src->x[i];
-		dst[i].y = src->y[i];
-	}
-}
-
-void cuda_to_cpu(void *buffers[], void *arg)
-{
-	struct point *src = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
-	struct struct_of_arrays *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	struct point *src = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	struct struct_of_arrays *dst = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	int i;
 	for (i = 0; i < n; i++) {
 		dst->x[i] = src[i].x;
 		dst->y[i] = src[i].y;
+	}
+}
+
+void cuda_to_cpu(void *buffers[], void *arg)
+{
+	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
+	struct point *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
+	int i;
+	for (i = 0; i < n; i++) {
+		dst[i].x = src->x[i];
+		dst[i].y = src->y[i];
 	}
 }
 
@@ -60,26 +60,26 @@ starpu_codelet cuda_to_cpu_cl = {
 void cpu_to_opencl(void *buffers[], void *arg)
 {
 	fprintf(stderr, "User Entering %s\n", __func__);
-	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
-	struct point *dst = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
+	struct point *src = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	struct struct_of_arrays *dst = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	int i;
 	for (i = 0; i < n; i++) {
-		dst[i].x = src->x[i];
-		dst[i].y = src->y[i];
+		dst->x[i] = src[i].x;
+		dst->y[i] = src[i].y;
 	}
 }
 
 void opencl_to_cpu(void *buffers[], void *arg)
 {
 	fprintf(stderr, "User Entering %s\n", __func__);
-	struct point *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
-	struct struct_of_arrays *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
+	struct point *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	int i;
 	for (i = 0; i < n; i++) {
-		dst->x[i] = src[i].x;
-		dst->y[i] = src[i].y;
+		dst[i].x = src->x[i];
+		dst[i].y = src->y[i];
 	}
 }
 
