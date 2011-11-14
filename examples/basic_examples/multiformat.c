@@ -150,6 +150,20 @@ print_it(void)
 	fprintf(stderr, "\n");
 }
 
+static int
+check_it(void)
+{
+	int i;
+	for (i = 0; i < N_ELEMENTS; i++) {
+		float expected_value = i + 1.0;
+		expected_value *= array_of_structs[i].y;
+		expected_value *= array_of_structs[i].y;
+		if (array_of_structs[i].x != expected_value)
+			return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
 struct starpu_opencl_program opencl_conversion_program;
@@ -185,5 +199,5 @@ main(void)
 	starpu_shutdown();
 
 
-	return 0;
+	return check_it();
 }
