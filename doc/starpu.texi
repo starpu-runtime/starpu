@@ -1598,7 +1598,8 @@ directory. Simple examples include:
         Simple documented Hello world (as shown in @ref{Hello World}), vector/scalar product (as shown
         in @ref{Vector Scaling on an Hybrid CPU/GPU Machine}), matrix
         product examples (as shown in @ref{Performance model example}), an example using the blocked matrix data
-        interface, and an example using the variable data interface.
+        interface, an example using the variable data interface, and an example
+        using different formats on CPUs and GPUs.
 @item @code{matvecmult/}:
 	OpenCL example from NVidia, adapted to StarPU.
 @item @code{axpy/}:
@@ -3936,7 +3937,7 @@ TODO
 
 @deftypefun void starpu_multiformat_data_register(starpu_data_handle *handle, uint32_t home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
 Register a piece of data that can be represented in different ways, depending upon
-the processing unit that manipulates it. IT allows the programmer, for instance, to
+the processing unit that manipulates it. It allows the programmer, for instance, to
 use an array of structures when working on a CPU, and a structure of arrays when
 working on a GPU.
 
