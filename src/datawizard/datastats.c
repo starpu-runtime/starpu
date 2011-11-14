@@ -110,13 +110,13 @@ void _starpu_display_alloc_cache_stats(void)
 
 /* measure the amount of data transfers between each pair of nodes */
 #ifdef STARPU_DATA_STATS
-static size_t comm_ammount[STARPU_MAXNODES][STARPU_MAXNODES];
+static size_t comm_amount[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif /* STARPU_DATA_STATS */
 
 void _starpu_comm_amounts_inc(unsigned src, unsigned dst, size_t size)
 {
 #ifdef STARPU_DATA_STATS
-	comm_ammount[src][dst] += size;
+	comm_amount[src][dst] += size;
 #endif /* STARPU_DATA_STATS */
 }
 
@@ -130,8 +130,8 @@ void _starpu_display_comm_amounts(void)
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		for (src = 0; src < STARPU_MAXNODES; src++)
 		{
-			sum += (unsigned long)comm_ammount[src][dst];
-			sum += (unsigned long)comm_ammount[dst][src];
+			sum += (unsigned long)comm_amount[src][dst];
+			sum += (unsigned long)comm_amount[dst][src];
 		}
 
 	fprintf(stderr, "\nData transfers stats:\nTOTAL transfers %f MB\n", (float)sum/1024/1024);
@@ -139,11 +139,11 @@ void _starpu_display_comm_amounts(void)
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		for (src = dst + 1; src < STARPU_MAXNODES; src++)
 		{
-			if (comm_ammount[src][dst])
+			if (comm_amount[src][dst])
 				fprintf(stderr, "\t%d <-> %d\t%f MB\n\t\t%d -> %d\t%f MB\n\t\t%d -> %d\t%f MB\n",
-					src, dst, ((float)comm_ammount[src][dst] + (float)comm_ammount[dst][src])/(1024*1024),
-					src, dst, ((float)comm_ammount[src][dst])/(1024*1024),
-					dst, src, ((float)comm_ammount[dst][src])/(1024*1024));
+					src, dst, ((float)comm_amount[src][dst] + (float)comm_amount[dst][src])/(1024*1024),
+					src, dst, ((float)comm_amount[src][dst])/(1024*1024),
+					dst, src, ((float)comm_amount[dst][src])/(1024*1024));
 		}
 #endif
 }
