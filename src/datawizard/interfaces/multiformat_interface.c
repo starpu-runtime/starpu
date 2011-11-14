@@ -201,7 +201,11 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 static void display_multiformat_interface(starpu_data_handle handle, FILE *f)
 {
 	/* TODO */
-	STARPU_ASSERT(0);
+	starpu_multiformat_interface_t *multiformat_interface;
+	multiformat_interface = (starpu_multiformat_interface_t *)
+		starpu_data_get_interface_on_node(handle, 0);
+
+	fprintf(f, "%u\t", multiformat_interface->nx);
 }
 
 /* XXX : returns CPU size */
