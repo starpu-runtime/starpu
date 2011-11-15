@@ -34,7 +34,7 @@
 #include <windows.h>
 #endif
 		
-pthread_rwlock_t registered_models_rwlock;
+static pthread_rwlock_t registered_models_rwlock;
 static struct starpu_model_list_t *registered_models = NULL;
 
 /*
@@ -515,10 +515,27 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 	strncat(path, ".debug", maxlen);
 }
 
-/* registered_models_rwlock must be taken in write mode before calling this
- * function */
-void _starpu_register_model(struct starpu_perfmodel_t *model)
+/*
+ * Returns 0 is the model was already loaded, 1 otherwise.
+ */
+int _starpu_register_model(struct starpu_perfmodel_t *model)
 {
+	/* If the model has already been loaded, there is nothing to do */
+	PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	if (model->is_loaded) {
+		PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return 0;
+	}
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
+	/* We have to make sure the model has not been loaded since the
+         * last time we took the lock */
+	PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	if (model->is_loaded) {
+		PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return 0;
+	}
+
 	/* add the model to a linked list */
 	struct starpu_model_list_t *node = (struct starpu_model_list_t *) malloc(sizeof(struct starpu_model_list_t));
 
@@ -545,7 +562,8 @@ void _starpu_register_model(struct starpu_perfmodel_t *model)
 	}
 #endif
 
-	return;
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	return 1;
 }
 
 static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t maxlen)
