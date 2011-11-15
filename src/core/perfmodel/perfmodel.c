@@ -131,7 +131,7 @@ extern pthread_rwlock_t registered_models_rwlock;
 
 void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
 {
-	if (!model)
+	if (!model || model->is_loaded)
 		return;
 
 	/* If the model has already been loaded, there is nothing to do */
