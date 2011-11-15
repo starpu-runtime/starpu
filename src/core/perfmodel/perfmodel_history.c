@@ -34,7 +34,7 @@
 #include <windows.h>
 #endif
 		
-static pthread_rwlock_t registered_models_rwlock;
+pthread_rwlock_t registered_models_rwlock;
 static struct starpu_model_list_t *registered_models = NULL;
 
 /*
@@ -657,12 +657,6 @@ void _starpu_load_history_based_model(struct starpu_perfmodel_t *model, unsigned
 
 	/* make sure the performance model directory exists (or create it) */
 	_starpu_create_sampling_directory_if_needed();
-
-	/*
-	 * We need to keep track of all the model that were opened so that we can 
-	 * possibly update them at runtime termination ...
-	 */
-	_starpu_register_model(model);
 
 	char path[256];
 	get_model_path(model, path, 256);

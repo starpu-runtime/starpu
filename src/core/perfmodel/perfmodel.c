@@ -127,10 +127,30 @@ static double common_task_expected_perf(struct starpu_perfmodel_t *model, enum s
 	return -1.0;
 }
 
+extern pthread_rwlock_t registered_models_rwlock;
+
 void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
 {
-	if (!model || model->is_loaded)
+	if (!model)
 		return;
+
+	/* If the model has already been loaded, there is nothing to do */
+	PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	if (model->is_loaded) {
+		PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return;
+	}
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
+	/* We have to make sure the model has not been loaded since the
+         * last time we took the lock */
+	PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	if (model->is_loaded) {
+		PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return;
+	}
+	_starpu_register_model(model);
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
 	switch (model->type) {
 		case STARPU_PER_ARCH:
@@ -150,7 +170,6 @@ void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
 			STARPU_ABORT();
 	}
 
-	_starpu_register_model(model);
 	model->is_loaded = 1;
 }
 
