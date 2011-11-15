@@ -3863,10 +3863,9 @@ scheduled (which may however have to wait for a task completion).
 @node Data Interfaces
 @section Data Interfaces
 
-There are several ways to register a memory region so that it can be
-managed by StarPU.  The functions below allow the registration of
-vectors, 2D matrices, 3D matrices, BCSR and CSR sparse matrices, as well
-as data that can be represented in different ways.
+There are several ways to register a memory region so that it can be managed by
+StarPU.  The functions below allow the registration of vectors, 2D matrices, 3D
+matrices as well as  BCSR and CSR sparse matrices.
 
 @deftypefun void starpu_variable_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
 Register the @var{size}-byte element pointed to by @var{ptr}, which is
