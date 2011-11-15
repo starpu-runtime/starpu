@@ -33,7 +33,7 @@ static void test_cleaner(int sig)
 	pid_t child_gid;
 
 	// send signal to all loader family members
-	fprintf(stderr, "Test is blocked since %d seconds ... mark it as failed\n", timeout);
+	fprintf(stderr, "[error] test is blocked since %d seconds. Mark it as failed\n", timeout);
 	child_gid = getpgid(child_pid);
 	kill(-child_gid, SIGKILL);
 	exit(EXIT_FAILURE);
@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 
 	if (!test_name)
 	{
-		fprintf(stderr, "Error. Need name of program to start\n");
-		exit(-1);
+		fprintf(stderr, "[error] Need name of program to start\n");
+		exit(EXIT_FAILURE);
 	}
 
 	/* get user-defined iter_max value */
@@ -75,13 +75,17 @@ int main(int argc, char *argv[])
 		if (setpgid(0, 0) == -1)
 		{
 			perror("setpgid");
+			fprintf(stderr, "[error] setpgid. Mark test as failed\n");
 			exit(EXIT_FAILURE);
 		}
 		execl(test_name, test_name, NULL);
+		fprintf(stderr, "[error] execl. Mark test as failed\n");
 		exit(EXIT_FAILURE);
 	}
-	if (child_pid == -1)
+	if (child_pid == -1) {
+		fprintf(stderr, "[error] fork. Mark test as failed\n");
 		exit(EXIT_FAILURE);
+	}
 
 	alarm(timeout);
 	if (child_pid == waitpid(child_pid, &child_exit_status, 0))
@@ -102,6 +106,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
+			fprintf(stderr, "[error] waitpid. Mark test as failed\n");
 			return EXIT_FAILURE;
 		}
 	}
