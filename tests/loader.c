@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			fprintf(stderr, "[error] waitpid. Mark test as failed\n");
+			fprintf(stderr, "[error] child process did not terminate normally. Mark test as failed\n");
 			return EXIT_FAILURE;
 		}
 	}
