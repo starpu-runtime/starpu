@@ -228,12 +228,10 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		STARPU_ASSERT(detach && !destroy && !task->synchronous);
 
 		/* We reuse the same job structure */
-		int ret = _starpu_submit_job(j, 1);
+		int ret = _starpu_submit_job(j);
 		STARPU_ASSERT(!ret);
-	}	
-	else {
-		_starpu_decrement_nsubmitted_tasks();
 	}
+	_starpu_decrement_nsubmitted_tasks();
 }
 
 /* This function is called when a new task is submitted to StarPU 

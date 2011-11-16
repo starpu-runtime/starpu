@@ -197,7 +197,7 @@ starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
 
 /* NB in case we have a regenerable task, it is possible that the job was
  * already counted. */
-int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
+int _starpu_submit_job(starpu_job_t j)
 {
         _STARPU_LOG_IN();
 	/* notify bound computation of a new task */
@@ -205,8 +205,7 @@ int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 
 	j->terminated = 0;
 
-	if (!do_not_increment_nsubmitted)
-		_starpu_increment_nsubmitted_tasks();
+	_starpu_increment_nsubmitted_tasks();
 
 	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	
@@ -297,7 +296,7 @@ int starpu_task_submit(struct starpu_task *task)
 	* allocated, for instance to enforce task depenencies. */
 	starpu_job_t j = _starpu_get_job_associated_to_task(task);
 
-	ret = _starpu_submit_job(j, 0);
+	ret = _starpu_submit_job(j);
 
 	if (is_sync)
 		_starpu_wait_job(j);
