@@ -32,7 +32,7 @@
 /* TODO we could make this hierarchical to avoid contention ? */
 static pthread_cond_t submitted_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t submitted_mutex = PTHREAD_MUTEX_INITIALIZER;
-static long int nsubmitted = 0, nready;
+static long int nsubmitted = 0, nready = 0;
 
 static void _starpu_increment_nsubmitted_tasks(void);
 
