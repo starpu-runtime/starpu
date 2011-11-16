@@ -3382,117 +3382,89 @@ generate a Paje trace when starpu_shutdown is called.
 @node Initialization and Termination
 @section Initialization and Termination
 
-@menu
-* starpu_init::                 Initialize StarPU
-* struct starpu_conf::          StarPU runtime configuration
-* starpu_conf_init::     Initialize starpu_conf structure
-* starpu_shutdown::             Terminate StarPU
-@end menu
-
-@node starpu_init
-@subsection @code{starpu_init} -- Initialize StarPU
-@table @asis
-
-@item @emph{Description}:
+@deftypefun int starpu_init ({struct starpu_conf *}@var{conf})
 This is StarPU initialization method, which must be called prior to any other
 StarPU call.  It is possible to specify StarPU's configuration (e.g. scheduling
 policy, number of cores, ...) by passing a non-null argument. Default
 configuration is used if the passed argument is @code{NULL}.
-@item @emph{Return value}:
+
 Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
 indicates that no worker was available (so that StarPU was not initialized).
+@end deftypefun
 
-@item @emph{Prototype}:
-@code{int starpu_init(struct starpu_conf *conf);}
-
-@end table
-
-@node struct starpu_conf
-@subsection @code{struct starpu_conf} -- StarPU runtime configuration
-
-@table @asis
-@item @emph{Description}:
+@deftp {Data type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
 to configure StarPU.
 When the default value is used, StarPU automatically selects the number
 of processing units and takes the default scheduling policy. This parameter
 overwrites the equivalent environment variables.
 
-@item @emph{Fields}:
 @table @asis
-@item @code{sched_policy_name} (default = NULL):
-This is the name of the scheduling policy. This can also be specified with the
-@code{STARPU_SCHED} environment variable.
-@item @code{sched_policy} (default = NULL):
+@item @code{sched_policy_name} (default = NULL)
+This is the name of the scheduling policy. This can also be specified
+with the @code{STARPU_SCHED} environment variable.
+@item @code{sched_policy} (default = NULL)
 This is the definition of the scheduling policy. This field is ignored
 if @code{sched_policy_name} is set.
-
-@item @code{ncpus} (default = -1):
+@item @code{ncpus} (default = -1)
 This is the number of CPU cores that StarPU can use. This can also be
 specified with the @code{STARPU_NCPUS} environment variable.
-@item @code{ncuda} (default = -1):
-This is the number of CUDA devices that StarPU can use. This can also be
-specified with the @code{STARPU_NCUDA} environment variable.
-@item @code{nopencl} (default = -1):
-This is the number of OpenCL devices that StarPU can use. This can also be
-specified with the @code{STARPU_NOPENCL} environment variable.
-@item @code{nspus} (default = -1):
+@item @code{ncuda} (default = -1)
+This is the number of CUDA devices that StarPU can use. This can also
+be specified with the @code{STARPU_NCUDA} environment variable.
+@item @code{nopencl} (default = -1)
+This is the number of OpenCL devices that StarPU can use. This can
+also be specified with the @code{STARPU_NOPENCL} environment variable.
+@item @code{nspus} (default = -1)
 This is the number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
-
 @item @code{use_explicit_workers_bindid} (default = 0)
-If this flag is set, the @code{workers_bindid} array indicates where the
-different workers are bound, otherwise StarPU automatically selects where to
-bind the different workers unless the @code{STARPU_WORKERS_CPUID} environment
-variable is set. The @code{STARPU_WORKERS_CPUID} environment variable is
-ignored if the @code{use_explicit_workers_bindid} flag is set.
+If this flag is set, the @code{workers_bindid} array indicates where
+the different workers are bound, otherwise StarPU automatically
+selects where to bind the different workers unless the
+@code{STARPU_WORKERS_CPUID} environment variable is set. The
+@code{STARPU_WORKERS_CPUID} environment variable is ignored if the
+@code{use_explicit_workers_bindid} flag is set.
 @item @code{workers_bindid[STARPU_NMAXWORKERS]}
-If the @code{use_explicit_workers_bindid} flag is set, this array indicates
-where to bind the different workers. The i-th entry of the
-@code{workers_bindid} indicates the logical identifier of the processor which
-should execute the i-th worker. Note that the logical ordering of the CPUs is
-either determined by the OS, or provided by the @code{hwloc} library in case it
-is available.
-When this flag is set, the @ref{STARPU_WORKERS_CPUID} environment variable is
-ignored.
- 
+If the @code{use_explicit_workers_bindid} flag is set, this array
+indicates where to bind the different workers. The i-th entry of the
+@code{workers_bindid} indicates the logical identifier of the
+processor which should execute the i-th worker. Note that the logical
+ordering of the CPUs is either determined by the OS, or provided by
+the @code{hwloc} library in case it is available. When this flag is
+set, the @ref{STARPU_WORKERS_CPUID} environment variable is ignored.
 @item @code{use_explicit_workers_cuda_gpuid} (default = 0)
-If this flag is set, the CUDA workers will be attached to the CUDA devices
-specified in the @code{workers_cuda_gpuid} array. Otherwise, StarPU affects the
-CUDA devices in a round-robin fashion.
-When this flag is set, the @ref{STARPU_WORKERS_CUDAID} environment variable is
+If this flag is set, the CUDA workers will be attached to the CUDA
+devices specified in the @code{workers_cuda_gpuid} array. Otherwise,
+StarPU affects the CUDA devices in a round-robin fashion. When this
+flag is set, the @ref{STARPU_WORKERS_CUDAID} environment variable is
 ignored.
 @item @code{workers_cuda_gpuid[STARPU_NMAXWORKERS]}
-If the @code{use_explicit_workers_cuda_gpuid} flag is set, this array contains
-the logical identifiers of the CUDA devices (as used by  @code{cudaGetDevice}).
+If the @code{use_explicit_workers_cuda_gpuid} flag is set, this array
+contains the logical identifiers of the CUDA devices (as used by
+@code{cudaGetDevice}).
 @item @code{use_explicit_workers_opencl_gpuid} (default = 0)
-If this flag is set, the OpenCL workers will be attached to the OpenCL devices
-specified in the @code{workers_opencl_gpuid} array. Otherwise, StarPU affects the
-OpenCL devices in a round-robin fashion.
-@item @code{workers_opencl_gpuid[STARPU_NMAXWORKERS]}:
-
-@item @code{calibrate} (default = 0):
+If this flag is set, the OpenCL workers will be attached to the OpenCL
+devices specified in the @code{workers_opencl_gpuid} array. Otherwise,
+StarPU affects the OpenCL devices in a round-robin fashion.
+@item @code{workers_opencl_gpuid[STARPU_NMAXWORKERS]}
+todo
+@item @code{calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. If this value is equal to -1, the default value is used. The
-default value is overwritten by the @code{STARPU_CALIBRATE} environment
-variable when it is set.
-@end table
-
-@item @code{single_combined_worker} (default = 0):
+executing tasks. If this value is equal to -1, the default value is
+used. The default value is overwritten by the @code{STARPU_CALIBRATE}
+environment variable when it is set.
+@item @code{single_combined_worker} (default = 0)
 By default, StarPU creates various combined workers according to the machine
 structure. Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
 makes StarPU only create one combined worker, containing all
 the CPU workers. The default value is overwritten by the
 @code{STARPU_SINGLE_COMBINED_WORKER} environment variable when it is set.
-
 @end table
+@end deftp
 
-
-@node starpu_conf_init
-@subsection @code{starpu_conf_init} -- Initialize starpu_conf structure
-@table @asis
-
+@deftypefun int starpu_conf_init ({struct starpu_conf *}@var{conf})
 This function initializes the @code{starpu_conf} structure passed as argument
 with the default values. In case some configuration parameters are already
 specified through environment variables, @code{starpu_conf_init} initializes
@@ -3500,19 +3472,10 @@ the fields of the structure according to the environment variables. For
 instance if @code{STARPU_CALIBRATE} is set, its value is put in the
 @code{.ncuda} field of the structure passed as argument.
 
-@item @emph{Return value}:
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
 indicates that the argument was NULL.
+@end deftypefun
 
-@item @emph{Prototype}:
-@code{int starpu_conf_init(struct starpu_conf *conf);}
-
-@end table
-
-
-
-@node starpu_shutdown
-@subsection @code{starpu_shutdown} -- Terminate StarPU
 @deftypefun void starpu_shutdown (void)
 This is StarPU termination method. It must be called at the end of the
 application: statistics and other post-mortem debugging information are not
