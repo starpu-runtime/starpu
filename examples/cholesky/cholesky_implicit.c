@@ -165,6 +165,8 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	_cholesky(dataA, nblocks);
+
+	starpu_data_unregister(dataA);
 }
 
 int main(int argc, char **argv)

@@ -339,6 +339,7 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(shot_cnt_handle);
+	starpu_data_unregister(xy_scratchpad_handle);
 
 	gettimeofday(&end, NULL);
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));

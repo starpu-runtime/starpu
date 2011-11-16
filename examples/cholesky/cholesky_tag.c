@@ -272,6 +272,8 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	_cholesky(dataA, nblocks);
 
+	starpu_data_unregister(dataA);
+
 	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();

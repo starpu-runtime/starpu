@@ -297,6 +297,8 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 	/* gather all the data */
 	starpu_data_unpartition(dataA, 0);
 
+	starpu_data_unregister(dataA);
+
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);
 #endif

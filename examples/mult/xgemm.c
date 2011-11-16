@@ -293,6 +293,9 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "GFlop/s: %.2f\n", flops/timing/1000.0);
 
 	starpu_data_unpartition(C_handle, 0);
+
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 	
 	if (check)

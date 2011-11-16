@@ -72,6 +72,13 @@ void create_data(void)
 	starpu_vector_data_register(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
 }
 
+void unregister_data(void)
+{
+	starpu_data_unregister(sparse_matrix);
+	starpu_data_unregister(vector_in);
+	starpu_data_unregister(vector_out);
+}
+
 void init_problem_callback(void *arg)
 {
 	unsigned *remaining = arg;
@@ -293,6 +300,7 @@ int main(__attribute__ ((unused)) int argc,
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
+	unregister_data();
 	print_results();
 
 	double totalflop = 2.0*c*r*totaltasks;

@@ -150,6 +150,7 @@ int main(int argc, char **argv)
 	/* Get the cnt_array back in main memory */
 	starpu_data_unpartition(cnt_array_handle, 0);
 	starpu_data_unregister(cnt_array_handle);
+	starpu_data_unregister(sobol_qrng_direction_handle);
 
 	/* Count the total number of entries */
 	unsigned long total_cnt = 0;

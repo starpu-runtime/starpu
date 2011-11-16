@@ -290,8 +290,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-
-
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
@@ -302,6 +300,14 @@ int main(int argc, char **argv)
 	}
 
 	cholesky_no_stride();
+
+	for (y = 0; y < nblocks; y++)
+	for (x = 0; x < nblocks; x++)
+	{
+		if (x <= y) {
+			starpu_data_unregister(A_state[y][x]);
+		}
+	}
 
 	starpu_helper_cublas_shutdown();
 

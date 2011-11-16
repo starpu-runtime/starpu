@@ -387,6 +387,13 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	sem_destroy(&sem);
 
 	print_results(vecx, nrow);
+
+	starpu_data_unregister(ds_matrixA);
+	starpu_data_unregister(ds_vecx);
+	starpu_data_unregister(ds_vecb);
+	starpu_data_unregister(ds_vecr);
+	starpu_data_unregister(ds_vecd);
+	starpu_data_unregister(ds_vecq);
 }
 
 

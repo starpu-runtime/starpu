@@ -148,6 +148,20 @@ static void register_data(void)
 	}
 }
 
+static void unregister_data(void)
+{
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(b_handle);
+	starpu_data_unregister(x_handle);
+
+	starpu_data_unregister(r_handle);
+	starpu_data_unregister(d_handle);
+	starpu_data_unregister(q_handle);
+
+	starpu_data_unregister(dtq_handle);
+	starpu_data_unregister(rtr_handle);
+}
+
 /*
  *	Data partitioning filters
  */
@@ -375,6 +389,7 @@ int main(int argc, char **argv)
 	ret = check();
 
 	starpu_task_wait_for_all();
+	unregister_data();
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
