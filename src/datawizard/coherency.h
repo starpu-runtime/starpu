@@ -217,9 +217,12 @@ struct starpu_data_state_t {
 
 void _starpu_display_msi_stats(void);
 
+/* This does not take a reference on the handle, the caller has to do it,
+ * e.g. through _starpu_attempt_to_submit_data_request_from_apps() */
 int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, struct starpu_data_replicate_s *replicate,
 				starpu_access_mode mode, unsigned is_prefetch,
 				void (*callback_func)(void *), void *callback_arg);
+/* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wt_mask,
 				struct starpu_data_replicate_s *replicate);
 
