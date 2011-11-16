@@ -40,6 +40,8 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(var2 == 42);
 	starpu_data_release(var2_handle);
 
+	starpu_data_unregister(var1_handle);
+	starpu_data_unregister(var2_handle);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;

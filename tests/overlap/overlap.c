@@ -120,12 +120,14 @@ int main(int argc, char **argv)
 		PTHREAD_COND_WAIT(&cond, &mutex);
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
+	starpu_data_unregister(handle);
 	starpu_free(buffer);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
+	starpu_data_unregister(handle);
 	starpu_free(buffer);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

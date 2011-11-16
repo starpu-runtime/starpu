@@ -99,12 +99,14 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
+	starpu_data_unregister(v_handle);
 	starpu_free(v);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
+	starpu_data_unregister(v_handle);
 	starpu_free(v);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

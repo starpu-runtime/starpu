@@ -128,12 +128,14 @@ int main(int argc, char **argv)
 		PTHREAD_COND_WAIT(&cond, &mutex);
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
+	starpu_data_unregister(v_handle);
 	starpu_free(v);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
+	starpu_data_unregister(v_handle);
 	starpu_free(v);
 	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");

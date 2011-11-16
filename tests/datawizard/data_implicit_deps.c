@@ -128,6 +128,11 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(B_handle);
+	starpu_data_unregister(C_handle);
+	starpu_data_unregister(D_handle);
+
 	free(A);
 	free(B);
 	free(C);

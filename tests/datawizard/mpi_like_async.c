@@ -278,6 +278,8 @@ static void *thread_func(void *arg)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
+	starpu_data_unregister(thread_data->handle);
+
 	return NULL;
 }
 

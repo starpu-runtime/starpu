@@ -153,6 +153,7 @@ static void *thread_func(void *arg)
 		}
 	}
 
+	starpu_data_unregister(thread_data->handle);
 	return NULL;
 }
 

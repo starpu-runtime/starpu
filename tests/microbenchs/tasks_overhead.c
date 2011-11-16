@@ -148,6 +148,11 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	gettimeofday(&end_exec, NULL);
 
+	for (buffer = 0; buffer < nbuffers; buffer++)
+	{
+		starpu_data_unregister(data_handles[buffer]);
+	}
+
 	timing_submit = (double)((end_submit.tv_sec - start_submit.tv_sec)*1000000 + (end_submit.tv_usec - start_submit.tv_usec));
 	timing_exec = (double)((end_exec.tv_sec - start_exec.tv_sec)*1000000 + (end_exec.tv_usec - start_exec.tv_usec));
 

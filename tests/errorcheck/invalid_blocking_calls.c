@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 	starpu_data_release(handle);
-
+	starpu_data_unregister(handle);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
