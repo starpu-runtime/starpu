@@ -268,10 +268,12 @@ void *_starpu_cuda_worker(void *arg)
 	struct cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, devid);
 	strncpy(devname, prop.name, 128);
+	float size = (float) prop.totalGlobalMem / (1<<30);
+
 #if CUDA_VERSION >= 3020
-	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %02x:%02x.0)", args->devid, devname, prop.pciBusID, prop.pciDeviceID);
+	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, prop.pciBusID, prop.pciDeviceID);
 #else
-	snprintf(args->name, sizeof(args->name), "CUDA %d (%s)", args->devid, devname);
+	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB)", args->devid, devname, size);
 #endif
 	snprintf(args->short_name, sizeof(args->short_name), "CUDA %d", args->devid);
 	_STARPU_DEBUG("cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
