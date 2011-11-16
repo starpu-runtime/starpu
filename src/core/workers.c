@@ -419,7 +419,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	PTHREAD_COND_BROADCAST(&init_cond);
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-	_STARPU_DEBUG("Initialisation done\n");
+	_STARPU_DEBUG("Initialisation finished\n");
 	return 0;
 }
 
@@ -512,9 +512,11 @@ void starpu_shutdown(void)
 	const char *stats;
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
-	if (init_count)
-		/* Still somebody needing StarPU, don't deinitialize */
+	if (init_count) {
+		_STARPU_DEBUG("Still somebody needing StarPU, don't deinitialize\n");
 		return;
+	}
+
 	/* We're last */
 	initialized = CHANGING;
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
@@ -561,6 +563,8 @@ void starpu_shutdown(void)
 	/* Let someone else that wants to initialize it again do it */
 	PTHREAD_COND_SIGNAL(&init_cond);
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+	_STARPU_DEBUG("Shutdown finished\n");
 }
 
 unsigned starpu_worker_get_count(void)
