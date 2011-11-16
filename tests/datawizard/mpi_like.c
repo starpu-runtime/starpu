@@ -153,7 +153,6 @@ static void *thread_func(void *arg)
 		}
 	}
 
-	starpu_data_unregister(thread_data->handle);
 	return NULL;
 }
 
@@ -198,6 +197,11 @@ int main(int argc, char **argv)
 		STARPU_ABORT();
 	}
 	starpu_data_release(last_handle);
+
+	for (t = 0; t < NTHREADS; t++)
+	{
+		starpu_data_unregister(problem_data[t].handle);
+	}
 
 	starpu_shutdown();
 
