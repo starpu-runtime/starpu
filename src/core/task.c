@@ -32,7 +32,7 @@
 /* TODO we could make this hierarchical to avoid contention ? */
 static pthread_cond_t submitted_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t submitted_mutex = PTHREAD_MUTEX_INITIALIZER;
-static long int nsubmitted = 0;
+static long int nsubmitted = 0, nready;
 
 static void _starpu_increment_nsubmitted_tasks(void);
 
@@ -349,6 +349,27 @@ int starpu_task_wait_for_all(void)
 	return 0;
 }
 
+/*
+ * We wait until there is no ready task any more (i.e. StarPU will not be able
+ * to progress any more).
+ */
+int starpu_task_wait_for_no_ready(void)
+{
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
+	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+
+	STARPU_TRACE_TASK_WAIT_FOR_ALL;
+
+	while (nready > 0)
+		PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+	
+	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
+	return 0;
+}
+
 void _starpu_decrement_nsubmitted_tasks(void)
 {
 	PTHREAD_MUTEX_LOCK(&submitted_mutex);
@@ -371,6 +392,26 @@ static void _starpu_increment_nsubmitted_tasks(void)
 	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
 	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+}
+
+void _starpu_increment_nready_tasks(void)
+{
+	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+
+	nready++;
+
+	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+}
+
+void _starpu_decrement_nready_tasks(void)
+{
+	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+
+	if (--nready == 0)
+		PTHREAD_COND_BROADCAST(&submitted_cond);
+
+	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
 }
 
 void _starpu_initialize_current_task_key(void)

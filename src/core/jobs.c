@@ -232,6 +232,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		STARPU_ASSERT(!ret);
 	}
 	_starpu_decrement_nsubmitted_tasks();
+	_starpu_decrement_nready_tasks();
 }
 
 /* This function is called when a new task is submitted to StarPU 
@@ -331,6 +332,8 @@ unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_alrea
                 _STARPU_LOG_OUT_TAG("enforce_data_deps");
 		return 0;
         }
+
+	_starpu_increment_nready_tasks();
 
 	ret = _starpu_push_task(j, job_is_already_locked);
 

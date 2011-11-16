@@ -25,6 +25,10 @@
 /* In order to implement starpu_task_wait_for_all, we keep track of the number of
  * task currently submitted */
 void _starpu_decrement_nsubmitted_tasks(void);
+/* In order to implement starpu_task_wait_for_no_ready, we keep track of the number of
+ * task currently ready */
+void _starpu_increment_nready_tasks(void);
+void _starpu_decrement_nready_tasks(void);
 
 /* A pthread key is used to store the task currently executed on the thread.
  * _starpu_initialize_current_task_key initializes this pthread key and

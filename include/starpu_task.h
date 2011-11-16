@@ -280,6 +280,9 @@ int starpu_task_wait(struct starpu_task *task);
  * been executed. */
 int starpu_task_wait_for_all(void);
 
+/* This function waits until there is no more ready task. */
+int starpu_task_wait_for_no_ready(void);
+
 void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
 
 /* Return the task currently executed by the worker, or NULL if this is called

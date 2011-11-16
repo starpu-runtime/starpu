@@ -521,6 +521,8 @@ void starpu_shutdown(void)
 	initialized = CHANGING;
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
+	starpu_task_wait_for_no_ready();
+
 	_starpu_display_msi_stats();
 	_starpu_display_alloc_cache_stats();
 
