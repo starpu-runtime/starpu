@@ -344,6 +344,8 @@ void *_starpu_cuda_worker(void *arg)
 
 	STARPU_TRACE_WORKER_DEINIT_START
 
+	_starpu_handle_all_pending_node_data_requests(memnode);
+
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */

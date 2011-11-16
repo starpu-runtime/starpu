@@ -514,6 +514,8 @@ void *_starpu_opencl_worker(void *arg)
 
 	STARPU_TRACE_WORKER_DEINIT_START
 
+	_starpu_handle_all_pending_node_data_requests(memnode);
+
         _starpu_opencl_deinit_context(devid);
 
 	pthread_exit(NULL);

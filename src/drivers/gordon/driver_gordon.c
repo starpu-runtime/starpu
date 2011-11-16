@@ -467,6 +467,8 @@ void *_starpu_gordon_worker(void *arg)
 
 	gordon_worker_inject(gordon_set_arg);
 
+	_starpu_handle_all_pending_node_data_requests(memnode);
+
 	_STARPU_DEBUG("gordon deinit...\n");
 	gordon_deinit();
 	_STARPU_DEBUG("gordon was deinited\n");
