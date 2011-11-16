@@ -102,8 +102,11 @@ int main(int argc, char **argv)
         }
         FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
-	starpu_data_unregister(data_handles[0]);
-	starpu_data_unregister(data_handles[1]);
+        for(i=0 ; i<2 ; i++) {
+                starpu_data_release(data_handles[i]);
+		starpu_data_unregister(data_handles[i]);
+        }
+
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
