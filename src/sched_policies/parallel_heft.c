@@ -23,6 +23,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
 #include <common/barrier.h>
+#include <sched_policies/detect_combined_workers.h>
 
 static pthread_mutex_t big_lock;
 

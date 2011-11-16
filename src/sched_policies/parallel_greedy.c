@@ -18,6 +18,7 @@
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <common/barrier.h>
+#include <sched_policies/detect_combined_workers.h>
 
 /* the former is the actual queue, the latter some container */
 static struct starpu_fifo_taskq_s *fifo;

@@ -151,8 +151,6 @@ void starpu_sched_set_max_priority(int max_prio);
 
 /* Register a new combined worker and get its identifier */
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
-/* Initialize combined workers */
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
 /* Get the description of a combined worker */
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
 /* Variant of starpu_worker_may_execute_task compatible with combined workers */
