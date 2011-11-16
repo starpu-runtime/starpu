@@ -419,6 +419,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	PTHREAD_COND_BROADCAST(&init_cond);
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
+	_STARPU_DEBUG("Initialisation done\n");
 	return 0;
 }
 
