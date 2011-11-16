@@ -75,11 +75,10 @@ was last updated on @value{UPDATED}.
 * StarPU API::                  The API to use StarPU
 * Advanced Topics::             Advanced use of StarPU
 * C Extensions::                Easier StarPU programming with GCC
-
 * Full source code for the 'Scaling a Vector' example::
-* Function Index::              Index of C functions.
-
 * GNU Free Documentation License::    How you can copy and share this manual.
+* Function Index::              Index of C functions.
+* Datatype Index::              Index of C datatypes
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -5198,5 +5197,9 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @node Function Index
 @unnumbered Function Index
 @printindex fn
+
+@node Datatype Index
+@unnumbered Datatype Index
+@printindex tp
 
 @bye
