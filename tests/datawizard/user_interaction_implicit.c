@@ -84,5 +84,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

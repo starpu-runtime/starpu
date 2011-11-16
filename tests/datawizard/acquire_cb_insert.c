@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "\n");
 
 	starpu_shutdown();
-	return 0;
+	return EXIT_SUCCESS;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");

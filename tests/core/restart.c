@@ -56,5 +56,5 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "starpu_init: %2.2f seconds\n", init_timing/(N*1000000));
 	FPRINTF(stderr, "starpu_shutdown: %2.2f seconds\n", shutdown_timing/(N*1000000));
 
-	return 0;
+	return EXIT_SUCCESS;
 }

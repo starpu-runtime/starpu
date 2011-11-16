@@ -85,24 +85,22 @@ int main(int argc, char **argv)
 	task->callback_func = wrong_callback;
 
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-		goto enodev;
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	ret = starpu_tag_wait(TAG);
-	if (ret)
-		return -1;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 
 	/* This call is valid as it is done by the application outside a
 	 * callback */
 	ret = starpu_data_acquire(handle, STARPU_RW);
-	if (ret)
-		return -1;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 	starpu_data_release(handle);
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");

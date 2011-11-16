@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(float_array_handle);
         starpu_shutdown();
 
-        return 0;
+        return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(float_array_handle);

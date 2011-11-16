@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 #else
 	fprintf(stderr,"WARNING: Can not test this without CPUs\n");
 	return 77;

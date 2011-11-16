@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	starpu_free(buffer);
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(v_handle);

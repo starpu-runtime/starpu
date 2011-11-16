@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(B_handle);
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(A_handle);

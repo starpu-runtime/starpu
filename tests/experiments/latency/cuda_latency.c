@@ -207,5 +207,5 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Took %.0f ms for %d iterations\n", timing/1000, niter);
 	fprintf(stderr, "Latency: %.2f us\n", timing/(2*niter));
 
-	return 0;
+	return EXIT_SUCCESS;
 }
