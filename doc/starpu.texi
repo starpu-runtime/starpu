@@ -3607,7 +3607,7 @@ be freed thanks to the @code{starpu_free} function.
 
 @node starpu_free
 @subsection @code{starpu_free}
-@deftypefun int starpu_free(void *@var{A})
+@deftypefun int starpu_free (void *@var{A})
 This function frees memory which has previously allocated with
 @code{starpu_malloc}.
 @end deftypefun
@@ -3628,8 +3628,6 @@ TODO: document, as well as @code{starpu_data_set_reduction_methods}
 
 @node unsigned memory_node
 @subsection @code{unsigned memory_node} -- Memory node
-@table @asis
-@item @emph{Description}:
 Every worker is associated to a memory node which is a logical abstraction of
 the address space from which the processing unit gets its data. For instance,
 the memory node associated to the different CPU workers represents main memory
@@ -3639,7 +3637,6 @@ Every memory node is identified by a logical index which is accessible from the
 to StarPU, the specified memory node indicates where the piece of data
 initially resides (we also call this memory node the home node of a piece of
 data).
-@end table
 
 @node starpu_data_handle
 @subsection @code{starpu_data_handle} -- StarPU opaque data handle
@@ -3793,6 +3790,15 @@ scheduled (which may however have to wait for a task completion).
 There are several ways to register a memory region so that it can be managed by
 StarPU.  The functions below allow the registration of vectors, 2D matrices, 3D
 matrices as well as  BCSR and CSR sparse matrices.
+
+@deftypefun void starpu_void_data_register ({starpu_data_handle *}@var{handle})
+Register a void interface. There is no data really associated to that
+interface, but it may be used as a synchronization mechanism. It also
+permits to express an abstract piece of data that is managed by the
+application internally: this makes it possible to forbid the
+concurrent execution of different tasks accessing the same "void" data
+in read-write concurrently.
+@end deftypefun
 
 @deftypefun void starpu_variable_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
 Register the @var{size}-byte element pointed to by @var{ptr}, which is
@@ -3988,7 +3994,9 @@ starpu_data_unpartition(A_handle, 0);
 This function returns the number of children.
 @end deftypefun
 
-@c starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
+@deftypefun starpu_data_handle starpu_data_get_child (starpu_data_handle @var{handle}, unsigned @var{i})
+todo
+@end deftypefun
 
 @deftypefun starpu_data_handle starpu_data_get_sub_data (starpu_data_handle @var{root_data}, unsigned @var{depth}, ... )
 After partitioning a StarPU data by applying a filter,
@@ -4371,12 +4379,9 @@ same task, in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
 @end deftypefun
 
-
-
 @node starpu_tag_t
 @subsection @code{starpu_tag_t} -- Task logical identifier
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {starpu_tag_t}
 It is possible to associate a task with a unique ``tag'' chosen by the application, and to express
 dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
@@ -4385,12 +4390,11 @@ be arbitrary) and set the @code{use_tag} field to 1.
 If @code{starpu_tag_declare_deps} is called with this tag number, the task will
 not be started until the tasks which holds the declared dependency tags are
 completed.
-@end table
+@end deftp
 
 @node starpu_tag_declare_deps
 @subsection @code{starpu_tag_declare_deps} -- Declare the Dependencies of a Tag
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_tag_declare_deps (starpu_tag_t @var{id}, unsigned @var{ndeps}, ...)
 Specify the dependencies of the task identified by tag @code{id}. The first
 argument specifies the tag which is configured, the second argument gives the
 number of tag(s) on which @code{id} depends. The following arguments are the
@@ -4399,16 +4403,11 @@ tags which have to be terminated to unlock the task.
 This function must be called before the associated task is submitted to StarPU
 with @code{starpu_task_submit}.
 
-@item @emph{Remark}
 Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
 last arguments @emph{must} be of type @code{starpu_tag_t}: constant values
 typically need to be explicitly casted. Using the
 @code{starpu_tag_declare_deps_array} function avoids this hazard.
 
-@item @emph{Prototype}:
-@code{void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);}
-
-@item @emph{Example}:
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
@@ -4416,19 +4415,14 @@ starpu_tag_declare_deps((starpu_tag_t)0x1,
         2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
 @end example
 @end cartouche
-
-@end table
+@end deftypefun
 
 @node starpu_tag_declare_deps_array
 @subsection @code{starpu_tag_declare_deps_array} -- Declare the Dependencies of a Tag
-@table @asis
-@item @emph{Description}:
-This function is similar to @code{starpu_tag_declare_deps}, except that its
-does not take a variable number of arguments but an array of tags of size
-@code{ndeps}.
-@item @emph{Prototype}:
-@code{void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);}
-@item @emph{Example}:
+@deftypefun void starpu_tag_declare_deps_array (starpu_tag_t @var{id}, unsigned @var{ndeps}, {starpu_tag_t *}@var{array})
+This function is similar to @code{starpu_tag_declare_deps}, except
+that its does not take a variable number of arguments but an array of
+tags of size @code{ndeps}.
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
@@ -4436,10 +4430,7 @@ starpu_tag_t tag_array[2] = @{0x32, 0x52@};
 starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 @end example
 @end cartouche
-
-
-@end table
-
+@end deftypefun
 
 @node starpu_tag_wait
 @subsection @code{starpu_tag_wait} -- Block until a Tag is terminated
@@ -4580,8 +4571,7 @@ This forces sampling the bus performance model again.
 
 @node starpu_profiling_status_set
 @subsection @code{starpu_profiling_status_set} -- Set current profiling status
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_profiling_status_set (int @var{status})
 Thie function sets the profiling status. Profiling is activated by passing
 @code{STARPU_PROFILING_ENABLE} in @code{status}. Passing
 @code{STARPU_PROFILING_DISABLE} disables profiling. Calling this function
@@ -4589,12 +4579,10 @@ resets all profiling measurements. When profiling is enabled, the
 @code{profiling_info} field of the @code{struct starpu_task} structure points
 to a valid @code{struct starpu_task_profiling_info} structure containing
 information about the execution of the task.
-@item @emph{Return value}:
+
 Negative return values indicate an error, otherwise the previous status is
 returned.
-@item @emph{Prototype}:
-@code{int starpu_profiling_status_set(int status);}
-@end table
+@end deftypefun
 
 @node starpu_profiling_status_get
 @subsection @code{starpu_profiling_status_get} -- Get current profiling status
@@ -4604,77 +4592,67 @@ Return the current profiling status or a negative value in case there was an err
 
 @node struct starpu_task_profiling_info
 @subsection @code{struct starpu_task_profiling_info} -- Task profiling information
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {struct starpu_task_profiling_info}
 This structure contains information about the execution of a task. It is
 accessible from the @code{.profiling_info} field of the @code{starpu_task}
-structure if profiling was enabled.
-@item @emph{Fields}:
+structure if profiling was enabled. The different fields are:
 @table @asis
-@item @code{submit_time}:
+@item @code{submit_time}
 Date of task submission (relative to the initialization of StarPU).
-@item @code{start_time}:
+@item @code{start_time}
 Date of task execution beginning (relative to the initialization of StarPU).
-@item @code{end_time}:
+@item @code{end_time}
 Date of task execution termination (relative to the initialization of StarPU).
-@item @code{workerid}:
+@item @code{workerid}
 Identifier of the worker which has executed the task.
 @end table
-@end table
+@end deftp
 
 @node struct starpu_worker_profiling_info
 @subsection @code{struct starpu_worker_profiling_info} -- Worker profiling information
+@deftp {Data Type} {struct starpu_worker_profiling_info}
+This structure contains the profiling information associated to a
+worker. The different fields are:
 @table @asis
-@item @emph{Description}:
-This structure contains the profiling information associated to a worker.
-@item @emph{Fields}:
-@table @asis
-@item @code{start_time}:
+@item @code{start_time}
 Starting date for the reported profiling measurements.
-@item @code{total_time}:
+@item @code{total_time}
 Duration of the profiling measurement interval.
-@item @code{executing_time}:
+@item @code{executing_time}
 Time spent by the worker to execute tasks during the profiling measurement interval.
-@item @code{sleeping_time}:
+@item @code{sleeping_time}
 Time spent idling by the worker during the profiling measurement interval.
-@item @code{executed_tasks}:
+@item @code{executed_tasks}
 Number of tasks executed by the worker during the profiling measurement interval.
 @end table
-@end table
+@end deftp
 
 @node starpu_worker_get_profiling_info
 @subsection @code{starpu_worker_get_profiling_info} -- Get worker profiling info
-@table @asis
-
-@item @emph{Description}:
+@deftypefun int starpu_worker_get_profiling_info(int @var{workerid}, {struct starpu_worker_profiling_info *}@var{worker_info})
 Get the profiling info associated to the worker identified by @code{workerid},
 and reset the profiling measurements. If the @code{worker_info} argument is
 NULL, only reset the counters associated to worker @code{workerid}.
-@item @emph{Return value}:
+
 Upon successful completion, this function returns 0. Otherwise, a negative
 value is returned.
-
-@item @emph{Prototype}:
-@code{int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *worker_info);}
-@end table
+@end deftypefun
 
 @node struct starpu_bus_profiling_info
 @subsection @code{struct starpu_bus_profiling_info} -- Bus profiling information
+@deftp {Data Type} {struct starpu_bus_profiling_info}
+TODO. The different fields are:
 @table @asis
-@item @emph{Description}:
+@item @code{start_time}
 TODO
-@item @emph{Fields}:
-@table @asis
-@item @code{start_time}:
+@item @code{total_time}
 TODO
-@item @code{total_time}:
+@item @code{transferred_bytes}
 TODO
-@item @code{transferred_bytes}:
-TODO
-@item @code{transfer_count}:
+@item @code{transfer_count}
 TODO
 @end table
-@end table
+@end deftp
 
 @node starpu_bus_get_count
 @subsection @code{starpu_bus_get_count}
@@ -4940,17 +4918,15 @@ instance.
 
 @node struct starpu_data_interface_ops_t
 @subsection @code{struct starpu_data_interface_ops_t} -- Per-interface methods
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {struct starpu_data_interface_ops_t}
 TODO describe all the different fields
-@end table
+@end deftp
 
 @node struct starpu_data_copy_methods
 @subsection @code{struct starpu_data_copy_methods} -- Per-interface data transfer methods
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {struct starpu_data_copy_methods}
 TODO describe all the different fields
-@end table
+@end deftp
 
 @node An example of data interface
 @subsection An example of data interface
@@ -4978,46 +4954,43 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 
 @node struct starpu_sched_policy_s
 @subsection @code{struct starpu_sched_policy_s} -- Scheduler methods
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {struct starpu_sched_policy_s}
 This structure contains all the methods that implement a scheduling policy.  An
 application may specify which scheduling strategy in the @code{sched_policy}
 field of the @code{starpu_conf} structure passed to the @code{starpu_init}
-function.
-
-@item @emph{Fields}:
+function. The different fields are:
 @table @asis
-@item @code{init_sched}:
+@item @code{init_sched}
 Initialize the scheduling policy.
-@item @code{deinit_sched}:
+@item @code{deinit_sched}
 Cleanup the scheduling policy.
-@item @code{push_task}:
+@item @code{push_task}
 Insert a task into the scheduler.
-@item @code{push_prio_task}:
+@item @code{push_prio_task}
 Insert a priority task into the scheduler.
-@item @code{push_prio_notify}:
+@item @code{push_prio_notify}
 Notify the scheduler that a task was pushed on the worker. This method is
 called when a task that was explicitely assigned to a worker is scheduled. This
 method therefore permits to keep the state of of the scheduler coherent even
 when StarPU bypasses the scheduling strategy.
-@item @code{pop_task}:
+@item @code{pop_task}
 Get a task from the scheduler. The mutex associated to the worker is already
 taken when this method is called. If this method is defined as @code{NULL}, the
 worker will only execute tasks from its local queue. In this case, the
 @code{push_task} method should use the @code{starpu_push_local_task} method to
 assign tasks to the different workers.
-@item @code{pop_every_task}:
+@item @code{pop_every_task}
 Remove all available tasks from the scheduler (tasks are chained by the means
 of the prev and next fields of the starpu_task structure). The mutex associated
 to the worker is already taken when this method is called. 
-@item @code{post_exec_hook} (optionnal):
+@item @code{post_exec_hook} (optional)
 This method is called every time a task has been executed.
-@item @code{policy_name}:
-Name of the policy (optionnal).
-@item @code{policy_description}:
+@item @code{policy_name}
+Name of the policy (optional).
+@item @code{policy_description}
 Description of the policy (optionnal).
 @end table
-@end table
+@end deftp
 
 
 @node starpu_worker_set_sched_condition
