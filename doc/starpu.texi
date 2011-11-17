@@ -3719,6 +3719,18 @@ the transfer is achieved, else the call will return as soon as the request is
 scheduled (which may however have to wait for a task completion).
 @end deftypefun
 
+@deftypefun starpu_data_handle starpu_data_lookup ({const void *}@var{ptr})
+todo
+@end deftypefun
+
+@deftypefun int starpu_data_request_allocation (starpu_data_handle @var{handle}, uint32_t @var{node})
+todo
+@end deftypefun
+
+@deftypefun void starpu_data_query_status (starpu_data_handle @var{handle}, int @var{memory_node}, {int *}@var{is_allocated}, {int *}@var{is_valid}, {int *}@var{is_requested})
+Query the status of the handle on the specified memory node.
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
@@ -3849,6 +3861,10 @@ TODO
 This variant of @code{starpu_data_register} uses the CSR (Compressed
 Sparse Row Representation) sparse matrix interface.
 TODO
+@end deftypefun
+
+@deftypefun void *starpu_data_get_interface_on_node (starpu_data_handle @var{handle}, unsigned @var{memory_node})
+todo
 @end deftypefun
 
 @node Data Partition
@@ -4722,7 +4738,6 @@ instance.
 
 @node Data Interface API
 @subsection Data Interface API
-@c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 
 @deftp {Data Type} {struct starpu_data_interface_ops}
 @anchor{struct starpu_data_interface_ops}
