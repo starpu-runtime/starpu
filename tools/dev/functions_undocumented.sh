@@ -3,7 +3,7 @@
 stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
 
-functions=$(grep -rs 'starpu.*(.*);' include | awk -F':' '{print $2}' | sed 's/(.*//' | sed 's/.* //'| tr -d ' ' | tr -d '*')
+functions=$(grep 'starpu.*(.*);' include/*.h | awk -F':' '{print $2}' | sed 's/(.*//' | sed 's/.* //'| tr -d ' ' | tr -d '*')
 
 for func in $functions ; do
     #echo Processing function $func
