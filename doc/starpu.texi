@@ -3495,6 +3495,16 @@ guaranteed to be available until this method has been called.
 @node Workers' Properties
 @section Workers' Properties
 
+@deftp {DataType} {enum starpu_archtype}
+The different values are:
+@table @asis
+@item @code{STARPU_CPU_WORKER}
+@item @code{STARPU_CUDA_WORKER}
+@item @code{STARPU_OPENCL_WORKER}
+@item @code{STARPU_GORDON_WORKER}
+@end table
+@end deftp
+
 @deftypefun unsigned starpu_worker_get_count (void)
 This function returns the number of workers (i.e. processing units executing
 StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
@@ -3839,62 +3849,6 @@ TODO
 This variant of @code{starpu_data_register} uses the CSR (Compressed
 Sparse Row Representation) sparse matrix interface.
 TODO
-@end deftypefun
-
-@deftypefun void starpu_multiformat_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops});
-Register a piece of data that can be represented in different ways, depending upon
-the processing unit that manipulates it. It allows the programmer, for instance, to
-use an array of structures when working on a CPU, and a structure of arrays when
-working on a GPU.
-
-@var{nobjects} is the number of elements in the data. @var{format_ops} describes
-the format itself: @code{cpu_elemsize} is the size of each element on CPUs,
-@code{opencl_elemsize} is the size of each element on OpenCL devices,
-@code{cuda_elemsize} is the size of each element on CUDA devices.
-@code{cpu_to_opencl_cl}, @code{opencl_to_cpu_cl}, @code{cpu_to_cuda_cl}, and
-@code{cuda_to_cpu_cl} are pointers to codelets which convert between the various
-formats.
-
-@example
-#define NX 1024
-struct point array_of_structs[NX];
-starpu_data_handle handle;
-
-/*
- * The conversion of a piece of data is itself a task, though it is created,
- * submitted and destroyed by StarPU internals and not by the user. Therefore,
- * we have to define two codelets.
- * Note that for now the conversion from the CPU format to the GPU format has to
- * be executed on the GPU, and the conversion from the GPU to the CPU has to be
- * executed on the CPU.
- */
-#ifdef STARPU_USE_OPENCL
-void cpu_to_opencl_opencl_func(void *buffers[], void *args);
-starpu_codelet cpu_to_opencl_cl = @{
-	.where = STARPU_OPENCL,
-	.opencl_func = cpu_to_opencl_opencl_func,
-	.nbuffers = 1
-@};
-
-void opencl_to_cpu_func(void *buffers[], void *args);
-starpu_codelet opencl_to_cpu_cl = @{
-	.where = STARPU_CPU,
-	.cpu_func = opencl_to_cpu_func,
-	.nbuffers = 1
-@};
-#endif
-
-struct starpu_multiformat_data_interface_ops format_ops = @{
-#ifdef STARPU_USE_OPENCL
-	.opencl_elemsize = 2 * sizeof(float),
-	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
-	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
-#endif
-	.cpu_elemsize = 2 * sizeof(float),
-	...
-@};
-starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
-@end example
 @end deftypefun
 
 @node Data Partition
@@ -4452,6 +4406,17 @@ be set with @code{starpu_data_set_sequential_consistency_flag}.
 @node Performance Model API
 @section Performance Model API
 
+@deftp {Data Type} {enum starpu_perf_archtype}
+TODO.
+The different values are:
+@table @asis
+@item @code{STARPU_CPU_DEFAULT}
+@item @code{STARPU_CUDA_DEFAULT}
+@item @code{STARPU_OPENCL_DEFAULT}
+@item @code{STARPU_GORDON_DEFAULT}
+@end table
+@end deftp
+
 @deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel_t} *@var{model})
 TODO
 @end deftypefun
@@ -4738,8 +4703,9 @@ instance.
 @chapter StarPU Advanced API
 
 @menu
-* Defining a new data interface::
-* Defining a new scheduling policy::
+* Defining a new data interface::  
+* Multiformat Data Interface::  
+* Defining a new scheduling policy::  
 @end menu
 
 @node Defining a new data interface
@@ -4768,6 +4734,73 @@ Per-interface data transfer methods. TODO describe all the different fields
 
 TODO
 See @code{src/datawizard/interfaces/vector_interface.c} for now.
+
+@node Multiformat Data Interface
+@section Multiformat Data Interface
+
+@deftp {Data Type} {struct starpu_multiformat_data_interface_ops}
+todo. The different fields are:
+@table @asis
+@item @code{cpu_elemsize} the size of each element on CPUs,
+@item @code{opencl_elemsize} the size of each element on OpenCL devices,
+@item @code{cuda_elemsize} the size of each element on CUDA devices,
+@item @code{cpu_to_opencl_cl} pointer to a codelet which converts from CPU to OpenCL
+@item @code{opencl_to_cpu_cl} pointer to a codelet which converts from OpenCL to CPU
+@item @code{cpu_to_cuda_cl} pointer to a codelet which converts from CPU to CUDA
+@item @code{cuda_to_cpu_cl} pointer to a codelet which converts from CUDA to CPU
+@end table
+@end deftp
+
+@deftypefun void starpu_multiformat_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops});
+Register a piece of data that can be represented in different ways, depending upon
+the processing unit that manipulates it. It allows the programmer, for instance, to
+use an array of structures when working on a CPU, and a structure of arrays when
+working on a GPU.
+
+@var{nobjects} is the number of elements in the data. @var{format_ops} describes
+the format.
+
+@example
+#define NX 1024
+struct point array_of_structs[NX];
+starpu_data_handle handle;
+
+/*
+ * The conversion of a piece of data is itself a task, though it is created,
+ * submitted and destroyed by StarPU internals and not by the user. Therefore,
+ * we have to define two codelets.
+ * Note that for now the conversion from the CPU format to the GPU format has to
+ * be executed on the GPU, and the conversion from the GPU to the CPU has to be
+ * executed on the CPU.
+ */
+#ifdef STARPU_USE_OPENCL
+void cpu_to_opencl_opencl_func(void *buffers[], void *args);
+starpu_codelet cpu_to_opencl_cl = @{
+	.where = STARPU_OPENCL,
+	.opencl_func = cpu_to_opencl_opencl_func,
+	.nbuffers = 1
+@};
+
+void opencl_to_cpu_func(void *buffers[], void *args);
+starpu_codelet opencl_to_cpu_cl = @{
+	.where = STARPU_CPU,
+	.cpu_func = opencl_to_cpu_func,
+	.nbuffers = 1
+@};
+#endif
+
+struct starpu_multiformat_data_interface_ops format_ops = @{
+#ifdef STARPU_USE_OPENCL
+	.opencl_elemsize = 2 * sizeof(float),
+	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
+	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
+#endif
+	.cpu_elemsize = 2 * sizeof(float),
+	...
+@};
+starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
+@end example
+@end deftypefun
 
 @node Defining a new scheduling policy
 @section Defining a new scheduling policy
