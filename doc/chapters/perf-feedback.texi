@@ -10,21 +10,22 @@
 @chapter Performance feedback
 
 @menu
-* On-line::       On-line performance feedback
-* Off-line::      Off-line performance feedback
-* Codelet performance::      Performance of codelets
+* On-line::                     On-line performance feedback
+* Off-line::                    Off-line performance feedback
+* Codelet performance::         Performance of codelets
+* Theoretical lower bound on execution time API::  
 @end menu
 
 @node On-line
 @section On-line performance feedback
 
 @menu
-* Enabling monitoring::     Enabling on-line performance monitoring
-* Task feedback::           Per-task feedback
-* Codelet feedback::        Per-codelet feedback
-* Worker feedback::         Per-worker feedback
-* Bus feedback::            Bus-related feedback
-* StarPU-Top::              StarPU-Top interface
+* Enabling monitoring::         Enabling on-line performance monitoring
+* Task feedback::               Per-task feedback
+* Codelet feedback::            Per-codelet feedback
+* Worker feedback::             Per-worker feedback
+* Bus feedback::                Bus-related feedback
+* StarPU-Top::                  StarPU-Top interface
 @end menu
 
 @node Enabling monitoring
@@ -205,10 +206,10 @@ and "localhost" should be used as IP Address to connect to.
 @section Off-line performance feedback
 
 @menu
-* Generating traces::       Generating traces with FxT
-* Gantt diagram::           Creating a Gantt Diagram
-* DAG::                     Creating a DAG with graphviz
-* starpu-top::              Monitoring activity
+* Generating traces::           Generating traces with FxT
+* Gantt diagram::               Creating a Gantt Diagram
+* DAG::                         Creating a DAG with graphviz
+* starpu-top::                  Monitoring activity
 @end menu
 
 @node Generating traces
@@ -366,3 +367,39 @@ The @code{starpu_regression_display} tool does the same for regression-based
 performance models. It also writes a @code{.gp} file in the current directory,
 to be run in the @code{gnuplot} tool, which shows the corresponding curve.
 
+@node Theoretical lower bound on execution time API
+@section Theoretical lower bound on execution time
+
+See @ref{Theoretical lower bound on execution time} for an example on
+how to use this API.
+
+@deftypefun void starpu_bound_start (int @var{deps}, int @var{prio})
+Start recording tasks (resets stats).  @code{deps} tells whether
+dependencies should be recorded too (this is quite expensive)
+@end deftypefun
+
+@deftypefun void starpu_bound_stop (void)
+Stop recording tasks
+@end deftypefun
+
+@deftypefun void starpu_bound_print_dot ({FILE *}@var{output})
+Print the DAG that was recorded
+@end deftypefun
+
+@deftypefun void starpu_bound_compute ({double *}@var{res}, {double *}@var{integer_res}, int @var{integer})
+Get theoretical upper bound (in ms) (needs glpk support)
+@end deftypefun
+
+@deftypefun void starpu_bound_print_lp ({FILE *}@var{output})
+Emit Linear Programming system on output for the recorded tasks in lp
+format
+@end deftypefun
+
+@deftypefun void starpu_bound_print_mps ({FILE *}@var{output})
+Emit Linear Programming system on output for the recorded tasks in mps
+format
+@end deftypefun
+
+@deftypefun void starpu_bound_print ({FILE *}@var{output}, int @var{integer})
+Emit statistics of actual execution vs theoretical upper bound
+@end deftypefun
