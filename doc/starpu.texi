@@ -73,8 +73,8 @@ was last updated on @value{UPDATED}.
 * StarPU MPI support::          How to combine StarPU with MPI
 * Tips and Tricks::             Tips and tricks to know about
 * Configuring StarPU::          How to configure StarPU
-* StarPU API::                  The API to use StarPU
-* Advanced Topics::             Advanced use of StarPU
+* StarPU Basic API::            The Basic API to use StarPU
+* StarPU Advanced API::         Advanced use of StarPU
 * C Extensions::                Easier StarPU programming with GCC
 * Full source code for the 'Scaling a Vector' example::
 * GNU Free Documentation License::    How you can copy and share this manual.
@@ -3369,8 +3369,8 @@ generate a Paje trace when starpu_shutdown is called.
 @c StarPU API
 @c ---------------------------------------------------------------------
 
-@node StarPU API
-@chapter StarPU API
+@node StarPU Basic API
+@chapter StarPU Basic API
 
 @menu
 * Initialization and Termination::  Initialization and Termination methods
@@ -4364,19 +4364,6 @@ Output on @code{stderr} some statistics on the codelet @var{cl}.
 @node Explicit Dependencies
 @section Explicit Dependencies
 
-@menu
-* starpu_task_declare_deps_array::        starpu_task_declare_deps_array
-* starpu_tag_t::                Task logical identifier
-* starpu_tag_declare_deps::     Declare the Dependencies of a Tag
-* starpu_tag_declare_deps_array::  Declare the Dependencies of a Tag
-* starpu_tag_wait::             Block until a Tag is terminated
-* starpu_tag_wait_array::       Block until a set of Tags is terminated
-* starpu_tag_remove::           Destroy a Tag
-* starpu_tag_notify_from_apps::  Feed a tag explicitly
-@end menu
-
-@node starpu_task_declare_deps_array
-@subsection @code{starpu_task_declare_deps_array} -- Declare task dependencies
 @deftypefun void starpu_task_declare_deps_array ({struct starpu_task} *@var{task}, unsigned @var{ndeps}, {struct starpu_task} *@var{task_array}[])
 Declare task dependencies between a @var{task} and an array of tasks of length
 @var{ndeps}. This function must be called prior to the submission of the task,
@@ -4390,10 +4377,8 @@ same task, in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
 @end deftypefun
 
-@node starpu_tag_t
-@subsection @code{starpu_tag_t} -- Task logical identifier
 @deftp {Data Type} {starpu_tag_t}
-It is possible to associate a task with a unique ``tag'' chosen by the application, and to express
+This type defines a task logical identifer. It is possible to associate a task with a unique ``tag'' chosen by the application, and to express
 dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
 be arbitrary) and set the @code{use_tag} field to 1.
@@ -4403,8 +4388,6 @@ not be started until the tasks which holds the declared dependency tags are
 completed.
 @end deftp
 
-@node starpu_tag_declare_deps
-@subsection @code{starpu_tag_declare_deps} -- Declare the Dependencies of a Tag
 @deftypefun void starpu_tag_declare_deps (starpu_tag_t @var{id}, unsigned @var{ndeps}, ...)
 Specify the dependencies of the task identified by tag @code{id}. The first
 argument specifies the tag which is configured, the second argument gives the
@@ -4428,8 +4411,6 @@ starpu_tag_declare_deps((starpu_tag_t)0x1,
 @end cartouche
 @end deftypefun
 
-@node starpu_tag_declare_deps_array
-@subsection @code{starpu_tag_declare_deps_array} -- Declare the Dependencies of a Tag
 @deftypefun void starpu_tag_declare_deps_array (starpu_tag_t @var{id}, unsigned @var{ndeps}, {starpu_tag_t *}@var{array})
 This function is similar to @code{starpu_tag_declare_deps}, except
 that its does not take a variable number of arguments but an array of
@@ -4443,8 +4424,6 @@ starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 @end cartouche
 @end deftypefun
 
-@node starpu_tag_wait
-@subsection @code{starpu_tag_wait} -- Block until a Tag is terminated
 @deftypefun void starpu_tag_wait (starpu_tag_t @var{id})
 This function blocks until the task associated to tag @var{id} has been
 executed. This is a blocking call which must therefore not be called within
@@ -4456,24 +4435,18 @@ data structure was freed (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
 @end deftypefun
 
-@node starpu_tag_wait_array
-@subsection @code{starpu_tag_wait_array} -- Block until a set of Tags is terminated
 @deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag_t *@var{id})
 This function is similar to @code{starpu_tag_wait} except that it blocks until
 @emph{all} the @var{ntags} tags contained in the @var{id} array are
 terminated.
 @end deftypefun
 
-@node starpu_tag_remove
-@subsection @code{starpu_tag_remove} -- Destroy a Tag
 @deftypefun void starpu_tag_remove (starpu_tag_t @var{id})
 This function releases the resources associated to tag @var{id}. It can be
 called once the corresponding task has been executed and when there is
 no other tag that depend on this tag anymore.
 @end deftypefun
 
-@node starpu_tag_notify_from_apps
-@subsection @code{starpu_tag_notify_from_apps} -- Feed a Tag explicitly
 @deftypefun void starpu_tag_notify_from_apps (starpu_tag_t @var{id})
 This function explicitly unlocks tag @var{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
@@ -4485,12 +4458,6 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @node Implicit Data Dependencies
 @section Implicit Data Dependencies
 
-@menu
-* starpu_data_set_default_sequential_consistency_flag::        starpu_data_set_default_sequential_consistency_flag
-* starpu_data_get_default_sequential_consistency_flag::        starpu_data_get_default_sequential_consistency_flag
-* starpu_data_set_sequential_consistency_flag::                starpu_data_set_sequential_consistency_flag
-@end menu
-
 In this section, we describe how StarPU makes it possible to insert implicit
 task dependencies in order to enforce sequential data consistency. When this
 data consistency is enabled on a specific data handle, any data access will
@@ -4500,8 +4467,6 @@ mode, and then a third task that access it in write mode, dependencies will be
 added between the two first tasks and the third one. Implicit data dependencies
 are also inserted in the case of data accesses from the application.
 
-@node starpu_data_set_default_sequential_consistency_flag
-@subsection @code{starpu_data_set_default_sequential_consistency_flag} -- Set default sequential consistency flag
 @deftypefun void starpu_data_set_default_sequential_consistency_flag (unsigned @var{flag})
 Set the default sequential consistency flag. If a non-zero value is passed, a
 sequential data consistency will be enforced for all handles registered after
@@ -4511,16 +4476,12 @@ mode of a specific data handle with the
 @code{starpu_data_set_sequential_consistency_flag} function.
 @end deftypefun
 
-@node starpu_data_get_default_sequential_consistency_flag
-@subsection @code{starpu_data_get_default_sequential_consistency_flag} -- Get current default sequential consistency flag
 @deftypefun unsigned starpu_data_set_default_sequential_consistency_flag (void)
 This function returns the current default sequential consistency flag.
 @end deftypefun
 
-@node starpu_data_set_sequential_consistency_flag
-@subsection @code{starpu_data_set_sequential_consistency_flag} -- Set data sequential consistency mode
 @deftypefun void starpu_data_set_sequential_consistency_flag (starpu_data_handle @var{handle}, unsigned @var{flag})
-Select the data consistency mode associated to a data handle. The consistency
+Sets the data consistency mode associated to a data handle. The consistency
 mode set using this function has the priority over the default mode which can
 be set with @code{starpu_data_set_sequential_consistency_flag}.
 @end deftypefun
@@ -4528,33 +4489,18 @@ be set with @code{starpu_data_set_sequential_consistency_flag}.
 @node Performance Model API
 @section Performance Model API
 
-@menu
-* starpu_load_history_debug::   
-* starpu_perfmodel_debugfilepath::  
-* starpu_perfmodel_get_arch_name::  
-* starpu_force_bus_sampling::   
-@end menu
-
-@node starpu_load_history_debug
-@subsection @code{starpu_load_history_debug}
 @deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel_t} *@var{model})
 TODO
 @end deftypefun
 
-@node starpu_perfmodel_debugfilepath
-@subsection @code{starpu_perfmodel_debugfilepath}
 @deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel_t} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen})
 TODO
 @end deftypefun
 
-@node starpu_perfmodel_get_arch_name
-@subsection @code{starpu_perfmodel_get_arch_name}
 @deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen})
 TODO
 @end deftypefun
 
-@node starpu_force_bus_sampling
-@subsection @code{starpu_force_bus_sampling}
 @deftypefun void starpu_force_bus_sampling (void)
 This forces sampling the bus performance model again.
 @end deftypefun
@@ -4563,25 +4509,6 @@ This forces sampling the bus performance model again.
 @node Profiling API
 @section Profiling API
 
-@menu
-* starpu_profiling_status_set::  starpu_profiling_status_set
-* starpu_profiling_status_get::  starpu_profiling_status_get
-* struct starpu_task_profiling_info::  task profiling information
-* struct starpu_worker_profiling_info::  worker profiling information
-* starpu_worker_get_profiling_info::  starpu_worker_get_profiling_info
-* struct starpu_bus_profiling_info::  bus profiling information
-* starpu_bus_get_count::        
-* starpu_bus_get_id::           
-* starpu_bus_get_src::          
-* starpu_bus_get_dst::          
-* starpu_timing_timespec_delay_us::  
-* starpu_timing_timespec_to_us::  
-* starpu_bus_profiling_helper_display_summary::  
-* starpu_worker_profiling_helper_display_summary::  
-@end menu
-
-@node starpu_profiling_status_set
-@subsection @code{starpu_profiling_status_set} -- Set current profiling status
 @deftypefun int starpu_profiling_status_set (int @var{status})
 Thie function sets the profiling status. Profiling is activated by passing
 @code{STARPU_PROFILING_ENABLE} in @code{status}. Passing
@@ -4595,14 +4522,10 @@ Negative return values indicate an error, otherwise the previous status is
 returned.
 @end deftypefun
 
-@node starpu_profiling_status_get
-@subsection @code{starpu_profiling_status_get} -- Get current profiling status
 @deftypefun int starpu_profiling_status_get (void)
 Return the current profiling status or a negative value in case there was an error.
 @end deftypefun
 
-@node struct starpu_task_profiling_info
-@subsection @code{struct starpu_task_profiling_info} -- Task profiling information
 @deftp {Data Type} {struct starpu_task_profiling_info}
 This structure contains information about the execution of a task. It is
 accessible from the @code{.profiling_info} field of the @code{starpu_task}
@@ -4619,8 +4542,6 @@ Identifier of the worker which has executed the task.
 @end table
 @end deftp
 
-@node struct starpu_worker_profiling_info
-@subsection @code{struct starpu_worker_profiling_info} -- Worker profiling information
 @deftp {Data Type} {struct starpu_worker_profiling_info}
 This structure contains the profiling information associated to a
 worker. The different fields are:
@@ -4638,9 +4559,7 @@ Number of tasks executed by the worker during the profiling measurement interval
 @end table
 @end deftp
 
-@node starpu_worker_get_profiling_info
-@subsection @code{starpu_worker_get_profiling_info} -- Get worker profiling info
-@deftypefun int starpu_worker_get_profiling_info(int @var{workerid}, {struct starpu_worker_profiling_info *}@var{worker_info})
+@deftypefun int starpu_worker_get_profiling_info (int @var{workerid}, {struct starpu_worker_profiling_info *}@var{worker_info})
 Get the profiling info associated to the worker identified by @code{workerid},
 and reset the profiling measurements. If the @code{worker_info} argument is
 NULL, only reset the counters associated to worker @code{workerid}.
@@ -4649,8 +4568,6 @@ Upon successful completion, this function returns 0. Otherwise, a negative
 value is returned.
 @end deftypefun
 
-@node struct starpu_bus_profiling_info
-@subsection @code{struct starpu_bus_profiling_info} -- Bus profiling information
 @deftp {Data Type} {struct starpu_bus_profiling_info}
 TODO. The different fields are:
 @table @asis
@@ -4665,70 +4582,43 @@ TODO
 @end table
 @end deftp
 
-@node starpu_bus_get_count
-@subsection @code{starpu_bus_get_count}
 @deftypefun int starpu_bus_get_count (void)
 TODO
 @end deftypefun
 
-@node starpu_bus_get_id
-@subsection @code{starpu_bus_get_id}
 @deftypefun int starpu_bus_get_id (int @var{src}, int @var{dst})
 TODO
 @end deftypefun
 
-@node starpu_bus_get_src
-@subsection @code{starpu_bus_get_src}
 @deftypefun int starpu_bus_get_src (int @var{busid})
 TODO
 @end deftypefun
 
-@node starpu_bus_get_dst
-@subsection @code{starpu_bus_get_dst}
 @deftypefun int starpu_bus_get_dst (int @var{busid})
 TODO
 @end deftypefun
 
-@node starpu_timing_timespec_delay_us
-@subsection @code{starpu_timing_timespec_delay_us}
 @deftypefun double starpu_timing_timespec_delay_us ({struct timespec} *@var{start}, {struct timespec} *@var{end})
 TODO
 @end deftypefun
 
-@node starpu_timing_timespec_to_us
-@subsection @code{starpu_timing_timespec_to_us}
 @deftypefun double starpu_timing_timespec_to_us ({struct timespec} *@var{ts})
 TODO
 @end deftypefun
 
-@node starpu_bus_profiling_helper_display_summary
-@subsection @code{starpu_bus_profiling_helper_display_summary}
 @deftypefun void starpu_bus_profiling_helper_display_summary (void)
 TODO
 @end deftypefun
 
-@node starpu_worker_profiling_helper_display_summary
-@subsection @code{starpu_worker_profiling_helper_display_summary}
 @deftypefun void starpu_worker_profiling_helper_display_summary (void)
 TODO
 @end deftypefun
 
-
-
 @node CUDA extensions
 @section CUDA extensions
 
-@c void starpu_malloc(float **A, size_t dim);
-
-@menu
-* starpu_cuda_get_local_stream::  Get current worker's CUDA stream
-* starpu_helper_cublas_init::   Initialize CUBLAS on every CUDA device
-* starpu_helper_cublas_shutdown::  Deinitialize CUBLAS on every CUDA device
-@end menu
-
-@node starpu_cuda_get_local_stream
-@subsection @code{starpu_cuda_get_local_stream} -- Get current worker's CUDA stream
 @deftypefun {cudaStream_t *} starpu_cuda_get_local_stream (void)
+This function gets the current worker's CUDA stream.
 StarPU provides a stream for every CUDA device controlled by StarPU. This
 function is only provided for convenience so that programmers can easily use
 asynchronous operations within codelets without having to create a stream by
@@ -4738,17 +4628,14 @@ Synchronizing with @code{cudaThreadSynchronize()} is allowed, but will reduce
 the likelihood of having all transfers overlapped.
 @end deftypefun
 
-@node starpu_helper_cublas_init
-@subsection @code{starpu_helper_cublas_init} -- Initialize CUBLAS on every CUDA device
 @deftypefun void starpu_helper_cublas_init (void)
+This function initializes CUBLAS on every CUDA device.
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling
 @code{starpu_helper_cublas_init} will initialize CUBLAS on every CUDA device
 controlled by StarPU. This call blocks until CUBLAS has been properly
 initialized on every device.
 @end deftypefun
 
-@node starpu_helper_cublas_shutdown
-@subsection @code{starpu_helper_cublas_shutdown} -- Deinitialize CUBLAS on every CUDA device
 @deftypefun void starpu_helper_cublas_shutdown (void)
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
 @end deftypefun
@@ -4820,25 +4707,16 @@ This function compiles an OpenCL source code stored in a string.
 @end deftypefun
 
 @deftypefun int starpu_opencl_unload_opencl ({struct starpu_opencl_program} *@var{opencl_programs})
-This function releases an OpenCL compiled code.
+This function unloads an OpenCL compiled code.
 @end deftypefun
 
 @node Loading OpenCL kernels
 @subsection Loading OpenCL kernels
 
-@menu
-* starpu_opencl_load_kernel::   Loading a kernel
-* starpu_opencl_relase_kernel::  Releasing a kernel
-@end menu
-
-@node starpu_opencl_load_kernel
-@subsubsection @code{starpu_opencl_load_kernel} -- Loading a kernel
 @deftypefun int starpu_opencl_load_kernel (cl_kernel *@var{kernel}, cl_command_queue *@var{queue}, {struct starpu_opencl_program} *@var{opencl_programs}, char *@var{kernel_name}, int @var{devid})
 TODO
 @end deftypefun
 
-@node starpu_opencl_relase_kernel
-@subsubsection @code{starpu_opencl_release_kernel} -- Releasing a kernel
 @deftypefun int starpu_opencl_release_kernel (cl_kernel @var{kernel})
 TODO
 @end deftypefun
@@ -4862,13 +4740,6 @@ nothing yet.
 @node Miscellaneous helpers
 @section Miscellaneous helpers
 
-@menu
-* starpu_data_cpy::                Copy a data handle into another data handle
-* starpu_execute_on_each_worker::  Execute a function on a subset of workers
-@end menu
-
-@node starpu_data_cpy
-@subsection @code{starpu_data_cpy} -- Copy a data handle into another data handle
 @deftypefun int starpu_data_cpy (starpu_data_handle @var{dst_handle}, starpu_data_handle @var{src_handle}, int @var{asynchronous}, void (*@var{callback_func})(void*), void *@var{callback_arg})
 Copy the content of the @var{src_handle} into the @var{dst_handle} handle.
 The @var{asynchronous} parameter indicates whether the function should 
@@ -4880,11 +4751,8 @@ this callback function is executed after the handle has been copied, and it is
 given the @var{callback_arg} pointer as argument.
 @end deftypefun
 
-
-
-@node starpu_execute_on_each_worker
-@subsection @code{starpu_execute_on_each_worker} -- Execute a function on a subset of workers
 @deftypefun void starpu_execute_on_each_worker (void (*@var{func})(void *), void *@var{arg}, uint32_t @var{where})
+This function executes the given function on a subset of workers.
 When calling this method, the offloaded function specified by the first argument is
 executed by every StarPU worker that may execute the function.
 The second argument is passed to the offloaded function.
@@ -4903,8 +4771,8 @@ instance.
 @c Advanced Topics
 @c ---------------------------------------------------------------------
 
-@node Advanced Topics
-@chapter Advanced Topics
+@node StarPU Advanced API
+@chapter StarPU Advanced API
 
 @menu
 * Defining a new data interface::
@@ -4915,31 +4783,28 @@ instance.
 @section Defining a new data interface
 
 @menu
-* struct starpu_data_interface_ops_t::  Per-interface methods
-* struct starpu_data_copy_methods::	Per-interface data transfer methods
+* Data Interface API::  Data Interface API
 * An example of data interface::        An example of data interface
 @end menu
 
+@node Data Interface API
+@subsection Data Interface API
 @c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 
-@node struct starpu_data_interface_ops_t
-@subsection @code{struct starpu_data_interface_ops_t} -- Per-interface methods
 @deftp {Data Type} {struct starpu_data_interface_ops_t}
-TODO describe all the different fields
+@anchor{struct starpu_data_interface_ops_t}
+Defines the per-interface methods. TODO describe all the different fields
 @end deftp
 
-@node struct starpu_data_copy_methods
-@subsection @code{struct starpu_data_copy_methods} -- Per-interface data transfer methods
 @deftp {Data Type} {struct starpu_data_copy_methods}
-TODO describe all the different fields
+Per-interface data transfer methods. TODO describe all the different fields
 @end deftp
 
 @node An example of data interface
 @subsection An example of data interface
-@table @asis
+
 TODO
 See @code{src/datawizard/interfaces/vector_interface.c} for now.
-@end table
 
 @node Defining a new scheduling policy
 @section Defining a new scheduling policy
@@ -4950,16 +4815,13 @@ A full example showing how to define a new scheduling policy is available in
 the StarPU sources in the directory @code{examples/scheduler/}.
 
 @menu
-* struct starpu_sched_policy_s::  
-* starpu_worker_set_sched_condition::
-* starpu_sched_set_min_priority::       Set the minimum priority level
-* starpu_sched_set_max_priority::       Set the maximum priority level
-* starpu_push_local_task::		Assign a task to a worker
+* Scheduling Policy API:: Scheduling Policy API
 * Source code::                 
 @end menu
 
-@node struct starpu_sched_policy_s
-@subsection @code{struct starpu_sched_policy_s} -- Scheduler methods
+@node Scheduling Policy API
+@subsection Scheduling Policy API
+
 @deftp {Data Type} {struct starpu_sched_policy_s}
 This structure contains all the methods that implement a scheduling policy.  An
 application may specify which scheduling strategy in the @code{sched_policy}
@@ -4998,10 +4860,8 @@ Description of the policy (optionnal).
 @end table
 @end deftp
 
-
-@node starpu_worker_set_sched_condition
-@subsection @code{starpu_worker_set_sched_condition} -- Specify the condition variable associated to a worker
 @deftypefun void starpu_worker_set_sched_condition (int @var{workerid}, pthread_cond_t *@var{sched_cond}, pthread_mutex_t *@var{sched_mutex})
+This function specifies the condition variable associated to a worker
 When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
 associated mutex) should be used to block (and to wake up) a worker. Note that
@@ -5012,8 +4872,6 @@ The initialization method of a scheduling strategy (@code{init_sched}) must
 call this function once per worker.
 @end deftypefun
 
-@node starpu_sched_set_min_priority
-@subsection @code{starpu_sched_set_min_priority}
 @deftypefun void starpu_sched_set_min_priority (int @var{min_prio})
 Defines the minimum priority level supported by the scheduling policy. The
 default minimum priority level is the same as the default priority level which
@@ -5023,8 +4881,6 @@ called from the initialization method of the scheduling policy, and should not
 be used directly from the application.
 @end deftypefun
 
-@node starpu_sched_set_max_priority
-@subsection @code{starpu_sched_set_max_priority}
 @deftypefun void starpu_sched_set_min_priority (int @var{max_prio})
 Defines the maximum priority level supported by the scheduling policy. The
 default maximum priority level is 1.  The application may access that value by
@@ -5033,14 +4889,12 @@ only be called from the initialization method of the scheduling policy, and
 should not be used directly from the application.
 @end deftypefun
 
-@node starpu_push_local_task
-@subsection @code{starpu_push_local_task}
 @deftypefun int starpu_push_local_task (int @var{workerid}, {struct starpu_task} *@var{task}, int @var{back})
 The scheduling policy may put tasks directly into a worker's local queue so
 that it is not always necessary to create its own queue when the local queue
 is sufficient. If "back" not null, the task is put at the back of the queue
 where the worker will pop tasks first. Setting "back" to 0 therefore ensures
-a FIFO ordering. 
+a FIFO ordering.
 @end deftypefun
 
 
