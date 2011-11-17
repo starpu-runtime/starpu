@@ -3751,7 +3751,7 @@ returns 0.
 
 @node STARPU_DATA_ACQUIRE_CB
 @subsection @code{STARPU_DATA_ACQUIRE_CB} -- Access registered data from the application asynchronously, macro
-@deftypefun STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, code)
+@deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, code)
 @code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
 except that the code to be executed in a callback is directly provided as a
 macro parameter, and the data handle is automatically released after it. This
