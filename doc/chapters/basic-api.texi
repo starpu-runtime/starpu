@@ -368,6 +368,11 @@ todo
 Query the status of the handle on the specified memory node.
 @end deftypefun
 
+@deftypefun void starpu_data_advise_as_important (starpu_data_handle @var{handle}, unsigned @var{is_important})
+This function allows to specify that a piece of data can be discarded
+without impacting the application.
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
@@ -514,6 +519,7 @@ todo
 
 @node Basic API
 @subsection Basic API
+
 @deftp {Data Type} {struct starpu_data_filter}
 The filter structure describes a data partitioning operation, to be given to the
 @code{starpu_data_partition} function, see @ref{starpu_data_partition}
@@ -522,7 +528,6 @@ for an example. The different fields are:
 @item @code{filter_func}
 This function fills the @code{child_interface} structure with interface
 information for the @code{id}-th child of the parent @code{father_interface} (among @code{nparts}).
-
 @code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
 @item @code{nchildren}
 This is the number of parts to partition the data into.
@@ -593,6 +598,19 @@ subdata.
 h = starpu_data_get_sub_data(A_handle, 1, taskx);
 @end smallexample
 @end cartouche
+@end deftypefun
+
+@deftypefun starpu_data_handle starpu_data_vget_sub_data (starpu_data_handle @var{root_data}, unsigned @var{depth}, va_list @var{pa})
+This function is similar to @code{starpu_data_get_sub_data} but uses a
+va_list for the parameter list.
+@end deftypefun
+
+@deftypefun void starpu_data_map_filters(starpu_data_handle @var{root_data}, unsigned @var{nfilters}, ...)
+todo
+@end deftypefun
+
+@deftypefun void starpu_data_vmap_filters(starpu_data_handle @var{root_data}, unsigned @var{nfilters}, va_list @var{pa})
+todo
 @end deftypefun
 
 @node Predefined filter functions
@@ -1044,6 +1062,10 @@ this function call, otherwise it is disabled. By default, StarPU enables
 sequential data consistency. It is also possible to select the data consistency
 mode of a specific data handle with the
 @code{starpu_data_set_sequential_consistency_flag} function.
+@end deftypefun
+
+@deftypefun unsigned starpu_data_get_default_sequential_consistency_flag (void)
+Return the default sequential consistency flag
 @end deftypefun
 
 @deftypefun unsigned starpu_data_set_default_sequential_consistency_flag (void)
