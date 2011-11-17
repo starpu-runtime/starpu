@@ -3578,7 +3578,8 @@ We show how to use existing data interfaces in @ref{Data Interfaces}, but develo
 design their own data interfaces if required.
 
 @menu
-* starpu_malloc::          Allocate data and pin it
+* starpu_malloc::               Allocate data and pin it
+* starpu_free::                 Free allocated memory
 * starpu_access_mode::          Data access mode
 * unsigned memory_node::        Memory node
 * starpu_data_handle::          StarPU opaque data handle
@@ -3604,18 +3605,26 @@ thus permit data transfer and computation overlapping. The allocated buffer must
 be freed thanks to the @code{starpu_free} function.
 @end deftypefun
 
+@node starpu_free
+@subsection @code{starpu_free}
+@deftypefun int starpu_free(void *@var{A})
+This function frees memory which has previously allocated with
+@code{starpu_malloc}.
+@end deftypefun
+
 @node starpu_access_mode
 @subsection @code{starpu_access_mode} -- Data access mode
+@deftp {Data Type} starpu_access_mode
 This datatype describes a data access mode. The different available modes are:
 @table @asis
-@table @asis 
-@item @code{STARPU_R} read-only mode.
-@item @code{STARPU_W} write-only mode.
-@item @code{STARPU_RW} read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
-@item @code{STARPU_SCRATCH} scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
-@item @code{STARPU_REDUX} reduction mode. TODO: document, as well as @code{starpu_data_set_reduction_methods}
+@item @code{STARPU_R}: read-only mode.
+@item @code{STARPU_W}: write-only mode.
+@item @code{STARPU_RW}: read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
+@item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
+@item @code{STARPU_REDUX} reduction mode.
 @end table
-@end table
+TODO: document, as well as @code{starpu_data_set_reduction_methods}
+@end deftp
 
 @node unsigned memory_node
 @subsection @code{unsigned memory_node} -- Memory node
@@ -3632,22 +3641,18 @@ initially resides (we also call this memory node the home node of a piece of
 data).
 @end table
 
-
 @node starpu_data_handle
 @subsection @code{starpu_data_handle} -- StarPU opaque data handle
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {starpu_data_handle}
 StarPU uses @code{starpu_data_handle} as an opaque handle to manage a piece of
 data. Once a piece of data has been registered to StarPU, it is associated to a
 @code{starpu_data_handle} which keeps track of the state of the piece of data
 over the entire machine, so that we can maintain data consistency and locate
 data replicates for instance.
-@end table
+@end deftp
 
 @node void *interface
 @subsection @code{void *interface} -- StarPU data interface
-@table @asis
-@item @emph{Description}:
 Data management is done at a high-level in StarPU: rather than accessing a mere
 list of contiguous buffers, the tasks may manipulate data that are described by
 a high-level construct which we call data interface.
@@ -3663,7 +3668,6 @@ given in @ref{Data Interfaces}.
 When a piece of data managed by StarPU is used by a task, the task
 implementation is given a pointer to an interface describing a valid copy of
 the data that is accessible from the current processing unit.
-@end table
 
 @node starpu_data_register
 @subsection @code{starpu_data_register} -- Register a piece of data to StarPU
