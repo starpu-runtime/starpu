@@ -126,7 +126,7 @@ static double cuda_chol_task_22_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-struct starpu_perfmodel_t chol_model_11 = {
+struct starpu_perfmodel chol_model_11 = {
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_11_cost },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_11_cost }
@@ -135,7 +135,7 @@ struct starpu_perfmodel_t chol_model_11 = {
 	.symbol = "chol_model_11"
 };
 
-struct starpu_perfmodel_t chol_model_21 = {
+struct starpu_perfmodel chol_model_21 = {
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_21_cost },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_21_cost }
@@ -144,7 +144,7 @@ struct starpu_perfmodel_t chol_model_21 = {
 	.symbol = "chol_model_21"
 };
 
-struct starpu_perfmodel_t chol_model_22 = {
+struct starpu_perfmodel chol_model_22 = {
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_22_cost },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_22_cost }

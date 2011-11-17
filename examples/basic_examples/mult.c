@@ -27,7 +27,7 @@
  *  - how to unpartition data (starpu_data_unpartition) and how to stop
  *    monitoring data (starpu_data_unregister)
  *  - how to manipulate subsets of data (starpu_data_get_sub_data)
- *  - how to construct an autocalibrated performance model (starpu_perfmodel_t)
+ *  - how to construct an autocalibrated performance model (starpu_perfmodel)
  *  - how to submit asynchronous tasks
  */
 
@@ -246,7 +246,7 @@ static void partition_mult_data(void)
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
 }
 
-static struct starpu_perfmodel_t mult_perf_model = {
+static struct starpu_perfmodel mult_perf_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "mult_perf_model"
 };

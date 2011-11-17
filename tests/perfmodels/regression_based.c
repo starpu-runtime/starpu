@@ -37,12 +37,12 @@ static void memset_cpu(void *descr[], void *arg)
 	memset(ptr, 42, n);
 }
 
-static struct starpu_perfmodel_t model = {
+static struct starpu_perfmodel model = {
 	.type = STARPU_REGRESSION_BASED,
 	.symbol = "memset_regression_based"
 };
 
-static struct starpu_perfmodel_t nl_model = {
+static struct starpu_perfmodel nl_model = {
 	.type = STARPU_NL_REGRESSION_BASED,
 	.symbol = "non_linear_memset_regression_based"
 };

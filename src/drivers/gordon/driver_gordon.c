@@ -205,7 +205,7 @@ static void gordon_callback_list_func(void *arg)
 		starpu_job_t j = starpu_job_list_pop_back(wrapper_list);
 
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
-		struct starpu_perfmodel_t *model = j->task->cl->model;
+		struct starpu_perfmodel *model = j->task->cl->model;
 		if (model && model->benchmarking)
 		{
 			double measured = (double)gordon_task->measured;
@@ -315,7 +315,7 @@ int inject_task_list(struct starpu_job_list_s *list, struct starpu_worker_s *wor
 
 		gordon_jobs[index].index = task->cl->gordon_func;
 
-		struct starpu_perfmodel_t *model = j->task->cl->model;
+		struct starpu_perfmodel *model = j->task->cl->model;
 		if (model && model->benchmarking)
 			gordon_jobs[index].flags.sampling = 1;
 

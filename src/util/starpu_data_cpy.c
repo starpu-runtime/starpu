@@ -49,7 +49,7 @@ static void data_cpy_func(void *descr[], void *cl_arg)
 
 }
 
-struct starpu_perfmodel_t copy_model = {
+struct starpu_perfmodel copy_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "starpu_data_cpy"
 };

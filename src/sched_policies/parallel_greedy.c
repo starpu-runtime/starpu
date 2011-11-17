@@ -38,7 +38,7 @@ static int possible_combinations[STARPU_NMAXWORKERS][10];
 static int possible_combinations_size[STARPU_NMAXWORKERS][10];
 
 static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology, 
-		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* masters pick tasks from that queue */
 	fifo = _starpu_create_fifo();
@@ -129,7 +129,7 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology
 }
 
 static void deinitialize_pgreedy_policy(__attribute__ ((unused)) struct starpu_machine_topology_s *topology, 
-		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* TODO check that there is no task left in the queue */
 
@@ -232,7 +232,7 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 	}
 }
 
-struct starpu_sched_policy_s _starpu_sched_pgreedy_policy = {
+struct starpu_sched_policy _starpu_sched_pgreedy_policy = {
 	.init_sched = initialize_pgreedy_policy,
 	.deinit_sched = deinitialize_pgreedy_policy,
 	.push_task = push_task_pgreedy_policy,

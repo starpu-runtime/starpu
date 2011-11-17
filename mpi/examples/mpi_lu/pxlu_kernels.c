@@ -96,7 +96,7 @@ static void STARPU_PLU(cublas_u22)(void *descr[], void *_args)
 }
 #endif// STARPU_USE_CUDA
 
-static struct starpu_perfmodel_t STARPU_PLU(model_22) = {
+static struct starpu_perfmodel STARPU_PLU(model_22) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_22_atlas)
@@ -203,7 +203,7 @@ static void STARPU_PLU(cublas_u12)(void *descr[], void *_args)
 }
 #endif // STARPU_USE_CUDA
 
-static struct starpu_perfmodel_t STARPU_PLU(model_12) = {
+static struct starpu_perfmodel STARPU_PLU(model_12) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_12_atlas)
@@ -311,7 +311,7 @@ static void STARPU_PLU(cublas_u21)(void *descr[], void *_args)
 }
 #endif 
 
-static struct starpu_perfmodel_t STARPU_PLU(model_21) = {
+static struct starpu_perfmodel STARPU_PLU(model_21) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_21_atlas)
@@ -416,7 +416,7 @@ static void STARPU_PLU(cublas_u11)(void *descr[], void *_args)
 }
 #endif// STARPU_USE_CUDA
 
-static struct starpu_perfmodel_t STARPU_PLU(model_11) = {
+static struct starpu_perfmodel STARPU_PLU(model_11) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_11_atlas)

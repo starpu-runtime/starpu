@@ -78,7 +78,7 @@ static int convert_multiformat_to_gordon(void *data_interface, uint64_t *ptr, go
 #endif
 
 
-static struct starpu_data_interface_ops_t interface_multiformat_ops = {
+static struct starpu_data_interface_ops interface_multiformat_ops = {
 	.register_data_handle  = register_multiformat_handle,
 	.allocate_data_on_node = allocate_multiformat_buffer_on_node,
 	.handle_to_pointer     = multiformat_handle_to_pointer,

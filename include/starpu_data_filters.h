@@ -28,12 +28,12 @@
 extern "C" {
 #endif
 
-struct starpu_data_interface_ops_t;
+struct starpu_data_interface_ops;
 
 struct starpu_data_filter {
 	void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);
         unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);
-        struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
+        struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
         unsigned filter_arg;
         unsigned nchildren;
         void *filter_arg_ptr;

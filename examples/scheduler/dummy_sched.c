@@ -27,7 +27,7 @@ static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
 
 static void init_dummy_sched(struct starpu_machine_topology_s *topology,
-			struct starpu_sched_policy_s *policy)
+			struct starpu_sched_policy *policy)
 {
 	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&sched_list);
@@ -43,7 +43,7 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 }
 
 static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
-				struct starpu_sched_policy_s *policy)
+				struct starpu_sched_policy *policy)
 {
 	STARPU_ASSERT(starpu_task_list_empty(&sched_list));
 
@@ -77,7 +77,7 @@ static struct starpu_task *pop_task_dummy(void)
 	return starpu_task_list_pop_back(&sched_list);
 }
 
-static struct starpu_sched_policy_s dummy_sched_policy = {
+static struct starpu_sched_policy dummy_sched_policy = {
 	.init_sched = init_dummy_sched,
 	.deinit_sched = deinit_dummy_sched,
 	.push_task = push_task_dummy,

@@ -127,7 +127,7 @@ struct starpu_data_state_t {
 	struct starpu_data_replicate_s per_node[STARPU_MAXNODES];
 	struct starpu_data_replicate_s per_worker[STARPU_NMAXWORKERS];
 
-	struct starpu_data_interface_ops_t *ops;
+	struct starpu_data_interface_ops *ops;
 
 	/* To avoid recomputing data size all the time, we store it directly. */
 	size_t data_size;

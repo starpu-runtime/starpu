@@ -18,12 +18,12 @@
 
 #include "dw_factolu.h"
 
-#define TAG11(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
-#define TAG12(k,i, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  | ((2ULL<<56) | (((unsigned long long)(k))<<32)	\
+#define TAG11(k, prefix)	((starpu_tag)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
+#define TAG12(k,i, prefix)	((starpu_tag)((((unsigned long long)(prefix))<<60)  | ((2ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG21(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
+#define TAG21(k,j, prefix)	((starpu_tag)( (((unsigned long long)(prefix))<<60)  |  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22(k,i,j, prefix)	((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
+#define TAG22(k,i,j, prefix)	((starpu_tag)(  (((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
@@ -31,7 +31,7 @@
  *	Construct the DAG
  */
 
-static struct starpu_task *create_task(starpu_tag_t id)
+static struct starpu_task *create_task(starpu_tag id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;
@@ -278,7 +278,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		 */
 
 		unsigned ndeps_tags = (nblocks - maxk)*(nblocks - maxk);
-		starpu_tag_t *tag_array = malloc(ndeps_tags*sizeof(starpu_tag_t));
+		starpu_tag *tag_array = malloc(ndeps_tags*sizeof(starpu_tag));
 		STARPU_ASSERT(tag_array);
 
 		unsigned ind = 0;

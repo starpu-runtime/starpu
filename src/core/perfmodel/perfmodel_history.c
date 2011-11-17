@@ -58,7 +58,7 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 }
 
 
-static void dump_reg_model(FILE *f, struct starpu_perfmodel_t *model, unsigned arch, unsigned nimpl)
+static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
 {
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
 
@@ -204,7 +204,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 	}
 }
 
-static void parse_arch(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history, unsigned archmin, unsigned archmax, int skiparch)
+static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned archmin, unsigned archmax, int skiparch)
 {
 	struct starpu_per_arch_perfmodel_t dummy;
 	int nimpls, implmax, skipimpl, impl;
@@ -246,7 +246,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_
 	}
 }
 
-static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history)
+static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
 {
 	unsigned ret;
 	unsigned archmin = 0;
@@ -316,7 +316,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 }
 
 
-static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned arch, unsigned nimpl)
+static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
 {
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
 
@@ -359,7 +359,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel_t *model, 
 	fprintf(f, "\n##################\n");
 }
 
-static unsigned get_n_entries(struct starpu_perfmodel_t *model, unsigned arch, unsigned impl)
+static unsigned get_n_entries(struct starpu_perfmodel *model, unsigned arch, unsigned impl)
 {
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
 	per_arch_model = &model->per_arch[arch][impl];
@@ -379,7 +379,7 @@ static unsigned get_n_entries(struct starpu_perfmodel_t *model, unsigned arch, u
 	return nentries;
 }
 
-static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
+static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 {
 	unsigned number_of_archs[4] = { 0, 0, 0, 0};
 	unsigned arch;
@@ -482,7 +482,7 @@ static void initialize_per_arch_model(struct starpu_per_arch_perfmodel_t *per_ar
 	per_arch_model->list = NULL;
 }
 
-static void initialize_model(struct starpu_perfmodel_t *model)
+static void initialize_model(struct starpu_perfmodel *model)
 {
 	unsigned arch;
 	unsigned nimpl;
@@ -495,7 +495,7 @@ static void initialize_model(struct starpu_perfmodel_t *model)
 	}
 }
 
-static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *arch, char *path, size_t maxlen)
+static void get_model_debug_path(struct starpu_perfmodel *model, const char *arch, char *path, size_t maxlen)
 {
 	STARPU_ASSERT(path);
 
@@ -518,7 +518,7 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 /*
  * Returns 0 is the model was already loaded, 1 otherwise.
  */
-int _starpu_register_model(struct starpu_perfmodel_t *model)
+int _starpu_register_model(struct starpu_perfmodel *model)
 {
 	/* If the model has already been loaded, there is nothing to do */
 	PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
@@ -566,7 +566,7 @@ int _starpu_register_model(struct starpu_perfmodel_t *model)
 	return 1;
 }
 
-static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t maxlen)
+static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir_codelets(path, maxlen);
 	strncat(path, model->symbol, maxlen);
@@ -581,7 +581,7 @@ static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t 
 	strncat(path, hostname, maxlen);
 }
 
-static void save_history_based_model(struct starpu_perfmodel_t *model)
+static void save_history_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
@@ -642,7 +642,7 @@ void _starpu_deinitialize_registered_performance_models(void)
  * was loaded or not (this is very likely to have been already loaded). If the
  * model was not loaded yet, we take the lock in write mode, and if the model
  * is still not loaded once we have the lock, we do load it.  */
-void _starpu_load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
+void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned scan_history)
 {
 
 	STARPU_ASSERT(model);
@@ -756,7 +756,7 @@ int starpu_list_models(void)
 
 /* This function is intended to be used by external tools that should read the
  * performance model files */
-int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model)
+int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
 
@@ -832,7 +832,7 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 	}
 }
 
-void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
+void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 		enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl)
 {
 	char archname[32];
@@ -843,7 +843,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 	get_model_debug_path(model, archname, path, maxlen);
 }
 
-double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j, unsigned nimpl)
+double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j, unsigned nimpl)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -857,7 +857,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel_t *mod
 	return exp;
 }
 
-double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
+double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -871,7 +871,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	return exp;
 }
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
 {
 	double exp;
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
@@ -907,7 +907,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 	return exp;
 }
 
-void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
+void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
 {
 	if (model)
 	{

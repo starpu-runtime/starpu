@@ -288,27 +288,27 @@ STARPUFFT(twist3_1d_kernel_cpu)(void *descr[], void *_args)
 }
 
 /* Performance models for the 5 kinds of tasks */
-static struct starpu_perfmodel_t STARPUFFT(twist1_1d_model) = {
+static struct starpu_perfmodel STARPUFFT(twist1_1d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist1_1d"
 };
 
-static struct starpu_perfmodel_t STARPUFFT(fft1_1d_model) = {
+static struct starpu_perfmodel STARPUFFT(fft1_1d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"fft1_1d"
 };
 
-static struct starpu_perfmodel_t STARPUFFT(twist2_1d_model) = {
+static struct starpu_perfmodel STARPUFFT(twist2_1d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist2_1d"
 };
 
-static struct starpu_perfmodel_t STARPUFFT(fft2_1d_model) = {
+static struct starpu_perfmodel STARPUFFT(fft2_1d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"fft2_1d"
 };
 
-static struct starpu_perfmodel_t STARPUFFT(twist3_1d_model) = {
+static struct starpu_perfmodel STARPUFFT(twist3_1d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist3_1d"
 };
@@ -672,7 +672,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 }
 
 /* Actually submit all the tasks. */
-static starpu_tag_t
+static starpu_tag
 STARPUFFT(start1dC2C)(STARPUFFT(plan) plan)
 {
 	STARPU_ASSERT(plan->type == C2C);

@@ -359,7 +359,7 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 	{
 		starpu_data_handle handle_child = &handle->children[child];
 		
-		struct starpu_data_interface_ops_t *ops;
+		struct starpu_data_interface_ops *ops;
 		
 		/* what's this child's interface ? */
 		if (f->get_child_ops)

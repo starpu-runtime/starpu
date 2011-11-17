@@ -23,7 +23,7 @@
 #include <starpu_scheduler.h>
 
 struct starpu_machine_config_s;
-struct starpu_sched_policy_s *_starpu_get_sched_policy(void);
+struct starpu_sched_policy *_starpu_get_sched_policy(void);
 
 void _starpu_init_sched_policy(struct starpu_machine_config_s *config);
 void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config);

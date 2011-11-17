@@ -268,7 +268,7 @@ static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *
 		localA[i] /= nsamples;
 }
 
-struct starpu_perfmodel_t band_filter_model = {
+struct starpu_perfmodel band_filter_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "FFT_band_filter"
 };

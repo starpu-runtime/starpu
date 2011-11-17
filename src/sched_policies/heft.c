@@ -58,7 +58,7 @@ static void param_modified(struct starputop_param_t* d){
 }
 
 static void heft_init(struct starpu_machine_topology_s *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;
 
@@ -439,7 +439,7 @@ static int heft_push_task(struct starpu_task *task)
 }
 
 static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology_s *topology, 
-                        __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+                        __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
@@ -449,7 +449,7 @@ static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology_
 	}
 }
 
-struct starpu_sched_policy_s heft_policy = {
+struct starpu_sched_policy heft_policy = {
 	.init_sched = heft_init,
 	.deinit_sched = heft_deinit,
 	.push_task = heft_push_task, 

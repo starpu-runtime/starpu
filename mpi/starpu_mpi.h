@@ -49,17 +49,17 @@ int starpu_mpi_gather_detached(starpu_data_handle *data_handles, int count, int 
 /* Some helper functions */
 
 /* When the transfer is completed, the tag is unlocked */
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag tag);
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag tag);
 
 /* Asynchronously send an array of buffers, and unlocks the tag once all of
  * them are transmitted. */
 int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
 		starpu_data_handle *data_handle, int *dest, int *mpi_tag,
-		MPI_Comm *comm, starpu_tag_t tag);
+		MPI_Comm *comm, starpu_tag tag);
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size,
 		starpu_data_handle *data_handle, int *source, int *mpi_tag,
-		MPI_Comm *comm, starpu_tag_t tag);
+		MPI_Comm *comm, starpu_tag tag);
 
 #ifdef __cplusplus
 }

@@ -68,7 +68,7 @@ static int random_push_task(struct starpu_task *task)
 }
 
 static void initialize_random_policy(struct starpu_machine_topology_s *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	starpu_srand48(time(NULL));
 
@@ -84,7 +84,7 @@ static void initialize_random_policy(struct starpu_machine_topology_s *topology,
 	}
 }
 
-struct starpu_sched_policy_s _starpu_sched_random_policy = {
+struct starpu_sched_policy _starpu_sched_random_policy = {
 	.init_sched = initialize_random_policy,
 	.deinit_sched = NULL,
 	.push_task = random_push_task,

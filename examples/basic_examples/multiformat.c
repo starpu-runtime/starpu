@@ -68,7 +68,7 @@ extern void multiformat_scal_cuda_func(void *buffers[], void *arg);
 extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 #endif
 
-static struct starpu_perfmodel_t conversion_model = {
+static struct starpu_perfmodel conversion_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "multiformat_conversion_model"
 };

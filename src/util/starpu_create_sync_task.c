@@ -22,7 +22,7 @@
  * dependencies are fulfilled. */
 /* TODO it would be nice to have such a function without sync_tag in case we
  * just want to execute the callback. */
-void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
+void starpu_create_sync_task(starpu_tag sync_tag, unsigned ndeps, starpu_tag *deps,
 				void (*callback)(void *), void *callback_arg)
 {
 	starpu_tag_declare_deps_array(sync_tag, ndeps, deps);

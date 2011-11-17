@@ -87,7 +87,7 @@ struct starpu_data_copy_methods {
 #endif
 };
 
-struct starpu_data_interface_ops_t {
+struct starpu_data_interface_ops {
 	/* Register an existing interface into a data handle. */
 	void (*register_data_handle)(starpu_data_handle handle,
 					uint32_t home_node, void *data_interface);
@@ -119,7 +119,7 @@ struct starpu_data_interface_ops_t {
 
 void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 				void *data_interface,
-				struct starpu_data_interface_ops_t *ops);
+				struct starpu_data_interface_ops *ops);
 
 /* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
  * interface does not support this operation or data for this handle is not
@@ -130,7 +130,7 @@ void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node);
  * interface does not have data allocated locally */
 void *starpu_handle_get_local_ptr(starpu_data_handle handle);
 
-extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
+extern struct starpu_data_interface_ops _starpu_interface_matrix_ops;
 
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.

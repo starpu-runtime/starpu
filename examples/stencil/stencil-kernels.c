@@ -439,7 +439,7 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 }
 
 /* Performance model and codelet structure */
-static struct starpu_perfmodel_t cl_update_model = {
+static struct starpu_perfmodel cl_update_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "cl_update" 
 };
@@ -634,12 +634,12 @@ static void dummy_func_bottom_opencl(void *descr[] __attribute__((unused)), void
 #endif /* STARPU_USE_OPENCL */
 
 /* Performance models and codelet for save */
-static struct starpu_perfmodel_t save_cl_bottom_model = {
+static struct starpu_perfmodel save_cl_bottom_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "save_cl_bottom" 
 };
 
-static struct starpu_perfmodel_t save_cl_top_model = {
+static struct starpu_perfmodel save_cl_top_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "save_cl_top" 
 };

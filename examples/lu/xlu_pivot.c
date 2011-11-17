@@ -18,15 +18,15 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
-#define TAG12(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define TAG11(k)	((starpu_tag)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG12(k,i)	((starpu_tag)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define TAG21(k,j)	((starpu_tag)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
+#define TAG22(k,i,j)	((starpu_tag)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
-#define PIVOT(k,i)	((starpu_tag_t)(((5ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define PIVOT(k,i)	((starpu_tag)(((5ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 
 static unsigned no_prio = 0;
@@ -35,7 +35,7 @@ static unsigned no_prio = 0;
  *	Construct the DAG
  */
 
-static struct starpu_task *create_task(starpu_tag_t id)
+static struct starpu_task *create_task(starpu_tag id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;
@@ -75,7 +75,7 @@ static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 			starpu_tag_declare_deps(PIVOT(k, i), 2, TAG11(k), TAG22(k-1, i, k));
 		}
 		else {
-			starpu_tag_t *tags = malloc((nblocks - k)*sizeof(starpu_tag_t));
+			starpu_tag *tags = malloc((nblocks - k)*sizeof(starpu_tag));
 			
 			tags[0] = TAG11(k);
 			unsigned ind, ind2;
@@ -263,7 +263,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 	}
 
 	/* we wait the last task (TAG11(nblocks - 1)) and all the pivot tasks */
-	starpu_tag_t *tags = malloc(nblocks*nblocks*sizeof(starpu_tag_t));
+	starpu_tag *tags = malloc(nblocks*nblocks*sizeof(starpu_tag));
 	unsigned ndeps = 0;
 
 	tags[ndeps++] = TAG11(nblocks - 1);

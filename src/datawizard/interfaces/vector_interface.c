@@ -78,7 +78,7 @@ static void display_vector_interface(starpu_data_handle handle, FILE *f);
 static int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
-static struct starpu_data_interface_ops_t interface_vector_ops = {
+static struct starpu_data_interface_ops interface_vector_ops = {
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.handle_to_pointer = vector_handle_to_pointer,

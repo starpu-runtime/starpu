@@ -52,7 +52,7 @@ static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, 
 #endif
 
 #if defined(STARPU_USE_CUDA)// || defined(STARPU_USE_OPENCL)
-static struct starpu_perfmodel_t malloc_pinned_model = {
+static struct starpu_perfmodel malloc_pinned_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "malloc_pinned"
 };
@@ -151,7 +151,7 @@ static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, vo
 //#endif
 
 #if defined(STARPU_USE_CUDA) // || defined(STARPU_USE_OPENCL)
-static struct starpu_perfmodel_t free_pinned_model = {
+static struct starpu_perfmodel free_pinned_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "free_pinned"
 };

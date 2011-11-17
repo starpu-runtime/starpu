@@ -35,12 +35,12 @@ extern void scal_sse_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
-static struct starpu_perfmodel_t vector_scal_model = {
+static struct starpu_perfmodel vector_scal_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "vector_scale"
 };
 
-static struct starpu_perfmodel_t vector_scal_power_model = {
+static struct starpu_perfmodel vector_scal_power_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "vector_scale_power"
 };

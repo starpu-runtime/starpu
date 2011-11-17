@@ -68,7 +68,7 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
  * PER ARCH model
  */
 
-static double per_arch_task_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
+static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp = -1.0;
 	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
@@ -110,7 +110,7 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	return -1.0;
 }
 
-static double common_task_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
+static double common_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task)
 {
 	double exp;
 	double alpha;
@@ -127,7 +127,7 @@ static double common_task_expected_perf(struct starpu_perfmodel_t *model, enum s
 	return -1.0;
 }
 
-void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
+void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 {
 	if (!model || model->is_loaded)
 		return;
@@ -158,7 +158,7 @@ void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
 	model->is_loaded = 1;
 }
 
-static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch,  unsigned nimpl)
+static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, enum starpu_perf_archtype arch,  unsigned nimpl)
 {
 	if (model) {
 		starpu_job_t j = _starpu_get_job_associated_to_task(task);

@@ -28,7 +28,7 @@
 #include <windows.h>
 #endif
 
-static struct starpu_perfmodel_t model;
+static struct starpu_perfmodel model;
 
 /* display all available models */
 static int list = 0;
@@ -144,7 +144,7 @@ static void display_history_based_perf_model(struct starpu_per_arch_perfmodel_t 
 	}
 }
 
-static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, unsigned nimpl)
+static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
@@ -238,7 +238,7 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 	}
 }
 
-static void display_all_perf_models(struct starpu_perfmodel_t *model)
+static void display_all_perf_models(struct starpu_perfmodel *model)
 {
 	if (arch == NULL)
 	{

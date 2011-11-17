@@ -195,7 +195,7 @@ static int ws_push_task(struct starpu_task *task)
 }
 
 static void initialize_ws_policy(struct starpu_machine_topology_s *topology, 
-				__attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+				__attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;
 	rr_worker = 0;
@@ -211,7 +211,7 @@ static void initialize_ws_policy(struct starpu_machine_topology_s *topology,
 	}
 }
 
-struct starpu_sched_policy_s _starpu_sched_ws_policy = {
+struct starpu_sched_policy _starpu_sched_ws_policy = {
 	.init_sched = initialize_ws_policy,
 	.deinit_sched = NULL,
 	.push_task = ws_push_task,

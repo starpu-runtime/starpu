@@ -43,7 +43,7 @@ typedef struct starpu_buffer_descr_t {
 	starpu_access_mode mode;
 } starpu_buffer_descr;
 
-struct starpu_data_interface_ops_t;
+struct starpu_data_interface_ops;
 
 /* Destroy the data handle, in case we don't need to update the value of the
  * data in the home node, we can use starpu_data_unregister_no_coherency

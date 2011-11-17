@@ -54,7 +54,7 @@ static void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
 	usleep(TASKDURATION);
 }
 
-static struct starpu_perfmodel_t model = {
+static struct starpu_perfmodel model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = NULL /* to be defined later */
 };

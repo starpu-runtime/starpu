@@ -40,7 +40,7 @@ enum steps {
 #define STEP_BITS 3
 #define STEP_SHIFT (NUMBER_SHIFT - STEP_BITS)
 
-#define _STEP_TAG(plan, step, i) (((starpu_tag_t) plan->number << NUMBER_SHIFT) | ((starpu_tag_t)(step) << STEP_SHIFT) | (starpu_tag_t) (i))
+#define _STEP_TAG(plan, step, i) (((starpu_tag) plan->number << NUMBER_SHIFT) | ((starpu_tag)(step) << STEP_SHIFT) | (starpu_tag) (i))
 
 
 #define I_BITS STEP_SHIFT
@@ -158,10 +158,10 @@ compute_roots(STARPUFFT(plan) plan)
 #include "starpufftx1d.c"
 #include "starpufftx2d.c"
 
-starpu_tag_t
+starpu_tag
 STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
-	starpu_tag_t tag;
+	starpu_tag tag;
 	int z;
 
 	plan->in = _in;
@@ -209,7 +209,7 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 
 	gettimeofday(&start, NULL);
 
-	starpu_tag_t tag = STARPUFFT(start)(plan, in, out);
+	starpu_tag tag = STARPUFFT(start)(plan, in, out);
 	gettimeofday(&submit_tasks, NULL);
 	starpu_tag_wait(tag);
 

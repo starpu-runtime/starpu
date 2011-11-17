@@ -28,7 +28,7 @@ extern int _starpu_bound_recording;
 extern void _starpu_bound_record(starpu_job_t j);
 
 /* Record tag dependency: id depends on dep_id */
-extern void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id);
+extern void _starpu_bound_tag_dep(starpu_tag id, starpu_tag dep_id);
 
 /* Record task dependency: j depends on dep_j */
 extern void _starpu_bound_task_dep(starpu_job_t j, starpu_job_t dep_j);

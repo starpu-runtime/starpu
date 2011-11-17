@@ -176,7 +176,7 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	mult_kernel_common(descr, STARPU_CPU);
 }
 
-static struct starpu_perfmodel_t starpu_gemm_model = {
+static struct starpu_perfmodel starpu_gemm_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = STARPU_GEMM_STR(gemm)
 };

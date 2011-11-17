@@ -78,7 +78,7 @@ static void display_variable_interface(starpu_data_handle handle, FILE *f);
 static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
-static struct starpu_data_interface_ops_t interface_variable_ops = {
+static struct starpu_data_interface_ops interface_variable_ops = {
 	.register_data_handle = register_variable_handle,
 	.allocate_data_on_node = allocate_variable_buffer_on_node,
 	.handle_to_pointer = variable_handle_to_pointer,

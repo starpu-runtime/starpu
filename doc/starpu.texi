@@ -1338,9 +1338,9 @@ Partitioning can be applied several times, see
 
 To achieve good scheduling, StarPU scheduling policies need to be able to
 estimate in advance the duration of a task. This is done by giving to codelets
-a performance model, by defining a @code{starpu_perfmodel_t} structure and
+a performance model, by defining a @code{starpu_perfmodel} structure and
 providing its address in the @code{model} field of the @code{starpu_codelet}
-structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel_t}
+structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel}
 are mandatory, to give a name to the model, and the type of the model, since
 there are several kinds of performance models.
 
@@ -1371,7 +1371,7 @@ submitting any task using it.
 
 @cartouche
 @smallexample
-static struct starpu_perfmodel_t mult_perf_model = @{
+static struct starpu_perfmodel mult_perf_model = @{
     .type = STARPU_HISTORY_BASED,
     .symbol = "mult_perf_model"
 @};
@@ -2359,19 +2359,19 @@ by calling @code{starpu_mpi_initialize_extended}.
 @deftypefun int starpu_mpi_barrier (MPI_Comm @var{comm})
 @end deftypefun
 
-@deftypefun int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag_t @var{tag})
+@deftypefun int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag @var{tag})
 When the transfer is completed, the tag is unlocked
 @end deftypefun
 
-@deftypefun int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag_t @var{tag})
+@deftypefun int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag @var{tag})
 @end deftypefun
 
-@deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
+@deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag @var{tag})
 Asynchronously send an array of buffers, and unlocks the tag once all
 of them are transmitted.
 @end deftypefun
 
-@deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
+@deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag @var{tag})
 @end deftypefun
 
 @page
@@ -3667,12 +3667,12 @@ over the entire machine, so that we can maintain data consistency and locate
 data replicates for instance.
 @end deftp
 
-@deftypefun void starpu_data_register (starpu_data_handle *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops_t} *@var{ops})
+@deftypefun void starpu_data_register (starpu_data_handle *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops} *@var{ops})
 Register a piece of data into the handle located at the @var{handleptr}
 address. The @var{interface} buffer contains the initial description of the
 data in the home node. The @var{ops} argument is a pointer to a structure
 describing the different methods used to manipulate this type of interface. See
-@ref{struct starpu_data_interface_ops_t} for more details on this structure.
+@ref{struct starpu_data_interface_ops} for more details on this structure.
 
 If @code{home_node} is -1, StarPU will automatically
 allocate the memory when it is used for the
@@ -3881,7 +3881,7 @@ matrix).
 @item @code{get_child_ops}
 In case the resulting children use a different data interface, this function
 returns which interface is used by child number @code{id}.
-@code{struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
+@code{struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
 @item @code{filter_arg}
 Some filters take an addition parameter, but this is usually unused.
 @item @code{filter_arg_ptr}
@@ -4294,7 +4294,7 @@ same task, in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
 @end deftypefun
 
-@deftp {Data Type} {starpu_tag_t}
+@deftp {Data Type} {starpu_tag}
 This type defines a task logical identifer. It is possible to associate a task with a unique ``tag'' chosen by the application, and to express
 dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
@@ -4305,7 +4305,7 @@ not be started until the tasks which holds the declared dependency tags are
 completed.
 @end deftp
 
-@deftypefun void starpu_tag_declare_deps (starpu_tag_t @var{id}, unsigned @var{ndeps}, ...)
+@deftypefun void starpu_tag_declare_deps (starpu_tag @var{id}, unsigned @var{ndeps}, ...)
 Specify the dependencies of the task identified by tag @code{id}. The first
 argument specifies the tag which is configured, the second argument gives the
 number of tag(s) on which @code{id} depends. The following arguments are the
@@ -4315,33 +4315,33 @@ This function must be called before the associated task is submitted to StarPU
 with @code{starpu_task_submit}.
 
 Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
-last arguments @emph{must} be of type @code{starpu_tag_t}: constant values
+last arguments @emph{must} be of type @code{starpu_tag}: constant values
 typically need to be explicitly casted. Using the
 @code{starpu_tag_declare_deps_array} function avoids this hazard.
 
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
-starpu_tag_declare_deps((starpu_tag_t)0x1,
-        2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
+starpu_tag_declare_deps((starpu_tag)0x1,
+        2, (starpu_tag)0x32, (starpu_tag)0x52);
 @end example
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_tag_declare_deps_array (starpu_tag_t @var{id}, unsigned @var{ndeps}, {starpu_tag_t *}@var{array})
+@deftypefun void starpu_tag_declare_deps_array (starpu_tag @var{id}, unsigned @var{ndeps}, {starpu_tag *}@var{array})
 This function is similar to @code{starpu_tag_declare_deps}, except
 that its does not take a variable number of arguments but an array of
 tags of size @code{ndeps}.
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
-starpu_tag_t tag_array[2] = @{0x32, 0x52@};
-starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
+starpu_tag tag_array[2] = @{0x32, 0x52@};
+starpu_tag_declare_deps_array((starpu_tag)0x1, 2, tag_array);
 @end example
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_tag_wait (starpu_tag_t @var{id})
+@deftypefun void starpu_tag_wait (starpu_tag @var{id})
 This function blocks until the task associated to tag @var{id} has been
 executed. This is a blocking call which must therefore not be called within
 tasks or callbacks, but only from the application directly.  It is possible to
@@ -4352,19 +4352,19 @@ data structure was freed (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
 @end deftypefun
 
-@deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag_t *@var{id})
+@deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag *@var{id})
 This function is similar to @code{starpu_tag_wait} except that it blocks until
 @emph{all} the @var{ntags} tags contained in the @var{id} array are
 terminated.
 @end deftypefun
 
-@deftypefun void starpu_tag_remove (starpu_tag_t @var{id})
+@deftypefun void starpu_tag_remove (starpu_tag @var{id})
 This function releases the resources associated to tag @var{id}. It can be
 called once the corresponding task has been executed and when there is
 no other tag that depend on this tag anymore.
 @end deftypefun
 
-@deftypefun void starpu_tag_notify_from_apps (starpu_tag_t @var{id})
+@deftypefun void starpu_tag_notify_from_apps (starpu_tag @var{id})
 This function explicitly unlocks tag @var{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
 tasks (e.g. third-party libraries).  It is also provided as a
@@ -4417,15 +4417,15 @@ The different values are:
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_perfmodel_t}
+@deftp {Data Type} {struct starpu_perfmodel}
 TODO
 @end deftp
 
-@deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel_t} *@var{model})
+@deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
 TODO
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel_t} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen})
+@deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen})
 TODO
 @end deftypefun
 
@@ -4724,8 +4724,8 @@ instance.
 @subsection Data Interface API
 @c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 
-@deftp {Data Type} {struct starpu_data_interface_ops_t}
-@anchor{struct starpu_data_interface_ops_t}
+@deftp {Data Type} {struct starpu_data_interface_ops}
+@anchor{struct starpu_data_interface_ops}
 Defines the per-interface methods. TODO describe all the different fields
 @end deftp
 
@@ -4822,7 +4822,7 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 @node Scheduling Policy API
 @subsection Scheduling Policy API
 
-@deftp {Data Type} {struct starpu_sched_policy_s}
+@deftp {Data Type} {struct starpu_sched_policy}
 This structure contains all the methods that implement a scheduling policy.  An
 application may specify which scheduling strategy in the @code{sched_policy}
 field of the @code{starpu_conf} structure passed to the @code{starpu_init}
@@ -4905,7 +4905,7 @@ a FIFO ordering.
 
 @cartouche
 @smallexample
-static struct starpu_sched_policy_s dummy_sched_policy = @{
+static struct starpu_sched_policy dummy_sched_policy = @{
     .init_sched = init_dummy_sched,
     .deinit_sched = deinit_dummy_sched,
     .push_task = push_task_dummy,

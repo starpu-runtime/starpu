@@ -22,7 +22,7 @@
  *	Some useful functions
  */
 
-static struct starpu_task *create_task(starpu_tag_t id)
+static struct starpu_task *create_task(starpu_tag id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;

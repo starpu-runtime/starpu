@@ -68,7 +68,7 @@ static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle);
 
 
-static struct starpu_data_interface_ops_t interface_bcsr_ops = {
+static struct starpu_data_interface_ops interface_bcsr_ops = {
 	.register_data_handle = register_bcsr_handle,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.free_data_on_node = free_bcsr_buffer_on_node,

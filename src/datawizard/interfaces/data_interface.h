@@ -22,7 +22,7 @@
 #include <common/config.h>
 
 /* Some data interfaces or filters use this interface internally */
-extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
+extern struct starpu_data_interface_ops _starpu_interface_matrix_ops;
 void _starpu_data_free_interfaces(starpu_data_handle handle)
 	STARPU_ATTRIBUTE_INTERNAL;
 

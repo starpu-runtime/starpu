@@ -570,7 +570,7 @@ static int dmda_push_task(struct starpu_task *task)
 }
 
 static void initialize_dmda_policy(struct starpu_machine_topology_s *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;
 
@@ -603,7 +603,7 @@ static void initialize_dmda_policy(struct starpu_machine_topology_s *topology,
 }
 
 static void initialize_dmda_sorted_policy(struct starpu_machine_topology_s *topology,
-					struct starpu_sched_policy_s *_policy)
+					struct starpu_sched_policy *_policy)
 {
 	initialize_dmda_policy(topology, _policy);
 
@@ -613,7 +613,7 @@ static void initialize_dmda_sorted_policy(struct starpu_machine_topology_s *topo
 }
 
 static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
@@ -623,7 +623,7 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology,
 }
 
 /* TODO: use post_exec_hook to fix the expected start */
-struct starpu_sched_policy_s _starpu_sched_dm_policy = {
+struct starpu_sched_policy _starpu_sched_dm_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dm_push_task, 
@@ -634,7 +634,7 @@ struct starpu_sched_policy_s _starpu_sched_dm_policy = {
 	.policy_description = "performance model"
 };
 
-struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
+struct starpu_sched_policy _starpu_sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task, 
@@ -645,7 +645,7 @@ struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 	.policy_description = "data-aware performance model"
 };
 
-struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy = {
+struct starpu_sched_policy _starpu_sched_dmda_sorted_policy = {
 	.init_sched = initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_sorted_task, 
@@ -656,7 +656,7 @@ struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy = {
 	.policy_description = "data-aware performance model (sorted)"
 };
 
-struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy = {
+struct starpu_sched_policy _starpu_sched_dmda_ready_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task, 

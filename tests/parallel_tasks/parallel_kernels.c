@@ -35,7 +35,7 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 #endif
 }
 
-struct starpu_perfmodel_t model = {
+struct starpu_perfmodel model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "parallel_kernel_test"
 };

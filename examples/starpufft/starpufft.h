@@ -40,7 +40,7 @@ void *starpufft(malloc)(size_t n); \
 void starpufft(free)(void *p); \
 \
 void starpufft(execute)(starpufft(plan) p, void *in, void *out); \
-starpu_tag_t starpufft(start)(starpufft(plan) p, void *in, void *out); \
+starpu_tag starpufft(start)(starpufft(plan) p, void *in, void *out); \
 \
 void starpufft(destroy_plan)(starpufft(plan) p); \
 \

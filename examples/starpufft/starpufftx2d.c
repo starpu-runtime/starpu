@@ -21,7 +21,7 @@
 #define I_SHIFT (I_BITS/2)
 #define J_BITS I_SHIFT
 
-#define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag_t) i << I_SHIFT) | (starpu_tag_t) j)
+#define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag) i << I_SHIFT) | (starpu_tag) j)
 
 #ifdef STARPU_USE_CUDA
 /* Twist the full vector into a n2,m2 chunk */
@@ -272,27 +272,27 @@ STARPUFFT(twist3_2d_kernel_cpu)(void *descr[], void *_args)
 	}
 }
 
-struct starpu_perfmodel_t STARPUFFT(twist1_2d_model) = {
+struct starpu_perfmodel STARPUFFT(twist1_2d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist1_2d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(fft1_2d_model) = {
+struct starpu_perfmodel STARPUFFT(fft1_2d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"fft1_2d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(twist2_2d_model) = {
+struct starpu_perfmodel STARPUFFT(twist2_2d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist2_2d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(fft2_2d_model) = {
+struct starpu_perfmodel STARPUFFT(fft2_2d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"fft2_2d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(twist3_2d_model) = {
+struct starpu_perfmodel STARPUFFT(twist3_2d_model) = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist3_2d"
 };
@@ -657,7 +657,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	return plan;
 }
 
-static starpu_tag_t
+static starpu_tag
 STARPUFFT(start2dC2C)(STARPUFFT(plan) plan)
 {
 	STARPU_ASSERT(plan->type == C2C);

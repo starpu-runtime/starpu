@@ -35,18 +35,18 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define NMAXBLOCKS	32
 
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define TAG11(k)	((starpu_tag)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG21(k,j)	((starpu_tag)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
+#define TAG22(k,i,j)	((starpu_tag)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
-#define TAG11_AUX(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
-#define TAG21_AUX(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  			\
+#define TAG11_AUX(k, prefix)	((starpu_tag)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
+#define TAG21_AUX(k,j, prefix)	((starpu_tag)( (((unsigned long long)(prefix))<<60)  			\
 					|  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22_AUX(k,i,j, prefix)    ((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)	\
+#define TAG22_AUX(k,i,j, prefix)    ((starpu_tag)(  (((unsigned long long)(prefix))<<60)	\
 					|  ((4ULL<<56) | ((unsigned long long)(k)<<32)  	\
 					| ((unsigned long long)(i)<<16) 			\
 					| (unsigned long long)(j))))
@@ -74,9 +74,9 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
-extern struct starpu_perfmodel_t chol_model_11;
-extern struct starpu_perfmodel_t chol_model_21;
-extern struct starpu_perfmodel_t chol_model_22;
+extern struct starpu_perfmodel chol_model_11;
+extern struct starpu_perfmodel chol_model_21;
+extern struct starpu_perfmodel chol_model_22;
 
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {

@@ -30,7 +30,7 @@
 #include <windows.h>
 #endif
 
-static struct starpu_perfmodel_t model;
+static struct starpu_perfmodel model;
 
 /* display all available models */
 static int list = 0;
@@ -142,7 +142,7 @@ static void print_comma(FILE *gnuplot_file, int *first)
 	}
 }
 
-static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, int *first, unsigned nimpl)
+static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, int *first, unsigned nimpl)
 {
 	char arch_name[256];
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256, nimpl);
@@ -188,7 +188,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 	}
 }
 
-static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
+static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
 {
 	char *command;
 	FILE *datafile;
@@ -264,7 +264,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	fprintf(stderr, "\n");
 }
 
-static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
+static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
 {
 	unsigned arch;
 	unsigned implid;
@@ -299,7 +299,7 @@ static void dump_data_file(FILE *data_file)
 }
 #endif
 
-static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_t *model)
+static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel *model)
 {
 	fprintf(gnuplot_file, "#!/usr/bin/gnuplot -persist\n");
 	fprintf(gnuplot_file, "\n");

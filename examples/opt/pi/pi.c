@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 	
 	starpu_data_partition(cnt_array_handle, &f);
 
-	static struct starpu_perfmodel_t model = {
+	static struct starpu_perfmodel model = {
 		.type = STARPU_HISTORY_BASED,
 		.symbol = "monte_carlo_pi"
 	};

@@ -24,7 +24,7 @@
 #include <profiling/profiling.h>
 #include <common/barrier.h>
 
-static struct starpu_sched_policy_s policy;
+static struct starpu_sched_policy policy;
 
 static int use_prefetch = 0;
 
@@ -37,19 +37,19 @@ int starpu_get_prefetch_flag(void)
  *	Predefined policies
  */
 
-extern struct starpu_sched_policy_s _starpu_sched_ws_policy;
-extern struct starpu_sched_policy_s _starpu_sched_prio_policy;
-extern struct starpu_sched_policy_s _starpu_sched_random_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dm_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy_s _starpu_sched_eager_policy;
-extern struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy_s _starpu_sched_pgreedy_policy;
-extern struct starpu_sched_policy_s heft_policy;
+extern struct starpu_sched_policy _starpu_sched_ws_policy;
+extern struct starpu_sched_policy _starpu_sched_prio_policy;
+extern struct starpu_sched_policy _starpu_sched_random_policy;
+extern struct starpu_sched_policy _starpu_sched_dm_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
+extern struct starpu_sched_policy _starpu_sched_eager_policy;
+extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
+extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
+extern struct starpu_sched_policy heft_policy;
 
-static struct starpu_sched_policy_s *predefined_policies[] = {
+static struct starpu_sched_policy *predefined_policies[] = {
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_dm_policy,
@@ -63,7 +63,7 @@ static struct starpu_sched_policy_s *predefined_policies[] = {
 	&_starpu_sched_pgreedy_policy
 };
 
-struct starpu_sched_policy_s *_starpu_get_sched_policy(void)
+struct starpu_sched_policy *_starpu_get_sched_policy(void)
 {
 	return &policy;
 }
@@ -72,7 +72,7 @@ struct starpu_sched_policy_s *_starpu_get_sched_policy(void)
  *	Methods to initialize the scheduling policy
  */
 
-static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
+static void load_sched_policy(struct starpu_sched_policy *sched_policy)
 {
 	STARPU_ASSERT(sched_policy);
 
@@ -96,7 +96,7 @@ static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
 	policy.pop_every_task = sched_policy->pop_every_task;
 }
 
-static struct starpu_sched_policy_s *find_sched_policy_from_name(const char *policy_name)
+static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
 {
 
 	if (!policy_name)
@@ -105,7 +105,7 @@ static struct starpu_sched_policy_s *find_sched_policy_from_name(const char *pol
 	unsigned i;
 	for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
 	{
-		struct starpu_sched_policy_s *p;
+		struct starpu_sched_policy *p;
 		p = predefined_policies[i];
 		if (p->policy_name)
 		{
@@ -131,16 +131,16 @@ static void display_sched_help_message(void)
 		unsigned i;
 		for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
 		{
-			struct starpu_sched_policy_s *p;
+			struct starpu_sched_policy *p;
 			p = predefined_policies[i];
 			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
 		}
 	 }
 }
 
-static struct starpu_sched_policy_s *select_sched_policy(struct starpu_machine_config_s *config)
+static struct starpu_sched_policy *select_sched_policy(struct starpu_machine_config_s *config)
 {
-	struct starpu_sched_policy_s *selected_policy = NULL;
+	struct starpu_sched_policy *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->user_conf;
 
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
@@ -191,7 +191,7 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 
 	_starpu_set_calibrate_flag(do_calibrate);
 
-	struct starpu_sched_policy_s *selected_policy;
+	struct starpu_sched_policy *selected_policy;
 	selected_policy = select_sched_policy(config);
 
 	load_sched_policy(selected_policy);

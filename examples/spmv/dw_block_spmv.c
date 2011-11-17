@@ -105,7 +105,7 @@ unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
+struct starpu_data_interface_ops *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
 {
   return &_starpu_interface_matrix_ops;
 }
@@ -219,7 +219,7 @@ void launch_spmv_codelets(void)
 				if (index != rowptr[row & ~0x3])
 				{
 					/* this is not the first task in the row */
-					starpu_tag_declare_deps((starpu_tag_t)taskid, 1, (starpu_tag_t)(taskid-1));
+					starpu_tag_declare_deps((starpu_tag)taskid, 1, (starpu_tag)(taskid-1));
 
 					is_entry_tab[taskid] = 0;
 				}

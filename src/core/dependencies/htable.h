@@ -35,9 +35,9 @@ typedef struct starpu_htbl_node_s {
 	struct starpu_htbl_node_s *children[1<<STARPU_HTBL_NODE_SIZE];
 } starpu_htbl_node_t;
 
-void *_starpu_htbl_search_tag(starpu_htbl_node_t *htbl, starpu_tag_t tag);
-void *_starpu_htbl_insert_tag(starpu_htbl_node_t **htbl, starpu_tag_t tag, void *entry);
-void *_starpu_htbl_remove_tag(starpu_htbl_node_t *htbl, starpu_tag_t tag);
+void *_starpu_htbl_search_tag(starpu_htbl_node_t *htbl, starpu_tag tag);
+void *_starpu_htbl_insert_tag(starpu_htbl_node_t **htbl, starpu_tag tag, void *entry);
+void *_starpu_htbl_remove_tag(starpu_htbl_node_t *htbl, starpu_tag tag);
 
 
 #endif

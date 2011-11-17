@@ -374,7 +374,7 @@ static int parallel_heft_push_task(struct starpu_task *task)
 }
 
 static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;
 
@@ -437,7 +437,7 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *to
 }
 
 /* TODO: use post_exec_hook to fix the expected start */
-struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy = {
+struct starpu_sched_policy _starpu_sched_parallel_heft_policy = {
 	.init_sched = initialize_parallel_heft_policy,
 	.deinit_sched = NULL,
 	.push_task = parallel_heft_push_task, 

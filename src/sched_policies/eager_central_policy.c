@@ -30,7 +30,7 @@ static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
 
 static void initialize_eager_center_policy(struct starpu_machine_topology_s *topology, 
-		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* there is only a single queue in that trivial design */
 	fifo = _starpu_create_fifo();
@@ -44,7 +44,7 @@ static void initialize_eager_center_policy(struct starpu_machine_topology_s *top
 }
 
 static void deinitialize_eager_center_policy(__attribute__ ((unused)) struct starpu_machine_topology_s *topology, 
-		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* TODO check that there is no task left in the queue */
 
@@ -67,7 +67,7 @@ static struct starpu_task *pop_task_eager_policy(void)
 	return _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
 }
 
-struct starpu_sched_policy_s _starpu_sched_eager_policy = {
+struct starpu_sched_policy _starpu_sched_eager_policy = {
 	.init_sched = initialize_eager_center_policy,
 	.deinit_sched = deinitialize_eager_center_policy,
 	.push_task = push_task_eager_policy,

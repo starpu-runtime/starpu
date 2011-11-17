@@ -75,7 +75,7 @@ static void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *prior
 }
 
 static void initialize_eager_center_priority_policy(struct starpu_machine_topology_s *topology, 
-			__attribute__ ((unused))	struct starpu_sched_policy_s *_policy) 
+			__attribute__ ((unused))	struct starpu_sched_policy *_policy) 
 {
 	/* In this policy, we support more than two levels of priority. */
 	starpu_sched_set_min_priority(MIN_LEVEL);
@@ -93,7 +93,7 @@ static void initialize_eager_center_priority_policy(struct starpu_machine_topolo
 }
 
 static void deinitialize_eager_center_priority_policy(struct starpu_machine_topology_s *topology __attribute__ ((unused)),
-		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* TODO check that there is no task left in the queue */
 
@@ -156,7 +156,7 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 	return task;
 }
 
-struct starpu_sched_policy_s _starpu_sched_prio_policy = {
+struct starpu_sched_policy _starpu_sched_prio_policy = {
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
 	/* we always use priorities in that policy */

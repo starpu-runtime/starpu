@@ -34,7 +34,7 @@ static starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
-static int create_dummy_task(starpu_tag_t tag)
+static int create_dummy_task(starpu_tag tag)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -53,17 +53,17 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_tag_t sync_tags[NITER];
+	starpu_tag sync_tags[NITER];
 
 	unsigned iter;
 	for (iter = 0; iter < NITER; iter++)
 	{
-		starpu_tag_t sync_tag = (starpu_tag_t)iter*100;
+		starpu_tag sync_tag = (starpu_tag)iter*100;
 
 		sync_tags[iter] = sync_tag;
 
 		unsigned ndeps = 10;
-		starpu_tag_t deps[ndeps];
+		starpu_tag deps[ndeps];
 
 		unsigned d;
 		for (d = 0; d < ndeps; d++)

@@ -102,7 +102,7 @@ static void cleaning_task_callback(void *args) {
 	free(co);
 }
 
-static struct starpu_perfmodel_t perf_model = {
+static struct starpu_perfmodel perf_model = {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "perf_model"
 };

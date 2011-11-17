@@ -43,7 +43,7 @@ static void callback(void *tag)
 //	fflush(stderr);
 }
 
-static struct starpu_task *create_dummy_task(starpu_tag_t tag)
+static struct starpu_task *create_dummy_task(starpu_tag tag)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -58,20 +58,20 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 	return task;
 }
 
-#define tagA	((starpu_tag_t)0x42)
-#define tagB	((starpu_tag_t)0x12300)
+#define tagA	((starpu_tag)0x42)
+#define tagB	((starpu_tag)0x12300)
 
-#define tagC	((starpu_tag_t)0x32)
-#define tagD	((starpu_tag_t)0x52)
-#define tagE	((starpu_tag_t)0x19999)
-#define tagF	((starpu_tag_t)0x2312)
-#define tagG	((starpu_tag_t)0x1985)
+#define tagC	((starpu_tag)0x32)
+#define tagD	((starpu_tag)0x52)
+#define tagE	((starpu_tag)0x19999)
+#define tagF	((starpu_tag)0x2312)
+#define tagG	((starpu_tag)0x1985)
 
-#define tagH	((starpu_tag_t)0x32234)
-#define tagI	((starpu_tag_t)0x5234)
-#define tagJ	((starpu_tag_t)0x199)
-#define tagK	((starpu_tag_t)0x231234)
-#define tagL	((starpu_tag_t)0x2345)
+#define tagH	((starpu_tag)0x32234)
+#define tagI	((starpu_tag)0x5234)
+#define tagJ	((starpu_tag)0x199)
+#define tagK	((starpu_tag)0x231234)
+#define tagL	((starpu_tag)0x2345)
 
 int main(int argc, char **argv)
 {
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 	starpu_tag_declare_deps(tagK, 2, tagH, tagI);
 	starpu_tag_declare_deps(tagL, 2, tagH, tagI);
 
-	starpu_tag_t tagJKL[3] = {tagJ, tagK, tagL};
+	starpu_tag tagJKL[3] = {tagJ, tagK, tagL};
 
 	ret = starpu_task_submit(taskH); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");
 	ret = starpu_task_submit(taskI); STARPU_CHECK_RETURN_VALUE(ret, "starpu_submit");

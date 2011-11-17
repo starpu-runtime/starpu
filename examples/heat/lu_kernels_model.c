@@ -214,7 +214,7 @@ double task_22_cost_cpu(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-struct starpu_perfmodel_t model_11 = {
+struct starpu_perfmodel model_11 = {
 	.cost_model = task_11_cost,
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_11_cost_cpu },
@@ -230,7 +230,7 @@ struct starpu_perfmodel_t model_11 = {
 #endif
 };
 
-struct starpu_perfmodel_t model_12 = {
+struct starpu_perfmodel model_12 = {
 	.cost_model = task_12_cost,
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_12_cost_cpu },
@@ -246,7 +246,7 @@ struct starpu_perfmodel_t model_12 = {
 #endif
 };
 
-struct starpu_perfmodel_t model_21 = {
+struct starpu_perfmodel model_21 = {
 	.cost_model = task_21_cost,
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_21_cost_cpu },
@@ -262,7 +262,7 @@ struct starpu_perfmodel_t model_21 = {
 #endif
 };
 
-struct starpu_perfmodel_t model_22 = {
+struct starpu_perfmodel model_22 = {
 	.cost_model = task_22_cost,
 	.per_arch = {
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_22_cost_cpu },
