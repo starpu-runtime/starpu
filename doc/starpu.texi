@@ -3955,6 +3955,13 @@ starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
 @node Data Partition
 @section Data Partition
 
+@menu
+* Basic API::                   
+* Predefined filter functions::  
+@end menu
+
+@node Basic API
+@subsection Basic API
 @deftp {Data Type} {struct starpu_data_filter}
 The filter structure describes a data partitioning operation, to be given to the
 @code{starpu_data_partition} function, see @ref{starpu_data_partition}
