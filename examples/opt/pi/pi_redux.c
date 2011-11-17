@@ -161,16 +161,13 @@ extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *
 #ifdef STARPU_HAVE_CURAND
 static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 {
-	cudaError_t cures;
 	curandStatus_t res;	
 
 	int workerid = starpu_worker_get_id();
 
 	/* CURAND is a bit silly: it assumes that any error is fatal. Calling
 	 * cudaGetLastError resets the last error value. */
-	cures = cudaGetLastError();
-/*	if (cures)
-		STARPU_CUDA_REPORT_ERROR(cures); */
+	(void) cudaGetLastError();
 
 	/* Fill the scratchpad with random numbers. Note that both x and y
 	 * arrays are in stored the same vector. */
