@@ -718,6 +718,8 @@ void _starpu_load_history_based_model(struct starpu_perfmodel_t *model, unsigned
 		initialize_model(model);
 	}
 
+	_STARPU_DEBUG("Performance model file %s for model %s is loaded", path, model->symbol);
+
 	model->is_loaded = 1;
 
 	PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
