@@ -147,6 +147,7 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_v2		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
+	datawizard/interfaces/test_interfaces   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -166,7 +167,7 @@ noinst_PROGRAMS =				\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	perfmodels/regression_based		\
-	perfmodels/non_linear_regression_based
+	perfmodels/non_linear_regression_based 
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
@@ -245,4 +246,20 @@ datawizard_sync_and_notify_data_implicit_SOURCES +=	\
 BUILT_SOURCES += 						\
 	datawizard/sync_and_notify_data_gordon_kernels.spuelf	\
 	microbenchs/null_kernel_gordon.spuelf
+endif
+
+datawizard_interfaces_test_interfaces_SOURCES =               \
+	datawizard/interfaces/test_interfaces.c     \
+	datawizard/interfaces/test_vector_interface.c
+
+if STARPU_USE_CUDA
+datawizard_interfaces_test_interfaces_SOURCES +=                \
+	datawizard/interfaces/test_vector_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_test_interfaces_SOURCES +=                           \
+	datawizard/interfaces/test_vector_opencl.c 
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/test_vector_opencl_kernel.cl
 endif
