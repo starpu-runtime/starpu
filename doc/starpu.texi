@@ -3484,77 +3484,46 @@ guaranteed to be available until this method has been called.
 @node Workers' Properties
 @section Workers' Properties
 
-@menu
-* starpu_worker_get_count::     Get the number of processing units
-* starpu_worker_get_count_by_type:: Get the number of processing units of a given type
-* starpu_cpu_worker_get_count::  Get the number of CPU controlled by StarPU
-* starpu_cuda_worker_get_count::  Get the number of CUDA devices controlled by StarPU
-* starpu_opencl_worker_get_count::  Get the number of OpenCL devices controlled by StarPU
-* starpu_spu_worker_get_count::  Get the number of Cell SPUs controlled by StarPU
-* starpu_worker_get_id::        Get the identifier of the current worker
-* starpu_worker_get_ids_by_type:: Get the list of identifiers of workers with a given type
-* starpu_worker_get_devid::        Get the device identifier of a worker
-* starpu_worker_get_type::      Get the type of processing unit associated to a worker
-* starpu_worker_get_name::      Get the name of a worker
-* starpu_worker_get_memory_node:: Get the memory node of a worker 
-@end menu
-
-@node starpu_worker_get_count
-@subsection @code{starpu_worker_get_count} -- Get the number of processing units
 @deftypefun unsigned starpu_worker_get_count (void)
 This function returns the number of workers (i.e. processing units executing
 StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
-@node starpu_worker_get_count_by_type
-@subsection @code{starpu_worker_get_count_by_type} -- Get the number of processing units of a given type
 @deftypefun int starpu_worker_get_count_by_type ({enum starpu_archtype} @var{type})
-Returns the number of workers of the type indicated by the argument. A positive
+Returns the number of workers of the given type indicated by the argument. A positive
 (or null) value is returned in case of success, @code{-EINVAL} indicates that
 the type is not valid otherwise.
 @end deftypefun
 
-@node starpu_cpu_worker_get_count
-@subsection @code{starpu_cpu_worker_get_count} -- Get the number of CPU controlled by StarPU
 @deftypefun unsigned starpu_cpu_worker_get_count (void)
 This function returns the number of CPUs controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXCPUS}.
 @end deftypefun
 
-@node starpu_cuda_worker_get_count
-@subsection @code{starpu_cuda_worker_get_count} -- Get the number of CUDA devices controlled by StarPU
 @deftypefun unsigned starpu_cuda_worker_get_count (void)
 This function returns the number of CUDA devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXCUDADEVS}.
 @end deftypefun
 
-@node starpu_opencl_worker_get_count
-@subsection @code{starpu_opencl_worker_get_count} -- Get the number of OpenCL devices controlled by StarPU
 @deftypefun unsigned starpu_opencl_worker_get_count (void)
 This function returns the number of OpenCL devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXOPENCLDEVS}.
 @end deftypefun
 
-@node starpu_spu_worker_get_count
-@subsection @code{starpu_spu_worker_get_count} -- Get the number of Cell SPUs controlled by StarPU
 @deftypefun unsigned starpu_spu_worker_get_count (void)
 This function returns the number of Cell SPUs controlled by StarPU.
 @end deftypefun
 
-
-@node starpu_worker_get_id
-@subsection @code{starpu_worker_get_id} -- Get the identifier of the current worker
 @deftypefun int starpu_worker_get_id (void)
-This function returns the identifier of the worker associated to the calling
+This function returns the identifier of the current worker, i.e the one associated to the calling
 thread. The returned value is either -1 if the current context is not a StarPU
 worker (i.e. when called from the application outside a task or a callback), or
 an integer between 0 and @code{starpu_worker_get_count() - 1}.
 @end deftypefun
 
-@node starpu_worker_get_ids_by_type
-@subsection @code{starpu_worker_get_ids_by_type} -- Get the list of identifiers of workers with a given type
 @deftypefun int starpu_worker_get_ids_by_type ({enum starpu_archtype} @var{type}, int *@var{workerids}, int @var{maxsize})
-Fill the workerids array with the identifiers of the workers that have the type
+This function gets the list of identifiers of workers with the given
+type. It fills the workerids array with the identifiers of the workers that have the type
 indicated in the first argument. The maxsize argument indicates the size of the
 workids array. The returned value gives the number of identifiers that were put
 in the array. @code{-ERANGE} is returned is maxsize is lower than the number of
@@ -3564,11 +3533,9 @@ chosen by the means of the @code{starpu_worker_get_count_by_type} function, or
 by passing a value greater or equal to @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
-@node starpu_worker_get_devid
-@subsection @code{starpu_worker_get_devid} -- Get the device identifier of a worker
 @deftypefun int starpu_worker_get_devid (int @var{id})
-This functions returns the device id of the worker associated to an identifier
-(as returned by the @code{starpu_worker_get_id} function). In the case of a
+This functions returns the device id of the given worker. The worker
+should be identified with the value returned by the @code{starpu_worker_get_id} function. In the case of a
 CUDA worker, this device identifier is the logical device identifier exposed by
 CUDA (used by the @code{cudaGetDevice} function for instance). The device
 identifier of a CPU worker is the logical identifier of the core on which the
@@ -3576,11 +3543,10 @@ worker was bound; this identifier is either provided by the OS or by the
 @code{hwloc} library in case it is available.
 @end deftypefun
 
-@node starpu_worker_get_type
-@subsection @code{starpu_worker_get_type} -- Get the type of processing unit associated to a worker
 @deftypefun {enum starpu_archtype} starpu_worker_get_type (int @var{id})
-This function returns the type of worker associated to an identifier (as
-returned by the @code{starpu_worker_get_id} function). The returned value
+This function returns the type of processing unit associated to a
+worker. The worker identifier is a value returned by the
+@code{starpu_worker_get_id} function). The returned value
 indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
 core, @code{STARPU_CUDA_WORKER} for a CUDA device,
 @code{STARPU_OPENCL_WORKER} for a OpenCL device, and
@@ -3588,10 +3554,8 @@ core, @code{STARPU_CUDA_WORKER} for a CUDA device,
 identifier is unspecified.
 @end deftypefun
 
-@node starpu_worker_get_name
-@subsection @code{starpu_worker_get_name} -- Get the name of a worker
-
 @deftypefun void starpu_worker_get_name (int @var{id}, char *@var{dst}, size_t @var{maxlen})
+This function allows to get the name of a given worker.
 StarPU associates a unique human readable string to each processing unit. This
 function copies at most the @var{maxlen} first bytes of the unique string
 associated to a worker identified by its identifier @var{id} into the
@@ -3600,13 +3564,10 @@ is a valid pointer to a buffer of @var{maxlen} bytes at least. Calling this
 function on an invalid identifier results in an unspecified behaviour.
 @end deftypefun
 
-@node starpu_worker_get_memory_node
-@subsection @code{starpu_worker_get_memory_node} -- Get the memory node of a worker
 @deftypefun unsigned starpu_worker_get_memory_node (unsigned @var{workerid})
 This function returns the identifier of the memory node associated to the
 worker identified by @var{workerid}.
 @end deftypefun
-
 
 @node Data Library
 @section Data Library
