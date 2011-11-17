@@ -370,8 +370,16 @@ to be run in the @code{gnuplot} tool, which shows the corresponding curve.
 @node Theoretical lower bound on execution time API
 @section Theoretical lower bound on execution time
 
-See @ref{Theoretical lower bound on execution time} for an example on
-how to use this API.
+See @ref{Theoretical lower bound on execution time} for an example on how to use
+this API. It permits to record a trace of what tasks are needed to complete the
+application, and then, by using a linear system, provide a theoretical lower
+bound of the execution time (i.e. with an ideal scheduling).
+
+The computed bound is not really correct when not taking into account
+dependencies, but for an application which have enough parallelism, it is very
+near to the bound computed with dependencies enabled (which takes a huge lot
+more time to compute), and thus provides a good-enough estimation of the ideal
+execution time.
 
 @deftypefun void starpu_bound_start (int @var{deps}, int @var{prio})
 Start recording tasks (resets stats).  @code{deps} tells whether
@@ -387,19 +395,21 @@ Print the DAG that was recorded
 @end deftypefun
 
 @deftypefun void starpu_bound_compute ({double *}@var{res}, {double *}@var{integer_res}, int @var{integer})
-Get theoretical upper bound (in ms) (needs glpk support)
+Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script)
 @end deftypefun
 
 @deftypefun void starpu_bound_print_lp ({FILE *}@var{output})
-Emit Linear Programming system on output for the recorded tasks in lp
-format
+Emit the Linear Programming system on @code{output} for the recorded tasks, in
+the lp format
 @end deftypefun
 
 @deftypefun void starpu_bound_print_mps ({FILE *}@var{output})
-Emit Linear Programming system on output for the recorded tasks in mps
-format
+Emit the Linear Programming system on @code{output} for the recorded tasks, in
+the mps format
 @end deftypefun
 
 @deftypefun void starpu_bound_print ({FILE *}@var{output}, int @var{integer})
-Emit statistics of actual execution vs theoretical upper bound
+Emit statistics of actual execution vs theoretical upper bound. @code{integer}
+permits to choose between integer solving (which takes a long time but is
+correct), and relaxed solving (which provides an approximate solution).
 @end deftypefun
