@@ -212,7 +212,7 @@ transfers.
 Tell StarPU-MPI which MPI tag to use when exchanging the data.
 @end deftypefun
 
-@deftypefun int starpu_data_get_tag(starpu_data_handle @var{handle})
+@deftypefun int starpu_data_get_tag (starpu_data_handle @var{handle})
 Returns the MPI tag to be used when exchanging the data.
 @end deftypefun
 

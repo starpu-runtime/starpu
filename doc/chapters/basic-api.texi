@@ -505,7 +505,7 @@ Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun void *starpu_data_get_interface_on_node (starpu_data_handle @var{handle}, unsigned @var{memory_node})
+@deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle @var{handle}, unsigned @var{memory_node})
 todo
 @end deftypefun
 
@@ -605,11 +605,11 @@ This function is similar to @code{starpu_data_get_sub_data} but uses a
 va_list for the parameter list.
 @end deftypefun
 
-@deftypefun void starpu_data_map_filters(starpu_data_handle @var{root_data}, unsigned @var{nfilters}, ...)
+@deftypefun void starpu_data_map_filters (starpu_data_handle @var{root_data}, unsigned @var{nfilters}, ...)
 todo
 @end deftypefun
 
-@deftypefun void starpu_data_vmap_filters(starpu_data_handle @var{root_data}, unsigned @var{nfilters}, va_list @var{pa})
+@deftypefun void starpu_data_vmap_filters (starpu_data_handle @var{root_data}, unsigned @var{nfilters}, va_list @var{pa})
 todo
 @end deftypefun
 
