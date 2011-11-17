@@ -3951,59 +3951,44 @@ struct starpu_multiformat_data_interface_ops format_ops = @{
 starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
 @end example
 @end deftypefun
+
 @node Data Partition
 @section Data Partition
 
-@menu
-* struct starpu_data_filter::   StarPU filter structure
-* starpu_data_partition::       Partition Data
-* starpu_data_unpartition::     Unpartition Data
-* starpu_data_get_nb_children::  
-* starpu_data_get_sub_data::    
-* Predefined filter functions::  
-@end menu
-
-@node struct starpu_data_filter
-@subsection @code{struct starpu_data_filter} -- StarPU filter structure
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} {struct starpu_data_filter}
 The filter structure describes a data partitioning operation, to be given to the
-@code{starpu_data_partition} function, see @ref{starpu_data_partition} for an example.
-@item @emph{Fields}:
+@code{starpu_data_partition} function, see @ref{starpu_data_partition}
+for an example. The different fields are:
 @table @asis
-@item @code{filter_func}:
+@item @code{filter_func}
 This function fills the @code{child_interface} structure with interface
 information for the @code{id}-th child of the parent @code{father_interface} (among @code{nparts}).
+
 @code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
-@item @code{nchildren}:
+@item @code{nchildren}
 This is the number of parts to partition the data into.
-@item @code{get_nchildren}:
+@item @code{get_nchildren}
 This returns the number of children. This can be used instead of @code{nchildren} when the number of
 children depends on the actual data (e.g. the number of blocks in a sparse
 matrix).
 @code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);}
-@item @code{get_child_ops}:
+@item @code{get_child_ops}
 In case the resulting children use a different data interface, this function
 returns which interface is used by child number @code{id}.
 @code{struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
-@item @code{filter_arg}:
+@item @code{filter_arg}
 Some filters take an addition parameter, but this is usually unused.
-@item @code{filter_arg_ptr}:
+@item @code{filter_arg_ptr}
 Some filters take an additional array parameter like the sizes of the parts, but
 this is usually unused.
 @end table
-@end table
+@end deftp
 
-@node starpu_data_partition
-@subsection starpu_data_partition -- Partition Data
-
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_partition (starpu_data_handle @var{initial_handle}, {struct starpu_data_filter *}@var{f})
+@anchor{starpu_data_partition}
 This requests partitioning one StarPU data @code{initial_handle} into several
-subdata according to the filter @code{f}
-@item @emph{Prototype}:
-@code{void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);}
-@item @emph{Example}:
+subdata according to the filter @code{f}, as shown in the following example:
+
 @cartouche
 @smallexample
 struct starpu_data_filter f = @{
@@ -4015,61 +4000,39 @@ struct starpu_data_filter f = @{
 starpu_data_partition(A_handle, &f);
 @end smallexample
 @end cartouche
-@end table
+@end deftypefun
 
-@node starpu_data_unpartition
-@subsection starpu_data_unpartition -- Unpartition data
-
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_unpartition (starpu_data_handle @var{root_data}, uint32_t @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
 collected back into one big piece in the @code{gathering_node} (usually 0).
-@item @emph{Prototype}:
-@code{void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);}
-@item @emph{Example}:
 @cartouche
 @smallexample
 starpu_data_unpartition(A_handle, 0);
 @end smallexample
 @end cartouche
-@end table
+@end deftypefun
 
-@node starpu_data_get_nb_children
-@subsection starpu_data_get_nb_children
-
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_data_get_nb_children (starpu_data_handle @var{handle})
 This function returns the number of children.
-@item @emph{Return value}:
-The number of children.
-@item @emph{Prototype}:
-@code{int starpu_data_get_nb_children(starpu_data_handle handle);}
-@end table
+@end deftypefun
 
 @c starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
 
-@node starpu_data_get_sub_data
-@subsection starpu_data_get_sub_data
-
-@table @asis
-@item @emph{Description}:
+@deftypefun starpu_data_handle starpu_data_get_sub_data (starpu_data_handle @var{root_data}, unsigned @var{depth}, ... )
 After partitioning a StarPU data by applying a filter,
-@code{starpu_data_get_sub_data} can be used to get handles for each of the data
-portions. @code{root_data} is the parent data that was partitioned. @code{depth}
-is the number of filters to traverse (in case several filters have been applied,
-to e.g. partition in row blocks, and then in column blocks), and the subsequent
-parameters are the indexes.
-@item @emph{Return value}:
-A handle to the subdata.
-@item @emph{Prototype}:
-@code{starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );}
-@item @emph{Example}:
+@code{starpu_data_get_sub_data} can be used to get handles for each of
+the data portions. @code{root_data} is the parent data that was
+partitioned. @code{depth} is the number of filters to traverse (in
+case several filters have been applied, to e.g. partition in row
+blocks, and then in column blocks), and the subsequent
+parameters are the indexes. The function returns a handle to the
+subdata.
 @cartouche
 @smallexample
 h = starpu_data_get_sub_data(A_handle, 1, taskx);
 @end smallexample
 @end cartouche
-@end table
+@end deftypefun
 
 @node Predefined filter functions
 @subsection Predefined filter functions
