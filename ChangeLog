@@ -33,6 +33,8 @@ The extensions-again release
   * Add gdb functions.
   * Add complex support to LU example.
   * Add an OpenMP fork-join example.
+  * Some types were renamed for consistency. The tools/dev/rename.sh script
+  can be used to port code using former names.
 
 StarPU 0.9 (svn revision 3721)
 ==============================================
