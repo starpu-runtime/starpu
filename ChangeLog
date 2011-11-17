@@ -20,6 +20,9 @@ The extensions-again release
 
   * Applications can provide several implementations of a codelet for the same
   architecture.
+  * A new multi-format interface permits to use different binary formats on
+  CPUs & GPUs, the conversion functions being provided by the application and
+  called by StarPU as needed (and as less as possible).
   * Add a gcc plugin to extend the C interface with pragmas which allow to
   easily define codelets and issue tasks.
   * Add codelet execution time statistics plot.
