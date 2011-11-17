@@ -1,0 +1,471 @@
+@c -*-texinfo-*-
+
+@c This file is part of the StarPU Handbook.
+@c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c See the file starpu.texi for copying conditions.
+
+@node Advanced Examples
+@chapter Advanced Examples
+
+@menu
+* Using multiple implementations of a codelet::
+* Task and Worker Profiling::   
+* Partitioning Data::           Partitioning Data
+* Performance model example::   
+* Theoretical lower bound on execution time::  
+* Insert Task Utility::          
+* More examples::               More examples shipped with StarPU
+* Debugging::                   When things go wrong.
+@end menu
+
+@node Using multiple implementations of a codelet
+@section Using multiple implementations of a codelet
+One may want to write multiple implementations of a codelet for a single type of
+device and let StarPU choose which one to run. As an example, we will show how
+to use SSE to scale a vector. The codelet can be written as follows :
+
+@cartouche
+@smallexample
+#include <xmmintrin.h>
+
+void scal_sse_func(void *buffers[], void *cl_arg)
+@{
+	float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+	unsigned int n_iterations = n/4;
+	if (n % 4 != 0)
+		n_iterations++;
+
+	__m128 *VECTOR = (__m128*) vector;
+	__m128 factor __attribute__((aligned(16)));
+	factor = _mm_set1_ps(*(float *) cl_arg);
+
+	unsigned int i;	
+	for (i = 0; i < n_iterations; i++)
+		VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
+@}
+@end smallexample
+@end cartouche
+
+The @code{cpu_func} field of the @code{starpu_codelet} structure has to be set
+to the special value @code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}. Note that
+@code{STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS} and
+@code{STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS} are also available.
+
+@cartouche
+@smallexample
+starpu_codelet cl = @{
+	.where = STARPU_CPU,
+	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
+	.cpu_funcs = @{ scal_cpu_func, scal_sse_func @},
+	.nbuffers = 1
+@};
+@end smallexample
+@end cartouche
+
+The scheduler will measure the performance of all the implementations it was
+given, and pick the one that seems to be the fastest.
+@node Task and Worker Profiling
+@section Task and Worker Profiling
+
+A full example showing how to use the profiling API is available in
+the StarPU sources in the directory @code{examples/profiling/}.
+
+@cartouche
+@smallexample
+struct starpu_task *task = starpu_task_create();
+task->cl = &cl;
+task->synchronous = 1;
+/* We will destroy the task structure by hand so that we can
+ * query the profiling info before the task is destroyed. */
+task->destroy = 0;
+
+/* Submit and wait for completion (since synchronous was set to 1) */
+starpu_task_submit(task);
+
+/* The task is finished, get profiling information */
+struct starpu_task_profiling_info *info = task->profiling_info;
+
+/* How much time did it take before the task started ? */
+double delay += starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
+
+/* How long was the task execution ? */
+double length += starpu_timing_timespec_delay_us(&info->start_time, &info->end_time);
+
+/* We don't need the task structure anymore */
+starpu_task_destroy(task);
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+/* Display the occupancy of all workers during the test */
+int worker;
+for (worker = 0; worker < starpu_worker_get_count(); worker++)
+@{
+        struct starpu_worker_profiling_info worker_info;
+        int ret = starpu_worker_get_profiling_info(worker, &worker_info);
+        STARPU_ASSERT(!ret);
+
+        double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);
+        double executing_time = starpu_timing_timespec_to_us(&worker_info.executing_time);
+        double sleeping_time = starpu_timing_timespec_to_us(&worker_info.sleeping_time);
+
+        float executing_ratio = 100.0*executing_time/total_time;
+        float sleeping_ratio = 100.0*sleeping_time/total_time;
+
+        char workername[128];
+        starpu_worker_get_name(worker, workername, 128);
+        fprintf(stderr, "Worker %s:\n", workername);
+        fprintf(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
+        fprintf(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3,
+                executing_ratio);
+        fprintf(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3,
+                sleeping_ratio);
+@}
+@end smallexample
+@end cartouche
+
+@node Partitioning Data
+@section Partitioning Data
+
+An existing piece of data can be partitioned in sub parts to be used by different tasks, for instance:
+
+@cartouche
+@smallexample
+int vector[NX];
+starpu_data_handle handle;
+
+/* Declare data to StarPU */
+starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+
+/* Partition the vector in PARTS sub-vectors */
+starpu_filter f =
+@{
+    .filter_func = starpu_block_filter_func_vector,
+    .nchildren = PARTS
+@};
+starpu_data_partition(handle, &f);
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+/* Submit a task on each sub-vector */
+for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
+    /* Get subdata number i (there is only 1 dimension) */
+    starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
+    struct starpu_task *task = starpu_task_create();
+
+    task->buffers[0].handle = sub_handle;
+    task->buffers[0].mode = STARPU_RW;
+    task->cl = &cl;
+    task->synchronous = 1;
+    task->cl_arg = &factor;
+    task->cl_arg_size = sizeof(factor);
+
+    starpu_task_submit(task);
+@}
+@end smallexample
+@end cartouche
+
+Partitioning can be applied several times, see
+@code{examples/basic_examples/mult.c} and @code{examples/filters/}.
+
+@node Performance model example
+@section Performance model example
+
+To achieve good scheduling, StarPU scheduling policies need to be able to
+estimate in advance the duration of a task. This is done by giving to codelets
+a performance model, by defining a @code{starpu_perfmodel} structure and
+providing its address in the @code{model} field of the @code{starpu_codelet}
+structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel}
+are mandatory, to give a name to the model, and the type of the model, since
+there are several kinds of performance models.
+
+@itemize
+@item
+Measured at runtime (@code{STARPU_HISTORY_BASED} model type). This assumes that for a
+given set of data input/output sizes, the performance will always be about the
+same. This is very true for regular kernels on GPUs for instance (<0.1% error),
+and just a bit less true on CPUs (~=1% error). This also assumes that there are
+few different sets of data input/output sizes. StarPU will then keep record of
+the average time of previous executions on the various processing units, and use
+it as an estimation. History is done per task size, by using a hash of the input
+and ouput sizes as an index.
+It will also save it in @code{~/.starpu/sampling/codelets}
+for further executions, and can be observed by using the
+@code{starpu_perfmodel_display} command, or drawn by using
+the @code{starpu_perfmodel_plot}.  The models are indexed by machine name. To
+share the models between machines (e.g. for a homogeneous cluster), use
+@code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done when using a task scheduler which makes use of it, such as @code{heft} or @code{dmda}.
+
+The following is a small code example.
+
+If e.g. the code is recompiled with other compilation options, or several
+variants of the code are used, the symbol string should be changed to reflect
+that, in order to recalibrate a new model from zero. The symbol string can even
+be constructed dynamically at execution time, as long as this is done before
+submitting any task using it.
+
+@cartouche
+@smallexample
+static struct starpu_perfmodel mult_perf_model = @{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "mult_perf_model"
+@};
+
+starpu_codelet cl = @{
+    .where = STARPU_CPU,
+    .cpu_func = cpu_mult,
+    .nbuffers = 3,
+    /* for the scheduling policy to be able to use performance models */
+    .model = &mult_perf_model
+@};
+@end smallexample
+@end cartouche
+
+@item
+Measured at runtime and refined by regression (@code{STARPU_REGRESSION_*_BASED}
+model type). This still assumes performance regularity, but can work
+with various data input sizes, by applying regression over observed
+execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
+form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
+STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
+@code{tests/perfmodels/regression_based.c} uses a regression-based performance
+model for the @code{memset} operation.
+
+@item
+Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),
+see for instance
+@code{examples/common/blas_model.h} and @code{examples/common/blas_model.c}.
+
+@item
+Provided explicitly by the application (@code{STARPU_PER_ARCH} model type): the
+@code{.per_arch[i].cost_model} fields have to be filled with pointers to
+functions which return the expected duration of the task in micro-seconds, one
+per architecture.
+
+@end itemize
+
+How to use schedulers which can benefit from such performance model is explained
+in @ref{Task scheduling policy}.
+
+The same can be done for task power consumption estimation, by setting the
+@code{power_model} field the same way as the @code{model} field. Note: for
+now, the application has to give to the power consumption performance model
+a name which is different from the execution time performance model.
+
+The application can request time estimations from the StarPU performance
+models by filling a task structure as usual without actually submitting
+it. The data handles can be created by calling @code{starpu_data_register}
+functions with a @code{NULL} pointer (and need to be unregistered as usual)
+and the desired data sizes. The @code{starpu_task_expected_length} and
+@code{starpu_task_expected_power} functions can then be called to get an
+estimation of the task duration on a given arch. @code{starpu_task_destroy}
+needs to be called to destroy the dummy task afterwards. See
+@code{tests/perfmodels/regression_based.c} for an example.
+
+@node Theoretical lower bound on execution time
+@section Theoretical lower bound on execution time
+
+For kernels with history-based performance models, StarPU can very easily provide a theoretical lower
+bound for the execution time of a whole set of tasks. See for
+instance @code{examples/lu/lu_example.c}: before submitting tasks,
+call @code{starpu_bound_start}, and after complete execution, call
+@code{starpu_bound_stop}. @code{starpu_bound_print_lp} or
+@code{starpu_bound_print_mps} can then be used to output a Linear Programming
+problem corresponding to the schedule of your tasks. Run it through
+@code{lp_solve} or any other linear programming solver, and that will give you a
+lower bound for the total execution time of your tasks. If StarPU was compiled
+with the glpk library installed, @code{starpu_bound_compute} can be used to
+solve it immediately and get the optimized minimum, in ms. Its @code{integer}
+parameter allows to decide whether integer resolution should be computed
+and returned too.
+
+The @code{deps} parameter tells StarPU whether to take tasks and implicit data
+dependencies into account. It must be understood that the linear programming
+problem size is quadratic with the number of tasks and thus the time to solve it
+will be very long, it could be minutes for just a few dozen tasks. You should
+probably use @code{lp_solve -timeout 1 test.pl -wmps test.mps} to convert the
+problem to MPS format and then use a better solver, @code{glpsol} might be
+better than @code{lp_solve} for instance (the @code{--pcost} option may be
+useful), but sometimes doesn't manage to converge. @code{cbc} might look
+slower, but it is parallel. Be sure to try at least all the @code{-B} options
+of @code{lp_solve}. For instance, we often just use
+@code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and
+the @code{-gr} option can also be quite useful.
+
+Setting @code{deps} to 0 will only take into account the actual computations
+on processing units. It however still properly takes into account the varying
+performances of kernels and processing units, which is quite more accurate than
+just comparing StarPU performances with the fastest of the kernels being used.
+
+The @code{prio} parameter tells StarPU whether to simulate taking into account
+the priorities as the StarPU scheduler would, i.e. schedule prioritized
+tasks before less prioritized tasks, to check to which extend this results
+to a less optimal solution. This increases even more computation time.
+
+Note that for simplicity, all this however doesn't take into account data
+transfers, which are assumed to be completely overlapped.
+
+@node Insert Task Utility
+@section Insert Task Utility
+
+StarPU provides the wrapper function @code{starpu_insert_task} to ease
+the creation and submission of tasks.
+
+@deftypefun int starpu_insert_task (starpu_codelet *@var{cl}, ...)
+Create and submit a task corresponding to @var{cl} with the following
+arguments.  The argument list must be zero-terminated.
+
+The arguments following the codelets can be of the following types:
+
+@itemize
+@item
+@code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
+@item
+@code{STARPU_VALUE} followed  by a pointer to a constant value and
+the size of the constant;
+@item
+@code{STARPU_CALLBACK} followed by a pointer to a callback function;
+@item
+@code{STARPU_CALLBACK_ARG} followed by a pointer to be given as an
+argument to the callback function;
+@item
+@code{STARPU_CALLBACK_WITH_ARG} followed by two pointers: one to a callback
+function, and the other to be given as an argument to the callback
+function; this is equivalent to using both @code{STARPU_CALLBACK} and
+@code{STARPU_CALLBACK_WITH_ARG}
+@item
+@code{STARPU_PRIORITY} followed by a integer defining a priority level.
+@end itemize
+
+Parameters to be passed to the codelet implementation are defined
+through the type @code{STARPU_VALUE}. The function
+@code{starpu_unpack_cl_args} must be called within the codelet
+implementation to retrieve them.
+@end deftypefun
+
+Here the implementation of the codelet:
+
+@smallexample
+void func_cpu(void *descr[], void *_args)
+@{
+        int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+        float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+        int ifactor;
+        float ffactor;
+
+        starpu_unpack_cl_args(_args, &ifactor, &ffactor);
+        *x0 = *x0 * ifactor;
+        *x1 = *x1 * ffactor;
+@}
+
+starpu_codelet mycodelet = @{
+        .where = STARPU_CPU,
+        .cpu_func = func_cpu,
+        .nbuffers = 2
+@};
+@end smallexample
+
+And the call to the @code{starpu_insert_task} wrapper:
+
+@smallexample
+starpu_insert_task(&mycodelet,
+                   STARPU_VALUE, &ifactor, sizeof(ifactor),
+                   STARPU_VALUE, &ffactor, sizeof(ffactor),
+                   STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+                   0);
+@end smallexample
+
+The call to @code{starpu_insert_task} is equivalent to the following
+code:
+
+@smallexample
+struct starpu_task *task = starpu_task_create();
+task->cl = &mycodelet;
+task->buffers[0].handle = data_handles[0];
+task->buffers[0].mode = STARPU_RW;
+task->buffers[1].handle = data_handles[1];
+task->buffers[1].mode = STARPU_RW;
+char *arg_buffer;
+size_t arg_buffer_size;
+starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,
+		    STARPU_VALUE, &ifactor, sizeof(ifactor),
+		    STARPU_VALUE, &ffactor, sizeof(ffactor),
+		    0);
+task->cl_arg = arg_buffer;
+task->cl_arg_size = arg_buffer_size;
+int ret = starpu_task_submit(task);
+@end smallexample
+
+If some part of the task insertion depends on the value of some computation,
+the @code{STARPU_DATA_ACQUIRE_CB} macro can be very convenient. For
+instance, assuming that the index variable @code{i} was registered as handle
+@code{i_handle}:
+
+@smallexample
+/* Compute which portion we will work on, e.g. pivot */
+starpu_insert_task(&which_index, STARPU_W, i_handle, 0);
+
+/* And submit the corresponding task */
+STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R, starpu_insert_task(&work, STARPU_RW, A_handle[i], 0));
+@end smallexample
+
+The @code{STARPU_DATA_ACQUIRE_CB} macro submits an asynchronous request for
+acquiring data @code{i} for the main application, and will execute the code
+given as third parameter when it is acquired. In other words, as soon as the
+value of @code{i} computed by the @code{which_index} codelet can be read, the
+portion of code passed as third parameter of @code{STARPU_DATA_ACQUIRE_CB} will
+be executed, and is allowed to read from @code{i} to use it e.g. as an
+index. Note that this macro is only avaible when compiling StarPU with
+the compiler @code{gcc}.
+
+@node Debugging
+@section Debugging
+
+StarPU provides several tools to help debugging aplications. Execution traces
+can be generated and displayed graphically, see @ref{Generating traces}. Some
+gdb helpers are also provided to show the whole StarPU state:
+
+@smallexample
+(gdb) source tools/gdbinit
+(gdb) help starpu
+@end smallexample
+
+@node More examples
+@section More examples
+
+More examples are available in the StarPU sources in the @code{examples/}
+directory. Simple examples include:
+
+@table @asis
+@item @code{incrementer/}:
+	Trivial incrementation test.
+@item @code{basic_examples/}:
+        Simple documented Hello world (as shown in @ref{Hello World}), vector/scalar product (as shown
+        in @ref{Vector Scaling on an Hybrid CPU/GPU Machine}), matrix
+        product examples (as shown in @ref{Performance model example}), an example using the blocked matrix data
+        interface, an example using the variable data interface, and an example
+        using different formats on CPUs and GPUs.
+@item @code{matvecmult/}:
+	OpenCL example from NVidia, adapted to StarPU.
+@item @code{axpy/}:
+	AXPY CUBLAS operation adapted to StarPU.
+@item @code{fortran/}:
+	Example of Fortran bindings.
+@end table
+
+More advanced examples include:
+
+@table @asis
+@item @code{filters/}:
+	Examples using filters, as shown in @ref{Partitioning Data}.
+@item @code{lu/}:
+	LU matrix factorization, see for instance @code{xlu_implicit.c}
+@item @code{cholesky/}:
+	Cholesky matrix factorization, see for instance @code{cholesky_implicit.c}.
+@end table
