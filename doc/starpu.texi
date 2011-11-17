@@ -3583,84 +3583,19 @@ worker identified by @var{workerid}.
 @node Data Library
 @section Data Library
 
+@menu
+* Introduction to Data Library::  
+* Basic Data Library API::      
+* Access registered data from the application::  
+@end menu
+
 This section describes the data management facilities provided by StarPU.
 
 We show how to use existing data interfaces in @ref{Data Interfaces}, but developers can
 design their own data interfaces if required.
 
-@menu
-* starpu_malloc::               Allocate data and pin it
-* starpu_free::                 Free allocated memory
-* starpu_access_mode::          Data access mode
-* unsigned memory_node::        Memory node
-* starpu_data_handle::          StarPU opaque data handle
-* void *interface::             StarPU data interface
-* starpu_data_register::        Register a piece of data to StarPU
-* starpu_data_unregister::      Unregister a piece of data from StarPU
-* starpu_data_unregister_no_coherency::      Unregister a piece of data from StarPU without coherency
-* starpu_data_invalidate::      Invalidate all data replicates
-* starpu_data_acquire::         Access registered data from the application
-* starpu_data_acquire_cb::      Access registered data from the application asynchronously
-* STARPU_DATA_ACQUIRE_CB::      Access registered data from the application asynchronously, macro
-* starpu_data_release::         Release registered data from the application
-* starpu_data_set_wt_mask::     Set the Write-Through mask
-* starpu_data_prefetch_on_node:: Prefetch data to a given node
-@end menu
-
-@node starpu_malloc
-@subsection @code{starpu_malloc} -- Allocate data and pin it
-@deftypefun int starpu_malloc (void **@var{A}, size_t @var{dim})
-This function allocates data of the given size in main memory. It will also try to pin it in
-CUDA or OpenCL, so that data transfers from this buffer can be asynchronous, and
-thus permit data transfer and computation overlapping. The allocated buffer must
-be freed thanks to the @code{starpu_free} function.
-@end deftypefun
-
-@node starpu_free
-@subsection @code{starpu_free}
-@deftypefun int starpu_free (void *@var{A})
-This function frees memory which has previously allocated with
-@code{starpu_malloc}.
-@end deftypefun
-
-@node starpu_access_mode
-@subsection @code{starpu_access_mode} -- Data access mode
-@deftp {Data Type} starpu_access_mode
-This datatype describes a data access mode. The different available modes are:
-@table @asis
-@item @code{STARPU_R}: read-only mode.
-@item @code{STARPU_W}: write-only mode.
-@item @code{STARPU_RW}: read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
-@item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
-@item @code{STARPU_REDUX} reduction mode.
-@end table
-TODO: document, as well as @code{starpu_data_set_reduction_methods}
-@end deftp
-
-@node unsigned memory_node
-@subsection @code{unsigned memory_node} -- Memory node
-Every worker is associated to a memory node which is a logical abstraction of
-the address space from which the processing unit gets its data. For instance,
-the memory node associated to the different CPU workers represents main memory
-(RAM), the memory node associated to a GPU is DRAM embedded on the device.
-Every memory node is identified by a logical index which is accessible from the
-@code{starpu_worker_get_memory_node} function. When registering a piece of data
-to StarPU, the specified memory node indicates where the piece of data
-initially resides (we also call this memory node the home node of a piece of
-data).
-
-@node starpu_data_handle
-@subsection @code{starpu_data_handle} -- StarPU opaque data handle
-@deftp {Data Type} {starpu_data_handle}
-StarPU uses @code{starpu_data_handle} as an opaque handle to manage a piece of
-data. Once a piece of data has been registered to StarPU, it is associated to a
-@code{starpu_data_handle} which keeps track of the state of the piece of data
-over the entire machine, so that we can maintain data consistency and locate
-data replicates for instance.
-@end deftp
-
-@node void *interface
-@subsection @code{void *interface} -- StarPU data interface
+@node Introduction to Data Library
+@subsection Introduction
 Data management is done at a high-level in StarPU: rather than accessing a mere
 list of contiguous buffers, the tasks may manipulate data that are described by
 a high-level construct which we call data interface.
@@ -3677,8 +3612,51 @@ When a piece of data managed by StarPU is used by a task, the task
 implementation is given a pointer to an interface describing a valid copy of
 the data that is accessible from the current processing unit.
 
-@node starpu_data_register
-@subsection @code{starpu_data_register} -- Register a piece of data to StarPU
+Every worker is associated to a memory node which is a logical abstraction of
+the address space from which the processing unit gets its data. For instance,
+the memory node associated to the different CPU workers represents main memory
+(RAM), the memory node associated to a GPU is DRAM embedded on the device.
+Every memory node is identified by a logical index which is accessible from the
+@code{starpu_worker_get_memory_node} function. When registering a piece of data
+to StarPU, the specified memory node indicates where the piece of data
+initially resides (we also call this memory node the home node of a piece of
+data).
+
+@node Basic Data Library API
+@subsection Basic Data Library API
+
+@deftypefun int starpu_malloc (void **@var{A}, size_t @var{dim})
+This function allocates data of the given size in main memory. It will also try to pin it in
+CUDA or OpenCL, so that data transfers from this buffer can be asynchronous, and
+thus permit data transfer and computation overlapping. The allocated buffer must
+be freed thanks to the @code{starpu_free} function.
+@end deftypefun
+
+@deftypefun int starpu_free (void *@var{A})
+This function frees memory which has previously allocated with
+@code{starpu_malloc}.
+@end deftypefun
+
+@deftp {Data Type} starpu_access_mode
+This datatype describes a data access mode. The different available modes are:
+@table @asis
+@item @code{STARPU_R}: read-only mode.
+@item @code{STARPU_W}: write-only mode.
+@item @code{STARPU_RW}: read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
+@item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
+@item @code{STARPU_REDUX} reduction mode.
+@end table
+TODO: document, as well as @code{starpu_data_set_reduction_methods}
+@end deftp
+
+@deftp {Data Type} {starpu_data_handle}
+StarPU uses @code{starpu_data_handle} as an opaque handle to manage a piece of
+data. Once a piece of data has been registered to StarPU, it is associated to a
+@code{starpu_data_handle} which keeps track of the state of the piece of data
+over the entire machine, so that we can maintain data consistency and locate
+data replicates for instance.
+@end deftp
+
 @deftypefun void starpu_data_register (starpu_data_handle *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops_t} *@var{ops})
 Register a piece of data into the handle located at the @var{handleptr}
 address. The @var{interface} buffer contains the initial description of the
@@ -3696,8 +3674,6 @@ matrix) which can be registered by the means of helper functions (e.g.
 @code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
 @end deftypefun
 
-@node starpu_data_unregister
-@subsection @code{starpu_data_unregister} -- Unregister a piece of data from StarPU
 @deftypefun void starpu_data_unregister (starpu_data_handle @var{handle})
 This function unregisters a data handle from StarPU. If the data was
 automatically allocated by StarPU because the home node was -1, all
@@ -3707,15 +3683,11 @@ Using a data handle that has been unregistered from StarPU results in an
 undefined behaviour.
 @end deftypefun
 
-@node starpu_data_unregister_no_coherency
-@subsection @code{starpu_data_unregister_no_coherency} -- Unregister a piece of data from StarPU
 @deftypefun void starpu_data_unregister_no_coherency (starpu_data_handle @var{handle})
 This is the same as starpu_data_unregister, except that StarPU does not put back
 a valid copy into the home node, in the buffer that was initially registered.
 @end deftypefun
 
-@node starpu_data_invalidate
-@subsection @code{starpu_data_invalidate} -- Invalidate all data replicates
 @deftypefun void starpu_data_invalidate (starpu_data_handle @var{handle})
 Destroy all replicates of the data handle. After data invalidation, the first
 access to the handle must be performed in write-only mode. Accessing an
@@ -3724,8 +3696,22 @@ invalidated data in read-mode results in undefined behaviour.
 
 @c TODO create a specific sections about user interaction with the DSM ?
 
-@node starpu_data_acquire
-@subsection @code{starpu_data_acquire} -- Access registered data from the application
+@deftypefun void starpu_data_set_wt_mask (starpu_data_handle @var{handle}, uint32_t @var{wt_mask})
+This function sets the write-through mask of a given data, i.e. a bitmask of
+nodes where the data should be always replicated after modification.
+@end deftypefun
+
+@deftypefun int starpu_data_prefetch_on_node (starpu_data_handle @var{handle}, unsigned @var{node}, unsigned @var{async})
+Issue a prefetch request for a given data to a given node, i.e.
+requests that the data be replicated to the given node, so that it is available
+there for tasks. If the @var{async} parameter is 0, the call will block until
+the transfer is achieved, else the call will return as soon as the request is
+scheduled (which may however have to wait for a task completion).
+@end deftypefun
+
+@node Access registered data from the application
+@subsection Access registered data from the application
+
 @deftypefun int starpu_data_acquire (starpu_data_handle @var{handle}, starpu_access_mode @var{mode})
 The application must call this function prior to accessing registered data from
 main memory outside tasks. StarPU ensures that the application will get an
@@ -3744,8 +3730,7 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 @code{-EDEADLK}). Upon successful completion, this function returns 0. 
 @end deftypefun
 
-@node starpu_data_acquire_cb
-@subsection @code{starpu_data_acquire_cb} -- Access registered data from the application asynchronously
+
 @deftypefun int starpu_data_acquire_cb (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
 @code{starpu_data_release}. When the data specified in the first argument is
@@ -3760,39 +3745,17 @@ be called from task callbacks. Upon successful completion, this function
 returns 0.
 @end deftypefun
 
-@node STARPU_DATA_ACQUIRE_CB
-@subsection @code{STARPU_DATA_ACQUIRE_CB} -- Access registered data from the application asynchronously, macro
 @deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, code)
 @code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
 except that the code to be executed in a callback is directly provided as a
 macro parameter, and the data handle is automatically released after it. This
-permit to easily execute code which depends on the value of some registered
+permits to easily execute code which depends on the value of some registered
 data. This is non-blocking too and may be called from task callbacks.
 @end deftypefun
 
-@node starpu_data_release
-@subsection @code{starpu_data_release} -- Release registered data from the application
 @deftypefun void starpu_data_release (starpu_data_handle @var{handle})
 This function releases the piece of data acquired by the application either by
 @code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
-@end deftypefun
-
-@node starpu_data_set_wt_mask
-@subsection @code{starpu_data_set_wt_mask} -- Set the Write-Through mask
-@deftypefun void starpu_data_set_wt_mask (starpu_data_handle @var{handle}, uint32_t @var{wt_mask})
-This function sets the write-through mask of a given data, i.e. a bitmask of
-nodes where the data should be always replicated after modification.
-@end deftypefun
-
-@node starpu_data_prefetch_on_node
-@subsection @code{starpu_data_prefetch_on_node} -- Prefetch data to a given node
-
-@deftypefun int starpu_data_prefetch_on_node (starpu_data_handle @var{handle}, unsigned @var{node}, unsigned @var{async})
-Issue a prefetch request for a given data to a given node, i.e.
-requests that the data be replicated to the given node, so that it is available
-there for tasks. If the @var{async} parameter is 0, the call will block until
-the transfer is achieved, else the call will return as soon as the request is
-scheduled (which may however have to wait for a task completion).
 @end deftypefun
 
 @node Data Interfaces
