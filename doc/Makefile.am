@@ -12,17 +12,31 @@
 
 info_TEXINFOS = starpu.texi
 
-starpu_TEXINFOS = c-extensions.texi fdl-1.3.texi
+starpu_TEXINFOS = chapters/advanced-api.texi \
+	chapters/configuration.texi \
+	chapters/perf-feedback.texi \
+	chapters/vector_scal_cpu.texi \
+	chapters/advanced-examples.texi \
+	chapters/fdl-1.3.texi \
+	chapters/perf-optimization.texi \
+	chapters/vector_scal_c.texi \
+	chapters/basic-api.texi \
+	chapters/installing.texi \
+	chapters/scaling-vector-example.texi \
+	chapters/vector_scal_cuda.texi \
+	chapters/basic-examples.texi \
+	chapters/introduction.texi \
+	chapters/tips-tricks.texi \
+	chapters/vector_scal_opencl_codelet.texi \
+	chapters/c-extensions.texi \
+	chapters/mpi-support.texi \
+	chapters/using.texi \
+	chapters/vector_scal_opencl.texi
 
 MAINTAINERCLEANFILES = starpu.pdf
 
 EXTRA_DIST = starpu.pdf \
-	starpu.css \
-	vector_scal_c.texi \
-	vector_scal_cpu.texi \
-	vector_scal_cuda.texi \
-	vector_scal_opencl_codelet.texi \
-	vector_scal_opencl.texi
+	starpu.css
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 

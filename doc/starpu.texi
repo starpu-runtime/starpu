@@ -86,79 +86,79 @@ was last updated on @value{UPDATED}.
 @c Introduction to StarPU
 @c ---------------------------------------------------------------------
 
-@include introduction.texi
+@include chapters/introduction.texi
 
 @c ---------------------------------------------------------------------
 @c Installing StarPU
 @c ---------------------------------------------------------------------
 
-@include installing.texi
+@include chapters/installing.texi
 
 @c ---------------------------------------------------------------------
 @c Using StarPU
 @c ---------------------------------------------------------------------
 
-@include using.texi
+@include chapters/using.texi
 
 @c ---------------------------------------------------------------------
 @c Basic Examples
 @c ---------------------------------------------------------------------
 
-@include basic-examples.texi
+@include chapters/basic-examples.texi
 
 @c ---------------------------------------------------------------------
 @c Advanced Examples
 @c ---------------------------------------------------------------------
 
-@include advanced-examples.texi
+@include chapters/advanced-examples.texi
 
 @c ---------------------------------------------------------------------
 @c StarPU API
 @c ---------------------------------------------------------------------
 
-@include basic-api.texi
+@include chapters/basic-api.texi
 
 @c ---------------------------------------------------------------------
 @c Advanced Topics
 @c ---------------------------------------------------------------------
 
-@include advanced-api.texi
+@include chapters/advanced-api.texi
 
 @c ---------------------------------------------------------------------
 @c Performance options
 @c ---------------------------------------------------------------------
 
-@include perf-optimization.texi
+@include chapters/perf-optimization.texi
 
 @c ---------------------------------------------------------------------
 @c Performance feedback
 @c ---------------------------------------------------------------------
 
-@include perf-feedback.texi
+@include chapters/perf-feedback.texi
 
 @c ---------------------------------------------------------------------
 @c Tips and Tricks
 @c ---------------------------------------------------------------------
 
-@include tips-tricks.texi
+@include chapters/tips-tricks.texi
 
 @c ---------------------------------------------------------------------
 @c Configuration options
 @c ---------------------------------------------------------------------
 
-@include configuration.texi
+@include chapters/configuration.texi
 
 @c ---------------------------------------------------------------------
 @c MPI support
 @c ---------------------------------------------------------------------
 
-@include mpi-support.texi
+@include chapters/mpi-support.texi
 
 @c ---------------------------------------------------------------------
 @c C Extensions
 @c ---------------------------------------------------------------------
 
-@include c-extensions.texi
+@include chapters/c-extensions.texi
 
 @c ---------------------------------------------------------------------
 @c Appendices
@@ -168,14 +168,14 @@ was last updated on @value{UPDATED}.
 @c Full source code for the 'Scaling a Vector' example
 @c ---------------------------------------------------------------------
 
-@include scaling-vector-example.texi
+@include chapters/scaling-vector-example.texi
 
 @c ---------------------------------------------------------------------
 @c License
 @c ---------------------------------------------------------------------
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
-@include fdl-1.3.texi
+@include chapters/fdl-1.3.texi
 
 @c ---------------------------------------------------------------------
 @c Indices

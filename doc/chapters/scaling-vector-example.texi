@@ -19,17 +19,17 @@
 @node Main application
 @section Main application
 
-@include vector_scal_c.texi
+@include chapters/vector_scal_c.texi
 
 @node CPU Kernel
 @section CPU Kernel
 
-@include vector_scal_cpu.texi
+@include chapters/vector_scal_cpu.texi
 
 @node CUDA Kernel
 @section CUDA Kernel
 
-@include vector_scal_cuda.texi
+@include chapters/vector_scal_cuda.texi
 
 @node OpenCL Kernel
 @section OpenCL Kernel
@@ -42,10 +42,10 @@
 @node Invoking the kernel
 @subsection Invoking the kernel
 
-@include vector_scal_opencl.texi
+@include chapters/vector_scal_opencl.texi
 
 @node Source of the kernel
 @subsection Source of the kernel
 
-@include vector_scal_opencl_codelet.texi
+@include chapters/vector_scal_opencl_codelet.texi
 
