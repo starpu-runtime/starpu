@@ -214,6 +214,8 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	/* We make sure we do manipulate the proper device */
 	cures = cudaSetDevice(args->devid);
+	if (STARPU_UNLIKELY(cures != cudaSuccess))
+		STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 
 	if (cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS) {
