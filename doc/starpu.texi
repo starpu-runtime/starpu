@@ -4417,6 +4417,10 @@ The different values are:
 @end table
 @end deftp
 
+@deftp {Data Type} {struct starpu_perfmodel_t}
+TODO
+@end deftp
+
 @deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel_t} *@var{model})
 TODO
 @end deftypefun
