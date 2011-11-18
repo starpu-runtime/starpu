@@ -1214,6 +1214,9 @@ because there is no task being executed at the moment.
 Output on @code{stderr} some statistics on the codelet @var{cl}.
 @end deftypefun
 
+@deftypefun int starpu_task_wait_for_no_ready (void)
+This function waits until there is no more ready task.
+@end deftypefun
 
 @c Callbacks : what can we put in callbacks ?
 
@@ -1404,6 +1407,10 @@ returned.
 Return the current profiling status or a negative value in case there was an error.
 @end deftypefun
 
+@deftypefun void starpu_set_profiling_id (int @var{new_id})
+This function sets the ID used for profiling trace filename
+@end deftypefun
+
 @deftp {Data Type} {struct starpu_task_profiling_info}
 This structure contains information about the execution of a task. It is
 accessible from the @code{.profiling_info} field of the @code{starpu_task}
@@ -1459,6 +1466,10 @@ TODO
 TODO
 @end table
 @end deftp
+
+@deftypefun int starpu_bus_get_profiling_info (int @var{busid}, {struct starpu_bus_profiling_info *}@var{bus_info})
+todo
+@end deftypefun
 
 @deftypefun int starpu_bus_get_count (void)
 TODO

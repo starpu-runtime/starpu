@@ -10,63 +10,12 @@
 @chapter StarPU Advanced API
 
 @menu
-* Task Bundles::                
 * Defining a new data interface::  
 * Multiformat Data Interface::  
+* Task Bundles::                
+* Task Lists::                
 * Defining a new scheduling policy::  
 @end menu
-
-@node Task Bundles
-@section Task Bundles
-
-@deftp {DataType} {struct starpu_task_bundle}
-The task bundle structure describes a list of tasks that should be
-scheduled together whenever possible. The different fields are:
-@table @asis
-@item @code{mutex} Mutex protecting the bundle
-@item @code{int previous_workerid} last worker previously assigned a task from the bundle (-1 if none)
-@item @code{struct starpu_task_bundle_entry *list} list of tasks
-@item @code{int destroy} If this flag is set, the bundle structure is automatically free'd when the bundle is deinitialized.
-@item @code{int closed} Is the bundle closed ?
-@end table
-@end deftp
-
-@deftypefun void starpu_task_bundle_init ({struct starpu_task_bundle *}@var{bundle})
-Initialize a task bundle
-@end deftypefun
-
-@deftypefun void starpu_task_bundle_deinit ({struct starpu_task_bundle *}@var{bundle})
-Deinitialize a bundle. In case the destroy flag is set, the bundle
-structure is freed too.
-@end deftypefun
-
-@deftypefun int starpu_task_bundle_insert ({struct starpu_task_bundle *}@var{bundle}, {struct starpu_task *}@var{task})
-Insert a task into a bundle.
-@end deftypefun
-
-@deftypefun int starpu_task_bundle_remove ({struct starpu_task_bundle *}@var{bundle}, {struct starpu_task *}@var{task})
-Remove a task from a bundle. This method must be called with
-bundle->mutex hold. This function returns 0 if the task was found,
--ENOENT if the element was not found, 1 if the element is found and if
-the list was deinitialized because it became empty.
-@end deftypefun
-
-@deftypefun void starpu_task_bundle_close ({struct starpu_task_bundle *}@var{bundle});
-Close a bundle. No task can be added to a closed bundle. A closed
-bundle automatically gets deinitialized when it becomes empty.
-@end deftypefun
-
-@deftypefun double starpu_task_bundle_expected_length ({struct starpu_task_bundle *}@var{bundle}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
-Return the expected duration of the entire task bundle in µs.
-@end deftypefun
-
-@deftypefun double starpu_task_bundle_expected_data_transfer_time ({struct starpu_task_bundle *}@var{bundle}, unsigned {memory_node})
-Return the time (in µs) expected to transfer all data used within the bundle
-@end deftypefun
-
-@deftypefun double starpu_task_bundle_expected_power ({struct starpu_task_bundle *}@var{bundle},  {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
-Return the expected power consumption of the entire task bundle in J.
-@end deftypefun
 
 @node Defining a new data interface
 @section Defining a new data interface
@@ -161,6 +110,101 @@ starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
 @end example
 @end deftypefun
 
+@node Task Bundles
+@section Task Bundles
+
+@deftp {DataType} {struct starpu_task_bundle}
+The task bundle structure describes a list of tasks that should be
+scheduled together whenever possible. The different fields are:
+@table @asis
+@item @code{mutex} Mutex protecting the bundle
+@item @code{int previous_workerid} last worker previously assigned a task from the bundle (-1 if none)
+@item @code{struct starpu_task_bundle_entry *list} list of tasks
+@item @code{int destroy} If this flag is set, the bundle structure is automatically free'd when the bundle is deinitialized.
+@item @code{int closed} Is the bundle closed ?
+@end table
+@end deftp
+
+@deftypefun void starpu_task_bundle_init ({struct starpu_task_bundle *}@var{bundle})
+Initialize a task bundle
+@end deftypefun
+
+@deftypefun void starpu_task_bundle_deinit ({struct starpu_task_bundle *}@var{bundle})
+Deinitialize a bundle. In case the destroy flag is set, the bundle
+structure is freed too.
+@end deftypefun
+
+@deftypefun int starpu_task_bundle_insert ({struct starpu_task_bundle *}@var{bundle}, {struct starpu_task *}@var{task})
+Insert a task into a bundle.
+@end deftypefun
+
+@deftypefun int starpu_task_bundle_remove ({struct starpu_task_bundle *}@var{bundle}, {struct starpu_task *}@var{task})
+Remove a task from a bundle. This method must be called with
+bundle->mutex hold. This function returns 0 if the task was found,
+-ENOENT if the element was not found, 1 if the element is found and if
+the list was deinitialized because it became empty.
+@end deftypefun
+
+@deftypefun void starpu_task_bundle_close ({struct starpu_task_bundle *}@var{bundle});
+Close a bundle. No task can be added to a closed bundle. A closed
+bundle automatically gets deinitialized when it becomes empty.
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_length ({struct starpu_task_bundle *}@var{bundle}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+Return the expected duration of the entire task bundle in µs.
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_data_transfer_time ({struct starpu_task_bundle *}@var{bundle}, unsigned {memory_node})
+Return the time (in µs) expected to transfer all data used within the bundle
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_power ({struct starpu_task_bundle *}@var{bundle},  {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+Return the expected power consumption of the entire task bundle in J.
+@end deftypefun
+
+@node Task Lists
+@section Task Lists
+
+@deftp {Data Type} {struct starpu_task_list}
+todo
+@end deftp
+
+@deftypefun void starpu_task_list_init ({struct starpu_task_list *}@var{list})
+Initialize a list structure
+@end deftypefun
+
+@deftypefun void starpu_task_list_push_front ({struct starpu_task_list *}@var{list}, {struct starpu_task *}@var{task})
+Push a task at the front of a list
+@end deftypefun
+
+@deftypefun void starpu_task_list_push_back ({struct starpu_task_list *}@var{list}, {struct starpu_task *}@var{task})
+Push a task at the back of a list
+@end deftypefun
+
+@deftypefun struct starpu_task *starpu_task_list_front ({struct starpu_task_list *}@var{list})
+Get the front of the list (without removing it)
+@end deftypefun
+
+@deftypefun struct starpu_task *starpu_task_list_back ({struct starpu_task_list *}@var{list})
+Get the back of the list (without removing it)
+@end deftypefun
+
+@deftypefun int starpu_task_list_empty ({struct starpu_task_list *}@var{list})
+Test if a list is empty
+@end deftypefun
+
+@deftypefun void starpu_task_list_erase ({struct starpu_task_list *}@var{list}, {struct starpu_task *}@var{task})
+Remove an element from the list
+@end deftypefun
+
+@deftypefun struct starpu_task *starpu_task_list_pop_front ({struct starpu_task_list *}@var{list})
+Remove the element at the front of the list
+@end deftypefun
+
+@deftypefun struct starpu_task *starpu_task_list_pop_back ({struct starpu_task_list *}@var{list})
+Remove the element at the back of the list
+@end deftypefun
+
 @node Defining a new scheduling policy
 @section Defining a new scheduling policy
 
@@ -236,12 +280,22 @@ called from the initialization method of the scheduling policy, and should not
 be used directly from the application.
 @end deftypefun
 
-@deftypefun void starpu_sched_set_min_priority (int @var{max_prio})
+@deftypefun void starpu_sched_set_max_priority (int @var{max_prio})
 Defines the maximum priority level supported by the scheduling policy. The
 default maximum priority level is 1.  The application may access that value by
 calling the @code{starpu_sched_get_max_priority} function. This function should
 only be called from the initialization method of the scheduling policy, and
 should not be used directly from the application.
+@end deftypefun
+
+@deftypefun int starpu_sched_get_min_priority (void)
+Returns the current minimum priority level supported by the
+scheduling policy
+@end deftypefun
+
+@deftypefun int starpu_sched_get_max_priority (void)
+Returns the current maximum priority level supported by the
+scheduling policy
 @end deftypefun
 
 @deftypefun int starpu_push_local_task (int @var{workerid}, {struct starpu_task} *@var{task}, int @var{back})
