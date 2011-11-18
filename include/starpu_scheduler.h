@@ -130,10 +130,15 @@ struct worker_collection {
 struct starpu_sched_ctx_hypervisor_criteria {
 	void (*idle_time_cb)(unsigned sched_ctx, int worker, double idle_time);
 	void (*working_time_cb)(unsigned sched_ctx, double working_time);
+	void (*pushed_task_cb)(unsigned sched_ctx, int worker);
+	void (*poped_task_cb)(unsigned sched_ctx, int worker);
+	void (*post_exec_hook_cb)(unsigned sched_ctx, int taskid);
 };
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
 unsigned starpu_create_sched_ctx_with_criteria(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name, struct starpu_sched_ctx_hypervisor_criteria *criteria);
+void starpu_call_poped_task_cb(int workerid);
+void starpu_call_pushed_task_cb(int workerid);
 #endif //STARPU_BUILD_SCHED_CTX_HYPERVISOR
 
 unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name);

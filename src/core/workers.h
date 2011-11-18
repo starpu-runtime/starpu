@@ -82,8 +82,8 @@ struct starpu_worker_s {
 
 	struct starpu_sched_ctx **sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
-
 	struct _starpu_barrier_counter_t tasks_barrier; /* wait for the tasks submitted */
+	struct starpu_task *tasks[STARPU_NMAX_SCHED_CTXS];
        
 	unsigned has_prev_init; /* had already been inited in another ctx */
 #ifdef __GLIBC__

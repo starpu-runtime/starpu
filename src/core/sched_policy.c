@@ -367,7 +367,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 			}
 		}
 	  }
-	
+
 	/* Note that we may get a NULL task in case the scheduler was unlocked
 	 * for some reason. */
 	if (profiling && task)
@@ -397,13 +397,8 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			sched_ctx = worker->sched_ctx[i];
-			if(sched_ctx != NULL && sched_ctx->id != 0)
-			{
-				if(sched_ctx != NULL && sched_ctx->criteria != NULL)
-				{
-					sched_ctx->criteria->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
-				}
-			}
+			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->criteria != NULL)
+				sched_ctx->criteria->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
 		}
 	}
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -422,6 +417,13 @@ struct starpu_task *_starpu_pop_every_task(struct starpu_sched_ctx *sched_ctx)
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	if(task->checkpoint > 0 && sched_ctx != NULL && 
+	   sched_ctx->id != 0 && sched_ctx->criteria != NULL)
+		sched_ctx->criteria->post_exec_hook_cb(sched_ctx->id, task->checkpoint);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
 	if (sched_ctx->sched_policy->post_exec_hook)
 		sched_ctx->sched_policy->post_exec_hook(task);
 }

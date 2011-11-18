@@ -83,6 +83,8 @@ void starpu_task_init(struct starpu_task *task)
 	task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
 	
 	task->control_task = 0;
+
+	task->checkpoint = 0;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task

@@ -182,6 +182,8 @@ struct starpu_task {
 	/* flag to differentiate tasks needed by starpu management purposes 
 	 from the ones provided by the appl*/
 	unsigned control_task;
+
+	int checkpoint;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -207,7 +209,8 @@ struct starpu_task {
 	.predicted = -1.0,				\
 	.starpu_private = NULL,				\
 	.sched_ctx = 0,					\
-	.control_task = 0				\
+	.control_task = 0,				\
+		.checkpoint = 0				\
 };
 
 /*

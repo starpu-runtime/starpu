@@ -139,6 +139,11 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
+
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	starpu_call_poped_task_cb(workerid);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
 	exp_len[workerid] -= model;
 	exp_start[workerid] = starpu_timing_now() + model;
 	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
@@ -162,6 +167,10 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	/* Update the predictions */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	starpu_call_pushed_task_cb(workerid);
+#endif STARPU_USE_SCHED_CTX_HYPERVISOR
+
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	exp_start[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
 	exp_end[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
@@ -184,11 +193,17 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
+	_starpu_increment_nsubmitted_tasks_of_worker(best_workerid);
+
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
 
 	PTHREAD_MUTEX_LOCK(sched_mutex);
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	starpu_call_pushed_task_cb(best_workerid);
+#endif STARPU_USE_SCHED_CTX_HYPERVISOR
+
 	exp_end[best_workerid] += predicted;
 	exp_len[best_workerid] += predicted;
 	ntasks[best_workerid]++;
@@ -357,7 +372,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
 	if (forced_best != -1){
-		_starpu_increment_nsubmitted_tasks_of_worker(forced_best);
 		return push_task_on_best_worker(task, forced_best, 0.0, prio, sched_ctx_id);
 	}
 	
@@ -433,7 +447,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	if(workers->init_cursor)
 		workers->deinit_cursor(workers);
 
-	_starpu_increment_nsubmitted_tasks_of_worker(best);
 	return push_task_on_best_worker(task, best, model_best, prio, sched_ctx_id);
 }
 

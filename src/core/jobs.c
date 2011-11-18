@@ -191,7 +191,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 	}
 
 	/* control task should not execute post_exec_hook */
-	if(task->cl != NULL)
+	if(task->cl != NULL && !task->control_task)
 		_starpu_sched_post_exec_hook(task);
 
 	STARPU_TRACE_TASK_DONE(j);

@@ -193,6 +193,10 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
 			va_arg(varg_list, starpu_data_handle);
 		}
+		else if (arg_type==STARPU_CHECKPOINT) {
+			int checkpoint = va_arg(varg_list, int);
+			(*task)->checkpoint = checkpoint;
+		}
 	}
 
 	va_end(varg_list);
