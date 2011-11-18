@@ -304,15 +304,15 @@ void starpu_bcsr_data_register(starpu_data_handle *handle, uint32_t home_node, u
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 
 
-uint32_t starpu_bcsr_get_nnz(starpu_data_handle);
-uint32_t starpu_bcsr_get_nrow(starpu_data_handle);
-uint32_t starpu_bcsr_get_firstentry(starpu_data_handle);
-uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle);
-uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle);
-uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle);
-uint32_t starpu_bcsr_get_r(starpu_data_handle);
-uint32_t starpu_bcsr_get_c(starpu_data_handle);
-size_t starpu_bcsr_get_elemsize(starpu_data_handle);
+uint32_t starpu_bcsr_get_nnz(starpu_data_handle handle);
+uint32_t starpu_bcsr_get_nrow(starpu_data_handle handle);
+uint32_t starpu_bcsr_get_firstentry(starpu_data_handle handle);
+uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle handle);
+uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle handle);
+uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle handle);
+uint32_t starpu_bcsr_get_r(starpu_data_handle handle);
+uint32_t starpu_bcsr_get_c(starpu_data_handle handle);
+size_t starpu_bcsr_get_elemsize(starpu_data_handle handle);
 
 /*
  * Multiformat interface
