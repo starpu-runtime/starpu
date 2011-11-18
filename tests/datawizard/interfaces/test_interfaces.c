@@ -25,6 +25,7 @@
 - RAM to RAM ?
 - Asynchronous vs synchronous
 - Better error messages
+- call starpu_data_unregister
 */
 
 /* Interfaces to test */
@@ -50,7 +51,7 @@ static int factor = -1;
  * Arguments :
  *	- taskp : a pointer to a valid task
  *	- type : STARPU_{CPU,CUDA,OPENCL}_WORKER. Gordon is not supported.
- *      - id   : -1 if you dont care about the device where the task will be 
+ *      - id   : -1 if you dont care about the device where the task will be
  *		 executed, as long as it has the right type.
  *		 >= 0 if you want to make sure the task will be executed on the
  *		 idth device that has the specified type.
@@ -219,7 +220,7 @@ cuda_to_ram(void)
 	err = create_task(&task, STARPU_CPU_WORKER, -1);
 	if (err != 0)
 	{
-		fprintf(stderr, "Could not create the task\n");	
+		fprintf(stderr, "Could not create the task\n");
 		return 1;
 	}
 
@@ -351,7 +352,7 @@ load_conf(struct test_config *config)
 	{
 		return 1;
 	}
-	
+
 	current_config = config;
 	return 0;
 }
@@ -384,7 +385,7 @@ main(void)
 		else
 			fprintf(stderr, "%s : OK\n", current_config->name);
 	}
-	
+
 	starpu_shutdown();
 	return EXIT_SUCCESS;
 }
