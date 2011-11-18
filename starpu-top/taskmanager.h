@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef TASKMANAGER_H
 #define TASKMANAGER_H
 
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 #include <QDebug>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
@@ -46,9 +46,9 @@ public:
     void addTaskStart(int taskId, int deviceId, qlonglong timestampStart);
     void addTaskEnd(int taskId, qlonglong timestampEnd);
     // Getters
-    QList<StarputopTask> tasks(qlonglong timestampStart,
+    QList<starpu_top_task> tasks(qlonglong timestampStart,
                                qlonglong timestampEnd);
-    QList<StarputopTask> prevTasks(qlonglong timestampStart,
+    QList<starpu_top_task> prevTasks(qlonglong timestampStart,
                                    qlonglong timestampEnd);
 
 private:

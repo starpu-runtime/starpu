@@ -51,7 +51,7 @@ const float gamma_maximum=10000.0;
 const float idle_power_minimum=0;
 const float idle_power_maximum=10000.0;
 
-static void param_modified(struct starputop_param_t* d){
+static void param_modified(struct starpu_top_param_t* d){
 	//just to show parameter modification
 	fprintf(stderr,"%s has been modified : alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n", 
 		d->name, alpha,beta,_gamma,idle_power);
@@ -78,10 +78,10 @@ static void heft_init(struct starpu_machine_topology_s *topology,
 	if (strval_idle_power)
 		idle_power = atof(strval_idle_power);
 	
-	starputop_register_parameter_float("HEFT_ALPHA", &alpha, alpha_minimum,alpha_maximum,param_modified);
-	starputop_register_parameter_float("HEFT_BETA", &beta, beta_minimum,beta_maximum,param_modified);
-	starputop_register_parameter_float("HEFT_GAMMA", &_gamma, gamma_minimum,gamma_maximum,param_modified);
-	starputop_register_parameter_float("HEFT_IDLE_POWER", &idle_power, idle_power_minimum,idle_power_maximum,param_modified);
+	starpu_top_register_parameter_float("HEFT_ALPHA", &alpha, alpha_minimum,alpha_maximum,param_modified);
+	starpu_top_register_parameter_float("HEFT_BETA", &beta, beta_minimum,beta_maximum,param_modified);
+	starpu_top_register_parameter_float("HEFT_GAMMA", &_gamma, gamma_minimum,gamma_maximum,param_modified);
+	starpu_top_register_parameter_float("HEFT_IDLE_POWER", &idle_power, idle_power_minimum,idle_power_maximum,param_modified);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
@@ -195,7 +195,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	task->predicted_transfer = predicted_transfer;
 
 	if (starpu_top_status_get())
-		starputop_task_prevision(task, best_workerid, 
+		starpu_top_task_prevision(task, best_workerid, 
 					(unsigned long long)(exp_end[best_workerid]-predicted)/1000,
 					(unsigned long long)exp_end[best_workerid]/1000);
 

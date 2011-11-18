@@ -15,21 +15,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include  "starputop_message_queue.h"
+#include  "starpu_top_message_queue.h"
 #include  <string.h>
 #include  <stdio.h>
 #include  <stdlib.h>
 
 //this global queue is used both by API and by network threads
-starputop_message_queue_t*  starputop_mt = NULL;
+starpu_top_message_queue_t*  starpu_top_mt = NULL;
 
 
-/* Will always return the pointer to starputop_message_queue */
-starputop_message_queue_t* starputop_message_add(
-			starputop_message_queue_t* s,
+/* Will always return the pointer to starpu_top_message_queue */
+starpu_top_message_queue_t* starpu_top_message_add(
+			starpu_top_message_queue_t* s,
 			char* msg)
 {
-	starputop_message_queue_item_t* p = (starputop_message_queue_item_t *) malloc( 1 * sizeof(*p) );
+	starpu_top_message_queue_item_t* p = (starpu_top_message_queue_item_t *) malloc( 1 * sizeof(*p) );
 	pthread_mutex_lock(&(s->mutex));
 	if( NULL == p )
 	{
@@ -67,11 +67,11 @@ starputop_message_queue_t* starputop_message_add(
 }
 
 //this is a queue and it is FIFO, so we will always remove the first element
-char* starputop_message_remove(starputop_message_queue_t* s)
+char* starpu_top_message_remove(starpu_top_message_queue_t* s)
 {
 	sem_wait(&(s->semaphore));
-	starputop_message_queue_item_t* h = NULL;
-	starputop_message_queue_item_t* p = NULL;
+	starpu_top_message_queue_item_t* h = NULL;
+	starpu_top_message_queue_item_t* p = NULL;
 
 	if( NULL == s )
 	{
@@ -94,9 +94,9 @@ char* starputop_message_remove(starputop_message_queue_t* s)
 }
 
 
-starputop_message_queue_t* starputop_message_queue_new(void)
+starpu_top_message_queue_t* starpu_top_message_queue_new(void)
 {
-	starputop_message_queue_t* p = (starputop_message_queue_t *) malloc( 1 * sizeof(*p));
+	starpu_top_message_queue_t* p = (starpu_top_message_queue_t *) malloc( 1 * sizeof(*p));
 	if( NULL == p )
 	{
 		fprintf(stderr, "LINE: %d, malloc() failed\n", __LINE__);

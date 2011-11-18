@@ -9,7 +9,7 @@ EXTRA_DIST	+=	\
                 starpu-top/abstractwidgetwindow.cpp     \
                 starpu-top/communicationthread.h        \
                 starpu-top/configurationmanager.cpp     \
-                starpu-top/starputoptypes.h             \
+                starpu-top/starpu_top_types.h             \
                 starpu-top/mainwindow.ui                \
                 starpu-top/mainwindow.cpp               \
                 starpu-top/sessionsetupmanager.cpp      \
@@ -18,7 +18,7 @@ EXTRA_DIST	+=	\
                 starpu-top/images/connect.png           \
                 starpu-top/images/debugon.png           \
                 starpu-top/images/help.png              \
-                starpu-top/images/starputop.png         \
+                starpu-top/images/starpu_top.png         \
                 starpu-top/images/widget.png            \
                 starpu-top/images/lock.png              \
                 starpu-top/images/about.png             \

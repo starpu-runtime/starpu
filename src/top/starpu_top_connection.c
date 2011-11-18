@@ -27,8 +27,8 @@
 #  include <netdb.h>
 #endif
 
-#include <top/starputop_connection.h>
-#include <top/starputop_message_queue.h>
+#include <top/starpu_top_connection.h>
+#include <top/starpu_top_message_queue.h>
 #include <starpu_top.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -37,38 +37,38 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-const char *STARPUTOP_PORT = "2011";
-const int STARPUTOP_BUFFER_SIZE=1024;
+const char *STARPU_TOP_PORT = "2011";
+const int STARPU_TOP_BUFFER_SIZE=1024;
 
-extern starputop_message_queue_t*  starputop_mt;
+extern starpu_top_message_queue_t*  starpu_top_mt;
 
 //client socket after fopen
-FILE* starputop_socket_fd_read;
-FILE* starputop_socket_fd_write;
+FILE* starpu_top_socket_fd_read;
+FILE* starpu_top_socket_fd_write;
 //client socket (file descriptor)
-int starputop_socket_fd;
+int starpu_top_socket_fd;
 
 
 void * message_from_ui(void * p)
 {
 	(void) p;
-	char str[STARPUTOP_BUFFER_SIZE];
+	char str[STARPU_TOP_BUFFER_SIZE];
 	while(1)
 	{
-		char * check=fgets (str, STARPUTOP_BUFFER_SIZE, starputop_socket_fd_read);
+		char * check=fgets (str, STARPU_TOP_BUFFER_SIZE, starpu_top_socket_fd_read);
 
 		printf("Message from UI : %s",str);
 		if (check)
 		{
-			starputop_process_input_message(str);
+			starpu_top_process_input_message(str);
 		}
 		else
 		{
 			fprintf(stderr,"Connection dropped\n");
 			//unlocking StarPU.
-			starputop_process_input_message("GO\n");
-			starputop_process_input_message("DEBUG;OFF\n");
-			starputop_process_input_message("STEP\n");
+			starpu_top_process_input_message("GO\n");
+			starpu_top_process_input_message("DEBUG;OFF\n");
+			starpu_top_process_input_message("STEP\n");
 			return NULL;
 		}
 	}
@@ -80,17 +80,17 @@ void * message_to_ui(void * p)
 	(void) p;
 	while(1)
 	{
-		char* message = starputop_message_remove(starputop_mt);
+		char* message = starpu_top_message_remove(starpu_top_mt);
 		int len=strlen(message);
-		int check=fwrite(message, sizeof(char), len, starputop_socket_fd_write);
-		int check2=fflush(starputop_socket_fd_write);
+		int check=fwrite(message, sizeof(char), len, starpu_top_socket_fd_write);
+		int check2=fflush(starpu_top_socket_fd_write);
 		free(message);
 		if (check!=len || check2==EOF )
 		{
 			fprintf(stderr,"Connection dropped : message no longer send\n");
 			while(1)
 			{
-				message=starputop_message_remove(starputop_mt);
+				message=starpu_top_message_remove(starpu_top_mt);
 				free(message);
 			}
 		}
@@ -98,7 +98,7 @@ void * message_to_ui(void * p)
 	return NULL;
 }
 
-void starputop_communications_threads_launcher()
+void starpu_top_communications_threads_launcher()
 {
 	pthread_t from_ui;
 	pthread_t to_ui;
@@ -115,7 +115,7 @@ void starputop_communications_threads_launcher()
 	req.ai_socktype = SOCK_STREAM;
 	req.ai_protocol = 0;  
   
-	if ((code = getaddrinfo(NULL, STARPUTOP_PORT, &req, &ans)) != 0)
+	if ((code = getaddrinfo(NULL, STARPU_TOP_PORT, &req, &ans)) != 0)
 	{
 		fprintf(stderr, " getaddrinfo failed %d\n", code);
 		exit(EXIT_FAILURE);
@@ -134,22 +134,22 @@ void starputop_communications_threads_launcher()
 
 	socklen_t len = sizeof(from);
 
-   	if ((starputop_socket_fd=accept(sock, (struct sockaddr *) &from, &len)) ==-1)
+   	if ((starpu_top_socket_fd=accept(sock, (struct sockaddr *) &from, &len)) ==-1)
 	{
 		fprintf(stderr, "accept error\n");
 		perror("accept");
 		exit(EXIT_FAILURE);
 	}
 	
-	if ( (starputop_socket_fd_read=fdopen(starputop_socket_fd, "r")) == NULL)
+	if ( (starpu_top_socket_fd_read=fdopen(starpu_top_socket_fd, "r")) == NULL)
 	{
 		perror("fdopen");
 		exit(EXIT_FAILURE);
 	}
 
-	starputop_socket_fd=dup(starputop_socket_fd);
+	starpu_top_socket_fd=dup(starpu_top_socket_fd);
 	
-	if ((starputop_socket_fd_write=fdopen(starputop_socket_fd, "w")) == NULL)
+	if ((starpu_top_socket_fd_write=fdopen(starpu_top_socket_fd, "w")) == NULL)
 	{
 		perror("fdopen");
 		exit(EXIT_FAILURE);

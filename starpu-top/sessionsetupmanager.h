@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 class MainWindow;
 
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 #include <QSettings>
 
 static const QString SESSION_SETUPS_DIR = "./sessionsetups";

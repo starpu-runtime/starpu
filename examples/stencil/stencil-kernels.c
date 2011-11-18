@@ -267,7 +267,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 	if (block->bz == 0)
-		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
+		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -360,7 +360,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	if (block->bz == 0)
-		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
+		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -435,7 +435,7 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 	}
 
 	if (block->bz == 0)
-		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
+		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 
 /* Performance model and codelet structure */

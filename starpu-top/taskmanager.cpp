@@ -171,10 +171,10 @@ void TaskManager::addTaskEnd(int taskId, qlonglong timestampEnd)
     }
 }
 
-QList<StarputopTask> TaskManager::tasks(qlonglong timestampStart,
-                                        qlonglong timestampEnd)
+QList<starpu_top_task> TaskManager::tasks(qlonglong timestampStart,
+					  qlonglong timestampEnd)
 {
-    QList < StarputopTask > tasks;
+    QList < starpu_top_task > tasks;
 
     _selectTasksQuery.addBindValue(timestampStart);
     _selectTasksQuery.addBindValue(timestampEnd);
@@ -206,7 +206,7 @@ QList<StarputopTask> TaskManager::tasks(qlonglong timestampStart,
             qlonglong timestampEnd =
                     _selectTasksQuery.value(endField).toLongLong();
 
-            StarputopTask task;
+            starpu_top_task task;
             task.taskId = taskId;
             task.deviceId = deviceId;
             task.timestampStart = timestampStart;
@@ -220,10 +220,10 @@ QList<StarputopTask> TaskManager::tasks(qlonglong timestampStart,
     return tasks;
 }
 
-QList<StarputopTask> TaskManager::prevTasks(qlonglong timestampStart,
+QList<starpu_top_task> TaskManager::prevTasks(qlonglong timestampStart,
                                             qlonglong timestampEnd)
 {
-    QList < StarputopTask > prevTasks;
+    QList < starpu_top_task > prevTasks;
 
     _selectPrevTasksQuery.addBindValue(timestampStart);
     _selectPrevTasksQuery.addBindValue(timestampEnd);
@@ -255,7 +255,7 @@ QList<StarputopTask> TaskManager::prevTasks(qlonglong timestampStart,
             qlonglong timestampEnd =
                     _selectPrevTasksQuery.value(endField).toLongLong();
 
-            StarputopTask prevTask;
+            starpu_top_task prevTask;
             prevTask.taskId = taskId;
             prevTask.deviceId = deviceId;
             prevTask.timestampStart = timestampStart;

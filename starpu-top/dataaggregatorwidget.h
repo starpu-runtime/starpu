@@ -34,7 +34,7 @@ class QwtPlot;
 
 #include <QHash>
 #include <QAction>
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 #include "abstractwidgetwindow.h"
 
 class DataAggregatorWidget : public AbstractWidgetWindow

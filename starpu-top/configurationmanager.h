@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <QSettings>
 
 static const QString CONFIG_FILE_DIR = ".";
-static const QString CONFIG_FILE_NAME = "starputop.cfg";
+static const QString CONFIG_FILE_NAME = "starpu_top.cfg";
 
 class ConfigurationManager
 { /* Contains and manages all the application settings

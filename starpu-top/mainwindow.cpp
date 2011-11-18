@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _dataAggregatorWidgets = new QList<QPointer<DataAggregatorWidget> > ();
     _dataDescriptions = new QList<DataDescription*> ();
     _paramDescriptions = new QList<ParamDescription*> ();
-    _serverDevices = new QList<StarputopDevice> ();
+    _serverDevices = new QList<starpu_top_device> ();
     _nbDataWidgets = _nbInteractiveWidgets = _nbDataAggregatorWidgets = 0;
 
     // Init managers
@@ -97,18 +97,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(settingsAction, SIGNAL(triggered()), this,
                      SLOT(on_actionPreferences_triggered()));
     connectButton->addAction(settingsAction);
-    ui->menuStarputop->addAction(_actionConnect);
+    ui->menu_starpu_top->addAction(_actionConnect);
     // Action launch
     _actionLaunch = ui->mainToolBar->addAction(QIcon(":/images/play.png"),
                                                tr("Launch StarPU"));
     _actionLaunch->setIconText("Launch StarPU");
     _actionLaunch->setToolTip("Launch StarPU");
     _actionLaunch->setShortcut(QKeySequence("Ctrl+L"));
-    ui->menuStarputop->addAction(_actionLaunch);
+    ui->menu_starpu_top->addAction(_actionLaunch);
     QObject::connect(_actionLaunch, SIGNAL(triggered()), this,
                      SLOT(on_actionLaunch_StarPU_triggered()));
     ui->mainToolBar->addSeparator();
-    ui->menuStarputop->addSeparator();
+    ui->menu_starpu_top->addSeparator();
     // Action debug
     _actionDebug = ui->mainToolBar->addAction(QIcon(":/images/debugon.png"),
                                               tr("Enable debug"));
@@ -116,7 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _actionDebug->setToolTip("Enable debug");
     _actionDebug->setShortcut(QKeySequence("Ctrl+D"));
     _actionDebug->setCheckable(true);
-    ui->menuStarputop->addAction(_actionDebug);
+    ui->menu_starpu_top->addAction(_actionDebug);
     QObject::connect(_actionDebug, SIGNAL(toggled(bool)),
                      this, SLOT(on_actionDebug_triggered(bool)));
     // Action save session setup
@@ -125,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _actionSaveSessionSetup->setIconText("Save session setup");
     _actionSaveSessionSetup->setToolTip("Save session setup");
     _actionSaveSessionSetup->setShortcut(QKeySequence("Ctrl+S"));
-    ui->menuStarputop->addAction(_actionSaveSessionSetup);
+    ui->menu_starpu_top->addAction(_actionSaveSessionSetup);
     QObject::connect(_actionSaveSessionSetup, SIGNAL(triggered()), this,
                      SLOT(on_actionSaveSessionSetup_triggered()));
     // Action add data aggregator widget
@@ -135,13 +135,13 @@ MainWindow::MainWindow(QWidget *parent) :
     _actionAddDataAggregatorWidget->setIconText("Add data aggregator widget");
     _actionAddDataAggregatorWidget->setToolTip("Add data aggregator widget");
     _actionAddDataAggregatorWidget->setShortcut(QKeySequence("Ctrl+G"));
-    ui->menuStarputop->addAction(_actionAddDataAggregatorWidget);
+    ui->menu_starpu_top->addAction(_actionAddDataAggregatorWidget);
     QObject::connect(_actionAddDataAggregatorWidget, SIGNAL(triggered()), this,
                      SLOT(on_actionAddDataAggregatorWidget_triggered()));
     ui->mainToolBar->addSeparator();
-    ui->menuStarputop->addSeparator();
+    ui->menu_starpu_top->addSeparator();
     // Action quit
-    QAction *actionQuit = ui->menuStarputop->addAction(
+    QAction *actionQuit = ui->menu_starpu_top->addAction(
             QIcon(":/images/quit.png"), tr("Quit"));
     actionQuit->setIconText("Quit");
     actionQuit->setToolTip("Quit");
@@ -540,7 +540,7 @@ void MainWindow::synchronizeSessionTime(qlonglong serverTimestamp)
 void MainWindow::initClient(QString serverID,
                             QList<DataDescription*> *dataDescriptions,
                             QList<ParamDescription*> *paramDescriptions,
-                            QList<StarputopDevice> *serverDevices)
+                            QList<starpu_top_device> *serverDevices)
 {
     _serverID = serverID;
     _dataDescriptions = dataDescriptions;
@@ -1213,7 +1213,7 @@ ParamDescription *MainWindow::paramDescriptionFromId(int paramId)
     return 0;
 }
 
-const QList<StarputopDevice> *MainWindow::serverDevices() const
+const QList<starpu_top_device> *MainWindow::serverDevices() const
 {
     return _serverDevices;
 }

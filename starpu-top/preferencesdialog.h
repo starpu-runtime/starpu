@@ -33,7 +33,7 @@ class SessionSetupManager;
 #include <QMetaType>
 #include <QDialog>
 #include <QComboBox>
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 
 namespace Ui
 {

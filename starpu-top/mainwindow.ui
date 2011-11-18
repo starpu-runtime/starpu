@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/images/starputop.png</normaloff>:/images/starputop.png</iconset>
+    <normaloff>:/images/starpu_top.png</normaloff>:/images/starpu_top.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">
@@ -42,7 +42,7 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuStarputop">
+   <widget class="QMenu" name="menu_starpu_top">
     <property name="title">
      <string>StarPU-Top</string>
     </property>
@@ -59,7 +59,7 @@
     </property>
     <addaction name="actionPreferences"/>
    </widget>
-   <addaction name="menuStarputop"/>
+   <addaction name="menu_starpu_top"/>
    <addaction name="menuDisplay"/>
    <addaction name="menuHelp"/>
   </widget>

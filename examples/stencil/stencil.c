@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,8 +37,8 @@ static unsigned sizez = 64*SIZE;
 unsigned nbz = 64;
 
 /* StarPU top variables */
-starputop_data* starputop_init_loop;
-starputop_data* starputop_achieved_loop;
+starpu_top_data* starpu_top_init_loop;
+starpu_top_data* starpu_top_achieved_loop;
 
 /*
  *	Initialization
@@ -115,9 +115,9 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 	parse_args(argc, argv);
 
 	if (getenv("STARPU_TOP")) {
-		starputop_init_loop = starputop_add_data_integer("Task creation iter", 0, niter, 1);
-		starputop_achieved_loop = starputop_add_data_integer("Task achieved iter", 0, niter, 1);
-		starputop_init_and_wait("stencil_top example");
+		starpu_top_init_loop = starpu_top_add_data_integer("Task creation iter", 0, niter, 1);
+		starpu_top_achieved_loop = starpu_top_add_data_integer("Task achieved iter", 0, niter, 1);
+		starpu_top_init_and_wait("stencil_top example");
 	}
 	create_blocks_array(sizex, sizey, sizez, nbz);
 

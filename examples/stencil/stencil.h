@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -45,8 +45,8 @@ extern void life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
 #define K	1
 
 #define NDIRS 2
-extern starputop_data* starputop_init_loop;
-extern starputop_data* starputop_achieved_loop;
+extern starpu_top_data* starpu_top_init_loop;
+extern starpu_top_data* starpu_top_achieved_loop;
 
 
 /* Split only on the z axis to make things simple */

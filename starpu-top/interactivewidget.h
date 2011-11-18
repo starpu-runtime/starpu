@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <QCloseEvent>
 #include <QLabel>
 #include <QHBoxLayout>
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 
 class MainWindow;
 

@@ -31,7 +31,7 @@ class TaskManager;
 
 #include <QGLWidget>
 #include <QPainter>
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 
 class GanttWidget : public QGLWidget
 {
@@ -58,9 +58,9 @@ protected:
     void drawTime(QPainter *painter);
     void drawProgram(QPainter *painter);
     void resizeGL (int width,int height);
-    void drawWorkPU(QPainter *painter, StarputopTask t);
+    void drawWorkPU(QPainter *painter, starpu_top_task t);
     void drawIdlePU(QPainter *painter);
-    void drawPrevWorkPU(QPainter *painter, StarputopTask t);
+    void drawPrevWorkPU(QPainter *painter, starpu_top_task t);
     void defaultScreen(QPainter *painter);
     void drawPresentLine(QPainter *painter);
     int computeTimeInterval(int timeTotal);
@@ -84,7 +84,7 @@ private:
     qreal _coordxPresentLine;
     int _numPUs;
     bool _wasRunning;
-    QList<StarputopTask> _tasks;
+    QList<starpu_top_task> _tasks;
     int _timeTotal;
     int _timeAfter;
     int _timeBefore;
@@ -92,8 +92,8 @@ private:
     QTimer *_timer;
     qlonglong _timePresent;
     qlonglong _timeToShow;
-    StarputopDevice *_PUsByDevice;
-    StarputopDevice *_PUsByPos;
+    starpu_top_device *_PUsByDevice;
+    starpu_top_device *_PUsByPos;
     int _numCPUs;
     int _numGPUs;
     bool _initCompleted;

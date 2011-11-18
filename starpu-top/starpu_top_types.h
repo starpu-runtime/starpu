@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 
-#ifndef STARPUTOPTYPES_H
-#define STARPUTOPTYPES_H
+#ifndef STARPU_TOP_TYPES_H
+#define STARPU_TOP_TYPES_H
 
 #include <QString>
 #include <QStringList>
@@ -112,7 +112,7 @@ enum ParamType
     PARAM_TYPE_ENUM = 4,
 };
 
-enum StarputopDeviceType
+enum starpu_top_device_type
 {
     SERVERDEVICE_CPU = 0,
     SERVERDEVICE_CUDA = 1,
@@ -124,9 +124,9 @@ enum StarputopDeviceType
 typedef struct
 {
     int id;
-    StarputopDeviceType type;
+    starpu_top_device_type type;
     QString name;
-} StarputopDevice;
+} starpu_top_device;
 
 // Server tasks
 typedef struct
@@ -135,7 +135,7 @@ typedef struct
     int deviceId;
     qlonglong timestampStart;
     qlonglong timestampEnd;
-} StarputopTask;
+} starpu_top_task;
 
 // Descriptions
 typedef struct
@@ -318,4 +318,4 @@ typedef struct
     QList<int> dataIds;
 } DataAggregatorWidgetSetup;
 
-#endif // STARPUTOPTYPES_H
+#endif // STARPU_TOP_TYPES_H

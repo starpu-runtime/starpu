@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define COMMUNICATIONMANAGER_H
 
 #include <QTcpSocket>
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 
 class CommunicationManager : public QTcpSocket
 { /* Receives protocol messages from server, parses them
@@ -54,7 +54,7 @@ private:
     qlonglong _serverTimestamp;
     QList<DataDescription*> *_dataDescriptions;
     QList<ParamDescription*> *_paramDescriptions;
-    QList<StarputopDevice> *_serverDevices;
+    QList<starpu_top_device> *_serverDevices;
     // Communication states
     CommunicationState _state;
     bool _initServerInfoCompleted;
@@ -125,7 +125,7 @@ signals:
     void serverInitCompleted(QString serverID,
                              QList<DataDescription*> *dataDescriptions,
                              QList<ParamDescription*> *paramDescriptions,
-                             QList<StarputopDevice> *serverDevices);
+                             QList<starpu_top_device> *serverDevices);
     // Notify GUI with a protocol message
     // Protocol error
     void protocolError(QString errorMessage);

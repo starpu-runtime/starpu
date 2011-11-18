@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony
- * Roy
+ * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
+ * Copyright (C) 2011 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,9 @@
  */
 
 #include <starpu_top.h>
-#include <top/starputop_message_queue.h>
-#include <top/starputop_connection.h>
+#include <top/starpu_top_message_queue.h>
+#include <top/starpu_top_connection.h>
+#include <top/starpu_top_core.h>
 #include <core/task.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,7 +29,7 @@
  **************TASK RELATED FUNCTIONS********
  *******************************************/
 
-void starputop_task_started(
+void starpu_top_task_started(
 			struct starpu_task *task, 
 			int devid, 
 			const struct timespec *ts)
@@ -40,12 +41,12 @@ void starputop_task_started(
 				"START;%llu;%d;%llu\n",
 				taskid, 
 				devid, 
-				starpu_timing_timespec_to_ms(ts));
+				_starpu_top_timing_timespec_to_ms(ts));
 
-	starputop_message_add(starputop_mt, str);
+	starpu_top_message_add(starpu_top_mt, str);
 }
 
-void starputop_task_ended(
+void starpu_top_task_ended(
 			struct starpu_task *task, 
 			int devid, 
 			const struct timespec *ts)
@@ -57,24 +58,24 @@ void starputop_task_ended(
 	snprintf(str, 64,
 				"END;%llu;%llu\n", 
 				taskid, 
-				starpu_timing_timespec_to_ms(ts));
+				_starpu_top_timing_timespec_to_ms(ts));
 
-	starputop_message_add(starputop_mt, str);
+	starpu_top_message_add(starpu_top_mt, str);
 }
 
-void starputop_task_prevision_timespec(
+void starpu_top_task_prevision_timespec(
 			struct starpu_task *task,
 			int devid, 
 			const struct timespec* start, 
 			const struct timespec* end)
 {
-	starputop_task_prevision(task, 
+	starpu_top_task_prevision(task, 
 							devid, 
-							starpu_timing_timespec_to_ms(start),
-							starpu_timing_timespec_to_ms(end));
+							_starpu_top_timing_timespec_to_ms(start),
+							_starpu_top_timing_timespec_to_ms(end));
 }
 
-void starputop_task_prevision(
+void starpu_top_task_prevision(
 			struct starpu_task *task, 
 			int devid, 
 			unsigned long long start, 
@@ -89,9 +90,9 @@ void starputop_task_prevision(
 				"PREV;%llu;%d;%llu;%llu;%llu\n",
 				taskid,
 				devid,
-				starpu_timing_timespec_to_ms(&now),
+				_starpu_top_timing_timespec_to_ms(&now),
 				start,
 				end);
 
-	starputop_message_add(starputop_mt, str);
+	starpu_top_message_add(starpu_top_mt, str);
 }
