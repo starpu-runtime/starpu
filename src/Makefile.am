@@ -110,7 +110,8 @@ noinst_HEADERS = 						\
 	util/starpu_insert_task_utils.h				\
 	starpu_parameters.h					\
 	top/starpu_top_message_queue.h				\
-	top/starpu_top_connection.h
+	top/starpu_top_connection.h				\
+	top/starpu_top_core.h
 
 libstarpu_la_SOURCES = 						\
 	common/barrier.c					\
