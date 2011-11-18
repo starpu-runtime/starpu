@@ -25,7 +25,9 @@ EXTRA_DIST =					\
 	microbenchs/null_kernel_gordon.c	\
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
-	coverage/coverage.sh
+	coverage/coverage.sh			\
+	datawizard/interfaces/test_interfaces.h	\
+	datawizard/interfaces/test_vector_opencl_kernel.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
