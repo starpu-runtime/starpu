@@ -18,4 +18,5 @@ process_file()
     done
 }
 
-for f in $* ; do process_file $f ; done
+for f in $(find tests -type f -not -path "*svn*") ; do process_file $f ; done
+for f in $(find examples -type f -not -path "*svn*") ; do process_file $f ; done
