@@ -183,7 +183,7 @@ struct starpu_task {
 	 from the ones provided by the appl*/
 	unsigned control_task;
 
-	int checkpoint;
+	int hypervisor_tag;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -210,7 +210,7 @@ struct starpu_task {
 	.starpu_private = NULL,				\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
-		.checkpoint = 0				\
+		.hypervisor_tag = 0			\
 };
 
 /*

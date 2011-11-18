@@ -419,9 +419,9 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	if(task->checkpoint > 0 && sched_ctx != NULL && 
+	if(task->hypervisor_tag > 0 && sched_ctx != NULL && 
 	   sched_ctx->id != 0 && sched_ctx->criteria != NULL)
-		sched_ctx->criteria->post_exec_hook_cb(sched_ctx->id, task->checkpoint);
+		sched_ctx->criteria->post_exec_hook_cb(sched_ctx->id, task->hypervisor_tag);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	if (sched_ctx->sched_policy->post_exec_hook)

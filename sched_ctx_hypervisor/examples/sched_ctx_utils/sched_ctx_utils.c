@@ -259,7 +259,7 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 				   NULL);
 }
 
-void set_hypervisor_conf(int event, int checkpoint)
+void set_hypervisor_conf(int event, int task_tag)
 {
 	unsigned *id = pthread_getspecific(key);
 	pthread_mutex_lock(&mut);
@@ -284,11 +284,11 @@ void set_hypervisor_conf(int event, int checkpoint)
 		}
  		
 
-		sched_ctx_hypervisor_advise(p2.ctx, p2.procs, p2.nprocs, &reply2[checkpoint]);
-		if(reply2[checkpoint].procs)
+		sched_ctx_hypervisor_advise(p2.ctx, p2.procs, p2.nprocs, &reply2[task_tag]);
+		if(reply2[task_tag].procs)
 			sched_ctx_hypervisor_ioctl(p2.ctx,
-						   HYPERVISOR_MAX_IDLE, reply2[checkpoint].procs, reply2[checkpoint].nprocs, max_idle_time_small,
-						   HYPERVISOR_TIME_TO_APPLY, checkpoint,
+						   HYPERVISOR_MAX_IDLE, reply2[task_tag].procs, reply2[task_tag].nprocs, max_idle_time_small,
+						   HYPERVISOR_TIME_TO_APPLY, task_tag,
 						   HYPERVISOR_GRANULARITY, 1,
 						   NULL);
 	}

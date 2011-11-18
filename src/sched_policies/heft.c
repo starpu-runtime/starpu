@@ -136,6 +136,14 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	/* the tasks concerning changings of the the ctxs were not executed in order */
+	if(!sched_mutex)
+	{
+		struct starpu_worker_s *workerarg = _starpu_get_worker_struct(workerid);
+		sched_mutex = &workerarg->sched_mutex;
+		sched_cond = &workerarg->sched_cond;
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, sched_mutex, sched_cond);
+	}
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -163,13 +171,21 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	/* the tasks concerning changings of the the ctxs were not executed in order */
+	if(!sched_mutex)
+	{
+		struct starpu_worker_s *workerarg = _starpu_get_worker_struct(workerid);
+		sched_mutex = &workerarg->sched_mutex;
+		sched_cond = &workerarg->sched_cond;
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, sched_mutex, sched_cond);
+	}
 
 	/* Update the predictions */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(workerid);
-#endif STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	exp_start[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
@@ -198,11 +214,19 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
+	/* the tasks concerning changings of the the ctxs were not executed in order */
+	if(!sched_mutex)
+	{
+		struct starpu_worker_s *workerarg = _starpu_get_worker_struct(best_workerid);
+		sched_mutex = &workerarg->sched_mutex;
+		sched_cond = &workerarg->sched_cond;
+		starpu_worker_set_sched_condition(sched_ctx_id, best_workerid, sched_mutex, sched_cond);
+	}
 
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(best_workerid);
-#endif STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	exp_end[best_workerid] += predicted;
 	exp_len[best_workerid] += predicted;

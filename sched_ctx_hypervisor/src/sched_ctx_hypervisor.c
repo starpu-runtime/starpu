@@ -148,14 +148,14 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 
 	int arg_type;
 	int stop = 0;
-	int task_checkpoint = -1;
+	int task_tag = -1;
 
 	while ((arg_type = va_arg(varg_list, int)) != 0) 
 	{
 		switch(arg_type)
 		{
 		case HYPERVISOR_TIME_TO_APPLY:
-			task_checkpoint = va_arg(varg_list, int);
+			task_tag = va_arg(varg_list, int);
 			stop = 1;
 			break;
 
@@ -170,9 +170,9 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	va_start(varg_list, sched_ctx);
 
 	/* hypervisor configuration to be considered later */
-	void *data = hypervisor.policy.ioctl(sched_ctx, varg_list, (task_checkpoint > 0));
+	void *data = hypervisor.policy.ioctl(sched_ctx, varg_list, (task_tag > 0));
 	if(data != NULL)
-		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_checkpoint, data);
+		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, data);
 
 	return;
 }
@@ -295,10 +295,10 @@ static void poped_task_cb(unsigned sched_ctx, int worker)
 	hypervisor.resize = ((ntasks - npoped_tasks) > 0);
 }
 
-static void post_exec_hook_cb(unsigned sched_ctx, int task_checkpoint)
+static void post_exec_hook_cb(unsigned sched_ctx, int task_tag)
 {
-	STARPU_ASSERT(task_checkpoint > 0);
-	void *data = _starpu_htbl_search_32(hypervisor.configurations[sched_ctx], (uint32_t)task_checkpoint);
+	STARPU_ASSERT(task_tag > 0);
+	void *data = _starpu_htbl_search_32(hypervisor.configurations[sched_ctx], (uint32_t)task_tag);
 	if(data != NULL)	
 		sched_ctx_hypervisor_set_data(sched_ctx, data);
 }

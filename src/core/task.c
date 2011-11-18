@@ -84,7 +84,7 @@ void starpu_task_init(struct starpu_task *task)
 	
 	task->control_task = 0;
 
-	task->checkpoint = 0;
+	task->hypervisor_tag = 0;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task

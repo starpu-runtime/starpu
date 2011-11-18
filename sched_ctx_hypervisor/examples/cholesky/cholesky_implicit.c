@@ -69,7 +69,7 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 	cl22.type = STARPU_SPMD;
 }
 
-int checkpoints = 1;
+int hypervisor_tag = 1;
 static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 {
 	struct timeval start;
@@ -91,9 +91,9 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 					   STARPU_PRIORITY, prio_level,
 					   STARPU_RW, sdatakk,
 					   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
-					   STARPU_CHECKPOINT, checkpoints,
+					   STARPU_HYPERVISOR_TAG, hypervisor_tag,
 					   0);
-			set_hypervisor_conf(START_BENCH, checkpoints++);
+			set_hypervisor_conf(START_BENCH, hypervisor_tag++);
 		}
 		else
 			starpu_insert_task(&cl11,
@@ -127,10 +127,10 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 								   STARPU_R, sdataki,
 								   STARPU_R, sdatakj,
 								   STARPU_RW, sdataij,
-								   STARPU_CHECKPOINT, checkpoints,
+								   STARPU_HYPERVISOR_TAG, hypervisor_tag,
 								   0);
 						
-						set_hypervisor_conf(END_BENCH, checkpoints++);
+						set_hypervisor_conf(END_BENCH, hypervisor_tag++);
 					}
 					
 					else

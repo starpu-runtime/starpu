@@ -239,7 +239,7 @@ int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle
 #define STARPU_PRIORITY		(1<<7)	/* Priority associated to the task */
 #define STARPU_EXECUTE_ON_NODE	(1<<8)	/* Used by MPI to define which task is going to execute the codelet */
 #define STARPU_EXECUTE_ON_DATA	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
-#define STARPU_CHECKPOINT	(1<<10)	/* Used to checkpoint a task after whose execution we'll execute  a code */
+#define STARPU_HYPERVISOR_TAG	(1<<10)	/* Used to checkpoint a task after whose execution we'll execute  a code */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(starpu_codelet *cl, ...);
