@@ -293,7 +293,6 @@ This datatype describes a data access mode. The different available modes are:
 @item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
 @item @code{STARPU_REDUX} reduction mode.
 @end table
-TODO: document, as well as @code{starpu_data_set_reduction_methods}
 @end deftp
 
 @deftp {Data Type} {starpu_data_handle}
@@ -373,6 +372,10 @@ This function allows to specify that a piece of data can be discarded
 without impacting the application.
 @end deftypefun
 
+@deftypefun void starpu_data_set_reduction_methods (starpu_data_handle @var{handle}, {struct starpu_codelet_t *}@var{redux_cl}, {struct starpu_codelet_t *}@var{init_cl})
+todo
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
@@ -425,6 +428,13 @@ This function releases the piece of data acquired by the application either by
 @node Data Interfaces
 @section Data Interfaces
 
+@menu
+* Registering Data::            
+* Accessing Data Interfaces::   
+@end menu
+
+@node Registering Data
+@subsection Registering Data
 
 There are several ways to register a memory region so that it can be managed by
 StarPU.  The functions below allow the registration of vectors, 2D matrices, 3D
@@ -510,10 +520,6 @@ TODO
 todo
 @end deftypefun
 
-@menu
-* Accessing Data Interfaces::   
-@end menu
-
 @node Accessing Data Interfaces
 @subsection Accessing Data Interfaces
 
@@ -521,7 +527,23 @@ Each data interface is provided with a set of field access functions.
 The ones using a @code{void *} parameter aimed to be used in codelet
 implementations (see for example the code in @ref{Source code of Vector Scaling}).
 
+@deftp {Data Type} {enum starpu_data_interface_id}
+The different values are:
+@table @asis
+@item @code{STARPU_MATRIX_INTERFACE_ID}
+@item @code{STARPU_BLOCK_INTERFACE_ID}
+@item @code{STARPU_VECTOR_INTERFACE_ID}
+@item @code{STARPU_CSR_INTERFACE_ID}
+@item @code{STARPU_BCSR_INTERFACE_ID}
+@item @code{STARPU_VARIABLE_INTERFACE_ID}
+@item @code{STARPU_VOID_INTERFACE_ID}
+@item @code{STARPU_MULTIFORMAT_INTERFACE_ID}
+@item @code{STARPU_NINTERFACES_ID} : number of data interfaces
+@end table
+@end deftp
+
 @menu
+* Accessing Handle::            
 * Accessing Variable Data Interfaces::  
 * Accessing Vector Data Interfaces::  
 * Accessing Matrix Data Interfaces::  
@@ -529,6 +551,24 @@ implementations (see for example the code in @ref{Source code of Vector Scaling}
 * Accessing BCSR Data Interfaces::  
 * Accessing CSR Data Interfaces::  
 @end menu
+
+@node Accessing Handle
+@subsubsection Accessing Handle
+
+@deftypefun {void *}starpu_handle_to_pointer (starpu_data_handle @var{handle}, uint32_t @var{node})
+Return the pointer associated with @var{handle} on node @var{node} or
+@code{NULL} if @var{handle}'s interface does not support this
+operation or data for this handle is not allocated on that node.
+@end deftypefun
+
+@deftypefun {void *} starpu_handle_get_local_ptr (starpu_data_handle @var{handle})
+Return the local pointer associated with @var{handle} or @code{NULL}
+if @var{handle}'s interface does not have data allocated locally
+@end deftypefun
+
+@deftypefun {enum starpu_data_interface_id} starpu_get_handle_interface_id (starpu_data_handle @var{handle})
+todo
+@end deftypefun
 
 @node Accessing Variable Data Interfaces
 @subsubsection Accessing Variable Data Interfaces
@@ -1384,6 +1424,14 @@ This forces sampling the bus performance model again.
 @end deftypefun
 
 @deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})
+todo
+@end deftypefun
+
+@deftypefun int starpu_list_models (void)
+todo
+@end deftypefun
+
+@deftypefun void starpu_print_bus_bandwidth ({FILE *}@var{f})
 todo
 @end deftypefun
 

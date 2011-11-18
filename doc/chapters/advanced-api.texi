@@ -13,8 +13,9 @@
 * Defining a new data interface::  
 * Multiformat Data Interface::  
 * Task Bundles::                
-* Task Lists::                
+* Task Lists::                  
 * Defining a new scheduling policy::  
+* Expert mode::                 
 @end menu
 
 @node Defining a new data interface
@@ -356,4 +357,19 @@ static struct starpu_sched_policy dummy_sched_policy = @{
 @};
 @end smallexample
 @end cartouche
+
+@node Expert mode
+@section Expert mode
+
+@deftypefun void starpu_wake_all_blocked_workers (void)
+todo
+@end deftypefun
+
+@deftypefun int starpu_progression_hook_register (unsigned (*@var{func})(void *arg), void *@var{arg})
+todo
+@end deftypefun
+
+@deftypefun void starpu_progression_hook_deregister (int @var{hook_id})
+todo
+@end deftypefun
 
