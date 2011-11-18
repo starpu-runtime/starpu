@@ -718,7 +718,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 		initialize_model(model);
 	}
 
-	_STARPU_DEBUG("Performance model file %s for model %s is loaded", path, model->symbol);
+	_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
 
 	model->is_loaded = 1;
 

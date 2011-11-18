@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -274,6 +274,7 @@ int starpu_task_submit(struct starpu_task *task)
 		if (task->cl->conversion_model)
 			_starpu_load_perfmodel(task->cl->conversion_model);
 
+		_STARPU_DEBUG("Performance models (if available) are loaded\n");
 	}
 
 	/* If profiling is activated, we allocate a structure to store the
