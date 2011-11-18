@@ -425,6 +425,7 @@ This function releases the piece of data acquired by the application either by
 @node Data Interfaces
 @section Data Interfaces
 
+
 There are several ways to register a memory region so that it can be managed by
 StarPU.  The functions below allow the registration of vectors, 2D matrices, 3D
 matrices as well as  BCSR and CSR sparse matrices.
@@ -506,6 +507,273 @@ TODO
 @end deftypefun
 
 @deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle @var{handle}, unsigned @var{memory_node})
+todo
+@end deftypefun
+
+@menu
+* Accessing Data Interfaces::   
+@end menu
+
+@node Accessing Data Interfaces
+@subsection Accessing Data Interfaces
+
+Each data interface is provided with a set of field access functions.
+The ones using a @code{void *} parameter aimed to be used in codelet
+implementations (see for example the code in @ref{Source code of Vector Scaling}).
+
+@menu
+* Accessing Variable Data Interfaces::  
+* Accessing Vector Data Interfaces::  
+* Accessing Matrix Data Interfaces::  
+* Accessing Block Data Interfaces::  
+* Accessing BCSR Data Interfaces::  
+* Accessing CSR Data Interfaces::  
+@end menu
+
+@node Accessing Variable Data Interfaces
+@subsubsection Accessing Variable Data Interfaces
+
+@deftypefun size_t starpu_variable_get_elemsize (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t starpu_variable_get_local_ptr (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_VARIABLE_GET_PTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun size_t STARPU_VARIABLE_GET_ELEMSIZE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@node Accessing Vector Data Interfaces
+@subsubsection Vector Data Interfaces
+
+@deftypefun uint32_t starpu_vector_get_nx (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun size_t starpu_vector_get_elemsize (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t starpu_vector_get_local_ptr (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_VECTOR_GET_PTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_VECTOR_GET_NX ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun size_t STARPU_VECTOR_GET_ELEMSIZE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@node Accessing Matrix Data Interfaces
+@subsubsection Matrix Data Interfaces
+
+@deftypefun uint32_t starpu_matrix_get_nx (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_matrix_get_ny (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_matrix_get_local_ld (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t starpu_matrix_get_local_ptr (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun size_t starpu_matrix_get_elemsize (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_MATRIX_GET_PTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_MATRIX_GET_NX ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_MATRIX_GET_NY ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_MATRIX_GET_LD ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun size_t STARPU_MATRIX_GET_ELEMSIZE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@node Accessing Block Data Interfaces
+@subsubsection Block Data Interfaces
+
+@deftypefun uint32_t starpu_block_get_nx (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_block_get_ny (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_block_get_nz (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_block_get_local_ldy (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_block_get_local_ldz (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t starpu_block_get_local_ptr (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun size_t starpu_block_get_elemsize (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_BLOCK_GET_PTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_BLOCK_GET_NX ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_BLOCK_GET_NY ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_BLOCK_GET_NZ ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_BLOCK_GET_LDY ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_BLOCK_GET_LDZ ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun size_t STARPU_BLOCK_GET_ELEMSIZE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@node Accessing BCSR Data Interfaces
+@subsubsection BCSR Data Interfaces
+
+@deftypefun uint32_t starpu_bcsr_get_nnz (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_bcsr_get_nrow (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_bcsr_get_firstentry (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t starpu_bcsr_get_local_nzval (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun {uint32_t *} starpu_bcsr_get_local_colind (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun {uint32_t *} starpu_bcsr_get_local_rowptr (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_bcsr_get_r (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_bcsr_get_c (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun size_t starpu_bcsr_get_elemsize (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+
+@node Accessing CSR Data Interfaces
+@subsubsection CSR Data Interfaces
+
+@deftypefun uint32_t starpu_csr_get_nnz (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_csr_get_nrow (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t starpu_csr_get_firstentry (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t starpu_csr_get_local_nzval (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun {uint32_t *} starpu_csr_get_local_colind (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun {uint32_t *} starpu_csr_get_local_rowptr (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun size_t starpu_csr_get_elemsize (starpu_data_handle @var{handle})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_CSR_GET_NNZ ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_CSR_GET_NROW ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_CSR_GET_NZVAL ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun {uint32_t *} STARPU_CSR_GET_COLIND ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun {uint32_t *} STARPU_CSR_GET_ROWPTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uint32_t STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun size_t STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
 todo
 @end deftypefun
 
@@ -1112,6 +1380,9 @@ TODO
 This forces sampling the bus performance model again.
 @end deftypefun
 
+@deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})
+todo
+@end deftypefun
 
 @node Profiling API
 @section Profiling API
