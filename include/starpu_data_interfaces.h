@@ -87,6 +87,18 @@ struct starpu_data_copy_methods {
 #endif
 };
 
+enum starpu_data_interface_id {
+	STARPU_MATRIX_INTERFACE_ID=0,
+	STARPU_BLOCK_INTERFACE_ID=1,
+	STARPU_VECTOR_INTERFACE_ID=2,
+	STARPU_CSR_INTERFACE_ID=3,
+	STARPU_BCSR_INTERFACE_ID=4,
+	STARPU_VARIABLE_INTERFACE_ID=5,
+	STARPU_VOID_INTERFACE_ID=6,
+	STARPU_MULTIFORMAT_INTERFACE_ID=7,
+	STARPU_NINTERFACES_ID=8 /* number of data interfaces */
+};
+
 struct starpu_data_interface_ops {
 	/* Register an existing interface into a data handle. */
 	void (*register_data_handle)(starpu_data_handle handle,
@@ -112,7 +124,7 @@ struct starpu_data_interface_ops {
 	int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 	/* an identifier that is unique to each interface */
-	unsigned interfaceid;
+	enum starpu_data_interface_id interfaceid;
 	/* The size of the interface data descriptor */
 	size_t interface_size;
 };
@@ -364,17 +376,7 @@ void starpu_multiformat_data_register(starpu_data_handle *handle,
 
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((starpu_multiformat_interface_t *)(interface))->nx)
 
-#define STARPU_MATRIX_INTERFACE_ID	0
-#define STARPU_BLOCK_INTERFACE_ID	1
-#define STARPU_VECTOR_INTERFACE_ID	2
-#define STARPU_CSR_INTERFACE_ID		3
-#define STARPU_BCSR_INTERFACE_ID	4
-#define STARPU_VARIABLE_INTERFACE_ID	5
-#define STARPU_VOID_INTERFACE_ID	6
-#define STARPU_MULTIFORMAT_INTERFACE_ID 7
-#define STARPU_NINTERFACES_ID		8 /* number of data interfaces */
-
-unsigned starpu_get_handle_interface_id(starpu_data_handle);
+enum starpu_data_interface_id starpu_get_handle_interface_id(starpu_data_handle);
 
 /* Lookup a ram pointer into a StarPU handle */
 extern starpu_data_handle starpu_data_lookup(const void *ptr);
