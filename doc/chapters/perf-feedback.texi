@@ -158,7 +158,7 @@ starpu_top_update_data_integer(data, mynum);
 Updateable parameters can be registered thanks to @code{starpu_top_register_parameter_boolean}, @code{starpu_top_register_parameter_integer}, @code{starpu_top_register_parameter_float}, e.g.:
 
 @example
-float apha;
+float alpha;
 starpu_top_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
 @end example
 
