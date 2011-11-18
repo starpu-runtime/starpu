@@ -19,7 +19,7 @@ handles = {}
 
 @select@
 position p;
-identifier f ~= "^starpu_.*_data_register$";
+identifier f =~ "^starpu_.*_data_register$";
 identifier e;
 @@
 <...

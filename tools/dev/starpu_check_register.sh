@@ -21,11 +21,11 @@
 stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
 
-filest=$(find tests -type f -not -path "*svn*" -name '*.c')
 filese=$(find examples -type f -not -path "*svn*" -name '*.c')
+filest=$(find tests -type f -not -path "*svn*" -name '*.c')
 
 for file in $filest $filese ; do
-    handles=$(spatch -sp_file tools/dev/starpu_check_register.cocci $file 2>/dev/null)
+    handles=$(spatch -very_quiet -sp_file tools/dev/starpu_check_register.cocci $file)
     if test "x$handles" != "x" ; then
 	for handle in $handles; do
 	    echo "$handle"

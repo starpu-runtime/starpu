@@ -16,7 +16,7 @@
 @starpufunc@
 position p;
 type t;
-identifier f ~= "starpu";
+identifier f =~ "starpu";
 @@
 
 t f@p( ... );

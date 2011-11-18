@@ -22,7 +22,7 @@ stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
 greencolor=$(tput setaf 2)
 
-functions=$(spatch -sp_file tools/dev/starpu_funcs.cocci $(find include -name '*.h')   2>/dev/null)
+functions=$(spatch -very_quiet -sp_file tools/dev/starpu_funcs.cocci $(find include -name '*.h'))
 for func in $functions ; do
 	fname=$(echo $func|awk -F ',' '{print $1}')
 	location=$(echo $func|awk -F ',' '{print $2}')
