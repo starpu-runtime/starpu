@@ -31,13 +31,13 @@ void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_resize(unsigned sender_sched_ctx, unsigned receier_sched_ctx, int *workers_to_move, unsigned nworkers_to_movex);
 
-void sched_ctx_hypervisor_set_data(unsigned sched_ctx, void *data);
+void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
-void* sched_ctx_hypervisor_get_data(unsigned sched_ctx);
+void* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
-void sched_ctx_hypervisor_advise(unsigned sched_ctx, int *workers, int nworkers, struct sched_ctx_hypervisor_reply *reply);
+void sched_ctx_hypervisor_advise(unsigned sched_ctx, int *workers, int nworkers, int task_tag);
 
 struct sched_ctx_hypervisor_reply* sched_ctx_hypervisor_request(unsigned sched_ctx, int *workers, int nworkers);
 
