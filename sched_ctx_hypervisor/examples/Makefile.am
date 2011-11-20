@@ -16,7 +16,6 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS =				\
-	cholesky_2ctxs/cholesky_2ctxs		\
 	cholesky/cholesky_implicit
 
 noinst_HEADERS = 				\
@@ -37,16 +36,6 @@ AM_CPPFLAGS =						\
 
 
 if !NO_BLAS_LIB
-cholesky_2ctxs_cholesky_2ctxs_SOURCES =			\
-	cholesky_2ctxs/cholesky_2ctxs.c			\
-	cholesky_2ctxs/cholesky/cholesky_implicit.c	\
-	cholesky_2ctxs/cholesky/cholesky_models.c	\
-	cholesky_2ctxs/cholesky/cholesky_kernels.c	\
-	$(top_srcdir)/examples/common/blas.c
-
-cholesky_2ctxs_cholesky_2ctxs_LDADD	=	\
-	$(top_srcdir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
-	$(STARPU_BLAS_LDFLAGS)
 
 cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\
