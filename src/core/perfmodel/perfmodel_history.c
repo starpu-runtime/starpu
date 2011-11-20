@@ -454,13 +454,12 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				break;
 		}
 
+		unsigned max_impl = 0;
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			if (get_n_entries(model, arch, nimpl) == 0)
-				break;
-
+			if (get_n_entries(model, arch, nimpl) != 0)
+				max_impl = nimpl + 1;
 		}
-		unsigned max_impl = nimpl;
 
 		if (max_impl == 0)
 			continue;
