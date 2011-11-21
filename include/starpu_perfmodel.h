@@ -61,6 +61,10 @@ struct starpu_regression_model_t {
 	double sumlnx;
 	double sumlnx2;
 
+	/* minimum/maximum(size) */
+	unsigned long minx;
+	unsigned long maxx;
+
 	/* sum of ln(size) ln(measured) */
 	double sumlnxlny;
 
