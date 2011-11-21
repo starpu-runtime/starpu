@@ -17,7 +17,7 @@
 #include "test_interfaces.h"
 
 /* Prototypes */
-static starpu_data_handle *register_data(void);
+static starpu_data_handle register_data(void);
 static void test_vector_cpu_func(void *buffers[], void *args);
 #ifdef STARPU_USE_CUDA
 extern void test_vector_cuda_func(void *buffers[], void *_args);
@@ -27,7 +27,7 @@ extern void test_vector_opencl_func(void *buffers[], void *args);
 #endif
 
 
-static starpu_data_handle *vector_handle;
+static starpu_data_handle vector_handle;
 
 struct test_config vector_config = {
 	.cpu_func      = test_vector_cpu_func,
@@ -45,7 +45,7 @@ struct test_config vector_config = {
 int n = 16;
 int *vector;
 
-static starpu_data_handle*
+static starpu_data_handle
 register_data(void)
 {
 	if (vector_handle)
@@ -60,10 +60,7 @@ register_data(void)
 		vector[i] = i;
 
 	/* Registering data */
-	vector_handle = malloc(sizeof(*vector_handle));
-	if (!vector_handle)
-		return NULL;
-	starpu_vector_data_register(vector_handle,
+	starpu_vector_data_register(&vector_handle,
                                     0,
                                     (uintptr_t)vector,
                                      n,

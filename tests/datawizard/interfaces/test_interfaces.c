@@ -142,7 +142,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
 	task->cl = &cl;
-	task->buffers[0].handle = *(current_config->register_func());
+	task->buffers[0].handle = current_config->register_func();
 	task->buffers[0].mode = STARPU_RW;
 	if (id != -1)
 	{

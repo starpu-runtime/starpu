@@ -14,9 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #ifndef TEST_INTERFACES_H
-#define TEST_INTERFACES_H 
+#define TEST_INTERFACES_H
 
-typedef starpu_data_handle* (*register_func_t) (void);
+typedef starpu_data_handle (*register_func_t) (void);
 
 struct test_config {
 	/* Returns a valid handle to a piece of data registered by StarPU */
