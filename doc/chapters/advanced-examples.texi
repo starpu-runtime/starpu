@@ -65,8 +65,9 @@ starpu_codelet cl = @{
 @end smallexample
 @end cartouche
 
-The scheduler will measure the performance of all the implementations it was
-given, and pick the one that seems to be the fastest.
+Scheduler which are multi-implementation aware (only @code{dmda}, @code{heft}
+and @code{pheft} for now) will use the performance models of all the
+implementations it was given, and pick the one that seems to be the fastest.
 @node Task and Worker Profiling
 @section Task and Worker Profiling
 
