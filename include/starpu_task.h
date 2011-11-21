@@ -63,9 +63,9 @@ typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
 typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
 typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
 
-#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    (starpu_cpu_func_t) -1
-#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   (starpu_cuda_func_t) -1
-#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS (starpu_opencl_func_t) -1
+#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
+#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
+#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
 #define STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS 255
 
 
