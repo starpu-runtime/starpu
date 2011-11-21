@@ -192,30 +192,28 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 {
 	char *command;
 	FILE *datafile;
-	unsigned n = arch2 - arch1;
 	unsigned arch;
-	struct starpu_history_list_t *ptr[n][STARPU_MAXIMPLEMENTATIONS], *ptrs[n][STARPU_MAXIMPLEMENTATIONS];
+	struct starpu_history_list_t *ptr;
 	char archname[32];
 	int col;
 	int len;
+	unsigned long last, minimum = 0;
 
 	len = 10 + strlen(avg_file_name) + 1;
 	command = (char *) malloc(len);
-	snprintf(command, len, "sort -n > %s", avg_file_name);
-	datafile = popen(command, "w");
+	datafile = fopen(avg_file_name, "w");
 	free(command);
 
 	col = 2;
 	unsigned implid;
 	for (arch = arch1; arch < arch2; arch++) {
 		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-			struct starpu_per_arch_perfmodel_t *arch_model =
-				&model->per_arch[arch][implid];
+			struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch][implid];
 			starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, archname, 32, implid);
 
-			ptrs[arch-arch1][implid] = ptr[arch-arch1][implid] = arch_model->list;
+			//ptrs[arch-arch1][implid] = ptr[arch-arch1][implid] = arch_model->list;
 
-			if (ptr[arch-arch1][implid]) {
+			if (arch_model->list) {
 				print_comma(gnuplot_file, first);
 				fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Measured %s\"", avg_file_name, col, col+1, archname);
 				col += 2;
@@ -224,48 +222,43 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	}
 
 	while (1) {
-		unsigned long minimum;
-		/* Check whether there's data left */
-		for (arch = arch1; arch < arch2; arch++)
-			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				if (ptr[arch-arch1][implid])
-					goto ok;
-		break;
-ok:
+		last = minimum;
 
-		/* Get the minimum x */
 		minimum = ULONG_MAX;
-		for (arch = arch1; arch < arch2; arch++) {
+		/* Get the next minimum */
+		for (arch = arch1; arch < arch2; arch++)
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-				if (ptr[arch-arch1][implid]) {
-					struct starpu_history_entry_t *entry = ptr[arch-arch1][implid]->entry;
-					if (entry->size < minimum)
-						minimum = entry->size;
+				struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch][implid];
+				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
+					unsigned long size = ptr->entry->size;
+					if (size > last && size < minimum)
+						minimum = size;
 				}
 			}
-		}
+		if (minimum == ULONG_MAX)
+			break;
 
 		fprintf(stderr, "%lu ", minimum);
 		fprintf(datafile, "%-15lu ", minimum);
 		for (arch = arch1; arch < arch2; arch++) {
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-				if (ptr[arch-arch1][implid]) {
-					struct starpu_history_entry_t *entry = ptr[arch-arch1][implid]->entry;
+				struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch][implid];
+				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
+					struct starpu_history_entry_t *entry = ptr->entry;
 					if (entry->size == minimum) {
 						fprintf(datafile, "\t%-15le\t%-15le", 0.001*entry->mean, 0.001*entry->deviation);
-						ptr[arch-arch1][implid] = ptr[arch-arch1][implid]->next;
-					} else
-						fprintf(datafile, "\t\"\"\t\"\"");
-				} else if (ptrs[arch-arch1][implid]) {
-					/* Finished for this arch only */
-					fprintf(datafile, "\t\"\"\t\"\"");
+						break;
+					}
 				}
+				if (!ptr && arch_model->list)
+					/* No value for this arch. */
+					fprintf(datafile, "\t\"\"\t\"\"");
 			}
 		}
 		fprintf(datafile, "\n");
 	}
 	fprintf(stderr, "\n");
-	pclose(datafile);
+	fclose(datafile);
 }
 
 static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
