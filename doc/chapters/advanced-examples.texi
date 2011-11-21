@@ -236,7 +236,10 @@ execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
 form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
 STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
 @code{tests/perfmodels/regression_based.c} uses a regression-based performance
-model for the @code{memset} operation.
+model for the @code{memset} operation. Of course, the application has to issue
+tasks with varying size so that the regression can be computed. StarPU will not
+trust the regression unless there is at least 10% difference between the minimum
+and maximum observed input size.
 
 @item
 Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),

@@ -33,7 +33,11 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
-		
+
+/* We want more than 10% variance on X to trust regression */
+#define VALID_REGRESSION(reg_model) \
+	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= STARPU_CALIBRATION_MINIMUM)
+
 static pthread_rwlock_t registered_models_rwlock;
 static struct starpu_model_list_t *registered_models = NULL;
 
@@ -81,8 +85,8 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 		}
 	}
 
-	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\n");
-	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, alpha, beta, reg_model->nsample);
+	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\tminx\t\tmaxx\n");
+	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\t%-15lu\t%-15lu\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, alpha, beta, reg_model->nsample, reg_model->minx, reg_model->maxx);
 
 	/*
 	 * Non-Linear Regression model
@@ -107,15 +111,16 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 	_starpu_drop_comments(f);
 
-	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%u\n",
+	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%u\t%lu\t%lu\n",
 		&reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny,
 		&reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta,
-		&reg_model->nsample);
-	STARPU_ASSERT(res == 7);
+		&reg_model->nsample,
+		&reg_model->minx, &reg_model->maxx);
+	STARPU_ASSERT(res == 9);
 
 	/* If any of the parameters describing the linear regression model is NaN, the model is invalid */
 	unsigned invalid = (isnan(reg_model->alpha)||isnan(reg_model->beta));
-	reg_model->valid = !invalid && reg_model->nsample >= STARPU_CALIBRATION_MINIMUM;
+	reg_model->valid = !invalid && VALID_REGRESSION(reg_model);
 
 	/*
 	 * Non-Linear Regression model
@@ -128,7 +133,7 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
-	reg_model->nl_valid = !nl_invalid && reg_model->nsample >= STARPU_CALIBRATION_MINIMUM;
+	reg_model->nl_valid = !nl_invalid && VALID_REGRESSION(reg_model);
 }
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
@@ -398,16 +403,22 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				break;
 		}
 
-		unsigned nentries = 0;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-		{
-			nentries = get_n_entries(model, arch, nimpl) != 0;
-			if (nentries > 0)
-			{
-				number_of_archs[idx]++;
-				break;
-			}
-		}
+		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED) {
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (get_n_entries(model, arch, nimpl))
+				{
+					number_of_archs[idx]++;
+					break;
+				}
+		} else if (model->type == STARPU_REGRESSION_BASED) {
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (model->per_arch[arch][nimpl].regression.nsample)
+				{
+					number_of_archs[idx]++;
+					break;
+				}
+		} else
+			STARPU_ASSERT(!"Unknown history-based performance model");
 	}
 
 	/* Writing stuff */
@@ -453,11 +464,16 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		}
 
 		unsigned max_impl = 0;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-		{
-			if (get_n_entries(model, arch, nimpl) != 0)
-				max_impl = nimpl + 1;
-		}
+		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED) {
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (get_n_entries(model, arch, nimpl))
+					max_impl = nimpl + 1;
+		} else if (model->type == STARPU_REGRESSION_BASED) {
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (model->per_arch[arch][nimpl].regression.nsample)
+					max_impl = nimpl + 1;
+		} else
+			STARPU_ASSERT(!"Unknown history-based performance model");
 
 		if (max_impl == 0)
 			continue;
@@ -977,6 +993,10 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel *m
 			reg_model->sumlnx2 += logx*logx;
 			reg_model->sumlny += logy;
 			reg_model->sumlnxlny += logx*logy;
+			if (reg_model->minx == 0 || job_size < reg_model->minx)
+				reg_model->minx = job_size;
+			if (reg_model->maxx == 0 || job_size > reg_model->maxx)
+				reg_model->maxx = job_size;
 			reg_model->nsample++;
 
 			unsigned n = reg_model->nsample;
@@ -987,10 +1007,8 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel *m
 			reg_model->beta = num/denom;
 			reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 
-			if (reg_model->nsample >= STARPU_CALIBRATION_MINIMUM) {
+			if (VALID_REGRESSION(reg_model))
 				reg_model->valid = 1;
-				reg_model->nl_valid = 1;
-			}
 		}
 
 #ifdef STARPU_MODEL_DEBUG
