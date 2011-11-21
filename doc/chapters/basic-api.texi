@@ -961,18 +961,28 @@ This partitions a dense Matrix into vertical blocks.
 @subsubsection Partitioning Vector Data
 
 @deftypefun void starpu_block_filter_func_vector (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into blocks of the same size.
+Return in @code{*@var{child_interface}} the @var{id}th element of the
+vector represented by @var{father_interface} once partitioned in
+@var{nparts} chunks of equal size.
 @end deftypefun
 
 
 @deftypefun void starpu_vector_list_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into blocks of sizes given in the @var{filter_arg_ptr}
-field of @var{f}, supposed to point on a @code{uint32_t*} array.
+Return in @code{*@var{child_interface}} the @var{id}th element of the
+vector represented by @var{father_interface} once partitioned into
+@var{nparts} chunks according to the @code{filter_arg_ptr} field of
+@code{*@var{f}}.
+
+The @code{filter_arg_ptr} field must point to an array of @var{nparts}
+@code{uint32_t} elements, each of which specifies the number of elements
+in each chunk of the partition.
 @end deftypefun
 
 @deftypefun void starpu_vector_divide_in_2_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into two blocks, the first block size being given in
-the @var{filter_arg} field of @var{f}.
+Return in @code{*@var{child_interface}} the @var{id}th element of the
+vector represented by @var{father_interface} once partitioned in two
+chunks of equal size, ignoring @var{nparts}.  Thus, @var{id} must be
+@code{0} or @code{1}.
 @end deftypefun
 
 
