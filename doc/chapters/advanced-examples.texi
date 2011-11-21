@@ -32,19 +32,19 @@ to use SSE to scale a vector. The codelet can be written as follows :
 
 void scal_sse_func(void *buffers[], void *cl_arg)
 @{
-	float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
-	unsigned int n_iterations = n/4;
-	if (n % 4 != 0)
-		n_iterations++;
+    float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+    unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+    unsigned int n_iterations = n/4;
+    if (n % 4 != 0)
+        n_iterations++;
 
-	__m128 *VECTOR = (__m128*) vector;
-	__m128 factor __attribute__((aligned(16)));
-	factor = _mm_set1_ps(*(float *) cl_arg);
+    __m128 *VECTOR = (__m128*) vector;
+    __m128 factor __attribute__((aligned(16)));
+    factor = _mm_set1_ps(*(float *) cl_arg);
 
-	unsigned int i;	
-	for (i = 0; i < n_iterations; i++)
-		VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
+    unsigned int i;    
+    for (i = 0; i < n_iterations; i++)
+        VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
 @}
 @end smallexample
 @end cartouche
@@ -57,10 +57,10 @@ to the special value @code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}. Note that
 @cartouche
 @smallexample
 starpu_codelet cl = @{
-	.where = STARPU_CPU,
-	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-	.cpu_funcs = @{ scal_cpu_func, scal_sse_func @},
-	.nbuffers = 1
+    .where = STARPU_CPU,
+    .cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
+    .cpu_funcs = @{ scal_cpu_func, scal_sse_func @},
+    .nbuffers = 1
 @};
 @end smallexample
 @end cartouche
@@ -394,9 +394,9 @@ task->buffers[1].mode = STARPU_RW;
 char *arg_buffer;
 size_t arg_buffer_size;
 starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,
-		    STARPU_VALUE, &ifactor, sizeof(ifactor),
-		    STARPU_VALUE, &ffactor, sizeof(ffactor),
-		    0);
+                    STARPU_VALUE, &ifactor, sizeof(ifactor),
+                    STARPU_VALUE, &ffactor, sizeof(ffactor),
+                    0);
 task->cl_arg = arg_buffer;
 task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);

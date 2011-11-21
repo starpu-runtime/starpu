@@ -591,9 +591,9 @@ be compiled at run-time when calling the function
 
 @cartouche
 @smallexample
-CFLAGS	+=	$(shell pkg-config --cflags libstarpu)
-LDFLAGS	+=	$(shell pkg-config --libs libstarpu)
-CC	=	gcc
+CFLAGS  += $(shell pkg-config --cflags libstarpu)
+LDFLAGS += $(shell pkg-config --libs libstarpu)
+CC       = gcc
 
 vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o
 
