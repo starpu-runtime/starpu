@@ -314,7 +314,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	/* If no input data is given to gnuplot, we at least need to specify an
 	 * arbitrary range. */
 	if (no_fxt_file)
-		fprintf(gnuplot_file, "set xrange [10**3:10**9]\n\n");
+		fprintf(gnuplot_file, "set xrange [1:10**9]\n\n");
 
 	int first = 1;
 	fprintf(gnuplot_file, "plot\t");
