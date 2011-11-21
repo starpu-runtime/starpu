@@ -239,7 +239,10 @@ STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
 model for the @code{memset} operation. Of course, the application has to issue
 tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
-and maximum observed input size.
+and maximum observed input size. For non-linear regression, since computing it
+is quite expensive, it is only done at termination of the application. This
+means that the first execution uses history-based performance model to perform
+scheduling.
 
 @item
 Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),
