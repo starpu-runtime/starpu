@@ -42,8 +42,8 @@ struct test_config vector_config = {
 	.name          = "vector_interface"
 };
 
-int n = 16;
-int *vector;
+#define VECTOR_SIZE 123
+static int vector[VECTOR_SIZE];
 
 static starpu_data_handle
 register_data(void)
@@ -53,18 +53,15 @@ register_data(void)
 
 	/* Initializing data */
 	int i;
-	vector = malloc(n * sizeof(*vector));
-	if (!vector)
-		return NULL;
-	for (i = 0; i < n; i++)
+	for (i = 0; i < VECTOR_SIZE; i++)
 		vector[i] = i;
 
 	/* Registering data */
 	starpu_vector_data_register(&vector_handle,
                                     0,
                                     (uintptr_t)vector,
-                                     n,
-                                     sizeof(int));
+				    VECTOR_SIZE,
+				    sizeof(int));
 	return vector_handle;
 }
 
