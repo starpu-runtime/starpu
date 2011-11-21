@@ -31,7 +31,9 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 extern void scal_cpu_func(void *buffers[], void *_args);
+extern void scal_cpu_func_icc(void *buffers[], void *_args);
 extern void scal_sse_func(void *buffers[], void *_args);
+extern void scal_sse_func_icc(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
@@ -51,8 +53,14 @@ static starpu_codelet cl = {
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
 	.cpu_funcs = {
 		scal_cpu_func
+#ifdef STARPU_HAVE_ICC
+		, scal_cpu_func_icc
+#endif
 #ifdef __SSE__
 		, scal_sse_func
+#ifdef STARPU_HAVE_ICC
+		, scal_sse_func_icc
+#endif
 #endif
 	},
 #ifdef STARPU_USE_CUDA

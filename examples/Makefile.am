@@ -96,6 +96,12 @@ BUILT_SOURCES +=				\
 
 endif
 
+if STARPU_HAVE_ICC
+.icc.o:
+	$(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
+endif
+
 examplebindir = $(libdir)/starpu/examples/
 
 examplebin_PROGRAMS =
@@ -275,6 +281,12 @@ endif
 basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal.c		\
 	basic_examples/vector_scal_cpu.c
+
+if STARPU_HAVE_ICC
+basic_examples_vector_scal_SOURCES +=		\
+	basic_examples/vector_scal_cpu_icc.icc
+basic_examples/vector_scal_cpu_icc.o: CFLAGS += -Dscal_cpu_func=scal_cpu_func_icc -Dscal_sse_func=scal_sse_func_icc
+endif
 
 if STARPU_USE_CUDA
 basic_examples_vector_scal_SOURCES +=		\

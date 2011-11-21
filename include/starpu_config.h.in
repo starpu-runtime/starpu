@@ -23,6 +23,8 @@
 #undef STARPU_USE_OPENCL
 #undef STARPU_USE_GORDON
 
+#undef STARPU_HAVE_ICC
+
 #undef STARPU_USE_MPI
 
 #undef STARPU_ATLAS

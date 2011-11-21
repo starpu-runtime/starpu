@@ -33,6 +33,11 @@ AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
+AC_CHECK_PROGS([ICC], [icc])
+if test "x$ICC" != "x"; then
+  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
+fi
+AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
