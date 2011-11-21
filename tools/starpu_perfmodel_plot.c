@@ -249,7 +249,6 @@ ok:
 		fprintf(datafile, "%-15lu ", minimum);
 		for (arch = arch1; arch < arch2; arch++) {
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-				fprintf(stderr," %d", arch);
 				if (ptr[arch-arch1][implid]) {
 					struct starpu_history_entry_t *entry = ptr[arch-arch1][implid]->entry;
 					if (entry->size == minimum) {
