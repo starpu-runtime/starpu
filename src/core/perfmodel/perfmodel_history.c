@@ -880,6 +880,19 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 	if (regmodel->nl_valid && size >= regmodel->minx && size <= regmodel->maxx)
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
+	else {
+		uint32_t key = _starpu_compute_buffers_footprint(j);
+		struct starpu_per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch][nimpl];
+		struct starpu_htbl32_node_s *history = per_arch_model->history;
+		struct starpu_history_entry_t *entry;
+
+		PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
+		entry = (struct starpu_history_entry_t *) _starpu_htbl_search_32(history, key);
+		PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+
+		if (entry && entry->nsample >= STARPU_CALIBRATION_MINIMUM)
+			exp = entry->mean;
+	}
 
 	return exp;
 }
