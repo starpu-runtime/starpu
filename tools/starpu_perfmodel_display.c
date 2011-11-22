@@ -22,7 +22,6 @@
 
 #include <starpu.h>
 #include <starpu_perfmodel.h>
-#include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
 
 #ifdef __MINGW32__
 #include <windows.h>
