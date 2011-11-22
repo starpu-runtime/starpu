@@ -33,11 +33,6 @@ AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
-AC_CHECK_PROGS([ICC], [icc])
-if test "x$ICC" != "x"; then
-  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
-fi
-AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
@@ -1390,6 +1385,27 @@ AC_ARG_ENABLE(optional_tests, [AS_HELP_STRING([--optional-tests],
 			want_optional_tests=$enableval, want_optional_tests=no)
 AC_MSG_RESULT($want_optional_tests)
 AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
+
+# Check if icc is available
+AC_CHECK_PROGS([ICC], [icc])
+
+# If cuda and icc are both available, check they are compatible
+if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
+   AC_MSG_CHECKING(whether CUDA and ICC are compatible)
+   AC_COMPILE_IFELSE(
+       AC_LANG_PROGRAM(
+	   [[#include <cuda.h>]],
+	   [[]]
+	   ),
+       AC_MSG_RESULT(yes),
+       [ICC="" 
+           AC_MSG_RESULT(no)]
+   )
+fi
+if test "x$ICC" != "x"; then
+  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
+fi
+AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
