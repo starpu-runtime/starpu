@@ -124,6 +124,8 @@ void starpu_fxt_write_paje_header(FILE *file)
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%EndEventDef\n");
 
+
+
 	fprintf(file, "                                        \n \
 	1       MPIP      0       \"MPI Program\"                      	\n \
 	1       P      MPIP       \"Program\"                      	\n \
@@ -148,6 +150,8 @@ void starpu_fxt_write_paje_header(FILE *file)
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
 	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
+	6       Ctx1       S     InCtx1         \"255.0 255.0 .0\"		\n \
+	6       Ctx2       S     InCtx2         \".0 191.0 255.0\"		\n \
 	5       MPIL     MPIP	P	P      MPIL\n \
 	5       L       P	Mn	Mn      L\n");
 
@@ -155,3 +159,5 @@ void starpu_fxt_write_paje_header(FILE *file)
 }
 
 #endif
+
+

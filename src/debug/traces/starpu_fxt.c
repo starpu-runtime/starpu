@@ -26,6 +26,7 @@ static char *cpus_worker_colors[STARPU_NMAXWORKERS] = {"/greens9/7", "/greens9/6
 static char *cuda_worker_colors[STARPU_NMAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
 static char *opencl_worker_colors[STARPU_NMAXWORKERS] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
 static char *other_worker_colors[STARPU_NMAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
+
 static char *worker_colors[STARPU_NMAXWORKERS];
 
 static unsigned opencl_index = 0;
@@ -310,15 +311,15 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 		strcpy(entry->name, name);
 
 	symbol_name_list_push_front(symbol_list, entry);
-	
+
+	float red, green, blue;
 	/* choose some colour ... that's disguting yes */
 	unsigned hash_symbol_red = get_colour_symbol_red(name);
 	unsigned hash_symbol_green = get_colour_symbol_green(name);
 	unsigned hash_symbol_blue = get_colour_symbol_blue(name);
-
+	
 	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
-
-	float red, green, blue;
+	
 	if (options->per_task_colour)
 	{
 		red = (1.0f * hash_symbol_red) / hash_sum;
@@ -331,24 +332,28 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 		green = 0.6f;
 		blue = 0.4f;
 	}
-
 	/* create the Paje state */
 	if (out_paje_file)
-	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
+	{
+		fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
+
+	}
+		
 }
 
 
 static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
-	worker = find_worker_id(ev->param[1]);
+	worker = find_worker_id(ev->param[2]);
 
+	unsigned sched_ctx = ev->param[1];
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
 
-	unsigned long has_name = ev->param[2];
-	char *name = has_name?(char *)&ev->param[3]:"unknown";
+	unsigned long has_name = ev->param[3];
+	char *name = has_name?(char *)&ev->param[4]:"unknown";
 
 	snprintf(last_codelet_symbol[worker], 128, "%s", name);
 
@@ -358,7 +363,14 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	create_paje_state_if_not_found(name, options);
 
 	if (out_paje_file)
-	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[1], name);
+	{
+		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		if(sched_ctx == 1)
+		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      Ctx1\n", start_codelet_time, prefix, ev->param[2]);
+		else if(sched_ctx == 2)
+		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      Ctx2\n", start_codelet_time, prefix, ev->param[2]);
+	}
+	
 }
 
 static long dumped_codelets_count;
@@ -455,7 +467,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n",
-				get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
+		get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
 }
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
@@ -645,12 +657,13 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 {
 	unsigned long job_id;
 	job_id = ev->param[0];
+	unsigned sched_ctx = ev->param[1];
 
-	unsigned long has_name = ev->param[3];
-	char *name = has_name?(char *)&ev->param[4]:"unknown";
+	unsigned long has_name = ev->param[4];
+	char *name = has_name?(char *)&ev->param[5]:"unknown";
 
         int worker;
-        worker = find_worker_id(ev->param[1]);
+        worker = find_worker_id(ev->param[2]);
 
 	const char *colour;
 	char buffer[32];
@@ -662,10 +675,10 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		colour = &buffer[0];
 	}
 	else {
-		colour= (worker < 0)?"#aaaaaa":get_worker_color(worker);
+		colour = (worker < 0)?"#aaaaaa":get_worker_color(worker);
 	}
 
-	unsigned exclude_from_dag = ev->param[2];
+	unsigned exclude_from_dag = ev->param[3];
 
 	if (!exclude_from_dag)
 		starpu_fxt_dag_set_task_done(job_id, name, colour);

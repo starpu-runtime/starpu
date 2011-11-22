@@ -1,6 +1,7 @@
 #include "sched_ctx_utils.h"
 #include <starpu.h>
 #include "sched_ctx_hypervisor.h"
+#define NSAMPLES 3
 
 unsigned size1;
 unsigned size2;
@@ -18,9 +19,10 @@ typedef struct {
 	int the_other_ctx;
 	int *procs;
 	int nprocs;
-	void (*bench)(unsigned, unsigned);
+	void (*bench)(float*, unsigned, unsigned);
 	unsigned size;
 	unsigned nblocks;
+	float *mat[NSAMPLES];
 } params;
 
 typedef struct {
@@ -28,7 +30,6 @@ typedef struct {
 	double avg_timing;
 } retvals;
 
-#define NSAMPLES 3
 int first = 1;
 pthread_mutex_t mut;
 retvals rv[2];
@@ -81,7 +82,7 @@ void* start_bench(void *val){
 		starpu_set_sched_ctx(&p->ctx);
 
 	for(i = 0; i < NSAMPLES; i++)
-		p->bench(p->size, p->nblocks);
+		p->bench(p->mat[i], p->size, p->nblocks);
 
 	if(p->ctx != 0)
 	{
@@ -100,7 +101,23 @@ void* start_bench(void *val){
 	
 }
 
-void start_2benchs(void (*bench)(unsigned, unsigned))
+float* construct_matrix(unsigned size)
+{
+	float *mat;
+	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
+
+	unsigned i,j;
+	for (i = 0; i < size; i++)
+	{
+		for (j = 0; j < size; j++)
+		{
+			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
+			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
+		}
+	}
+	return mat;
+}
+void start_2benchs(void (*bench)(float*, unsigned, unsigned))
 {
 	p1.bench = bench;
 	p1.size = size1;
@@ -109,7 +126,14 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 	p2.bench = bench;
 	p2.size = size2;
 	p2.nblocks = nblocks2;
-	
+
+	int i;
+	for(i = 0; i < NSAMPLES; i++)
+	{
+		p1.mat[i] = construct_matrix(p1.size);
+		p2.mat[i] = construct_matrix(p2.size);
+	}
+
 	pthread_t tid[2];
 	pthread_mutex_init(&mut, NULL);
 
@@ -136,12 +160,18 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 
 }
 
-void start_1stbench(void (*bench)(unsigned, unsigned))
+void start_1stbench(void (*bench)(float*, unsigned, unsigned))
 {
 	p1.bench = bench;
 	p1.size = size1;
 	p1.nblocks = nblocks1;
-	
+
+	int i;
+	for(i = 0; i < NSAMPLES; i++)
+	{
+		p1.mat[i] = construct_matrix(p1.size);
+	}
+
 	struct timeval start;
 	struct timeval end;
 
@@ -160,11 +190,16 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 	printf("%2.2f %2.2f\n", rv[0].avg_timing, timing);
 }
 
-void start_2ndbench(void (*bench)(unsigned, unsigned))
+void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 {
 	p2.bench = bench;
 	p2.size = size2;
 	p2.nblocks = nblocks2;
+	int i;
+	for(i = 0; i < NSAMPLES; i++)
+	{
+		p2.mat[i] = construct_matrix(p2.size);
+	}
 	
 	struct timeval start;
 	struct timeval end;
@@ -184,7 +219,7 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 	printf("%2.2f %2.2f\n", rv[1].avg_timing, timing);
 }
 
-void construct_contexts(void (*bench)(unsigned, unsigned))
+void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 {
 	struct starpu_sched_ctx_hypervisor_criteria *criteria = sched_ctx_hypervisor_init(SIMPLE_POLICY);
 	int nprocs1 = cpu1 + gpu + gpu1;
@@ -285,11 +320,11 @@ void set_hypervisor_conf(int event, int task_tag)
  		
 
 		sched_ctx_hypervisor_advise(p2.ctx, p2.procs, p2.nprocs, task_tag);
-		/* sched_ctx_hypervisor_ioctl(p2.ctx, */
-		/* 			   HYPERVISOR_MAX_IDLE, p2.procs, p2.nprocs, max_idle_time_small, */
-		/* 			   HYPERVISOR_TIME_TO_APPLY, task_tag, */
-		/* 			   HYPERVISOR_GRANULARITY, 1, */
-		/* 			   NULL); */
+		sched_ctx_hypervisor_ioctl(p2.ctx,
+					   HYPERVISOR_MAX_IDLE, p2.procs, p2.nprocs, max_idle_time_small,
+					   HYPERVISOR_TIME_TO_APPLY, task_tag,
+					   HYPERVISOR_GRANULARITY, 1,
+					   NULL);
 	}
 }
 

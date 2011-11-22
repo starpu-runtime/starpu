@@ -349,11 +349,11 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 
 	srand(2008);
-	
+
 #ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
+		_starpu_start_fxt_profiling();
 #endif
-	
+
 	_starpu_open_debug_logfile();
 
 	_starpu_data_interface_init();

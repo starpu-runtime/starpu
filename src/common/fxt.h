@@ -189,10 +189,10 @@ do {									\
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
-		STARPU_FUT_DO_PROBE3STR(STARPU_FUT_START_CODELET_BODY, (job), syscall(SYS_gettid), 1, model_name); \
+		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, syscall(SYS_gettid), 1, model_name); \
 	}								\
 	else {                                                          \
-		FUT_DO_PROBE3(STARPU_FUT_START_CODELET_BODY, (job), syscall(SYS_gettid), 0); \
+		FUT_DO_PROBE4(STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, syscall(SYS_gettid), 0); \
 	}								\
 } while(0);
 
@@ -248,10 +248,10 @@ do {										\
         const char *model_name = _starpu_get_model_name((job));                       \
 	if (model_name)					                        \
 	{									\
-		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 1, model_name);\
+		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 1, model_name); \
 	}									\
 	else {									\
-		FUT_DO_PROBE4(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 0);\
+		FUT_DO_PROBE4(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 0); \
 	}									\
 } while(0);
 

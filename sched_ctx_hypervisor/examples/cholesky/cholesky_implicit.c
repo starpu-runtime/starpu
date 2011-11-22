@@ -192,21 +192,9 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	_cholesky(dataA, nblocks);
 }
 
-static void execute_cholesky(unsigned size, unsigned nblocks)
+static void execute_cholesky(float *mat, unsigned size, unsigned nblocks)
 {
-	float *mat;
-	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
-
 	unsigned i,j;
-	for (i = 0; i < size; i++)
-	{
-		for (j = 0; j < size; j++)
-		{
-			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
-		}
-	}
-
 /* #define PRINT_OUTPUT */
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Input :\n");
@@ -326,7 +314,22 @@ int main(int argc, char **argv)
 	else if(chole2)
 		start_2ndbench(execute_cholesky);
 	else
-		execute_cholesky(size, nblocks);
+	{
+		float *mat;
+		starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
+		
+		unsigned i,j;
+		for (i = 0; i < size; i++)
+		{
+			for (j = 0; j < size; j++)
+			{
+				mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
+				/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
+			}
+		}
+
+		execute_cholesky(mat, size, nblocks);
+	}
 
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
