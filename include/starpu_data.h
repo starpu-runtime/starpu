@@ -15,10 +15,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
-#include <starpu.h>
 #include <starpu_config.h>
 
 struct starpu_data_state_t;

@@ -15,10 +15,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_TASK_BUNDLE_H__
 #define __STARPU_TASK_BUNDLE_H__
 
-#include <starpu.h>
 #include <starpu_config.h>
 
 #if ! defined(_MSC_VER)

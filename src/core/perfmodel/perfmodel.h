@@ -33,52 +33,6 @@ struct starpu_jobq_s;
 struct starpu_job_s;
 enum starpu_perf_archtype;
 
-struct starpu_history_entry_t {
-	//double measured;
-	
-	/* mean_n = 1/n sum */
-	double mean;
-
-	/* n dev_n = sum2 - 1/n (sum)^2 */
-	double deviation;
-
-	/* sum of samples */
-	double sum;
-
-	/* sum of samples^2 */
-	double sum2;
-
-//	/* sum of ln(measured) */
-//	double sumlny;
-//
-//	/* sum of ln(size) */
-//	double sumlnx;
-//	double sumlnx2;
-//
-//	/* sum of ln(size) ln(measured) */
-//	double sumlnxlny;
-//
-	unsigned nsample;
-
-	uint32_t footprint;
-#ifdef STARPU_HAVE_WINDOWS
-	unsigned size; /* in bytes */
-#else
-	size_t size; /* in bytes */
-#endif
-};
-
-struct starpu_history_list_t {
-	struct starpu_history_list_t *next;
-	struct starpu_history_entry_t *entry;
-};
-
-struct starpu_model_list_t {
-	struct starpu_model_list_t *next;
-	struct starpu_perfmodel *model;
-};
-
-//
 ///* File format */
 //struct model_file_format {
 //	unsigned ncore_entries;

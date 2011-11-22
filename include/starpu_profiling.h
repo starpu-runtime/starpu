@@ -15,13 +15,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_PROFILING_H__
 #define __STARPU_PROFILING_H__
 
 #include <errno.h>
 #include <sys/time.h>
 
-#include <starpu.h>
 
 #ifdef __cplusplus
 extern "C" {

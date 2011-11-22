@@ -16,12 +16,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_PERFMODEL_H__
 #define __STARPU_PERFMODEL_H__
 
 #include <starpu_config.h>
 #include <stdio.h>
-#include <starpu.h>
 #include <starpu_task.h>
 
 #if ! defined(_MSC_VER)
@@ -52,6 +53,51 @@ enum starpu_perf_archtype {
 };
 
 #define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
+
+struct starpu_history_entry_t {
+	//double measured;
+	
+	/* mean_n = 1/n sum */
+	double mean;
+
+	/* n dev_n = sum2 - 1/n (sum)^2 */
+	double deviation;
+
+	/* sum of samples */
+	double sum;
+
+	/* sum of samples^2 */
+	double sum2;
+
+//	/* sum of ln(measured) */
+//	double sumlny;
+//
+//	/* sum of ln(size) */
+//	double sumlnx;
+//	double sumlnx2;
+//
+//	/* sum of ln(size) ln(measured) */
+//	double sumlnxlny;
+//
+	unsigned nsample;
+
+	uint32_t footprint;
+#ifdef STARPU_HAVE_WINDOWS
+	unsigned size; /* in bytes */
+#else
+	size_t size; /* in bytes */
+#endif
+};
+
+struct starpu_history_list_t {
+	struct starpu_history_list_t *next;
+	struct starpu_history_entry_t *entry;
+};
+
+struct starpu_model_list_t {
+	struct starpu_model_list_t *next;
+	struct starpu_perfmodel *model;
+};
 
 struct starpu_regression_model_t {
 	/* sum of ln(measured) */
