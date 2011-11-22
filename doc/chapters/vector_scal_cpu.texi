@@ -55,10 +55,10 @@ void scal_sse_func(void *buffers[], void *cl_arg)
     for (i = 0; i < n_iterations; i++)
         VECTOR[i] = _mm_mul_ps(FACTOR, VECTOR[i]);
 
-    int remainder = n%4;
+    unsigned int remainder = n%4;
     if (remainder != 0)
     @{
-        int start = 4 * n_iterations;
+        unsigned int start = 4 * n_iterations;
         for (i = start; i < start+remainder; ++i)
         @{
             vector[i] = factor * vector[i];
