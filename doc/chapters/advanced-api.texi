@@ -302,8 +302,8 @@ scheduling policy
 @deftypefun int starpu_push_local_task (int @var{workerid}, {struct starpu_task} *@var{task}, int @var{back})
 The scheduling policy may put tasks directly into a worker's local queue so
 that it is not always necessary to create its own queue when the local queue
-is sufficient. If "back" not null, the task is put at the back of the queue
-where the worker will pop tasks first. Setting "back" to 0 therefore ensures
+is sufficient. If @var{back} not null, @var{task} is put at the back of the queue
+where the worker will pop tasks first. Setting @var{back} to 0 therefore ensures
 a FIFO ordering.
 @end deftypefun
 

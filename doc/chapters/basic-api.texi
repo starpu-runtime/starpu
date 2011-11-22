@@ -112,7 +112,7 @@ the CPU workers. The default value is overwritten by the
 @end deftp
 
 @deftypefun int starpu_conf_init ({struct starpu_conf *}@var{conf})
-This function initializes the @code{starpu_conf} structure passed as argument
+This function initializes the @var{conf} structure passed as argument
 with the default values. In case some configuration parameters are already
 specified through environment variables, @code{starpu_conf_init} initializes
 the fields of the structure according to the environment variables. For
@@ -858,8 +858,8 @@ this is usually unused.
 
 @deftypefun void starpu_data_partition (starpu_data_handle @var{initial_handle}, {struct starpu_data_filter *}@var{f})
 @anchor{starpu_data_partition}
-This requests partitioning one StarPU data @code{initial_handle} into several
-subdata according to the filter @code{f}, as shown in the following example:
+This requests partitioning one StarPU data @var{initial_handle} into several
+subdata according to the filter @var{f}, as shown in the following example:
 
 @cartouche
 @smallexample
@@ -876,7 +876,7 @@ starpu_data_partition(A_handle, &f);
 
 @deftypefun void starpu_data_unpartition (starpu_data_handle @var{root_data}, uint32_t @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
-collected back into one big piece in the @code{gathering_node} (usually 0).
+collected back into one big piece in the @var{gathering_node} (usually 0).
 @cartouche
 @smallexample
 starpu_data_unpartition(A_handle, 0);
@@ -895,8 +895,8 @@ todo
 @deftypefun starpu_data_handle starpu_data_get_sub_data (starpu_data_handle @var{root_data}, unsigned @var{depth}, ... )
 After partitioning a StarPU data by applying a filter,
 @code{starpu_data_get_sub_data} can be used to get handles for each of
-the data portions. @code{root_data} is the parent data that was
-partitioned. @code{depth} is the number of filters to traverse (in
+the data portions. @var{root_data} is the parent data that was
+partitioned. @var{depth} is the number of filters to traverse (in
 case several filters have been applied, to e.g. partition in row
 blocks, and then in column blocks), and the subsequent
 parameters are the indexes. The function returns a handle to the
@@ -1298,9 +1298,9 @@ completed.
 @end deftp
 
 @deftypefun void starpu_tag_declare_deps (starpu_tag @var{id}, unsigned @var{ndeps}, ...)
-Specify the dependencies of the task identified by tag @code{id}. The first
+Specify the dependencies of the task identified by tag @var{id}. The first
 argument specifies the tag which is configured, the second argument gives the
-number of tag(s) on which @code{id} depends. The following arguments are the
+number of tag(s) on which @var{id} depends. The following arguments are the
 tags which have to be terminated to unlock the task.
 
 This function must be called before the associated task is submitted to StarPU
@@ -1323,7 +1323,7 @@ starpu_tag_declare_deps((starpu_tag)0x1,
 @deftypefun void starpu_tag_declare_deps_array (starpu_tag @var{id}, unsigned @var{ndeps}, {starpu_tag *}@var{array})
 This function is similar to @code{starpu_tag_declare_deps}, except
 that its does not take a variable number of arguments but an array of
-tags of size @code{ndeps}.
+tags of size @var{ndeps}.
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
@@ -1450,7 +1450,7 @@ todo
 
 @deftypefun int starpu_profiling_status_set (int @var{status})
 Thie function sets the profiling status. Profiling is activated by passing
-@code{STARPU_PROFILING_ENABLE} in @code{status}. Passing
+@code{STARPU_PROFILING_ENABLE} in @var{status}. Passing
 @code{STARPU_PROFILING_DISABLE} disables profiling. Calling this function
 resets all profiling measurements. When profiling is enabled, the
 @code{profiling_info} field of the @code{struct starpu_task} structure points
@@ -1503,9 +1503,9 @@ Number of tasks executed by the worker during the profiling measurement interval
 @end deftp
 
 @deftypefun int starpu_worker_get_profiling_info (int @var{workerid}, {struct starpu_worker_profiling_info *}@var{worker_info})
-Get the profiling info associated to the worker identified by @code{workerid},
-and reset the profiling measurements. If the @code{worker_info} argument is
-NULL, only reset the counters associated to worker @code{workerid}.
+Get the profiling info associated to the worker identified by @var{workerid},
+and reset the profiling measurements. If the @var{worker_info} argument is
+NULL, only reset the counters associated to worker @var{workerid}.
 
 Upon successful completion, this function returns 0. Otherwise, a negative
 value is returned.
