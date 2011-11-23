@@ -387,7 +387,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
         if (list) {
-                int ret = starpu_list_models();
+                int ret = starpu_list_models(stdout);
                 if (ret) {
                         fprintf(stderr, "The performance model directory is invalid\n");
                         return 1;
