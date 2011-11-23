@@ -18,25 +18,135 @@
 #include <starpu_opencl.h>
 #endif
 
+#include <assert.h>
+
 #include "test_interfaces.h"
+
+/*
+ * This is definitely note thrad-safe.
+ */
+static struct test_config *current_config;
 
 /* TODO :
 - OpenCL to OpenCL support
 - RAM to RAM ?
 - Asynchronous vs synchronous
 - Better error messages
-- call starpu_data_unregister
 */
 
-/* Interfaces to test */
-extern struct test_config vector_config;
-
-static struct test_config *tests[] = {
-	&vector_config,
-	NULL
+/*
+ * Users do not know about this enum. They only know that SUCCESS is 0, and
+ * FAILURE is 1. Therefore, the values of SUCCESS and FAILURE shall not be
+ * changed.
+ */
+enum exit_code {
+	SUCCESS                 = 0,
+	FAILURE                 = 1,
+	UNTESTED                = 2,
+	TASK_CREATION_FAILURE   = 3,
+	TASK_SUBMISSION_FAILURE = 4
 };
 
-static struct test_config *current_config;
+static char *
+enum_to_string(exit_code)
+{
+	switch (exit_code)
+	{
+		case SUCCESS:
+			return "Success";
+		case FAILURE:
+			return "Failure";
+		case UNTESTED:
+			return "Untested";
+		case TASK_CREATION_FAILURE:
+			return "Task creation failed";
+		case TASK_SUBMISSION_FAILURE:
+			return "Task submission failed";
+		default:
+			assert(0);
+	}
+}
+
+struct data_interface_test_summary {
+	int success;
+#ifdef STARPU_USE_CUDA
+	int cpu_to_cuda_async;
+	int cuda_to_cpu_async;
+	int cuda_to_cuda_async;
+#endif
+#ifdef STARPU_USE_OPENCL
+	int cpu_to_opencl_async;
+	int opencl_to_cpu_async;
+#endif
+};
+
+void data_interface_test_summary_print(FILE *f,
+				       struct data_interface_test_summary *s)
+{
+	if (!f)
+		f = stderr;
+
+	(void) fprintf(f, "%s : %s\n",
+			current_config->name, enum_to_string(s->success));
+
+	(void) fprintf(f, "Details :\n");
+	(void) fprintf(f, "\tCPU    -> CUDA   : %s\n",
+			enum_to_string(s->cpu_to_cuda_async));
+	(void) fprintf(f, "\tCUDA   -> CUDA   : %s\n",
+			enum_to_string(s->cuda_to_cuda_async));
+	(void) fprintf(f, "\tCUDA   -> CPU    : %s\n",
+			enum_to_string(s->cuda_to_cpu_async));
+	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
+			enum_to_string(s->cpu_to_opencl_async));
+	(void) fprintf(f, "\tOpenCl -< CPU    : %s\n",
+			enum_to_string(s->opencl_to_cpu_async));
+}
+
+int
+data_interface_test_summary_success(data_interface_test_summary *s)
+{
+	return s->success;
+}
+
+static void
+set_field(struct data_interface_test_summary *s, int *test, int ret)
+{
+	switch (ret)
+	{
+		case SUCCESS:
+			*test = SUCCESS;
+			break;
+		case FAILURE:
+			*test = FAILURE;
+			s->success = FAILURE;
+			break;
+		case UNTESTED:
+			*test = UNTESTED;
+			break;
+		case TASK_CREATION_FAILURE:
+			*test = TASK_CREATION_FAILURE;
+			break;
+		case TASK_SUBMISSION_FAILURE:
+			*test = TASK_SUBMISSION_FAILURE;
+			break;
+		default:
+			assert(0);
+	}
+}
+
+static struct data_interface_test_summary summary = {
+#ifdef STARPU_USE_CUDA
+	.cpu_to_cuda_async     = UNTESTED,
+	.cuda_to_cpu_async     = UNTESTED,
+	.cuda_to_cuda_async    = UNTESTED,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.cpu_to_opencl_async   = UNTESTED,
+	.opencl_to_cpu_async   = UNTESTED,
+#endif
+	.success               = SUCCESS
+};
+
 
 /*
  * This variable has to be either -1 or 1.
@@ -134,6 +244,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 			cl.opencl_func = current_config->opencl_func;
 			break;
 #endif /* ! STARPU_USE_OPENCL */
+		case STARPU_GORDON_WORKER: /* Not supported */
 		default:
 			return -ENODEV;
 	}
@@ -142,7 +253,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
 	task->cl = &cl;
-	task->buffers[0].handle = current_config->register_func();
+	task->buffers[0].handle = *current_config->handle;
 	task->buffers[0].mode = STARPU_RW;
 	if (id != -1)
 	{
@@ -165,7 +276,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
  * need to set the execute_on_a_specific_worker field...
  */
 #ifdef STARPU_USE_CUDA
-static int
+static enum exit_code
 ram_to_cuda(void)
 {
 	int err;
@@ -173,23 +284,18 @@ ram_to_cuda(void)
 
 	err = create_task(&task, STARPU_CUDA_WORKER, 0);
 	if (err != 0)
-	{
-		fprintf(stderr, "Could not create task\n");
-		return 1;
-	}
+		return TASK_CREATION_FAILURE;
 
 	err = starpu_task_submit(task);
 	if (err != 0)
-	{
-		fprintf(stderr, "Fail : %s\n", strerror(-err));
-		return 1;
-	}
+		return TASK_SUBMISSION_FAILURE;
 
 	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 
-static int
+#if HAVE_CUDA_MEMCPY_PEER
+static enum exit_code
 cuda_to_cuda(void)
 {
 	int err;
@@ -197,21 +303,18 @@ cuda_to_cuda(void)
 
 	err = create_task(&task, STARPU_CUDA_WORKER, 1);
 	if (err != 0)
-	{
-		return 1;
-	}
+		return TASK_CREATION_FAILURE;
 
 	err = starpu_task_submit(task);
 	if (err != 0)
-	{
-		return 1;
-	}
+		return TASK_SUBMISSION_FAILURE;
 
 	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
+#endif
 
-static int
+static enum exit_code
 cuda_to_ram(void)
 {
 	int err;
@@ -219,17 +322,11 @@ cuda_to_ram(void)
 
 	err = create_task(&task, STARPU_CPU_WORKER, -1);
 	if (err != 0)
-	{
-		fprintf(stderr, "Could not create the task\n");
-		return 1;
-	}
+		return TASK_CREATION_FAILURE;
 
 	err = starpu_task_submit(task);
 	if (err != 0)
-	{
-		fprintf(stderr, "Fail : %s\n", strerror(-err));
-		return 1;
-	}
+		return TASK_SUBMISSION_FAILURE;
 
 	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
@@ -237,7 +334,7 @@ cuda_to_ram(void)
 #endif /* !STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
-static int
+static enum exit_code
 ram_to_opencl()
 {
 	int err;
@@ -245,23 +342,17 @@ ram_to_opencl()
 
 	err = create_task(&task, STARPU_OPENCL_WORKER, 0);
 	if (err != 0)
-	{
-		fprintf(stderr, "Could not create the task\n");
-		return 1;
-	}
+		return TASK_CREATION_FAILURE;
 
 	err = starpu_task_submit(task);
 	if (err != 0)
-	{
-		fprintf(stderr, "Fail : %s\n", strerror(-err));
-		return 1;
-	}
+		return TASK_SUBMISSION_FAILURE;
 
 	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 
-static int
+static enum exit_code
 opencl_to_ram()
 {
 	int err;
@@ -269,17 +360,11 @@ opencl_to_ram()
 
 	err = create_task(&task, STARPU_CPU_WORKER, -1);
 	if (err != 0)
-	{
-		fprintf(stderr, "Could not create the task\n");
-		return 1;
-	}
+		return TASK_CREATION_FAILURE;
 
 	err = starpu_task_submit(task);
 	if (err != 0)
-	{
-		fprintf(stderr, "Fail : %s\n", strerror(-err));
-		return 1;
-	}
+		return TASK_SUBMISSION_FAILURE;
 
 	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
@@ -287,54 +372,54 @@ opencl_to_ram()
 #endif /* !STARPU_USE_OPENCL */
 /* End of the <device1>_to_<device2> functions. */
 
-static int
-run(void)
+static void
+run_cuda_async(void)
 {
+	/* RAM -> CUDA (-> CUDA) -> RAM */
 	int err;
 #ifdef STARPU_USE_CUDA
-	/* RAM -> CUDA -> CUDA -> RAM */
 	err = ram_to_cuda();
-	if (err != 0)
-	{
-		fprintf(stderr, "RAM to CUDA failed\n");
-		return 1;
-	}
+	set_field(&summary, &summary.cpu_to_cuda_async, err);
+	/* If this failed, there is no point in continuing. */
+	if (err != SUCCESS)
+		return;
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	err = cuda_to_cuda();
-	if (err != 0)
-	{
-		fprintf(stderr, "CUDA to RAM failed\n");
-		return 1;
-	}
+	set_field(&summary, &summary.cuda_to_cuda_async, err);
+	/* Even if cuda_to_cuda() failed, a valid copy is left on the first
+	 * cuda device, which means we can safely test cuda_to_ram() */
+#else
+	summary.cuda_to_cuda_async = UNTESTED;
 #endif /* !HAVE_CUDA_MEMCPY_PEER */
 
 	err = cuda_to_ram();
-	if (err != 0)
-	{
-		fprintf(stderr, "CUDA to RAM failed\n");
-		return 1;
-	}
+	set_field(&summary, &summary.cuda_to_cpu_async, err);
 #endif /* !STARPU_USE_CUDA */
+}
+
+static void
+run_opencl_async(void)
+{
+	/* RAM -> OpenCL -> RAM */
+	int err;
 
 #if STARPU_USE_OPENCL
-	/* RAM -> OpenCL -> RAM */
 	err = ram_to_opencl();
-	if (err != 0)
-	{
-		fprintf(stderr, "RAM to OpenCL failed\n");
-		return 1;
-	}
+	set_field(&summary, &summary.cpu_to_opencl_async, err);
+	if (err != SUCCESS)
+		return;
 
 	err = opencl_to_ram();
-	if (err != 0)
-	{
-		fprintf(stderr, "OpenCL to RAM failed\n");
-		return 1;
-	}
+	set_field(&summary, &summary.opencl_to_cpu_async, err);
 #endif /* !STARPU_USE_OPENCL */
+}
 
-	return 0;
+static void
+run_async(void)
+{
+	run_cuda_async();
+	run_opencl_async();
 }
 
 static int
@@ -348,7 +433,7 @@ load_conf(struct test_config *config)
 #ifdef STARPU_USE_OPENCL
 	    !config->opencl_func ||
 #endif
-	    !config->register_func)
+	    !config->handle)
 	{
 		return 1;
 	}
@@ -357,35 +442,14 @@ load_conf(struct test_config *config)
 	return 0;
 }
 
-int
-main(void)
+data_interface_test_summary*
+run_tests(struct test_config *conf)
 {
-	int i;
-	int err;
-
-	err = starpu_init(NULL);
-	if (err != 0)
+	if (load_conf(conf) == 1)
 	{
-		fprintf(stderr, "starpu_init failed, not running the tests\n");
-		return EXIT_FAILURE;
+		fprintf(stderr, "Failed to load conf.\n");
+		return NULL;
 	}
-
-	for (i = 0; tests[i] != NULL; ++i)
-	{
-		err = load_conf(tests[i]);
-		if (err != 0)
-		{
-			fprintf(stderr, "Skipping test, invalid conf\n");
-			continue;
-		}
-
-		err = run();
-		if (err != 0)
-			fprintf(stderr, "%s : FAIL\n", current_config->name);
-		else
-			fprintf(stderr, "%s : OK\n", current_config->name);
-	}
-
-	starpu_shutdown();
-	return EXIT_SUCCESS;
+	run_async();
+	return &summary;
 }

@@ -149,7 +149,7 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_v2		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
-	datawizard/interfaces/test_interfaces   \
+	datawizard/interfaces/test_vector_interface   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -250,17 +250,21 @@ BUILT_SOURCES += 						\
 	microbenchs/null_kernel_gordon.spuelf
 endif
 
-datawizard_interfaces_test_interfaces_SOURCES =               \
-	datawizard/interfaces/test_interfaces.c     \
-	datawizard/interfaces/test_vector_interface.c
+
+##############
+# Interfaces #
+##############
+datawizard_interfaces_test_vector_interface_SOURCES =               \
+	datawizard/interfaces/test_vector_interface.c               \
+	datawizard/interfaces/test_interfaces.c
 
 if STARPU_USE_CUDA
-datawizard_interfaces_test_interfaces_SOURCES +=                \
+datawizard_interfaces_test_vector_interface_SOURCES +=               \
 	datawizard/interfaces/test_vector_cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-datawizard_interfaces_test_interfaces_SOURCES +=                           \
+datawizard_interfaces_test_vector_interface_SOURCES +=               \
 	datawizard/interfaces/test_vector_opencl.c 
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/test_vector_opencl_kernel.cl

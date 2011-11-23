@@ -16,11 +16,12 @@
 #ifndef TEST_INTERFACES_H
 #define TEST_INTERFACES_H
 
-typedef starpu_data_handle (*register_func_t) (void);
-
 struct test_config {
-	/* Returns a valid handle to a piece of data registered by StarPU */
-	register_func_t register_func;
+	/* A pointer to a valid handle */
+	starpu_data_handle *handle;
+
+	/* Unregisters data, frees memory, tidies your room */
+	void (*cleanup)(void);
 
 	/* StarPU codelets. The following functions should :
 	 * 1) Check that the values are correct
@@ -41,5 +42,13 @@ struct test_config {
 	/* A human-readable name for the test */
 	const char *name;
 };
+
+
+typedef struct data_interface_test_summary data_interface_test_summary;
+
+void data_interface_test_summary_print(FILE *, data_interface_test_summary *);
+int data_interface_test_summary_success(data_interface_test_summary *);
+
+data_interface_test_summary *run_tests(struct test_config*);
 
 #endif /* !TEST_INTERFACES_H */

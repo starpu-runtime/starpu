@@ -17,7 +17,8 @@
 #include "test_interfaces.h"
 
 /* Prototypes */
-static starpu_data_handle register_data(void);
+static void register_data(void);
+static void unregister_data(void);
 static void test_vector_cpu_func(void *buffers[], void *args);
 #ifdef STARPU_USE_CUDA
 extern void test_vector_cuda_func(void *buffers[], void *_args);
@@ -37,7 +38,7 @@ struct test_config vector_config = {
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_vector_opencl_func,
 #endif
-	.register_func = register_data,
+	.handle        = &vector_handle,
 	.copy_failed   = 0,
 	.name          = "vector_interface"
 };
@@ -45,12 +46,9 @@ struct test_config vector_config = {
 #define VECTOR_SIZE 123
 static int vector[VECTOR_SIZE];
 
-static starpu_data_handle
+static void
 register_data(void)
 {
-	if (vector_handle)
-		return vector_handle;
-
 	/* Initializing data */
 	int i;
 	for (i = 0; i < VECTOR_SIZE; i++)
@@ -62,7 +60,12 @@ register_data(void)
                                     (uintptr_t)vector,
 				    VECTOR_SIZE,
 				    sizeof(int));
-	return vector_handle;
+}
+
+static void
+unregister_data(void)
+{
+	starpu_data_unregister(vector_handle);
 }
 
 static void test_vector_cpu_func(void *buffers[], void *args)
@@ -73,10 +76,36 @@ static void test_vector_cpu_func(void *buffers[], void *args)
 	unsigned int i;
 	for (i = 0; i < n; i++) {
 		if (val[i] != i*factor) {
-			fprintf(stderr, "HI %d => %d\n", i, val[i]);
 			vector_config.copy_failed = 1;
 			return;
 		}
 		val[i] = -val[i];
 	}
+}
+
+int
+main(void)
+{
+	data_interface_test_summary *summary;
+	struct starpu_conf conf = {
+		.ncpus   = -1,
+		.ncuda   = 2,
+		.nopencl = 1
+	};
+
+	starpu_init(&conf);
+
+	register_data();
+
+	summary = run_tests(&vector_config);
+	if (!summary)
+		exit(EXIT_FAILURE);
+
+	unregister_data();
+
+	starpu_shutdown();
+
+	data_interface_test_summary_print(stderr, summary);
+
+	return data_interface_test_summary_success(summary);
 }
