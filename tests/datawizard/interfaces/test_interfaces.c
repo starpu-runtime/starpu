@@ -18,6 +18,9 @@
 #include <starpu_opencl.h>
 #endif
 
+/* XXX Why cant we dereference a handle without this one ? */
+#include <core/sched_policy.h>
+
 #include <assert.h>
 
 #include "test_interfaces.h"
@@ -30,8 +33,6 @@ static struct test_config *current_config;
 /* TODO :
 - OpenCL to OpenCL support
 - RAM to RAM ?
-- Asynchronous vs synchronous
-- Better error messages
 */
 
 /*
@@ -70,11 +71,16 @@ enum_to_string(exit_code)
 struct data_interface_test_summary {
 	int success;
 #ifdef STARPU_USE_CUDA
+	int cpu_to_cuda;
+	int cuda_to_cuda;
+	int cuda_to_cpu;
 	int cpu_to_cuda_async;
 	int cuda_to_cpu_async;
 	int cuda_to_cuda_async;
 #endif
 #ifdef STARPU_USE_OPENCL
+	int cpu_to_opencl;
+	int opencl_to_cpu;
 	int cpu_to_opencl_async;
 	int opencl_to_cpu_async;
 #endif
@@ -89,17 +95,37 @@ void data_interface_test_summary_print(FILE *f,
 	(void) fprintf(f, "%s : %s\n",
 			current_config->name, enum_to_string(s->success));
 
-	(void) fprintf(f, "Details :\n");
+	(void) fprintf(f, "Asynchronous :\n");
+#ifdef STARPU_USE_CUDA
 	(void) fprintf(f, "\tCPU    -> CUDA   : %s\n",
 			enum_to_string(s->cpu_to_cuda_async));
 	(void) fprintf(f, "\tCUDA   -> CUDA   : %s\n",
 			enum_to_string(s->cuda_to_cuda_async));
 	(void) fprintf(f, "\tCUDA   -> CPU    : %s\n",
 			enum_to_string(s->cuda_to_cpu_async));
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
 	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
 			enum_to_string(s->cpu_to_opencl_async));
 	(void) fprintf(f, "\tOpenCl -< CPU    : %s\n",
 			enum_to_string(s->opencl_to_cpu_async));
+#endif /* !STARPU_USE_OPENCL */
+
+	(void) fprintf(f, "Synchronous :\n");
+#ifdef STARPU_USE_CUDA
+	(void) fprintf(f, "\tCPU    -> CUDA   ; %s\n",
+			enum_to_string(s->cpu_to_cuda));
+	(void) fprintf(f, "\tCUDA   -> CUDA   : %s\n",
+			enum_to_string(s->cuda_to_cuda));
+	(void) fprintf(f, "\tCUDA   -> CPU    : %s\n",
+			enum_to_string(s->cuda_to_cpu));
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
+			enum_to_string(s->cpu_to_opencl));
+	(void) fprintf(f, "\tOpenCl -< CPU    : %s\n",
+			enum_to_string(s->opencl_to_cpu));
+#endif /* !STARPU_USE_OPENCL */
 }
 
 int
@@ -108,26 +134,64 @@ data_interface_test_summary_success(data_interface_test_summary *s)
 	return s->success;
 }
 
-static void
-set_field(struct data_interface_test_summary *s, int *test, int ret)
+enum operation {
+#ifdef STARPU_USE_CUDA
+	CPU_TO_CUDA,
+	CUDA_TO_CUDA,
+	CUDA_TO_CPU,
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+	CPU_TO_OPENCL,
+	OPENCL_TO_CPU
+#endif /* !STARPU_USE_OPENCL */
+};
+
+static int*
+get_field(struct data_interface_test_summary *s, int async, enum operation op)
 {
+	switch (op)
+	{
+#ifdef STARPU_USE_CUDA
+	case CPU_TO_CUDA:
+		return async?&s->cpu_to_cuda_async:&s->cpu_to_cuda;
+	case CUDA_TO_CUDA:
+		return async?&s->cuda_to_cuda_async:&s->cuda_to_cuda;
+	case CUDA_TO_CPU:
+		return async?&s->cuda_to_cpu_async:&s->cuda_to_cpu;
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+	case CPU_TO_OPENCL:
+		return async?&s->cpu_to_opencl_async:&s->cpu_to_opencl;
+	case OPENCL_TO_CPU:
+		return async?&s->opencl_to_cpu_async:&s->opencl_to_cpu;
+#endif /* !STARPU_USE_OPENCL */
+		default:
+			assert(0);
+	}
+}
+
+static void
+set_field(struct data_interface_test_summary *s, int async,
+	  enum operation op, int ret)
+{
+	int *field = get_field(s, async, op);
 	switch (ret)
 	{
 		case SUCCESS:
-			*test = SUCCESS;
+			*field = SUCCESS;
 			break;
 		case FAILURE:
-			*test = FAILURE;
+			*field = FAILURE;
 			s->success = FAILURE;
 			break;
 		case UNTESTED:
-			*test = UNTESTED;
+			*field = UNTESTED;
 			break;
 		case TASK_CREATION_FAILURE:
-			*test = TASK_CREATION_FAILURE;
+			*field = TASK_CREATION_FAILURE;
 			break;
 		case TASK_SUBMISSION_FAILURE:
-			*test = TASK_SUBMISSION_FAILURE;
+			*field = TASK_SUBMISSION_FAILURE;
 			break;
 		default:
 			assert(0);
@@ -136,11 +200,16 @@ set_field(struct data_interface_test_summary *s, int *test, int ret)
 
 static struct data_interface_test_summary summary = {
 #ifdef STARPU_USE_CUDA
+	.cpu_to_cuda           = UNTESTED,
+	.cuda_to_cuda          = UNTESTED,
+	.cuda_to_cpu           = UNTESTED,
 	.cpu_to_cuda_async     = UNTESTED,
 	.cuda_to_cpu_async     = UNTESTED,
 	.cuda_to_cuda_async    = UNTESTED,
 #endif
 #ifdef STARPU_USE_OPENCL
+	.cpu_to_opencl         = UNTESTED,
+	.opencl_to_cpu         = UNTESTED,
 	.cpu_to_opencl_async   = UNTESTED,
 	.opencl_to_cpu_async   = UNTESTED,
 #endif
@@ -373,20 +442,20 @@ opencl_to_ram()
 /* End of the <device1>_to_<device2> functions. */
 
 static void
-run_cuda_async(void)
+run_cuda(int async)
 {
 	/* RAM -> CUDA (-> CUDA) -> RAM */
 	int err;
 #ifdef STARPU_USE_CUDA
 	err = ram_to_cuda();
-	set_field(&summary, &summary.cpu_to_cuda_async, err);
+	set_field(&summary, async, CPU_TO_CUDA, err);
 	/* If this failed, there is no point in continuing. */
 	if (err != SUCCESS)
 		return;
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	err = cuda_to_cuda();
-	set_field(&summary, &summary.cuda_to_cuda_async, err);
+	set_field(&summary, async, CUDA_TO_CUDA, err);
 	/* Even if cuda_to_cuda() failed, a valid copy is left on the first
 	 * cuda device, which means we can safely test cuda_to_ram() */
 #else
@@ -394,32 +463,60 @@ run_cuda_async(void)
 #endif /* !HAVE_CUDA_MEMCPY_PEER */
 
 	err = cuda_to_ram();
-	set_field(&summary, &summary.cuda_to_cpu_async, err);
+	set_field(&summary, async, CUDA_TO_CPU, err);
 #endif /* !STARPU_USE_CUDA */
 }
 
 static void
-run_opencl_async(void)
+run_opencl(int async)
 {
 	/* RAM -> OpenCL -> RAM */
 	int err;
 
 #if STARPU_USE_OPENCL
 	err = ram_to_opencl();
-	set_field(&summary, &summary.cpu_to_opencl_async, err);
+	set_field(&summary, async, CPU_TO_OPENCL, err);
 	if (err != SUCCESS)
 		return;
 
 	err = opencl_to_ram();
-	set_field(&summary, &summary.opencl_to_cpu_async, err);
+	set_field(&summary, async, OPENCL_TO_CPU, err);
 #endif /* !STARPU_USE_OPENCL */
 }
 
 static void
 run_async(void)
 {
-	run_cuda_async();
-	run_opencl_async();
+	run_cuda(1);
+	run_opencl(1);
+}
+
+static void
+run_sync(void)
+{
+	starpu_data_handle handle = *current_config->handle;
+
+	struct starpu_data_interface_ops *ops = handle->ops;
+	//struct starpu_data_copy_methods *copy_methods = ops->copy_methods;
+	
+//	copy_methods->ram_to_cuda_async = NULL;
+	struct starpu_data_interface_ops *new_ops;
+	struct starpu_data_copy_methods new_copy_methods;
+	memcpy(&new_copy_methods,
+		handle->ops->copy_methods,
+		sizeof(struct starpu_data_copy_methods));
+#ifdef STARPU_USE_CUDA
+	new_copy_methods.ram_to_cuda_async = NULL;
+	new_copy_methods.cuda_to_cuda_async = NULL;
+	new_copy_methods.cuda_to_ram_async = NULL;
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+	new_copy_methods.ram_to_opencl_async = NULL;
+	new_copy_methods.opencl_to_ram_async = NULL;
+#endif /* !STARPU_USE_OPENCL */
+	handle->ops->copy_methods = &new_copy_methods;
+	run_cuda(0);
+	run_opencl(0);
 }
 
 static int
@@ -451,5 +548,6 @@ run_tests(struct test_config *conf)
 		return NULL;
 	}
 	run_async();
+	run_sync();
 	return &summary;
 }
