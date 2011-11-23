@@ -1403,8 +1403,10 @@ be set with @code{starpu_data_set_sequential_consistency_flag}.
 @section Performance Model API
 
 @deftp {Data Type} {enum starpu_perf_archtype}
-TODO.
-The different values are:
+Enumerates the various types of architectures.
+CPU types range within STARPU_CPU_DEFAULT (1 CPU), STARPU_CPU_DEFAULT+1 (2 CPUs), ... STARPU_CPU_DEFAULT + STARPU_MAXCPUS - 1 (STARPU_MAXCPUS CPUs).
+CUDA types range within STARPU_CUDA_DEFAULT (GPU number 0), STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1). 
+OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DEFAULT + 1 (GPU number 1), ..., STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS - 1 (GPU number STARPU_MAXOPENCLDEVS - 1). 
 @table @asis
 @item @code{STARPU_CPU_DEFAULT}
 @item @code{STARPU_CUDA_DEFAULT}
@@ -1414,35 +1416,37 @@ The different values are:
 @end deftp
 
 @deftp {Data Type} {struct starpu_perfmodel}
-TODO
+contains all information about a performance model. At least the
+@code{type} and @code{symbol} fields have to be filled when defining a
+performance model for a codelet. Other fields have to be zero.
 @end deftp
 
 @deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
-TODO
+loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{~/.starpu}.
 @end deftypefun
 
 @deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen})
-TODO
+returns the path to the debugginf information for the performance model.
 @end deftypefun
 
 @deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen})
-TODO
+returns the architecture name for @var{arch}.
 @end deftypefun
 
 @deftypefun void starpu_force_bus_sampling (void)
-This forces sampling the bus performance model again.
+forces sampling the bus performance model again.
 @end deftypefun
 
 @deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})
-todo
+returns the architecture type of a given worker.
 @end deftypefun
 
-@deftypefun int starpu_list_models (void)
-todo
+@deftypefun int starpu_list_models ({FILE *}@var{output})
+prints a list of all performance models on @var{output}.
 @end deftypefun
 
 @deftypefun void starpu_print_bus_bandwidth ({FILE *}@var{f})
-todo
+prints a matrix of bus bandwidths on @var{f}.
 @end deftypefun
 
 @node Profiling API
