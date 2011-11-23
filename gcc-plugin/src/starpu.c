@@ -1112,10 +1112,10 @@ build_codelet_wrapper_definition (tree task_impl)
 
 	    /* Below we assume (1) that pointer arguments are registered as
 	       StarPU vector handles, and (2) that the `ptr' field is at
-	       offset 0 of `starpu_vector_interface_s'.  The latter allows us
+	       offset 0 of `struct starpu_vector_interface'.  The latter allows us
 	       to use a simple pointer dereference instead of expanding
 	       `STARPU_VECTOR_GET_PTR'.  */
-	    assert (offsetof (struct starpu_vector_interface_s, ptr) == 0);
+	    assert (offsetof (struct starpu_vector_interface, ptr) == 0);
 
 	    /* Compute `type *PTR = *(type **) VDESC;'.  */
 	    tree ptr = build1 (INDIRECT_REF,

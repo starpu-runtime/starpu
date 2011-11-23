@@ -1043,7 +1043,7 @@ least one function pointer, and at most @code{STARPU_MAXIMPLEMENTATIONS}.
 @item @code{opencl_func} (optional)
 Is a function pointer to the OpenCL implementation of the codelet. Its
 prototype must be:
-@code{void opencl_func(starpu_data_interface_t *descr, void *arg);}.
+@code{void opencl_func(void *buffers[], void *cl_arg);}.
 This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
 @code{where} field, it must be non-null otherwise. When multiple OpenCL
 implementations are used, this field must be set to

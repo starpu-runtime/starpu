@@ -31,7 +31,7 @@
 void scal_cpu_func(void *buffers[], void *_args) {
 	unsigned i;
 	float *factor = _args;
-	starpu_vector_interface_t *vector = buffers[0];
+	struct starpu_vector_interface *vector = buffers[0];
 	unsigned n = STARPU_VECTOR_GET_NX(vector);
 	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 

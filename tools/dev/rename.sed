@@ -14,6 +14,13 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstarpu_block_interface_t/struct starpu_block_interface/g
+s/\bstarpu_matrix_interface_t/struct starpu_matrix_interface/g
+s/\bstarpu_vector_interface_t/struct starpu_vector_interface/g
+s/\bstarpu_variable_interface_t/struct starpu_variable_interface/g
+s/\bstarpu_csr_interface_t/struct starpu_csr_interface/g
+s/\bstarpu_bcsr_interface_t/struct starpu_bcsr_interface/g
+s/\bstarpu_multiformat_interface_t/struct starpu_multiformat_interface/g
 s/\bstarpu_machine_topology_s\b/starpu_machine_topology/g
 s/\bstarpu_htbl32_node_s\b/starpu_htbl32_node/g
 s/\bstarpu_history_list_t\b/starpu_history_list/g

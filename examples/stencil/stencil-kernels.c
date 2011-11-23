@@ -149,7 +149,7 @@ static void record_who_runs_what(struct block_description *block)
 		who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = global_workerid(workerid);
 }
 
-static void check_load(starpu_block_interface_t *block, starpu_block_interface_t *boundary)
+static void check_load(struct starpu_block_interface *block, struct starpu_block_interface *boundary)
 {
 	/* Sanity checks */
 	STARPU_ASSERT(block->nx == boundary->nx);
@@ -169,8 +169,8 @@ static void load_subblock_from_buffer_cpu(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -190,8 +190,8 @@ static void load_subblock_from_buffer_cuda(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -248,7 +248,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
+		struct starpu_block_interface *oldb = descr[i%2], *newb = descr[(i+1)%2];
 		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
 
 		/* Shadow data */
@@ -275,8 +275,8 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
  * Load a neighbour's boundary into block, OpenCL version
  */
 #ifdef STARPU_USE_OPENCL
-static void load_subblock_from_buffer_opencl(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_from_buffer_opencl(struct starpu_block_interface *block,
+					struct starpu_block_interface *boundary,
 					unsigned firstz)
 {
 	check_load(block, boundary);
@@ -341,7 +341,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
+		struct starpu_block_interface *oldb = descr[i%2], *newb = descr[(i+1)%2];
 		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
 
 		/* Shadow data */
@@ -409,7 +409,7 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = (starpu_block_interface_t *) descr[i%2], *newb = (starpu_block_interface_t *) descr[(i+1)%2];
+		struct starpu_block_interface *oldb = (struct starpu_block_interface *) descr[i%2], *newb = (struct starpu_block_interface *) descr[(i+1)%2];
 		TYPE *old = (TYPE*) oldb->ptr, *newer = (TYPE*) newb->ptr;
 
 		/* Shadow data */
@@ -473,8 +473,8 @@ static void load_subblock_into_buffer_cpu(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -492,8 +492,8 @@ static void load_subblock_into_buffer_cuda(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -508,8 +508,8 @@ static void load_subblock_into_buffer_cuda(void *_block,
 
 /* OPENCL version */
 #ifdef STARPU_USE_OPENCL
-static void load_subblock_into_buffer_opencl(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_into_buffer_opencl(struct starpu_block_interface *block,
+					struct starpu_block_interface *boundary,
 					unsigned firstz)
 {
 	check_load(block, boundary);

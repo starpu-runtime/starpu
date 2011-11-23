@@ -21,8 +21,8 @@
 void starpu_block_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
-        starpu_block_interface_t *block_father = (starpu_block_interface_t *) father_interface;
-        starpu_block_interface_t *block_child = (starpu_block_interface_t *) child_interface;
+        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
 
 	uint32_t nx = block_father->nx;
         uint32_t ny = block_father->ny;

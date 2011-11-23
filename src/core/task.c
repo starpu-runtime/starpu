@@ -442,7 +442,7 @@ double _starpu_task_get_conversion_time(struct starpu_task *task)
 		starpu_data_handle handle = task->buffers[i].handle;
 		enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
 		if (id == STARPU_MULTIFORMAT_INTERFACE_ID) {
-			starpu_multiformat_interface_t *tmp;
+			struct starpu_multiformat_interface *tmp;
 			uint32_t node = starpu_worker_get_memory_node(task->workerid);
 			tmp = starpu_data_get_interface_on_node(handle, node);
 			conversion_time += tmp->conversion_time;

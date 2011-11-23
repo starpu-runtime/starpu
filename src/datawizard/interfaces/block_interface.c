@@ -90,7 +90,7 @@ static struct starpu_data_interface_ops interface_block_ops = {
 	.convert_to_gordon = convert_block_to_gordon,
 #endif
 	.interfaceid = STARPU_BLOCK_INTERFACE_ID, 
-	.interface_size = sizeof(starpu_block_interface_t),
+	.interface_size = sizeof(struct starpu_block_interface),
 	.display = display_block_interface
 };
 
@@ -108,7 +108,7 @@ static void *block_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
 	return (void*) block_interface->ptr;
@@ -116,12 +116,12 @@ static void *block_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 
 static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *) data_interface;
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
 
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		starpu_block_interface_t *local_interface = (starpu_block_interface_t *)
+		struct starpu_block_interface *local_interface = (struct starpu_block_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
@@ -151,7 +151,7 @@ void starpu_block_data_register(starpu_data_handle *handleptr, uint32_t home_nod
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
-	starpu_block_interface_t block_interface = {
+	struct starpu_block_interface block_interface = {
 		.ptr = ptr,
                 .dev_handle = ptr,
                 .offset = 0,
@@ -179,8 +179,8 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
 
 static int block_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_block_interface_t *block_a = (starpu_block_interface_t *) data_interface_a;
-	starpu_block_interface_t *block_b = (starpu_block_interface_t *) data_interface_b;
+	struct starpu_block_interface *block_a = (struct starpu_block_interface *) data_interface_a;
+	struct starpu_block_interface *block_b = (struct starpu_block_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
 	return ((block_a->nx == block_b->nx)
@@ -191,9 +191,9 @@ static int block_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_block_interface(starpu_data_handle handle, FILE *f)
 {
-	starpu_block_interface_t *block_interface;
+	struct starpu_block_interface *block_interface;
 
-	block_interface = (starpu_block_interface_t *) starpu_data_get_interface_on_node(handle, 0);
+	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, 0);
 
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
@@ -201,9 +201,9 @@ static void display_block_interface(starpu_data_handle handle, FILE *f)
 static size_t block_interface_get_size(starpu_data_handle handle)
 {
 	size_t size;
-	starpu_block_interface_t *block_interface;
+	struct starpu_block_interface *block_interface;
 
-	block_interface = (starpu_block_interface_t *) starpu_data_get_interface_on_node(handle, 0);
+	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, 0);
 
 	size = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize; 
 
@@ -213,7 +213,7 @@ static size_t block_interface_get_size(starpu_data_handle handle)
 /* offer an access to the data parameters */
 uint32_t starpu_block_get_nx(starpu_data_handle handle)
 {
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	return block_interface->nx;
@@ -221,7 +221,7 @@ uint32_t starpu_block_get_nx(starpu_data_handle handle)
 
 uint32_t starpu_block_get_ny(starpu_data_handle handle)
 {
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	return block_interface->ny;
@@ -229,7 +229,7 @@ uint32_t starpu_block_get_ny(starpu_data_handle handle)
 
 uint32_t starpu_block_get_nz(starpu_data_handle handle)
 {
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	return block_interface->nz;
@@ -242,7 +242,7 @@ uint32_t starpu_block_get_local_ldy(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 	
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
 	return block_interface->ldy;
@@ -255,7 +255,7 @@ uint32_t starpu_block_get_local_ldz(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
 	return block_interface->ldz;
@@ -268,7 +268,7 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
 	return block_interface->ptr;
@@ -276,7 +276,7 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle)
 
 size_t starpu_block_get_elemsize(starpu_data_handle handle)
 {
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *)
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	return block_interface->elemsize;
@@ -295,7 +295,7 @@ static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
 #endif
-	starpu_block_interface_t *dst_block = (starpu_block_interface_t *) data_interface_;
+	struct starpu_block_interface *dst_block = (struct starpu_block_interface *) data_interface_;
 
 	uint32_t nx = dst_block->nx;
 	uint32_t ny = dst_block->ny;
@@ -364,7 +364,7 @@ static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst
 
 static void free_block_buffer_on_node(void *data_interface, uint32_t node)
 {
-	starpu_block_interface_t *block_interface = (starpu_block_interface_t *) data_interface;
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
@@ -396,8 +396,8 @@ static void free_block_buffer_on_node(void *data_interface, uint32_t node)
 #ifdef STARPU_USE_CUDA
 static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, enum cudaMemcpyKind kind)
 {
-	starpu_block_interface_t *src_block = src_interface;
-	starpu_block_interface_t *dst_block = dst_interface;
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
 
 	uint32_t nx = src_block->nx;
 	uint32_t ny = src_block->ny;
@@ -449,8 +449,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream, enum cudaMemcpyKind kind)
 {
-	starpu_block_interface_t *src_block = src_interface;
-	starpu_block_interface_t *dst_block = dst_interface;
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
 
 	uint32_t nx = src_block->nx;
 	uint32_t ny = src_block->ny;
@@ -589,8 +589,8 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event)
 {
-	starpu_block_interface_t *src_block = src_interface;
-	starpu_block_interface_t *dst_block = dst_interface;
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
         int err, ret = 0;
 
 	uint32_t nx = src_block->nx;
@@ -656,8 +656,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event)
 {
-	starpu_block_interface_t *src_block = src_interface;
-	starpu_block_interface_t *dst_block = dst_interface;
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
         int err, ret = 0;
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
@@ -730,8 +730,8 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTR
 /* as not all platform easily have a BLAS lib installed ... */
 static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
-	starpu_block_interface_t *src_block = (starpu_block_interface_t *) src_interface;
-	starpu_block_interface_t *dst_block = (starpu_block_interface_t *) dst_interface;
+	struct starpu_block_interface *src_block = (struct starpu_block_interface *) src_interface;
+	struct starpu_block_interface *dst_block = (struct starpu_block_interface *) dst_interface;
 
 	uint32_t nx = dst_block->nx;
 	uint32_t ny = dst_block->ny;

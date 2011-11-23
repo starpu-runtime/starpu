@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,13 +34,13 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 	 * task->buffers[0].handle is a handle that corresponds to a data with
 	 * vector "interface", so that the first entry of the array in the
 	 * codelet  is a pointer to a structure describing such a vector (ie.
-	 * struct starpu_vector_interface_s *). Here, we therefore manipulate
+	 * struct starpu_vector_interface *). Here, we therefore manipulate
 	 * the buffers[0] element as a vector: nx gives the number of elements
 	 * in the array, ptr gives the location of the array (that was possibly
 	 * migrated/replicated), and elemsize gives the size of each elements.
 	 */
 
-	starpu_vector_interface_t *vector = (starpu_vector_interface_t *) buffers[0];
+	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 
 	/* length of the vector */
 	unsigned n = STARPU_VECTOR_GET_NX(vector);
