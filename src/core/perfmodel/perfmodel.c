@@ -71,7 +71,7 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
 static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp = -1.0;
-	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
+	double (*per_arch_cost_model)(struct starpu_buffer_descr *);
 	
 	per_arch_cost_model = model->per_arch[arch][nimpl].cost_model;
 

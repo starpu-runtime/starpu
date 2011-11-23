@@ -39,24 +39,24 @@
 	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= STARPU_CALIBRATION_MINIMUM)
 
 static pthread_rwlock_t registered_models_rwlock;
-static struct starpu_model_list_t *registered_models = NULL;
+static struct starpu_model_list *registered_models = NULL;
 
 /*
  * History based model
  */
 
 
-static void insert_history_entry(struct starpu_history_entry_t *entry, struct starpu_history_list_t **list, struct starpu_htbl32_node_s **history_ptr)
+static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_history_list **list, struct starpu_htbl32_node **history_ptr)
 {
-	struct starpu_history_list_t *link;
-	struct starpu_history_entry_t *old;
+	struct starpu_history_list *link;
+	struct starpu_history_entry *old;
 
-	link = (struct starpu_history_list_t *) malloc(sizeof(struct starpu_history_list_t));
+	link = (struct starpu_history_list *) malloc(sizeof(struct starpu_history_list));
 	link->next = *list;
 	link->entry = entry;
 	*list = link;
 
-	old = (struct starpu_history_entry_t *) _starpu_htbl_insert_32(history_ptr, entry->footprint, entry);
+	old = (struct starpu_history_entry *) _starpu_htbl_insert_32(history_ptr, entry->footprint, entry);
 	/* that may fail in case there is some concurrency issue */
 	STARPU_ASSERT(old == NULL);
 }
@@ -64,10 +64,10 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 
 static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
 {
-	struct starpu_per_arch_perfmodel_t *per_arch_model;
+	struct starpu_per_arch_perfmodel *per_arch_model;
 
 	per_arch_model = &model->per_arch[arch][nimpl];
-	struct starpu_regression_model_t *reg_model;
+	struct starpu_regression_model *reg_model;
 	reg_model = &per_arch_model->regression;
 
 	/*
@@ -101,7 +101,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 }
 
-static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
+static void scan_reg_model(FILE *f, struct starpu_regression_model *reg_model)
 {
 	int res;
 
@@ -136,12 +136,12 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 	reg_model->nl_valid = !nl_invalid && VALID_REGRESSION(reg_model);
 }
 
-static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
+static void dump_history_entry(FILE *f, struct starpu_history_entry *entry)
 {
 	fprintf(f, "%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
-static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
+static void scan_history_entry(FILE *f, struct starpu_history_entry *entry)
 {
 	int res;
 
@@ -180,7 +180,7 @@ static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel *per_arch_model, unsigned scan_history)
 {
 	unsigned nentries;
 
@@ -194,10 +194,10 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 	/* parse cpu entries */
 	unsigned i;
 	for (i = 0; i < nentries; i++) {
-		struct starpu_history_entry_t *entry = NULL;
+		struct starpu_history_entry *entry = NULL;
 		if (scan_history)
 		{
-			entry = (struct starpu_history_entry_t *) malloc(sizeof(struct starpu_history_entry_t));
+			entry = (struct starpu_history_entry *) malloc(sizeof(struct starpu_history_entry));
 			STARPU_ASSERT(entry);
 		}
 
@@ -211,7 +211,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 
 static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned archmin, unsigned archmax, int skiparch)
 {
-	struct starpu_per_arch_perfmodel_t dummy;
+	struct starpu_per_arch_perfmodel dummy;
 	int nimpls, implmax, skipimpl, impl;
 	unsigned ret, arch;
 	
@@ -323,11 +323,11 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 
 static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
 {
-	struct starpu_per_arch_perfmodel_t *per_arch_model;
+	struct starpu_per_arch_perfmodel *per_arch_model;
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 	/* count the number of elements in the lists */
-	struct starpu_history_list_t *ptr = NULL;
+	struct starpu_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
@@ -364,10 +364,10 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, un
 
 static unsigned get_n_entries(struct starpu_perfmodel *model, unsigned arch, unsigned impl)
 {
-	struct starpu_per_arch_perfmodel_t *per_arch_model;
+	struct starpu_per_arch_perfmodel *per_arch_model;
 	per_arch_model = &model->per_arch[arch][impl];
 	/* count the number of elements in the lists */
-	struct starpu_history_list_t *ptr = NULL;
+	struct starpu_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
@@ -489,7 +489,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	}
 }
 
-static void initialize_per_arch_model(struct starpu_per_arch_perfmodel_t *per_arch_model)
+static void initialize_per_arch_model(struct starpu_per_arch_perfmodel *per_arch_model)
 {
 	per_arch_model->history = NULL;
 	per_arch_model->list = NULL;
@@ -550,7 +550,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 	}
 
 	/* add the model to a linked list */
-	struct starpu_model_list_t *node = (struct starpu_model_list_t *) malloc(sizeof(struct starpu_model_list_t));
+	struct starpu_model_list *node = (struct starpu_model_list *) malloc(sizeof(struct starpu_model_list));
 
 	node->model = model;
 	//model->debug_modelid = debug_modelid++;
@@ -621,7 +621,7 @@ static void _starpu_dump_registered_models(void)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct starpu_model_list_t *node;
+	struct starpu_model_list *node;
 	node = registered_models;
 
 	_STARPU_DEBUG("DUMP MODELS !\n");
@@ -860,7 +860,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
-	struct starpu_regression_model_t *regmodel;
+	struct starpu_regression_model *regmodel;
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
@@ -874,7 +874,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
-	struct starpu_regression_model_t *regmodel;
+	struct starpu_regression_model *regmodel;
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
@@ -882,12 +882,12 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
 	else {
 		uint32_t key = _starpu_compute_buffers_footprint(j);
-		struct starpu_per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch][nimpl];
-		struct starpu_htbl32_node_s *history = per_arch_model->history;
-		struct starpu_history_entry_t *entry;
+		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
+		struct starpu_htbl32_node *history = per_arch_model->history;
+		struct starpu_history_entry *entry;
 
 		_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
-		entry = (struct starpu_history_entry_t *) _starpu_htbl_search_32(history, key);
+		entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 		if (entry && entry->nsample >= STARPU_CALIBRATION_MINIMUM)
@@ -905,9 +905,9 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
 {
 	double exp;
-	struct starpu_per_arch_perfmodel_t *per_arch_model;
-	struct starpu_history_entry_t *entry;
-	struct starpu_htbl32_node_s *history;
+	struct starpu_per_arch_perfmodel *per_arch_model;
+	struct starpu_history_entry *entry;
+	struct starpu_htbl32_node *history;
 
 	uint32_t key = _starpu_compute_buffers_footprint(j);
 
@@ -918,7 +918,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		return -1.0;
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
-	entry = (struct starpu_history_entry_t *) _starpu_htbl_search_32(history, key);
+	entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 	exp = entry?entry->mean:-1.0;
@@ -944,29 +944,29 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel *m
 	{
 		_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
-		struct starpu_per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch][nimpl];
+		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
 
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
 			uint32_t key = _starpu_compute_buffers_footprint(j);
-			struct starpu_history_entry_t *entry;
+			struct starpu_history_entry *entry;
 
-			struct starpu_htbl32_node_s *history;
-			struct starpu_htbl32_node_s **history_ptr;
+			struct starpu_htbl32_node *history;
+			struct starpu_htbl32_node **history_ptr;
 
-			struct starpu_history_list_t **list;
+			struct starpu_history_list **list;
 
 
 			history = per_arch_model->history;
 			history_ptr = &per_arch_model->history;
 			list = &per_arch_model->list;
 
-			entry = (struct starpu_history_entry_t *) _starpu_htbl_search_32(history, key);
+			entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 
 			if (!entry)
 			{
 				/* this is the first entry with such a footprint */
-				entry = (struct starpu_history_entry_t *) malloc(sizeof(struct starpu_history_entry_t));
+				entry = (struct starpu_history_entry *) malloc(sizeof(struct starpu_history_entry));
 				STARPU_ASSERT(entry);
 					entry->mean = measured;
 					entry->sum = measured;
@@ -998,7 +998,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel *m
 			
 		if (model->type == STARPU_REGRESSION_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
-			struct starpu_regression_model_t *reg_model;
+			struct starpu_regression_model *reg_model;
 			reg_model = &per_arch_model->regression;
 
 			/* update the regression model */

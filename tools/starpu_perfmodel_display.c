@@ -107,9 +107,9 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-static void display_history_based_perf_model(struct starpu_per_arch_perfmodel_t *per_arch_model)
+static void display_history_based_perf_model(struct starpu_per_arch_perfmodel *per_arch_model)
 {
-	struct starpu_history_list_t *ptr;
+	struct starpu_history_list *ptr;
 
 	ptr = per_arch_model->list;
 
@@ -117,7 +117,7 @@ static void display_history_based_perf_model(struct starpu_per_arch_perfmodel_t 
 		fprintf(stderr, "# hash\t\tsize\t\tmean\t\tdev\t\tn\n");
 
 	while (ptr) {
-		struct starpu_history_entry_t *entry = ptr->entry;
+		struct starpu_history_entry *entry = ptr->entry;
 		if (!display_specific_footprint || (entry->footprint == specific_footprint))
 		{
 			if (!parameter)
@@ -145,7 +145,7 @@ static void display_history_based_perf_model(struct starpu_per_arch_perfmodel_t 
 
 static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl)
 {
-	struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch][nimpl];
+	struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list) {

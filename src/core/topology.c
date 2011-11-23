@@ -50,7 +50,7 @@ static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *co
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 #  ifdef STARPU_USE_CUDA
 static void _starpu_initialize_workers_cuda_gpuid(struct starpu_machine_config_s *config);
-static struct starpu_htbl32_node_s *devices_using_cuda = NULL;
+static struct starpu_htbl32_node *devices_using_cuda = NULL;
 #  endif
 #  ifdef STARPU_USE_OPENCL
 static void _starpu_initialize_workers_opencl_gpuid(struct starpu_machine_config_s *config);
@@ -105,7 +105,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct starpu_machine_config
 #endif /* STARPU_USE_CUDA */
         {
                 // Detect identical devices
-                struct starpu_htbl32_node_s *devices_already_used = NULL;
+                struct starpu_htbl32_node *devices_already_used = NULL;
                 unsigned tmp[STARPU_NMAXWORKERS];
                 unsigned nb=0;
                 int i;

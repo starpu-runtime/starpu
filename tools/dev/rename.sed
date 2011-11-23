@@ -14,7 +14,15 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-s/\bstarpu_buffer_descr\b/struct starpu_buffer_descr/g
+s/\bstarpu_htbl32_node_s\b/starpu_htbl32_node/g
+s/\bstarpu_history_list_t\b/starpu_history_list/g
+s/\bstarpu_buffer_descr_t\b/starpu_buffer_descr/g
+s/\bstarpu_history_entry_t\b/starpu_history_entry/g
+s/\bstarpu_history_list_t\b/starpu_history_list/g
+s/\bstarpu_model_list_t\b/starpu_model_list/g
+s/\bstarpu_regression_model_t\b/starpu_regression_model/g
+s/\bstarpu_per_arch_perfmodel_t\b/starpu_per_arch_perfmodel/g
+#s/\bstarpu_buffer_descr\b/struct starpu_buffer_descr/g
 s/\bstarpu_perfmodel_t\b/starpu_perfmodel/g
 s/\bstarpu_tag_t\b/starpu_tag/g
 s/\bstarpu_sched_policy_s\b/starpu_sched_policy/g

@@ -71,8 +71,8 @@ LIST_TYPE(starpu_job,
 	/* To avoid deadlocks, we reorder the different buffers accessed to by
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
-	struct starpu_buffer_descr_t ordered_buffers[STARPU_NMAXBUFS];
-	
+	struct starpu_buffer_descr ordered_buffers[STARPU_NMAXBUFS];
+
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
 	struct starpu_tag_s *tag;

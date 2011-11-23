@@ -33,9 +33,9 @@
 extern "C" {
 #endif
 
-struct starpu_htbl32_node_s;
-struct starpu_history_list_t;
-struct starpu_buffer_descr_t;
+struct starpu_htbl32_node;
+struct starpu_history_list;
+struct starpu_buffer_descr;
 
 /* 
    it is possible that we have multiple versions of the same kind of workers,
@@ -54,7 +54,7 @@ enum starpu_perf_archtype {
 
 #define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
 
-struct starpu_history_entry_t {
+struct starpu_history_entry {
 	//double measured;
 	
 	/* mean_n = 1/n sum */
@@ -89,17 +89,17 @@ struct starpu_history_entry_t {
 #endif
 };
 
-struct starpu_history_list_t {
-	struct starpu_history_list_t *next;
-	struct starpu_history_entry_t *entry;
+struct starpu_history_list {
+	struct starpu_history_list *next;
+	struct starpu_history_entry *entry;
 };
 
-struct starpu_model_list_t {
-	struct starpu_model_list_t *next;
+struct starpu_model_list {
+	struct starpu_model_list *next;
 	struct starpu_perfmodel *model;
 };
 
-struct starpu_regression_model_t {
+struct starpu_regression_model {
 	/* sum of ln(measured) */
 	double sumlny;
 
@@ -126,14 +126,14 @@ struct starpu_regression_model_t {
 	unsigned nsample;
 };
 
-struct starpu_per_arch_perfmodel_t {
-	double (*cost_model)(struct starpu_buffer_descr_t *t); /* returns expected duration in µs */
+struct starpu_per_arch_perfmodel {
+	double (*cost_model)(struct starpu_buffer_descr *t); /* returns expected duration in µs */
 
 	/* internal variables */
 	double alpha;
-	struct starpu_htbl32_node_s *history;
-	struct starpu_history_list_t *list;
-	struct starpu_regression_model_t regression;
+	struct starpu_htbl32_node *history;
+	struct starpu_history_list *list;
+	struct starpu_regression_model regression;
 #ifdef STARPU_MODEL_DEBUG
 	FILE *debug_file;
 #endif
@@ -152,10 +152,10 @@ struct starpu_perfmodel {
 	enum starpu_perfmodel_type type;
 
 	/* single cost model (STARPU_COMMON), returns expected duration in µs */
-	double (*cost_model)(struct starpu_buffer_descr_t *);
+	double (*cost_model)(struct starpu_buffer_descr *);
 
 	/* per-architecture model */
-	struct starpu_per_arch_perfmodel_t per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
+	struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Name of the performance model, this is used as a file name when saving history-based performance models */
 	const char *symbol;

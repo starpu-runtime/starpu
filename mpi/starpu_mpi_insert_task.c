@@ -34,17 +34,17 @@
 #define MPI_CACHE
 
 #ifdef MPI_CACHE
-static struct starpu_htbl32_node_s **sent_data = NULL;
-static struct starpu_htbl32_node_s **received_data = NULL;
+static struct starpu_htbl32_node **sent_data = NULL;
+static struct starpu_htbl32_node **received_data = NULL;
 
 static void _starpu_mpi_task_init(int nb_nodes)
 {
         int i;
 
         _STARPU_MPI_DEBUG("Initialising hash table for cache\n");
-        sent_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node_s *));
+        sent_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node *));
         for(i=0 ; i<nb_nodes ; i++) sent_data[i] = NULL;
-        received_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node_s *));
+        received_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node *));
         for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
 }
 
