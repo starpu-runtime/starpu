@@ -17,5 +17,5 @@
 #include <starpu.h>
 
 /* Initialize combined workers */
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
+void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topology);
 

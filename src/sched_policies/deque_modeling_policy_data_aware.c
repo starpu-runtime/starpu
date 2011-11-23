@@ -569,7 +569,7 @@ static int dmda_push_task(struct starpu_task *task)
 	return _dmda_push_task(task, 0);
 }
 
-static void initialize_dmda_policy(struct starpu_machine_topology_s *topology, 
+static void initialize_dmda_policy(struct starpu_machine_topology *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;
@@ -602,7 +602,7 @@ static void initialize_dmda_policy(struct starpu_machine_topology_s *topology,
 	}
 }
 
-static void initialize_dmda_sorted_policy(struct starpu_machine_topology_s *topology,
+static void initialize_dmda_sorted_policy(struct starpu_machine_topology *topology,
 					struct starpu_sched_policy *_policy)
 {
 	initialize_dmda_policy(topology, _policy);
@@ -612,7 +612,7 @@ static void initialize_dmda_sorted_policy(struct starpu_machine_topology_s *topo
 	starpu_sched_set_max_priority(INT_MAX);
 }
 
-static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology, 
+static void deinitialize_dmda_policy(struct starpu_machine_topology *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	unsigned workerid;

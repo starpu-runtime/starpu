@@ -26,7 +26,7 @@ struct starpu_task_list sched_list;
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
 
-static void init_dummy_sched(struct starpu_machine_topology_s *topology,
+static void init_dummy_sched(struct starpu_machine_topology *topology,
 			struct starpu_sched_policy *policy)
 {
 	/* Create a linked-list of tasks and a condition variable to protect it */
@@ -42,7 +42,7 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
-static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
+static void deinit_dummy_sched(struct starpu_machine_topology *topology,
 				struct starpu_sched_policy *policy)
 {
 	STARPU_ASSERT(starpu_task_list_empty(&sched_list));

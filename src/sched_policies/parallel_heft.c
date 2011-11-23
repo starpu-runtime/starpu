@@ -373,7 +373,7 @@ static int parallel_heft_push_task(struct starpu_task *task)
 	return _parallel_heft_push_task(task, 0);
 }
 
-static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *topology, 
+static void initialize_parallel_heft_policy(struct starpu_machine_topology *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;

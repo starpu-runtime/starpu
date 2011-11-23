@@ -119,7 +119,7 @@ struct starpu_worker_set_s {
 
 struct starpu_machine_config_s {
 
-	struct starpu_machine_topology_s topology;
+	struct starpu_machine_topology topology;
 
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth;

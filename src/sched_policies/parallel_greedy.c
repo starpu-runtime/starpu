@@ -37,7 +37,7 @@ static int possible_combinations_cnt[STARPU_NMAXWORKERS];
 static int possible_combinations[STARPU_NMAXWORKERS][10];
 static int possible_combinations_size[STARPU_NMAXWORKERS][10];
 
-static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology, 
+static void initialize_pgreedy_policy(struct starpu_machine_topology *topology, 
 		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* masters pick tasks from that queue */
@@ -128,7 +128,7 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology
 #endif
 }
 
-static void deinitialize_pgreedy_policy(__attribute__ ((unused)) struct starpu_machine_topology_s *topology, 
+static void deinitialize_pgreedy_policy(__attribute__ ((unused)) struct starpu_machine_topology *topology, 
 		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	/* TODO check that there is no task left in the queue */

@@ -67,7 +67,7 @@ static unsigned may_bind_automatically = 0;
 #ifdef STARPU_USE_CUDA
 static void _starpu_initialize_workers_cuda_gpuid(struct starpu_machine_config_s *config)
 {
-	struct starpu_machine_topology_s *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
         _starpu_initialize_workers_gpuid(config->user_conf==NULL?0:config->user_conf->use_explicit_workers_cuda_gpuid,
                                          config->user_conf==NULL?NULL:(int *)config->user_conf->workers_cuda_gpuid,
@@ -79,7 +79,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct starpu_machine_config_s
 #ifdef STARPU_USE_OPENCL
 static void _starpu_initialize_workers_opencl_gpuid(struct starpu_machine_config_s *config)
 {
-	struct starpu_machine_topology_s *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
         _starpu_initialize_workers_gpuid(config->user_conf==NULL?0:config->user_conf->use_explicit_workers_opencl_gpuid,
                                          config->user_conf==NULL?NULL:(int *)config->user_conf->workers_opencl_gpuid,
@@ -218,7 +218,7 @@ static inline int _starpu_get_next_opencl_gpuid(struct starpu_machine_config_s *
 
 static void _starpu_init_topology(struct starpu_machine_config_s *config)
 {
-	struct starpu_machine_topology_s *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
 	if (!topology_is_initialized)
 	{
@@ -276,7 +276,7 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		config->workers[i].workerid = i;
 
-	struct starpu_machine_topology_s *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
@@ -486,7 +486,7 @@ static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *co
 	char *strval;
 	unsigned i;
 
-	struct starpu_machine_topology_s *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
 	config->current_bindid = 0;
 
@@ -556,7 +556,7 @@ static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *co
 static inline int _starpu_get_next_bindid(struct starpu_machine_config_s *config,
 				int *preferred_binding, int npreferred)
 {
-	struct starpu_machine_topology_s *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
 	unsigned found = 0;
 	int current_preferred;

@@ -67,7 +67,7 @@ static int random_push_task(struct starpu_task *task)
 	return _random_push_task(task, !!task->priority);
 }
 
-static void initialize_random_policy(struct starpu_machine_topology_s *topology, 
+static void initialize_random_policy(struct starpu_machine_topology *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	starpu_srand48(time(NULL));

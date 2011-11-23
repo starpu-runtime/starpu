@@ -36,7 +36,7 @@ extern "C" {
 
 struct starpu_task;
 
-struct starpu_machine_topology_s {
+struct starpu_machine_topology {
 	unsigned nworkers;
 
 	unsigned ncombinedworkers;
@@ -72,10 +72,10 @@ struct starpu_machine_topology_s {
  * field of the starpu_conf structure passed to the starpu_init function. */
 struct starpu_sched_policy {
 	/* Initialize the scheduling policy. */
-	void (*init_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy *);
+	void (*init_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *);
 
 	/* Cleanup the scheduling policy. */
-	void (*deinit_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy *);
+	void (*deinit_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *);
 
 	/* Insert a task into the scheduler. */
 	int (*push_task)(struct starpu_task *);

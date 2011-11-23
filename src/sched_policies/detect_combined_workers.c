@@ -319,7 +319,7 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
  *			Topology of the machine : used to know the number of cpus.
  */
 
-static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machine_topology_s *topology)
+static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machine_topology *topology)
 {
     int _min_size, _max_size;
 
@@ -375,7 +375,7 @@ static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machin
  *			to get the hwloc tree.
  */
 
-static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology_s *topology)
+static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology *topology)
 {
     unsigned nb_workers;
     int min_size, max_size;
@@ -412,7 +412,7 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
 
 #else /* STARPU_HAVE_HWLOC */
 
-static void find_and_assign_combinations_without_hwloc(struct starpu_machine_topology_s *topology)
+static void find_and_assign_combinations_without_hwloc(struct starpu_machine_topology *topology)
 {
     struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
@@ -451,7 +451,7 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 
 #endif /* STARPU_HAVE_HWLOC */
 
-static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
+static void combine_all_cpu_workers(struct starpu_machine_topology *topology)
 {
     struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
@@ -473,7 +473,7 @@ static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
     }
 }
 
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
+void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topology)
 {
     struct starpu_machine_config_s *config = _starpu_get_machine_config();
 

@@ -57,7 +57,7 @@ static void param_modified(struct starpu_top_param_t* d){
 		d->name, alpha,beta,_gamma,idle_power);
 }
 
-static void heft_init(struct starpu_machine_topology_s *topology, 
+static void heft_init(struct starpu_machine_topology *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	nworkers = topology->nworkers;
@@ -438,7 +438,7 @@ static int heft_push_task(struct starpu_task *task)
 	return _heft_push_task(task, 0);
 }
 
-static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology_s *topology, 
+static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology *topology, 
                         __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
 	unsigned workerid;

@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstarpu_machine_topology_s\b/starpu_machine_topology/g
 s/\bstarpu_htbl32_node_s\b/starpu_htbl32_node/g
 s/\bstarpu_history_list_t\b/starpu_history_list/g
 s/\bstarpu_buffer_descr_t\b/starpu_buffer_descr/g

@@ -1203,7 +1203,7 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 {
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
-	struct starpu_machine_topology_s *topology = &_starpu_get_machine_config()->topology;
+	struct starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
 	return latency + (size/bandwidth)*2*(topology->ncudagpus+topology->nopenclgpus);
 }
