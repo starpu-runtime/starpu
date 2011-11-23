@@ -18,6 +18,7 @@ Contents
 ========
 
 - Developer Warnings
+- Coding Conventions
 - Installing StarPU on Windows
 
 
@@ -28,6 +29,17 @@ Developer Warnings
 
 They are enabled only if the STARPU_DEVEL environment variable is
 defined to a non-empty value, when calling configure.
+
+
+Coding Conventions
+------------------
+
+- Prefix names of public objects (types, functions, etc.) with "starpu"
+
+- Prefix names of internal objects (types, functions, etc.) with "_starpu"
+
+- Type names do not end with _t, _s or similar. Use _t only for opaque public types, such as
+       typedef struct _starpu_data_state* starpu_data_handle_t;
 
 
 
