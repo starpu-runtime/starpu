@@ -23,8 +23,8 @@
 #include <profiling/profiling.h>
 #include <math.h>
 
-static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
-uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination)
+static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
+uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 {
 	int src_node = -1;
 	unsigned i;
@@ -108,7 +108,7 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle, unsigned destination
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
-void _starpu_update_data_state(starpu_data_handle handle,
+void _starpu_update_data_state(starpu_data_handle_t handle,
 			       struct starpu_data_replicate_s *requesting_replicate,
 			       enum starpu_access_mode mode)
 {
@@ -175,7 +175,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 	}
 }
 
-static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
+static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
 {
 	/* XXX That's a hack until we get cudaMemcpy3DPeerAsync to work !
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
@@ -208,7 +208,7 @@ static int link_supports_direct_transfers(starpu_data_handle handle, unsigned sr
  * node that handles the hop. The returned value indicates the number of hops,
  * and the max_len is the maximum number of hops (ie. the size of the
  * src_nodes, dst_nodes and handling_nodes arrays. */
-static int determine_request_path(starpu_data_handle handle,
+static int determine_request_path(starpu_data_handle_t handle,
 				  unsigned src_node, unsigned dst_node,
 				  enum starpu_access_mode mode, int max_len,
 				  unsigned *src_nodes, unsigned *dst_nodes,
@@ -321,7 +321,7 @@ static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_
  */
 
 /* This function is called with handle's header lock taken */
-starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
+starpu_data_request_t create_request_to_fetch_data(starpu_data_handle_t handle,
 				struct starpu_data_replicate_s *dst_replicate,
                                 enum starpu_access_mode mode, unsigned is_prefetch,
                                 void (*callback_func)(void *), void *callback_arg)
@@ -451,7 +451,7 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 	return requests[nhops - 1];
 }
 
-int _starpu_fetch_data_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *dst_replicate,
+int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_replicate_s *dst_replicate,
 			       enum starpu_access_mode mode, unsigned is_prefetch,
 			       void (*callback_func)(void *), void *callback_arg)
 {
@@ -483,34 +483,34 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, struct starpu_data_rep
         return ret;
 }
 
-static int prefetch_data_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, enum starpu_access_mode mode)
+static int prefetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, enum starpu_access_mode mode)
 {
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, NULL, NULL);
 }
 
-static int fetch_data(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, enum starpu_access_mode mode)
+static int fetch_data(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, enum starpu_access_mode mode)
 {
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, NULL, NULL);
 }
 
-uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
+uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, uint32_t node)
 {
 	return handle->per_node[node].refcnt;
 }
 
-size_t _starpu_data_get_size(starpu_data_handle handle)
+size_t _starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->data_size;
 }
 
-uint32_t _starpu_data_get_footprint(starpu_data_handle handle)
+uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 {
 	return handle->footprint;
 }
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt_mask, struct starpu_data_replicate_s *replicate)
+void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, struct starpu_data_replicate_s *replicate)
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
@@ -570,7 +570,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle handle = descrs[index].handle;
+		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_access_mode mode = descrs[index].mode;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
@@ -604,7 +604,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 	for (index = 0; index < nbuffers; index++)
 	{
 		int ret;
-		starpu_data_handle handle = descrs[index].handle;
+		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_access_mode mode = descrs[index].mode;
 
 		struct starpu_data_replicate_s *local_replicate;
@@ -662,7 +662,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle handle = descrs[index].handle;
+		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_access_mode mode = descrs[index].mode;
 
 		struct starpu_data_replicate_s *replicate;
@@ -697,7 +697,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
-unsigned _starpu_is_data_present_or_requested(starpu_data_handle handle, uint32_t node)
+unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, uint32_t node)
 {
 	unsigned ret = 0;
 

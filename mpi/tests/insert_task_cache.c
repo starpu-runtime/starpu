@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         int rank, size, x, y;
         int value=0;
         unsigned matrix[X][Y];
-        starpu_data_handle data_handles[X][Y];
+        starpu_data_handle_t data_handles[X][Y];
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&rank, &size);

@@ -34,7 +34,7 @@ static unsigned finished = 0;
 
 static unsigned cnt;
 
-starpu_data_handle v_handle;
+starpu_data_handle_t v_handle;
 static unsigned *v;
 
 static void callback(void *arg)

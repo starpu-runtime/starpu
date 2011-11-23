@@ -24,8 +24,8 @@
 extern "C" {
 #endif
 
-int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype);
-void *starpu_mpi_handle_to_ptr(starpu_data_handle data_handle);
+int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype);
+void *starpu_mpi_handle_to_ptr(starpu_data_handle_t data_handle);
 
 #ifdef __cplusplus
 }

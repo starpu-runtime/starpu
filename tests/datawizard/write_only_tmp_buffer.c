@@ -24,7 +24,7 @@
 
 #define VECTORSIZE	1024
 
-starpu_data_handle v_handle;
+starpu_data_handle_t v_handle;
 
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>

@@ -73,7 +73,7 @@ static char symbolname[128];
 int main(int argc, char **argv)
 {
 	int ret;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	float *buffer;
 
 	ret = starpu_init(NULL);

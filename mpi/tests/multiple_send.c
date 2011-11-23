@@ -24,8 +24,8 @@ int main(int argc, char **argv)
         unsigned send[2] = {42, 11};
         unsigned recv[2] = {33, 33};
         starpu_mpi_req req[2];
-        starpu_data_handle send_handle[2];
-        starpu_data_handle recv_handle[2];
+        starpu_data_handle_t send_handle[2];
+        starpu_data_handle_t recv_handle[2];
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&rank, &size);

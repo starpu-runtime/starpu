@@ -59,7 +59,7 @@ int main(int argc, char **argv)
         int rank, size, x, y;
         int value=0;
         unsigned matrix[SIZE*SIZE];
-        starpu_data_handle data_handles[SIZE][SIZE];
+        starpu_data_handle_t data_handles[SIZE][SIZE];
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&rank, &size);

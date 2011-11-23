@@ -27,7 +27,7 @@ struct handle_entry
 {
 	UT_hash_handle hh;
 	void *pointer;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 };
 
 /* Hash table mapping host pointers to data handles.  */
@@ -55,7 +55,7 @@ void _starpu_data_interface_shutdown()
 
 /* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
  * some handle, the new mapping shadows the previous one.   */
-void _starpu_data_register_ram_pointer(starpu_data_handle handle, void *ptr)
+void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
 	struct handle_entry *entry;
 
@@ -70,9 +70,9 @@ void _starpu_data_register_ram_pointer(starpu_data_handle handle, void *ptr)
 	_starpu_spin_unlock(&registered_handles_lock);
 }
 
-starpu_data_handle starpu_data_lookup(const void *ptr)
+starpu_data_handle_t starpu_data_lookup(const void *ptr)
 {
-	starpu_data_handle result;
+	starpu_data_handle_t result;
 
 	_starpu_spin_lock(&registered_handles_lock);
 	{
@@ -93,7 +93,7 @@ starpu_data_handle starpu_data_lookup(const void *ptr)
  * Start monitoring a piece of data
  */
 
-static void _starpu_register_new_data(starpu_data_handle handle,
+static void _starpu_register_new_data(starpu_data_handle_t handle,
 					uint32_t home_node, uint32_t wt_mask)
 {
 	void *ptr;
@@ -216,9 +216,9 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	}
 }
 
-static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops)
+static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops)
 {
-	starpu_data_handle handle = (starpu_data_handle) calloc(1, sizeof(struct _starpu_data_state));
+	starpu_data_handle_t handle = (starpu_data_handle_t) calloc(1, sizeof(struct _starpu_data_state));
 
 	STARPU_ASSERT(handle);
 
@@ -265,11 +265,11 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	return handle;
 }
 
-void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 				void *data_interface,
 				struct starpu_data_interface_ops *ops)
 {
-	starpu_data_handle handle =
+	starpu_data_handle_t handle =
 		_starpu_data_handle_allocate(ops);
 
 	STARPU_ASSERT(handleptr);
@@ -282,7 +282,7 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 	_starpu_register_new_data(handle, home_node, 0);
 }
 
-void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node)
+void *starpu_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */
@@ -295,29 +295,29 @@ void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 	return NULL;
 }
 
-void *starpu_handle_get_local_ptr(starpu_data_handle handle)
+void *starpu_handle_get_local_ptr(starpu_data_handle_t handle)
 {
 	return starpu_handle_to_pointer(handle,
 					_starpu_get_local_memory_node());
 }
 
-int starpu_data_get_rank(starpu_data_handle handle)
+int starpu_data_get_rank(starpu_data_handle_t handle)
 {
 	return handle->rank;
 }
 
-int starpu_data_set_rank(starpu_data_handle handle, int rank)
+int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 {
         handle->rank = rank;
         return 0;
 }
 
-int starpu_data_get_tag(starpu_data_handle handle)
+int starpu_data_get_tag(starpu_data_handle_t handle)
 {
 	return handle->tag;
 }
 
-int starpu_data_set_tag(starpu_data_handle handle, int tag)
+int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 {
         handle->tag = tag;
         return 0;
@@ -327,7 +327,7 @@ int starpu_data_set_tag(starpu_data_handle handle, int tag)
  * Stop monitoring a piece of data
  */
 
-void _starpu_data_free_interfaces(starpu_data_handle handle)
+void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 {
 	const void *ram_ptr;
 	unsigned node;
@@ -362,7 +362,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 
 struct _starpu_unregister_callback_arg {
 	unsigned memory_node;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	unsigned terminated;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
@@ -371,7 +371,7 @@ struct _starpu_unregister_callback_arg {
 /* Check whether we should tell starpu_data_unregister that the data handle is
  * not busy any more.
  * The header is supposed to be locked */
-void _starpu_data_check_not_busy(starpu_data_handle handle)
+void _starpu_data_check_not_busy(starpu_data_handle_t handle)
 {
 	if (!handle->busy_count && handle->busy_waiting) {
 		_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
@@ -385,7 +385,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 	int ret;
 	struct _starpu_unregister_callback_arg *arg = (struct _starpu_unregister_callback_arg *) _arg;
 
-	starpu_data_handle handle = arg->handle;
+	starpu_data_handle_t handle = arg->handle;
 
 	STARPU_ASSERT(handle);
 
@@ -403,7 +403,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 /* Unregister the data handle, perhaps we don't need to update the home_node
  * (in that case coherent is set to 0) */
-static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent)
+static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent)
 {
 	STARPU_ASSERT(handle);
 
@@ -479,17 +479,17 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 	free(handle);
 }
 
-void starpu_data_unregister(starpu_data_handle handle)
+void starpu_data_unregister(starpu_data_handle_t handle)
 {
 	_starpu_data_unregister(handle, 1);
 }
 
-void starpu_data_unregister_no_coherency(starpu_data_handle handle)
+void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 {
 	_starpu_data_unregister(handle, 0);
 }
 
-void starpu_data_invalidate(starpu_data_handle handle)
+void starpu_data_invalidate(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
@@ -515,12 +515,12 @@ void starpu_data_invalidate(starpu_data_handle handle)
 	starpu_data_release(handle);
 }
 
-unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
+unsigned starpu_get_handle_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
 }
 
-void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
+void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
 	return handle->per_node[memory_node].data_interface;
 }

@@ -30,8 +30,8 @@ unsigned r = 256;
 
 unsigned remainingtasks = -1;
 
-starpu_data_handle sparse_matrix;
-starpu_data_handle vector_in, vector_out;
+starpu_data_handle_t sparse_matrix;
+starpu_data_handle_t vector_in, vector_out;
 
 uint32_t size;
 char *inputfile;
@@ -100,7 +100,7 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f, starpu_data_handle handle)
+unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f, starpu_data_handle_t handle)
 {
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }

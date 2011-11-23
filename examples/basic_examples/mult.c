@@ -41,7 +41,7 @@
 #include <starpu.h>
 
 static float *A, *B, *C;
-static starpu_data_handle A_handle, B_handle, C_handle;
+static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;

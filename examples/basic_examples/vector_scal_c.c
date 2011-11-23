@@ -70,7 +70,7 @@ void compute_(int *F_NX, float *vector)
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
-	starpu_data_handle vector_handle;
+	starpu_data_handle_t vector_handle;
 	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;

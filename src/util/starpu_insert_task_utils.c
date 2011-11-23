@@ -53,7 +53,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX) {
-			(void)va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 		else if (arg_type==STARPU_VALUE) {
 			(void)va_arg(varg_list, void *);
@@ -79,7 +79,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			(void)va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
 
@@ -104,7 +104,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 	{
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
 		{
-			(void)va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -141,7 +141,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			(void)va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
 
@@ -165,7 +165,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
 		{
 			/* We have an access mode : we expect to find a handle */
-			starpu_data_handle handle = va_arg(varg_list, starpu_data_handle);
+			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
 
 			enum starpu_access_mode mode = arg_type;
 
@@ -208,7 +208,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			(void)va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
 

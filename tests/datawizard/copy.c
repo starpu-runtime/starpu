@@ -45,7 +45,7 @@ static starpu_codelet gpu_codelet =
 int main(int argc, char **argv)
 {
         float foo;
-	starpu_data_handle float_array_handle;
+	starpu_data_handle_t float_array_handle;
         int i, ret;
 
         ret = starpu_init(NULL);

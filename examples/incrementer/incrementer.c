@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
 	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
 
-	starpu_data_handle float_array_handle;
+	starpu_data_handle_t float_array_handle;
 	starpu_vector_data_register(&float_array_handle, 0 /* home node */,
 			(uintptr_t)&float_array, 4, sizeof(float));
 

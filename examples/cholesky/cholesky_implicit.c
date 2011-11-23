@@ -69,7 +69,7 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 	cl22.type = STARPU_SPMD;
 }
 
-static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
+static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	struct timeval start;
 	struct timeval end;
@@ -85,7 +85,7 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
-                starpu_data_handle sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
+                starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
                 starpu_insert_task(&cl11,
                                    STARPU_PRIORITY, prio_level,
@@ -95,7 +95,7 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 		for (j = k+1; j<nblocks; j++)
 		{
-                        starpu_data_handle sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
+                        starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
                         starpu_insert_task(&cl21,
                                            STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
@@ -107,8 +107,8 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 			{
 				if (i <= j)
                                 {
-					starpu_data_handle sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
-					starpu_data_handle sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
+					starpu_data_handle_t sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
+					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 					
 					starpu_insert_task(&cl22,
                                                            STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
@@ -146,7 +146,7 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */

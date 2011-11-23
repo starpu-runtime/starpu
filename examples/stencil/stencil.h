@@ -71,13 +71,13 @@ struct block_description {
 	/* This is the computation buffer for this block, it includes
 	 * neighbours' border to make computation easier */
 	TYPE *layers[2];
-	starpu_data_handle layers_handle[2];
+	starpu_data_handle_t layers_handle[2];
 
 	/* This is the "save" buffer, i.e. a copy of our neighbour's border.
 	 * This one is used for CPU/GPU or MPI communication (rather than the
 	 * whole domain block) */
 	TYPE *boundaries[NDIRS][2];
-	starpu_data_handle boundaries_handle[NDIRS][2];
+	starpu_data_handle_t boundaries_handle[NDIRS][2];
 
 	/* Shortcut pointer to the neighbours */
 	struct block_description *boundary_blocks[NDIRS];

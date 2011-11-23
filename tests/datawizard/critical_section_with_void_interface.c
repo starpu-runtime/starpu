@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include "../common/helper.h"
 
-starpu_data_handle void_handle;
+starpu_data_handle_t void_handle;
 
 int critical_var;
 

@@ -51,7 +51,7 @@ void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
         FPRINTF(stderr,"\n");
 }
 
-void print_data(starpu_data_handle block_handle)
+void print_data(starpu_data_handle_t block_handle)
 {
 	int *block = (int *)starpu_block_get_local_ptr(block_handle);
 	int nx = starpu_block_get_nx(block_handle);
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
                 }
         }
 
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	starpu_codelet cl =
 	{
                 .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
         for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
         {
-                starpu_data_handle sblock = starpu_data_get_sub_data(handle, 1, i);
+                starpu_data_handle_t sblock = starpu_data_get_sub_data(handle, 1, i);
                 FPRINTF(stderr, "Sub block %d\n", i);
                 print_data(sblock);
         }

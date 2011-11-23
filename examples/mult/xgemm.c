@@ -40,7 +40,7 @@ static unsigned zdim = 64;
 static unsigned check = 0;
 
 static TYPE *A, *B, *C;
-static starpu_data_handle A_handle, B_handle, C_handle;
+static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 

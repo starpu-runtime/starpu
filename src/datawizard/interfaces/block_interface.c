@@ -65,14 +65,14 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s = {
 };
 
 
-static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
-static void *block_handle_to_pointer(starpu_data_handle data_handle, uint32_t node);
+static void register_block_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
+static void *block_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
 static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node);
 static void free_block_buffer_on_node(void *data_interface, uint32_t node);
-static size_t block_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_block_interface_crc32(starpu_data_handle handle);
+static size_t block_interface_get_size(starpu_data_handle_t handle);
+static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle);
 static int block_compare(void *data_interface_a, void *data_interface_b);
-static void display_block_interface(starpu_data_handle handle, FILE *f);
+static void display_block_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
@@ -104,7 +104,7 @@ int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSi
 }
 #endif
 
-static void *block_handle_to_pointer(starpu_data_handle handle, uint32_t node)
+static void *block_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -114,7 +114,7 @@ static void *block_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 	return (void*) block_interface->ptr;
 }
 
-static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
+static void register_block_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
 
@@ -147,7 +147,7 @@ static void register_block_handle(starpu_data_handle handle, uint32_t home_node,
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_block_data_register(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_block_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
@@ -166,7 +166,7 @@ void starpu_block_data_register(starpu_data_handle *handleptr, uint32_t home_nod
 	starpu_data_register(handleptr, home_node, &block_interface, &interface_block_ops);
 }
 
-static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
+static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle)
 {
 	uint32_t hash;
 
@@ -189,7 +189,7 @@ static int block_compare(void *data_interface_a, void *data_interface_b)
 			&& (block_a->elemsize == block_b->elemsize));
 }
 
-static void display_block_interface(starpu_data_handle handle, FILE *f)
+static void display_block_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_block_interface *block_interface;
 
@@ -198,7 +198,7 @@ static void display_block_interface(starpu_data_handle handle, FILE *f)
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
 
-static size_t block_interface_get_size(starpu_data_handle handle)
+static size_t block_interface_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
 	struct starpu_block_interface *block_interface;
@@ -211,7 +211,7 @@ static size_t block_interface_get_size(starpu_data_handle handle)
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_block_get_nx(starpu_data_handle handle)
+uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -219,7 +219,7 @@ uint32_t starpu_block_get_nx(starpu_data_handle handle)
 	return block_interface->nx;
 }
 
-uint32_t starpu_block_get_ny(starpu_data_handle handle)
+uint32_t starpu_block_get_ny(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -227,7 +227,7 @@ uint32_t starpu_block_get_ny(starpu_data_handle handle)
 	return block_interface->ny;
 }
 
-uint32_t starpu_block_get_nz(starpu_data_handle handle)
+uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -235,7 +235,7 @@ uint32_t starpu_block_get_nz(starpu_data_handle handle)
 	return block_interface->nz;
 }
 
-uint32_t starpu_block_get_local_ldy(starpu_data_handle handle)
+uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -248,7 +248,7 @@ uint32_t starpu_block_get_local_ldy(starpu_data_handle handle)
 	return block_interface->ldy;
 }
 
-uint32_t starpu_block_get_local_ldz(starpu_data_handle handle)
+uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -261,7 +261,7 @@ uint32_t starpu_block_get_local_ldz(starpu_data_handle handle)
 	return block_interface->ldz;
 }
 
-uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle)
+uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -274,7 +274,7 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle)
 	return block_interface->ptr;
 }
 
-size_t starpu_block_get_elemsize(starpu_data_handle handle)
+size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, 0);

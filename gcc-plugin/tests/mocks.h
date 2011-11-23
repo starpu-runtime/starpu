@@ -99,7 +99,7 @@ starpu_insert_task (starpu_codelet *cl, ...)
 	case STARPU_R:
 	case STARPU_W:
 	  {
-	    starpu_data_handle handle;
+	    starpu_data_handle_t handle;
 	    handle = starpu_data_lookup (expected->pointer);
 	    assert (va_arg (args, void *) == handle);
 	    break;
@@ -172,14 +172,14 @@ starpu_unpack_cl_args (void *cl_raw_arg, ...)
      int_as_pointer (~pointer_as_int (h));	\
    })
 
-starpu_data_handle
+starpu_data_handle_t
 starpu_data_lookup (const void *ptr)
 {
   return dummy_pointer_to_handle (ptr);
 }
 
 void *
-starpu_handle_get_local_ptr (starpu_data_handle handle)
+starpu_handle_get_local_ptr (starpu_data_handle_t handle)
 {
   return dummy_handle_to_pointer (handle);
 }
@@ -207,7 +207,7 @@ static unsigned int data_register_calls;
 struct data_register_arguments expected_register_arguments;
 
 void
-starpu_vector_data_register (starpu_data_handle *handle,
+starpu_vector_data_register (starpu_data_handle_t *handle,
 			     uint32_t home_node, uintptr_t ptr,
 			     uint32_t count, size_t elemsize)
 {
@@ -235,7 +235,7 @@ static unsigned int data_acquire_calls;
 struct data_acquire_arguments expected_acquire_arguments;
 
 int
-starpu_data_acquire (starpu_data_handle handle, enum starpu_access_mode mode)
+starpu_data_acquire (starpu_data_handle_t handle, enum starpu_access_mode mode)
 {
   /* XXX: Currently only `STARPU_RW'.  */
   assert (mode == STARPU_RW);
@@ -263,7 +263,7 @@ static unsigned int data_unregister_calls;
 struct data_unregister_arguments expected_unregister_arguments;
 
 void
-starpu_data_unregister (starpu_data_handle handle)
+starpu_data_unregister (starpu_data_handle_t handle)
 {
   assert (dummy_handle_to_pointer (handle)
 	  == expected_unregister_arguments.pointer);

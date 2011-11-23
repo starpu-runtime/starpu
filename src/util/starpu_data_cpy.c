@@ -63,7 +63,7 @@ static starpu_codelet copy_cl = {
 	.model = &copy_model
 };
 
-int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle,
+int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg)
 {
 	const struct starpu_data_copy_methods *copy_methods = dst_handle->ops->copy_methods;

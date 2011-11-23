@@ -18,7 +18,7 @@
 
 struct test_config {
 	/* A pointer to a valid handle */
-	starpu_data_handle *handle;
+	starpu_data_handle_t *handle;
 
 	/* Unregisters data, frees memory, tidies your room */
 	void (*cleanup)(void);

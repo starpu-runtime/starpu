@@ -49,7 +49,7 @@ static void _starpu_mpi_task_init(int nb_nodes)
 }
 
 typedef struct _starpu_mpi_clear_cache_s {
-        starpu_data_handle data;
+        starpu_data_handle_t data;
         int rank;
         int mode;
 } _starpu_mpi_clear_cache_t;
@@ -74,7 +74,7 @@ void _starpu_mpi_clear_cache_callback(void *callback_arg)
         free(clear_cache);
 }
 
-void _starpu_mpi_clear_cache_request(starpu_data_handle data_handle, int rank, int mode)
+void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank, int mode)
 {
         struct starpu_task *task = starpu_task_create();
         task->cl = NULL;
@@ -93,7 +93,7 @@ void _starpu_mpi_clear_cache_request(starpu_data_handle data_handle, int rank, i
 }
 #endif
 
-void _starpu_data_deallocate(starpu_data_handle data_handle)
+void _starpu_data_deallocate(starpu_data_handle_t data_handle)
 {
 #ifdef STARPU_DEVEL
 #warning _starpu_data_deallocate not implemented yet
@@ -136,11 +136,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         execute = va_arg(varg_list, int);
                 }
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
+			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                         execute = starpu_data_get_rank(data);
                 }
 		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
-                        va_arg(varg_list, starpu_data_handle);
+                        va_arg(varg_list, starpu_data_handle_t);
                 }
 		else if (arg_type==STARPU_VALUE) {
 			va_arg(varg_list, void *);
@@ -168,7 +168,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 	va_start(varg_list, codelet);
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
-                        starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
+                        starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                         if (arg_type & STARPU_W) {
                                 if (!data) {
                                         /* We don't have anything allocated for this.
@@ -250,7 +250,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 	va_start(varg_list, codelet);
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
-                        starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
+                        starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                         if (data && arg_type & STARPU_R) {
                                 int mpi_rank = starpu_data_get_rank(data);
 				int mpi_tag = starpu_data_get_tag(data);
@@ -315,7 +315,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 			va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+			va_arg(varg_list, starpu_data_handle_t);
 		}
         }
 	va_end(varg_list);
@@ -333,7 +333,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 va_start(varg_list, codelet);
                 while ((arg_type = va_arg(varg_list, int)) != 0) {
                         if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
-                                starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
+                                starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                                 if (arg_type & STARPU_W) {
                                         int mpi_rank = starpu_data_get_rank(data);
 					int mpi_tag = starpu_data_get_tag(data);
@@ -371,7 +371,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                 va_arg(varg_list, int);
                         }
                         else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-                                va_arg(varg_list, starpu_data_handle);
+                                va_arg(varg_list, starpu_data_handle_t);
                         }
                 }
                 va_end(varg_list);
@@ -380,7 +380,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 	va_start(varg_list, codelet);
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
-                        starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
+                        starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 #ifdef MPI_CACHE
                         if (arg_type & STARPU_W) {
                                 uint32_t key = _starpu_crc32_be((uintptr_t)data, 0);
@@ -439,7 +439,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 			va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+			va_arg(varg_list, starpu_data_handle_t);
 		}
         }
 	va_end(varg_list);
@@ -447,7 +447,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
         return 0;
 }
 
-void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle data_handle, int node)
+void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 {
         int me, rank;
 

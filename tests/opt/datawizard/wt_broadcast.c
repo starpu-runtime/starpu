@@ -25,7 +25,7 @@
 #endif
 
 static unsigned var = 0;
-static starpu_data_handle handle;
+static starpu_data_handle_t handle;
 /*
  *	Increment codelet
  */

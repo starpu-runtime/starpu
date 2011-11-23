@@ -29,7 +29,7 @@
 struct data {
 	unsigned index;
 	unsigned val;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 };
 
 struct data buffers[NBUFFERS];

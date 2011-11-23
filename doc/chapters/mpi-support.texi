@@ -13,7 +13,7 @@ The integration of MPI transfers within task parallelism is done in a
 very natural way by the means of asynchronous interactions between the
 application and StarPU.  This is implemented in a separate libstarpumpi library
 which basically provides "StarPU" equivalents of @code{MPI_*} functions, where
-@code{void *} buffers are replaced with @code{starpu_data_handle}s, and all
+@code{void *} buffers are replaced with @code{starpu_data_handle_t}s, and all
 GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
 use the usual @code{mpirun} command of the MPI implementation to start StarPU on
 the different MPI nodes.
@@ -67,23 +67,23 @@ by calling @code{starpu_mpi_initialize_extended}.
 
 @subsection Communication
 
-@deftypefun int starpu_mpi_send (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
+@deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 @end deftypefun
 
-@deftypefun int starpu_mpi_recv (starpu_data_handle @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, MPI_Status *@var{status})
+@deftypefun int starpu_mpi_recv (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, MPI_Status *@var{status})
 @end deftypefun
 
-@deftypefun int starpu_mpi_isend (starpu_data_handle @var{data_handle}, starpu_mpi_req *@var{req}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
+@deftypefun int starpu_mpi_isend (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 
 @end deftypefun
 
-@deftypefun int starpu_mpi_irecv (starpu_data_handle @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
+@deftypefun int starpu_mpi_irecv (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
 @end deftypefun
 
-@deftypefun int starpu_mpi_isend_detached (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
+@deftypefun int starpu_mpi_isend_detached (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
 @end deftypefun
 
-@deftypefun int starpu_mpi_irecv_detached (starpu_data_handle @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
+@deftypefun int starpu_mpi_irecv_detached (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
 @end deftypefun
 
 @deftypefun int starpu_mpi_wait (starpu_mpi_req *@var{req}, MPI_Status *@var{status})
@@ -95,19 +95,19 @@ by calling @code{starpu_mpi_initialize_extended}.
 @deftypefun int starpu_mpi_barrier (MPI_Comm @var{comm})
 @end deftypefun
 
-@deftypefun int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag @var{tag})
+@deftypefun int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag @var{tag})
 When the transfer is completed, the tag is unlocked
 @end deftypefun
 
-@deftypefun int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag @var{tag})
+@deftypefun int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag @var{tag})
 @end deftypefun
 
-@deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag @var{tag})
+@deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag @var{tag})
 Asynchronously send an array of buffers, and unlocks the tag once all
 of them are transmitted.
 @end deftypefun
 
-@deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag @var{tag})
+@deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag @var{tag})
 @end deftypefun
 
 @page
@@ -208,21 +208,21 @@ data. All MPI nodes then process the whole task graph, and StarPU automatically
 determines which node actually execute which task, as well as the required MPI
 transfers.
 
-@deftypefun int starpu_data_set_tag (starpu_data_handle @var{handle}, int @var{tag})
+@deftypefun int starpu_data_set_tag (starpu_data_handle_t @var{handle}, int @var{tag})
 Tell StarPU-MPI which MPI tag to use when exchanging the data.
 @end deftypefun
 
-@deftypefun int starpu_data_get_tag (starpu_data_handle @var{handle})
+@deftypefun int starpu_data_get_tag (starpu_data_handle_t @var{handle})
 Returns the MPI tag to be used when exchanging the data.
 @end deftypefun
 
-@deftypefun int starpu_data_set_rank (starpu_data_handle @var{handle}, int @var{mpi_rank})
+@deftypefun int starpu_data_set_rank (starpu_data_handle_t @var{handle}, int @var{mpi_rank})
 Tell StarPU-MPI which MPI node "owns" a given data, that is, the node which will
 always keep an up-to-date value, and will by default execute tasks which write
 to it.
 @end deftypefun
 
-@deftypefun int starpu_data_get_rank (starpu_data_handle @var{handle})
+@deftypefun int starpu_data_get_rank (starpu_data_handle_t @var{handle})
 Returns the last value set by @code{starpu_data_set_rank}.
 @end deftypefun
 
@@ -259,7 +259,7 @@ data twice to the same MPI node, unless the data has been modified.
 
 @end deftypefun
 
-@deftypefun void starpu_mpi_get_data_on_node (MPI_Comm @var{comm}, starpu_data_handle @var{data_handle}, int @var{node})
+@deftypefun void starpu_mpi_get_data_on_node (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle}, int @var{node})
 todo
 @end deftypefun
 
@@ -298,7 +298,7 @@ data which will be needed by the tasks that we will execute.
 @cartouche
 @smallexample
     unsigned matrix[X][Y];
-    starpu_data_handle data_handles[X][Y];
+    starpu_data_handle_t data_handles[X][Y];
 
     for(x = 0; x < X; x++) @{
         for (y = 0; y < Y; y++) @{
@@ -349,14 +349,14 @@ automatically send the required data.
 @node MPI Collective Operations
 @section MPI Collective Operations
 
-@deftypefun int starpu_mpi_scatter_detached (starpu_data_handle *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm})
+@deftypefun int starpu_mpi_scatter_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm})
 Scatter data among processes of the communicator based on the ownership of
 the data. For each data of the array @var{data_handles}, the
 process @var{root} sends the data to the process owning this data.
 Processes receiving data must have valid data handles to receive them.
 @end deftypefun
 
-@deftypefun int starpu_mpi_gather_detached (starpu_data_handle *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm})
+@deftypefun int starpu_mpi_gather_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm})
 Gather data from the different processes of the communicator onto the
 process @var{root}. Each process owning data handle in the array
 @var{data_handles} will send them to the process @var{root}. The
@@ -377,7 +377,7 @@ if (rank == root)
 @}
 
 /* Allocate data handles and register data to StarPU */
-data_handles = malloc(nblocks*sizeof(starpu_data_handle *));
+data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
 for(x = 0; x < nblocks ;  x++)
 @{
     int mpi_rank = my_distrib(x, nodes);

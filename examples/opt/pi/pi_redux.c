@@ -284,7 +284,7 @@ int main(int argc, char **argv)
 	starpu_execute_on_each_worker(init_rng, NULL, STARPU_CPU|STARPU_CUDA);
 
 	/* Create a scratchpad data */
-	starpu_data_handle xy_scratchpad_handle;
+	starpu_data_handle_t xy_scratchpad_handle;
 	starpu_vector_data_register(&xy_scratchpad_handle, -1, (uintptr_t)NULL,
 		2*NSHOT_PER_TASK, sizeof(float));
 
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 	 * that actually hit the unit circle when shooting randomly in
 	 * [-1,1]^2. */
 	unsigned long shot_cnt = 0;
-	starpu_data_handle shot_cnt_handle;
+	starpu_data_handle_t shot_cnt_handle;
 	starpu_variable_data_register(&shot_cnt_handle, 0,
 			(uintptr_t)&shot_cnt, sizeof(shot_cnt));
 

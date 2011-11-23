@@ -41,7 +41,7 @@
 TYPE *vec_x, *vec_y;
 
 /* descriptors for StarPU */
-starpu_data_handle handle_y, handle_x;
+starpu_data_handle_t handle_y, handle_x;
 
 void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
 {

@@ -55,7 +55,7 @@ struct starpu_async_channel {
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
-int _starpu_driver_copy_data_1_to_1(starpu_data_handle handle,
+int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 					struct starpu_data_replicate_s *src_replicate,
 					struct starpu_data_replicate_s *dst_replicate,
 					unsigned donotread,

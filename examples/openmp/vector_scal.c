@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
 	starpu_init(&conf);
 
-	starpu_data_handle vector_handle;
+	starpu_data_handle_t vector_handle;
 	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;

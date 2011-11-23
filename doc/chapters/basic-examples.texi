@@ -258,7 +258,7 @@ The following lines show how to declare an array of @code{NX} elements of type
 @smallexample
 float vector[NX];
 
-starpu_data_handle vector_handle;
+starpu_data_handle_t vector_handle;
 starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
                             sizeof(vector[0]));
 @end smallexample
@@ -512,7 +512,7 @@ int main(int argc, char **argv)
     int i, ret;
     float factor=3.0;
     struct starpu_task *task;
-    starpu_data_handle vector_handle;
+    starpu_data_handle_t vector_handle;
 
     starpu_init(NULL);                            /* @b{Initialising StarPU} */
 

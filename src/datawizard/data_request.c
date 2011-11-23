@@ -83,7 +83,7 @@ static void starpu_data_request_destroy(starpu_data_request_t r)
 }
 
 /* handle->lock should already be taken !  */
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle_t handle,
 						  struct starpu_data_replicate_s *src_replicate,
 						  struct starpu_data_replicate_s *dst_replicate,
 						  uint32_t handling_node,
@@ -223,7 +223,7 @@ void _starpu_data_request_append_callback(starpu_data_request_t r, void (*callba
 static void starpu_handle_data_request_completion(starpu_data_request_t r)
 {
 	unsigned do_delete = 0;
-	starpu_data_handle handle = r->handle;
+	starpu_data_handle_t handle = r->handle;
 	enum starpu_access_mode mode = r->mode;
 
 	struct starpu_data_replicate_s *src_replicate = r->src_replicate;
@@ -325,7 +325,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 /* TODO : accounting to see how much time was spent working for other people ... */
 static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_alloc)
 {
-	starpu_data_handle handle = r->handle;
+	starpu_data_handle_t handle = r->handle;
 
 	_starpu_spin_lock(&handle->header_lock);
 	_starpu_spin_lock(&r->lock);
@@ -515,7 +515,7 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 		starpu_data_request_t r;
 		r = starpu_data_request_list_pop_front(local_list);
 
-		starpu_data_handle handle = r->handle;
+		starpu_data_handle_t handle = r->handle;
 		
 		_starpu_spin_lock(&handle->header_lock);
 	

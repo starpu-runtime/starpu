@@ -18,7 +18,7 @@
 #include "../common/helper.h"
 
 int var1, var2;
-starpu_data_handle var1_handle, var2_handle;
+starpu_data_handle_t var1_handle, var2_handle;
 
 int main(int argc, char **argv)
 {

@@ -49,8 +49,8 @@ int main(int argc, char **argv)
 {
         int rank, size, err;
         int x0=0, x1=0, vx0[2] = {x0, x0}, vx1[2]={x1,x1};
-        starpu_data_handle data_handlesx0;
-        starpu_data_handle data_handlesx1;
+        starpu_data_handle_t data_handlesx0;
+        starpu_data_handle_t data_handlesx1;
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&rank, &size);

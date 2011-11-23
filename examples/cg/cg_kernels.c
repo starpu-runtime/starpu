@@ -245,9 +245,9 @@ static starpu_codelet dot_kernel_cl = {
 	.model = &dot_kernel_model
 };
 
-void dot_kernel(starpu_data_handle v1,
-		starpu_data_handle v2,
-		starpu_data_handle s,
+void dot_kernel(starpu_data_handle_t v1,
+		starpu_data_handle_t v2,
+		starpu_data_handle_t s,
 		unsigned nblocks,
 		int use_reduction)
 {
@@ -385,9 +385,9 @@ static starpu_codelet gemv_kernel_cl = {
 	.model = &gemv_kernel_model
 };
 
-void gemv_kernel(starpu_data_handle v1,
-		starpu_data_handle matrix,
-		starpu_data_handle v2,
+void gemv_kernel(starpu_data_handle_t v1,
+		starpu_data_handle_t matrix,
+		starpu_data_handle_t v2,
 		TYPE p1, TYPE p2,
 		unsigned nblocks,
 		int use_reduction)
@@ -475,8 +475,8 @@ static starpu_codelet scal_axpy_kernel_cl = {
 	.model = &scal_axpy_kernel_model
 };
 
-void scal_axpy_kernel(starpu_data_handle v1, TYPE p1,
-			starpu_data_handle v2, TYPE p2,
+void scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
+			starpu_data_handle_t v2, TYPE p2,
 			unsigned nblocks)
 {
 	unsigned b;
@@ -543,8 +543,8 @@ static starpu_codelet axpy_kernel_cl = {
 	.model = &axpy_kernel_model
 };
 
-void axpy_kernel(starpu_data_handle v1,
-		starpu_data_handle v2, TYPE p1,
+void axpy_kernel(starpu_data_handle_t v1,
+		starpu_data_handle_t v2, TYPE p1,
 		unsigned nblocks)
 {
 	unsigned b;
@@ -603,7 +603,7 @@ static starpu_codelet copy_handle_cl = {
 	.model = &copy_handle_model
 };
 
-void copy_handle(starpu_data_handle dst, starpu_data_handle src, unsigned nblocks)
+void copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
 {
 	unsigned b;
 	for (b = 0; b < nblocks; b++)

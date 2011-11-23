@@ -20,7 +20,7 @@
 #define NITER	2048
 
 unsigned token = 42;
-starpu_data_handle token_handle;
+starpu_data_handle_t token_handle;
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);

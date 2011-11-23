@@ -30,7 +30,7 @@
 struct thread_data {
 	unsigned index;
 	unsigned val;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	pthread_t thread;
 
 	pthread_mutex_t recv_mutex;
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(retval == NULL);
 
 	/* We check that the value in the "last" thread is valid */
-	starpu_data_handle last_handle = problem_data[NTHREADS - 1].handle;
+	starpu_data_handle_t last_handle = problem_data[NTHREADS - 1].handle;
 	starpu_data_acquire(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{

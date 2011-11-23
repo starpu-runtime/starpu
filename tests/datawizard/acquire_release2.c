@@ -39,7 +39,7 @@ static starpu_codelet increment_cl = {
 };
 
 unsigned token = 0;
-starpu_data_handle token_handle;
+starpu_data_handle_t token_handle;
 
 int increment_token(int synchronous)
 {

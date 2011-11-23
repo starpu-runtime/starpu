@@ -54,7 +54,7 @@ static starpu_codelet memset_cl =
 
 static void test_memset(int nelems)
 {
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 
 	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
 

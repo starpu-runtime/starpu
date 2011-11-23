@@ -28,7 +28,7 @@
 #endif
 
 /* Read after Write (RAW) or Read after Read (RAR) */
-static void _starpu_add_reader_after_writer(starpu_data_handle handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
+static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
 {
 	/* Add this task to the list of readers */
 	struct starpu_task_wrapper_list *link = (struct starpu_task_wrapper_list *) malloc(sizeof(struct starpu_task_wrapper_list));
@@ -66,7 +66,7 @@ static void _starpu_add_reader_after_writer(starpu_data_handle handle, struct st
 }
 
 /* Write after Read (WAR) */
-static void _starpu_add_writer_after_readers(starpu_data_handle handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
+static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
 {
 	/* Count the readers */
 	unsigned nreaders = 0;
@@ -121,7 +121,7 @@ static void _starpu_add_writer_after_readers(starpu_data_handle handle, struct s
 	starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array);
 }
 /* Write after Write (WAW) */
-static void _starpu_add_writer_after_writer(starpu_data_handle handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
+static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
 {
 	/* (Read) Write */
 	/* This task depends on the previous writer */
@@ -162,7 +162,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle handle, struct st
 
 static void disable_last_writer_callback(void *cl_arg)
 {
-	starpu_data_handle handle = (starpu_data_handle) cl_arg;
+	starpu_data_handle_t handle = (starpu_data_handle_t) cl_arg;
 	
 	/* NB: we don't take the handle->sequential_consistency_mutex mutex
 	 * because the empty task that is used for synchronization is going to
@@ -182,7 +182,7 @@ static void disable_last_writer_callback(void *cl_arg)
  * */
 /* NB : handle->sequential_consistency_mutex must be hold by the caller */
 void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
-						   starpu_data_handle handle, enum starpu_access_mode mode)
+						   starpu_data_handle_t handle, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();
@@ -289,7 +289,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle handle = task->buffers[buffer].handle;
+		starpu_data_handle_t handle = task->buffers[buffer].handle;
 		enum starpu_access_mode mode = task->buffers[buffer].mode;
 
 		/* Scratch memory does not introduce any deps */
@@ -311,7 +311,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
  * sequence, f(Ar) g(Ar) h(Aw), we expect to have h depend on both f and g, but
  * if h is submitted after the termination of f or g, StarPU will not create a
  * dependency as this is not needed anymore. */
-void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle handle)
+void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle_t handle)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
@@ -394,7 +394,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 }
 
-void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle handle)
+void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle)
 {
         _STARPU_LOG_IN();
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -413,7 +413,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
         _STARPU_LOG_OUT();
 }
 
-void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
+void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 {
 	struct starpu_task_wrapper_list *post_sync_tasks = NULL;
 	unsigned do_submit_tasks = 0;
@@ -453,7 +453,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
 
 /* If sequential consistency mode is enabled, this function blocks until the
  * handle is available in the requested access mode. */
-int _starpu_data_wait_until_available(starpu_data_handle handle, enum starpu_access_mode mode)
+int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_access_mode mode)
 {
 	/* If sequential consistency is enabled, wait until data is available */
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);

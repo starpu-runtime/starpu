@@ -55,7 +55,7 @@ static starpu_codelet cl = {
 int main(int argc, char **argv)
 {
 	int ret;
-	starpu_data_handle v_handle;
+	starpu_data_handle_t v_handle;
 	unsigned *v;
 
         struct starpu_conf conf = {

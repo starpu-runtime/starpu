@@ -28,7 +28,7 @@ extern void test_vector_opencl_func(void *buffers[], void *args);
 #endif
 
 
-static starpu_data_handle vector_handle;
+static starpu_data_handle_t vector_handle;
 
 struct test_config vector_config = {
 	.cpu_func      = test_vector_cpu_func,

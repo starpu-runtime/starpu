@@ -47,7 +47,7 @@ static starpu_codelet cl11 =
 	.model = &chol_model_11
 };
 
-static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k, unsigned reclevel)
+static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned reclevel)
 {
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
@@ -81,7 +81,7 @@ static starpu_codelet cl21 =
 	.model = &chol_model_21
 };
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, unsigned reclevel)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
 {
 	struct starpu_task *task = create_task(TAG21_AUX(k, j, reclevel));
 
@@ -119,7 +119,7 @@ static starpu_codelet cl22 =
 	.model = &chol_model_22
 };
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j)); */
 
@@ -165,7 +165,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */

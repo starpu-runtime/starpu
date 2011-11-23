@@ -36,7 +36,7 @@ typedef void (*device_func)(void **, void *);
 int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny, int pnz, float multiplier)
 {
 	starpu_codelet cl = {};
-	starpu_data_handle block_handle;
+	starpu_data_handle_t block_handle;
         int i;
 
 	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));

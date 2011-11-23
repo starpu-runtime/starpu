@@ -23,7 +23,7 @@
 #include <starpu.h>
 #include "../common/helper.h"
 
-starpu_data_handle data_handles[8];
+starpu_data_handle_t data_handles[8];
 float *buffers[8];
 
 static unsigned ntasks = 65536;

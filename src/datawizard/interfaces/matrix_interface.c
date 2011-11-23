@@ -71,14 +71,14 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
-static void *matrix_handle_to_pointer(starpu_data_handle data_handle, uint32_t node);
+static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
+static void *matrix_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
 static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, uint32_t node);
-static size_t matrix_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle);
+static size_t matrix_interface_get_size(starpu_data_handle_t handle);
+static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static int matrix_compare(void *data_interface_a, void *data_interface_b);
-static void display_matrix_interface(starpu_data_handle handle, FILE *f);
+static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
@@ -118,7 +118,7 @@ static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_
 }
 #endif
 
-static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
+static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
@@ -147,7 +147,7 @@ static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node
 	}
 }
 
-static void *matrix_handle_to_pointer(starpu_data_handle handle, uint32_t node)
+static void *matrix_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -159,7 +159,7 @@ static void *matrix_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 
 
 /* declare a new data with the matrix interface */
-void starpu_matrix_data_register(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_matrix_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
@@ -176,7 +176,7 @@ void starpu_matrix_data_register(starpu_data_handle *handleptr, uint32_t home_no
 	starpu_data_register(handleptr, home_node, &matrix_interface, &_starpu_interface_matrix_ops);
 }
 
-static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle)
+static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle)
 {
 	return _starpu_crc32_be(starpu_matrix_get_nx(handle), starpu_matrix_get_ny(handle));
 }
@@ -192,7 +192,7 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 			&& (matrix_a->elemsize == matrix_b->elemsize));
 }
 
-static void display_matrix_interface(starpu_data_handle handle, FILE *f)
+static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -200,7 +200,7 @@ static void display_matrix_interface(starpu_data_handle handle, FILE *f)
 	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
 }
 
-static size_t matrix_interface_get_size(starpu_data_handle handle)
+static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -212,7 +212,7 @@ static size_t matrix_interface_get_size(starpu_data_handle handle)
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_matrix_get_nx(starpu_data_handle handle)
+uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -220,7 +220,7 @@ uint32_t starpu_matrix_get_nx(starpu_data_handle handle)
 	return matrix_interface->nx;
 }
 
-uint32_t starpu_matrix_get_ny(starpu_data_handle handle)
+uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -228,7 +228,7 @@ uint32_t starpu_matrix_get_ny(starpu_data_handle handle)
 	return matrix_interface->ny;
 }
 
-uint32_t starpu_matrix_get_local_ld(starpu_data_handle handle)
+uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -241,7 +241,7 @@ uint32_t starpu_matrix_get_local_ld(starpu_data_handle handle)
 	return matrix_interface->ld;
 }
 
-uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle handle)
+uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -254,7 +254,7 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle handle)
 	return matrix_interface->ptr;
 }
 
-size_t starpu_matrix_get_elemsize(starpu_data_handle handle)
+size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, 0);

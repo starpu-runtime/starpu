@@ -137,7 +137,7 @@ An existing piece of data can be partitioned in sub parts to be used by differen
 @cartouche
 @smallexample
 int vector[NX];
-starpu_data_handle handle;
+starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
 starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
@@ -157,7 +157,7 @@ starpu_data_partition(handle, &f);
 /* Submit a task on each sub-vector */
 for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
     /* Get subdata number i (there is only 1 dimension) */
-    starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
+    starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
     struct starpu_task *task = starpu_task_create();
 
     task->buffers[0].handle = sub_handle;

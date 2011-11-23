@@ -19,7 +19,7 @@
 
 /* A [ y ] [ x ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
-starpu_data_handle A_state[NMAXBLOCKS][NMAXBLOCKS];
+starpu_data_handle_t A_state[NMAXBLOCKS][NMAXBLOCKS];
 
 /*
  *	Some useful functions

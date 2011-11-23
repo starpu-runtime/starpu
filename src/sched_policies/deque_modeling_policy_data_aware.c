@@ -52,7 +52,7 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 	for (index = 0; index < nbuffers; index++)
 	{
 		struct starpu_buffer_descr *descr;
-		starpu_data_handle handle;
+		starpu_data_handle_t handle;
 
 		descr = &descrs[index];
 		handle = descr->handle;

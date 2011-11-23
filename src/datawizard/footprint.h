@@ -27,6 +27,6 @@
 uint32_t _starpu_compute_buffers_footprint(struct starpu_job_s *j);
 
 /* Compute the footprint that characterizes the layout of the data handle. */
-uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);
+uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle);
 
 #endif // __FOOTPRINT_H__

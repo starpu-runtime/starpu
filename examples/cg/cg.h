@@ -57,29 +57,29 @@
 #define cublasscal	cublasSscal
 #endif
 
-void dot_kernel(starpu_data_handle v1,
-                starpu_data_handle v2,
-                starpu_data_handle s,
+void dot_kernel(starpu_data_handle_t v1,
+                starpu_data_handle_t v2,
+                starpu_data_handle_t s,
 		unsigned nblocks,
 		int use_reduction);
 
-void gemv_kernel(starpu_data_handle v1,
-                starpu_data_handle matrix, 
-                starpu_data_handle v2,
+void gemv_kernel(starpu_data_handle_t v1,
+                starpu_data_handle_t matrix, 
+                starpu_data_handle_t v2,
                 TYPE p1, TYPE p2,
 		unsigned nblocks,
 		int use_reduction);
 
-void axpy_kernel(starpu_data_handle v1,
-		starpu_data_handle v2, TYPE p1,
+void axpy_kernel(starpu_data_handle_t v1,
+		starpu_data_handle_t v2, TYPE p1,
 		unsigned nblocks);
 
-void scal_axpy_kernel(starpu_data_handle v1, TYPE p1,
-			starpu_data_handle v2, TYPE p2,
+void scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
+			starpu_data_handle_t v2, TYPE p2,
 			unsigned nblocks);
 
-void copy_handle(starpu_data_handle dst,
-		starpu_data_handle src,
+void copy_handle(starpu_data_handle_t dst,
+		starpu_data_handle_t src,
 		unsigned nblocks);
 
 #endif /* __STARPU_EXAMPLE_CG_H__ */

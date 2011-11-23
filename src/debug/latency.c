@@ -20,7 +20,7 @@
 #include <common/config.h>
 #include <datawizard/coherency.h>
 
-void _starpu_benchmark_ping_pong(starpu_data_handle handle,
+void _starpu_benchmark_ping_pong(starpu_data_handle_t handle,
 			unsigned node0, unsigned node1, unsigned niter)
 {
 	/* We assume that no one is using that handle !! */

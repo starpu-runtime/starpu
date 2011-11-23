@@ -42,7 +42,7 @@
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 typedef struct {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 	unsigned i;
 	unsigned j;
 	unsigned k;

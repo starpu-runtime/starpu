@@ -21,7 +21,7 @@
 /* number of philosophers */
 #define N	16
 
-starpu_data_handle fork_handles[N];
+starpu_data_handle_t fork_handles[N];
 unsigned forks[N];
 
 static void eat_kernel(void *descr[], void *arg)

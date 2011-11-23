@@ -93,8 +93,8 @@ static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, unsign
 	STARPU_ASSERT(neighbour->mpi_node != local_rank);
 
 	/* Send neighbour's border copy to the neighbour */
-	starpu_data_handle handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
-	starpu_data_handle handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
+	starpu_data_handle_t handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
+	starpu_data_handle_t handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
 
 	starpu_mpi_isend_detached(handle0, dest, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
 	starpu_mpi_isend_detached(handle1, dest, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
@@ -119,8 +119,8 @@ static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, unsign
 	STARPU_ASSERT(neighbour->mpi_node == local_rank);
 
 	/* Receive our neighbour's border in our neighbour copy */
-	starpu_data_handle handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
-	starpu_data_handle handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
+	starpu_data_handle_t handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
+	starpu_data_handle_t handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
 
 	starpu_mpi_irecv_detached(handle0, source, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
 	starpu_mpi_irecv_detached(handle1, source, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);

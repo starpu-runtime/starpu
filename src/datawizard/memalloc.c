@@ -68,7 +68,7 @@ void _starpu_deinit_mem_chunk_lists(void)
  *	Manipulate subtrees
  */
 
-static void lock_all_subtree(starpu_data_handle handle)
+static void lock_all_subtree(starpu_data_handle_t handle)
 {
 	if (handle->nchildren == 0)
 	{
@@ -86,7 +86,7 @@ static void lock_all_subtree(starpu_data_handle handle)
 	}
 }
 
-static void unlock_all_subtree(starpu_data_handle handle)
+static void unlock_all_subtree(starpu_data_handle_t handle)
 {
 	if (handle->nchildren == 0)
 	{
@@ -106,7 +106,7 @@ static void unlock_all_subtree(starpu_data_handle handle)
 	}
 }
 
-static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
+static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 {
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
@@ -129,7 +129,7 @@ static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
 	return 1;
 }
 
-static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_node,
+static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
 						unsigned dst_node)
 {
 	unsigned i;
@@ -212,7 +212,7 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 	STARPU_ASSERT(mc->ops);
 	STARPU_ASSERT(mc->ops->free_data_on_node);
 
-	starpu_data_handle handle = mc->data;
+	starpu_data_handle_t handle = mc->data;
 
 	/* Does this memory chunk refers to a handle that does not exist
 	 * anymore ? */
@@ -293,7 +293,7 @@ static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 {
 	size_t freed = 0;
 
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	handle = mc->data;
 	STARPU_ASSERT(handle);
 
@@ -357,7 +357,7 @@ static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
  * therefore not in the cache. */
 static void reuse_mem_chunk(unsigned node, struct starpu_data_replicate_s *new_replicate, starpu_mem_chunk_t mc, unsigned is_already_in_mc_list)
 {
-	starpu_data_handle old_data;
+	starpu_data_handle_t old_data;
 	old_data = mc->data;
 
 	/* we found an appropriate mem chunk: so we get it out
@@ -394,11 +394,11 @@ static void reuse_mem_chunk(unsigned node, struct starpu_data_replicate_s *new_r
 	}
 }
 
-static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, starpu_data_handle new_data, unsigned is_already_in_mc_list)
+static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, starpu_data_handle_t new_data, unsigned is_already_in_mc_list)
 {
 	unsigned success = 0;
 
-	starpu_data_handle old_data;
+	starpu_data_handle_t old_data;
 
 	old_data = mc->data;
 
@@ -438,7 +438,7 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 }
 
 /* This function must be called with mc_rwlock[node] taken in write mode */
-static starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, starpu_data_handle handle)
+static starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, starpu_data_handle_t handle)
 {
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
@@ -469,7 +469,7 @@ static starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, st
 /* this function looks for a memory chunk that matches a given footprint in the
  * list of mem chunk that need to be freed. This function must be called with
  * mc_rwlock[node] taken in write mode. */
-static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle data, uint32_t footprint)
+static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle_t data, uint32_t footprint)
 {
 	starpu_mem_chunk_t mc, next_mc;
 
@@ -606,7 +606,7 @@ size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 static starpu_mem_chunk_t _starpu_memchunk_init(struct starpu_data_replicate_s *replicate, size_t size, size_t interface_size, unsigned automatically_allocated)
 {
 	starpu_mem_chunk_t mc = starpu_mem_chunk_new();
-	starpu_data_handle handle = replicate->handle;
+	starpu_data_handle_t handle = replicate->handle;
 
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT(handle->ops);
@@ -651,7 +651,7 @@ static void register_mem_chunk(struct starpu_data_replicate_s *replicate, size_t
 /* This function is called when the handle is destroyed (eg. when calling
  * unregister or unpartition). It puts all the memchunks that refer to the
  * specified handle into the cache. */
-void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
+void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
@@ -730,7 +730,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
  *
  */
 
-static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, uint32_t dst_node, unsigned is_prefetch)
+static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, uint32_t dst_node, unsigned is_prefetch)
 {
 	unsigned attempts = 0;
 	ssize_t allocated_memory;
@@ -811,7 +811,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 	return allocated_memory;
 }
 
-int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, unsigned is_prefetch)
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, unsigned is_prefetch)
 {
 	ssize_t allocated_memory;
 
@@ -847,7 +847,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_dat
 	return 0;
 }
 
-unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node)
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node)
 {
 	return handle->per_node[memory_node].allocated;
 }

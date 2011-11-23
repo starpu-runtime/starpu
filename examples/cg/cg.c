@@ -72,16 +72,16 @@ static int long long n = 1024;
 static int nblocks = 8;
 static int use_reduction = 1;
 
-static starpu_data_handle A_handle, b_handle, x_handle;
+static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
 static int i_max = 4000;
 static double eps = (10e-14);
 
-static starpu_data_handle r_handle, d_handle, q_handle;
+static starpu_data_handle_t r_handle, d_handle, q_handle;
 static TYPE *r, *d, *q;
 
-static starpu_data_handle dtq_handle, rtr_handle;
+static starpu_data_handle_t dtq_handle, rtr_handle;
 static TYPE dtq, rtr;
 
 extern starpu_codelet accumulate_variable_cl;
@@ -208,7 +208,7 @@ static void partition_data(void)
  */
 
 #if 0
-static void display_vector(starpu_data_handle handle, TYPE *ptr)
+static void display_vector(starpu_data_handle_t handle, TYPE *ptr)
 {
 	unsigned block_size = n / nblocks;
 

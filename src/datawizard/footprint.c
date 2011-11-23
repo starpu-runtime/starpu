@@ -30,7 +30,7 @@ uint32_t _starpu_compute_buffers_footprint(starpu_job_t j)
 
 	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 	{
-		starpu_data_handle handle = task->buffers[buffer].handle;
+		starpu_data_handle_t handle = task->buffers[buffer].handle;
 
 		uint32_t handle_footprint = _starpu_data_get_footprint(handle);
 
@@ -43,7 +43,7 @@ uint32_t _starpu_compute_buffers_footprint(starpu_job_t j)
 	return footprint;
 }
 
-uint32_t _starpu_compute_data_footprint(starpu_data_handle handle)
+uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle)
 {
 	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(handle);
 

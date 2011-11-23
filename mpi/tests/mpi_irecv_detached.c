@@ -22,7 +22,7 @@
 #define SIZE	16
 
 float *tab;
-starpu_data_handle tab_handle;
+starpu_data_handle_t tab_handle;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;

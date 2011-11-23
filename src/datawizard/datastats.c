@@ -158,7 +158,7 @@ void _starpu_display_data_stats(void)
 	}
 }
 
-void _starpu_display_data_handle_stats(starpu_data_handle handle)
+void _starpu_display_data_handle_stats(starpu_data_handle_t handle)
 {
 	unsigned node;
 	
@@ -187,27 +187,27 @@ void _starpu_display_data_handle_stats(starpu_data_handle handle)
 	}
 }
 
-void _starpu_handle_stats_cache_hit(starpu_data_handle handle, unsigned node)
+void _starpu_handle_stats_cache_hit(starpu_data_handle_t handle, unsigned node)
 {
 	handle->stats_direct_access[node]++;
 }
 
-void _starpu_handle_stats_loaded_shared(starpu_data_handle handle, unsigned node)
+void _starpu_handle_stats_loaded_shared(starpu_data_handle_t handle, unsigned node)
 {
 	handle->stats_loaded_shared[node]++;
 }
 
-void _starpu_handle_stats_loaded_owner(starpu_data_handle handle, unsigned node)
+void _starpu_handle_stats_loaded_owner(starpu_data_handle_t handle, unsigned node)
 {
 	handle->stats_loaded_owner[node]++;
 }
 
-void _starpu_handle_stats_shared_to_owner(starpu_data_handle handle, unsigned node)
+void _starpu_handle_stats_shared_to_owner(starpu_data_handle_t handle, unsigned node)
 {
 	handle->stats_shared_to_owner[node]++;
 }
 
-void _starpu_handle_stats_invalidated(starpu_data_handle handle, unsigned node)
+void _starpu_handle_stats_invalidated(starpu_data_handle_t handle, unsigned node)
 {
 	handle->stats_invalidated[node]++;
 }

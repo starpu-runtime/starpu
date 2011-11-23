@@ -57,7 +57,7 @@ unsigned length_data;
 /* buffer containing input WAV data */
 float *A;
 
-starpu_data_handle A_handle;
+starpu_data_handle_t A_handle;
 
 /* For performance evaluation */
 static struct timeval start;

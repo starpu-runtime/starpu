@@ -27,12 +27,12 @@ extern "C" {
 
 typedef void *starpu_mpi_req;
 
-int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm);
-int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req *req, int source, int mpi_tag, MPI_Comm comm);
-int starpu_mpi_send(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm);
-int starpu_mpi_recv(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status);
-int starpu_mpi_isend_detached(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
-int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
+int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm);
+int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *req, int source, int mpi_tag, MPI_Comm comm);
+int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm);
+int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status);
+int starpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
+int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
 int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status);
 int starpu_mpi_test(starpu_mpi_req *req, int *flag, MPI_Status *status);
 int starpu_mpi_barrier(MPI_Comm comm);
@@ -41,24 +41,24 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size);
 int starpu_mpi_shutdown(void);
 
 int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...);
-void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle data_handle, int node);
+void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node);
 
-int starpu_mpi_scatter_detached(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm);
-int starpu_mpi_gather_detached(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm);
+int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm);
+int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm);
 
 /* Some helper functions */
 
 /* When the transfer is completed, the tag is unlocked */
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag tag);
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag tag);
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag tag);
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag tag);
 
 /* Asynchronously send an array of buffers, and unlocks the tag once all of
  * them are transmitted. */
 int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle *data_handle, int *dest, int *mpi_tag,
+		starpu_data_handle_t *data_handle, int *dest, int *mpi_tag,
 		MPI_Comm *comm, starpu_tag tag);
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle *data_handle, int *source, int *mpi_tag,
+		starpu_data_handle_t *data_handle, int *source, int *mpi_tag,
 		MPI_Comm *comm, starpu_tag tag);
 
 #ifdef __cplusplus

@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         int i, ret;
 	int ifactor=12;
 	float ffactor=10.0;
-        starpu_data_handle data_handles[2];
+        starpu_data_handle_t data_handles[2];
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

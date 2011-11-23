@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstarpu_data_handle\b/starpu_data_handle_t/g
 s/\bstarpu_block_interface_t\b/struct starpu_block_interface/g
 s/\bstarpu_matrix_interface_t\b/struct starpu_matrix_interface/g
 s/\bstarpu_vector_interface_t\b/struct starpu_vector_interface/g

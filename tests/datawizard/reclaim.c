@@ -86,10 +86,10 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	float **host_ptr_array;
-	starpu_data_handle *handle_array;
+	starpu_data_handle_t *handle_array;
 
 	host_ptr_array = (float **) calloc(mb, sizeof(float *));
-	handle_array = (starpu_data_handle *) calloc(mb, sizeof(starpu_data_handle));
+	handle_array = (starpu_data_handle_t *) calloc(mb, sizeof(starpu_data_handle_t));
 
 	/* Register mb buffers of 1MB */
 	for (i = 0; i < mb; i++)

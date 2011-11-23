@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 /* Perform a ping pong between the two memory nodes */
-void _starpu_benchmark_ping_pong(starpu_data_handle handle, unsigned node0, unsigned node1, unsigned niter);
+void _starpu_benchmark_ping_pong(starpu_data_handle_t handle, unsigned node0, unsigned node1, unsigned niter);
 
 /* Display the size of different data structures */
 void _starpu_debug_display_structures_size(void);

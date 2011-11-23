@@ -21,8 +21,8 @@
 unsigned nblocks = 4;
 uint32_t size = 4*1024*1024;
 
-starpu_data_handle sparse_matrix;
-starpu_data_handle vector_in, vector_out;
+starpu_data_handle_t sparse_matrix;
+starpu_data_handle_t vector_in, vector_out;
 
 static void parse_args(int argc, char **argv)
 {

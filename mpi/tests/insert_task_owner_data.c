@@ -38,7 +38,7 @@ int main(int argc, char **argv)
         int rank, size, err;
         int x[2];
         int i;
-        starpu_data_handle data_handles[2];
+        starpu_data_handle_t data_handles[2];
 	int values[2];
 
 	starpu_init(NULL);

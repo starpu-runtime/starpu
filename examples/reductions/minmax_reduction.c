@@ -29,11 +29,11 @@ static unsigned entries_per_bock = 1024;
 #define TYPE_MIN	DBL_MIN
 
 static TYPE *x;
-static starpu_data_handle *x_handles;
+static starpu_data_handle_t *x_handles;
 
 /* The first element (resp. second) stores the min element (resp. max). */
 static TYPE minmax[2];
-static starpu_data_handle minmax_handle;
+static starpu_data_handle_t minmax_handle;
 
 /*
  *	Codelet to create a neutral element
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	size_t size = nelems*sizeof(TYPE);
 
 	x = (TYPE *) malloc(size);
-	x_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
+	x_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
 	
 	assert(x && x_handles);
 

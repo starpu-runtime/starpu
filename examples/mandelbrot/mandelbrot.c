@@ -481,7 +481,7 @@ int main(int argc, char **argv)
 	starpu_opencl_load_opencl_from_string(mandelbrot_opencl_src, &opencl_programs, NULL);
 #endif
 
-	starpu_data_handle block_handles[nblocks];
+	starpu_data_handle_t block_handles[nblocks];
 	
 	int iby;
 	for (iby = 0; iby < nblocks; iby++)

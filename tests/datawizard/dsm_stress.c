@@ -34,7 +34,7 @@ static unsigned finished = 0;
 
 static unsigned cnt = N;
 
-starpu_data_handle v_handle, v_handle2;
+starpu_data_handle_t v_handle, v_handle2;
 static unsigned *v;
 static unsigned *v2;
 

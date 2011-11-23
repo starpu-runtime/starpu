@@ -22,7 +22,7 @@
 #define N	1000
 #define VECTORSIZE	1024
 
-starpu_data_handle v_handle;
+starpu_data_handle_t v_handle;
 static unsigned *v;
 
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)

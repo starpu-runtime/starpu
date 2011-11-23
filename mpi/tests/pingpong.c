@@ -21,7 +21,7 @@
 #define SIZE	16
 
 float *tab;
-starpu_data_handle tab_handle;
+starpu_data_handle_t tab_handle;
 
 int main(int argc, char **argv)
 {

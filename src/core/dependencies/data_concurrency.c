@@ -31,7 +31,7 @@
  */
 
 /* the header lock must be taken by the caller */
-static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle handle)
+static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle_t handle)
 {
 	starpu_data_requester_list_t req_list;
 
@@ -78,7 +78,7 @@ static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle 
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
 static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
-						       starpu_data_handle handle, enum starpu_access_mode mode,
+						       starpu_data_handle_t handle, enum starpu_access_mode mode,
 						       void (*callback)(void *), void *argcb,
 						       starpu_job_t j, unsigned buffer_index)
 {
@@ -179,7 +179,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 }
 
 
-unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle handle, enum starpu_access_mode mode,
+unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle, enum starpu_access_mode mode,
 						void (*callback)(void *), void *argcb)
 {
 	return _starpu_attempt_to_submit_data_request(0, handle, mode, callback, argcb, NULL, 0);
@@ -189,7 +189,7 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 {
 	/* Note that we do not access j->task->buffers, but j->ordered_buffers
 	 * which is a sorted copy of it. */
-	starpu_data_handle handle = j->ordered_buffers[buffer_index].handle;
+	starpu_data_handle_t handle = j->ordered_buffers[buffer_index].handle;
 	enum starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
 
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
@@ -248,7 +248,7 @@ static unsigned unlock_one_requester(starpu_data_requester_t r)
 }
 
 /* The header lock must already be taken by the caller */
-void _starpu_notify_data_dependencies(starpu_data_handle handle)
+void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 {
 	/* A data access has finished so we remove a reference. */
 	STARPU_ASSERT(handle->refcnt > 0);

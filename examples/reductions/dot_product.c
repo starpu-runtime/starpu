@@ -26,8 +26,8 @@
 
 static float *x;
 static float *y;
-static starpu_data_handle *x_handles;
-static starpu_data_handle *y_handles;
+static starpu_data_handle_t *x_handles;
+static starpu_data_handle_t *y_handles;
 
 static unsigned nblocks = 4096;
 static unsigned entries_per_block = 1024;
@@ -35,7 +35,7 @@ static unsigned entries_per_block = 1024;
 #define DOT_TYPE double
 
 static DOT_TYPE dot = 0.0f;
-static starpu_data_handle dot_handle;
+static starpu_data_handle_t dot_handle;
 
 /*
  *	Codelet to create a neutral element
@@ -167,8 +167,8 @@ int main(int argc, char **argv)
 	x = (float *) malloc(size);
 	y = (float *) malloc(size);
 
-	x_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
-	y_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
+	x_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
+	y_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
 
 	assert(x && y);
 

@@ -87,13 +87,13 @@ int main(int argc, char **argv)
 	initSobolDirectionVectors(n_dimensions, sobol_qrng_directions);
 
 	/* Any worker may use that array now */
-	starpu_data_handle sobol_qrng_direction_handle;
+	starpu_data_handle_t sobol_qrng_direction_handle;
 	starpu_vector_data_register(&sobol_qrng_direction_handle, 0,
 		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
 
 	unsigned *cnt_array = malloc(ntasks*sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
-	starpu_data_handle cnt_array_handle;
+	starpu_data_handle_t cnt_array_handle;
 	starpu_vector_data_register(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
 
 	/* Use a write-through policy : when the data is modified on an

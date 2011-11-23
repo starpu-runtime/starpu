@@ -19,12 +19,12 @@
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
 
-static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, struct starpu_data_filter *f);
+static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f);
 
 /*
  * This function applies a data filter on all the elements of a partition
  */
-static void map_filter(starpu_data_handle root_handle, struct starpu_data_filter *f)
+static void map_filter(starpu_data_handle_t root_handle, struct starpu_data_filter *f)
 {
 	/* we need to apply the data filter on all leaf of the tree */
 	if (root_handle->nchildren == 0)
@@ -41,7 +41,7 @@ static void map_filter(starpu_data_handle root_handle, struct starpu_data_filter
 		}
 	}
 }
-void starpu_data_vmap_filters(starpu_data_handle root_handle, unsigned nfilters, va_list pa)
+void starpu_data_vmap_filters(starpu_data_handle_t root_handle, unsigned nfilters, va_list pa)
 {
 	unsigned i;
 	for (i = 0; i < nfilters; i++)
@@ -55,7 +55,7 @@ void starpu_data_vmap_filters(starpu_data_handle root_handle, unsigned nfilters,
 	}
 }
 
-void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
+void starpu_data_map_filters(starpu_data_handle_t root_handle, unsigned nfilters, ...)
 {
 	va_list pa;
 	va_start(pa, nfilters);
@@ -63,12 +63,12 @@ void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, 
 	va_end(pa);
 }
 
-int starpu_data_get_nb_children(starpu_data_handle handle)
+int starpu_data_get_nb_children(starpu_data_handle_t handle)
 {
         return handle->nchildren;
 }
 
-starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
+starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)
 {
 	STARPU_ASSERT(i < handle->nchildren);
 
@@ -76,22 +76,22 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 }
 
 /*
- * example starpu_data_get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
+ * example starpu_data_get_sub_data(starpu_data_handle_t root_handle, 3, 42, 0, 1);
  */
-starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
+starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_handle, unsigned depth, ... )
 {
 	va_list pa;
 	va_start(pa, depth);
-	starpu_data_handle handle = starpu_data_vget_sub_data(root_handle, depth, pa);
+	starpu_data_handle_t handle = starpu_data_vget_sub_data(root_handle, depth, pa);
 	va_end(pa);
 
 	return handle;
 }
 
-starpu_data_handle starpu_data_vget_sub_data(starpu_data_handle root_handle, unsigned depth, va_list pa )
+starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle, unsigned depth, va_list pa )
 {
 	STARPU_ASSERT(root_handle);
-	starpu_data_handle current_handle = root_handle;
+	starpu_data_handle_t current_handle = root_handle;
 
 	/* the variable number of argument must correlate the depth in the tree */
 	unsigned i; 
@@ -108,7 +108,7 @@ starpu_data_handle starpu_data_vget_sub_data(starpu_data_handle root_handle, uns
 	return current_handle;
 }
 
-void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f)
+void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 {
 	unsigned nparts;
 	unsigned i;
@@ -134,7 +134,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 
 	for (i = 0; i < nparts; i++)
 	{
-		starpu_data_handle child =
+		starpu_data_handle_t child =
 			starpu_data_get_child(initial_handle, i);
 
 		STARPU_ASSERT(child);
@@ -246,7 +246,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 	_starpu_spin_unlock(&initial_handle->header_lock);
 }
 
-void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_node)
+void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gathering_node)
 {
 	unsigned child;
 	unsigned node;
@@ -344,7 +344,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 }
 
 /* each child may have his own interface type */
-static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, struct starpu_data_filter *f)
+static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f)
 {
 	handle->children = (struct _starpu_data_state *) calloc(nchildren, sizeof(struct _starpu_data_state));
 	STARPU_ASSERT(handle->children);
@@ -357,7 +357,7 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 
 	for (child = 0; child < nchildren; child++)
 	{
-		starpu_data_handle handle_child = &handle->children[child];
+		starpu_data_handle_t handle_child = &handle->children[child];
 		
 		struct starpu_data_interface_ops *ops;
 		

@@ -29,7 +29,7 @@
 
 float *buffer[NBUFFERS];
 
-starpu_data_handle v_handle[NBUFFERS];
+starpu_data_handle_t v_handle[NBUFFERS];
 
 static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -47,7 +47,7 @@ static starpu_codelet cl = {
 	.nbuffers = 1
 };
 
-int use_handle(starpu_data_handle handle)
+int use_handle(starpu_data_handle_t handle)
 {
 	int ret;
 	struct starpu_task *task;

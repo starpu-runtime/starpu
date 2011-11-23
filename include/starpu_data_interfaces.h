@@ -102,7 +102,7 @@ enum starpu_data_interface_id {
 
 struct starpu_data_interface_ops {
 	/* Register an existing interface into a data handle. */
-	void (*register_data_handle)(starpu_data_handle handle,
+	void (*register_data_handle)(starpu_data_handle_t handle,
 					uint32_t home_node, void *data_interface);
 	/* Allocate data for the interface on a given node. */
 	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node);
@@ -111,15 +111,15 @@ struct starpu_data_interface_ops {
 	/* ram/cuda/spu/opencl synchronous and asynchronous transfer methods */
 	const struct starpu_data_copy_methods *copy_methods;
 	/* Return the current pointer (if any) for the handle on the given node. */
-	void * (*handle_to_pointer)(starpu_data_handle handle, uint32_t node);
+	void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node);
 	/* Return an estimation of the size of data, for performance models */
-	size_t (*get_size)(starpu_data_handle handle);
+	size_t (*get_size)(starpu_data_handle_t handle);
 	/* Return a 32bit footprint which characterizes the data size */
-	uint32_t (*footprint)(starpu_data_handle handle);
+	uint32_t (*footprint)(starpu_data_handle_t handle);
 	/* Compare the data size of two interfaces */
 	int (*compare)(void *data_interface_a, void *data_interface_b);
 	/* Dump the sizes of a handle to a file */
-	void (*display)(starpu_data_handle handle, FILE *f);
+	void (*display)(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 	/* Convert the data size to the spu size format */
 	int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
@@ -130,18 +130,18 @@ struct starpu_data_interface_ops {
 	size_t interface_size;
 };
 
-void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 				void *data_interface,
 				struct starpu_data_interface_ops *ops);
 
 /* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
  * interface does not support this operation or data for this handle is not
  * allocated on that node. */
-void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node);
+void *starpu_handle_to_pointer(starpu_data_handle_t handle, uint32_t node);
 
 /* Return the local pointer associated with HANDLE or NULL if HANDLE's
  * interface does not have data allocated locally */
-void *starpu_handle_get_local_ptr(starpu_data_handle handle);
+void *starpu_handle_get_local_ptr(starpu_data_handle_t handle);
 
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.
@@ -150,7 +150,7 @@ void *starpu_handle_get_local_ptr(starpu_data_handle handle);
  * case 0 should be passed.
  */
 
-void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node);
+void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
 /* Matrix interface for dense matrices */
 struct starpu_matrix_interface {
@@ -163,14 +163,14 @@ struct starpu_matrix_interface {
 	size_t elemsize;
 };
 
-void starpu_matrix_data_register(starpu_data_handle *handle, uint32_t home_node,
+void starpu_matrix_data_register(starpu_data_handle_t *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t ld, uint32_t nx,
                         uint32_t ny, size_t elemsize);
-uint32_t starpu_matrix_get_nx(starpu_data_handle handle);
-uint32_t starpu_matrix_get_ny(starpu_data_handle handle);
-uint32_t starpu_matrix_get_local_ld(starpu_data_handle handle);
-uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle handle);
-size_t starpu_matrix_get_elemsize(starpu_data_handle handle);
+uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle);
+uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle);
+uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle);
+uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle);
+size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_MATRIX_GET_PTR(interface)	(((struct starpu_matrix_interface *)(interface))->ptr)
@@ -194,16 +194,16 @@ struct starpu_block_interface {
 	size_t elemsize;
 };
 
-void starpu_block_data_register(starpu_data_handle *handle, uint32_t home_node,
+void starpu_block_data_register(starpu_data_handle_t *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
                         uint32_t ny, uint32_t nz, size_t elemsize);
-uint32_t starpu_block_get_nx(starpu_data_handle handle);
-uint32_t starpu_block_get_ny(starpu_data_handle handle);
-uint32_t starpu_block_get_nz(starpu_data_handle handle);
-uint32_t starpu_block_get_local_ldy(starpu_data_handle handle);
-uint32_t starpu_block_get_local_ldz(starpu_data_handle handle);
-uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle);
-size_t starpu_block_get_elemsize(starpu_data_handle handle);
+uint32_t starpu_block_get_nx(starpu_data_handle_t handle);
+uint32_t starpu_block_get_ny(starpu_data_handle_t handle);
+uint32_t starpu_block_get_nz(starpu_data_handle_t handle);
+uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle);
+uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle);
+uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle);
+size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_BLOCK_GET_PTR(interface)	(((struct starpu_block_interface *)(interface))->ptr)
@@ -223,11 +223,11 @@ struct starpu_vector_interface {
 	size_t elemsize;
 };
 
-void starpu_vector_data_register(starpu_data_handle *handle, uint32_t home_node,
+void starpu_vector_data_register(starpu_data_handle_t *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize);
-uint32_t starpu_vector_get_nx(starpu_data_handle handle);
-size_t starpu_vector_get_elemsize(starpu_data_handle handle);
-uintptr_t starpu_vector_get_local_ptr(starpu_data_handle handle);
+uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
+size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
+uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_VECTOR_GET_PTR(interface)	(((struct starpu_vector_interface *)(interface))->ptr)
@@ -240,10 +240,10 @@ struct starpu_variable_interface {
 	size_t elemsize;
 };
 
-void starpu_variable_data_register(starpu_data_handle *handle, uint32_t home_node,
+void starpu_variable_data_register(starpu_data_handle_t *handle, uint32_t home_node,
                         uintptr_t ptr, size_t elemsize);
-size_t starpu_variable_get_elemsize(starpu_data_handle handle);
-uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle);
+size_t starpu_variable_get_elemsize(starpu_data_handle_t handle);
+uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_VARIABLE_GET_PTR(interface)	(((struct starpu_variable_interface *)(interface))->ptr)
@@ -254,7 +254,7 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle);
  * abstract piece of data that is managed by the application internally: this
  * makes it possible to forbid the concurrent execution of different tasks
  * accessing the same "void" data in read-write concurrently. */
-void starpu_void_data_register(starpu_data_handle *handleptr);
+void starpu_void_data_register(starpu_data_handle_t *handleptr);
 
 /* CSR interface for sparse matrices (compressed sparse row representation) */
 struct starpu_csr_interface {
@@ -271,15 +271,15 @@ struct starpu_csr_interface {
 	size_t elemsize;
 };
 
-void starpu_csr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
+void starpu_csr_data_register(starpu_data_handle_t *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
-uint32_t starpu_csr_get_nnz(starpu_data_handle handle);
-uint32_t starpu_csr_get_nrow(starpu_data_handle handle);
-uint32_t starpu_csr_get_firstentry(starpu_data_handle handle);
-uintptr_t starpu_csr_get_local_nzval(starpu_data_handle handle);
-uint32_t *starpu_csr_get_local_colind(starpu_data_handle handle);
-uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle handle);
-size_t starpu_csr_get_elemsize(starpu_data_handle handle);
+uint32_t starpu_csr_get_nnz(starpu_data_handle_t handle);
+uint32_t starpu_csr_get_nrow(starpu_data_handle_t handle);
+uint32_t starpu_csr_get_firstentry(starpu_data_handle_t handle);
+uintptr_t starpu_csr_get_local_nzval(starpu_data_handle_t handle);
+uint32_t *starpu_csr_get_local_colind(starpu_data_handle_t handle);
+uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle_t handle);
+size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 
 #define STARPU_CSR_GET_NNZ(interface)	(((struct starpu_csr_interface *)(interface))->nnz)
 #define STARPU_CSR_GET_NROW(interface)	(((struct starpu_csr_interface *)(interface))->nrow)
@@ -311,19 +311,19 @@ struct starpu_bcsr_interface {
 	size_t elemsize;
 };
 
-void starpu_bcsr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
+void starpu_bcsr_data_register(starpu_data_handle_t *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 
 
-uint32_t starpu_bcsr_get_nnz(starpu_data_handle handle);
-uint32_t starpu_bcsr_get_nrow(starpu_data_handle handle);
-uint32_t starpu_bcsr_get_firstentry(starpu_data_handle handle);
-uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle handle);
-uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle handle);
-uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle handle);
-uint32_t starpu_bcsr_get_r(starpu_data_handle handle);
-uint32_t starpu_bcsr_get_c(starpu_data_handle handle);
-size_t starpu_bcsr_get_elemsize(starpu_data_handle handle);
+uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle);
+uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle);
+uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle);
+uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle);
+uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle);
+uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle);
+uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle);
+uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle);
+size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 
 /*
  * Multiformat interface
@@ -357,7 +357,7 @@ struct starpu_multiformat_interface {
 	double conversion_time;
 };
 
-void starpu_multiformat_data_register(starpu_data_handle *handle,
+void starpu_multiformat_data_register(starpu_data_handle_t *handle,
 				      uint32_t home_node,
 				      void *ptr,
 				      uint32_t nobjects,
@@ -375,10 +375,10 @@ void starpu_multiformat_data_register(starpu_data_handle *handle,
 
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
-enum starpu_data_interface_id starpu_get_handle_interface_id(starpu_data_handle handle);
+enum starpu_data_interface_id starpu_get_handle_interface_id(starpu_data_handle_t handle);
 
 /* Lookup a ram pointer into a StarPU handle */
-extern starpu_data_handle starpu_data_lookup(const void *ptr);
+extern starpu_data_handle_t starpu_data_lookup(const void *ptr);
 
 #ifdef __cplusplus
 }

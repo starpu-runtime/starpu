@@ -36,7 +36,7 @@ LIST_TYPE(starpu_data_request,
 	struct _starpu_spinlock lock;
 	unsigned refcnt;
 
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	struct starpu_data_replicate_s *src_replicate;
 	struct starpu_data_replicate_s *dst_replicate;
 
@@ -97,7 +97,7 @@ void _starpu_handle_all_pending_node_data_requests(uint32_t src_node);
 
 int _starpu_check_that_no_data_request_exists(uint32_t node);
 
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle_t handle,
 				struct starpu_data_replicate_s *src_replicate,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,

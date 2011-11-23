@@ -20,7 +20,7 @@
 #include <core/task.h>
 #include <datawizard/datawizard.h>
 
-void starpu_data_set_reduction_methods(starpu_data_handle handle,
+void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 					struct starpu_codelet_t *redux_cl,
 					struct starpu_codelet_t *init_cl)
 {
@@ -41,7 +41,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle handle,
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, int workerid)
+void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, int workerid)
 {
 	STARPU_ASSERT(replicate);
 	STARPU_ASSERT(replicate->allocated);
@@ -77,7 +77,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_
 
 /* Enable reduction mode. This function must be called with the header lock
  * taken. */
-void starpu_data_start_reduction_mode(starpu_data_handle handle)
+void starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle->reduction_refcnt == 0);
 
@@ -95,13 +95,13 @@ void starpu_data_start_reduction_mode(starpu_data_handle handle)
 //#define NO_TREE_REDUCTION
 
 /* Force reduction. The lock should already have been taken.  */
-void starpu_data_end_reduction_mode(starpu_data_handle handle)
+void starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 {
 	unsigned worker;
 
 	/* Put every valid replicate in the same array */
 	unsigned replicate_count = 0;
-	starpu_data_handle replicate_array[STARPU_NMAXWORKERS];
+	starpu_data_handle_t replicate_array[STARPU_NMAXWORKERS];
 
 	/* Register all valid per-worker replicates */
 	unsigned nworkers = starpu_worker_get_count();
@@ -249,7 +249,7 @@ void starpu_data_end_reduction_mode(starpu_data_handle handle)
 	}
 }
 
-void starpu_data_end_reduction_mode_terminate(starpu_data_handle handle)
+void starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
 {
 	unsigned nworkers = starpu_worker_get_count();
 

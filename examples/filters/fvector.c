@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 {
 	unsigned i;
         int vector[NX];
-        starpu_data_handle handle;
+        starpu_data_handle_t handle;
         int factor=1;
 
         starpu_codelet cl = {
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
         /* Submit a task on each sub-vector */
 	for (i=0; i<starpu_data_get_nb_children(handle); i++)
 	{
-                starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
+                starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
                 struct starpu_task *task = starpu_task_create();
 
                 factor *= 10;

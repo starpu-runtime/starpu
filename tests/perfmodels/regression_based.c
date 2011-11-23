@@ -75,7 +75,7 @@ static void test_memset(int nelems, starpu_codelet *codelet)
 {
 	int nloops = 100;
 	int loop;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 
         starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
@@ -110,7 +110,7 @@ static void show_task_perfs(int size, struct starpu_task *task) {
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	int ret;
 
 	starpu_conf_init(&conf);

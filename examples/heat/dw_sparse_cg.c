@@ -329,9 +329,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 {
 	/* first register all the data structures to StarPU */
 
-	starpu_data_handle ds_matrixA;
-	starpu_data_handle ds_vecx, ds_vecb;
-	starpu_data_handle ds_vecr, ds_vecd, ds_vecq; 
+	starpu_data_handle_t ds_matrixA;
+	starpu_data_handle_t ds_vecx, ds_vecb;
+	starpu_data_handle_t ds_vecr, ds_vecd, ds_vecq; 
 
 	/* first the user-allocated data */
 	starpu_csr_data_register(&ds_matrixA, 0, nnz, nrow, 

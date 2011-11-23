@@ -62,7 +62,7 @@
 
 LIST_TYPE(starpu_mpi_req,
 	/* description of the data at StarPU level */
-	starpu_data_handle data_handle;
+	starpu_data_handle_t data_handle;
 
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;

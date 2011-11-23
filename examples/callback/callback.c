@@ -21,7 +21,7 @@
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
-starpu_data_handle handle;
+starpu_data_handle_t handle;
 
 void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {

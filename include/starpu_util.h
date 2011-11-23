@@ -228,7 +228,7 @@ void starpu_create_sync_task(starpu_tag sync_tag, unsigned ndeps, starpu_tag *de
  * (if enabled) or by calling starpu_task_wait_for_all(). If callback_func is
  * not NULL, this callback function is executed after the handle has been
  * copied, and it is given the callback_arg pointer as argument.*/
-int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle,
+int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */

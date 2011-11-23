@@ -47,7 +47,7 @@ static int test_lazy_allocation()
 
 	size_t i;
 	void *pointer;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	int ret;
 
 	/* Lazily-allocated vector.  */
@@ -97,7 +97,7 @@ static void test_filters()
 #define CHILDREN_COUNT 10
 	int ret, i;
 	int *ptr, *children_pointers[CHILDREN_COUNT];
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 
 	ret = starpu_malloc((void**)&ptr, VECTOR_SIZE * sizeof(*ptr));
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
@@ -115,7 +115,7 @@ static void test_filters()
 
 	for (i = 0; i < CHILDREN_COUNT; i++)
 	{
-                starpu_data_handle child;
+                starpu_data_handle_t child;
 
 		child = starpu_data_get_sub_data(handle, 1, i);
 		children_pointers[i] = (int *) starpu_handle_get_local_ptr(child);
@@ -148,8 +148,8 @@ int main(int argc, char *argv[])
 	int ret;
 	size_t i;
 	void *vectors[VECTOR_COUNT], *variables[VARIABLE_COUNT];
-	starpu_data_handle vector_handles[VECTOR_COUNT];
-	starpu_data_handle variable_handles[VARIABLE_COUNT];
+	starpu_data_handle_t vector_handles[VECTOR_COUNT];
+	starpu_data_handle_t variable_handles[VARIABLE_COUNT];
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 
 	for(i = 0; i < VARIABLE_COUNT; i++)
 	{
-		starpu_data_handle handle;
+		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(variables[i]);
 		assert(handle == variable_handles[i]);
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
 	for(i = 0; i < VECTOR_COUNT; i++)
 	{
-		starpu_data_handle handle;
+		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(vectors[i]);
 		assert(handle == vector_handles[i]);
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 
 	for(i = 0; i < VARIABLE_COUNT; i++)
 	{
-		starpu_data_handle handle;
+		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(variables[i]);
 		assert(handle == NULL);
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 
 	for(i = 0; i < VECTOR_COUNT; i++)
 	{
-		starpu_data_handle handle;
+		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(vectors[i]);
 		assert(handle == NULL);

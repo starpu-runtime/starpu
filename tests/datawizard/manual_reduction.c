@@ -28,10 +28,10 @@
 #define NTASKS		10000
 
 static unsigned variable;
-static starpu_data_handle variable_handle;
+static starpu_data_handle_t variable_handle;
 
 static uintptr_t per_worker[STARPU_NMAXWORKERS];
-static starpu_data_handle per_worker_handle[STARPU_NMAXWORKERS];
+static starpu_data_handle_t per_worker_handle[STARPU_NMAXWORKERS];
 
 /* Create per-worker handles */
 static void initialize_per_worker_handle(void *arg __attribute__((unused)))

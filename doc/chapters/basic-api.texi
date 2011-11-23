@@ -295,15 +295,15 @@ This datatype describes a data access mode. The different available modes are:
 @end table
 @end deftp
 
-@deftp {Data Type} {starpu_data_handle}
-StarPU uses @code{starpu_data_handle} as an opaque handle to manage a piece of
+@deftp {Data Type} {starpu_data_handle_t}
+StarPU uses @code{starpu_data_handle_t} as an opaque handle to manage a piece of
 data. Once a piece of data has been registered to StarPU, it is associated to a
-@code{starpu_data_handle} which keeps track of the state of the piece of data
+@code{starpu_data_handle_t} which keeps track of the state of the piece of data
 over the entire machine, so that we can maintain data consistency and locate
 data replicates for instance.
 @end deftp
 
-@deftypefun void starpu_data_register (starpu_data_handle *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops} *@var{ops})
+@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops} *@var{ops})
 Register a piece of data into the handle located at the @var{handleptr}
 address. The @var{interface} buffer contains the initial description of the
 data in the home node. The @var{ops} argument is a pointer to a structure
@@ -320,7 +320,7 @@ matrix) which can be registered by the means of helper functions (e.g.
 @code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
 @end deftypefun
 
-@deftypefun void starpu_data_unregister (starpu_data_handle @var{handle})
+@deftypefun void starpu_data_unregister (starpu_data_handle_t @var{handle})
 This function unregisters a data handle from StarPU. If the data was
 automatically allocated by StarPU because the home node was -1, all
 automatically allocated buffers are freed. Otherwise, a valid copy of the data
@@ -329,12 +329,12 @@ Using a data handle that has been unregistered from StarPU results in an
 undefined behaviour.
 @end deftypefun
 
-@deftypefun void starpu_data_unregister_no_coherency (starpu_data_handle @var{handle})
+@deftypefun void starpu_data_unregister_no_coherency (starpu_data_handle_t @var{handle})
 This is the same as starpu_data_unregister, except that StarPU does not put back
 a valid copy into the home node, in the buffer that was initially registered.
 @end deftypefun
 
-@deftypefun void starpu_data_invalidate (starpu_data_handle @var{handle})
+@deftypefun void starpu_data_invalidate (starpu_data_handle_t @var{handle})
 Destroy all replicates of the data handle. After data invalidation, the first
 access to the handle must be performed in write-only mode. Accessing an
 invalidated data in read-mode results in undefined behaviour.
@@ -342,12 +342,12 @@ invalidated data in read-mode results in undefined behaviour.
 
 @c TODO create a specific sections about user interaction with the DSM ?
 
-@deftypefun void starpu_data_set_wt_mask (starpu_data_handle @var{handle}, uint32_t @var{wt_mask})
+@deftypefun void starpu_data_set_wt_mask (starpu_data_handle_t @var{handle}, uint32_t @var{wt_mask})
 This function sets the write-through mask of a given data, i.e. a bitmask of
 nodes where the data should be always replicated after modification.
 @end deftypefun
 
-@deftypefun int starpu_data_prefetch_on_node (starpu_data_handle @var{handle}, unsigned @var{node}, unsigned @var{async})
+@deftypefun int starpu_data_prefetch_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, unsigned @var{async})
 Issue a prefetch request for a given data to a given node, i.e.
 requests that the data be replicated to the given node, so that it is available
 there for tasks. If the @var{async} parameter is 0, the call will block until
@@ -355,31 +355,31 @@ the transfer is achieved, else the call will return as soon as the request is
 scheduled (which may however have to wait for a task completion).
 @end deftypefun
 
-@deftypefun starpu_data_handle starpu_data_lookup ({const void *}@var{ptr})
+@deftypefun starpu_data_handle_t starpu_data_lookup ({const void *}@var{ptr})
 todo
 @end deftypefun
 
-@deftypefun int starpu_data_request_allocation (starpu_data_handle @var{handle}, uint32_t @var{node})
+@deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, uint32_t @var{node})
 todo
 @end deftypefun
 
-@deftypefun void starpu_data_query_status (starpu_data_handle @var{handle}, int @var{memory_node}, {int *}@var{is_allocated}, {int *}@var{is_valid}, {int *}@var{is_requested})
+@deftypefun void starpu_data_query_status (starpu_data_handle_t @var{handle}, int @var{memory_node}, {int *}@var{is_allocated}, {int *}@var{is_valid}, {int *}@var{is_requested})
 Query the status of the handle on the specified memory node.
 @end deftypefun
 
-@deftypefun void starpu_data_advise_as_important (starpu_data_handle @var{handle}, unsigned @var{is_important})
+@deftypefun void starpu_data_advise_as_important (starpu_data_handle_t @var{handle}, unsigned @var{is_important})
 This function allows to specify that a piece of data can be discarded
 without impacting the application.
 @end deftypefun
 
-@deftypefun void starpu_data_set_reduction_methods (starpu_data_handle @var{handle}, {struct starpu_codelet_t *}@var{redux_cl}, {struct starpu_codelet_t *}@var{init_cl})
+@deftypefun void starpu_data_set_reduction_methods (starpu_data_handle_t @var{handle}, {struct starpu_codelet_t *}@var{redux_cl}, {struct starpu_codelet_t *}@var{init_cl})
 todo
 @end deftypefun
 
 @node Access registered data from the application
 @subsection Access registered data from the application
 
-@deftypefun int starpu_data_acquire (starpu_data_handle @var{handle}, {enum starpu_access_mode} @var{mode})
+@deftypefun int starpu_data_acquire (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode})
 The application must call this function prior to accessing registered data from
 main memory outside tasks. StarPU ensures that the application will get an
 up-to-date copy of the data in main memory located where the data was
@@ -398,7 +398,7 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 @end deftypefun
 
 
-@deftypefun int starpu_data_acquire_cb (starpu_data_handle @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+@deftypefun int starpu_data_acquire_cb (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
 @code{starpu_data_release}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
@@ -412,7 +412,7 @@ be called from task callbacks. Upon successful completion, this function
 returns 0.
 @end deftypefun
 
-@deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, {enum starpu_access_mode} @var{mode}, code)
+@deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
 @code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
 except that the code to be executed in a callback is directly provided as a
 macro parameter, and the data handle is automatically released after it. This
@@ -420,7 +420,7 @@ permits to easily execute code which depends on the value of some registered
 data. This is non-blocking too and may be called from task callbacks.
 @end deftypefun
 
-@deftypefun void starpu_data_release (starpu_data_handle @var{handle})
+@deftypefun void starpu_data_release (starpu_data_handle_t @var{handle})
 This function releases the piece of data acquired by the application either by
 @code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
 @end deftypefun
@@ -440,7 +440,7 @@ There are several ways to register a memory region so that it can be managed by
 StarPU.  The functions below allow the registration of vectors, 2D matrices, 3D
 matrices as well as  BCSR and CSR sparse matrices.
 
-@deftypefun void starpu_void_data_register ({starpu_data_handle *}@var{handle})
+@deftypefun void starpu_void_data_register ({starpu_data_handle_t *}@var{handle})
 Register a void interface. There is no data really associated to that
 interface, but it may be used as a synchronization mechanism. It also
 permits to express an abstract piece of data that is managed by the
@@ -449,31 +449,31 @@ concurrent execution of different tasks accessing the same "void" data
 in read-write concurrently.
 @end deftypefun
 
-@deftypefun void starpu_variable_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
+@deftypefun void starpu_variable_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
 Register the @var{size}-byte element pointed to by @var{ptr}, which is
 typically a scalar, and initialize @var{handle} to represent this data
 item.
 
 @smallexample
 float var;
-starpu_data_handle var_handle;
+starpu_data_handle_t var_handle;
 starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
 @end smallexample
 @end deftypefun
 
-@deftypefun void starpu_vector_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{count}, size_t @var{size})
+@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{count}, size_t @var{size})
 Register the @var{count} @var{size}-byte elements pointed to by
 @var{ptr} and initialize @var{handle} to represent it.
 
 @example
 float vector[NX];
-starpu_data_handle vector_handle;
+starpu_data_handle_t vector_handle;
 starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
                             sizeof(vector[0]));
 @end example
 @end deftypefun
 
-@deftypefun void starpu_matrix_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{size})
+@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{size})
 Register the @var{nx}x@var{ny} 2D matrix of @var{size}-byte elements
 pointed by @var{ptr} and initialize @var{handle} to represent it.
 @var{ld} specifies the number of extra elements present at the end of
@@ -482,14 +482,14 @@ alignment purposes.
 
 @example
 float *matrix;
-starpu_data_handle matrix_handle;
+starpu_data_handle_t matrix_handle;
 matrix = (float*)malloc(width * height * sizeof(float));
 starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
                             width, width, height, sizeof(float));
 @end example
 @end deftypefun
 
-@deftypefun void starpu_block_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{size})
+@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{size})
 Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{size}-byte
 elements pointed by @var{ptr} and initialize @var{handle} to represent
 it.  Again, @var{ldy} and @var{ldz} specify the number of extra elements
@@ -497,26 +497,26 @@ present at the end of each row or column.
 
 @example
 float *block;
-starpu_data_handle block_handle;
+starpu_data_handle_t block_handle;
 block = (float*)malloc(nx*ny*nz*sizeof(float));
 starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
                            nx, nx*ny, nx, ny, nz, sizeof(float));
 @end example
 @end deftypefun
 
-@deftypefun void starpu_bcsr_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
+@deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun void starpu_csr_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
+@deftypefun void starpu_csr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the CSR (Compressed
 Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle @var{handle}, unsigned @var{memory_node})
+@deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle_t @var{handle}, unsigned @var{memory_node})
 todo
 @end deftypefun
 
@@ -555,29 +555,29 @@ The different values are:
 @node Accessing Handle
 @subsubsection Accessing Handle
 
-@deftypefun {void *}starpu_handle_to_pointer (starpu_data_handle @var{handle}, uint32_t @var{node})
+@deftypefun {void *}starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, uint32_t @var{node})
 Return the pointer associated with @var{handle} on node @var{node} or
 @code{NULL} if @var{handle}'s interface does not support this
 operation or data for this handle is not allocated on that node.
 @end deftypefun
 
-@deftypefun {void *} starpu_handle_get_local_ptr (starpu_data_handle @var{handle})
+@deftypefun {void *} starpu_handle_get_local_ptr (starpu_data_handle_t @var{handle})
 Return the local pointer associated with @var{handle} or @code{NULL}
 if @var{handle}'s interface does not have data allocated locally
 @end deftypefun
 
-@deftypefun {enum starpu_data_interface_id} starpu_get_handle_interface_id (starpu_data_handle @var{handle})
+@deftypefun {enum starpu_data_interface_id} starpu_get_handle_interface_id (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
 @node Accessing Variable Data Interfaces
 @subsubsection Accessing Variable Data Interfaces
 
-@deftypefun size_t starpu_variable_get_elemsize (starpu_data_handle @var{handle})
+@deftypefun size_t starpu_variable_get_elemsize (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uintptr_t starpu_variable_get_local_ptr (starpu_data_handle @var{handle})
+@deftypefun uintptr_t starpu_variable_get_local_ptr (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
@@ -592,15 +592,15 @@ todo
 @node Accessing Vector Data Interfaces
 @subsubsection Vector Data Interfaces
 
-@deftypefun uint32_t starpu_vector_get_nx (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_vector_get_nx (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun size_t starpu_vector_get_elemsize (starpu_data_handle @var{handle})
+@deftypefun size_t starpu_vector_get_elemsize (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uintptr_t starpu_vector_get_local_ptr (starpu_data_handle @var{handle})
+@deftypefun uintptr_t starpu_vector_get_local_ptr (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
@@ -619,23 +619,23 @@ todo
 @node Accessing Matrix Data Interfaces
 @subsubsection Matrix Data Interfaces
 
-@deftypefun uint32_t starpu_matrix_get_nx (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_matrix_get_nx (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_matrix_get_ny (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_matrix_get_ny (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_matrix_get_local_ld (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_matrix_get_local_ld (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uintptr_t starpu_matrix_get_local_ptr (starpu_data_handle @var{handle})
+@deftypefun uintptr_t starpu_matrix_get_local_ptr (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun size_t starpu_matrix_get_elemsize (starpu_data_handle @var{handle})
+@deftypefun size_t starpu_matrix_get_elemsize (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
@@ -662,31 +662,31 @@ todo
 @node Accessing Block Data Interfaces
 @subsubsection Block Data Interfaces
 
-@deftypefun uint32_t starpu_block_get_nx (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_block_get_nx (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_block_get_ny (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_block_get_ny (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_block_get_nz (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_block_get_nz (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_block_get_local_ldy (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_block_get_local_ldy (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_block_get_local_ldz (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_block_get_local_ldz (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uintptr_t starpu_block_get_local_ptr (starpu_data_handle @var{handle})
+@deftypefun uintptr_t starpu_block_get_local_ptr (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun size_t starpu_block_get_elemsize (starpu_data_handle @var{handle})
+@deftypefun size_t starpu_block_get_elemsize (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
@@ -721,39 +721,39 @@ todo
 @node Accessing BCSR Data Interfaces
 @subsubsection BCSR Data Interfaces
 
-@deftypefun uint32_t starpu_bcsr_get_nnz (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_bcsr_get_nnz (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_bcsr_get_nrow (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_bcsr_get_nrow (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_bcsr_get_firstentry (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_bcsr_get_firstentry (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uintptr_t starpu_bcsr_get_local_nzval (starpu_data_handle @var{handle})
+@deftypefun uintptr_t starpu_bcsr_get_local_nzval (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun {uint32_t *} starpu_bcsr_get_local_colind (starpu_data_handle @var{handle})
+@deftypefun {uint32_t *} starpu_bcsr_get_local_colind (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun {uint32_t *} starpu_bcsr_get_local_rowptr (starpu_data_handle @var{handle})
+@deftypefun {uint32_t *} starpu_bcsr_get_local_rowptr (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_bcsr_get_r (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_bcsr_get_r (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_bcsr_get_c (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_bcsr_get_c (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun size_t starpu_bcsr_get_elemsize (starpu_data_handle @var{handle})
+@deftypefun size_t starpu_bcsr_get_elemsize (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
@@ -761,31 +761,31 @@ todo
 @node Accessing CSR Data Interfaces
 @subsubsection CSR Data Interfaces
 
-@deftypefun uint32_t starpu_csr_get_nnz (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_csr_get_nnz (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_csr_get_nrow (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_csr_get_nrow (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uint32_t starpu_csr_get_firstentry (starpu_data_handle @var{handle})
+@deftypefun uint32_t starpu_csr_get_firstentry (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun uintptr_t starpu_csr_get_local_nzval (starpu_data_handle @var{handle})
+@deftypefun uintptr_t starpu_csr_get_local_nzval (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun {uint32_t *} starpu_csr_get_local_colind (starpu_data_handle @var{handle})
+@deftypefun {uint32_t *} starpu_csr_get_local_colind (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun {uint32_t *} starpu_csr_get_local_rowptr (starpu_data_handle @var{handle})
+@deftypefun {uint32_t *} starpu_csr_get_local_rowptr (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
-@deftypefun size_t starpu_csr_get_elemsize (starpu_data_handle @var{handle})
+@deftypefun size_t starpu_csr_get_elemsize (starpu_data_handle_t @var{handle})
 todo
 @end deftypefun
 
@@ -843,7 +843,7 @@ This is the number of parts to partition the data into.
 This returns the number of children. This can be used instead of @code{nchildren} when the number of
 children depends on the actual data (e.g. the number of blocks in a sparse
 matrix).
-@code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);}
+@code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle);}
 @item @code{get_child_ops}
 In case the resulting children use a different data interface, this function
 returns which interface is used by child number @code{id}.
@@ -856,7 +856,7 @@ this is usually unused.
 @end table
 @end deftp
 
-@deftypefun void starpu_data_partition (starpu_data_handle @var{initial_handle}, {struct starpu_data_filter *}@var{f})
+@deftypefun void starpu_data_partition (starpu_data_handle_t @var{initial_handle}, {struct starpu_data_filter *}@var{f})
 @anchor{starpu_data_partition}
 This requests partitioning one StarPU data @var{initial_handle} into several
 subdata according to the filter @var{f}, as shown in the following example:
@@ -874,7 +874,7 @@ starpu_data_partition(A_handle, &f);
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_data_unpartition (starpu_data_handle @var{root_data}, uint32_t @var{gathering_node})
+@deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, uint32_t @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
 collected back into one big piece in the @var{gathering_node} (usually 0).
 @cartouche
@@ -884,15 +884,15 @@ starpu_data_unpartition(A_handle, 0);
 @end cartouche
 @end deftypefun
 
-@deftypefun int starpu_data_get_nb_children (starpu_data_handle @var{handle})
+@deftypefun int starpu_data_get_nb_children (starpu_data_handle_t @var{handle})
 This function returns the number of children.
 @end deftypefun
 
-@deftypefun starpu_data_handle starpu_data_get_child (starpu_data_handle @var{handle}, unsigned @var{i})
+@deftypefun starpu_data_handle_t starpu_data_get_child (starpu_data_handle_t @var{handle}, unsigned @var{i})
 todo
 @end deftypefun
 
-@deftypefun starpu_data_handle starpu_data_get_sub_data (starpu_data_handle @var{root_data}, unsigned @var{depth}, ... )
+@deftypefun starpu_data_handle_t starpu_data_get_sub_data (starpu_data_handle_t @var{root_data}, unsigned @var{depth}, ... )
 After partitioning a StarPU data by applying a filter,
 @code{starpu_data_get_sub_data} can be used to get handles for each of
 the data portions. @var{root_data} is the parent data that was
@@ -908,16 +908,16 @@ h = starpu_data_get_sub_data(A_handle, 1, taskx);
 @end cartouche
 @end deftypefun
 
-@deftypefun starpu_data_handle starpu_data_vget_sub_data (starpu_data_handle @var{root_data}, unsigned @var{depth}, va_list @var{pa})
+@deftypefun starpu_data_handle_t starpu_data_vget_sub_data (starpu_data_handle_t @var{root_data}, unsigned @var{depth}, va_list @var{pa})
 This function is similar to @code{starpu_data_get_sub_data} but uses a
 va_list for the parameter list.
 @end deftypefun
 
-@deftypefun void starpu_data_map_filters (starpu_data_handle @var{root_data}, unsigned @var{nfilters}, ...)
+@deftypefun void starpu_data_map_filters (starpu_data_handle_t @var{root_data}, unsigned @var{nfilters}, ...)
 todo
 @end deftypefun
 
-@deftypefun void starpu_data_vmap_filters (starpu_data_handle @var{root_data}, unsigned @var{nfilters}, va_list @var{pa})
+@deftypefun void starpu_data_vmap_filters (starpu_data_handle_t @var{root_data}, unsigned @var{nfilters}, va_list @var{pa})
 todo
 @end deftypefun
 
@@ -1393,7 +1393,7 @@ Return the default sequential consistency flag
 This function returns the current default sequential consistency flag.
 @end deftypefun
 
-@deftypefun void starpu_data_set_sequential_consistency_flag (starpu_data_handle @var{handle}, unsigned @var{flag})
+@deftypefun void starpu_data_set_sequential_consistency_flag (starpu_data_handle_t @var{handle}, unsigned @var{flag})
 Sets the data consistency mode associated to a data handle. The consistency
 mode set using this function has the priority over the default mode which can
 be set with @code{starpu_data_set_sequential_consistency_flag}.
@@ -1691,7 +1691,7 @@ nothing yet.
 @node Miscellaneous helpers
 @section Miscellaneous helpers
 
-@deftypefun int starpu_data_cpy (starpu_data_handle @var{dst_handle}, starpu_data_handle @var{src_handle}, int @var{asynchronous}, void (*@var{callback_func})(void*), void *@var{callback_arg})
+@deftypefun int starpu_data_cpy (starpu_data_handle_t @var{dst_handle}, starpu_data_handle_t @var{src_handle}, int @var{asynchronous}, void (*@var{callback_func})(void*), void *@var{callback_arg})
 Copy the content of the @var{src_handle} into the @var{dst_handle} handle.
 The @var{asynchronous} parameter indicates whether the function should 
 block or not. In the case of an asynchronous call, it is possible to

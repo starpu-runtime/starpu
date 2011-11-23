@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         int rank, size, err;
         int x[3], y=0;
         int i;
-        starpu_data_handle data_handles[4];
+        starpu_data_handle_t data_handles[4];
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&rank, &size);

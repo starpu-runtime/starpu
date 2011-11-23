@@ -24,7 +24,7 @@
 /* If a write-through mask is associated to that data handle, this propagates
  * the the current value of the data onto the different memory nodes in the
  * write_through_mask. */
-void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
+void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node, 
 					   uint32_t write_through_mask);
 
 #endif // __DW_WRITE_BACK_H__

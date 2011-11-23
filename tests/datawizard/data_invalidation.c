@@ -25,7 +25,7 @@
 #define NLOOPS		1000
 #define VECTORSIZE	1024
 
-static starpu_data_handle v_handle;
+static starpu_data_handle_t v_handle;
 
 /*
  *	Memset

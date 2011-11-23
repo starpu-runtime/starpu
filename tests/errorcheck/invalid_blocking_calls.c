@@ -20,7 +20,7 @@
 
 #define TAG	0x42
 
-static starpu_data_handle handle;
+static starpu_data_handle_t handle;
 static unsigned data = 42;
 
 static void wrong_func(void *descr[], void *arg)

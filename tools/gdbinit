@@ -147,7 +147,7 @@ end
 
 define starpu-print-data
   set language c
-  set $data = (starpu_data_handle) $arg0
+  set $data = (starpu_data_handle_t) $arg0
   printf "Data handle %p\n", $data
   printf "Home node %d\n", $data->home_node
   printf "RWlock refs %d\n", $data->refcnt

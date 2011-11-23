@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 {
         int rank, nodes;
 	float ***bmat;
-        starpu_data_handle *data_handles;
+        starpu_data_handle_t *data_handles;
 
 	unsigned i,j,x,y;
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* Allocate data handles and register data to StarPU */
-        data_handles = malloc(nblocks*nblocks*sizeof(starpu_data_handle *));
+        data_handles = malloc(nblocks*nblocks*sizeof(starpu_data_handle_t *));
         for(x = 0; x < nblocks ;  x++)
 	{
                 for (y = 0; y < nblocks; y++)

@@ -20,7 +20,7 @@
 #include "multiformat_types.h"
 
 static struct point array_of_structs[N_ELEMENTS];
-static starpu_data_handle array_of_structs_handle;
+static starpu_data_handle_t array_of_structs_handle;
 
 static void
 multiformat_scal_cpu_func(void *buffers[], void *args)

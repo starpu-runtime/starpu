@@ -73,7 +73,7 @@ static void starpu_mpi_isend_func(struct starpu_mpi_req_s *req)
         _STARPU_MPI_LOG_OUT();
 }
 
-static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle data_handle,
+static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
 				int dest, int mpi_tag, MPI_Comm comm,
 				unsigned detached, void (*callback)(void *), void *arg)
 {
@@ -111,7 +111,7 @@ static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle data
 	return req;
 }
 
-int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req *public_req, int dest, int mpi_tag, MPI_Comm comm)
+int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int mpi_tag, MPI_Comm comm)
 {
         _STARPU_MPI_LOG_IN();
 	STARPU_ASSERT(public_req);
@@ -130,7 +130,7 @@ int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req *public_req,
  *	Isend (detached)
  */
 
-int starpu_mpi_isend_detached(starpu_data_handle data_handle,
+int starpu_mpi_isend_detached(starpu_data_handle_t data_handle,
 				int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
         _STARPU_MPI_LOG_IN();
@@ -165,7 +165,7 @@ static void starpu_mpi_irecv_func(struct starpu_mpi_req_s *req)
         _STARPU_MPI_LOG_OUT();
 }
 
-static struct starpu_mpi_req_s *_starpu_mpi_irecv_common(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg)
+static struct starpu_mpi_req_s *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg)
 {
         _STARPU_MPI_LOG_IN();
 	struct starpu_mpi_req_s *req = calloc(1, sizeof(struct starpu_mpi_req_s));
@@ -200,7 +200,7 @@ static struct starpu_mpi_req_s *_starpu_mpi_irecv_common(starpu_data_handle data
 	return req;
 }
 
-int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req *public_req, int source, int mpi_tag, MPI_Comm comm)
+int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int mpi_tag, MPI_Comm comm)
 {
         _STARPU_MPI_LOG_IN();
 	STARPU_ASSERT(public_req);
@@ -219,7 +219,7 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req *public_req,
  *	Irecv (detached)
  */
 
-int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
         _STARPU_MPI_LOG_IN();
 	_starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg);
@@ -233,7 +233,7 @@ int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mp
  *	Recv
  */
 
-int starpu_mpi_recv(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
+int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
 {
 	starpu_mpi_req req;
 
@@ -249,7 +249,7 @@ int starpu_mpi_recv(starpu_data_handle data_handle, int source, int mpi_tag, MPI
  *	Send
  */
 
-int starpu_mpi_send(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm)
+int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm)
 {
 	starpu_mpi_req req;
 	MPI_Status status;

@@ -22,15 +22,15 @@
 #include <common/config.h>
 
 void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
-						   starpu_data_handle handle, enum starpu_access_mode mode);
+						   starpu_data_handle_t handle, enum starpu_access_mode mode);
 void _starpu_detect_implicit_data_deps(struct starpu_task *task);
-void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle handle);
+void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle_t handle);
 
-void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle handle);
-void _starpu_unlock_post_sync_tasks(starpu_data_handle handle);
+void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle);
+void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle);
 
 /* This function blocks until the handle is available in the requested mode */
-int _starpu_data_wait_until_available(starpu_data_handle handle, enum starpu_access_mode mode);
+int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_access_mode mode);
 
 #endif // __IMPLICIT_DATA_DEPS_H__
 

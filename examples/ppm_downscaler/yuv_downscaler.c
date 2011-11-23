@@ -136,13 +136,13 @@ int main(int argc, char **argv)
 
 	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
 
-	starpu_data_handle *frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *frame_v_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle_t *frame_y_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *frame_v_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
 
-	starpu_data_handle *new_frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *new_frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *new_frame_v_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle_t *new_frame_y_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *new_frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *new_frame_v_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
 
 	starpu_init(NULL);
 

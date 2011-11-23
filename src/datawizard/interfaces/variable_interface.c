@@ -66,14 +66,14 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
 static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void *variable_handle_to_pointer(starpu_data_handle data_handle, uint32_t node);
+static void *variable_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node);
-static size_t variable_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle);
+static size_t variable_interface_get_size(starpu_data_handle_t handle);
+static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
 static int variable_compare(void *data_interface_a, void *data_interface_b);
-static void display_variable_interface(starpu_data_handle handle, FILE *f);
+static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
@@ -95,14 +95,14 @@ static struct starpu_data_interface_ops interface_variable_ops = {
 	.display = display_variable_interface
 };
 
-static void *variable_handle_to_pointer(starpu_data_handle handle, uint32_t node)
+static void *variable_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	return (void*) STARPU_VARIABLE_GET_PTR(starpu_data_get_interface_on_node(handle, node));
 }
 
-static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
+static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -132,7 +132,7 @@ int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strid
 #endif
 
 /* declare a new data with the variable interface */
-void starpu_variable_data_register(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_variable_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
                         uintptr_t ptr, size_t elemsize)
 {
 	struct starpu_variable_interface variable = {
@@ -144,7 +144,7 @@ void starpu_variable_data_register(starpu_data_handle *handleptr, uint32_t home_
 }
 
 
-static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle)
+static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle)
 {
 	return _starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
 }
@@ -158,7 +158,7 @@ static int variable_compare(void *data_interface_a, void *data_interface_b)
 	return (variable_a->elemsize == variable_b->elemsize);
 } 
 
-static void display_variable_interface(starpu_data_handle handle, FILE *f)
+static void display_variable_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -166,7 +166,7 @@ static void display_variable_interface(starpu_data_handle handle, FILE *f)
 	fprintf(f, "%ld\t", (long)variable_interface->elemsize);
 }
 
-static size_t variable_interface_get_size(starpu_data_handle handle)
+static size_t variable_interface_get_size(starpu_data_handle_t handle)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -174,7 +174,7 @@ static size_t variable_interface_get_size(starpu_data_handle handle)
 	return variable_interface->elemsize;
 }
 
-uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle)
+uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -184,7 +184,7 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle)
 	return STARPU_VARIABLE_GET_PTR(starpu_data_get_interface_on_node(handle, node));
 }
 
-size_t starpu_variable_get_elemsize(starpu_data_handle handle)
+size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
 {
 	return STARPU_VARIABLE_GET_ELEMSIZE(starpu_data_get_interface_on_node(handle, 0));
 }

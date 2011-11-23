@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	int err;
 	size_t i;
 	int *pointer;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	static const size_t count = 123;
 
 	starpu_init(NULL);

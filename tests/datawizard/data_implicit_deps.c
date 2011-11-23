@@ -25,7 +25,7 @@
 #define VECTORSIZE	1024
 
 static unsigned *A, *B, *C, *D;
-starpu_data_handle A_handle, B_handle, C_handle, D_handle;
+starpu_data_handle_t A_handle, B_handle, C_handle, D_handle;
 
 static unsigned var = 0;
 

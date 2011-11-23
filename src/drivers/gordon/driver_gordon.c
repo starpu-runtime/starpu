@@ -136,7 +136,7 @@ static void starpu_to_gordon_buffers(starpu_job_t j, struct gordon_ppu_job_s *go
 				break;
 		}
 
-		starpu_data_handle handle = task->buffers[buffer].handle;
+		starpu_data_handle_t handle = task->buffers[buffer].handle;
 
 		gordon_job->nalloc = 0;
 		gordon_job->nin = nin;

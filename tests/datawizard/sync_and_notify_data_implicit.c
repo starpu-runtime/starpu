@@ -60,7 +60,7 @@ struct starpu_opencl_program opencl_code;
 
 #define VECTORSIZE	16
 
-starpu_data_handle v_handle;
+starpu_data_handle_t v_handle;
 static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
 
 void cpu_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)

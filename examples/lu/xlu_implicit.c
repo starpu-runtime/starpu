@@ -21,7 +21,7 @@
 
 static unsigned no_prio = 0;
 
-static void create_task_11(starpu_data_handle dataA, unsigned k)
+static void create_task_11(starpu_data_handle_t dataA, unsigned k)
 {
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl11;
@@ -37,7 +37,7 @@ static void create_task_11(starpu_data_handle dataA, unsigned k)
 	starpu_task_submit(task);
 }
 
-static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
+static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j)
 {
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl12;
@@ -54,7 +54,7 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 	starpu_task_submit(task);
 }
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -72,7 +72,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
 	starpu_task_submit(task);
 }
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -96,7 +96,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
  *	code to bootstrap the factorization 
  */
 
-static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
+static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	struct timeval start;
 	struct timeval end;
@@ -137,7 +137,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 
 void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */

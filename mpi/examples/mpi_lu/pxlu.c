@@ -90,7 +90,7 @@ static struct starpu_task *create_task(starpu_tag id)
 
 /* Send handle to every node appearing in the mask, and unlock tag once the
  * transfers are done. */
-static void send_data_to_mask(starpu_data_handle handle, int *rank_mask, int mpi_tag, starpu_tag tag)
+static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int mpi_tag, starpu_tag tag)
 {
 	unsigned cnt = 0;
 
@@ -99,7 +99,7 @@ static void send_data_to_mask(starpu_data_handle handle, int *rank_mask, int mpi
 	int rank_array[world_size];
 	MPI_Comm comm_array[world_size];
 	int mpi_tag_array[world_size];
-	starpu_data_handle handle_array[world_size];
+	starpu_data_handle_t handle_array[world_size];
 
 	unsigned r;
 	for (r = 0; r < world_size; r++)
@@ -132,7 +132,7 @@ static void send_data_to_mask(starpu_data_handle handle, int *rank_mask, int mpi
 struct recv_when_done_callback_arg {
 	int source;
 	int mpi_tag;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	starpu_tag unlocked_tag;
 };
 
@@ -148,7 +148,7 @@ static void callback_receive_when_done(void *_arg)
 
 static void receive_when_deps_are_done(unsigned ndeps, starpu_tag *deps_tags,
 				int source, int mpi_tag,
-				starpu_data_handle handle,
+				starpu_data_handle_t handle,
 				starpu_tag partial_tag,
 				starpu_tag unlocked_tag)
 {
@@ -206,9 +206,9 @@ static void create_task_11_recv(unsigned k)
 	
 	int source = get_block_rank(k, k);
 #ifdef SINGLE_TMP11
-	starpu_data_handle block_handle = STARPU_PLU(get_tmp_11_block_handle)();
+	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_11_block_handle)();
 #else
-	starpu_data_handle block_handle = STARPU_PLU(get_tmp_11_block_handle)(k);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
 	int mpi_tag = MPI_TAG11(k);
 	starpu_tag partial_tag = TAG11_SAVE_PARTIAL(k);
@@ -250,7 +250,7 @@ static void callback_task_11_real(void *_arg)
 	rank_mask[rank] = 0;
 
 	/* Send the block to those nodes */
-	starpu_data_handle block_handle = STARPU_PLU(get_block_handle)(k, k);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, k);
 	starpu_tag tag = TAG11_SAVE(k);
 	int mpi_tag = MPI_TAG11(k);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
@@ -357,9 +357,9 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	
 	int source = get_block_rank(k, j);
 #ifdef SINGLE_TMP1221
-	starpu_data_handle block_handle = STARPU_PLU(get_tmp_12_block_handle)(j);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_12_block_handle)(j);
 #else
-	starpu_data_handle block_handle = STARPU_PLU(get_tmp_12_block_handle)(j,k);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_12_block_handle)(j,k);
 #endif
 	int mpi_tag = MPI_TAG12(k, j);
 	starpu_tag partial_tag = TAG12_SAVE_PARTIAL(k, j);
@@ -394,7 +394,7 @@ static void callback_task_12_real(void *_arg)
 	rank_mask[rank] = 0;
 
 	/* Send the block to those nodes */
-	starpu_data_handle block_handle = STARPU_PLU(get_block_handle)(k, j);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, j);
 	starpu_tag tag = TAG12_SAVE(k, j);
 	int mpi_tag = MPI_TAG12(k, j);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
@@ -417,7 +417,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 	starpu_tag tag_11_dep; 
 
 	/* which sub-data is manipulated ? */
-	starpu_data_handle diag_block;
+	starpu_data_handle_t diag_block;
 	if (diag_block_is_local)
 	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
@@ -529,9 +529,9 @@ static void create_task_21_recv(unsigned k, unsigned i)
 
 	int source = get_block_rank(i, k);
 #ifdef SINGLE_TMP1221
-	starpu_data_handle block_handle = STARPU_PLU(get_tmp_21_block_handle)(i);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_21_block_handle)(i);
 #else
-	starpu_data_handle block_handle = STARPU_PLU(get_tmp_21_block_handle)(i, k);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_21_block_handle)(i, k);
 #endif
 	int mpi_tag = MPI_TAG21(k, i);
 	starpu_tag partial_tag = TAG21_SAVE_PARTIAL(k, i);
@@ -567,7 +567,7 @@ static void callback_task_21_real(void *_arg)
 	rank_mask[rank] = 0;
 
 	/* Send the block to those nodes */
-	starpu_data_handle block_handle = STARPU_PLU(get_block_handle)(i, k);
+	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(i, k);
 	starpu_tag tag = TAG21_SAVE(k, i);
 	int mpi_tag = MPI_TAG21(k, i);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
@@ -590,7 +590,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 	starpu_tag tag_11_dep; 
 	
 	/* which sub-data is manipulated ? */
-	starpu_data_handle diag_block;
+	starpu_data_handle_t diag_block;
 	if (diag_block_is_local)
 	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
@@ -685,7 +685,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	unsigned block21_is_local = (get_block_rank(i, k) == rank);
 	starpu_tag tag_21_dep;
 
-	starpu_data_handle block21;
+	starpu_data_handle_t block21;
 	if (block21_is_local)
 	{
 		block21 = STARPU_PLU(get_block_handle)(i, k);
@@ -705,7 +705,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	unsigned block12_is_local = (get_block_rank(k, j) == rank);
 	starpu_tag tag_12_dep;
 
-	starpu_data_handle block12;
+	starpu_data_handle_t block12;
 	if (block12_is_local)
 	{
 	//	block12 = STARPU_PLU(get_block_handle)(j, k);
@@ -768,7 +768,7 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 //	}
 }
 
-static void wait_tag_and_fetch_handle(starpu_tag tag, starpu_data_handle handle)
+static void wait_tag_and_fetch_handle(starpu_tag tag, starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle != STARPU_POISON_PTR);
 
@@ -788,7 +788,7 @@ static void wait_termination(void)
 		/* Wait task 11k if needed */
 		if (get_block_rank(k, k) == rank)
 		{
-			starpu_data_handle diag_block = STARPU_PLU(get_block_handle)(k, k);
+			starpu_data_handle_t diag_block = STARPU_PLU(get_block_handle)(k, k);
 			wait_tag_and_fetch_handle(TAG11_SAVE(k), diag_block);
 		}
 		
@@ -798,8 +798,8 @@ static void wait_termination(void)
 			/* Wait task 21ki if needed */
 			if (get_block_rank(i, k) == rank)
 			{
-				starpu_data_handle block21 = STARPU_PLU(get_block_handle)(i, k);
-				//starpu_data_handle block21 = STARPU_PLU(get_block_handle)(k, i);
+				starpu_data_handle_t block21 = STARPU_PLU(get_block_handle)(i, k);
+				//starpu_data_handle_t block21 = STARPU_PLU(get_block_handle)(k, i);
 				//fprintf(stderr, "BLOCK21 i %d k %d -> handle %p\n", i, k, block21);
 				wait_tag_and_fetch_handle(TAG21_SAVE(k, i), block21);
 			}
@@ -810,8 +810,8 @@ static void wait_termination(void)
 			/* Wait task 12kj if needed */
 			if (get_block_rank(k, j) == rank)
 			{
-				//starpu_data_handle block12 = STARPU_PLU(get_block_handle)(j, k);
-				starpu_data_handle block12 = STARPU_PLU(get_block_handle)(k, j);
+				//starpu_data_handle_t block12 = STARPU_PLU(get_block_handle)(j, k);
+				starpu_data_handle_t block12 = STARPU_PLU(get_block_handle)(k, j);
 				//fprintf(stderr, "BLOCK12 j %d k %d -> handle %p\n", j, k, block12);
 				wait_tag_and_fetch_handle(TAG12_SAVE(k, j), block12);
 			}

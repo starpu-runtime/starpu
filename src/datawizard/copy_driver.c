@@ -82,7 +82,7 @@ void starpu_wake_all_blocked_workers(void)
 static unsigned communication_cnt = 0;
 #endif
 
-static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_data_replicate_s *src_replicate, struct starpu_data_replicate_s *dst_replicate, struct starpu_data_request_s *req STARPU_ATTRIBUTE_UNUSED)
+static int copy_data_1_to_1_generic(starpu_data_handle_t handle, struct starpu_data_replicate_s *src_replicate, struct starpu_data_replicate_s *dst_replicate, struct starpu_data_request_s *req STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret = 0;
 
@@ -230,7 +230,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 	return ret;
 }
 
-int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_data_handle handle,
+int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 						struct starpu_data_replicate_s *src_replicate,
 						struct starpu_data_replicate_s *dst_replicate,
 						unsigned donotread,

@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         int my_rank, size, x, y, loop;
         int value=0, mean=0;
         unsigned matrix[X][Y];
-        starpu_data_handle data_handles[X][Y];
+        starpu_data_handle_t data_handles[X][Y];
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&my_rank, &size);

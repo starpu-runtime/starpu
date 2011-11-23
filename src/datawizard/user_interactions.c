@@ -25,7 +25,7 @@
 
 /* Explicitly ask StarPU to allocate room for a piece of data on the specified
  * memory node. */
-int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
+int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node)
 {
 	starpu_data_request_t r;
 
@@ -42,7 +42,7 @@ int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
 }
 
 struct user_interaction_wrapper {
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	enum starpu_access_mode mode;
 	unsigned node;
 	pthread_cond_t cond;
@@ -63,7 +63,7 @@ struct user_interaction_wrapper {
 static void _starpu_data_acquire_fetch_data_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
-	starpu_data_handle handle = wrapper->handle;
+	starpu_data_handle_t handle = wrapper->handle;
 
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
@@ -81,7 +81,7 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 	int ret;
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
-	starpu_data_handle handle = wrapper->handle;
+	starpu_data_handle_t handle = wrapper->handle;
 
 	STARPU_ASSERT(handle);
 
@@ -108,7 +108,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_cb(starpu_data_handle handle,
+int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
@@ -176,7 +176,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
-	starpu_data_handle handle = wrapper->handle;
+	starpu_data_handle_t handle = wrapper->handle;
 
 	STARPU_ASSERT(handle);
 
@@ -192,7 +192,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire(starpu_data_handle handle, enum starpu_access_mode mode)
+int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
         _STARPU_LOG_IN();
@@ -273,7 +273,7 @@ int starpu_data_acquire(starpu_data_handle handle, enum starpu_access_mode mode)
 
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
-void starpu_data_release(starpu_data_handle handle)
+void starpu_data_release(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
@@ -287,7 +287,7 @@ void starpu_data_release(starpu_data_handle handle)
 static void _prefetch_data_on_node(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
-	starpu_data_handle handle = wrapper->handle;
+	starpu_data_handle_t handle = wrapper->handle;
         int ret;
 
 	struct starpu_data_replicate_s *replicate = &handle->per_node[wrapper->node];
@@ -309,7 +309,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned node, unsigned async, enum starpu_access_mode mode)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 
@@ -358,7 +358,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	return 0;
 }
 
-int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsigned async)
+int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
 	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R);
 }
@@ -367,7 +367,7 @@ int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsig
  *	It is possible to specify that a piece of data can be discarded without
  *	impacting the application.
  */
-void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important)
+void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important)
 {
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -388,7 +388,7 @@ void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_impo
 
 }
 
-void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag)
+void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag)
 {
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -422,7 +422,7 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag)
 }
 
 /* Query the status of the handle on the specified memory node. */
-void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
+void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
 {
 #ifdef STARPU_DEVEL
 #warning FIXME

@@ -18,7 +18,7 @@
 #include "../common/helper.h"
 
 unsigned token = 0;
-starpu_data_handle token_handle;
+starpu_data_handle_t token_handle;
 
 void callback(void *arg __attribute__ ((unused)))
 {

@@ -77,7 +77,7 @@ struct STARPUFFT(plan) {
 	int sign;
 
 	STARPUFFT(complex) *roots[2];
-	starpu_data_handle roots_handle[2];
+	starpu_data_handle_t roots_handle[2];
 
 	/* For each worker, we need some data */
 	struct {
@@ -100,7 +100,7 @@ struct STARPUFFT(plan) {
 	STARPUFFT(complex) *in, *twisted1, *fft1, *twisted2, *fft2, *out;
 
 	/* corresponding starpu DSM handles */
-	starpu_data_handle in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
+	starpu_data_handle_t in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
 
 	/* Tasks */
 	struct starpu_task **twist1_tasks, **fft1_tasks, **twist2_tasks, **fft2_tasks, **twist3_tasks;

@@ -54,7 +54,7 @@ static starpu_codelet cl11 = {
 	.model = &model_11
 };
 
-static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
+static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k)
 {
 /*	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
@@ -88,7 +88,7 @@ static starpu_codelet cl12 = {
 	.model = &model_12
 };
 
-static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i)
+static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i)
 {
 /*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
@@ -127,7 +127,7 @@ static starpu_codelet cl21 = {
 	.model = &model_21
 };
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 {
 	struct starpu_task *task = create_task(TAG21(k, j));
 
@@ -164,7 +164,7 @@ static starpu_codelet cl22 = {
 	.model = &model_22
 };
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j)
 {
 /*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
@@ -199,7 +199,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
  *	code to bootstrap the factorization 
  */
 
-static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
+static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	struct timeval start;
 	struct timeval end;
@@ -274,7 +274,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 
 	no_prio = _no_prio;
 
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */

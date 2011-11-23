@@ -22,14 +22,14 @@
  *	a datatype and the datatype itself, so we need to provide both.
  */
 
-typedef int (*handle_to_datatype_func)(starpu_data_handle, MPI_Datatype *);
-typedef void *(*handle_to_ptr_func)(starpu_data_handle);
+typedef int (*handle_to_datatype_func)(starpu_data_handle_t, MPI_Datatype *);
+typedef void *(*handle_to_ptr_func)(starpu_data_handle_t);
 
 /*
  * 	Matrix
  */
 
-static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -51,7 +51,7 @@ static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatyp
  * 	Block
  */
 
-static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -82,7 +82,7 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
  * 	Vector
  */
 
-static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -102,7 +102,7 @@ static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatyp
  * 	Variable
  */
 
-static int handle_to_datatype_variable(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -131,7 +131,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 };
 
 
-int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype)
+int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	unsigned id = starpu_get_handle_interface_id(data_handle);
 
@@ -142,7 +142,7 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *
 	return func(data_handle, datatype);
 }
 
-void *starpu_mpi_handle_to_ptr(starpu_data_handle data_handle)
+void *starpu_mpi_handle_to_ptr(starpu_data_handle_t data_handle)
 {
 	return (void*) starpu_handle_get_local_ptr(data_handle);
 }

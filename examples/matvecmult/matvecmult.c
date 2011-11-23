@@ -132,7 +132,7 @@ int main(int argc, char **argv)
         float *correctResult;
         unsigned int mem_size_matrix, mem_size_vector, mem_size_mult;
 
-	starpu_data_handle matrix_handle, vector_handle, mult_handle;
+	starpu_data_handle_t matrix_handle, vector_handle, mult_handle;
 	int ret, submit;
 
         ret = starpu_init(&conf);

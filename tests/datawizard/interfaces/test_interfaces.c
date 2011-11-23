@@ -495,7 +495,7 @@ run_async(void)
 static void
 run_sync(void)
 {
-	starpu_data_handle handle = *current_config->handle;
+	starpu_data_handle_t handle = *current_config->handle;
 	struct starpu_data_copy_methods new_copy_methods;
 	struct starpu_data_copy_methods *old_copy_methods;
 

@@ -52,7 +52,7 @@ static starpu_codelet cl11 = {
 	.model = &model_11
 };
 
-static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, unsigned tag_prefix)
+static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned tag_prefix)
 {
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
@@ -85,7 +85,7 @@ static starpu_codelet cl12 = {
 	.model = &model_12
 };
 
-static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, unsigned tag_prefix)
+static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned tag_prefix)
 {
 /*	FPRINTF(stdout, "task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
@@ -124,7 +124,7 @@ static starpu_codelet cl21 = {
 	.model = &model_21
 };
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, unsigned tag_prefix)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned tag_prefix)
 {
 	struct starpu_task *task = create_task(TAG21(k, j, tag_prefix));
 
@@ -161,7 +161,7 @@ static starpu_codelet cl22 = {
 	.model = &model_22
 };
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
 {
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
@@ -198,7 +198,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	/*
 	 * (re)partition data
 	 */
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	STARPU_ASSERT((size % blocksize) == 0);
