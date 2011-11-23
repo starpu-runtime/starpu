@@ -179,7 +179,7 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 /* Returns expected data transfer time in µs */
 double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task);
 /* Predict the transfer time (in µs) to move a handle to a memory node */
-double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode);
+double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, enum starpu_access_mode mode);
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected conversion time in ms (multiformat interface only) */

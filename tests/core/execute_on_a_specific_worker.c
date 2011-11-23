@@ -58,7 +58,7 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 //	fprintf(stderr, "worker #%d\n", id);
 }
 
-static starpu_access_mode select_random_mode(void)
+static enum starpu_access_mode select_random_mode(void)
 {
 	int r = rand();
 

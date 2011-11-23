@@ -43,7 +43,7 @@ int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
 
 struct user_interaction_wrapper {
 	starpu_data_handle handle;
-	starpu_access_mode mode;
+	enum starpu_access_mode mode;
 	unsigned node;
 	pthread_cond_t cond;
 	pthread_mutex_t lock;
@@ -109,7 +109,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_cb(starpu_data_handle handle,
-		starpu_access_mode mode, void (*callback)(void *), void *arg)
+			   enum starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
         _STARPU_LOG_IN();
@@ -192,7 +192,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
+int starpu_data_acquire(starpu_data_handle handle, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
         _STARPU_LOG_IN();
@@ -309,7 +309,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned node, unsigned async, starpu_access_mode mode)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned node, unsigned async, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 

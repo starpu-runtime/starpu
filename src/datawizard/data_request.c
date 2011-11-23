@@ -84,12 +84,12 @@ static void starpu_data_request_destroy(starpu_data_request_t r)
 
 /* handle->lock should already be taken !  */
 starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
-				struct starpu_data_replicate_s *src_replicate,
-				struct starpu_data_replicate_s *dst_replicate,
-				uint32_t handling_node,
-				starpu_access_mode mode,
-				unsigned ndeps,
-				unsigned is_prefetch)
+						  struct starpu_data_replicate_s *src_replicate,
+						  struct starpu_data_replicate_s *dst_replicate,
+						  uint32_t handling_node,
+						  enum starpu_access_mode mode,
+						  unsigned ndeps,
+						  unsigned is_prefetch)
 {
 	starpu_data_request_t r = starpu_data_request_new();
 
@@ -224,7 +224,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 {
 	unsigned do_delete = 0;
 	starpu_data_handle handle = r->handle;
-	starpu_access_mode mode = r->mode;
+	enum starpu_access_mode mode = r->mode;
 
 	struct starpu_data_replicate_s *src_replicate = r->src_replicate;
 	struct starpu_data_replicate_s *dst_replicate = r->dst_replicate;
@@ -333,7 +333,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 	struct starpu_data_replicate_s *src_replicate = r->src_replicate;
 	struct starpu_data_replicate_s *dst_replicate = r->dst_replicate;
 
-	starpu_access_mode r_mode = r->mode;
+	enum starpu_access_mode r_mode = r->mode;
 
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);

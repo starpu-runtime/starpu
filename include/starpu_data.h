@@ -32,16 +32,17 @@ typedef struct starpu_data_state_t * starpu_data_handle;
 extern "C" {
 #endif
 
-#define STARPU_R	(1<<0)
-#define STARPU_W	(1<<1)
-#define STARPU_RW	(STARPU_R|STARPU_W)
-#define STARPU_SCRATCH	(1<<2)
-#define STARPU_REDUX	(1<<3)
-typedef uint32_t starpu_access_mode;
+enum starpu_access_mode {
+	STARPU_R=(1<<0),
+	STARPU_W=(1<<1),
+	STARPU_RW=(STARPU_R|STARPU_W),
+	STARPU_SCRATCH=(1<<2),
+	STARPU_REDUX=(1<<3)
+};
 
 typedef struct starpu_buffer_descr_t {
 	starpu_data_handle handle;
-	starpu_access_mode mode;
+	enum starpu_access_mode mode;
 } starpu_buffer_descr;
 
 struct starpu_data_interface_ops;
@@ -58,9 +59,9 @@ void starpu_data_invalidate(starpu_data_handle);
 
 void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important);
 
-int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);
+int starpu_data_acquire(starpu_data_handle handle, enum starpu_access_mode mode);
 int starpu_data_acquire_cb(starpu_data_handle handle,
-			starpu_access_mode mode, void (*callback)(void *), void *arg);
+			   enum starpu_access_mode mode, void (*callback)(void *), void *arg);
 #ifdef __GCC__
 #  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do { \
 	void callback(void *arg) { \

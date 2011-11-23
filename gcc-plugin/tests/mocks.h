@@ -235,7 +235,7 @@ static unsigned int data_acquire_calls;
 struct data_acquire_arguments expected_acquire_arguments;
 
 int
-starpu_data_acquire (starpu_data_handle handle, starpu_access_mode mode)
+starpu_data_acquire (starpu_data_handle handle, enum starpu_access_mode mode)
 {
   /* XXX: Currently only `STARPU_RW'.  */
   assert (mode == STARPU_RW);

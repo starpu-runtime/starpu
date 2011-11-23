@@ -233,11 +233,11 @@ double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enu
 
 struct handle_list {
 	starpu_data_handle handle;
-	starpu_access_mode mode;
+	enum starpu_access_mode mode;
 	struct handle_list *next;
 };
 
-static void insertion_handle_sorted(struct handle_list **listp, starpu_data_handle handle, starpu_access_mode mode)
+static void insertion_handle_sorted(struct handle_list **listp, starpu_data_handle handle, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(listp);
 
@@ -302,7 +302,7 @@ double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle 
 			for (b = 0; b < task->cl->nbuffers; b++)
 			{
 				starpu_data_handle handle = task->buffers[b].handle;
-				starpu_access_mode mode = task->buffers[b].mode;
+				enum starpu_access_mode mode = task->buffers[b].mode;
 
 				if (!(mode & STARPU_R))
 					continue;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -206,7 +206,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task, enum starp
 }
 
 /* Predict the transfer time (in µs) to move a handle to a memory node */
-double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode)
+double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, enum starpu_access_mode mode)
 {
 	/* If we don't need to read the content of the handle */
 	if (!(mode & STARPU_R))
@@ -239,7 +239,7 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle handle = task->buffers[buffer].handle;
-		starpu_access_mode mode = task->buffers[buffer].mode;
+		enum starpu_access_mode mode = task->buffers[buffer].mode;
 
 		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}

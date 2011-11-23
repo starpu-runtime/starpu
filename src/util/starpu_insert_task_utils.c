@@ -167,7 +167,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle handle = va_arg(varg_list, starpu_data_handle);
 
-			starpu_access_mode mode = arg_type;
+			enum starpu_access_mode mode = arg_type;
 
 			(*task)->buffers[current_buffer].handle = handle;
 			(*task)->buffers[current_buffer].mode = mode;

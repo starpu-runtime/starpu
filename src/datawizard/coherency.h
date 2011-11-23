@@ -100,7 +100,7 @@ struct starpu_data_state_t {
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
 	unsigned refcnt;
-	starpu_access_mode current_mode;
+	enum starpu_access_mode current_mode;
 	/* protect meta data */
 	struct _starpu_spinlock header_lock;
 
@@ -159,7 +159,7 @@ struct starpu_data_state_t {
 	 * it would modify the piece of data ? Any task accessing the data in a
 	 * read-only mode should depend on that task implicitely if the
 	 * sequential_consistency flag is enabled. */
-	starpu_access_mode last_submitted_mode;
+	enum starpu_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
 	struct starpu_task_wrapper_list *last_submitted_readers;
 
@@ -220,7 +220,7 @@ void _starpu_display_msi_stats(void);
 /* This does not take a reference on the handle, the caller has to do it,
  * e.g. through _starpu_attempt_to_submit_data_request_from_apps() */
 int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, struct starpu_data_replicate_s *replicate,
-				starpu_access_mode mode, unsigned is_prefetch,
+				enum starpu_access_mode mode, unsigned is_prefetch,
 				void (*callback_func)(void *), void *callback_arg);
 /* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wt_mask,
@@ -228,7 +228,7 @@ void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t de
 
 void _starpu_update_data_state(starpu_data_handle handle,
 				struct starpu_data_replicate_s *requesting_replicate,
-				starpu_access_mode mode);
+				enum starpu_access_mode mode);
 
 uint32_t _starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
 
@@ -249,7 +249,7 @@ uint32_t _starpu_select_src_node(struct starpu_data_state_t *state, unsigned des
 
 starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
-                                starpu_access_mode mode, unsigned is_prefetch,
+                                enum starpu_access_mode mode, unsigned is_prefetch,
                                 void (*callback_func)(void *), void *callback_arg);
 
 void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, int workerid);

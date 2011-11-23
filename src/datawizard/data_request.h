@@ -42,7 +42,7 @@ LIST_TYPE(starpu_data_request,
 
 	uint32_t handling_node;
 
-	starpu_access_mode mode;
+	enum starpu_access_mode mode;
 
 	struct starpu_async_channel async_channel;
 
@@ -70,7 +70,7 @@ LIST_TYPE(starpu_data_request,
  * Not only StarPU internals, but also the application may put such requests */
 LIST_TYPE(starpu_data_requester,
 	/* what kind of access is requested ? */
-	starpu_access_mode mode;
+	enum starpu_access_mode mode;
 
 	/* applications may also directly manipulate data */
 	unsigned is_requested_by_codelet;
@@ -101,7 +101,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 				struct starpu_data_replicate_s *src_replicate,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,
-				starpu_access_mode mode,
+				enum starpu_access_mode mode,
 				unsigned ndeps,
 				unsigned is_prefetch);
 

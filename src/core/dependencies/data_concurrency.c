@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,7 @@ static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle 
 	/* data->current_mode == STARPU_R, so we can process more readers */
 	starpu_data_requester_t r = starpu_data_requester_list_front(req_list);
 
-	starpu_access_mode r_mode = r->mode;
+	enum starpu_access_mode r_mode = r->mode;
 	if (r_mode == STARPU_RW)
 		r_mode = STARPU_W;
 	
@@ -78,9 +78,9 @@ static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle 
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
 static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
-					starpu_data_handle handle, starpu_access_mode mode,
-					void (*callback)(void *), void *argcb,
-					starpu_job_t j, unsigned buffer_index)
+						       starpu_data_handle handle, enum starpu_access_mode mode,
+						       void (*callback)(void *), void *argcb,
+						       starpu_job_t j, unsigned buffer_index)
 {
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
@@ -115,7 +115,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	 * current one, we can proceed. */
 	unsigned put_in_list = 1;
 
-	starpu_access_mode previous_mode = handle->current_mode;
+	enum starpu_access_mode previous_mode = handle->current_mode;
 
 	if (!frozen && ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
 	{
@@ -179,7 +179,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 }
 
 
-unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle handle, starpu_access_mode mode,
+unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle handle, enum starpu_access_mode mode,
 						void (*callback)(void *), void *argcb)
 {
 	return _starpu_attempt_to_submit_data_request(0, handle, mode, callback, argcb, NULL, 0);
@@ -190,7 +190,7 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 	/* Note that we do not access j->task->buffers, but j->ordered_buffers
 	 * which is a sorted copy of it. */
 	starpu_data_handle handle = j->ordered_buffers[buffer_index].handle;
-	starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
+	enum starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
 
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 
@@ -284,7 +284,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 	while ((r = may_unlock_data_req_list_head(handle)))
 	{
 		/* STARPU_RW accesses are treated as STARPU_W */
-		starpu_access_mode r_mode = r->mode;
+		enum starpu_access_mode r_mode = r->mode;
 		if (r_mode == STARPU_RW)
 			r_mode = STARPU_W;
 
@@ -313,7 +313,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 			handle->refcnt++;
 			handle->busy_count++;
 		
-			starpu_access_mode previous_mode = handle->current_mode;
+			enum starpu_access_mode previous_mode = handle->current_mode;
 			handle->current_mode = r_mode;
 
 			/* In case we enter in a reduction mode, we invalidate all per

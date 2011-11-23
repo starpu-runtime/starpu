@@ -284,7 +284,7 @@ This function frees memory which has previously allocated with
 @code{starpu_malloc}.
 @end deftypefun
 
-@deftp {Data Type} starpu_access_mode
+@deftp {Data Type} {enum starpu_access_mode}
 This datatype describes a data access mode. The different available modes are:
 @table @asis
 @item @code{STARPU_R}: read-only mode.
@@ -379,7 +379,7 @@ todo
 @node Access registered data from the application
 @subsection Access registered data from the application
 
-@deftypefun int starpu_data_acquire (starpu_data_handle @var{handle}, starpu_access_mode @var{mode})
+@deftypefun int starpu_data_acquire (starpu_data_handle @var{handle}, {enum starpu_access_mode} @var{mode})
 The application must call this function prior to accessing registered data from
 main memory outside tasks. StarPU ensures that the application will get an
 up-to-date copy of the data in main memory located where the data was
@@ -398,7 +398,7 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 @end deftypefun
 
 
-@deftypefun int starpu_data_acquire_cb (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+@deftypefun int starpu_data_acquire_cb (starpu_data_handle @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
 @code{starpu_data_release}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
@@ -412,7 +412,7 @@ be called from task callbacks. Upon successful completion, this function
 returns 0.
 @end deftypefun
 
-@deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, code)
+@deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, {enum starpu_access_mode} @var{mode}, code)
 @code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
 except that the code to be executed in a callback is directly provided as a
 macro parameter, and the data handle is automatically released after it. This
