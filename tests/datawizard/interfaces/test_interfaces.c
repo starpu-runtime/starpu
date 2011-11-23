@@ -496,16 +496,15 @@ static void
 run_sync(void)
 {
 	starpu_data_handle handle = *current_config->handle;
-
-	struct starpu_data_interface_ops *ops = handle->ops;
-	//struct starpu_data_copy_methods *copy_methods = ops->copy_methods;
-	
-//	copy_methods->ram_to_cuda_async = NULL;
-	struct starpu_data_interface_ops *new_ops;
 	struct starpu_data_copy_methods new_copy_methods;
+	struct starpu_data_copy_methods *old_copy_methods;
+
+	old_copy_methods = handle->ops->copy_methods;
+
 	memcpy(&new_copy_methods,
-		handle->ops->copy_methods,
+		old_copy_methods,
 		sizeof(struct starpu_data_copy_methods));
+
 #ifdef STARPU_USE_CUDA
 	new_copy_methods.ram_to_cuda_async = NULL;
 	new_copy_methods.cuda_to_cuda_async = NULL;
@@ -515,9 +514,13 @@ run_sync(void)
 	new_copy_methods.ram_to_opencl_async = NULL;
 	new_copy_methods.opencl_to_ram_async = NULL;
 #endif /* !STARPU_USE_OPENCL */
+
 	handle->ops->copy_methods = &new_copy_methods;
+
 	run_cuda(0);
 	run_opencl(0);
+
+	handle->ops->copy_methods = old_copy_methods;
 }
 
 static int
