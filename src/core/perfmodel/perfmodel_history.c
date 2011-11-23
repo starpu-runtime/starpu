@@ -878,7 +878,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
-	if (regmodel->nl_valid && size >= regmodel->minx && size <= regmodel->maxx)
+	if (regmodel->nl_valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
 	else {
 		uint32_t key = _starpu_compute_buffers_footprint(j);
@@ -892,6 +892,11 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 		if (entry && entry->nsample >= STARPU_CALIBRATION_MINIMUM)
 			exp = entry->mean;
+		else if (!model->benchmarking) {
+			_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+			_starpu_set_calibrate_flag(1);
+			model->benchmarking = 1;
+		}
 	}
 
 	return exp;
