@@ -31,10 +31,10 @@ void callback(void *arg __attribute__((unused)))
 {
 	unsigned *received = arg;
 	
-	PTHREAD_MUTEX_LOCK(&mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = 1;
-	PTHREAD_COND_SIGNAL(&cond);
-	PTHREAD_MUTEX_UNLOCK(&mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 
@@ -78,10 +78,10 @@ int main(int argc, char **argv)
 			int received = 0;
 			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
 
-			PTHREAD_MUTEX_LOCK(&mutex);
+			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!received)
-				PTHREAD_COND_WAIT(&cond, &mutex);
-			PTHREAD_MUTEX_UNLOCK(&mutex);
+				_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		}
 	}
 	
