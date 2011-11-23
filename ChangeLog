@@ -99,7 +99,7 @@ The asynchronous heterogeneous multi-accelerator release
     - Implement starpu_worker_get_count
     - Implement starpu_display_codelet_stats
     - Implement starpu_data_prefetch_on_node
-    - Expose the starpu_data_set_wb_mask function
+    - Expose the starpu_data_set_wt_mask function
   * Support nvidia (heterogeneous) multi-GPU
   * Add the data request mechanism
     - All data transfers use data requests now
