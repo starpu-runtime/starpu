@@ -253,8 +253,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		j->combined_workerid = workerid;
 		j->active_task_alias_count = 0;
 
-		PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-		PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 		for (i = 0; i < worker_size; i++)
 		{
@@ -359,7 +359,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
-	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -370,7 +370,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so

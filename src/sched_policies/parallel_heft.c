@@ -58,12 +58,12 @@ static void parallel_heft_post_exec_hook(struct starpu_task *task)
 	
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
-	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 	worker_exp_len[workerid] -= model + transfer_model;
 	worker_exp_start[workerid] = starpu_timing_now();
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
-	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double exp_end_predicted, int prio)
@@ -83,7 +83,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	int ret = 0;
 
-	PTHREAD_MUTEX_LOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 
 	if (is_basic_worker)
 	{
@@ -110,8 +110,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		j->combined_workerid = best_workerid;
 		j->active_task_alias_count = 0;
 
-		PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-		PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 		int i;
 		for (i = 0; i < worker_size; i++)
@@ -134,7 +134,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
 	return ret;
 }
@@ -406,13 +406,13 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *to
 		worker_exp_end[workerid] = worker_exp_start[workerid]; 
 		ntasks[workerid] = 0;
 	
-		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
 	
 		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 	}
 
-	PTHREAD_MUTEX_INIT(&big_lock, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&big_lock, NULL);
 
 	/* We pre-compute an array of all the perfmodel archs that are applicable */
 	unsigned total_worker_count = nworkers + ncombinedworkers;

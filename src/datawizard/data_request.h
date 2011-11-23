@@ -33,7 +33,7 @@ struct callback_list {
 };
 
 LIST_TYPE(starpu_data_request,
-	starpu_spinlock_t lock;
+	struct _starpu_spinlock lock;
 	unsigned refcnt;
 
 	starpu_data_handle handle;

@@ -207,7 +207,7 @@ int _starpu_fifo_push_sorted_task(struct starpu_fifo_taskq_s *fifo_queue, pthrea
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 
-	PTHREAD_MUTEX_LOCK(sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
 
@@ -261,8 +261,8 @@ int _starpu_fifo_push_sorted_task(struct starpu_fifo_taskq_s *fifo_queue, pthrea
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
 }
@@ -595,8 +595,8 @@ static void initialize_dmda_policy(struct starpu_machine_topology_s *topology,
 	{
 		queue_array[workerid] = _starpu_create_fifo();
 	
-		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
 	
 		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 	}

@@ -38,8 +38,8 @@ static starpu_cg_t *create_cg_apps(unsigned ntags)
 	cg->cg_type = STARPU_CG_APPS;
 
 	cg->succ.succ_apps.completed = 0;
-	PTHREAD_MUTEX_INIT(&cg->succ.succ_apps.cg_mutex, NULL);
-	PTHREAD_COND_INIT(&cg->succ.succ_apps.cg_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&cg->succ.succ_apps.cg_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&cg->succ.succ_apps.cg_cond, NULL);
 
 	return cg;
 }
@@ -155,12 +155,12 @@ void _starpu_tag_set_ready(struct starpu_tag_s *tag)
 	 * lock again, resulting in a deadlock. */
 	_starpu_spin_unlock(&tag->lock);
 
-	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
 	_starpu_enforce_deps_starting_from_task(j, 1);
 
-	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	_starpu_spin_lock(&tag->lock);
 }
@@ -331,15 +331,15 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag *id)
 		_starpu_spin_unlock(&tag_array[i]->lock);
 	}
 
-	PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 
 	while (!cg->succ.succ_apps.completed)
-		PTHREAD_COND_WAIT(&cg->succ.succ_apps.cg_cond, &cg->succ.succ_apps.cg_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&cg->succ.succ_apps.cg_cond, &cg->succ.succ_apps.cg_mutex);
 
-	PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 
-	PTHREAD_MUTEX_DESTROY(&cg->succ.succ_apps.cg_mutex);
-	PTHREAD_COND_DESTROY(&cg->succ.succ_apps.cg_cond);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&cg->succ.succ_apps.cg_mutex);
+	_STARPU_PTHREAD_COND_DESTROY(&cg->succ.succ_apps.cg_cond);
 
 	free(cg);
 

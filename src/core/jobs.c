@@ -84,8 +84,8 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 	_starpu_cg_list_init(&job->job_successors);
 
-	PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
-	PTHREAD_COND_INIT(&job->sync_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&job->sync_cond, NULL);
 
 	job->bound_task = NULL;
 
@@ -101,13 +101,13 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 void _starpu_job_destroy(starpu_job_t j)
 {
-	PTHREAD_COND_DESTROY(&j->sync_cond);
-	PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
+	_STARPU_PTHREAD_COND_DESTROY(&j->sync_cond);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
 
 	if (j->task_size > 1)
 	{
-		PTHREAD_BARRIER_DESTROY(&j->before_work_barrier);
-		PTHREAD_BARRIER_DESTROY(&j->after_work_barrier);
+		_STARPU_PTHREAD_BARRIER_DESTROY(&j->before_work_barrier);
+		_STARPU_PTHREAD_BARRIER_DESTROY(&j->after_work_barrier);
 	}
 
 	_starpu_cg_list_deinit(&j->job_successors);
@@ -121,7 +121,7 @@ void _starpu_wait_job(starpu_job_t j)
 	STARPU_ASSERT(!j->task->detach);
         _STARPU_LOG_IN();
 
-	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	/* We wait for the flag to have a value of 2 which means that both the
 	 * codelet's implementation and its callback have been executed. That
@@ -129,9 +129,9 @@ void _starpu_wait_job(starpu_job_t j)
 	 * executed (so that we cannot destroy the task while it is still being
 	 * manipulated by the driver). */
 	while (j->terminated != 2)
-		PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 
-	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
         _STARPU_LOG_OUT();
 }
 
@@ -140,7 +140,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 	struct starpu_task *task = j->task;
 
 	if (!job_is_already_locked)
-		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
 
@@ -155,7 +155,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 	j->terminated = 1;
 
 	if (!job_is_already_locked)
-		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* the callback is executed after the dependencies so that we may remove the tag 
  	 * of the task itself */
@@ -205,14 +205,14 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
 		if (!job_is_already_locked)
-			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		/* A value of 2 is put to specify that not only the codelet but
 		 * also the callback were executed. */
 		j->terminated = 2;
-		PTHREAD_COND_BROADCAST(&j->sync_cond);
+		_STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 
 		if (!job_is_already_locked)
-			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
 	else {
 		/* no one is going to synchronize with that task so we release
@@ -281,7 +281,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
 	struct starpu_cg_list_s *job_successors = &j->job_successors;
 
 	if (!job_is_already_locked)
-		PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
+		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
@@ -296,7 +296,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
 	}
 
 	if (!job_is_already_locked)
-		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	return ret;
 }
@@ -380,15 +380,15 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 
 	if (back)
 		starpu_task_list_push_back(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
-	PTHREAD_COND_BROADCAST(worker->sched_cond);
-	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_COND_BROADCAST(worker->sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 
 	return 0;
 }

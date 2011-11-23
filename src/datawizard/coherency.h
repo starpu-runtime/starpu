@@ -102,7 +102,7 @@ struct starpu_data_state_t {
 	unsigned refcnt;
 	starpu_access_mode current_mode;
 	/* protect meta data */
-	starpu_spinlock_t header_lock;
+	struct _starpu_spinlock header_lock;
 
 	/* Condition to make application wait for all transfers before freeing handle */
 	/* busy_count is the number of handle->refcnt, handle->per_node[*]->refcnt, and number of starpu_data_requesters */

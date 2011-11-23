@@ -59,7 +59,7 @@ unsigned _starpu_get_stack_nprocessed(struct starpu_stack_jobq_s *stack_queue)
 
 void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
 {
-	PTHREAD_MUTEX_LOCK(sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
@@ -70,8 +70,8 @@ void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack_queue, pthread_mu
 	stack_queue->njobs++;
 	stack_queue->nprocessed++;
 
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
 starpu_job_t _starpu_stack_pop_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, int workerid __attribute__ ((unused)))
@@ -94,9 +94,9 @@ starpu_job_t _starpu_stack_pop_task(struct starpu_stack_jobq_s *stack_queue, pth
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */
-		PTHREAD_MUTEX_LOCK(sched_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		total_number_of_jobs--;
-		PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 	
 	return j;

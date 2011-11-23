@@ -98,7 +98,7 @@ void _starpu_profiling_init(void)
 	const char *env;
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
-		PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
 		_starpu_worker_reset_profiling_info(worker);
 	}
 	if ((env = getenv("STARPU_PROFILING")) && atoi(env))
@@ -174,19 +174,19 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 
 void _starpu_worker_reset_profiling_info(int workerid)
 {
-	PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 	_starpu_worker_reset_profiling_info_with_lock(workerid);
-	PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 }
 
 void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start)
 {
 	if (profiling)
 	{
-		PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 		worker_registered_sleeping_start[workerid] = 1;	
 		memcpy(&sleeping_start_date[workerid], sleeping_start, sizeof(struct timespec));
-		PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
 
@@ -194,10 +194,10 @@ void _starpu_worker_register_executing_start_date(int workerid, struct timespec 
 {
 	if (profiling)
 	{
-		PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 		worker_registered_executing_start[workerid] = 1;	
 		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
-		PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
 
@@ -205,7 +205,7 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 {
 	if (profiling)
 	{
-		PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
                 /* Perhaps that profiling was enabled while the worker was
                  * already blocked, so we don't measure (end - start), but 
@@ -225,7 +225,7 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 
 		worker_registered_sleeping_start[workerid] = 0;	
 
-		PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
 
@@ -234,7 +234,7 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 {
 	if (profiling)
 	{
-		PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
 		if (executing_time)
 			starpu_timespec_accumulate(&worker_info[workerid].executing_time, executing_time);
@@ -244,7 +244,7 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 		worker_info[workerid].power_consumed += power_consumed;
 		worker_info[workerid].executed_tasks += executed_tasks;
 	
-		PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	} else /* Not thread safe, shouldn't be too much a problem */
 		worker_info[workerid].executed_tasks += executed_tasks;
 }
@@ -257,7 +257,7 @@ int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profilin
 		info->executed_tasks = worker_info[workerid].executed_tasks;
 	}
 
-	PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
 	if (info)
 	{
@@ -290,7 +290,7 @@ int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profilin
 
 	_starpu_worker_reset_profiling_info_with_lock(workerid);
 
-	PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 
 	return 0;
 }

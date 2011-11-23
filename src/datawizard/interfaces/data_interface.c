@@ -32,7 +32,7 @@ struct handle_entry
 
 /* Hash table mapping host pointers to data handles.  */
 static struct handle_entry *registered_handles;
-static starpu_spinlock_t    registered_handles_lock;
+static struct _starpu_spinlock    registered_handles_lock;
 
 void _starpu_data_interface_init()
 {
@@ -105,8 +105,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->refcnt = 0;
 	handle->busy_count = 0;
 	handle->busy_waiting = 0;
-	PTHREAD_MUTEX_INIT(&handle->busy_mutex, NULL);
-	PTHREAD_COND_INIT(&handle->busy_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&handle->busy_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&handle->busy_cond, NULL);
 	_starpu_spin_init(&handle->header_lock);
 
 	/* first take care to properly lock the data */
@@ -126,7 +126,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->sequential_consistency =
 		starpu_data_get_default_sequential_consistency_flag();
 
-	PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
 	handle->last_submitted_writer = NULL;
 	handle->last_submitted_readers = NULL;
@@ -361,7 +361,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 	}
 }
 
-struct unregister_callback_arg {
+struct _starpu_unregister_callback_arg {
 	unsigned memory_node;
 	starpu_data_handle handle;
 	unsigned terminated;
@@ -375,16 +375,16 @@ struct unregister_callback_arg {
 void _starpu_data_check_not_busy(starpu_data_handle handle)
 {
 	if (!handle->busy_count && handle->busy_waiting) {
-		PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
-		PTHREAD_COND_BROADCAST(&handle->busy_cond);
-		PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+		_STARPU_PTHREAD_COND_BROADCAST(&handle->busy_cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 	}
 }
 
 static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 {
 	int ret;
-	struct unregister_callback_arg *arg = (struct unregister_callback_arg *) _arg;
+	struct _starpu_unregister_callback_arg *arg = (struct _starpu_unregister_callback_arg *) _arg;
 
 	starpu_data_handle handle = arg->handle;
 
@@ -396,10 +396,10 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 	STARPU_ASSERT(!ret);
 	
 	/* unlock the caller */
-	PTHREAD_MUTEX_LOCK(&arg->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&arg->mutex);
 	arg->terminated = 1;
-	PTHREAD_COND_SIGNAL(&arg->cond);
-	PTHREAD_MUTEX_UNLOCK(&arg->mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&arg->cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&arg->mutex);
 }
 
 /* Unregister the data handle, perhaps we don't need to update the home_node
@@ -418,12 +418,12 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 		int home_node = handle->home_node; 
 		if (home_node >= 0)
 		{
-			struct unregister_callback_arg arg;
+			struct _starpu_unregister_callback_arg arg;
 			arg.handle = handle;
 			arg.memory_node = (unsigned)home_node;
 			arg.terminated = 0;
-			PTHREAD_MUTEX_INIT(&arg.mutex, NULL);
-			PTHREAD_COND_INIT(&arg.cond, NULL);
+			_STARPU_PTHREAD_MUTEX_INIT(&arg.mutex, NULL);
+			_STARPU_PTHREAD_COND_INIT(&arg.cond, NULL);
 	
 			if (!_starpu_attempt_to_submit_data_request_from_apps(handle, STARPU_R,
 					_starpu_data_unregister_fetch_data_callback, &arg))
@@ -434,10 +434,10 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 				STARPU_ASSERT(!ret);
 			}
 			else {
-				PTHREAD_MUTEX_LOCK(&arg.mutex);
+				_STARPU_PTHREAD_MUTEX_LOCK(&arg.mutex);
 				while (!arg.terminated)
-					PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
-				PTHREAD_MUTEX_UNLOCK(&arg.mutex);
+					_STARPU_PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&arg.mutex);
 			}
 			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
@@ -454,9 +454,9 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 	_starpu_spin_unlock(&handle->header_lock);
 
 	/* Wait for all requests to finish (notably WT requests) */
-	PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (handle->busy_count)
-		PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);

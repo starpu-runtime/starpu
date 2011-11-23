@@ -153,7 +153,7 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
 	starpu_clock_gettime(&start_time);
 	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
 
-	PTHREAD_COND_WAIT(cond, mutex);
+	_STARPU_PTHREAD_COND_WAIT(cond, mutex);
 
 	_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	STARPU_TRACE_WORKER_SLEEP_END

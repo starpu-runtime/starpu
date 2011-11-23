@@ -89,13 +89,13 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology
 		}
 	}
 
-	PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
-	PTHREAD_COND_INIT(&sched_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&sched_cond, NULL);
 
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		PTHREAD_MUTEX_INIT(&master_sched_mutex[workerid], NULL);
-		PTHREAD_COND_INIT(&master_sched_cond[workerid], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&master_sched_mutex[workerid], NULL);
+		_STARPU_PTHREAD_COND_INIT(&master_sched_cond[workerid], NULL);
 	}
 
 	for (workerid = 0; workerid < nworkers; workerid++)
@@ -207,8 +207,8 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 
 			//fprintf(stderr, "POP -> size %d best_size %d\n", worker_size, best_size);
 
-			PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-			PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+			_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+			_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 			/* Dispatch task aliases to the different slaves */
 			for (i = 1; i < worker_size; i++)

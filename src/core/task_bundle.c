@@ -27,7 +27,7 @@ void starpu_task_bundle_init(struct starpu_task_bundle *bundle)
 {
 	STARPU_ASSERT(bundle);
 
-	PTHREAD_MUTEX_INIT(&bundle->mutex, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&bundle->mutex, NULL);
 	bundle->closed = 0;
 
 	/* Start with an empty list */
@@ -51,7 +51,7 @@ void starpu_task_bundle_deinit(struct starpu_task_bundle *bundle)
 		free(entry);
 	}
 
-	PTHREAD_MUTEX_DESTROY(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&bundle->mutex);
 
 	if (bundle->destroy)
 		free(bundle);
@@ -60,12 +60,12 @@ void starpu_task_bundle_deinit(struct starpu_task_bundle *bundle)
 /* Insert a task into a bundle. */
 int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_task *task)
 {
-	PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	if (bundle->closed)
 	{
 		/* The bundle is closed, we cannot add tasks anymore */
-		PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return -EPERM;
 	}
 
@@ -73,7 +73,7 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 	{
 		/* the task has already been submitted, it's too late to put it
 		 * into a bundle now. */
-		PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return -EINVAL;
 	}
 
@@ -99,7 +99,7 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 
 	task->bundle = bundle;
 
-	PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	return 0;
 }
 
@@ -128,7 +128,7 @@ int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_t
 		/* If the list is now empty, deinitialize the bundle */
 		if (bundle->closed && bundle->list == NULL)
 		{
-			PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 			starpu_task_bundle_deinit(bundle);
 			return 1;
 		}
@@ -160,12 +160,12 @@ int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_t
  * automatically gets deinitialized when it becomes empty. */
 void starpu_task_bundle_close(struct starpu_task_bundle *bundle)
 {
-	PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	/* If the bundle is already empty, we deinitialize it now. */
 	if (bundle->list == NULL)
 	{
-		PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		starpu_task_bundle_deinit(bundle);
 		return;
 	}
@@ -173,7 +173,7 @@ void starpu_task_bundle_close(struct starpu_task_bundle *bundle)
 	/* Mark the bundle as closed */
 	bundle->closed = 1;
 
-	PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 }
 
@@ -183,7 +183,7 @@ double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle,  en
 	double expected_length = 0.0;
 
 	/* We expect the length of the bundle the be the sum of the different tasks length. */
-	PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	struct starpu_task_bundle_entry *entry;
 	entry = bundle->list;
@@ -199,7 +199,7 @@ double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle,  en
 		entry = entry->next;
 	}
 	
-	PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_length;
 }
@@ -210,7 +210,7 @@ double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enu
 	double expected_power = 0.0;
 
 	/* We expect total consumption of the bundle the be the sum of the different tasks consumption. */
-	PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	struct starpu_task_bundle_entry *entry;
 	entry = bundle->list;
@@ -226,7 +226,7 @@ double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enu
 		entry = entry->next;
 	}
 	
-	PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_power;
 }
@@ -285,7 +285,7 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 /* Return the time (in µs) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle *bundle, unsigned memory_node)
 {
-	PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	struct handle_list *handles = NULL;
 
@@ -333,7 +333,7 @@ double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle 
 		free(current);
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return total_exp;
 }

@@ -121,8 +121,8 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	wrapper->mode = mode;
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
-	PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+	_STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
 
 #ifdef STARPU_DEVEL
@@ -133,7 +133,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	handle->busy_count++;
 	_starpu_spin_unlock(&handle->header_lock);
 
-	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)
 	{
@@ -153,14 +153,14 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 #endif
 
 		_starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		/* TODO detect if this is superflous */
 		int ret = starpu_task_submit(wrapper->pre_sync_task);
 		STARPU_ASSERT(!ret);
 	}
 	else {
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
@@ -185,10 +185,10 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, NULL, NULL);
 	
 	/* continuation of starpu_data_acquire */
-	PTHREAD_MUTEX_LOCK(&wrapper->lock);
+	_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 	wrapper->finished = 1;
-	PTHREAD_COND_SIGNAL(&wrapper->cond);
-	PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+	_STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 }
 
 /* The data must be released by calling starpu_data_release later on */
@@ -214,7 +214,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 	};
 
 //	_STARPU_DEBUG("TAKE sequential_consistency_mutex starpu_data_acquire\n");
-	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)
 	{
@@ -232,7 +232,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 #endif
 
 		_starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		/* TODO detect if this is superflous */
 		wrapper.pre_sync_task->synchronous = 1;
@@ -241,7 +241,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 		//starpu_task_wait(wrapper.pre_sync_task);
 	}
 	else {
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 
 	/* we try to get the data, if we do not succeed immediately, we set a
@@ -255,10 +255,10 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 		STARPU_ASSERT(!ret);
 	}
 	else {
-		PTHREAD_MUTEX_LOCK(&wrapper.lock);
+		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper.lock);
 		while (!wrapper.finished)
-			PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
-		PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
+			_STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
 	}
 
 	/* At that moment, the caller holds a reference to the piece of data.
@@ -296,10 +296,10 @@ static void _prefetch_data_on_node(void *arg)
 
 	if (!wrapper->async)
 	{
-		PTHREAD_MUTEX_LOCK(&wrapper->lock);
+		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		wrapper->finished = 1;
-		PTHREAD_COND_SIGNAL(&wrapper->cond);
-		PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+		_STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 	}
 
 	_starpu_spin_lock(&handle->header_lock);
@@ -322,8 +322,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	wrapper->handle = handle;
 	wrapper->node = node;
 	wrapper->async = async;
-	PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+	_STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
 
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, wrapper))
@@ -349,10 +349,10 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 
 	}
 	else if (!async) {
-		PTHREAD_MUTEX_LOCK(&wrapper->lock);
+		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		while (!wrapper->finished)
-			PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
-		PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+			_STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 	}
 
 	return 0;
@@ -401,9 +401,9 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsi
 			starpu_data_set_sequential_consistency_flag(child_handle, flag);
 	}
 
-	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	handle->sequential_consistency = flag;
-	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 	_starpu_spin_unlock(&handle->header_lock);
 }

@@ -157,14 +157,14 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->refcnt = 0;
 		child->busy_count = 0;
 		child->busy_waiting = 0;
-		PTHREAD_MUTEX_INIT(&child->busy_mutex, NULL);
-		PTHREAD_COND_INIT(&child->busy_cond, NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&child->busy_mutex, NULL);
+		_STARPU_PTHREAD_COND_INIT(&child->busy_cond, NULL);
 		child->reduction_refcnt = 0;
 		_starpu_spin_init(&child->header_lock);
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 
-		PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
 		child->last_submitted_writer = NULL;
 		child->last_submitted_readers = NULL;

@@ -145,13 +145,13 @@ static struct starpu_task *ws_pop_task(void)
 
 	q = queue_array[workerid];
 
-	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	task = _starpu_deque_pop_task(q, -1);
 	if (task) {
 		/* there was a local task */
 		performed_total++;
-		PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 		return task;
 	}
 	
@@ -165,7 +165,7 @@ static struct starpu_task *ws_pop_task(void)
 		performed_total++;
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
 	return task;
 }
@@ -179,7 +179,7 @@ static int ws_push_task(struct starpu_task *task)
         struct starpu_deque_jobq_s *deque_queue;
 	deque_queue = queue_array[workerid];
 
-        PTHREAD_MUTEX_LOCK(&global_sched_mutex);
+        _STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 	// XXX reuse ?
         //total_number_of_jobs++;
 
@@ -188,8 +188,8 @@ static int ws_push_task(struct starpu_task *task)
         deque_queue->njobs++;
         deque_queue->nprocessed++;
 
-        PTHREAD_COND_SIGNAL(&global_sched_cond);
-        PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+        _STARPU_PTHREAD_COND_SIGNAL(&global_sched_cond);
+        _STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
         return 0;
 }
@@ -200,8 +200,8 @@ static void initialize_ws_policy(struct starpu_machine_topology_s *topology,
 	nworkers = topology->nworkers;
 	rr_worker = 0;
 
-	PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
-	PTHREAD_COND_INIT(&global_sched_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&global_sched_cond, NULL);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)

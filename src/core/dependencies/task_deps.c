@@ -69,7 +69,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 
 	job = _starpu_get_job_associated_to_task(task);
 
-	PTHREAD_MUTEX_LOCK(&job->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 
 	starpu_cg_t *cg = create_cg_task(ndeps, job);
 
@@ -85,11 +85,11 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 		STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
 
-		PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
 		_starpu_task_add_succ(dep_job, cg);
-		PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 	}
 
 	
-	PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 }

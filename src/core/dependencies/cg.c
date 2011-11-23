@@ -98,10 +98,10 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 			case STARPU_CG_APPS: {
 				/* this is a cg for an application waiting on a set of
 	 			 * tags, wake the thread */
-				PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
+				_STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 				cg->succ.succ_apps.completed = 1;
-				PTHREAD_COND_SIGNAL(&cg->succ.succ_apps.cg_cond);
-				PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
+				_STARPU_PTHREAD_COND_SIGNAL(&cg->succ.succ_apps.cg_cond);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 				break;
 			}
 
@@ -174,7 +174,7 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 		if (cg_type == STARPU_CG_TASK)
 		{
 			starpu_job_t j = cg->succ.job;
-			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		}			
 
 		_starpu_notify_cg(cg);
@@ -193,7 +193,7 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 			if (j->submitted && (j->terminated > 0) && task->destroy && task->detach)
 				must_destroy_task = 1;
 
-			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 			if (must_destroy_task)
 				starpu_task_destroy(task);

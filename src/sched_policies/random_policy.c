@@ -77,8 +77,8 @@ static void initialize_random_policy(struct starpu_machine_topology_s *topology,
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
 	
 		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 	}

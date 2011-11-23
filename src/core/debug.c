@@ -60,9 +60,9 @@ void _starpu_print_to_logfile(const char *format STARPU_ATTRIBUTE_UNUSED, ...)
 #ifdef STARPU_VERBOSE
 	va_list args;
 	va_start(args, format);
-	PTHREAD_MUTEX_LOCK(&logfile_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&logfile_mutex);
 	vfprintf(logfile, format, args);
-	PTHREAD_MUTEX_UNLOCK(&logfile_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&logfile_mutex);
 	va_end( args );
 #endif
 }

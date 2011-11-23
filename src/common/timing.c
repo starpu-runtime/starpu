@@ -94,8 +94,8 @@ typedef union starpu_u_tick
 } starpu_tick_t;
 
 #define STARPU_GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
-#define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
-#define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
+#define STARPU_TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
+#define STARPU_TICK_DIFF(t1, t2) (STARPU_TICK_RAW_DIFF(t1, t2) - residual)
 
 static starpu_tick_t reference_start_tick;
 static double scale = 0.0;
@@ -116,7 +116,7 @@ void _starpu_timing_init(void)
     {
       STARPU_GET_TICK(t1);
       STARPU_GET_TICK(t2);
-      residual = STARPU_MIN(residual, TICK_RAW_DIFF(t1, t2));
+      residual = STARPU_MIN(residual, STARPU_TICK_RAW_DIFF(t1, t2));
     }
   
   {
@@ -129,7 +129,7 @@ void _starpu_timing_init(void)
     gettimeofday(&tv2,0);
     scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
 	     (tv1.tv_sec*1e6 + tv1.tv_usec)) / 
-      (double)(TICK_DIFF(t1, t2));
+      (double)(STARPU_TICK_DIFF(t1, t2));
   }
 
   STARPU_GET_TICK(reference_start_tick);

@@ -283,10 +283,10 @@ void *_starpu_cuda_worker(void *arg)
 	STARPU_TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
-	PTHREAD_MUTEX_LOCK(&args->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->worker_is_initialized = 1;
-	PTHREAD_COND_SIGNAL(&args->ready_cond);
-	PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	struct starpu_job_s * j;
 	struct starpu_task *task;
@@ -298,7 +298,7 @@ void *_starpu_cuda_worker(void *arg)
 		_starpu_datawizard_progress(memnode, 1);
 		STARPU_TRACE_END_PROGRESS(memnode);
 
-		PTHREAD_MUTEX_LOCK(args->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		task = _starpu_pop_task(args);
 	
@@ -307,12 +307,12 @@ void *_starpu_cuda_worker(void *arg)
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
 
-			PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 			continue;
 		};
 
-		PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);

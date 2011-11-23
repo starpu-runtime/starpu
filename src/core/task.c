@@ -97,13 +97,13 @@ void starpu_task_deinit(struct starpu_task *task)
 	struct starpu_task_bundle *bundle = task->bundle;
 	if (bundle)
 	{
-		PTHREAD_MUTEX_LOCK(&bundle->mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 		int ret = starpu_task_bundle_remove(bundle, task);
 
 		/* Perhaps the bundle was destroyed when removing the last
 		 * entry */
 		if (ret != 1)
-			PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	}
 
 	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
@@ -207,13 +207,13 @@ int _starpu_submit_job(starpu_job_t j)
 
 	_starpu_increment_nsubmitted_tasks();
 
-	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	
 	j->submitted = 1;
 
 	int ret = _starpu_enforce_deps_and_schedule(j, 1);
 
-	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
         _STARPU_LOG_OUT();
         return ret;
@@ -338,14 +338,14 @@ int starpu_task_wait_for_all(void)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
 	while (nsubmitted > 0)
-		PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 	
-	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 	return 0;
 }
@@ -359,59 +359,59 @@ int starpu_task_wait_for_no_ready(void)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
 	while (nready > 0)
-		PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 	
-	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 	return 0;
 }
 
 void _starpu_decrement_nsubmitted_tasks(void)
 {
-	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	if (--nsubmitted == 0)
-		PTHREAD_COND_BROADCAST(&submitted_cond);
+		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 
 	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
-	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }
 
 static void _starpu_increment_nsubmitted_tasks(void)
 {
-	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	nsubmitted++;
 
 	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
-	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 void _starpu_increment_nready_tasks(void)
 {
-	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	nready++;
 
-	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 void _starpu_decrement_nready_tasks(void)
 {
-	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	if (--nready == 0)
-		PTHREAD_COND_BROADCAST(&submitted_cond);
+		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 
-	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }
 

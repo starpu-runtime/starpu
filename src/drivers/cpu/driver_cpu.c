@@ -48,7 +48,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	}
 
 	if (is_parallel_task)
-		PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
+		_STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
 
 	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank);
 
@@ -72,7 +72,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	_starpu_driver_end_job(cpu_args, j, &codelet_end, rank);
 
 	if (is_parallel_task)
-		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		_STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
 	if (rank == 0)
 	{
@@ -112,10 +112,10 @@ void *_starpu_cpu_worker(void *arg)
 	STARPU_TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */
-	PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
 	cpu_arg->worker_is_initialized = 1;
-	PTHREAD_COND_SIGNAL(&cpu_arg->ready_cond);
-	PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&cpu_arg->ready_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
 
         starpu_job_t j;
 	struct starpu_task *task;
@@ -128,7 +128,7 @@ void *_starpu_cpu_worker(void *arg)
 		_starpu_datawizard_progress(memnode, 1);
 		STARPU_TRACE_END_PROGRESS(memnode);
 
-		PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
 
 		task = _starpu_pop_task(cpu_arg);
 	
@@ -137,12 +137,12 @@ void *_starpu_cpu_worker(void *arg)
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, cpu_arg->sched_cond, cpu_arg->sched_mutex);
 
-			PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);
 
 			continue;
 		};
 
-		PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);	
+		_STARPU_PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);	
 
 		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);
@@ -167,9 +167,9 @@ void *_starpu_cpu_worker(void *arg)
 			STARPU_ASSERT(task != j->task);
 			free(task);
 
-			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 			rank = j->active_task_alias_count++;
-			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 			struct starpu_combined_worker_s *combined_worker;
 			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);

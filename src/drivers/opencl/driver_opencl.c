@@ -124,7 +124,7 @@ cl_int _starpu_opencl_init_context(int devid)
 {
 	cl_int err;
 
-	PTHREAD_MUTEX_LOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 
         _STARPU_DEBUG("Initialising context for dev %d\n", devid);
 
@@ -144,7 +144,7 @@ cl_int _starpu_opencl_init_context(int devid)
         transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	PTHREAD_MUTEX_UNLOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
 	limit_gpu_mem_if_needed(devid);
 
@@ -155,7 +155,7 @@ cl_int _starpu_opencl_deinit_context(int devid)
 {
         cl_int err;
 
-	PTHREAD_MUTEX_LOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
@@ -172,7 +172,7 @@ cl_int _starpu_opencl_deinit_context(int devid)
 
         contexts[devid] = NULL;
 
-	PTHREAD_MUTEX_UNLOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
         return CL_SUCCESS;
 }
@@ -333,7 +333,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
 
 void _starpu_opencl_init(void)
 {
-	PTHREAD_MUTEX_LOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
         if (!init_done) {
                 cl_platform_id platform_id[STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
@@ -405,7 +405,7 @@ void _starpu_opencl_init(void)
 
                 init_done=1;
         }
-	PTHREAD_MUTEX_UNLOCK(&big_lock);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 }
 
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
@@ -449,10 +449,10 @@ void *_starpu_opencl_worker(void *arg)
 	STARPU_TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
-	PTHREAD_MUTEX_LOCK(&args->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->worker_is_initialized = 1;
-	PTHREAD_COND_SIGNAL(&args->ready_cond);
-	PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	struct starpu_job_s * j;
 	struct starpu_task *task;
@@ -464,7 +464,7 @@ void *_starpu_opencl_worker(void *arg)
 		_starpu_datawizard_progress(memnode, 1);
 		STARPU_TRACE_END_PROGRESS(memnode);
 
-		PTHREAD_MUTEX_LOCK(args->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		task = _starpu_pop_task(args);
 		
@@ -473,12 +473,12 @@ void *_starpu_opencl_worker(void *arg)
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
 
-			PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 			continue;
 		};
 
-		PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);

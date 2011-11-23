@@ -91,8 +91,8 @@ static void heft_init(struct starpu_machine_topology_s *topology,
 		exp_end[workerid] = exp_start[workerid]; 
 		ntasks[workerid] = 0;
 
-		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
 	
 		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 	}
@@ -106,12 +106,12 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
-	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 	exp_len[workerid] -= model + transfer_model;
 	exp_start[workerid] = starpu_timing_now();
 	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
 	ntasks[workerid]--;
-	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
 
 static void heft_push_task_notify(struct starpu_task *task, int workerid)
@@ -126,7 +126,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 
 	/* Update the predictions */
-	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	exp_start[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
@@ -159,7 +159,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 
 	ntasks[workerid]++;
 
-	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, double predicted_transfer, int prio)
@@ -167,7 +167,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
-	PTHREAD_MUTEX_LOCK(&sched_mutex[best_workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[best_workerid]);
 
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	exp_start[best_workerid] = STARPU_MAX(exp_start[best_workerid], starpu_timing_now());
@@ -189,7 +189,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	exp_len[best_workerid] += predicted_transfer;
 
 	ntasks[best_workerid]++;
-	PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
 
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
@@ -410,13 +410,13 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		/* Remove the task from the bundle since we have made a
 		 * decision for it, and that other tasks should not consider it
 		 * anymore. */
-		PTHREAD_MUTEX_LOCK(&bundle->mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 		int ret = starpu_task_bundle_remove(bundle, task);
 
 		/* Perhaps the bundle was destroyed when removing the last
 		 * entry */
 		if (ret != 1)
-			PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	}
 	else {
@@ -444,8 +444,8 @@ static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology_
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		PTHREAD_MUTEX_DESTROY(&sched_mutex[workerid]);
-		PTHREAD_COND_DESTROY(&sched_cond[workerid]);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&sched_mutex[workerid]);
+		_STARPU_PTHREAD_COND_DESTROY(&sched_cond[workerid]);
 	}
 }
 

@@ -35,8 +35,8 @@ static void initialize_eager_center_policy(struct starpu_machine_topology_s *top
 	/* there is only a single queue in that trivial design */
 	fifo = _starpu_create_fifo();
 
-	PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
-	PTHREAD_COND_INIT(&sched_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&sched_cond, NULL);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)

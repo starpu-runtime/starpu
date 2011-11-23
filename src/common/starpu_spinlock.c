@@ -19,7 +19,7 @@
 #include <common/config.h>
 #include <starpu_util.h>
 
-int _starpu_spin_init(starpu_spinlock_t *lock)
+int _starpu_spin_init(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 //	memcpy(&lock->errcheck_lock, PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP, sizeof(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP));
@@ -44,7 +44,7 @@ int _starpu_spin_init(starpu_spinlock_t *lock)
 #endif
 }
 
-int _starpu_spin_destroy(starpu_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
+int _starpu_spin_destroy(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	pthread_mutexattr_destroy(&lock->errcheck_attr);
@@ -61,7 +61,7 @@ int _starpu_spin_destroy(starpu_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
-int _starpu_spin_lock(starpu_spinlock_t *lock)
+int _starpu_spin_lock(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	int ret = pthread_mutex_lock(&lock->errcheck_lock);
@@ -82,7 +82,7 @@ int _starpu_spin_lock(starpu_spinlock_t *lock)
 #endif
 }
 
-int _starpu_spin_trylock(starpu_spinlock_t *lock)
+int _starpu_spin_trylock(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	int ret = pthread_mutex_trylock(&lock->errcheck_lock);
@@ -101,7 +101,7 @@ int _starpu_spin_trylock(starpu_spinlock_t *lock)
 #endif
 }
 
-int _starpu_spin_unlock(starpu_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
+int _starpu_spin_unlock(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	int ret = pthread_mutex_unlock(&lock->errcheck_lock);

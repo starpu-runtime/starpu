@@ -34,7 +34,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
+	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
 	for (cond_id = 0; cond_id < nconds; cond_id++)
@@ -43,12 +43,12 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
 
 		/* wake anybody waiting on that condition */
-		PTHREAD_MUTEX_LOCK(condition->mutex);
-		PTHREAD_COND_BROADCAST(condition->cond);
-		PTHREAD_MUTEX_UNLOCK(condition->mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
+		_STARPU_PTHREAD_COND_BROADCAST(condition->cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
 	}
 
-	PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 void starpu_wake_all_blocked_workers(void)
@@ -58,7 +58,7 @@ void starpu_wake_all_blocked_workers(void)
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
+	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
@@ -67,12 +67,12 @@ void starpu_wake_all_blocked_workers(void)
 		condition  = &descr->conditions_all[cond_id];
 
 		/* wake anybody waiting on that condition */
-		PTHREAD_MUTEX_LOCK(condition->mutex);
-		PTHREAD_COND_BROADCAST(condition->cond);
-		PTHREAD_MUTEX_UNLOCK(condition->mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
+		_STARPU_PTHREAD_COND_BROADCAST(condition->cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
 	}
 
-	PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 #ifdef STARPU_USE_FXT

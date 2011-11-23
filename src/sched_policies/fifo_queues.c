@@ -51,7 +51,7 @@ void _starpu_destroy_fifo(struct starpu_fifo_taskq_s *fifo)
 
 int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
-	PTHREAD_MUTEX_LOCK(sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
 	/* TODO: if prio, put at back */
@@ -59,8 +59,8 @@ int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
 }
@@ -96,7 +96,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo
 	struct starpu_task *new_list = NULL;
 	struct starpu_task *new_list_tail = NULL;
 	
-	PTHREAD_MUTEX_LOCK(sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	size = fifo_queue->ntasks;
 
@@ -140,7 +140,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo
 		fifo_queue->ntasks -= new_list_size;
 	}
 
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;
 }

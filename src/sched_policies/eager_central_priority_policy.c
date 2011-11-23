@@ -84,8 +84,8 @@ static void initialize_eager_center_priority_policy(struct starpu_machine_topolo
 	/* only a single queue (even though there are several internaly) */
 	taskq = _starpu_create_priority_taskq();
 
-	PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
-	PTHREAD_COND_INIT(&global_sched_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&global_sched_cond, NULL);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
@@ -104,7 +104,7 @@ static void deinitialize_eager_center_priority_policy(struct starpu_machine_topo
 static int _starpu_priority_push_task(struct starpu_task *task)
 {
 	/* wake people waiting for a task */
-	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 1);
 	
@@ -114,8 +114,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 
-	PTHREAD_COND_SIGNAL(&global_sched_cond);
-	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&global_sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
 	return 0;
 }
@@ -125,15 +125,15 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 	struct starpu_task *task = NULL;
 
 	/* block until some event happens */
-	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	if ((taskq->total_ntasks == 0) && _starpu_machine_is_running())
 	{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 		return NULL;
 #else
-		PTHREAD_COND_WAIT(&global_sched_cond, &global_sched_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&global_sched_cond, &global_sched_mutex);
 #endif
 	}
 
@@ -151,7 +151,7 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 		} while (!task && priolevel-- > 0);
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
 	return task;
 }
