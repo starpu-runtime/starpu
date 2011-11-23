@@ -143,8 +143,6 @@ void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node);
  * interface does not have data allocated locally */
 void *starpu_handle_get_local_ptr(starpu_data_handle handle);
 
-extern struct starpu_data_interface_ops _starpu_interface_matrix_ops;
-
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.
  *
