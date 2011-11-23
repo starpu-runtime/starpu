@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 		tasks[i].cl_arg = NULL;
 		tasks[i].synchronous = 0;
 		tasks[i].use_tag = 1;
-		tasks[i].tag_id = (starpu_tag)i;
+		tasks[i].tag_id = (starpu_tag_t)i;
 
 		/* we have 8 buffers at most */
 		for (buffer = 0; buffer < nbuffers; buffer++)
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	gettimeofday(&start_submit, NULL);
 	for (i = 1; i < ntasks; i++)
 	{
-		starpu_tag_declare_deps((starpu_tag)i, 1, (starpu_tag)(i-1));
+		starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
 
 		ret = starpu_task_submit(&tasks[i]);
 		if (ret == -ENODEV) goto enodev;
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 
 	/* wait for the execution of the tasks */
 	gettimeofday(&start_exec, NULL);
-	ret = starpu_tag_wait((starpu_tag)(ntasks - 1));
+	ret = starpu_tag_wait((starpu_tag_t)(ntasks - 1));
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	gettimeofday(&end_exec, NULL);
 

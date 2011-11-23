@@ -31,26 +31,26 @@ static unsigned *block_sizes_z;
 /*
  * common tag format:
  */
-static starpu_tag tag_common(int z, int dir, int type)
+static starpu_tag_t tag_common(int z, int dir, int type)
 {
-	return (((((starpu_tag)type) << 4) | ((dir+1)/2)) << 32)|(starpu_tag)z;
+	return (((((starpu_tag_t)type) << 4) | ((dir+1)/2)) << 32)|(starpu_tag_t)z;
 }
 
 /* Completion of last update tasks */
-starpu_tag TAG_FINISH(int z)
+starpu_tag_t TAG_FINISH(int z)
 {
 	z = (z + nbz)%nbz;
 
-	starpu_tag tag = tag_common(z, 0, 1);
+	starpu_tag_t tag = tag_common(z, 0, 1);
 	return tag;
 }
 
 /* Completion of the save codelet for MPI send/recv */
-starpu_tag TAG_START(int z, int dir)
+starpu_tag_t TAG_START(int z, int dir)
 {
 	z = (z + nbz)%nbz;
 
-	starpu_tag tag = tag_common(z, dir, 2);
+	starpu_tag_t tag = tag_common(z, dir, 2);
 	return tag;
 }
 

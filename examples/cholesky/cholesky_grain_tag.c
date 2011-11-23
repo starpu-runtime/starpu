@@ -22,7 +22,7 @@
  *	Some useful functions
  */
 
-static struct starpu_task *create_task(starpu_tag id)
+static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;
@@ -227,7 +227,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		STARPU_ASSERT(reclevel == 0);
 		unsigned ndeps_tags = (nblocks - nbigblocks)*(nblocks - nbigblocks);
 
-		starpu_tag *tag_array = malloc(ndeps_tags*sizeof(starpu_tag));
+		starpu_tag_t *tag_array = malloc(ndeps_tags*sizeof(starpu_tag_t));
 		STARPU_ASSERT(tag_array);
 
 		unsigned ind = 0;

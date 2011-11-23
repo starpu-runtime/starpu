@@ -23,7 +23,7 @@
 #include "../common/helper.h"
 
 static unsigned ntasks = 65536;
-static starpu_tag tag = 0x32;
+static starpu_tag_t tag = 0x32;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {

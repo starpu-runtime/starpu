@@ -1286,7 +1286,7 @@ same task, in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
 @end deftypefun
 
-@deftp {Data Type} {starpu_tag}
+@deftp {Data Type} {starpu_tag_t}
 This type defines a task logical identifer. It is possible to associate a task with a unique ``tag'' chosen by the application, and to express
 dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
@@ -1297,7 +1297,7 @@ not be started until the tasks which holds the declared dependency tags are
 completed.
 @end deftp
 
-@deftypefun void starpu_tag_declare_deps (starpu_tag @var{id}, unsigned @var{ndeps}, ...)
+@deftypefun void starpu_tag_declare_deps (starpu_tag_t @var{id}, unsigned @var{ndeps}, ...)
 Specify the dependencies of the task identified by tag @var{id}. The first
 argument specifies the tag which is configured, the second argument gives the
 number of tag(s) on which @var{id} depends. The following arguments are the
@@ -1307,33 +1307,33 @@ This function must be called before the associated task is submitted to StarPU
 with @code{starpu_task_submit}.
 
 Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
-last arguments @emph{must} be of type @code{starpu_tag}: constant values
+last arguments @emph{must} be of type @code{starpu_tag_t}: constant values
 typically need to be explicitly casted. Using the
 @code{starpu_tag_declare_deps_array} function avoids this hazard.
 
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
-starpu_tag_declare_deps((starpu_tag)0x1,
-        2, (starpu_tag)0x32, (starpu_tag)0x52);
+starpu_tag_declare_deps((starpu_tag_t)0x1,
+        2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
 @end example
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_tag_declare_deps_array (starpu_tag @var{id}, unsigned @var{ndeps}, {starpu_tag *}@var{array})
+@deftypefun void starpu_tag_declare_deps_array (starpu_tag_t @var{id}, unsigned @var{ndeps}, {starpu_tag_t *}@var{array})
 This function is similar to @code{starpu_tag_declare_deps}, except
 that its does not take a variable number of arguments but an array of
 tags of size @var{ndeps}.
 @cartouche
 @example
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
-starpu_tag tag_array[2] = @{0x32, 0x52@};
-starpu_tag_declare_deps_array((starpu_tag)0x1, 2, tag_array);
+starpu_tag_t tag_array[2] = @{0x32, 0x52@};
+starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 @end example
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_tag_wait (starpu_tag @var{id})
+@deftypefun void starpu_tag_wait (starpu_tag_t @var{id})
 This function blocks until the task associated to tag @var{id} has been
 executed. This is a blocking call which must therefore not be called within
 tasks or callbacks, but only from the application directly.  It is possible to
@@ -1344,19 +1344,19 @@ data structure was freed (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
 @end deftypefun
 
-@deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag *@var{id})
+@deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag_t *@var{id})
 This function is similar to @code{starpu_tag_wait} except that it blocks until
 @emph{all} the @var{ntags} tags contained in the @var{id} array are
 terminated.
 @end deftypefun
 
-@deftypefun void starpu_tag_remove (starpu_tag @var{id})
+@deftypefun void starpu_tag_remove (starpu_tag_t @var{id})
 This function releases the resources associated to tag @var{id}. It can be
 called once the corresponding task has been executed and when there is
 no other tag that depend on this tag anymore.
 @end deftypefun
 
-@deftypefun void starpu_tag_notify_from_apps (starpu_tag @var{id})
+@deftypefun void starpu_tag_notify_from_apps (starpu_tag_t @var{id})
 This function explicitly unlocks tag @var{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
 tasks (e.g. third-party libraries).  It is also provided as a

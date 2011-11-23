@@ -81,7 +81,7 @@ struct bound_task {
 	/* Unique ID */
 	unsigned long id;
 	/* Tag ID, if any */
-	starpu_tag tag_id;
+	starpu_tag_t tag_id;
 	int use_tag;
 	/* Which codelet has been executed */
 	struct starpu_codelet_t *cl;
@@ -101,8 +101,8 @@ struct bound_task {
 };
 
 struct bound_tag_dep {
-	starpu_tag tag;
-	starpu_tag dep_tag;
+	starpu_tag_t tag;
+	starpu_tag_t dep_tag;
 	struct bound_tag_dep *next;
 };
 
@@ -232,7 +232,7 @@ void _starpu_bound_record(starpu_job_t j)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
-void _starpu_bound_tag_dep(starpu_tag id, starpu_tag dep_id)
+void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 {
 	struct bound_tag_dep *td;
 

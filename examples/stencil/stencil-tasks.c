@@ -232,7 +232,7 @@ void create_start_task(int z, int dir) {
 	   before we start measuring time */
 	struct starpu_task *wait_init = starpu_task_create();
 	struct block_description *descr = get_block_description(z);
-	starpu_tag tag_init = TAG_INIT_TASK;
+	starpu_tag_t tag_init = TAG_INIT_TASK;
 	wait_init->cl = &null;
 	wait_init->use_tag = 1;
 	wait_init->tag_id = TAG_START(z, dir);

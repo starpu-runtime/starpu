@@ -672,7 +672,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 }
 
 /* Actually submit all the tasks. */
-static starpu_tag
+static starpu_tag_t
 STARPUFFT(start1dC2C)(STARPUFFT(plan) plan)
 {
 	STARPU_ASSERT(plan->type == C2C);

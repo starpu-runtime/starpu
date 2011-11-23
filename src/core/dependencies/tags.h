@@ -23,7 +23,7 @@
 #include <common/starpu_spinlock.h>
 #include <core/dependencies/cg.h>
 
-#define STARPU_TAG_SIZE        (sizeof(starpu_tag)*8)
+#define STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
 typedef enum {
 	/* this tag is not declared by any task */
@@ -46,7 +46,7 @@ struct starpu_job_s;
 
 struct starpu_tag_s {
 	struct _starpu_spinlock lock;
-	starpu_tag id; /* an identifier for the task */
+	starpu_tag_t id; /* an identifier for the task */
 	starpu_tag_state state;
 
 	struct starpu_cg_list_s tag_successors;
@@ -57,12 +57,12 @@ struct starpu_tag_s {
 	unsigned is_submitted;
 };
 
-void starpu_tag_declare_deps(starpu_tag id, unsigned ndeps, ...);
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void _starpu_notify_dependencies(struct starpu_job_s *j);
 void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag);
 
-void _starpu_tag_declare(starpu_tag id, struct starpu_job_s *job);
+void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);
 void _starpu_tag_set_ready(struct starpu_tag_s *tag);
 
 unsigned _starpu_submit_job_enforce_task_deps(struct starpu_job_s *j);

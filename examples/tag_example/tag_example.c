@@ -28,7 +28,7 @@
 #endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
-#define TAG(i, j, iter)	((starpu_tag) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
+#define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
 starpu_codelet cl = {};
 

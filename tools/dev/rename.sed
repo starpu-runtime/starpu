@@ -33,7 +33,6 @@ s/\bstarpu_regression_model_t\b/starpu_regression_model/g
 s/\bstarpu_per_arch_perfmodel_t\b/starpu_per_arch_perfmodel/g
 #s/\bstarpu_buffer_descr\b/struct starpu_buffer_descr/g
 s/\bstarpu_perfmodel_t\b/starpu_perfmodel/g
-s/\bstarpu_tag_t\b/starpu_tag/g
 s/\bstarpu_sched_policy_s\b/starpu_sched_policy/g
 s/\bstarpu_data_interface_ops_t\b/starpu_data_interface_ops/g
 s/\bstarpu_submit_task\b/starpu_task_submit/g

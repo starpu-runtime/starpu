@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		starpu_tag tag = (starpu_tag)loop;
+		starpu_tag_t tag = (starpu_tag_t)loop;
 
 		if ((loop % 2) == rank)
 		{

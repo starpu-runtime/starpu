@@ -69,7 +69,7 @@ void task_depends_on(starpu_task task, cl_uint num_events, cl_event *events) {
 	if (num_events != 0) {
 		cl_uint i;
 
-		starpu_tag * tags = malloc(num_events * sizeof(starpu_tag));	
+		starpu_tag_t * tags = malloc(num_events * sizeof(starpu_tag_t));	
 
 		if (num_events != 0)
 			DEBUG_MSG("Tag %d depends on %u tags:", task->tag_id, num_events);

@@ -23,12 +23,12 @@
 #include <starpu.h>
 #include "../common/helper.h"
 
-static starpu_tag tagA = 0x0042;
-static starpu_tag tagB = 0x1042;
-static starpu_tag tagC = 0x2042;
-static starpu_tag tagD = 0x3042;
-static starpu_tag tagE = 0x4042;
-static starpu_tag tagF = 0x5042;
+static starpu_tag_t tagA = 0x0042;
+static starpu_tag_t tagB = 0x1042;
+static starpu_tag_t tagC = 0x2042;
+static starpu_tag_t tagD = 0x3042;
+static starpu_tag_t tagE = 0x4042;
+static starpu_tag_t tagF = 0x5042;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(taskE); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(taskF); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_tag tag_array[2] = {tagE, tagF};
+	starpu_tag_t tag_array[2] = {tagE, tagF};
 	ret = starpu_tag_wait_array(2, tag_array);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait_array");
 

@@ -25,7 +25,7 @@ starpu_data_handle_t A_state[NMAXBLOCKS][NMAXBLOCKS];
  *	Some useful functions
  */
 
-static struct starpu_task *create_task(starpu_tag id)
+static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;

@@ -21,7 +21,7 @@
 #define I_SHIFT (I_BITS/2)
 #define J_BITS I_SHIFT
 
-#define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag) i << I_SHIFT) | (starpu_tag) j)
+#define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag_t) i << I_SHIFT) | (starpu_tag_t) j)
 
 #ifdef STARPU_USE_CUDA
 /* Twist the full vector into a n2,m2 chunk */
@@ -657,7 +657,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	return plan;
 }
 
-static starpu_tag
+static starpu_tag_t
 STARPUFFT(start2dC2C)(STARPUFFT(plan) plan)
 {
 	STARPU_ASSERT(plan->type == C2C);

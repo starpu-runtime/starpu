@@ -60,7 +60,7 @@ static starpu_cg_t *create_cg_tag(unsigned ntags, struct starpu_tag_s *tag)
 	return cg;
 }
 
-static struct starpu_tag_s *_starpu_tag_init(starpu_tag id)
+static struct starpu_tag_s *_starpu_tag_init(starpu_tag_t id)
 {
 	struct starpu_tag_s *tag;
 	tag = (struct starpu_tag_s *) malloc(sizeof(struct starpu_tag_s));
@@ -80,7 +80,7 @@ static struct starpu_tag_s *_starpu_tag_init(starpu_tag id)
 	return tag;
 }
 
-void starpu_tag_remove(starpu_tag id)
+void starpu_tag_remove(starpu_tag_t id)
 {
 	struct starpu_tag_s *tag;
 
@@ -118,7 +118,7 @@ void starpu_tag_remove(starpu_tag id)
 	free(tag);
 }
 
-static struct starpu_tag_s *gettag_struct(starpu_tag id)
+static struct starpu_tag_s *gettag_struct(starpu_tag_t id)
 {
 	pthread_rwlock_wrlock(&tag_global_rwlock);
 
@@ -190,14 +190,14 @@ void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
 	_starpu_spin_unlock(&tag->lock);
 }
 
-void starpu_tag_notify_from_apps(starpu_tag id)
+void starpu_tag_notify_from_apps(starpu_tag_t id)
 {
 	struct starpu_tag_s *tag = gettag_struct(id);
 
 	_starpu_notify_tag_dependencies(tag);
 }
 
-void _starpu_tag_declare(starpu_tag id, struct starpu_job_s *job)
+void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job)
 {
 	STARPU_TRACE_TAG(id, job);
 	job->task->use_tag = 1;
@@ -214,7 +214,7 @@ void _starpu_tag_declare(starpu_tag id, struct starpu_job_s *job)
 	_starpu_spin_unlock(&tag->lock);
 }
 
-void starpu_tag_declare_deps_array(starpu_tag id, unsigned ndeps, starpu_tag *array)
+void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)
 {
 	unsigned i;
 
@@ -229,7 +229,7 @@ void starpu_tag_declare_deps_array(starpu_tag id, unsigned ndeps, starpu_tag *ar
 	
 	for (i = 0; i < ndeps; i++)
 	{
-		starpu_tag dep_id = array[i];
+		starpu_tag_t dep_id = array[i];
 		
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
@@ -245,7 +245,7 @@ void starpu_tag_declare_deps_array(starpu_tag id, unsigned ndeps, starpu_tag *ar
 	_starpu_spin_unlock(&tag_child->lock);
 }
 
-void starpu_tag_declare_deps(starpu_tag id, unsigned ndeps, ...)
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 {
 	unsigned i;
 	
@@ -262,8 +262,8 @@ void starpu_tag_declare_deps(starpu_tag id, unsigned ndeps, ...)
 	va_start(pa, ndeps);
 	for (i = 0; i < ndeps; i++)
 	{
-		starpu_tag dep_id;
-		dep_id = va_arg(pa, starpu_tag);
+		starpu_tag_t dep_id;
+		dep_id = va_arg(pa, starpu_tag_t);
 	
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
@@ -281,7 +281,7 @@ void starpu_tag_declare_deps(starpu_tag id, unsigned ndeps, ...)
 }
 
 /* this function may be called by the application (outside callbacks !) */
-int starpu_tag_wait_array(unsigned ntags, starpu_tag *id)
+int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 {
 	unsigned i;
 	unsigned current;
@@ -347,7 +347,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag *id)
 	return 0;
 }
 
-int starpu_tag_wait(starpu_tag id)
+int starpu_tag_wait(starpu_tag_t id)
 {
 	return starpu_tag_wait_array(1, &id);
 }

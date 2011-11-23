@@ -26,27 +26,27 @@
 // 11 21
 // 12 22
 
-#define TAG11(k)	((starpu_tag)( (1ULL<<50) | (unsigned long long)(k)))
-#define TAG12(k,j)	((starpu_tag)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG11(k)	((starpu_tag_t)( (1ULL<<50) | (unsigned long long)(k)))
+#define TAG12(k,j)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG21(k,i)	((starpu_tag)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG21(k,i)	((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG22(k,i,j)	((starpu_tag)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
+#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
-#define TAG11_SAVE(k)	((starpu_tag)( (5ULL<<50) | (unsigned long long)(k)))
-#define TAG12_SAVE(k,j)	((starpu_tag)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG11_SAVE(k)	((starpu_tag_t)( (5ULL<<50) | (unsigned long long)(k)))
+#define TAG12_SAVE(k,j)	((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG21_SAVE(k,i)	((starpu_tag)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG21_SAVE(k,i)	((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 
-#define TAG11_SAVE_PARTIAL(k)	((starpu_tag)( (8ULL<<50) | (unsigned long long)(k)))
-#define TAG12_SAVE_PARTIAL(k,j)	((starpu_tag)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG11_SAVE_PARTIAL(k)	((starpu_tag_t)( (8ULL<<50) | (unsigned long long)(k)))
+#define TAG12_SAVE_PARTIAL(k,j)	((starpu_tag_t)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG21_SAVE_PARTIAL(k,i)	((starpu_tag)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG21_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 
-#define STARPU_TAG_INIT	((starpu_tag)(11ULL<<50))
+#define STARPU_TAG_INIT	((starpu_tag_t)(11ULL<<50))
 
 //#define VERBOSE_INIT	1
 
@@ -77,7 +77,7 @@ static struct debug_info *create_debug_info(unsigned i, unsigned j, unsigned k)
 	return info;
 }
 
-static struct starpu_task *create_task(starpu_tag id)
+static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;
@@ -90,7 +90,7 @@ static struct starpu_task *create_task(starpu_tag id)
 
 /* Send handle to every node appearing in the mask, and unlock tag once the
  * transfers are done. */
-static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int mpi_tag, starpu_tag tag)
+static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int mpi_tag, starpu_tag_t tag)
 {
 	unsigned cnt = 0;
 
@@ -133,7 +133,7 @@ struct recv_when_done_callback_arg {
 	int source;
 	int mpi_tag;
 	starpu_data_handle_t handle;
-	starpu_tag unlocked_tag;
+	starpu_tag_t unlocked_tag;
 };
 
 static void callback_receive_when_done(void *_arg)
@@ -146,11 +146,11 @@ static void callback_receive_when_done(void *_arg)
 	free(arg);
 }
 
-static void receive_when_deps_are_done(unsigned ndeps, starpu_tag *deps_tags,
+static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
 				int source, int mpi_tag,
 				starpu_data_handle_t handle,
-				starpu_tag partial_tag,
-				starpu_tag unlocked_tag)
+				starpu_tag_t partial_tag,
+				starpu_tag_t unlocked_tag)
 {
 	STARPU_ASSERT(handle != STARPU_POISON_PTR);
 
@@ -185,7 +185,7 @@ static void create_task_11_recv(unsigned k)
 	 * temporary buffer is done : 11_(k-1) can be used by 12_(k-1)j and
 	 * 21(k-1)i with i,j >= k */
 	unsigned ndeps = 0;
-	starpu_tag tag_array[2*nblocks];
+	starpu_tag_t tag_array[2*nblocks];
 	
 #ifdef SINGLE_TMP11
 	unsigned i, j;
@@ -211,8 +211,8 @@ static void create_task_11_recv(unsigned k)
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
 	int mpi_tag = MPI_TAG11(k);
-	starpu_tag partial_tag = TAG11_SAVE_PARTIAL(k);
-	starpu_tag unlocked_tag = TAG11_SAVE(k);
+	starpu_tag_t partial_tag = TAG11_SAVE_PARTIAL(k);
+	starpu_tag_t unlocked_tag = TAG11_SAVE(k);
 
 //	fprintf(stderr, "NODE %d - 11 (%d) - recv when done ndeps %d - tag array %lx\n", rank, k, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
@@ -251,7 +251,7 @@ static void callback_task_11_real(void *_arg)
 
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, k);
-	starpu_tag tag = TAG11_SAVE(k);
+	starpu_tag_t tag = TAG11_SAVE(k);
 	int mpi_tag = MPI_TAG11(k);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 	
@@ -337,7 +337,7 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	 * temporary buffer is done : 12_(k-1)j can be used by 22_(k-1)ij with
 	 * i >= k */
 	unsigned ndeps = 0;
-	starpu_tag tag_array[nblocks];
+	starpu_tag_t tag_array[nblocks];
 	
 #ifdef SINGLE_TMP1221
 	if (k > 0)
@@ -362,8 +362,8 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_12_block_handle)(j,k);
 #endif
 	int mpi_tag = MPI_TAG12(k, j);
-	starpu_tag partial_tag = TAG12_SAVE_PARTIAL(k, j);
-	starpu_tag unlocked_tag = TAG12_SAVE(k, j);
+	starpu_tag_t partial_tag = TAG12_SAVE_PARTIAL(k, j);
+	starpu_tag_t unlocked_tag = TAG12_SAVE(k, j);
 
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
@@ -395,7 +395,7 @@ static void callback_task_12_real(void *_arg)
 
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, j);
-	starpu_tag tag = TAG12_SAVE(k, j);
+	starpu_tag_t tag = TAG12_SAVE(k, j);
 	int mpi_tag = MPI_TAG12(k, j);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 	
@@ -414,7 +414,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 
 	unsigned diag_block_is_local = (get_block_rank(k, k) == rank);
 
-	starpu_tag tag_11_dep; 
+	starpu_tag_t tag_11_dep; 
 
 	/* which sub-data is manipulated ? */
 	starpu_data_handle_t diag_block;
@@ -509,7 +509,7 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	 * temporary buffer is done : 21_(k-1)i can be used by 22_(k-1)ij with
 	 * j >= k */
 	unsigned ndeps = 0;
-	starpu_tag tag_array[nblocks];
+	starpu_tag_t tag_array[nblocks];
 	
 #ifdef SINGLE_TMP1221
 	if (k > 0)
@@ -534,8 +534,8 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_21_block_handle)(i, k);
 #endif
 	int mpi_tag = MPI_TAG21(k, i);
-	starpu_tag partial_tag = TAG21_SAVE_PARTIAL(k, i);
-	starpu_tag unlocked_tag = TAG21_SAVE(k, i);
+	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(k, i);
+	starpu_tag_t unlocked_tag = TAG21_SAVE(k, i);
 
 //	fprintf(stderr, "NODE %d - 21 (%d, %d) - recv when done ndeps %d - tag array %lx\n", rank, k, i, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
@@ -568,7 +568,7 @@ static void callback_task_21_real(void *_arg)
 
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(i, k);
-	starpu_tag tag = TAG21_SAVE(k, i);
+	starpu_tag_t tag = TAG21_SAVE(k, i);
 	int mpi_tag = MPI_TAG21(k, i);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 	
@@ -587,7 +587,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 
 	unsigned diag_block_is_local = (get_block_rank(k, k) == rank);
 
-	starpu_tag tag_11_dep; 
+	starpu_tag_t tag_11_dep; 
 	
 	/* which sub-data is manipulated ? */
 	starpu_data_handle_t diag_block;
@@ -683,7 +683,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 	/* produced by TAG21_SAVE(k, i) */ 
 	unsigned block21_is_local = (get_block_rank(i, k) == rank);
-	starpu_tag tag_21_dep;
+	starpu_tag_t tag_21_dep;
 
 	starpu_data_handle_t block21;
 	if (block21_is_local)
@@ -703,7 +703,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 	/* produced by TAG12_SAVE(k, j) */
 	unsigned block12_is_local = (get_block_rank(k, j) == rank);
-	starpu_tag tag_12_dep;
+	starpu_tag_t tag_12_dep;
 
 	starpu_data_handle_t block12;
 	if (block12_is_local)
@@ -768,7 +768,7 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 //	}
 }
 
-static void wait_tag_and_fetch_handle(starpu_tag tag, starpu_data_handle_t handle)
+static void wait_tag_and_fetch_handle(starpu_tag_t tag, starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle != STARPU_POISON_PTR);
 

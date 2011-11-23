@@ -83,10 +83,10 @@ struct block_description {
 	struct block_description *boundary_blocks[NDIRS];
 };
 
-#define TAG_INIT_TASK			((starpu_tag)1)
+#define TAG_INIT_TASK			((starpu_tag_t)1)
 
-starpu_tag TAG_FINISH(int z);
-starpu_tag TAG_START(int z, int dir);
+starpu_tag_t TAG_FINISH(int z);
+starpu_tag_t TAG_START(int z, int dir);
 int MPI_TAG0(int z, int iter, int dir);
 int MPI_TAG1(int z, int iter, int dir);
 
