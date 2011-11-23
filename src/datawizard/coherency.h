@@ -94,7 +94,7 @@ struct starpu_task_wrapper_list {
 	struct starpu_task_wrapper_list *next;
 };
 
-struct starpu_data_state_t {
+struct _starpu_data_state {
 	struct starpu_data_requester_list_s *req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
@@ -115,12 +115,12 @@ struct starpu_data_state_t {
 	pthread_cond_t busy_cond;
 
 	/* In case we user filters, the handle may describe a sub-data */
-	struct starpu_data_state_t *root_handle; /* root of the tree */
-	struct starpu_data_state_t *father_handle; /* father of the node, NULL if the current node is the root */
+	struct _starpu_data_state *root_handle; /* root of the tree */
+	struct _starpu_data_state *father_handle; /* father of the node, NULL if the current node is the root */
 	unsigned sibling_index; /* indicate which child this node is from the father's perpsective (if any) */
 	unsigned depth; /* what's the depth of the tree ? */
 
-	struct starpu_data_state_t *children;
+	struct _starpu_data_state *children;
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
@@ -219,18 +219,18 @@ void _starpu_display_msi_stats(void);
 
 /* This does not take a reference on the handle, the caller has to do it,
  * e.g. through _starpu_attempt_to_submit_data_request_from_apps() */
-int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, struct starpu_data_replicate_s *replicate,
+int _starpu_fetch_data_on_node(struct _starpu_data_state *state, struct starpu_data_replicate_s *replicate,
 				enum starpu_access_mode mode, unsigned is_prefetch,
 				void (*callback_func)(void *), void *callback_arg);
 /* This releases a reference on the handle */
-void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wt_mask,
+void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
 				struct starpu_data_replicate_s *replicate);
 
 void _starpu_update_data_state(starpu_data_handle handle,
 				struct starpu_data_replicate_s *requesting_replicate,
 				enum starpu_access_mode mode);
 
-uint32_t _starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
+uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, uint32_t node);
 
 size_t _starpu_data_get_size(starpu_data_handle handle);
 
@@ -241,11 +241,11 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask);
 __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
 
-unsigned _starpu_is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
+unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, uint32_t node);
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
 
 
-uint32_t _starpu_select_src_node(struct starpu_data_state_t *state, unsigned destination);
+uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
 starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,

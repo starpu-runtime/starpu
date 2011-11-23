@@ -22,8 +22,8 @@
 
 #include <starpu_config.h>
 
-struct starpu_data_state_t;
-typedef struct starpu_data_state_t * starpu_data_handle;
+struct _starpu_data_state;
+typedef struct _starpu_data_state* starpu_data_handle;
 
 #include <starpu_data_interfaces.h>
 #include <starpu_data_filters.h>

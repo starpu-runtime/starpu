@@ -256,7 +256,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
-		struct starpu_data_state_t *child_handle = &root_handle->children[child];
+		struct _starpu_data_state *child_handle = &root_handle->children[child];
 
 		/* make sure the intermediate children is unpartitionned as well */
 		if (child_handle->nchildren > 0)
@@ -346,7 +346,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 /* each child may have his own interface type */
 static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, struct starpu_data_filter *f)
 {
-	handle->children = (struct starpu_data_state_t *) calloc(nchildren, sizeof(struct starpu_data_state_t));
+	handle->children = (struct _starpu_data_state *) calloc(nchildren, sizeof(struct _starpu_data_state));
 	STARPU_ASSERT(handle->children);
 
 	unsigned node;

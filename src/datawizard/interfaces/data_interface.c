@@ -218,8 +218,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops)
 {
-	starpu_data_handle handle = (starpu_data_handle)
-		calloc(1, sizeof(struct starpu_data_state_t));
+	starpu_data_handle handle = (starpu_data_handle) calloc(1, sizeof(struct _starpu_data_state));
 
 	STARPU_ASSERT(handle);
 

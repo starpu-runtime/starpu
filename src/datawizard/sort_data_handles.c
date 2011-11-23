@@ -26,10 +26,10 @@
  * them in order, so that we need a total order over data. We must also not
  * lock a child before its parent. */
 
-static void find_data_path(struct starpu_data_state_t *data, unsigned path[])
+static void find_data_path(struct _starpu_data_state *data, unsigned path[])
 {
 	unsigned depth = data->depth;
-	struct starpu_data_state_t *current = data;
+	struct _starpu_data_state *current = data;
 
 	/* Compute the path from the root to the data */
 	unsigned level; /* level is the distance between the node and the current node */
@@ -64,8 +64,8 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 
 /* A comparision function between two handles makes it possible to use qsort to
  * sort a list of handles */
-static int _starpu_compar_handles(struct starpu_data_state_t *dataA,
-				struct starpu_data_state_t *dataB)
+static int _starpu_compar_handles(struct _starpu_data_state *dataA,
+				  struct _starpu_data_state *dataB)
 {
 	/* Perhaps we have the same piece of data */
 	if (dataA == dataB)
