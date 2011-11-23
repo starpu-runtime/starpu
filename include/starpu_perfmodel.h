@@ -139,17 +139,17 @@ struct starpu_per_arch_perfmodel_t {
 #endif
 };
 
-typedef enum {
+enum starpu_perfmodel_type {
 	STARPU_PER_ARCH,	/* Application-provided per-arch cost model function */
 	STARPU_COMMON,		/* Application-provided common cost model function, with per-arch factor */
 	STARPU_HISTORY_BASED,	/* Automatic history-based cost model */
 	STARPU_REGRESSION_BASED,	/* Automatic linear regression-based cost model  (alpha * size ^ beta) */
 	STARPU_NL_REGRESSION_BASED	/* Automatic non-linear regression-based cost model (a * size ^ b + c) */
-} starpu_perfmodel_type;
+};
 
 struct starpu_perfmodel {
 	/* which model is used for that task ? */
-	starpu_perfmodel_type type;
+	enum starpu_perfmodel_type type;
 
 	/* single cost model (STARPU_COMMON), returns expected duration in µs */
 	double (*cost_model)(struct starpu_buffer_descr_t *);
