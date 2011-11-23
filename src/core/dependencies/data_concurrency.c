@@ -226,7 +226,7 @@ unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j)
 	/* Compute an ordered list of the different pieces of data so that we
 	 * grab then according to a total order, thus avoiding a deadlock
 	 * condition */
-	memcpy(j->ordered_buffers, j->task->buffers, cl->nbuffers*sizeof(starpu_buffer_descr));
+	memcpy(j->ordered_buffers, j->task->buffers, cl->nbuffers*sizeof(struct starpu_buffer_descr));
 	_starpu_sort_task_handles(j->ordered_buffers, cl->nbuffers);
 
 	return _submit_job_enforce_data_deps(j, 0);

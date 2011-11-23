@@ -564,7 +564,7 @@ static void _starpu_set_data_requested_flag_if_needed(struct starpu_data_replica
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 {
-	starpu_buffer_descr *descrs = task->buffers;
+	struct starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
@@ -593,7 +593,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 	if (profiling && task->profiling_info)
 		starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
-	starpu_buffer_descr *descrs = task->buffers;
+	struct starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned local_memory_node = _starpu_get_local_memory_node();
@@ -656,7 +656,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 	if (profiling && task->profiling_info)
 		starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
-        starpu_buffer_descr *descrs = task->buffers;
+        struct starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;

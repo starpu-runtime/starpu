@@ -40,10 +40,10 @@ enum starpu_access_mode {
 	STARPU_REDUX=(1<<3)
 };
 
-typedef struct starpu_buffer_descr_t {
+struct starpu_buffer_descr {
 	starpu_data_handle handle;
 	enum starpu_access_mode mode;
-} starpu_buffer_descr;
+};
 
 struct starpu_data_interface_ops;
 

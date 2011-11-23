@@ -36,7 +36,7 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-static double cpu_chol_task_11_cost(starpu_buffer_descr *descr)
+static double cpu_chol_task_11_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -51,7 +51,7 @@ static double cpu_chol_task_11_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_11_cost(starpu_buffer_descr *descr)
+static double cuda_chol_task_11_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -66,7 +66,7 @@ static double cuda_chol_task_11_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_21_cost(starpu_buffer_descr *descr)
+static double cpu_chol_task_21_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -81,7 +81,7 @@ static double cpu_chol_task_21_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_21_cost(starpu_buffer_descr *descr)
+static double cuda_chol_task_21_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -96,7 +96,7 @@ static double cuda_chol_task_21_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_22_cost(starpu_buffer_descr *descr)
+static double cpu_chol_task_22_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -111,7 +111,7 @@ static double cpu_chol_task_22_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_22_cost(starpu_buffer_descr *descr)
+static double cuda_chol_task_22_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 

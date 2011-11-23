@@ -27,7 +27,7 @@
  *	Number of flops of Gemm 
  */
 
-double gemm_cost(starpu_buffer_descr *descr)
+double gemm_cost(struct starpu_buffer_descr *descr)
 {
 	/* C = A * B */
 	uint32_t nxC, nyC, nxA;

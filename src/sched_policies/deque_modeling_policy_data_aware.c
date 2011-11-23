@@ -45,13 +45,13 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 {
 	int cnt = 0;
 
-	starpu_buffer_descr *descrs = task->buffers;
+	struct starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_buffer_descr *descr;
+		struct starpu_buffer_descr *descr;
 		starpu_data_handle handle;
 
 		descr = &descrs[index];

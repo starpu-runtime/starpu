@@ -29,6 +29,6 @@
 /* To avoid deadlocks, we reorder the different buffers accessed to by the task
  * so that we always grab the rw-lock associated to the handles in the same
  * order. */
-void _starpu_sort_task_handles(starpu_buffer_descr descr[], unsigned nbuffers);
+void _starpu_sort_task_handles(struct starpu_buffer_descr descr[], unsigned nbuffers);
 
 #endif // SORT_DATA_HANDLES

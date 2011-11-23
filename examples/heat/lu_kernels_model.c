@@ -42,7 +42,7 @@
  *
  */
 
-double task_11_cost(starpu_buffer_descr *descr)
+double task_11_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -53,7 +53,7 @@ double task_11_cost(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double task_12_cost(starpu_buffer_descr *descr)
+double task_12_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -67,7 +67,7 @@ double task_12_cost(starpu_buffer_descr *descr)
 }
 
 
-double task_21_cost(starpu_buffer_descr *descr)
+double task_21_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -82,7 +82,7 @@ double task_21_cost(starpu_buffer_descr *descr)
 
 
 
-double task_22_cost(starpu_buffer_descr *descr)
+double task_22_cost(struct starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
@@ -102,7 +102,7 @@ double task_22_cost(starpu_buffer_descr *descr)
  */
 
 
-double task_11_cost_cuda(starpu_buffer_descr *descr)
+double task_11_cost_cuda(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -114,7 +114,7 @@ double task_11_cost_cuda(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cuda(starpu_buffer_descr *descr)
+double task_12_cost_cuda(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -127,7 +127,7 @@ double task_12_cost_cuda(starpu_buffer_descr *descr)
 }
 
 
-double task_21_cost_cuda(starpu_buffer_descr *descr)
+double task_21_cost_cuda(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -141,7 +141,7 @@ double task_21_cost_cuda(starpu_buffer_descr *descr)
 
 
 
-double task_22_cost_cuda(starpu_buffer_descr *descr)
+double task_22_cost_cuda(struct starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
@@ -161,7 +161,7 @@ double task_22_cost_cuda(starpu_buffer_descr *descr)
  *
  */
 
-double task_11_cost_cpu(starpu_buffer_descr *descr)
+double task_11_cost_cpu(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -173,7 +173,7 @@ double task_11_cost_cpu(starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cpu(starpu_buffer_descr *descr)
+double task_12_cost_cpu(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -186,7 +186,7 @@ double task_12_cost_cpu(starpu_buffer_descr *descr)
 }
 
 
-double task_21_cost_cpu(starpu_buffer_descr *descr)
+double task_21_cost_cpu(struct starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -200,7 +200,7 @@ double task_21_cost_cpu(starpu_buffer_descr *descr)
 
 
 
-double task_22_cost_cpu(starpu_buffer_descr *descr)
+double task_22_cost_cpu(struct starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 

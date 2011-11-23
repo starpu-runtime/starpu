@@ -88,14 +88,14 @@ static int _starpu_compar_handles(struct starpu_data_state_t *dataA,
 
 static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)
 {
-	const starpu_buffer_descr *descrA = (const starpu_buffer_descr *) _descrA;
-	const starpu_buffer_descr *descrB = (const starpu_buffer_descr *) _descrB;
+	const struct starpu_buffer_descr *descrA = (const struct starpu_buffer_descr *) _descrA;
+	const struct starpu_buffer_descr *descrB = (const struct starpu_buffer_descr *) _descrB;
 
 	return _starpu_compar_handles(descrA->handle, descrB->handle);
 }
 
 /* The descr array will be overwritten, so this must be a copy ! */
-void _starpu_sort_task_handles(starpu_buffer_descr descr[], unsigned nbuffers)
+void _starpu_sort_task_handles(struct starpu_buffer_descr descr[], unsigned nbuffers)
 {
-	qsort(descr, nbuffers, sizeof(starpu_buffer_descr), _starpu_compar_buffer_descr);
+	qsort(descr, nbuffers, sizeof(struct starpu_buffer_descr), _starpu_compar_buffer_descr);
 }

@@ -20,7 +20,7 @@
 
 #include <starpu.h>
 
-double gemm_cost(starpu_buffer_descr *descr);
+double gemm_cost(struct starpu_buffer_descr *descr);
 
 static struct starpu_perfmodel starpu_sgemm_model = {
 	.type = STARPU_HISTORY_BASED,

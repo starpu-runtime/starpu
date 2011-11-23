@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstarpu_buffer_descr\b/struct starpu_buffer_descr/g
 s/\bstarpu_perfmodel_t\b/starpu_perfmodel/g
 s/\bstarpu_tag_t\b/starpu_tag/g
 s/\bstarpu_sched_policy_s\b/starpu_sched_policy/g
