@@ -61,7 +61,8 @@ include_HEADERS = 				\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
-	include/starpu_top.h
+	include/starpu_top.h			\
+	include/starpu_deprecated_api.h
 
 nodist_include_HEADERS = 			\
 	include/starpu_config.h

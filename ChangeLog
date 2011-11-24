@@ -18,26 +18,31 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
-  * Applications can provide several implementations of a codelet for the same
-  architecture.
-  * A new multi-format interface permits to use different binary formats on
-  CPUs & GPUs, the conversion functions being provided by the application and
-  called by StarPU as needed (and as less as possible).
-  * Add a gcc plugin to extend the C interface with pragmas which allow to
-  easily define codelets and issue tasks.
+  * Applications can provide several implementations of a codelet for
+    the same architecture.
+  * A new multi-format interface permits to use different binary
+    formats on CPUs & GPUs, the conversion functions being provided by
+    the application and called by StarPU as needed (and as less as
+    possible).
+  * Add a gcc plugin to extend the C interface with pragmas which
+    allow to easily define codelets and issue tasks.
   * Add codelet execution time statistics plot.
   * Add bus speed in starpu_machine_display.
   * Add a StarPU-Top feedback and steering interface.
   * Documentation improvement.
-  * Add a STARPU_DATA_ACQUIRE_CB which permits to inline the code to be done.
-  * Permit to specify MPI tags for more efficient starpu_mpi_insert_task
+  * Add a STARPU_DATA_ACQUIRE_CB which permits to inline the code to
+    be done.
+  * Permit to specify MPI tags for more efficient
+    starpu_mpi_insert_task
   * Add a communications.
   * Add SOCL, an OpenCL interface on top of StarPU.
   * Add gdb functions.
   * Add complex support to LU example.
   * Add an OpenMP fork-join example.
-  * Some types were renamed for consistency. The tools/dev/rename.sh script
-  can be used to port code using former names.
+  * Some types were renamed for consistency. The tools/dev/rename.sh
+    script can be used to port code using former names. You can also
+    choose to include starpu_deprecated_api.h (after starpu.h) to keep
+    using the old types.
 
 StarPU 0.9 (svn revision 3721)
 ==============================================
