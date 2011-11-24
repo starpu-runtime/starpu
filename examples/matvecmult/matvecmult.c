@@ -115,7 +115,7 @@ int compareL2fe(const float* reference, const float* data, const unsigned int le
 
 int main(int argc, char **argv)
 {
-	starpu_codelet cl = {};
+	struct starpu_codelet cl = {};
 
 	struct starpu_conf conf = {
 		.ncpus = 0,

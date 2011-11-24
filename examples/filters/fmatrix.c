@@ -56,7 +56,7 @@ int main(int argc, char **argv)
         FPRINTF(stderr,"\n");
 
         starpu_data_handle_t handle;
-        starpu_codelet cl = {
+        struct starpu_codelet cl = {
                 .where = STARPU_CPU,
                 .cpu_func = cpu_func,
                 .nbuffers = 1

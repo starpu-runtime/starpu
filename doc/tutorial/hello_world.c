@@ -42,7 +42,7 @@ void cpu_func(void *buffers[], void *cl_arg)
     printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
-starpu_codelet cl =
+struct starpu_codelet cl =
 {
     .where = STARPU_CPU,
     .cpu_func = cpu_func,

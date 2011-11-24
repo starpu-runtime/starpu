@@ -95,7 +95,7 @@ void callback_number_addition_changed(starpu_top_param* param)
 	starpu_top_debug_log(message);
 }
 
-starpu_codelet cl =
+struct starpu_codelet cl =
 {
 	/* this codelet may only be executed on a CPU, and its cpu
  	 * implementation is function "cpu_func" */

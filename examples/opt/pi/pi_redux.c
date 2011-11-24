@@ -183,7 +183,7 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 }
 #endif
 
-static struct starpu_codelet_t pi_cl = {
+static struct starpu_codelet pi_cl = {
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
@@ -216,7 +216,7 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet_t init_codelet = {
+static struct starpu_codelet init_codelet = {
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
@@ -255,7 +255,7 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 	*a = *a + *b;
 };
 
-static struct starpu_codelet_t redux_codelet = {
+static struct starpu_codelet redux_codelet = {
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|

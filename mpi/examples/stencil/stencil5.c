@@ -29,7 +29,7 @@ void stencil5_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         *xy = (*xy + *xm1y + *xp1y + *xym1 + *xyp1) / 5;
 }
 
-starpu_codelet stencil5_cl = {
+struct starpu_codelet stencil5_cl = {
 	.where = STARPU_CPU,
 	.cpu_func = stencil5_cpu,
         .nbuffers = 5

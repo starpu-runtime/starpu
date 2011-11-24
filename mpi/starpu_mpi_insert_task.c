@@ -100,7 +100,7 @@ void _starpu_data_deallocate(starpu_data_handle_t data_handle)
 #endif
 }
 
-int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
+int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
         int arg_type;
         va_list varg_list;

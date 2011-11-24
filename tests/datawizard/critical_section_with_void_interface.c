@@ -32,7 +32,7 @@ static void critical_section(void *descr[], __attribute__ ((unused)) void *_args
 	critical_var++;
 }
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = critical_section,
 	.cuda_func = critical_section,

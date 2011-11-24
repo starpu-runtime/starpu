@@ -181,7 +181,7 @@ static struct starpu_perfmodel starpu_gemm_model = {
 	.symbol = STARPU_GEMM_STR(gemm)
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,

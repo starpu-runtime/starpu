@@ -24,7 +24,7 @@
 
 static struct starpu_task *create_task(starpu_tag_t id)
 {
-	starpu_codelet *cl = calloc(1,sizeof(starpu_codelet));
+	struct starpu_codelet *cl = calloc(1,sizeof(struct starpu_codelet));
 
 	struct starpu_task *task = starpu_task_create();
 		task->cl = cl;

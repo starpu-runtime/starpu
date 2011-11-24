@@ -47,7 +47,7 @@ static struct starpu_perfmodel vector_scal_model = {
 	.symbol = "vector_scale_parallel"
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,

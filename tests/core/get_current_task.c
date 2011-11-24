@@ -37,7 +37,7 @@ static void check_task_callback(void *arg)
 	STARPU_ASSERT(task == starpu_get_current_task());
 }
 
-static struct starpu_codelet_t dummy_cl = {
+static struct starpu_codelet dummy_cl = {
 	.where = STARPU_CUDA|STARPU_CPU,
 	.cuda_func = check_task_func,
 	.cpu_func = check_task_func,

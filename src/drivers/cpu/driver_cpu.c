@@ -31,7 +31,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	struct timespec codelet_start, codelet_end;
 
 	struct starpu_task *task = j->task;
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 
 	STARPU_ASSERT(cl);
 	STARPU_ASSERT(cl->cpu_func);

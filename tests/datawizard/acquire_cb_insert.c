@@ -29,7 +29,7 @@ void which_index_cpu(void *descr[], void *_args)
 	*x0 = X;
 }
 
-starpu_codelet which_index = {
+struct starpu_codelet which_index = {
 	.where = STARPU_CPU,
 	.cpu_func = which_index_cpu,
         .nbuffers = 1
@@ -44,7 +44,7 @@ void work_cpu(void *descr[], void *_args)
 		x0[i] = i + 1;
 }
 
-starpu_codelet work = {
+struct starpu_codelet work = {
 	.where = STARPU_CPU,
 	.cpu_func = work_cpu,
         .nbuffers = 1

@@ -49,14 +49,14 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 @end smallexample
 @end cartouche
 
-The @code{cpu_func} field of the @code{starpu_codelet} structure has to be set
+The @code{cpu_func} field of the @code{struct starpu_codelet} structure has to be set
 to the special value @code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}. Note that
 @code{STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS} and
 @code{STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS} are also available.
 
 @cartouche
 @smallexample
-starpu_codelet cl = @{
+struct starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
     .cpu_funcs = @{ scal_cpu_func, scal_sse_func @},
@@ -181,7 +181,7 @@ Partitioning can be applied several times, see
 To achieve good scheduling, StarPU scheduling policies need to be able to
 estimate in advance the duration of a task. This is done by giving to codelets
 a performance model, by defining a @code{starpu_perfmodel} structure and
-providing its address in the @code{model} field of the @code{starpu_codelet}
+providing its address in the @code{model} field of the @code{struct starpu_codelet}
 structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel}
 are mandatory, to give a name to the model, and the type of the model, since
 there are several kinds of performance models.
@@ -218,7 +218,7 @@ static struct starpu_perfmodel mult_perf_model = @{
     .symbol = "mult_perf_model"
 @};
 
-starpu_codelet cl = @{
+struct starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_func = cpu_mult,
     .nbuffers = 3,
@@ -324,7 +324,7 @@ transfers, which are assumed to be completely overlapped.
 StarPU provides the wrapper function @code{starpu_insert_task} to ease
 the creation and submission of tasks.
 
-@deftypefun int starpu_insert_task (starpu_codelet *@var{cl}, ...)
+@deftypefun int starpu_insert_task (struct starpu_codelet *@var{cl}, ...)
 Create and submit a task corresponding to @var{cl} with the following
 arguments.  The argument list must be zero-terminated.
 
@@ -371,7 +371,7 @@ void func_cpu(void *descr[], void *_args)
         *x1 = *x1 * ffactor;
 @}
 
-starpu_codelet mycodelet = @{
+struct starpu_codelet mycodelet = @{
         .where = STARPU_CPU,
         .cpu_func = func_cpu,
         .nbuffers = 2

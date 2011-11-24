@@ -47,7 +47,7 @@ static struct starpu_perfmodel nl_model = {
 	.symbol = "non_linear_memset_regression_based"
 };
 
-static starpu_codelet memset_cl =
+static struct starpu_codelet memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
@@ -58,7 +58,7 @@ static starpu_codelet memset_cl =
 	.nbuffers = 1
 };
 
-static starpu_codelet nl_memset_cl =
+static struct starpu_codelet nl_memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
@@ -71,7 +71,7 @@ static starpu_codelet nl_memset_cl =
 
 
 
-static void test_memset(int nelems, starpu_codelet *codelet)
+static void test_memset(int nelems, struct starpu_codelet *codelet)
 {
 	int nloops = 100;
 	int loop;

@@ -117,7 +117,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 	task->cl_arg = cmd;
 	task->cl_arg_size = sizeof(cmd);
 
-	starpu_codelet * codelet = cmd->codelet;
+	struct starpu_codelet * codelet = cmd->codelet;
 
 	/* We need to detect which parameters are OpenCL's memory objects and
 	 * we retrieve their corresponding StarPU buffers */

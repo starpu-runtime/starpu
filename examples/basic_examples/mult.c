@@ -251,7 +251,7 @@ static struct starpu_perfmodel mult_perf_model = {
 	.symbol = "mult_perf_model"
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
         /* we can only execute that kernel on a CPU yet */
         .where = STARPU_CPU,
         /* CPU implementation of the codelet */

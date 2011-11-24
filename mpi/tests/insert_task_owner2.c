@@ -38,7 +38,7 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         fprintf(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
 }
 
-starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet = {
 	.where = STARPU_CPU,
 	.cpu_func = func_cpu,
         .nbuffers = 4

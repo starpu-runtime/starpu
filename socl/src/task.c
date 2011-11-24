@@ -126,7 +126,7 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
   free(arg);
 }
 
-static starpu_codelet cputask_codelet = {
+static struct starpu_codelet cputask_codelet = {
    .where = STARPU_CPU,
    .model = NULL,
    .cpu_func = &cputask_task

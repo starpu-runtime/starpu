@@ -77,7 +77,7 @@ static const char task_implementation_wrapper_attribute_name[] =
   ".task_implementation_wrapper";
 
 /* Names of data structures defined in <starpu.h>.  */
-static const char codelet_struct_name[] = "starpu_codelet";
+static const char codelet_struct_name[] = "struct starpu_codelet";
 static const char task_struct_name[] = "starpu_task";
 
 /* Cached function declarations.  */
@@ -712,7 +712,7 @@ handle_task_attribute (tree *node, tree name, tree args,
 		   NULL_TREE,
 		   NULL_TREE);
 
-      /* Push a declaration for the corresponding `starpu_codelet' object and
+      /* Push a declaration for the corresponding `struct starpu_codelet' object and
 	 add it as an attribute of FN.  */
       tree cl = build_codelet_declaration (fn);
       DECL_ATTRIBUTES (fn) =
@@ -860,7 +860,7 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
 }
 
 
-/* Return the declaration of the `starpu_codelet' variable associated with
+/* Return the declaration of the `struct starpu_codelet' variable associated with
    TASK_DECL.  */
 
 static tree
@@ -1258,7 +1258,7 @@ define_codelet_wrappers (tree task)
   for_each (define, task_implementation_list (task));
 }
 
-/* Return a NODE_IDENTIFIER for the variable holding the `starpu_codelet'
+/* Return a NODE_IDENTIFIER for the variable holding the `struct starpu_codelet'
    structure associated with TASK_DECL.  */
 
 static tree
@@ -1289,7 +1289,7 @@ codelet_type (void)
 
   if (type_decl == NULL_TREE)
     {
-      /* Lookup the `starpu_codelet' struct type.  This should succeed since
+      /* Lookup the `struct starpu_codelet' struct type.  This should succeed since
 	 we push <starpu.h> early on.  */
 
       type_decl = lookup_name (get_identifier (codelet_struct_name));
@@ -1299,7 +1299,7 @@ codelet_type (void)
   return TREE_TYPE (type_decl);
 }
 
-/* Return a VAR_DECL that declares a `starpu_codelet' structure for
+/* Return a VAR_DECL that declares a `struct starpu_codelet' structure for
    TASK_DECL.  */
 
 static tree
@@ -1324,7 +1324,7 @@ build_codelet_declaration (tree task_decl)
   return cl_decl;
 }
 
-/* Return a `starpu_codelet' initializer for TASK_DECL.  */
+/* Return a `struct starpu_codelet' initializer for TASK_DECL.  */
 
 static tree
 build_codelet_initializer (tree task_decl)
@@ -1441,14 +1441,14 @@ build_codelet_initializer (tree task_decl)
   return build_constructor_from_unsorted_list (codelet_type (), inits);
 }
 
-/* Return the VAR_DECL that defines a `starpu_codelet' structure for
+/* Return the VAR_DECL that defines a `struct starpu_codelet' structure for
    TASK_DECL.  The VAR_DECL is assumed to already exists, so it must not be
    pushed again.  */
 
 static tree
 declare_codelet (tree task_decl)
 {
-  /* Retrieve the declaration of the `starpu_codelet' object.  */
+  /* Retrieve the declaration of the `struct starpu_codelet' object.  */
   tree cl_decl;
   cl_decl = lookup_name (build_codelet_identifier (task_decl));
   gcc_assert (cl_decl != NULL_TREE && TREE_CODE (cl_decl) == VAR_DECL);
@@ -1625,7 +1625,7 @@ lower_starpu (void)
 
   if (task_p (fndecl))
     {
-      /* Generate a `starpu_codelet' structure and a wrapper function for
+      /* Generate a `struct starpu_codelet' structure and a wrapper function for
 	 each implementation of TASK_DECL.  This cannot be done earlier
 	 because we need to have a complete list of task implementations.  */
 

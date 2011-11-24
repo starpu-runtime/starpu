@@ -69,7 +69,7 @@ uint32_t _starpu_may_submit_opencl_task(void)
 	return (STARPU_OPENCL & config.worker_mask);
 }
 
-static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet_t *cl, unsigned nimpl)
+static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
 	switch(arch) {
 	case STARPU_CPU_WORKER:
@@ -111,7 +111,7 @@ int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_tas
 	/* TODO: call application-provided function for various cases like
 	 * double support, shared memory size limit, etc. */
 
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 	unsigned nworkers = config.topology.nworkers;
 
 	/* Is this a parallel worker ? */

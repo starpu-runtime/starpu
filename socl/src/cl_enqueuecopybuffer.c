@@ -58,7 +58,7 @@ static void soclEnqueueCopyBuffer_cpu_task(void *descr[], void *args) {
    free(arg);
 }
 
-static starpu_codelet codelet_copybuffer = {
+static struct starpu_codelet codelet_copybuffer = {
    .where = STARPU_CPU | STARPU_OPENCL,
    .model = NULL,
    .cpu_func = &soclEnqueueCopyBuffer_cpu_task,

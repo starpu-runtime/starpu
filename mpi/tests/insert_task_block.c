@@ -39,7 +39,7 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         }
 }
 
-starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet = {
 	.where = STARPU_CPU,
 	.cpu_func = func_cpu,
         .nbuffers = 1

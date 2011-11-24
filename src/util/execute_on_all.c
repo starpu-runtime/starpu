@@ -40,7 +40,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
 	/* create a wrapper codelet */
-	struct starpu_codelet_t wrapper_cl = {
+	struct starpu_codelet wrapper_cl = {
 		.where = where,
 		.cuda_func = wrapper_func,
 		.cpu_func = wrapper_func,

@@ -20,6 +20,7 @@
 
 #warning deprecated types. Please update your code to use the latest API.
 
+#define starpu_codelet			struct starpu_codelet
 #define starpu_data_handle		starpu_data_handle_t
 #define starpu_block_interface_t	struct starpu_block_interface
 #define starpu_matrix_interface_t	struct starpu_matrix_interface

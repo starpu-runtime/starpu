@@ -106,8 +106,8 @@ command_ndrange_kernel command_ndrange_kernel_create (
 	nullOrDup(local_work_size, work_dim*sizeof(size_t));
 
    	/* Codelet */
-   	cmd->codelet = (starpu_codelet*)malloc(sizeof(starpu_codelet));
-	starpu_codelet * codelet = cmd->codelet;
+   	cmd->codelet = (struct starpu_codelet*)malloc(sizeof(struct starpu_codelet));
+	struct starpu_codelet * codelet = cmd->codelet;
 	codelet->where = STARPU_OPENCL;
 	codelet->power_model = NULL;
 	codelet->opencl_func = &soclEnqueueNDRangeKernel_task;

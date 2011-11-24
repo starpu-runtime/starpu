@@ -42,7 +42,7 @@ struct starpu_perfmodel model = {
 	.symbol = "parallel_kernel_test_spmd"
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,

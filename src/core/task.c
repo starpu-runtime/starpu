@@ -306,7 +306,7 @@ int starpu_task_submit(struct starpu_task *task)
 	return ret;
 }
 
-void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
+void starpu_display_codelet_stats(struct starpu_codelet *cl)
 {
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();

@@ -371,7 +371,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 
 
-static starpu_codelet spmd_mandelbrot_cl = {
+static struct starpu_codelet spmd_mandelbrot_cl = {
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
@@ -382,7 +382,7 @@ static starpu_codelet spmd_mandelbrot_cl = {
 	.nbuffers = 1
 };
 
-static starpu_codelet mandelbrot_cl = {
+static struct starpu_codelet mandelbrot_cl = {
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SEQ,
 	.cpu_func = compute_block,

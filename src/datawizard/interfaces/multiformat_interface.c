@@ -372,7 +372,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 			double tmp = starpu_timing_now();
 			void *buffers[1];
 			buffers[0] = src_interface;
-			starpu_codelet *cl = src_multiformat->ops->cpu_to_cuda_cl;
+			struct starpu_codelet *cl = src_multiformat->ops->cpu_to_cuda_cl;
 			cl->cpu_func(buffers, NULL);
 			dst_multiformat->conversion_time = starpu_timing_now() - tmp;
 
@@ -390,7 +390,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 				STARPU_CUDA_REPORT_ERROR(status);
 		
 			void *buffers[1];
-			starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
+			struct starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
 			buffers[0] = dst_interface;
 			cl->cpu_func(buffers, NULL);
 							  
@@ -446,7 +446,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 			double tmp = starpu_timing_now();
 			void *buffers[1]; // XXX
 			buffers[0] = src_interface;
-			starpu_codelet *cl = src_multiformat->ops->cpu_to_cuda_cl;
+			struct starpu_codelet *cl = src_multiformat->ops->cpu_to_cuda_cl;
 			cl->cpu_func(buffers, NULL);
 			dst_multiformat->conversion_time = starpu_timing_now() - tmp;
 
@@ -466,7 +466,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 
 			/* Converting data */
 			void *buffers[1];
-			starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
+			struct starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
 			buffers[0] = dst_interface;
 			cl->cpu_func(buffers, NULL);
 
@@ -611,7 +611,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 		double tmp = starpu_timing_now();
 		void *buffers[1];
-		starpu_codelet *cl = src_multiformat->ops->cpu_to_opencl_cl;
+		struct starpu_codelet *cl = src_multiformat->ops->cpu_to_opencl_cl;
 		buffers[0] = src_interface;
 		cl->cpu_func(buffers, NULL);
 		dst_multiformat->conversion_time = starpu_timing_now() - tmp;
@@ -670,7 +670,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	/* XXX So much for asynchronicity */
 	clWaitForEvents(1, _event);
 	void *buffers[1];
-	starpu_codelet *cl = src_multiformat->ops->opencl_to_cpu_cl;
+	struct starpu_codelet *cl = src_multiformat->ops->opencl_to_cpu_cl;
 	buffers[0] = dst_interface;
 	cl->cpu_func(buffers, NULL);
 

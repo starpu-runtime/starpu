@@ -372,7 +372,7 @@ This function allows to specify that a piece of data can be discarded
 without impacting the application.
 @end deftypefun
 
-@deftypefun void starpu_data_set_reduction_methods (starpu_data_handle_t @var{handle}, {struct starpu_codelet_t *}@var{redux_cl}, {struct starpu_codelet_t *}@var{init_cl})
+@deftypefun void starpu_data_set_reduction_methods (starpu_data_handle_t @var{handle}, {struct starpu_codelet *}@var{redux_cl}, {struct starpu_codelet *}@var{init_cl})
 todo
 @end deftypefun
 
@@ -1095,7 +1095,7 @@ with @code{starpu_task_create}.
 
 @table @asis
 @item @code{cl}
-Is a pointer to the corresponding @code{starpu_codelet} data structure. This
+Is a pointer to the corresponding @code{struct starpu_codelet} data structure. This
 describes where the kernel should be executed, and supplies the appropriate
 implementations. When set to @code{NULL}, no code is executed during the tasks,
 such empty tasks can be useful for synchronization purposes.
@@ -1107,7 +1107,7 @@ The @code{struct starpu_buffer_descr} structure is composed of two fields, the
 @code{handle} field specifies the handle of the piece of data, and the
 @code{mode} field is the required access mode (eg @code{STARPU_RW}). The number
 of entries in this array must be specified in the @code{nbuffers} field of the
-@code{starpu_codelet} structure, and should not excede @code{STARPU_NMAXBUFS}.
+@code{struct starpu_codelet} structure, and should not excede @code{STARPU_NMAXBUFS}.
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
@@ -1260,7 +1260,7 @@ NULL if it is called either from a thread that is not a task or simply
 because there is no task being executed at the moment.
 @end deftypefun
 
-@deftypefun void starpu_display_codelet_stats ({struct starpu_codelet_t} *@var{cl})
+@deftypefun void starpu_display_codelet_stats ({struct starpu_codelet} *@var{cl})
 Output on @code{stderr} some statistics on the codelet @var{cl}.
 @end deftypefun
 
@@ -1709,7 +1709,7 @@ executed by every StarPU worker that may execute the function.
 The second argument is passed to the offloaded function.
 The last argument specifies on which types of processing units the function
 should be executed. Similarly to the @var{where} field of the
-@code{starpu_codelet} structure, it is possible to specify that the function
+@code{struct starpu_codelet} structure, it is possible to specify that the function
 should be executed on every CUDA device and every CPU by passing
 @code{STARPU_CPU|STARPU_CUDA}.
 This function blocks until the function has been executed on every appropriate

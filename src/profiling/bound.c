@@ -47,7 +47,7 @@
  */
 struct bound_task_pool {
 	/* Which codelet has been executed */
-	struct starpu_codelet_t *cl;
+	struct starpu_codelet *cl;
 	/* Task footprint key */
 	uint32_t footprint;
 	/* Number of tasks of this kind */
@@ -84,7 +84,7 @@ struct bound_task {
 	starpu_tag_t tag_id;
 	int use_tag;
 	/* Which codelet has been executed */
-	struct starpu_codelet_t *cl;
+	struct starpu_codelet *cl;
 	/* Task footprint key */
 	uint32_t footprint;
 	/* Task priority */

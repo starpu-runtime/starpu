@@ -87,7 +87,7 @@ static struct starpu_data_filter vector_f = {
 	.nchildren = -1,
 };
 
-static starpu_codelet spmv_cl = {
+static struct starpu_codelet spmv_cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = spmv_kernel_cpu,
 #ifdef STARPU_USE_CUDA

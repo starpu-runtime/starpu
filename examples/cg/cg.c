@@ -84,10 +84,10 @@ static TYPE *r, *d, *q;
 static starpu_data_handle_t dtq_handle, rtr_handle;
 static TYPE dtq, rtr;
 
-extern starpu_codelet accumulate_variable_cl;
-extern starpu_codelet accumulate_vector_cl;
-extern starpu_codelet bzero_variable_cl;
-extern starpu_codelet bzero_vector_cl;
+extern struct starpu_codelet accumulate_variable_cl;
+extern struct starpu_codelet accumulate_vector_cl;
+extern struct starpu_codelet bzero_variable_cl;
+extern struct starpu_codelet bzero_vector_cl;
 
 /*
  *	Generate Input data

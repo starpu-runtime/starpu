@@ -61,7 +61,7 @@ int main(int argc, char **argv)
         starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
 #endif
 
-	starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 		.cpu_func = cpu_codelet,

@@ -558,7 +558,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	struct timespec codelet_start, codelet_end;
 
 	STARPU_ASSERT(task);
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
 	ret = _starpu_fetch_task_input(task, mask);

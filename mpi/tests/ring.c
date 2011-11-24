@@ -32,7 +32,7 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	(*tokenptr)++;
 }
 
-static starpu_codelet increment_cl = {
+static struct starpu_codelet increment_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda,

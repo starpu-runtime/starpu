@@ -35,7 +35,7 @@ static void task(void **buffers, void *args)
 	}
 }
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU,
 	.cpu_func = task,
 	.nbuffers = 1

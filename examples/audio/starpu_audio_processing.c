@@ -273,7 +273,7 @@ struct starpu_perfmodel band_filter_model = {
 	.symbol = "FFT_band_filter"
 };
 
-static starpu_codelet band_filter_cl = {
+static struct starpu_codelet band_filter_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = band_filter_kernel_gpu,

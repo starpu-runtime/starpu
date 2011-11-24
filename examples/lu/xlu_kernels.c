@@ -103,7 +103,7 @@ static struct starpu_perfmodel STARPU_LU(model_22) = {
 #endif
 };
 
-starpu_codelet cl22 = {
+struct starpu_codelet cl22 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u22),
 #ifdef STARPU_USE_CUDA
@@ -186,7 +186,7 @@ static struct starpu_perfmodel STARPU_LU(model_12) = {
 #endif
 };
 
-starpu_codelet cl12 = {
+struct starpu_codelet cl12 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u12),
 #ifdef STARPU_USE_CUDA
@@ -266,7 +266,7 @@ static struct starpu_perfmodel STARPU_LU(model_21) = {
 #endif
 };
 
-starpu_codelet cl21 = {
+struct starpu_codelet cl21 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u21),
 #ifdef STARPU_USE_CUDA
@@ -361,7 +361,7 @@ static struct starpu_perfmodel STARPU_LU(model_11) = {
 #endif
 };
 
-starpu_codelet cl11 = {
+struct starpu_codelet cl11 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u11),
 #ifdef STARPU_USE_CUDA
@@ -497,7 +497,7 @@ static struct starpu_perfmodel STARPU_LU(model_11_pivot) = {
 #endif
 };
 
-starpu_codelet cl11_pivot = {
+struct starpu_codelet cl11_pivot = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u11_pivot),
 #ifdef STARPU_USE_CUDA
@@ -582,7 +582,7 @@ static struct starpu_perfmodel STARPU_LU(model_pivot) = {
 #endif
 };
 
-starpu_codelet cl_pivot = {
+struct starpu_codelet cl_pivot = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_pivot),
 #ifdef STARPU_USE_CUDA

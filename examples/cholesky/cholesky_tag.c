@@ -36,7 +36,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
  *	Create the codelets
  */
 
-static starpu_codelet cl11 =
+static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u11,
@@ -71,7 +71,7 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 	return task;
 }
 
-static starpu_codelet cl21 =
+static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u21,
@@ -114,7 +114,7 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 
 }
 
-static starpu_codelet cl22 =
+static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u22,

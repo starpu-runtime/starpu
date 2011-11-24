@@ -72,7 +72,7 @@ the @code{starpu_get_current_task()} function.
 @node Codelet feedback
 @subsection Per-codelet feedback
 
-The @code{per_worker_stats} field of the @code{starpu_codelet_t} structure is
+The @code{per_worker_stats} field of the @code{struct starpu_codelet} structure is
 an array of counters. The i-th entry of the array is incremented every time a
 task implementing the codelet is executed on the i-th worker.
 This array is not reinitialized when profiling is enabled or disabled.

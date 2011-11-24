@@ -120,9 +120,9 @@ extern int starpu_mpi_initialize(void);
 extern int starpu_mpi_shutdown(void);
 
 /* kernels */
-extern starpu_codelet cl_update;
-extern starpu_codelet save_cl_bottom;
-extern starpu_codelet save_cl_top;
+extern struct starpu_codelet cl_update;
+extern struct starpu_codelet save_cl_bottom;
+extern struct starpu_codelet save_cl_top;
 
 extern unsigned update_per_worker[STARPU_NMAXWORKERS];
 extern unsigned top_per_worker[STARPU_NMAXWORKERS];

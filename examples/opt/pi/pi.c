@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 		.symbol = "monte_carlo_pi"
 	};
 
-	struct starpu_codelet_t cl = {
+	struct starpu_codelet cl = {
 		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_func = cpu_kernel,
 #ifdef STARPU_USE_CUDA

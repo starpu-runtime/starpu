@@ -42,14 +42,14 @@ void cuda_to_cpu(void *buffers[], void *arg)
 }
 
 extern void cpu_to_cuda_cuda_func(void *buffers[], void *args);
-starpu_codelet cpu_to_cuda_cl = {
+struct starpu_codelet cpu_to_cuda_cl = {
 	.where = STARPU_CUDA,
 	.cpu_func = cpu_to_cuda,
 	.cuda_func = cpu_to_cuda_cuda_func,
 	.nbuffers = 1
 };
 
-starpu_codelet cuda_to_cpu_cl = {
+struct starpu_codelet cuda_to_cpu_cl = {
 	.where = STARPU_CPU,
 	.cpu_func = cuda_to_cpu,
 	.nbuffers = 1
@@ -84,14 +84,14 @@ void opencl_to_cpu(void *buffers[], void *arg)
 }
 
 extern void cpu_to_opencl_opencl_func(void *buffers[], void *args);
-starpu_codelet cpu_to_opencl_cl = {
+struct starpu_codelet cpu_to_opencl_cl = {
 	.where = STARPU_OPENCL,
 	.cpu_func = cpu_to_opencl,
 	.opencl_func = cpu_to_opencl_opencl_func,
 	.nbuffers = 1
 };
 
-starpu_codelet opencl_to_cpu_cl = {
+struct starpu_codelet opencl_to_cpu_cl = {
 	.where = STARPU_CPU,
 	.cpu_func = opencl_to_cpu,
 	.nbuffers = 1

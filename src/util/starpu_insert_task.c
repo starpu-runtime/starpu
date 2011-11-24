@@ -62,7 +62,7 @@ void starpu_unpack_cl_args(void *_cl_arg, ...)
 	va_end(varg_list);
 }
 
-int starpu_insert_task(starpu_codelet *cl, ...)
+int starpu_insert_task(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
 

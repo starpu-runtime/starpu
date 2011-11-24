@@ -40,7 +40,7 @@ int starpu_mpi_initialize(void);
 int starpu_mpi_initialize_extended(int *rank, int *world_size);
 int starpu_mpi_shutdown(void);
 
-int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...);
+int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node);
 
 int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm);

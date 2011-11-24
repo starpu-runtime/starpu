@@ -83,7 +83,7 @@ int main(int argc, char **argv)
         }
 
 	starpu_data_handle_t handle;
-	starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
                 .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
                 .cpu_func = cpu_func,

@@ -24,7 +24,7 @@
  *	Create the codelets
  */
 
-static starpu_codelet cl11 =
+static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u11,
@@ -35,7 +35,7 @@ static starpu_codelet cl11 =
 	.model = &chol_model_11
 };
 
-static starpu_codelet cl21 =
+static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u21,
@@ -46,7 +46,7 @@ static starpu_codelet cl21 =
 	.model = &chol_model_21
 };
 
-static starpu_codelet cl22 =
+static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u22,

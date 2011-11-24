@@ -28,7 +28,7 @@
 void _starpu_driver_start_job(struct starpu_worker_s *args, starpu_job_t j, struct timespec *codelet_start, int rank)
 {
 	struct starpu_task *task = j->task;
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 	struct starpu_task_profiling_info *profiling_info;
 	int profiling = starpu_profiling_status_get();
 	int starpu_top=starpu_top_status_get();
@@ -62,7 +62,7 @@ void _starpu_driver_start_job(struct starpu_worker_s *args, starpu_job_t j, stru
 void _starpu_driver_end_job(struct starpu_worker_s *args, starpu_job_t j, struct timespec *codelet_end, int rank)
 {
 	struct starpu_task *task = j->task;
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 	struct starpu_task_profiling_info *profiling_info = task->profiling_info;
 	int profiling = starpu_profiling_status_get();
 	int starpu_top=starpu_top_status_get();
@@ -93,7 +93,7 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 	struct timespec measured_ts;
 	double measured;
 	int workerid = worker_args->workerid;
-	struct starpu_codelet_t *cl = j->task->cl;
+	struct starpu_codelet *cl = j->task->cl;
 	int calibrate_model = 0;
 	int profiling = starpu_profiling_status_get();
 	int updated = 0;

@@ -52,7 +52,7 @@ static void cuda_task(void **buffers, void *args)
 }
 #endif
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA,
 	.cpu_func = cpu_task,
 #ifdef STARPU_USE_CUDA

@@ -241,7 +241,7 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 #define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
 
 /* Wrapper to create a task. */
-int starpu_insert_task(starpu_codelet *cl, ...);
+int starpu_insert_task(struct starpu_codelet *cl, ...);
 
 /* Retrieve the arguments of type STARPU_VALUE associated to a task
  * automatically created using starpu_insert_task. */

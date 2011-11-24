@@ -314,7 +314,7 @@ static struct starpu_perfmodel STARPUFFT(twist3_1d_model) = {
 };
 
 /* codelet pointers for the 5 kinds of tasks */
-static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
+static struct starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 	.where =
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -328,7 +328,7 @@ static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 	.nbuffers = 2
 };
 
-static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
+static struct starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 	.where =
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -347,14 +347,14 @@ static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 	.nbuffers = 3
 };
 
-static starpu_codelet STARPUFFT(twist2_1d_codelet) = {
+static struct starpu_codelet STARPUFFT(twist2_1d_codelet) = {
 	.where = STARPU_CPU,
 	.cpu_func = STARPUFFT(twist2_1d_kernel_cpu),
 	.model = &STARPUFFT(twist2_1d_model),
 	.nbuffers = 1
 };
 
-static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
+static struct starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 	.where =
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -373,7 +373,7 @@ static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 	.nbuffers = 2
 };
 
-static starpu_codelet STARPUFFT(twist3_1d_codelet) = {
+static struct starpu_codelet STARPUFFT(twist3_1d_codelet) = {
 	.where = STARPU_CPU,
 	.cpu_func = STARPUFFT(twist3_1d_kernel_cpu),
 	.model = &STARPUFFT(twist3_1d_model),

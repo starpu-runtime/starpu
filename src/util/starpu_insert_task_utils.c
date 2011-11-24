@@ -150,7 +150,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {
+int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {
         int arg_type;
 	unsigned current_buffer = 0;
 

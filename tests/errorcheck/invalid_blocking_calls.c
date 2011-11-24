@@ -38,7 +38,7 @@ static void wrong_func(void *descr[], void *arg)
 		exit(-1);
 }
 
-static starpu_codelet wrong_codelet =
+static struct starpu_codelet wrong_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = wrong_func,

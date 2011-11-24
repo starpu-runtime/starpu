@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	 * worker. */
 	usleep(500000);
 
-	starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 		.cpu_func = sleep_codelet,

@@ -38,7 +38,7 @@ static struct starpu_perfmodel vector_scal_model = {
 	.symbol = "vector_scale_model"
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
   .where = STARPU_CPU | STARPU_CUDA,
 	/* CPU implementation of the codelet */
 	.cpu_func = scal_cpu_func,

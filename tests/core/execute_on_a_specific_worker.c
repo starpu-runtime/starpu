@@ -74,7 +74,7 @@ static enum starpu_access_mode select_random_mode(void)
 }
 
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = codelet_null,
 	.cuda_func = codelet_null,

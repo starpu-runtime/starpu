@@ -28,7 +28,7 @@ static void dummy_func(void *descr[], void *arg)
 {
 }
 
-static starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet = 
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 	.cpu_func = dummy_func,

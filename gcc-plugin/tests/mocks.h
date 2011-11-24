@@ -54,7 +54,7 @@ struct insert_task_argument
 const struct insert_task_argument *expected_insert_task_arguments;
 
 int
-starpu_insert_task (starpu_codelet *cl, ...)
+starpu_insert_task (struct starpu_codelet *cl, ...)
 {
   assert (cl->where == (STARPU_CPU | STARPU_OPENCL));
 

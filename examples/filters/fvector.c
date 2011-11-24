@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         starpu_data_handle_t handle;
         int factor=1;
 
-        starpu_codelet cl = {
+        struct starpu_codelet cl = {
                 .where = STARPU_CPU,
                 .cpu_func = cpu_func,
                 .nbuffers = 1

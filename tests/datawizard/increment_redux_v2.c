@@ -109,7 +109,7 @@ static void neutral_cpu_kernel(void *descr[], void *arg)
 	*dst = 0;
 }
 
-static starpu_codelet redux_cl = {
+static struct starpu_codelet redux_cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = redux_cuda_kernel,
@@ -121,7 +121,7 @@ static starpu_codelet redux_cl = {
 	.nbuffers = 2
 };
 
-static starpu_codelet neutral_cl = {
+static struct starpu_codelet neutral_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = neutral_cuda_kernel,
@@ -177,7 +177,7 @@ static void increment_cpu_kernel(void *descr[], void *arg)
 	*tokenptr = *tokenptr + 1;
 }
 
-static starpu_codelet increment_cl = {
+static struct starpu_codelet increment_cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda_kernel,

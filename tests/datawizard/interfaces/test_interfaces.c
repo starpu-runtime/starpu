@@ -266,7 +266,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	}
 
 	int workerid;
-	static struct starpu_codelet_t cl;
+	static struct starpu_codelet cl;
 	cl.nbuffers = 1;
 
 	switch (type)

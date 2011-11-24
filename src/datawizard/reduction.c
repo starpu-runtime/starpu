@@ -21,8 +21,8 @@
 #include <datawizard/datawizard.h>
 
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
-					struct starpu_codelet_t *redux_cl,
-					struct starpu_codelet_t *init_cl)
+					struct starpu_codelet *redux_cl,
+					struct starpu_codelet *init_cl)
 {
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -46,7 +46,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starp
 	STARPU_ASSERT(replicate);
 	STARPU_ASSERT(replicate->allocated);
 
-	struct starpu_codelet_t *init_cl = handle->init_cl;
+	struct starpu_codelet *init_cl = handle->init_cl;
 	STARPU_ASSERT(init_cl);
 
 	cl_func init_func = NULL;

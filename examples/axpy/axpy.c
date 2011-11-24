@@ -70,7 +70,7 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 }
 #endif
 
-static starpu_codelet axpy_cl = {
+static struct starpu_codelet axpy_cl = {
         .where =
 #ifdef STARPU_USE_CUDA
                 STARPU_CUDA|

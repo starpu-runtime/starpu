@@ -74,7 +74,7 @@ typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
  * A codelet describes the various function 
  * that may be called from a worker
  */
-typedef struct starpu_codelet_t {
+struct starpu_codelet {
 	/* where can it be performed ? */
 	uint32_t where;
 	unsigned type;
@@ -107,10 +107,10 @@ typedef struct starpu_codelet_t {
 	 * not be accessed directly (use the starpu_display_codelet_stats
 	 * function instead for instance). */
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
-} starpu_codelet;
+};
 
 struct starpu_task {
-	struct starpu_codelet_t *cl;
+	struct starpu_codelet *cl;
 
 	/* arguments managed by the DSM */
 	struct starpu_buffer_descr buffers[STARPU_NMAXBUFS];
@@ -284,7 +284,7 @@ int starpu_task_wait_for_all(void);
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);
 
-void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
+void starpu_display_codelet_stats(struct starpu_codelet *cl);
 
 /* Return the task currently executed by the worker, or NULL if this is called
  * either from a thread that is not a task or simply because there is no task

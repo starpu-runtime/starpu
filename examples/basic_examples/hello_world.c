@@ -57,7 +57,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
-starpu_codelet cl = {};
+struct starpu_codelet cl = {};
 
 int main(int argc, char **argv)
 {

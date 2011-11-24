@@ -85,7 +85,7 @@ static void starpu_to_gordon_buffers(starpu_job_t j, struct gordon_ppu_job_s *go
 	unsigned in = 0, inout = 0, out = 0;
 
 	struct starpu_task *task = j->task;
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 
 	/* if it is non null, the argument buffer is considered
  	 * as the first read-only buffer */

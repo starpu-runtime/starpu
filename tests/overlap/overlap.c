@@ -59,7 +59,7 @@ static struct starpu_perfmodel model = {
 	.symbol = NULL /* to be defined later */
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = codelet_sleep,
 	.cuda_func = codelet_sleep,

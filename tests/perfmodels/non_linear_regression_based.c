@@ -41,7 +41,7 @@ static struct starpu_perfmodel model = {
 	.symbol = "non_linear_memset_regression_based"
 };
 
-static starpu_codelet memset_cl =
+static struct starpu_codelet memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA

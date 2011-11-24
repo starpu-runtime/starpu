@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		for (ind = 0; ind < N; ind++)
 		{
 			/* increment a = v[0] */
-			starpu_codelet cl_inc_a = {
+			struct starpu_codelet cl_inc_a = {
 				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 				.cpu_func = cpu_codelet_incA,
 #ifdef STARPU_USE_CUDA
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 		for (ind = 0; ind < N; ind++)
 		{
 			/* increment c = v[2] */
-			starpu_codelet cl_inc_c = {
+			struct starpu_codelet cl_inc_c = {
 				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 				.cpu_func = cpu_codelet_incC,
 #ifdef STARPU_USE_CUDA

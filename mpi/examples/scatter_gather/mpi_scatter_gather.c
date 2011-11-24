@@ -45,7 +45,7 @@ void cpu_codelet(void *descr[], void *_args)
 	}
 }
 
-static starpu_codelet cl =
+static struct starpu_codelet cl =
 {
 	.where = STARPU_CPU,
 	.cpu_func = cpu_codelet,

@@ -54,7 +54,7 @@ struct starpu_perfmodel copy_model = {
 	.symbol = "starpu_data_cpy"
 };
 
-static starpu_codelet copy_cl = {
+static struct starpu_codelet copy_cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = data_cpy_func,
 	.cuda_func = data_cpy_func,

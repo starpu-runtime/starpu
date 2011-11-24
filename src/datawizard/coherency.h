@@ -184,8 +184,8 @@ struct _starpu_data_state {
 	 * the reduction of an interface into another one (eg. "+="), and init_func
 	 * initializes the data interface to a default value that is stable by
 	 * reduction (eg. 0 for +=). */
-	struct starpu_codelet_t *redux_cl;
-	struct starpu_codelet_t *init_cl;
+	struct starpu_codelet *redux_cl;
+	struct starpu_codelet *init_cl;
 
 	/* Are we currently performing a reduction on that handle ? If so the
 	 * reduction_refcnt should be non null until there are pending tasks

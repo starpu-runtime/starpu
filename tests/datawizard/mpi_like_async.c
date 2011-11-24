@@ -68,7 +68,7 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 //	FPRINTF(stderr, "VAL %d (&val = %p)\n", *val, val);
 }
 
-static starpu_codelet increment_handle_cl = {
+static struct starpu_codelet increment_handle_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = increment_handle_cpu_kernel,
 #ifdef STARPU_USE_CUDA

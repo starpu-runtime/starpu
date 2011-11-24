@@ -218,7 +218,7 @@ static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buf
    reading and another writing) */
 unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j)
 {
-	struct starpu_codelet_t *cl = j->task->cl;
+	struct starpu_codelet *cl = j->task->cl;
 
 	if ((cl == NULL) || (cl->nbuffers == 0))
 		return 0;

@@ -29,7 +29,7 @@ void func_cpu(void *descr[], void *_args)
         *x1 = *x1 * ffactor;
 }
 
-starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet = {
 	.where = STARPU_CPU,
 	.cpu_func = func_cpu,
         .nbuffers = 2

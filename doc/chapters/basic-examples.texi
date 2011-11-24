@@ -80,7 +80,7 @@ void cpu_func(void *buffers[], void *cl_arg)
     printf("Hello world (params = @{%i, %f@} )\n", params->i, params->f);
 @}
 
-starpu_codelet cl =
+struct starpu_codelet cl =
 @{
     .where = STARPU_CPU,
     .cpu_func = cpu_func,
@@ -316,7 +316,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
         val[i] *= *factor;
 @}
 
-starpu_codelet cl = @{
+struct starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_func = scal_cpu_func,
     .nbuffers = 1
@@ -492,7 +492,7 @@ extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
-static starpu_codelet cl = @{
+static struct starpu_codelet cl = @{
     .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU,} */
                                      /* @b{on a CUDA device, or on an OpenCL device} */
     .cuda_func = scal_cuda_func,

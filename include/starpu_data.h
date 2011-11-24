@@ -105,11 +105,11 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 /* Query the status of the handle on the specified memory node. */
 void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 
-struct starpu_codelet_t;
+struct starpu_codelet;
 
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
-					struct starpu_codelet_t *redux_cl,
-					struct starpu_codelet_t *init_cl);
+					struct starpu_codelet *redux_cl,
+					struct starpu_codelet *init_cl);
 
 int starpu_data_set_rank(starpu_data_handle_t handle, int rank);
 int starpu_data_get_rank(starpu_data_handle_t handle);
