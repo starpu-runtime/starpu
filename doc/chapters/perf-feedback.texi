@@ -165,7 +165,7 @@ starpu_top_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
 @code{modif_hook} is a function which will be called when the parameter is being modified, it can for instance print the new value:
 
 @example
-void modif_hook(struct starpu_top_param_t *d) @{
+void modif_hook(struct starpu_top_param *d) @{
     fprintf(stderr,"%s has been modified: %f\n", d->name, alpha);
 @}
 @end example

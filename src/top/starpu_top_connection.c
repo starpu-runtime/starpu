@@ -40,7 +40,7 @@
 const char *STARPU_TOP_PORT = "2011";
 const int STARPU_TOP_BUFFER_SIZE=1024;
 
-extern starpu_top_message_queue_t*  starpu_top_mt;
+extern struct starpu_top_message_queue*  starpu_top_mt;
 
 //client socket after fopen
 FILE* starpu_top_socket_fd_read;
@@ -104,17 +104,17 @@ void starpu_top_communications_threads_launcher()
 	pthread_t to_ui;
 	pthread_attr_t threads_attr;
 
-  
+
 	//Connection to UI & Socket Initilization
 	printf("%s:%d Connection to UI initilization\n",__FILE__, __LINE__);
 	struct sockaddr_storage from;
 	struct addrinfo req, *ans;
 	int code;
 	req.ai_flags = AI_PASSIVE;
-	req.ai_family = PF_UNSPEC;            
+	req.ai_family = PF_UNSPEC;
 	req.ai_socktype = SOCK_STREAM;
-	req.ai_protocol = 0;  
-  
+	req.ai_protocol = 0;
+
 	if ((code = getaddrinfo(NULL, STARPU_TOP_PORT, &req, &ans)) != 0)
 	{
 		fprintf(stderr, " getaddrinfo failed %d\n", code);
@@ -140,7 +140,7 @@ void starpu_top_communications_threads_launcher()
 		perror("accept");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	if ( (starpu_top_socket_fd_read=fdopen(starpu_top_socket_fd, "r")) == NULL)
 	{
 		perror("fdopen");
@@ -148,20 +148,20 @@ void starpu_top_communications_threads_launcher()
 	}
 
 	starpu_top_socket_fd=dup(starpu_top_socket_fd);
-	
+
 	if ((starpu_top_socket_fd_write=fdopen(starpu_top_socket_fd, "w")) == NULL)
 	{
 		perror("fdopen");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	close(sock);
-	
+
 	//Threads creation
 	fprintf(stderr,"Threads Creation\n");
 	pthread_attr_init(&threads_attr);
 	pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
-	
+
 	pthread_create(&from_ui, &threads_attr, message_from_ui, NULL);
 	pthread_create(&to_ui, &threads_attr, message_to_ui, NULL);
 }

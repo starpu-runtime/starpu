@@ -37,8 +37,8 @@ static unsigned sizez = 64*SIZE;
 unsigned nbz = 64;
 
 /* StarPU top variables */
-starpu_top_data* starpu_top_init_loop;
-starpu_top_data* starpu_top_achieved_loop;
+struct starpu_top_data* starpu_top_init_loop;
+struct starpu_top_data* starpu_top_achieved_loop;
 
 /*
  *	Initialization

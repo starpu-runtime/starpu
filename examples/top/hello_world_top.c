@@ -80,14 +80,14 @@ void cpu_func(void *buffers[], void *cl_arg)
 			sum);
 }
 
-void callback_name_changed(starpu_top_param* param)
+void callback_name_changed(struct starpu_top_param* param)
 {
 	char* message = (char *) malloc(256);
 	sprintf(message, "Name have been changed to %s", names[name_selected]);
 	starpu_top_debug_log(message);
 }
 
-void callback_number_addition_changed(starpu_top_param* param)
+void callback_number_addition_changed(struct starpu_top_param* param)
 {
 	char* message = (char *) malloc(256);
 	sprintf(message, "Number of addition is now %d", number_of_addition);
@@ -116,30 +116,30 @@ int main(int argc, char **argv)
 
 
 	/*init starpu_top*/
-	starpu_top_data * loop_count =
-			starpu_top_add_data_integer("Loop count", 0,124,1);
-	starpu_top_data * remain_count =
-			starpu_top_add_data_integer("Remaining loop", 0,124,1);
-	starpu_top_data * midle_reach =
-			starpu_top_add_data_boolean("Midle reached", 1);
-	starpu_top_param* name =
-			starpu_top_register_parameter_enum("Your name : ",
-											&name_selected,
-											names,
-											names_len,
-											callback_name_changed);
-	starpu_top_param * number_of_addition_param =
-			starpu_top_register_parameter_integer("Number of Millions of addition",
-							     &number_of_addition,
-							     0,
-							     50,
-							     callback_number_addition_changed);
+	struct starpu_top_data * loop_count =
+		starpu_top_add_data_integer("Loop count", 0,124,1);
+	struct starpu_top_data * remain_count =
+		starpu_top_add_data_integer("Remaining loop", 0,124,1);
+	struct starpu_top_data * midle_reach =
+		starpu_top_add_data_boolean("Midle reached", 1);
+	struct starpu_top_param* name =
+		starpu_top_register_parameter_enum("Your name : ",
+						   &name_selected,
+						   names,
+						   names_len,
+						   callback_name_changed);
+	struct starpu_top_param * number_of_addition_param =
+		starpu_top_register_parameter_integer("Number of Millions of addition",
+						      &number_of_addition,
+						      0,
+						      50,
+						      callback_number_addition_changed);
 	STARPU_ASSERT(number_of_addition_param != NULL);
 
-	starpu_top_param * stop5_param =
-			starpu_top_register_parameter_boolean("Stop after 5 task ?",
-							     &stop_after_5_task,
-							     NULL);
+	struct starpu_top_param * stop5_param =
+		starpu_top_register_parameter_boolean("Stop after 5 task ?",
+						      &stop_after_5_task,
+						      NULL);
 	STARPU_ASSERT(stop5_param != NULL);
 
 

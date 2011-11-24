@@ -27,15 +27,15 @@
 #include <pthread.h>
 #include <common/timing.h>
 
-extern starpu_top_message_queue_t*  starpu_top_mt;
+extern struct starpu_top_message_queue*  starpu_top_mt;
 int starpu_top = 0;
 int starpu_top_debug_on = 0;
 unsigned int starpu_top_data_cpt = 0;
 unsigned int starpu_top_param_cpt = 0;
-starpu_top_data* starpu_top_first_data = NULL;
-starpu_top_param* starpu_top_first_param = NULL;
-starpu_top_data** starpu_top_datas;
-starpu_top_param** starpu_top_params;
+struct starpu_top_data* starpu_top_first_data = NULL;
+struct starpu_top_param* starpu_top_first_param = NULL;
+struct starpu_top_data** starpu_top_datas;
+struct starpu_top_param** starpu_top_params;
 
 sem_t starpu_top_wait_for_go;
 pthread_mutex_t starpu_top_wait_for_continue_mutex;
@@ -53,8 +53,8 @@ unsigned long long int current_timestamp();
 *****************INIT FUNC********************
 **********************************************/
 
-char *message_for_topdata_init(starpu_top_data* data);
-char *message_for_topparam_init(starpu_top_param* param);
+char *message_for_topdata_init(struct starpu_top_data* data);
+char *message_for_topparam_init(struct starpu_top_param* param);
 
 /*
  * we store data and param in a tab to offer a O(1) access when the program  is
@@ -64,8 +64,8 @@ void copy_data_and_param()
 {
 	printf("%s:%d trace\n", __FILE__, __LINE__);
 	//copying datas
-	starpu_top_datas = (starpu_top_data **) malloc(starpu_top_data_cpt*sizeof(starpu_top_data*));
-	starpu_top_data* cur = starpu_top_first_data;
+	starpu_top_datas = (struct starpu_top_data **) malloc(starpu_top_data_cpt*sizeof(struct starpu_top_data*));
+	struct starpu_top_data* cur = starpu_top_first_data;
 	unsigned int i = 0;
 	for(i = 0; i < starpu_top_data_cpt; i++)
 	{
@@ -73,8 +73,8 @@ void copy_data_and_param()
 		cur = cur->next;
 	}
 	//copying params
-	starpu_top_params = (starpu_top_param **) malloc(starpu_top_param_cpt*sizeof(starpu_top_param*));
-	starpu_top_param* cur2 = starpu_top_first_param;
+	starpu_top_params = (struct starpu_top_param **) malloc(starpu_top_param_cpt*sizeof(struct starpu_top_param*));
+	struct starpu_top_param* cur2 = starpu_top_first_param;
 	for(i = 0; i < starpu_top_param_cpt; i++)
 	{
 		starpu_top_params[i] = cur2;
@@ -98,7 +98,7 @@ static void starpu_top_get_device_type(int id, char* type){
 	case STARPU_GORDON_WORKER:
 		strncpy(type, "GORDON",9);
 		break;
-	}  
+	}
 }
 
 static void starpu_top_send_devices_info()
@@ -116,21 +116,21 @@ static void starpu_top_send_devices_info()
 		starpu_top_get_device_type(i,dev_type);
 		starpu_worker_get_name(i, dev_name,64);
 		snprintf(message, 128, "%u;%s;%s\n", i, dev_type, dev_name);
-		starpu_top_message_add(starpu_top_mt,message);    
+		starpu_top_message_add(starpu_top_mt,message);
 	}
 
-	message=(char*)malloc(6*sizeof(char));                             
-	snprintf(message,6,"/DEV\n");                
-	starpu_top_message_add(starpu_top_mt,message);  
+	message=(char*)malloc(6*sizeof(char));
+	snprintf(message,6,"/DEV\n");
+	starpu_top_message_add(starpu_top_mt,message);
 }
 
 
 void starpu_top_init_and_wait(const char* server_name){
 	starpu_top=1;
 	sem_init(&starpu_top_wait_for_go,0,0);
-	
+
 	pthread_mutex_init(&starpu_top_wait_for_continue_mutex, NULL);
-	
+
 	//profiling activation
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
@@ -144,7 +144,7 @@ void starpu_top_init_and_wait(const char* server_name){
 
 	//sending server information (report to protocol)
 	char* message = (char *) malloc(strlen("SERVERINFO\n")+1);
-	sprintf(message, "%s", "SERVERINFO\n");  
+	sprintf(message, "%s", "SERVERINFO\n");
 	starpu_top_message_add(starpu_top_mt,message);
 	message = (char *) malloc(strlen(server_name)+2);
 	sprintf(message, "%s\n", server_name);
@@ -161,7 +161,7 @@ void starpu_top_init_and_wait(const char* server_name){
 	message = (char *) malloc(strlen("DATA\n")+1);
 	sprintf(message, "%s", "DATA\n");
 	starpu_top_message_add(starpu_top_mt,message);
-	starpu_top_data * cur_data = starpu_top_first_data;
+	struct starpu_top_data * cur_data = starpu_top_first_data;
 	while(cur_data != NULL)
 	{
 		starpu_top_message_add(starpu_top_mt,message_for_topdata_init(cur_data));
@@ -170,12 +170,12 @@ void starpu_top_init_and_wait(const char* server_name){
 	message = (char *) malloc(strlen("/DATA\n")+1);
 	sprintf(message, "%s", "/DATA\n");
 	starpu_top_message_add(starpu_top_mt,message);
-	
+
 	//sending parameter list
 	message = (char *) malloc(strlen("PARAMS\n")+1);
 	sprintf(message, "%s", "PARAMS\n");
 	starpu_top_message_add(starpu_top_mt,message);
-	starpu_top_param * cur_param = starpu_top_first_param;
+	struct starpu_top_param * cur_param = starpu_top_first_param;
 	printf("%s:%d sending parameters\n", __FILE__, __LINE__);
 	while(cur_param != NULL){
 	  starpu_top_message_add(starpu_top_mt,message_for_topparam_init(cur_param));
@@ -185,26 +185,26 @@ void starpu_top_init_and_wait(const char* server_name){
 	message = (char *) malloc(strlen("/PARAMS\n")+1);
 	sprintf(message, "%s", "/PARAMS\n");
 	starpu_top_message_add(starpu_top_mt,message);
-	
-	
+
+
 	//sending DEVICE list
 	printf("%s:%d sending devices info\n", __FILE__, __LINE__);
 	starpu_top_send_devices_info();
 	printf("%s:%d devices_info sended\n", __FILE__, __LINE__);
 	//copying data and params
 	copy_data_and_param();
-	
+
 	//sending READY message
 	message = (char *) malloc(strlen("READY\n")+1);
 	sprintf(message, "%s", "READY\n");
 	starpu_top_message_add(starpu_top_mt,message);
-	
+
 	//This threads keeps locked while we don't receive an GO message from UI
 	printf("%s:%d waiting for GO message\n", __FILE__, __LINE__);
 	sem_wait(&starpu_top_wait_for_go);
 }
 
-void starpu_top_enqueue_data(starpu_top_data * data)
+void starpu_top_enqueue_data(struct starpu_top_data * data)
 {
 	if(starpu_top_first_data == NULL)
 	{
@@ -212,18 +212,17 @@ void starpu_top_enqueue_data(starpu_top_data * data)
 	}
 	else
 	{
-		starpu_top_data * cur = starpu_top_first_data;
+		struct starpu_top_data * cur = starpu_top_first_data;
 		while(cur->next != NULL)
 			cur = cur->next;
 		cur->next = data;
 	}
 }
 
-starpu_top_data * starpu_top_add_data_boolean(
-			const char* data_name,
-			int active)
-{		
-	starpu_top_data * data = (starpu_top_data *) malloc(sizeof(starpu_top_data));
+struct starpu_top_data * starpu_top_add_data_boolean(const char* data_name,
+						     int active)
+{
+	struct starpu_top_data * data = (struct starpu_top_data *) malloc(sizeof(struct starpu_top_data));
 	data->id = starpu_top_data_cpt++;
 	data->name = data_name;
 	data->type = STARPU_TOP_DATA_BOOLEAN;
@@ -235,15 +234,14 @@ starpu_top_data * starpu_top_add_data_boolean(
 	return data;
 }
 
-starpu_top_data * starpu_top_add_data_integer(
-			const char* data_name,
-			int minimum_value,
-			int maximum_value,
-			int active)
-{	
-	starpu_top_data * data = (starpu_top_data *) malloc(sizeof(starpu_top_data));
+struct starpu_top_data * starpu_top_add_data_integer(const char* data_name,
+						     int minimum_value,
+						     int maximum_value,
+						     int active)
+{
+	struct starpu_top_data * data = (struct starpu_top_data *) malloc(sizeof(struct starpu_top_data));
 	data->id = starpu_top_data_cpt++;
-	data->name = data_name; 
+	data->name = data_name;
 	data->type = STARPU_TOP_DATA_INTEGER;
 	data->int_min_value = minimum_value;
 	data->int_max_value = maximum_value;
@@ -255,13 +253,12 @@ starpu_top_data * starpu_top_add_data_integer(
 	return data;
 }
 
-starpu_top_data* starpu_top_add_data_float(
-			const char* data_name,
-			double minimum_value,
-			double maximum_value,
-			int active)
+struct starpu_top_data* starpu_top_add_data_float(const char* data_name,
+						  double minimum_value,
+						  double maximum_value,
+						  int active)
 {
-	starpu_top_data * data = (starpu_top_data *) malloc(sizeof(starpu_top_data));
+	struct starpu_top_data * data = (struct starpu_top_data *) malloc(sizeof(struct starpu_top_data));
 	data->id = starpu_top_data_cpt++;
 	data->name = data_name;
 	data->type = STARPU_TOP_DATA_FLOAT;
@@ -275,7 +272,7 @@ starpu_top_data* starpu_top_add_data_float(
 	return data;
 }
 
-char *message_for_topdata_init(starpu_top_data* data)
+char *message_for_topdata_init(struct starpu_top_data* data)
 {
 	char*message = (char *) malloc(256+strlen(data->name));
 	switch(data->type)
@@ -309,7 +306,7 @@ char *message_for_topdata_init(starpu_top_data* data)
 	return message;
 }
 
-char *message_for_topparam_init(starpu_top_param* param)
+char *message_for_topparam_init(struct starpu_top_param* param)
 {
 	char*message = NULL;
 	int i;
@@ -354,7 +351,7 @@ char *message_for_topparam_init(starpu_top_param* param)
 				"ENUM;%d;%s;",
 				param->id,
 				param->name);
-		
+
 		//compute the begin of enums elements in message
 		char* cur = message+strlen(message);
 		//add each enum element
@@ -373,7 +370,7 @@ char *message_for_topparam_init(starpu_top_param* param)
 	return message;
 }
 
-void starpu_top_enqueue_param(starpu_top_param* param)
+void starpu_top_enqueue_param(struct starpu_top_param* param)
 {
 	if(starpu_top_first_param == NULL)
 	{
@@ -381,7 +378,7 @@ void starpu_top_enqueue_param(starpu_top_param* param)
 	}
 	else
 	{
-		starpu_top_param * cur = starpu_top_first_param;
+		struct starpu_top_param * cur = starpu_top_first_param;
 		while(cur->next != NULL)
 			cur = cur->next;
 		cur->next = param;
@@ -389,34 +386,33 @@ void starpu_top_enqueue_param(starpu_top_param* param)
 }
 
 
-starpu_top_param* starpu_top_register_parameter_boolean(
-			const char* param_name,
-			int* parameter_field,
-			void (*callback)(struct starpu_top_param_t*))
+struct starpu_top_param* starpu_top_register_parameter_boolean(const char* param_name,
+							       int* parameter_field,
+							       void (*callback)(struct starpu_top_param*))
 {
-    STARPU_ASSERT(!starpu_top_status_get());
-	starpu_top_param * param = (starpu_top_param *) malloc(sizeof(starpu_top_param));
+	STARPU_ASSERT(!starpu_top_status_get());
+	struct starpu_top_param * param = (struct starpu_top_param *) malloc(sizeof(struct starpu_top_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starpu_top_param_cpt++;
 	param->type = STARPU_TOP_PARAM_BOOLEAN;
 	param->value = (void*)parameter_field;
 	param->next = NULL;
-	
+
 	starpu_top_enqueue_param(param);
-	
+
 	return param;
 }
 
 
-starpu_top_param* starpu_top_register_parameter_integer(const char* param_name,
-			int* parameter_field,
-			int minimum_value,
-			int maximum_value,
-			void (*callback)(struct starpu_top_param_t*))
-{	
+struct starpu_top_param* starpu_top_register_parameter_integer(const char* param_name,
+							       int* parameter_field,
+							       int minimum_value,
+							       int maximum_value,
+							       void (*callback)(struct starpu_top_param*))
+{
 	STARPU_ASSERT(!starpu_top_status_get());
-	starpu_top_param * param = (starpu_top_param *) malloc(sizeof(starpu_top_param));
+	struct starpu_top_param * param = (struct starpu_top_param *) malloc(sizeof(struct starpu_top_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starpu_top_param_cpt++;
@@ -427,18 +423,17 @@ starpu_top_param* starpu_top_register_parameter_integer(const char* param_name,
 	param->next = NULL;
 
 	starpu_top_enqueue_param(param);
-	
+
 	return param;
 }
-starpu_top_param* starpu_top_register_parameter_float(
-			const char* param_name,
-			double* parameter_field,
-			double minimum_value,
-			double maximum_value,
-			void (*callback)(struct starpu_top_param_t*))
+struct starpu_top_param* starpu_top_register_parameter_float(const char* param_name,
+							     double* parameter_field,
+							     double minimum_value,
+							     double maximum_value,
+							     void (*callback)(struct starpu_top_param*))
 {
 	STARPU_ASSERT(!starpu_top_status_get());
-	starpu_top_param * param = (starpu_top_param *) malloc(sizeof(starpu_top_param));
+	struct starpu_top_param * param = (struct starpu_top_param *) malloc(sizeof(struct starpu_top_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starpu_top_param_cpt++;
@@ -453,15 +448,14 @@ starpu_top_param* starpu_top_register_parameter_float(
 	return param;
 }
 
-starpu_top_param* starpu_top_register_parameter_enum(
-			const char* param_name,
-			int* parameter_field,
-			char** values,
-			int nb_values,
-			void (*callback)(struct starpu_top_param_t*))
+struct starpu_top_param* starpu_top_register_parameter_enum(const char* param_name,
+							    int* parameter_field,
+							    char** values,
+							    int nb_values,
+							    void (*callback)(struct starpu_top_param*))
 {
 	STARPU_ASSERT(!starpu_top_status_get());
-	starpu_top_param * param = (starpu_top_param *) malloc(sizeof(starpu_top_param));
+	struct starpu_top_param * param = (struct starpu_top_param *) malloc(sizeof(struct starpu_top_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starpu_top_param_cpt++;
@@ -470,7 +464,7 @@ starpu_top_param* starpu_top_register_parameter_enum(
 	param->enum_values = values;
 	param->nb_values = nb_values;
 	param->next = NULL;
-	
+
 	starpu_top_enqueue_param(param);
 
 	return param;
@@ -479,7 +473,7 @@ starpu_top_param* starpu_top_register_parameter_enum(
 *****************UPDATE FUNC******************
 **********************************************/
 
-void starpu_top_update_data_boolean(const starpu_top_data* data, int value){
+void starpu_top_update_data_boolean(const struct starpu_top_data* data, int value) {
 	if (!starpu_top_status_get())
 		return;
 	if(data->active)
@@ -493,7 +487,8 @@ void starpu_top_update_data_boolean(const starpu_top_data* data, int value){
 		starpu_top_message_add(starpu_top_mt,message);
 	}
 }
-void starpu_top_update_data_integer(const starpu_top_data* data,int value){
+
+void starpu_top_update_data_integer(const struct starpu_top_data* data, int value){
 	if (!starpu_top_status_get())
 		return;
 	if(data->active)
@@ -507,7 +502,8 @@ void starpu_top_update_data_integer(const starpu_top_data* data,int value){
 		starpu_top_message_add(starpu_top_mt,message);
 	}
 }
-void starpu_top_update_data_float(const starpu_top_data* data, double value){
+
+void starpu_top_update_data_float(const struct starpu_top_data* data, double value){
 	if (!starpu_top_status_get())
 		return;
 	if(data->active)
@@ -520,7 +516,8 @@ void starpu_top_update_data_float(const starpu_top_data* data, double value){
 		starpu_top_message_add(starpu_top_mt,message);
 	}
 }
-void starpu_top_update_parameter(const starpu_top_param* param){
+
+void starpu_top_update_parameter(const struct starpu_top_param* param){
 	if (!starpu_top_status_get())
 		return;
 	char*message = (char *) malloc(50);
@@ -536,7 +533,7 @@ void starpu_top_update_parameter(const starpu_top_param* param){
 					*((int*)param->value),
 					current_timestamp());
 			break;
-		
+
 		case STARPU_TOP_PARAM_FLOAT:
 			sprintf(message,
 					"SET;%d;%f;%lld\n",
@@ -545,8 +542,8 @@ void starpu_top_update_parameter(const starpu_top_param* param){
 					current_timestamp());
 			break;
 	}
-	
-	starpu_top_message_add(starpu_top_mt,message);	
+
+	starpu_top_message_add(starpu_top_mt,message);
 }
 
 /*********************************************
@@ -560,7 +557,7 @@ void starpu_top_debug_log(const char* debug_message)
 		//length can be up to strlen*2, if message contains only unwanted chars
 		char * message = (char *) malloc(strlen(debug_message)*2+16);
 		sprintf(message,"MESSAGE;");
-		
+
 		//escape unwanted char : ; and \n
 		char* cur = message+8;
 		while(*debug_message!='\0')
@@ -581,6 +578,7 @@ void starpu_top_debug_log(const char* debug_message)
 		starpu_top_message_add(starpu_top_mt,message);
 	}
 }
+
 void starpu_top_debug_lock(const char* debug_message)
 {
 	if(starpu_top_debug_on)
@@ -611,8 +609,8 @@ void starpu_top_debug_lock(const char* debug_message)
 	}
 }
 
- 
- 
+
+
 /********************************************
  **************TIME FUNCTION****************
  *******************************************/
@@ -633,7 +631,7 @@ unsigned long long _starpu_top_timing_timespec_to_ms(const struct timespec *ts)
  **************INPUT PROCESSING**************
  *******************************************/
 
-starpu_top_message_type starpu_top_get_message_type(const char* message)
+enum starpu_top_message_type starpu_top_get_message_type(const char* message)
 {
 	if(!strncmp("GO\n", message,3))
 		return TOP_TYPE_GO;
@@ -647,7 +645,7 @@ starpu_top_message_type starpu_top_get_message_type(const char* message)
 		return TOP_TYPE_DISABLE;
 	else if(!strncmp("DEBUG;", message,6))
 		return TOP_TYPE_DEBUG;
-	else 
+	else
 		return TOP_TYPE_UNKNOW;
 }
 
@@ -671,7 +669,7 @@ void starpu_top_change_data_active(char* message, int active)
 void starpu_top_change_parameter_value(const char* message){
 	const char*tmp = strstr(message, ";")+1;
 	int param_id = atoi(tmp);
-	starpu_top_param* param = starpu_top_params[param_id];
+	struct starpu_top_param* param = starpu_top_params[param_id];
 	tmp = strstr(tmp+1,";")+1;
 	int* val_ptr_int;
 	double* val_ptr_double;
@@ -683,7 +681,7 @@ void starpu_top_change_parameter_value(const char* message){
 			val_ptr_int = (int*)param->value;
 			*val_ptr_int = atoi(tmp);
 		break;
-		
+
 		case STARPU_TOP_PARAM_FLOAT:
 			val_ptr_double = (double*)param->value;
 			*val_ptr_double = atof(tmp);
@@ -693,7 +691,7 @@ void starpu_top_change_parameter_value(const char* message){
 			val_ptr_int = (int*)param->value;
 			*val_ptr_int = atoi(tmp);
 		break;
-		
+
 	}
 	if(param->callback != NULL)
 		param->callback(param);
@@ -729,7 +727,7 @@ void starpu_top_debug_next_step()
 
 void starpu_top_process_input_message(char *buffer)
 {
-	starpu_top_message_type message_type = starpu_top_get_message_type(buffer);
+	enum starpu_top_message_type message_type = starpu_top_get_message_type(buffer);
 	switch(message_type)
 	{
 		case TOP_TYPE_GO:

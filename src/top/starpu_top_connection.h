@@ -25,16 +25,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  extern starpu_top_message_queue_t*  starpu_top_mt;
+
+extern struct starpu_top_message_queue*  starpu_top_mt;
 
 /*
  * This function initialize the two communications threads.
  * It initializes the connection and then launches the threads.
  * The function wait the UI connection before launching the threads.
- * About mt : mt MUST be allocated before call. 
- * All messages in the queue are freed after used. 
+ * About mt : mt MUST be allocated before call.
+ * All messages in the queue are freed after used.
  */
-  void starpu_top_communications_threads_launcher();
+void starpu_top_communications_threads_launcher();
 
 #ifdef __cplusplus
 }

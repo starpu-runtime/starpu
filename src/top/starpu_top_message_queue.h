@@ -16,35 +16,33 @@
  */
 
 #include <sys/types.h>
-#include <semaphore.h> 
+#include <semaphore.h>
 #include <pthread.h>
 
 #ifndef __STARPU_TOP_MESSAGE_QUEUE_H__
 #define __STARPU_TOP_MESSAGE_QUEUE_H__
 
-typedef struct starpu_top_message_queue_item
+struct starpu_top_message_queue_item
 {
 	char *message;
 	struct starpu_top_message_queue_item* next;
-} starpu_top_message_queue_item_t;
+};
 
-typedef struct starpu_top_message_queue
+struct starpu_top_message_queue
 {
 	struct starpu_top_message_queue_item* head;
 	struct starpu_top_message_queue_item* tail;
 	sem_t semaphore;
 	pthread_mutex_t mutex;
-} starpu_top_message_queue_t;
+};
 
 
-starpu_top_message_queue_t *starpu_top_message_add(
-			starpu_top_message_queue_t*,
-			char*);
+struct starpu_top_message_queue *starpu_top_message_add(struct starpu_top_message_queue*,
+							char*);
 
-char* starpu_top_message_remove(starpu_top_message_queue_t*);
+char* starpu_top_message_remove(struct starpu_top_message_queue*);
 
-starpu_top_message_queue_t* starpu_top_message_queue_new();
-starpu_top_message_queue_t* starpu_top_message_queue_free(
-			starpu_top_message_queue_t*);
+struct starpu_top_message_queue* starpu_top_message_queue_new();
+struct starpu_top_message_queue* starpu_top_message_queue_free(struct starpu_top_message_queue*);
 
 #endif
