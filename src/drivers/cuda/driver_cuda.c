@@ -273,9 +273,11 @@ void *_starpu_cuda_worker(void *arg)
 	float size = (float) prop.totalGlobalMem / (1<<30);
 
 #if CUDA_VERSION >= 3020
+#if CUDA_VERSION >= 4000
 	if (prop.pciDomainID)
 		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, prop.pciDomainID, prop.pciBusID, prop.pciDeviceID);
 	else
+#endif
 		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, prop.pciBusID, prop.pciDeviceID);
 #else
 	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB)", args->devid, devname, size);
