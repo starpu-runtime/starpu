@@ -38,8 +38,12 @@ Coding Conventions
 
 - Prefix names of internal objects (types, functions, etc.) with "_starpu"
 
-- Type names do not end with _t, _s or similar. Use _t only for opaque public types, such as
+- Names for qualified types (struct, union, enum) do not end with _t, _s or similar.
+  Use _t only for typedef types, such as opaque public types, e.g
        typedef struct _starpu_data_state* starpu_data_handle_t;
+  or
+       typedef uint64_t starpu_tag_t;
+
 
 
 
