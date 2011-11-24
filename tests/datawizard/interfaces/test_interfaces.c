@@ -364,7 +364,7 @@ ram_to_cuda(void)
 	return current_config->copy_failed;
 }
 
-#if HAVE_CUDA_MEMCPY_PEER
+#ifdef HAVE_CUDA_MEMCPY_PEER
 static enum exit_code
 cuda_to_cuda(void)
 {
