@@ -109,6 +109,10 @@ struct starpu_codelet {
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 };
 
+#ifdef STARPU_GCC_PLUGIN
+typedef struct starpu_codelet starpu_codelet_gcc;
+#endif /* STARPU_GCC_PLUGIN */
+
 struct starpu_task {
 	struct starpu_codelet *cl;
 

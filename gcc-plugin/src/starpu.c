@@ -77,7 +77,7 @@ static const char task_implementation_wrapper_attribute_name[] =
   ".task_implementation_wrapper";
 
 /* Names of data structures defined in <starpu.h>.  */
-static const char codelet_struct_name[] = "struct starpu_codelet";
+static const char codelet_struct_name[] = "starpu_codelet_gcc";
 static const char task_struct_name[] = "starpu_task";
 
 /* Cached function declarations.  */
