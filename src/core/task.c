@@ -273,8 +273,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 		if (task->cl->conversion_model)
 			_starpu_load_perfmodel(task->cl->conversion_model);
-
-		_STARPU_DEBUG("Performance models (if available) are loaded\n");
 	}
 
 	/* If profiling is activated, we allocate a structure to store the
