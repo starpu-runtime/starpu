@@ -349,7 +349,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     STARPU_CHECK_CUDA($cuda_dir, $cuda_lib_dir)
     if test "$have_valid_cuda" = "no" ; then
-        for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH"; do
+        for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
             STARPU_CHECK_CUDA($f, "no")
             if test "$have_valid_cuda" = "yes" ; then
                 break
@@ -360,7 +360,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CHECK_CUDA_RUNTIME($cuda_dir, $cuda_include_dir, $cuda_lib_dir)
         if test "$have_valid_cuda" = "no" ; then
-            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH"; do
+            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
                 STARPU_CHECK_CUDA_RUNTIME($f, "no", "no")
                 if test "$have_valid_cuda" = "yes" ; then
                     break
@@ -582,7 +582,7 @@ AC_ARG_WITH(opencl-lib-dir,
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
     	STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
         if test "$have_valid_opencl" = "no" ; then
-            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH" ; do
+            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
                 if test -n $f ; then
     	            STARPU_CHECK_OPENCL($f, "no", "no")
                     if test "$have_valid_opencl" = "yes" ; then
