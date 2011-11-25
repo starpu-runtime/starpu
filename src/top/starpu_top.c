@@ -618,7 +618,7 @@ void starpu_top_debug_lock(const char* debug_message)
 unsigned long long int current_timestamp()
 {
 	struct timespec now;
-	starpu_clock_gettime(&now);
+	_starpu_clock_gettime(&now);
 	return _starpu_top_timing_timespec_to_ms(&now);
 }
 

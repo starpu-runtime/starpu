@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@ void *_starpu_htbl_search_32(struct starpu_htbl32_node *htbl, uint32_t key)
 	unsigned currentbit;
 	unsigned keysize = 32;
 
-	starpu_htbl32_node_t *current_htbl = htbl;
+	struct starpu_htbl32_node *current_htbl = htbl;
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
 	uint32_t mask = (1<<STARPU_HTBL32_NODE_SIZE)-1;
@@ -65,7 +65,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 	unsigned currentbit;
 	unsigned keysize = 32;
 
-	starpu_htbl32_node_t **current_htbl_ptr = htbl;
+	struct starpu_htbl32_node **current_htbl_ptr = htbl;
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
 	uint32_t mask = (1<<STARPU_HTBL32_NODE_SIZE)-1;
@@ -75,7 +75,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 		//printf("insert : current bit = %d \n", currentbit);
 		if (*current_htbl_ptr == NULL) {
 			/* TODO pad to change that 1 into 16 ? */
-			*current_htbl_ptr = (starpu_htbl32_node_t*)calloc(sizeof(starpu_htbl32_node_t), 1);
+			*current_htbl_ptr = (struct starpu_htbl32_node*)calloc(sizeof(struct starpu_htbl32_node), 1);
 			assert(*current_htbl_ptr);
 		}
 
@@ -98,7 +98,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 	/* current_htbl either contains NULL or a previous entry 
 	 * we overwrite it anyway */
 	void *old_entry = *current_htbl_ptr;
-	*current_htbl_ptr = (starpu_htbl32_node_t *) entry;
+	*current_htbl_ptr = (struct starpu_htbl32_node *) entry;
 
 	return old_entry;
 }

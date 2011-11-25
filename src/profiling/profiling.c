@@ -134,7 +134,7 @@ struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(str
 
 static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 {
-	starpu_clock_gettime(&worker_info[workerid].start_time);
+	_starpu_clock_gettime(&worker_info[workerid].start_time);
 
 	/* This is computed in a lazy fashion when the application queries
 	 * profiling info. */
@@ -156,7 +156,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	if (status == STATUS_SLEEPING)
 	{
 		worker_registered_sleeping_start[workerid] = 1;
-		starpu_clock_gettime(&sleeping_start_date[workerid]);
+		_starpu_clock_gettime(&sleeping_start_date[workerid]);
 	}
 	else {
 		worker_registered_sleeping_start[workerid] = 0;
@@ -165,7 +165,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	if (status == STATUS_EXECUTING)
 	{
 		worker_registered_executing_start[workerid] = 1;
-		starpu_clock_gettime(&executing_start_date[workerid]);
+		_starpu_clock_gettime(&executing_start_date[workerid]);
 	}
 	else {
 		worker_registered_executing_start[workerid] = 0;
@@ -263,7 +263,7 @@ int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profilin
 	{
 		/* The total time is computed in a lazy fashion */
 		struct timespec now;
-		starpu_clock_gettime(&now);
+		_starpu_clock_gettime(&now);
 
 		/* In case some worker is currently sleeping, we take into
 		 * account the time spent since it registered. */
@@ -305,7 +305,7 @@ void _starpu_profiling_set_task_push_start_time(struct starpu_task *task)
 	profiling_info = task->profiling_info;
 
 	if (profiling_info)
-		starpu_clock_gettime(&profiling_info->push_start_time);
+		_starpu_clock_gettime(&profiling_info->push_start_time);
 }
 
 void _starpu_profiling_set_task_push_end_time(struct starpu_task *task)
@@ -317,7 +317,7 @@ void _starpu_profiling_set_task_push_end_time(struct starpu_task *task)
 	profiling_info = task->profiling_info;
 
 	if (profiling_info)
-		starpu_clock_gettime(&profiling_info->push_end_time);
+		_starpu_clock_gettime(&profiling_info->push_end_time);
 }
 
 /*
@@ -336,7 +336,7 @@ void _starpu_initialize_busid_matrix(void)
 
 static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info)
 {
-	starpu_clock_gettime(&bus_info->start_time);
+	_starpu_clock_gettime(&bus_info->start_time);
 	bus_info->transferred_bytes = 0;
 	bus_info->transfer_count = 0;
 }
@@ -388,7 +388,7 @@ int starpu_bus_get_profiling_info(int busid, struct starpu_bus_profiling_info *b
 	if (bus_info)
 	{
 		struct timespec now;
-		starpu_clock_gettime(&now);
+		_starpu_clock_gettime(&now);
 
 		/* total_time = now - start_time */
 		starpu_timespec_sub(&now, &bus_profiling_info[src_node][dst_node].start_time,

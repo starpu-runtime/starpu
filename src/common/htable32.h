@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,10 +26,11 @@
 #define STARPU_HTBL32_NODE_SIZE	16
 
 /* Hierarchical table: all nodes have a 2^16 arity . */
-typedef struct starpu_htbl32_node {
+/* Note: this struct is used in include/starpu_perfmodel.h */
+struct starpu_htbl32_node {
 	unsigned nentries;
 	struct starpu_htbl32_node *children[1<<STARPU_HTBL32_NODE_SIZE];
-} starpu_htbl32_node_t;
+};
 
 /* Look for a 32bit key into the hierchical table. Returns the entry if
  * something is found, NULL otherwise. */

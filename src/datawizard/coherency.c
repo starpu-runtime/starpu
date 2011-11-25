@@ -591,7 +591,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling && task->profiling_info)
-		starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
+		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
 	struct starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
@@ -633,7 +633,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 	}
 
 	if (profiling && task->profiling_info)
-		starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
+		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
 
 	STARPU_TRACE_END_FETCH_INPUT(NULL);
 
@@ -654,7 +654,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling && task->profiling_info)
-		starpu_clock_gettime(&task->profiling_info->release_data_start_time);
+		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
         struct starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
@@ -690,7 +690,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 	}
 
 	if (profiling && task->profiling_info)
-		starpu_clock_gettime(&task->profiling_info->release_data_end_time);
+		_starpu_clock_gettime(&task->profiling_info->release_data_end_time);
 
 	STARPU_TRACE_END_PUSH_OUTPUT(NULL);
 }

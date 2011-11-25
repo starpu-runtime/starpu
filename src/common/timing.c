@@ -40,7 +40,7 @@ static struct timespec reference_start_time_ts;
  * to have consistent timing measurements. The CLOCK_MONOTONIC_RAW clock is not
  * subject to NTP adjustments, but is not available on all systems (in that
  * case we use the CLOCK_MONOTONIC clock instead). */
-static void _starpu_clock_gettime(struct timespec *ts) {
+static void _starpu_clock_readtime(struct timespec *ts) {
 #ifdef CLOCK_MONOTONIC_RAW
 	static int raw_supported = 0;
 	switch (raw_supported) {
@@ -67,12 +67,12 @@ void _starpu_timing_init(void)
 	_starpu_clock_gettime(&reference_start_time_ts);
 }
 
-void starpu_clock_gettime(struct timespec *ts)
+void _starpu_clock_gettime(struct timespec *ts)
 {
 	struct timespec absolute_ts;
 
 	/* Read the current time */
-	_starpu_clock_gettime(&absolute_ts);
+	_starpu_clock_readtime(&absolute_ts);
 
 	/* Compute the relative time since initialization */
 	starpu_timespec_sub(&absolute_ts, &reference_start_time_ts, ts);
@@ -137,7 +137,7 @@ void _starpu_timing_init(void)
   inited = 1;
 }
 
-void starpu_clock_gettime(struct timespec *ts)
+void _starpu_clock_gettime(struct timespec *ts)
 {
 	starpu_tick_t tick_now;
 
@@ -162,7 +162,7 @@ void _starpu_timing_init(void)
 {
 }
 
-void starpu_clock_gettime(struct timespec *ts)
+void _starpu_clock_gettime(struct timespec *ts)
 {
 	timerclear(ts);
 }
@@ -189,7 +189,7 @@ double starpu_timing_timespec_to_us(struct timespec *ts)
 double starpu_timing_now(void)
 {
 	struct timespec now;
-	starpu_clock_gettime(&now);
+	_starpu_clock_gettime(&now);
 
 	return starpu_timing_timespec_to_us(&now);
 }

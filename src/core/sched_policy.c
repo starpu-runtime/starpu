@@ -312,7 +312,7 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 	int profiling = starpu_profiling_status_get();
 	struct timespec pop_start_time;
 	if (profiling)
-		starpu_clock_gettime(&pop_start_time);
+		_starpu_clock_gettime(&pop_start_time);
 
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
@@ -334,7 +334,7 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 		{
 			memcpy(&profiling_info->pop_start_time,
 				&pop_start_time, sizeof(struct timespec));
-			starpu_clock_gettime(&profiling_info->pop_end_time);
+			_starpu_clock_gettime(&profiling_info->pop_end_time);
 		}
 	}
 

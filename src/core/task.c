@@ -288,7 +288,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 
 	if (profiling)
-		starpu_clock_gettime(&info->submit_time);
+		_starpu_clock_gettime(&info->submit_time);
 
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
 	* task structure, it is possible that this job structure was already

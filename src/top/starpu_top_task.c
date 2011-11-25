@@ -84,7 +84,7 @@ void starpu_top_task_prevision(
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	STARPU_ASSERT(starpu_top_status_get());
 	struct timespec now;
-	starpu_clock_gettime(&now);
+	_starpu_clock_gettime(&now);
 	char * str= (char *)malloc(sizeof(char)*200);
 	snprintf(str, 128, 
 				"PREV;%llu;%d;%llu;%llu;%llu\n",

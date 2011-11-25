@@ -48,7 +48,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, starpu_job_t j, struc
 	
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
-			starpu_clock_gettime(codelet_start);
+			_starpu_clock_gettime(codelet_start);
 			_starpu_worker_register_executing_start_date(workerid, codelet_start);
 		}
 	}
@@ -77,7 +77,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, starpu_job_t j, struct 
 
 	if (rank == 0) {
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
-			starpu_clock_gettime(codelet_end);
+			_starpu_clock_gettime(codelet_end);
 	}
 
 	if (starpu_top)
@@ -150,14 +150,14 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
 	STARPU_TRACE_WORKER_SLEEP_START
 	_starpu_worker_set_status(workerid, STATUS_SLEEPING);
 
-	starpu_clock_gettime(&start_time);
+	_starpu_clock_gettime(&start_time);
 	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
 
 	_STARPU_PTHREAD_COND_WAIT(cond, mutex);
 
 	_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	STARPU_TRACE_WORKER_SLEEP_END
-	starpu_clock_gettime(&end_time);
+	_starpu_clock_gettime(&end_time);
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling)
