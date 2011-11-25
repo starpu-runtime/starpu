@@ -327,7 +327,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 	/* either shared or owned */
 	STARPU_ASSERT(nvalids > 0);
 
-	starpu_cache_state newstate = (nvalids == 1)?STARPU_OWNER:STARPU_SHARED;
+	enum _starpu_cache_state newstate = (nvalids == 1)?STARPU_OWNER:STARPU_SHARED;
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{

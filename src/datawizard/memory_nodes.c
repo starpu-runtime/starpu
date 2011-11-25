@@ -23,7 +23,7 @@
 #include "copy_driver.h"
 #include "memalloc.h"
 
-static starpu_mem_node_descr descr;
+static struct _starpu_mem_node_descr descr;
 static pthread_key_t memory_node_key;
 
 void _starpu_init_memory_nodes(void)
@@ -83,12 +83,12 @@ unsigned _starpu_memory_node_workers(unsigned node)
 	return descr.nworkers[node];
 }
 
-starpu_mem_node_descr *_starpu_get_memory_node_description(void)
+struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void)
 {
 	return &descr;
 }
 
-starpu_node_kind _starpu_get_node_kind(uint32_t node)
+enum _starpu_node_kind _starpu_get_node_kind(uint32_t node)
 {
 	return descr.nodes[node];
 }
@@ -103,7 +103,7 @@ unsigned _starpu_get_memory_nodes_count(void)
 	return descr.nnodes;
 }
 
-unsigned _starpu_register_memory_node(starpu_node_kind kind, int devid)
+unsigned _starpu_register_memory_node(enum _starpu_node_kind kind, int devid)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */

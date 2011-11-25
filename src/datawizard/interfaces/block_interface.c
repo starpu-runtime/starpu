@@ -302,7 +302,7 @@ static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst
 	uint32_t nz = dst_block->nz;
 	size_t elemsize = dst_block->elemsize;
 
-	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
 		case STARPU_CPU_RAM:
@@ -370,7 +370,7 @@ static void free_block_buffer_on_node(void *data_interface, uint32_t node)
 	cudaError_t status;
 #endif
 
-	starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
 			free((void*)block_interface->ptr);

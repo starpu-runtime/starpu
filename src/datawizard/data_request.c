@@ -209,7 +209,7 @@ void _starpu_data_request_append_callback(starpu_data_request_t r, void (*callba
 
 	if (callback_func)
 	{
-		struct callback_list *link = (struct callback_list *) malloc(sizeof(struct callback_list));
+		struct _starpu_callback_list *link = (struct _starpu_callback_list *) malloc(sizeof(struct _starpu_callback_list));
 		STARPU_ASSERT(link);
 
 		link->callback_func = callback_func;
@@ -231,7 +231,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 
 
 #ifdef STARPU_MEMORY_STATUS
-	starpu_cache_state old_src_replicate_state = src_replicate->state;
+	enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
 #endif
 	_starpu_update_data_state(handle, r->dst_replicate, mode);
 
@@ -301,7 +301,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	r->retval = 0;
 
 	/* In case there are one or multiple callbacks, we execute them now. */
-	struct callback_list *callbacks = r->callbacks;
+	struct _starpu_callback_list *callbacks = r->callbacks;
 	
 	_starpu_spin_unlock(&r->lock);
 
@@ -316,7 +316,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	{
 		callbacks->callback_func(callbacks->callback_arg);
 
-		struct callback_list *next = callbacks->next;
+		struct _starpu_callback_list *next = callbacks->next;
 		free(callbacks);
 		callbacks = next;
 	}

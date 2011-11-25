@@ -244,7 +244,7 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 	uint32_t nrow = csr_interface->nrow;
 	size_t elemsize = csr_interface->elemsize;
 
-	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
 		case STARPU_CPU_RAM:
@@ -359,7 +359,7 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
 
-	starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
 			free((void*)csr_interface->nzval);

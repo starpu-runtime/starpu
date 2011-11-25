@@ -32,14 +32,14 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	/* wake up all workers on that memory node */
 	unsigned cond_id;
 
-	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
+	struct _starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct _cond_and_mutex *condition;
+		struct _starpu_cond_and_mutex *condition;
 		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
 
 		/* wake anybody waiting on that condition */
@@ -56,14 +56,14 @@ void starpu_wake_all_blocked_workers(void)
 	/* workers may be blocked on the various queues' conditions */
 	unsigned cond_id;
 
-	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
+	struct _starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct _cond_and_mutex *condition;
+		struct _starpu_cond_and_mutex *condition;
 		condition  = &descr->conditions_all[cond_id];
 
 		/* wake anybody waiting on that condition */
@@ -91,8 +91,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle, struct starpu_d
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
-	starpu_node_kind src_kind = _starpu_get_node_kind(src_node);
-	starpu_node_kind dst_kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind src_kind = _starpu_get_node_kind(src_node);
+	enum _starpu_node_kind dst_kind = _starpu_get_node_kind(dst_node);
 
 	STARPU_ASSERT(src_replicate->refcnt);
 	STARPU_ASSERT(dst_replicate->refcnt);
@@ -292,9 +292,9 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 	return 0;
 }
 
-void _starpu_driver_wait_request_completion(struct starpu_async_channel *async_channel)
+void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
-	starpu_node_kind kind = async_channel->type;
+	enum _starpu_node_kind kind = async_channel->type;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 	cudaError_t cures;
@@ -331,9 +331,9 @@ void _starpu_driver_wait_request_completion(struct starpu_async_channel *async_c
 	}
 }
 
-unsigned _starpu_driver_test_request_completion(struct starpu_async_channel *async_channel)
+unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel)
 {
-	starpu_node_kind kind = async_channel->type;
+	enum _starpu_node_kind kind = async_channel->type;
 	unsigned success;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;

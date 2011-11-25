@@ -270,7 +270,7 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 	uint32_t r = bcsr_interface->r;
 	uint32_t c = bcsr_interface->c;
 
-	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
 		case STARPU_CPU_RAM:
@@ -385,7 +385,7 @@ static void free_bcsr_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_bcsr_interface *bcsr_interface = (struct starpu_bcsr_interface *) data_interface;
 
-	starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
 			free((void*)bcsr_interface->nzval);

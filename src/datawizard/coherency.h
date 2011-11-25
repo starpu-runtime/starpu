@@ -31,11 +31,11 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
 
-typedef enum {
+enum _starpu_cache_state {
 	STARPU_OWNER,
 	STARPU_SHARED,
 	STARPU_INVALID
-} starpu_cache_state;
+};
 
 /* this should contain the information relative to a given data replicate  */
 LIST_TYPE(starpu_data_replicate,
@@ -55,7 +55,7 @@ LIST_TYPE(starpu_data_replicate,
 	unsigned initialized;
 
 	/* describes the state of the local data in term of coherency */
-	starpu_cache_state	state; 
+	enum _starpu_cache_state	state; 
 
 	int refcnt;
 
@@ -83,15 +83,15 @@ LIST_TYPE(starpu_data_replicate,
 
 struct starpu_data_requester_list_s;
 
-struct starpu_jobid_list {
+struct _starpu_jobid_list {
 	unsigned long id;
-	struct starpu_jobid_list *next;
+	struct _starpu_jobid_list *next;
 };
 
 /* This structure describes a simply-linked list of task */
-struct starpu_task_wrapper_list {
+struct _starpu_task_wrapper_list {
 	struct starpu_task *task;
-	struct starpu_task_wrapper_list *next;
+	struct _starpu_task_wrapper_list *next;
 };
 
 struct _starpu_data_state {
@@ -161,7 +161,7 @@ struct _starpu_data_state {
 	 * sequential_consistency flag is enabled. */
 	enum starpu_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
-	struct starpu_task_wrapper_list *last_submitted_readers;
+	struct _starpu_task_wrapper_list *last_submitted_readers;
 
 	/* If FxT is enabled, we keep track of "ghost dependencies": that is to
 	 * say the dependencies that are not needed anymore, but that should
@@ -171,9 +171,9 @@ struct _starpu_data_state {
 	 * enforce this dependency anymore.*/
 	unsigned last_submitted_ghost_writer_id_is_valid;
 	unsigned long last_submitted_ghost_writer_id;
-	struct starpu_jobid_list *last_submitted_ghost_readers_id;
+	struct _starpu_jobid_list *last_submitted_ghost_readers_id;
 	
-	struct starpu_task_wrapper_list *post_sync_tasks;
+	struct _starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
 
 	/*

@@ -237,7 +237,7 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 	uint32_t nx = vector_interface->nx;
 	size_t elemsize = vector_interface->elemsize;
 
-	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
@@ -300,7 +300,7 @@ static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 	cudaError_t cures;
 #endif
 
-	starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
 			free((void*)vector_interface->ptr);

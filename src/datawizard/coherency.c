@@ -331,7 +331,7 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle_t handle,
 	if (dst_replicate->state != STARPU_INVALID)
 	{
 #ifdef STARPU_MEMORY_STATUS
-		starpu_cache_state old_state = dst_replicate->state;
+		enum _starpu_cache_state old_state = dst_replicate->state;
 #endif
 		/* the data is already available so we can stop */
 		_starpu_update_data_state(handle, dst_replicate, mode);

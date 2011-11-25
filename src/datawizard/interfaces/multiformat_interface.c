@@ -229,7 +229,7 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
-	starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
 
 	switch(kind) {
 		case STARPU_CPU_RAM:
@@ -260,7 +260,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 	uintptr_t addr = 0;
 	ssize_t allocated_memory;
 
-	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
 			allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;

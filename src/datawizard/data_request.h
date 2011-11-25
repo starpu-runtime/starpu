@@ -26,10 +26,10 @@
 
 struct starpu_data_replicate_s;
 
-struct callback_list {
+struct _starpu_callback_list {
 	void (*callback_func)(void *);
 	void *callback_arg;
-	struct callback_list *next;
+	struct _starpu_callback_list *next;
 };
 
 LIST_TYPE(starpu_data_request,
@@ -44,7 +44,7 @@ LIST_TYPE(starpu_data_request,
 
 	enum starpu_access_mode mode;
 
-	struct starpu_async_channel async_channel;
+	struct _starpu_async_channel async_channel;
 
 	unsigned completed;
 	unsigned prefetch;
@@ -59,7 +59,7 @@ LIST_TYPE(starpu_data_request,
 	/* who should perform the next request ? */
 	unsigned next_req_count;
 
-	struct callback_list *callbacks;
+	struct _starpu_callback_list *callbacks;
 
 #ifdef STARPU_USE_FXT
 	unsigned com_id;

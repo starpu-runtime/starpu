@@ -685,7 +685,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 
 static size_t _starpu_get_global_mem_size(int dst_node)
 {
-	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 	size_t global_mem_size;
 
 	switch(kind)
