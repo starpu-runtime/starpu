@@ -61,7 +61,7 @@ struct _starpu_worker {
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
-	int bindid; /* which cpu is the driver bound to ? */
+	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
