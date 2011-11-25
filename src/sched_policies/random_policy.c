@@ -49,7 +49,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
 
-		if (alpha + worker_alpha > random) {
+		if (alpha + worker_alpha > random && starpu_worker_can_execute_task(worker, task, 0)) {
 			/* we found the worker */
 			selected = worker;
 			break;
