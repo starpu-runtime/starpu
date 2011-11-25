@@ -53,7 +53,7 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
-	STARPU_TRACE_JOB_PUSH(task, 0);
+	_STARPU_TRACE_JOB_PUSH(task, 0);
 	/* TODO: if prio, put at back */
 	starpu_task_list_push_front(&fifo_queue->taskq, task);
 	fifo_queue->ntasks++;
@@ -81,7 +81,7 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 		STARPU_ASSERT(task);
 		fifo_queue->ntasks--;
 		
-		STARPU_TRACE_JOB_POP(task, 0);
+		_STARPU_TRACE_JOB_POP(task, 0);
 	}
 	
 	return task;

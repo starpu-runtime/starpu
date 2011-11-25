@@ -741,7 +741,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct st
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
-	STARPU_TRACE_START_ALLOC_REUSE(dst_node);
+	_STARPU_TRACE_START_ALLOC_REUSE(dst_node);
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
@@ -753,14 +753,14 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct st
 	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
-	STARPU_TRACE_END_ALLOC_REUSE(dst_node);
+	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 
 	do {
 		STARPU_ASSERT(handle->ops);
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
-		STARPU_TRACE_START_ALLOC(dst_node);
+		_STARPU_TRACE_START_ALLOC(dst_node);
 		STARPU_ASSERT(replicate->data_interface);
 
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
@@ -776,7 +776,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct st
 #endif
 
 		allocated_memory = handle->ops->allocate_data_on_node(replicate->data_interface, dst_node);
-		STARPU_TRACE_END_ALLOC(dst_node);
+		_STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -789,12 +789,12 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct st
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
 
-			STARPU_TRACE_START_MEMRECLAIM(dst_node);
+			_STARPU_TRACE_START_MEMRECLAIM(dst_node);
 			if (is_prefetch)
 				flush_memchunk_cache(dst_node, reclaim);
 			else
 				reclaim_memory_generic(dst_node, 0, reclaim);
-			STARPU_TRACE_END_MEMRECLAIM(dst_node);
+			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
 
 		        while (_starpu_spin_trylock(&handle->header_lock))
 		                _starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);

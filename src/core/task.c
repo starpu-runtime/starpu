@@ -338,7 +338,7 @@ int starpu_task_wait_for_all(void)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
-	STARPU_TRACE_TASK_WAIT_FOR_ALL;
+	_STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
 	while (nsubmitted > 0)
 		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
@@ -359,7 +359,7 @@ int starpu_task_wait_for_no_ready(void)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
-	STARPU_TRACE_TASK_WAIT_FOR_ALL;
+	_STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
 	while (nready > 0)
 		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
@@ -376,7 +376,7 @@ void _starpu_decrement_nsubmitted_tasks(void)
 	if (--nsubmitted == 0)
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 
-	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
+	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
@@ -388,7 +388,7 @@ static void _starpu_increment_nsubmitted_tasks(void)
 
 	nsubmitted++;
 
-	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
+	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }

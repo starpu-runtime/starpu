@@ -56,7 +56,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, starpu_job_t j, struc
 	if (starpu_top)
 		starpu_top_task_started(task,workerid,codelet_start);
 
-	STARPU_TRACE_START_CODELET_BODY(j);
+	_STARPU_TRACE_START_CODELET_BODY(j);
 }
 
 void _starpu_driver_end_job(struct _starpu_worker *args, starpu_job_t j, struct timespec *codelet_end, int rank)
@@ -70,7 +70,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, starpu_job_t j, struct 
 	unsigned calibrate_model = 0;
 	enum starpu_perf_archtype archtype STARPU_ATTRIBUTE_UNUSED = args->perf_arch;
 
-	STARPU_TRACE_END_CODELET_BODY(j, archtype);
+	_STARPU_TRACE_END_CODELET_BODY(j, archtype);
 
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
@@ -147,7 +147,7 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
 {
 	struct timespec start_time, end_time;
 
-	STARPU_TRACE_WORKER_SLEEP_START
+	_STARPU_TRACE_WORKER_SLEEP_START
 	_starpu_worker_set_status(workerid, STATUS_SLEEPING);
 
 	_starpu_clock_gettime(&start_time);
@@ -156,7 +156,7 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
 	_STARPU_PTHREAD_COND_WAIT(cond, mutex);
 
 	_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
-	STARPU_TRACE_WORKER_SLEEP_END
+	_STARPU_TRACE_WORKER_SLEEP_END
 	_starpu_clock_gettime(&end_time);
 
 	int profiling = starpu_profiling_status_get();

@@ -519,11 +519,11 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 
 	if (stream)
 	{
-		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 		status = cudaMemcpyPeerAsync(dst_multiformat->cuda_ptr, dst_dev,
 					     src_multiformat->cuda_ptr, src_dev,
 					     size, stream);
-		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		/* All good ! Still, returning -EAGAIN, because we will need to
                    check the transfert completion later */
 		if (status == cudaSuccess)
@@ -538,7 +538,7 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 
 	return 0;
 }
@@ -631,7 +631,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 	return ret;
 }
 
@@ -665,7 +665,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 
 	/* XXX So much for asynchronicity */
 	clWaitForEvents(1, _event);

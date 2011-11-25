@@ -200,10 +200,10 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
 
         if (event)
-                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (event)
-                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
@@ -232,10 +232,10 @@ cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATT
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (event)
-                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -249,10 +249,10 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (event)
-                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
@@ -280,10 +280,10 @@ cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (event)
-                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -300,11 +300,11 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (event)
-                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -320,11 +320,11 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (event)
-                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -423,7 +423,7 @@ void *_starpu_opencl_worker(void *arg)
 #endif
 
 	unsigned memnode = args->memory_node;
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_OPENCL_KEY, devid, memnode);
+	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_OPENCL_KEY, devid, memnode);
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
@@ -446,7 +446,7 @@ void *_starpu_opencl_worker(void *arg)
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
@@ -460,9 +460,9 @@ void *_starpu_opencl_worker(void *arg)
 
 	while (_starpu_machine_is_running())
 	{
-		STARPU_TRACE_START_PROGRESS(memnode);
+		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
-		STARPU_TRACE_END_PROGRESS(memnode);
+		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
@@ -512,7 +512,7 @@ void *_starpu_opencl_worker(void *arg)
 		_starpu_handle_job_termination(j, 0);
 	}
 
-	STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
 

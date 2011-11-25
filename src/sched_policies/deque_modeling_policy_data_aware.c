@@ -108,7 +108,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 		
 		starpu_task_list_erase(&fifo_queue->taskq, task);
 
-		STARPU_TRACE_JOB_POP(task, 0);
+		_STARPU_TRACE_JOB_POP(task, 0);
 	}
 	
 	return task;
@@ -209,7 +209,7 @@ int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, pthread
 
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
-	STARPU_TRACE_JOB_PUSH(task, 0);
+	_STARPU_TRACE_JOB_PUSH(task, 0);
 
 	if (list->head == NULL)
 	{

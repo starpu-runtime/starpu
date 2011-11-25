@@ -177,9 +177,9 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 
 		_starpu_set_current_task(task);
 
-		STARPU_TRACE_START_CALLBACK(j);
+		_STARPU_TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
-		STARPU_TRACE_END_CALLBACK(j);
+		_STARPU_TRACE_END_CALLBACK(j);
 		
 		_starpu_set_current_task(current_task);
 
@@ -191,7 +191,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 
 	_starpu_sched_post_exec_hook(task);
 
-	STARPU_TRACE_TASK_DONE(j);
+	_STARPU_TRACE_TASK_DONE(j);
 
 	/* NB: we do not save those values before the callback, in case the
 	 * application changes some parameters eventually (eg. a task may not

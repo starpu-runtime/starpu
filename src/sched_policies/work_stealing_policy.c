@@ -161,7 +161,7 @@ static struct starpu_task *ws_pop_task(void)
 
 	task = _starpu_deque_pop_task(victimq, workerid);
 	if (task) {
-		STARPU_TRACE_WORK_STEALING(q, victimq);
+		_STARPU_TRACE_WORK_STEALING(q, victimq);
 		performed_total++;
 	}
 
@@ -183,7 +183,7 @@ static int ws_push_task(struct starpu_task *task)
 	// XXX reuse ?
         //total_number_of_jobs++;
 
-        STARPU_TRACE_JOB_PUSH(task, 0);
+        _STARPU_TRACE_JOB_PUSH(task, 0);
         starpu_job_list_push_front(deque_queue->jobq, j);
         deque_queue->njobs++;
         deque_queue->nprocessed++;

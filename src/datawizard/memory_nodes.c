@@ -110,7 +110,7 @@ unsigned _starpu_register_memory_node(enum _starpu_node_kind kind, int devid)
 	nnodes = STARPU_ATOMIC_ADD(&descr.nnodes, 1);
 
 	descr.nodes[nnodes-1] = kind;
-	STARPU_TRACE_NEW_MEM_NODE(nnodes-1);
+	_STARPU_TRACE_NEW_MEM_NODE(nnodes-1);
 
 	descr.devid[nnodes-1] = devid;
 

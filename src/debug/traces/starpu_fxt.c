@@ -223,21 +223,21 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	enum starpu_perf_archtype archtype = 0;
 
 	switch (ev->param[0]) {
-		case STARPU_FUT_APPS_KEY:
+		case _STARPU_FUT_APPS_KEY:
 			set_next_other_worker_color(workerid);
 			kindstr = "apps";
 			break;
-		case STARPU_FUT_CPU_KEY:
+		case _STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			kindstr = "cpu";
 			archtype = STARPU_CPU_DEFAULT;
 			break;
-		case STARPU_FUT_CUDA_KEY:
+		case _STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
 			kindstr = "cuda";
 			archtype = STARPU_CUDA_DEFAULT + devid;
 			break;
-		case STARPU_FUT_OPENCL_KEY:
+		case _STARPU_FUT_OPENCL_KEY:
 			set_next_opencl_worker_color(workerid);
 			kindstr = "opencl";
 			archtype = STARPU_OPENCL_DEFAULT + devid;
@@ -841,151 +841,151 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 		}
 
 		switch (ev.code) {
-			case STARPU_FUT_WORKER_INIT_START:
+			case _STARPU_FUT_WORKER_INIT_START:
 				handle_worker_init_start(&ev, options);
 				break;
 
-			case STARPU_FUT_WORKER_INIT_END:
+			case _STARPU_FUT_WORKER_INIT_END:
 				handle_worker_init_end(&ev, options);
 				break;
 
-			case STARPU_FUT_NEW_MEM_NODE:
+			case _STARPU_FUT_NEW_MEM_NODE:
 				handle_new_mem_node(&ev, options);
 				break;
 
 			/* detect when the workers were idling or not */
-			case STARPU_FUT_START_CODELET_BODY:
+			case _STARPU_FUT_START_CODELET_BODY:
 				handle_start_codelet_body(&ev, options);
 				break;
-			case STARPU_FUT_END_CODELET_BODY:
+			case _STARPU_FUT_END_CODELET_BODY:
 				handle_end_codelet_body(&ev, options);
 				break;
 
-			case STARPU_FUT_START_CALLBACK:
+			case _STARPU_FUT_START_CALLBACK:
 				handle_start_callback(&ev, options);
 				break;
-			case STARPU_FUT_END_CALLBACK:
+			case _STARPU_FUT_END_CALLBACK:
 				handle_end_callback(&ev, options);
 				break;
 
-			case STARPU_FUT_UPDATE_TASK_CNT:
+			case _STARPU_FUT_UPDATE_TASK_CNT:
 				handle_update_task_cnt(&ev, options);
 				break;
 
 			/* monitor stack size */
-			case STARPU_FUT_JOB_PUSH:
+			case _STARPU_FUT_JOB_PUSH:
 				handle_job_push(&ev, options);
 				break;
-			case STARPU_FUT_JOB_POP:
+			case _STARPU_FUT_JOB_POP:
 				handle_job_pop(&ev, options);
 				break;
 
 			/* check the memory transfer overhead */
-			case STARPU_FUT_START_FETCH_INPUT:
+			case _STARPU_FUT_START_FETCH_INPUT:
 				handle_worker_status(&ev, options, "Fi");
 				break;
 
-			case STARPU_FUT_START_PUSH_OUTPUT:
+			case _STARPU_FUT_START_PUSH_OUTPUT:
 				handle_worker_status(&ev, options, "Po");
 				break;
 
-			case STARPU_FUT_START_PROGRESS:
+			case _STARPU_FUT_START_PROGRESS:
 				handle_worker_status(&ev, options, "P");
 				break;
 
-			case STARPU_FUT_END_FETCH_INPUT:
-			case STARPU_FUT_END_PROGRESS:
-			case STARPU_FUT_END_PUSH_OUTPUT:
+			case _STARPU_FUT_END_FETCH_INPUT:
+			case _STARPU_FUT_END_PROGRESS:
+			case _STARPU_FUT_END_PUSH_OUTPUT:
 				handle_worker_status(&ev, options, "B");
 				break;
 
-			case STARPU_FUT_WORKER_SLEEP_START:
+			case _STARPU_FUT_WORKER_SLEEP_START:
 				handle_start_sleep(&ev, options);
 				break;
 
-			case STARPU_FUT_WORKER_SLEEP_END:
+			case _STARPU_FUT_WORKER_SLEEP_END:
 				handle_end_sleep(&ev, options);
 				break;
 
-			case STARPU_FUT_TAG:
+			case _STARPU_FUT_TAG:
 				/* XXX */
 				break;
 
-			case STARPU_FUT_TAG_DEPS:
+			case _STARPU_FUT_TAG_DEPS:
 				handle_codelet_tag_deps(&ev);
 				break;
 
-			case STARPU_FUT_TASK_DEPS:
+			case _STARPU_FUT_TASK_DEPS:
 				handle_task_deps(&ev);
 				break;
 
-			case STARPU_FUT_TASK_DONE:
+			case _STARPU_FUT_TASK_DONE:
 				handle_task_done(&ev, options);
 				break;
 
-			case STARPU_FUT_TAG_DONE:
+			case _STARPU_FUT_TAG_DONE:
 				handle_tag_done(&ev, options);
 				break;
 
-			case STARPU_FUT_DATA_COPY:
+			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
 				handle_data_copy();
 				break;
 
-			case STARPU_FUT_START_DRIVER_COPY:
+			case _STARPU_FUT_START_DRIVER_COPY:
 				if (!options->no_bus)
 				handle_start_driver_copy(&ev, options);
 				break;
 
-			case STARPU_FUT_END_DRIVER_COPY:
+			case _STARPU_FUT_END_DRIVER_COPY:
 				if (!options->no_bus)
 				handle_end_driver_copy(&ev, options);
 				break;
 
-			case STARPU_FUT_START_DRIVER_COPY_ASYNC:
+			case _STARPU_FUT_START_DRIVER_COPY_ASYNC:
 				if (!options->no_bus)
 				handle_start_driver_copy_async(&ev, options);
 				break;
 
-			case STARPU_FUT_END_DRIVER_COPY_ASYNC:
+			case _STARPU_FUT_END_DRIVER_COPY_ASYNC:
 				if (!options->no_bus)
 				handle_end_driver_copy_async(&ev, options);
 				break;
 
-			case STARPU_FUT_WORK_STEALING:
+			case _STARPU_FUT_WORK_STEALING:
 				/* XXX */
 				break;
 
-			case STARPU_FUT_WORKER_DEINIT_START:
+			case _STARPU_FUT_WORKER_DEINIT_START:
 				handle_worker_deinit_start(&ev, options);
 				break;
 
-			case STARPU_FUT_WORKER_DEINIT_END:
+			case _STARPU_FUT_WORKER_DEINIT_END:
 				handle_worker_deinit_end(&ev, options);
 				break;
 
-			case STARPU_FUT_START_ALLOC:
+			case _STARPU_FUT_START_ALLOC:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "A");
 				break;
 
-			case STARPU_FUT_START_ALLOC_REUSE:
+			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "Ar");
 				break;
 
-			case STARPU_FUT_START_MEMRECLAIM:
+			case _STARPU_FUT_START_MEMRECLAIM:
 				handle_memnode_event(&ev, options, "R");
 				break;
 
-			case STARPU_FUT_END_ALLOC:
-			case STARPU_FUT_END_ALLOC_REUSE:
-			case STARPU_FUT_END_MEMRECLAIM:
+			case _STARPU_FUT_END_ALLOC:
+			case _STARPU_FUT_END_ALLOC_REUSE:
+			case _STARPU_FUT_END_MEMRECLAIM:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "No");
 				break;
 
-			case STARPU_FUT_USER_EVENT:
+			case _STARPU_FUT_USER_EVENT:
 				handle_user_event(&ev, options);
 				break;
 
@@ -1001,11 +1001,11 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				handle_mpi_irecv_end(&ev, options);
 				break;
 
-			case STARPU_FUT_SET_PROFILING:
+			case _STARPU_FUT_SET_PROFILING:
 				handle_set_profiling(&ev, options);
 				break;
 
-			case STARPU_FUT_TASK_WAIT_FOR_ALL:
+			case _STARPU_FUT_TASK_WAIT_FOR_ALL:
 				handle_task_wait_for_all();
 				break;
 

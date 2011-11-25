@@ -438,7 +438,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }
@@ -486,7 +486,7 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTR
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }
@@ -517,7 +517,7 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTR
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }
@@ -542,7 +542,7 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 
 	memcpy((void *)dst_bcsr->rowptr, (void *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t));
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }

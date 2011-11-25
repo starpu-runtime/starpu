@@ -250,7 +250,7 @@ void *_starpu_cuda_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(args->bindid);
 #endif
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, devid, memnode);
+	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CUDA_KEY, devid, memnode);
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
@@ -285,7 +285,7 @@ void *_starpu_cuda_worker(void *arg)
 	snprintf(args->short_name, sizeof(args->short_name), "CUDA %d", args->devid);
 	_STARPU_DEBUG("cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
@@ -299,9 +299,9 @@ void *_starpu_cuda_worker(void *arg)
 
 	while (_starpu_machine_is_running())
 	{
-		STARPU_TRACE_START_PROGRESS(memnode);
+		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
-		STARPU_TRACE_END_PROGRESS(memnode);
+		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
@@ -351,7 +351,7 @@ void *_starpu_cuda_worker(void *arg)
 		_starpu_handle_job_termination(j, 0);
 	}
 
-	STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
 
@@ -362,7 +362,7 @@ void *_starpu_cuda_worker(void *arg)
 
 	deinit_context(args->workerid, args->devid);
 
-	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 
 	pthread_exit(NULL);
 

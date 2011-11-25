@@ -76,7 +76,7 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 		STARPU_ASSERT(j);
 		deque_queue->njobs--;
 		
-		STARPU_TRACE_JOB_POP(j, 0);
+		_STARPU_TRACE_JOB_POP(j, 0);
 
 		return j->task;
 	}

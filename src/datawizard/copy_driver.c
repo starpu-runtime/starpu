@@ -276,13 +276,13 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 			req->com_id = com_id;
 #endif
 
-		STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id);
+		_STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id);
 		ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 
 #ifdef STARPU_USE_FXT
 		if (ret_copy != -EAGAIN)
 		{
-			STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);
+			_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);
 		}
 #endif
 

@@ -587,7 +587,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
-	STARPU_TRACE_START_FETCH_INPUT(NULL);
+	_STARPU_TRACE_START_FETCH_INPUT(NULL);
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling && task->profiling_info)
@@ -635,7 +635,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
 
-	STARPU_TRACE_END_FETCH_INPUT(NULL);
+	_STARPU_TRACE_END_FETCH_INPUT(NULL);
 
 	return 0;
 
@@ -650,7 +650,7 @@ enomem:
 
 void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 {
-	STARPU_TRACE_START_PUSH_OUTPUT(NULL);
+	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling && task->profiling_info)
@@ -692,7 +692,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_end_time);
 
-	STARPU_TRACE_END_PUSH_OUTPUT(NULL);
+	_STARPU_TRACE_END_PUSH_OUTPUT(NULL);
 }
 
 /* NB : this value can only be an indication of the status of a data

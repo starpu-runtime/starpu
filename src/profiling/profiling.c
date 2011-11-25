@@ -64,7 +64,7 @@ int starpu_profiling_status_set(int status)
 	int prev_value = profiling;
 	profiling = status;
 
-	STARPU_TRACE_SET_PROFILING(status);
+	_STARPU_TRACE_SET_PROFILING(status);
 
 	/* If we enable profiling, we reset the counters. */
 	if (status == STARPU_PROFILING_ENABLE)

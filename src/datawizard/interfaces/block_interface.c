@@ -442,7 +442,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		}
 	}
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
 
 	return 0;
 }
@@ -468,10 +468,10 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-			STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 			cures = cudaMemcpyAsync((char *)dst_block->ptr, (char *)src_block->ptr,
 					nx*ny*nz*elemsize, kind, stream);
-			STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 			if (STARPU_UNLIKELY(cures))
 			{
 				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
@@ -488,11 +488,11 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		}
 		else {
 			/* Are all plans contiguous */
-			STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 			cures = cudaMemcpy2DAsync((char *)dst_block->ptr, dst_block->ldz*elemsize,
 					(char *)src_block->ptr, src_block->ldz*elemsize,
 					nx*ny*elemsize, nz, kind, stream);
-			STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 			if (STARPU_UNLIKELY(cures))
 			{
 				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
@@ -516,11 +516,11 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
 			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
-			STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
                                                   (char *)src_ptr, src_block->ldy*elemsize,
                                                   nx*elemsize, ny, kind, stream);
-			STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 
 			if (STARPU_UNLIKELY(cures))
 			{
@@ -534,7 +534,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 
 	}
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
 	return ret;
 
@@ -555,7 +555,7 @@ no_async_default:
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 	return 0;
 	}
 }
@@ -649,7 +649,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
                 }
         }
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
 	return ret;
 }
@@ -710,7 +710,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
                 }
         }
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
 	return ret;
 }
@@ -757,7 +757,7 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
 
 	return 0;
 }

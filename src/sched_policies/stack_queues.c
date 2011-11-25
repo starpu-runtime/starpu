@@ -62,7 +62,7 @@ void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, pthread_mut
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
 
-	STARPU_TRACE_JOB_PUSH(task, 0);
+	_STARPU_TRACE_JOB_PUSH(task, 0);
 	if (task->task->priority)
 		starpu_job_list_push_back(stack_queue->jobq, task);
 	else
@@ -90,7 +90,7 @@ starpu_job_t _starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, pthr
 		STARPU_ASSERT(j);
 		stack_queue->njobs--;
 		
-		STARPU_TRACE_JOB_POP(j, 0);
+		_STARPU_TRACE_JOB_POP(j, 0);
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */

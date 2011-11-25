@@ -94,7 +94,7 @@ void *_starpu_cpu_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(cpu_arg->bindid);
 #endif
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, devid, memnode);
+	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CPU_KEY, devid, memnode);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
@@ -109,7 +109,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	cpu_arg->status = STATUS_UNKNOWN;
 
-	STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
@@ -124,9 +124,9 @@ void *_starpu_cpu_worker(void *arg)
 
 	while (_starpu_machine_is_running())
 	{
-		STARPU_TRACE_START_PROGRESS(memnode);
+		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
-		STARPU_TRACE_END_PROGRESS(memnode);
+		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		_STARPU_PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
 
@@ -206,7 +206,7 @@ void *_starpu_cpu_worker(void *arg)
 			_starpu_handle_job_termination(j, 0);
         }
 
-	STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
 
@@ -215,7 +215,7 @@ void *_starpu_cpu_worker(void *arg)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
-	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
 
 	pthread_exit(NULL);
 	return NULL;

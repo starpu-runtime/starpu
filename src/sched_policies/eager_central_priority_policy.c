@@ -106,7 +106,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	/* wake people waiting for a task */
 	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
-	STARPU_TRACE_JOB_PUSH(task, 1);
+	_STARPU_TRACE_JOB_PUSH(task, 1);
 	
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
@@ -146,7 +146,7 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 				task = starpu_task_list_pop_back(&taskq->taskq[priolevel]);
 				taskq->ntasks[priolevel]--;
 				taskq->total_ntasks--;
-				STARPU_TRACE_JOB_POP(task, 0);
+				_STARPU_TRACE_JOB_POP(task, 0);
 			}
 		} while (!task && priolevel-- > 0);
 	}
