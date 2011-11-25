@@ -46,7 +46,7 @@ static void initialize_eager_center_policy(struct starpu_machine_topology *topol
 static void deinitialize_eager_center_policy(__attribute__ ((unused)) struct starpu_machine_topology *topology, 
 		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
-	/* TODO check that there is no task left in the queue */
+	STARPU_ASSERT(!_starpu_fifo_pop_task(fifo, starpu_worker_get_id()));
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(fifo);

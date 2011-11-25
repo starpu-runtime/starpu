@@ -238,7 +238,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	{
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			if (!starpu_combined_worker_may_execute_task(worker, task, nimpl))
+			if (!starpu_combined_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
 				skip_worker[worker][nimpl] = 1;

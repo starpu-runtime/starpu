@@ -208,6 +208,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return starpu_push_local_task(best_workerid, task, prio);
 }
 
+/* TODO: factorize with dmda!! */
 static void compute_all_performance_predictions(struct starpu_task *task,
 					double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
@@ -232,14 +233,14 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	unsigned nimpl;
 
 	for (worker = 0; worker < nworkers; worker++) {
-		for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) {
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
 			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker];
 			if (exp_end[worker][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker][nimpl];
 
-			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
 				continue;
@@ -298,8 +299,11 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker] + local_task_length[worker][nimpl];
 
 			if (exp_end[worker][nimpl] < best_exp_end)
+			{
 				/* a better solution was found */
 				best_exp_end = exp_end[worker][nimpl];
+				nimpl_best = nimpl;
+			}
 
 			if (local_power[worker][nimpl] == -1.0)
 				local_power[worker][nimpl] = 0.;
@@ -365,7 +369,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
-			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
 				continue;

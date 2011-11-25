@@ -169,7 +169,7 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 			if (possible_combinations_size[workerid][i] > best_size)
 			{
 				int combined_worker = possible_combinations[workerid][i];
-				if (starpu_combined_worker_may_execute_task(combined_worker, task, 0))
+				if (starpu_combined_worker_can_execute_task(combined_worker, task, 0))
 				{
 					best_size = possible_combinations_size[workerid][i];
 					best_workerid = combined_worker;

@@ -162,13 +162,13 @@ unsigned _starpu_machine_is_running(void);
 uint32_t _starpu_worker_exists(uint32_t task_mask);
 
 /* Is there a worker that can execute CUDA code ? */
-uint32_t _starpu_may_submit_cuda_task(void);
+uint32_t _starpu_can_submit_cuda_task(void);
 
 /* Is there a worker that can execute CPU code ? */
-uint32_t _starpu_may_submit_cpu_task(void);
+uint32_t _starpu_can_submit_cpu_task(void);
 
 /* Is there a worker that can execute OpenCL code ? */
-uint32_t _starpu_may_submit_opencl_task(void);
+uint32_t _starpu_can_submit_opencl_task(void);
 
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */

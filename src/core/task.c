@@ -258,7 +258,7 @@ int starpu_task_submit(struct starpu_task *task)
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
-		if (task->execute_on_a_specific_worker && !starpu_combined_worker_may_execute_task(task->workerid, task, 0)) {
+		if (task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0)) {
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }

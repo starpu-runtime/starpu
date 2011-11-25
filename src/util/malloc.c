@@ -74,7 +74,7 @@ int starpu_malloc(void **A, size_t dim)
 
 	STARPU_ASSERT(A);
 
-	if (_starpu_may_submit_cuda_task())
+	if (_starpu_can_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
 		int push_res;
@@ -98,7 +98,7 @@ int starpu_malloc(void **A, size_t dim)
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 	}
-//	else if (_starpu_may_submit_opencl_task())
+//	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
@@ -171,7 +171,7 @@ int starpu_free(void *A)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	if (_starpu_may_submit_cuda_task())
+	if (_starpu_can_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
 		int push_res;
@@ -190,7 +190,7 @@ int starpu_free(void *A)
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 	}
-//	else if (_starpu_may_submit_opencl_task())
+//	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;

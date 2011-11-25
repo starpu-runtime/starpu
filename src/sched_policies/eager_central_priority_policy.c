@@ -122,6 +122,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 static struct starpu_task *_starpu_priority_pop_task(void)
 {
+	/* XXX FIXME: should call starpu_worker_can_execute_task!! */
 	struct starpu_task *task = NULL;
 
 	/* block until some event happens */
@@ -150,6 +151,7 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 			}
 		} while (!task && priolevel-- > 0);
 	}
+	STARPU_ASSERT(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0) || !"prio does not support \"can_execute\"");
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 

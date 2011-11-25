@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -68,17 +68,22 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 	}
 
 	/* TODO find a task that suits workerid */
-	if (deque_queue->njobs > 0) 
+	for (j  = starpu_job_list_begin(deque_queue->jobq);
+	     j != starpu_job_list_end(deque_queue->jobq);
+	     j  = starpu_job_list_next(j))
 	{
-		/* there is a task */
-		j = starpu_job_list_pop_front(deque_queue->jobq);
-	
+		unsigned nimpl;
 		STARPU_ASSERT(j);
-		deque_queue->njobs--;
-		
-		_STARPU_TRACE_JOB_POP(j, 0);
 
-		return j->task;
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+			if (starpu_worker_can_execute_task(workerid, j->task, nimpl))
+			{
+				j->nimpl = nimpl;
+				j = starpu_job_list_pop_front(deque_queue->jobq);
+				deque_queue->njobs--;
+				_STARPU_TRACE_JOB_POP(j, 0);
+				return j->task;
+			}
 	}
 
 	return NULL;
@@ -110,19 +115,18 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq
 			i != starpu_job_list_end(old_list);
 			i  = next_job)
 		{
+			unsigned nimpl;
 			next_job = starpu_job_list_next(i);
 
-			/* In case there are multiples implementations of the
- 			 * codelet for a single device, We dont really care
-			 * about the implementation used, so let's try the 
-			 * first one. */
-			if (starpu_worker_may_execute_task(workerid, i->task, 0))
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+			if (starpu_worker_can_execute_task(workerid, i->task, nimpl))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;
 				
 				starpu_job_list_erase(old_list, i);
 				starpu_job_list_push_back(new_list, i);
+				i->nimpl = nimpl;
 			}
 		}
 

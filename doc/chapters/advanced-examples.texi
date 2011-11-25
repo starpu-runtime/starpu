@@ -11,6 +11,7 @@
 
 @menu
 * Using multiple implementations of a codelet::
+* Enabling implementation according to capabilities::
 * Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
 * Performance model example::   
@@ -68,6 +69,50 @@ struct starpu_codelet cl = @{
 Scheduler which are multi-implementation aware (only @code{dmda}, @code{heft}
 and @code{pheft} for now) will use the performance models of all the
 implementations it was given, and pick the one that seems to be the fastest.
+
+@node Enabling implementation according to capabilities
+@section Enabling implementation according to capabilities
+
+Some implementations may not run on some devices. For instance, some GPU
+devices do not support double floating point precision, and thus the kernel
+execution would just fail; or the GPU may not have enough shared memory for
+the implementation being used. The @code{can_execute} field of the @code{struct
+starpu_codelet} structure permits to express this. For instance:
+
+@cartouche
+@smallexample
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+@{
+  const struct cudaDeviceProp *props;
+  if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+    return 1;
+  /* Cuda device */
+  props = starpu_cuda_get_device_properties(workerid);
+  if (props->major >= 2 || props->minor >= 3)
+    /* At least compute capability 1.3, supports doubles */
+    return 1;
+  /* Old card, does not support doubles */
+  return 0;
+@}
+
+struct starpu_codelet cl = @{
+    .where = STARPU_CPU|STARPU_GPU,
+    .can_execute = can_execute,
+    .cpu_func = cpu_func,
+    .gpu_func = gpu_func
+    .nbuffers = 1
+@};
+@end smallexample
+@end cartouche
+
+This can be essential e.g. when running on a machine which mixes various models
+of GPUs, to take benefit from the new models without crashing on old models.
+
+Note: the @code{can_execute} function is called by the scheduler each time it
+tries to match a task with a worker, and should thus be very fast. The
+@code{starpu_cuda_get_device_properties} provides a quick access to CUDA
+properties of CUDA devices to achieve such efficiency.
+
 @node Task and Worker Profiling
 @section Task and Worker Profiling
 

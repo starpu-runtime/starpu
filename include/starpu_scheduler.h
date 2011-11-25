@@ -119,7 +119,7 @@ void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond,
 #endif
 
 /* Check if the worker specified by workerid can execute the codelet. */
-int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
+int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
 /* The scheduling policy may put tasks directly into a worker's local queue so
  * that it is not always necessary to create its own queue when the local queue
@@ -154,8 +154,8 @@ void starpu_sched_set_max_priority(int max_prio);
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
 /* Get the description of a combined worker */
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
-/* Variant of starpu_worker_may_execute_task compatible with combined workers */
-int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
+/* Variant of starpu_worker_can_execute_task compatible with combined workers */
+int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
 /*
  *	Data prefetching

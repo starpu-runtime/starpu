@@ -54,22 +54,22 @@ uint32_t _starpu_worker_exists(uint32_t task_mask)
 	return (task_mask & config.worker_mask);
 } 
 
-uint32_t _starpu_may_submit_cuda_task(void)
+uint32_t _starpu_can_submit_cuda_task(void)
 {
 	return (STARPU_CUDA & config.worker_mask);
 }
 
-uint32_t _starpu_may_submit_cpu_task(void)
+uint32_t _starpu_can_submit_cpu_task(void)
 {
 	return (STARPU_CPU & config.worker_mask);
 }
 
-uint32_t _starpu_may_submit_opencl_task(void)
+uint32_t _starpu_can_submit_opencl_task(void)
 {
 	return (STARPU_OPENCL & config.worker_mask);
 }
 
-static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
+static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
 	switch(arch) {
 	case STARPU_CPU_WORKER:
@@ -94,18 +94,17 @@ static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct 
 }
 
 
-int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
-	/* TODO: call application-provided function for various cases like
-	 * double support, shared memory size limit, etc. */
-	return ((task->cl->where & config.workers[workerid].worker_mask) &&
-		_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
+	return (task->cl->where & config.workers[workerid].worker_mask) &&
+		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
+		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
 }
 
 
 
-int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
 	/* TODO: call application-provided function for various cases like
@@ -118,7 +117,7 @@ int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_tas
 	if (workerid < nworkers)
 	{
 		return !!((task->cl->where & config.workers[workerid].worker_mask) &&
-				_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
+				_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 	}
 	else {
 		if ((cl->type == STARPU_SPMD) || (cl->type == STARPU_FORKJOIN))
@@ -128,7 +127,7 @@ int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_tas
 			/* Is the worker larger than requested ? */
 			int worker_size = (int)config.combined_workers[workerid - nworkers].worker_size;
 			return !!((worker_size <= task->cl->max_parallelism) &&
-				_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
+				_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 		}
 		else
 		{

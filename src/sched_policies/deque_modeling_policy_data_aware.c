@@ -297,6 +297,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
 }
 
+/* TODO: factorize with dmda!! */
 static int _dm_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
@@ -316,10 +317,9 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 
 	unsigned best_impl = 0;
 	unsigned nimpl;
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-		{
+
+	for (worker = 0; worker < nworkers; worker++) {
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
 			double exp_end;
 
 			fifo = queue_array[worker];
@@ -328,7 +328,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 			fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
 				continue;
@@ -347,6 +347,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 					) {
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
+				best_impl = nimpl;
 			}
 
 			if (local_length == -1.0)
@@ -400,13 +401,13 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	   there is no performance prediction available yet */
 	int forced_best = -1;
 
-	double local_task_length[nworkers];
-	double local_data_penalty[nworkers];
-	double local_power[nworkers];
-	double exp_end[nworkers];
+	double local_task_length[nworkers][STARPU_MAXIMPLEMENTATIONS];
+	double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS];
+	double local_power[nworkers][STARPU_MAXIMPLEMENTATIONS];
+	double exp_end[nworkers][STARPU_MAXIMPLEMENTATIONS];
 	double max_exp_end = 0.0;
 
-	double fitness[nworkers];
+	double fitness[nworkers][STARPU_MAXIMPLEMENTATIONS];
 
 	double best_exp_end = 10e240;
 	double model_best = 0.0;
@@ -420,11 +421,10 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	int unknown = 0;
 
 	unsigned best_impl = 0;
-	unsigned nimpl=0;
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		for(nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-	 	{
+	unsigned nimpl;
+
+	for (worker = 0; worker < nworkers; worker++) {
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
 			fifo = queue_array[worker];
 
 			/* Sometimes workers didn't take the tasks as early as we expected */
@@ -433,39 +433,39 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			if (fifo->exp_end > max_exp_end)
 				max_exp_end = fifo->exp_end;
 
-			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
 				continue;
 			}
 
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-			local_task_length[worker] = starpu_task_expected_length(task, perf_arch, nimpl);
+			local_task_length[worker][nimpl] = starpu_task_expected_length(task, perf_arch, nimpl);
 
-			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],worker,nimpl);
+			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) worker (%u) kernel (%u) \n", local_task_length[worker][nimpl],worker,nimpl);
 
 			unsigned memory_node = starpu_worker_get_memory_node(worker);
-			local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
+			local_data_penalty[worker][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
 
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
 			if (ntasks_best == -1
 					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-					|| (!calibrating && local_task_length[worker] == -1.0) /* Not calibrating but this worker is being calibrated */
-					|| (calibrating && local_task_length[worker] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+					|| (!calibrating && local_task_length[worker][nimpl] == -1.0) /* Not calibrating but this worker is being calibrated */
+					|| (calibrating && local_task_length[worker][nimpl] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
 					) {
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
-
+				best_impl = nimpl;
 			}
 
-			if (local_task_length[worker] == -1.0)
+			if (local_task_length[worker][nimpl] == -1.0)
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
 
-			if (local_task_length[worker] <= 0.0)
+			if (local_task_length[worker][nimpl] <= 0.0)
 				/* there is no prediction available for that task
 				 * with that arch yet, so switch to a greedy strategy */
 				unknown = 1;
@@ -473,22 +473,18 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			if (unknown)
 					continue;
 
-			exp_end[worker] = fifo->exp_start + fifo->exp_len + local_task_length[worker];
+			exp_end[worker][nimpl] = fifo->exp_start + fifo->exp_len + local_task_length[worker][nimpl];
 
-			if (exp_end[worker] < best_exp_end)
+			if (exp_end[worker][nimpl] < best_exp_end)
 			{
 				/* a better solution was found */
-				best_exp_end = exp_end[worker];
+				best_exp_end = exp_end[worker][nimpl];
 				best_impl = nimpl;
-
 			}
 
-
-
-			local_power[worker] = starpu_task_expected_power(task, perf_arch, nimpl);
-			if (local_power[worker] == -1.0)
-				local_power[worker] = 0.;
-
+			local_power[worker][nimpl] = starpu_task_expected_power(task, perf_arch, nimpl);
+			if (local_power[worker][nimpl] == -1.0)
+				local_power[worker][nimpl] = 0.;
 
 		 }
 	}
@@ -501,30 +497,33 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	if (forced_best == -1)
 	{
 		for (worker = 0; worker < nworkers; worker++)
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			if (!starpu_worker_may_execute_task(worker, task, 0))
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
 				continue;
 			}
 	
-			fitness[worker] = alpha*(exp_end[worker] - best_exp_end) 
-					+ beta*(local_data_penalty[worker])
-					+ _gamma*(local_power[worker]);
+			fitness[worker][nimpl] = alpha*(exp_end[worker][nimpl] - best_exp_end) 
+				+ beta*(local_data_penalty[worker][nimpl])
+				+ _gamma*(local_power[worker][nimpl]);
 
-			if (exp_end[worker] > max_exp_end)
+			if (exp_end[worker][nimpl] > max_exp_end) {
 				/* This placement will make the computation
 				 * longer, take into account the idle
 				 * consumption of other cpus */
-				fitness[worker] += _gamma * idle_power * (exp_end[worker] - max_exp_end) / 1000000.0;
+				fitness[worker][nimpl] += _gamma * idle_power * (exp_end[worker][nimpl] - max_exp_end) / 1000000.0;
+			}
 
-			if (best == -1 || fitness[worker] < best_fitness)
+			if (best == -1 || fitness[worker][nimpl] < best_fitness)
 			{
 				/* we found a better solution */
-				best_fitness = fitness[worker];
+				best_fitness = fitness[worker][nimpl];
 				best = worker;
+				best_impl = nimpl;
 
-	//			_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker], local_power[worker]);
+				//			_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
 			}
 		}
 	}
@@ -542,8 +541,8 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	}
 	else 
 	{
-		model_best = local_task_length[best];
-		//penality_best = local_data_penalty[best];
+		model_best = local_task_length[best][nimpl];
+		//penality_best = local_data_penalty[best][nimpl];
 	}
 
 

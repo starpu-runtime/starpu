@@ -167,7 +167,7 @@ Return the expected power consumption of the entire task bundle in J.
 @section Task Lists
 
 @deftp {Data Type} {struct starpu_task_list}
-todo
+Stores a double-chained list of tasks
 @end deftp
 
 @deftypefun void starpu_task_list_init ({struct starpu_task_list *}@var{list})
@@ -182,11 +182,11 @@ Push a task at the front of a list
 Push a task at the back of a list
 @end deftypefun
 
-@deftypefun struct starpu_task *starpu_task_list_front ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *}starpu_task_list_front ({struct starpu_task_list *}@var{list})
 Get the front of the list (without removing it)
 @end deftypefun
 
-@deftypefun struct starpu_task *starpu_task_list_back ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *}starpu_task_list_back ({struct starpu_task_list *}@var{list})
 Get the back of the list (without removing it)
 @end deftypefun
 
@@ -198,12 +198,24 @@ Test if a list is empty
 Remove an element from the list
 @end deftypefun
 
-@deftypefun struct starpu_task *starpu_task_list_pop_front ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *}starpu_task_list_pop_front ({struct starpu_task_list *}@var{list})
 Remove the element at the front of the list
 @end deftypefun
 
-@deftypefun struct starpu_task *starpu_task_list_pop_back ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *}starpu_task_list_pop_back ({struct starpu_task_list *}@var{list})
 Remove the element at the back of the list
+@end deftypefun
+
+@deftypefun {struct starpu_task *}starpu_task_list_begin ({struct starpu_task_list *}@var{list})
+Get the first task of the list.
+@end deftypefun
+
+@deftypefun {struct starpu_task *}starpu_task_list_end ({struct starpu_task_list *}@var{list})
+Get the end of the list.
+@end deftypefun
+
+@deftypefun {struct starpu_task *}starpu_task_list_next ({struct starpu_task *}@var{task})
+Get the next task of the list. This is not erase-safe.
 @end deftypefun
 
 @node Defining a new scheduling policy
@@ -234,14 +246,13 @@ Initialize the scheduling policy.
 Cleanup the scheduling policy.
 @item @code{push_task}
 Insert a task into the scheduler.
-@item @code{push_prio_task}
-Insert a priority task into the scheduler.
-@item @code{push_prio_notify}
-Notify the scheduler that a task was pushed on the worker. This method is
-called when a task that was explicitely assigned to a worker is scheduled. This
-method therefore permits to keep the state of of the scheduler coherent even
-when StarPU bypasses the scheduling strategy.
-@item @code{pop_task}
+@item @code{push_task_notify}
+Notify the scheduler that a task was pushed on a given worker. This method is
+called when a task that was explicitely assigned to a worker becomes ready and
+is about to be executed by the worker. This method therefore permits to keep
+the state of of the scheduler coherent even when StarPU bypasses the scheduling
+strategy.
+@item @code{pop_task} (optional)
 Get a task from the scheduler. The mutex associated to the worker is already
 taken when this method is called. If this method is defined as @code{NULL}, the
 worker will only execute tasks from its local queue. In this case, the
@@ -250,13 +261,14 @@ assign tasks to the different workers.
 @item @code{pop_every_task}
 Remove all available tasks from the scheduler (tasks are chained by the means
 of the prev and next fields of the starpu_task structure). The mutex associated
-to the worker is already taken when this method is called.
+to the worker is already taken when this method is called. This is currently
+only used by the Gordon driver.
 @item @code{post_exec_hook} (optional)
 This method is called every time a task has been executed.
 @item @code{policy_name}
 Name of the policy (optional).
 @item @code{policy_description}
-Description of the policy (optionnal).
+Description of the policy (optional).
 @end table
 @end deftp
 
@@ -307,12 +319,12 @@ where the worker will pop tasks first. Setting @var{back} to 0 therefore ensures
 a FIFO ordering.
 @end deftypefun
 
-@deftypefun int starpu_worker_may_execute_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned {nimpl})
-Check if the worker specified by workerid can execute the codelet.
+@deftypefun int starpu_worker_may_run_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned {nimpl})
+Check if the worker specified by workerid can execute the codelet. Schedulers need to call it before assigning a task to a worker, otherwise the task may fail to execute.
 @end deftypefun
 
 @deftypefun double starpu_timing_now (void)
-Return the current date
+Return the current date in µs
 @end deftypefun
 
 @deftypefun double starpu_task_expected_length ({struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})

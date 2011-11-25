@@ -20,6 +20,7 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#include <starpu_cuda.h>
 #endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -36,6 +37,20 @@ static unsigned entries_per_block = 1024;
 
 static DOT_TYPE dot = 0.0f;
 static starpu_data_handle_t dot_handle;
+
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+	const struct cudaDeviceProp *props;
+	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+		return 1;
+	/* Cuda device */
+	props = starpu_cuda_get_device_properties(workerid);
+	if (props->major >= 2 || props->minor >= 3)
+		/* At least compute capability 1.3, supports doubles */
+		return 0;
+	/* Old card, does not support doubles */
+	return 0;
+}
 
 /*
  *	Codelet to create a neutral element
@@ -58,6 +73,7 @@ void init_cuda_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet init_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
+	.can_execute = can_execute,
 	.cpu_func = init_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = init_cuda_func,
@@ -83,6 +99,7 @@ extern void redux_cuda_func(void *descr[], void *_args);
 
 static struct starpu_codelet redux_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
+	.can_execute = can_execute,
 	.cpu_func = redux_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = redux_cuda_func,
@@ -144,6 +161,7 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet dot_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
+	.can_execute = can_execute,
 	.cpu_func = dot_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = dot_cuda_func,

@@ -74,9 +74,11 @@ typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
  * A codelet describes the various function 
  * that may be called from a worker
  */
+struct starpu_task;
 struct starpu_codelet {
 	/* where can it be performed ? */
 	uint32_t where;
+	int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 	unsigned type;
 	int max_parallelism;
 
