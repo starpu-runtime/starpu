@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 #include <core/errorcheck.h>
 #include <core/workers.h>
 
-void _starpu_set_local_worker_status(starpu_worker_status st)
+void _starpu_set_local_worker_status(enum _starpu_worker_status st)
 {
-	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
 	/* It is possible that we call this function from the application (and
 	 * thereforce outside a worker), for instance if we are executing the
@@ -29,9 +29,9 @@ void _starpu_set_local_worker_status(starpu_worker_status st)
 		worker->status = st;
 }
 
-starpu_worker_status _starpu_get_local_worker_status(void)
+enum _starpu_worker_status _starpu_get_local_worker_status(void)
 {
-	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 	if (STARPU_UNLIKELY(!worker))
 		return STATUS_INVALID;
 
@@ -42,7 +42,7 @@ starpu_worker_status _starpu_get_local_worker_status(void)
  * execution of a task. */
 unsigned _starpu_worker_may_perform_blocking_calls(void)
 {
-	starpu_worker_status st = _starpu_get_local_worker_status();
+	enum _starpu_worker_status st = _starpu_get_local_worker_status();
 
 	return ( !(st == STATUS_CALLBACK) && !(st == STATUS_EXECUTING));
 }

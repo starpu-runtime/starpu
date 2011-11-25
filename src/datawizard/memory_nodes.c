@@ -171,7 +171,7 @@ void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_
 
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	/* This workerid may either be a basic worker or a combined worker */
 	unsigned nworkers = config->topology.nworkers;

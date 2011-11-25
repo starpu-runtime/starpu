@@ -138,7 +138,7 @@ static void display_sched_help_message(void)
 	 }
 }
 
-static struct starpu_sched_policy *select_sched_policy(struct starpu_machine_config_s *config)
+static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->user_conf;
@@ -168,7 +168,7 @@ static struct starpu_sched_policy *select_sched_policy(struct starpu_machine_con
 	return &_starpu_sched_eager_policy;
 }
 
-void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
+void _starpu_init_sched_policy(struct _starpu_machine_config *config)
 {
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -199,7 +199,7 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 	policy.init_sched(&config->topology, &policy);
 }
 
-void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
+void _starpu_deinit_sched_policy(struct _starpu_machine_config *config)
 {
 	if (policy.deinit_sched)
 		policy.deinit_sched(&config->topology, &policy);
@@ -216,8 +216,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	int is_basic_worker = (workerid < nbasic_workers);
 
 	unsigned memory_node; 
-	struct starpu_worker_s *worker = NULL;
-	struct starpu_combined_worker_s *combined_worker = NULL;
+	struct _starpu_worker *worker = NULL;
+	struct _starpu_combined_worker *combined_worker = NULL;
 
 	if (is_basic_worker)
 	{
@@ -303,7 +303,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
         return ret;
 }
 
-struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
+struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 {
 	struct starpu_task *task;
 
@@ -357,7 +357,7 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 
 void _starpu_wait_on_sched_event(void)
 {
-	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 
@@ -380,7 +380,7 @@ void _starpu_wait_on_sched_event(void)
  * a FIFO ordering. */
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
 {
-	struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 	return _starpu_push_local_task(worker, task, back);
 }

@@ -23,11 +23,11 @@
 #include <core/jobs.h>
 #include <common/utils.h>
 
-void _starpu_driver_start_job(struct starpu_worker_s *args, starpu_job_t j,
+void _starpu_driver_start_job(struct _starpu_worker *args, starpu_job_t j,
 		struct timespec *codelet_start, int rank);
-void _starpu_driver_end_job(struct starpu_worker_s *args, starpu_job_t j,
+void _starpu_driver_end_job(struct _starpu_worker *args, starpu_job_t j,
 		struct timespec *codelet_end, int rank);
-void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
+void _starpu_driver_update_job_feedback(starpu_job_t j, struct _starpu_worker *worker_args,
 		enum starpu_perf_archtype perf_arch,
 		struct timespec *codelet_start, struct timespec *codelet_end, double);
 

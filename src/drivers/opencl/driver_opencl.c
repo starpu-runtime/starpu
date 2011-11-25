@@ -108,14 +108,14 @@ void starpu_opencl_get_queue(int devid, cl_command_queue *queue)
 
 void starpu_opencl_get_current_queue(cl_command_queue *queue)
 {
-	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(queue);
         *queue = queues[worker->devid];
 }
 
 void starpu_opencl_get_current_context(cl_context *context)
 {
-	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(context);
         *context = contexts[worker->devid];
 }
@@ -181,7 +181,7 @@ cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags fla
 {
 	cl_int err;
         cl_mem address;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
 	address = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
@@ -194,7 +194,7 @@ cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags fla
 cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
@@ -227,7 +227,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node
 cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
 {
         cl_int err;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
@@ -244,7 +244,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATT
 cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
@@ -275,7 +275,7 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_
 cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
 {
         cl_int err;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
@@ -295,7 +295,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
         cl_int err;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
@@ -315,7 +315,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
         cl_int err;
-        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
@@ -409,11 +409,11 @@ void _starpu_opencl_init(void)
 }
 
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
-static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *args);
+static int _starpu_opencl_execute_job(starpu_job_t j, struct _starpu_worker *args);
 
 void *_starpu_opencl_worker(void *arg)
 {
-	struct starpu_worker_s* args = arg;
+	struct _starpu_worker* args = arg;
 
 	int devid = args->devid;
 	int workerid = args->workerid;
@@ -547,7 +547,7 @@ unsigned _starpu_opencl_get_device_count(void)
 	return nb_devices;
 }
 
-static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *args)
+static int _starpu_opencl_execute_job(starpu_job_t j, struct _starpu_worker *args)
 {
 	int ret;
 	uint32_t mask = 0;
@@ -573,13 +573,13 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	_starpu_driver_start_job(args, j, &codelet_start, 0);
 
 	if (cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS) {
-		cl_func func = cl->opencl_func;
+		_starpu_cl_func func = cl->opencl_func;
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}
 	else {
 		/* _STARPU_DEBUG("OpenCL driver : running kernel (%d)\n", j->nimpl); */
-		cl_func func = cl->opencl_funcs[j->nimpl];
+		_starpu_cl_func func = cl->opencl_funcs[j->nimpl];
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}

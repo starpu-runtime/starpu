@@ -22,7 +22,7 @@
 #include <core/dependencies/cg.h>
 #include <core/dependencies/tags.h>
 
-void _starpu_cg_list_init(struct starpu_cg_list_s *list)
+void _starpu_cg_list_init(struct _starpu_cg_list *list)
 {
 	list->nsuccs = 0;
 	list->ndeps = 0;
@@ -32,16 +32,16 @@ void _starpu_cg_list_init(struct starpu_cg_list_s *list)
 	/* this is a small initial default value ... may be changed */
 	list->succ_list_size = 0;
 	list->succ =
-		(struct starpu_cg_s **) realloc(NULL, list->succ_list_size*sizeof(struct starpu_cg_s *));
+		(struct _starpu_cg **) realloc(NULL, list->succ_list_size*sizeof(struct _starpu_cg *));
 #endif
 }
 
-void _starpu_cg_list_deinit(struct starpu_cg_list_s *list)
+void _starpu_cg_list_deinit(struct _starpu_cg_list *list)
 {
 	unsigned id;
 	for (id = 0; id < list->nsuccs; id++)
 	{
-		starpu_cg_t *cg = list->succ[id];
+		struct _starpu_cg *cg = list->succ[id];
 
 		/* We remove the reference on the completion group, and free it
 		 * if there is no more reference. */		
@@ -55,7 +55,7 @@ void _starpu_cg_list_deinit(struct starpu_cg_list_s *list)
 #endif
 }
 
-void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg)
+void _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 
@@ -72,8 +72,8 @@ void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starp
 			successors->succ_list_size = 4;
 
 		/* NB: this is thread safe as the tag->lock is taken */
-		successors->succ = (struct starpu_cg_s **) realloc(successors->succ, 
-			successors->succ_list_size*sizeof(struct starpu_cg_s *));
+		successors->succ = (struct _starpu_cg **) realloc(successors->succ, 
+			successors->succ_list_size*sizeof(struct _starpu_cg *));
 	}
 #else
 	STARPU_ASSERT(index < STARPU_NMAXDEPS);
@@ -81,7 +81,7 @@ void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starp
 	successors->succ[index] = cg;
 }
 
-void _starpu_notify_cg(starpu_cg_t *cg)
+void _starpu_notify_cg(struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
@@ -89,8 +89,8 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	if (remaining == 0) {
 		cg->remaining = cg->ntags;
 
-		struct starpu_tag_s *tag;
-		struct starpu_cg_list_s *tag_successors, *job_successors;
+		struct _starpu_tag *tag;
+		struct _starpu_cg_list *tag_successors, *job_successors;
 		starpu_job_t j;
 
 		/* the group is now completed */
@@ -148,7 +148,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	}
 }
 
-void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
+void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 {
 	unsigned nsuccs;
 	unsigned succ;
@@ -157,10 +157,10 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 
 	for (succ = 0; succ < nsuccs; succ++)
 	{
-		struct starpu_cg_s *cg = successors->succ[succ];
+		struct _starpu_cg *cg = successors->succ[succ];
 		STARPU_ASSERT(cg);
 
-		struct starpu_tag_s *cgtag = NULL;
+		struct _starpu_tag *cgtag = NULL;
 
 		unsigned cg_type = cg->cg_type;
 

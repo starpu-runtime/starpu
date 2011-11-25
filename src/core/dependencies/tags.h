@@ -25,7 +25,7 @@
 
 #define STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
-typedef enum {
+enum _starpu_tag_state {
 	/* this tag is not declared by any task */
 	STARPU_INVALID_STATE,
 	/* _starpu_tag_declare was called to associate the tag to a task */
@@ -40,16 +40,16 @@ typedef enum {
 //	STARPU_SCHEDULED,
 	/* the task has been performed */
 	STARPU_DONE
-} starpu_tag_state;
+};
 
 struct starpu_job_s;
 
-struct starpu_tag_s {
+struct _starpu_tag {
 	struct _starpu_spinlock lock;
 	starpu_tag_t id; /* an identifier for the task */
-	starpu_tag_state state;
+	enum _starpu_tag_state state;
 
-	struct starpu_cg_list_s tag_successors;
+	struct _starpu_cg_list tag_successors;
 
 	struct starpu_job_s *job; /* which job is associated to the tag if any ? */
 
@@ -60,10 +60,10 @@ struct starpu_tag_s {
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void _starpu_notify_dependencies(struct starpu_job_s *j);
-void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag);
+void _starpu_notify_tag_dependencies(struct _starpu_tag *tag);
 
 void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);
-void _starpu_tag_set_ready(struct starpu_tag_s *tag);
+void _starpu_tag_set_ready(struct _starpu_tag *tag);
 
 unsigned _starpu_submit_job_enforce_task_deps(struct starpu_job_s *j);
 

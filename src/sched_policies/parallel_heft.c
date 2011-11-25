@@ -100,7 +100,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	}
 	else {
 		/* This is a combined worker so we create task aliases */
-		struct starpu_combined_worker_s *combined_worker;
+		struct _starpu_combined_worker *combined_worker;
 		combined_worker = _starpu_get_combined_worker_struct(best_workerid);
 		int worker_size = combined_worker->worker_size;
 		int *combined_workerid = combined_worker->combined_workerid;

@@ -195,7 +195,7 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 		else {
 			/* The master needs to dispatch the task between the
 			 * different combined workers */
-			struct starpu_combined_worker_s *combined_worker;
+			struct _starpu_combined_worker *combined_worker;
 			combined_worker = _starpu_get_combined_worker_struct(best_workerid);
 			int worker_size = combined_worker->worker_size;
 			int *combined_workerid = combined_worker->combined_workerid;

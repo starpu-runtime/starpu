@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,15 +32,15 @@
 #endif
 
 /* Completion Group list */
-struct starpu_cg_list_s {
+struct _starpu_cg_list {
 	unsigned nsuccs; /* how many successors ? */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	unsigned succ_list_size;
-	struct starpu_cg_s **succ;
+	struct _starpu_cg **succ;
 #else
-	struct starpu_cg_s *succ[STARPU_NMAXDEPS];
+	struct _starpu_cg *succ[STARPU_NMAXDEPS];
 #endif
 };
 
@@ -49,7 +49,7 @@ struct starpu_cg_list_s {
 #define STARPU_CG_TASK	(1<<2)
 
 /* Completion Group */
-typedef struct starpu_cg_s {
+struct _starpu_cg {
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
 
@@ -57,7 +57,7 @@ typedef struct starpu_cg_s {
 
 	union {
 		/* STARPU_CG_TAG */
-		struct starpu_tag_s *tag;
+		struct _starpu_tag *tag;
 
 		/* STARPU_CG_TASK */
 		struct starpu_job_s *job;
@@ -72,13 +72,13 @@ typedef struct starpu_cg_s {
 			pthread_cond_t cg_cond;
 		} succ_apps;
 	} succ;
-} starpu_cg_t;
+};
 
-void _starpu_cg_list_init(struct starpu_cg_list_s *list);
-void _starpu_cg_list_deinit(struct starpu_cg_list_s *list);
-void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg);
-void _starpu_notify_cg(starpu_cg_t *cg);
-void _starpu_notify_cg_list(struct starpu_cg_list_s *successors);
+void _starpu_cg_list_init(struct _starpu_cg_list *list);
+void _starpu_cg_list_deinit(struct _starpu_cg_list *list);
+void _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg);
+void _starpu_notify_cg(struct _starpu_cg *cg);
+void _starpu_notify_cg_list(struct _starpu_cg_list *successors);
 void _starpu_notify_task_dependencies(struct starpu_job_s *j);
 
 #endif // __CG_H__

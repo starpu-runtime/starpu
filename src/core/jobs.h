@@ -42,11 +42,10 @@
 #include <cuda.h>
 #endif
 
-struct starpu_worker_s;
+struct _starpu_worker;
 
 /* codelet function */
-typedef void (*cl_func)(void **, void *);
-typedef void (*callback)(void *);
+typedef void (*_starpu_cl_func)(void **, void *);
 
 #define STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
 #define STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
@@ -75,11 +74,11 @@ LIST_TYPE(starpu_job,
 
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
-	struct starpu_tag_s *tag;
+	struct _starpu_tag *tag;
 
 	/* Maintain a list of all the completion groups that depend on the job.
 	 * */
-	struct starpu_cg_list_s job_successors;
+	struct _starpu_cg_list job_successors;
 
 	/* The value of the footprint that identifies the job may be stored in
 	 * this structure. */
@@ -156,13 +155,13 @@ size_t _starpu_job_get_data_size(starpu_job_t j);
 
 /* Get a task from the local pool of tasks that were explicitly attributed to
  * that worker. */
-struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker);
+struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
 
 /* Put a task into the pool of tasks that are explicitly attributed to the
  * specified worker. If "back" is set, the task is put at the back of the list.
  * Considering the tasks are popped from the back, this value should be 0 to
  * enforce a FIFO ordering. */
-int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task, int back);
+int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int back);
 
 /* Returns the symbol associated to that job if any. */
 const char *_starpu_get_model_name(starpu_job_t j);

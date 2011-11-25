@@ -87,7 +87,7 @@ static hwloc_topology_t hwtopology;
 #ifdef STARPU_USE_CUDA
 static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
 	size_t size = SIZE;
 
@@ -237,7 +237,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         cl_int err=0;
 	size_t size = SIZE;
 
-        struct starpu_machine_config_s *config = _starpu_get_machine_config();
+        struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
 
 	/* Initialize OpenCL context on the device */
@@ -512,7 +512,7 @@ static void benchmark_all_gpu_devices(void)
 #warning Missing binding support, StarPU will not be able to properly benchmark NUMA topology
 #endif
 
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
 
 #ifdef STARPU_USE_CUDA
@@ -600,7 +600,7 @@ static void load_bus_affinity_file_content(void)
 	STARPU_ASSERT(f);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
         int gpu;
 
@@ -1103,7 +1103,7 @@ static void check_bus_config_file()
                 FILE *f;
                 int ret, read_cuda, read_opencl;
                 unsigned read_cpus;
-                struct starpu_machine_config_s *config = _starpu_get_machine_config();
+                struct _starpu_machine_config *config = _starpu_get_machine_config();
 
                 // Loading configuration from file
                 f = fopen(path, "r");

@@ -247,9 +247,9 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 		return 0;
 	}
 
-	struct starpu_tag_s *tag = j->tag;
+	struct _starpu_tag *tag = j->tag;
 
-	struct starpu_cg_list_s *tag_successors = &tag->tag_successors;
+	struct _starpu_cg_list *tag_successors = &tag->tag_successors;
 
 	_starpu_spin_lock(&tag->lock);
 
@@ -278,7 +278,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
 {
 	unsigned ret;
 
-	struct starpu_cg_list_s *job_successors = &j->job_successors;
+	struct _starpu_cg_list *job_successors = &j->job_successors;
 
 	if (!job_is_already_locked)
 		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
@@ -363,7 +363,7 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is
 }
 
 /* This function must be called with worker->sched_mutex taken */
-struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker)
+struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker)
 {
 	struct starpu_task *task = NULL;
 
@@ -373,7 +373,7 @@ struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker)
 	return task;
 }
 
-int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task, int back)
+int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int back)
 {
 	/* Check that the worker is able to execute the task ! */
 	STARPU_ASSERT(task && task->cl);

@@ -50,7 +50,7 @@ unsigned _starpu_get_calibrate_flag(void)
 
 enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
 {
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	/* This workerid may either be a basic worker or a combined worker */
 	unsigned nworkers = config->topology.nworkers;

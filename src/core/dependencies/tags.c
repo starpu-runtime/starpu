@@ -25,12 +25,12 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
 
-static starpu_htbl_node_t *tag_htbl = NULL;
+static struct _starpu_htbl_node *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
-static starpu_cg_t *create_cg_apps(unsigned ntags)
+static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {
-	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
+	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
@@ -45,9 +45,9 @@ static starpu_cg_t *create_cg_apps(unsigned ntags)
 }
 
 
-static starpu_cg_t *create_cg_tag(unsigned ntags, struct starpu_tag_s *tag)
+static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 {
-	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
+	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
@@ -60,10 +60,10 @@ static starpu_cg_t *create_cg_tag(unsigned ntags, struct starpu_tag_s *tag)
 	return cg;
 }
 
-static struct starpu_tag_s *_starpu_tag_init(starpu_tag_t id)
+static struct _starpu_tag *_starpu_tag_init(starpu_tag_t id)
 {
-	struct starpu_tag_s *tag;
-	tag = (struct starpu_tag_s *) malloc(sizeof(struct starpu_tag_s));
+	struct _starpu_tag *tag;
+	tag = (struct _starpu_tag *) malloc(sizeof(struct _starpu_tag));
 	STARPU_ASSERT(tag);
 
 	tag->job = NULL;
@@ -82,11 +82,11 @@ static struct starpu_tag_s *_starpu_tag_init(starpu_tag_t id)
 
 void starpu_tag_remove(starpu_tag_t id)
 {
-	struct starpu_tag_s *tag;
+	struct _starpu_tag *tag;
 
 	pthread_rwlock_wrlock(&tag_global_rwlock);
 
-	tag = (struct starpu_tag_s *) _starpu_htbl_remove_tag(tag_htbl, id);
+	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(tag_htbl, id);
 
 	pthread_rwlock_unlock(&tag_global_rwlock);
 
@@ -98,7 +98,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 		for (succ = 0; succ < nsuccs; succ++)
 		{
-			struct starpu_cg_s *cg = tag->tag_successors.succ[succ];
+			struct _starpu_cg *cg = tag->tag_successors.succ[succ];
 
 			unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 			unsigned remaining __attribute__ ((unused)) = STARPU_ATOMIC_ADD(&cg->remaining, -1);
@@ -118,13 +118,13 @@ void starpu_tag_remove(starpu_tag_t id)
 	free(tag);
 }
 
-static struct starpu_tag_s *gettag_struct(starpu_tag_t id)
+static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 {
 	pthread_rwlock_wrlock(&tag_global_rwlock);
 
 	/* search if the tag is already declared or not */
-	struct starpu_tag_s *tag;
-	tag = (struct starpu_tag_s *) _starpu_htbl_search_tag(tag_htbl, id);
+	struct _starpu_tag *tag;
+	tag = (struct _starpu_tag *) _starpu_htbl_search_tag(tag_htbl, id);
 
 	if (tag == NULL) {
 		/* the tag does not exist yet : create an entry */
@@ -142,7 +142,7 @@ static struct starpu_tag_s *gettag_struct(starpu_tag_t id)
 }
 
 /* lock should be taken */
-void _starpu_tag_set_ready(struct starpu_tag_s *tag)
+void _starpu_tag_set_ready(struct _starpu_tag *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = STARPU_READY;
@@ -166,7 +166,7 @@ void _starpu_tag_set_ready(struct starpu_tag_s *tag)
 }
 
 /* the lock must be taken ! */
-static void _starpu_tag_add_succ(struct starpu_tag_s *tag, starpu_cg_t *cg)
+static void _starpu_tag_add_succ(struct _starpu_tag *tag, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(tag);
 
@@ -178,7 +178,7 @@ static void _starpu_tag_add_succ(struct starpu_tag_s *tag, starpu_cg_t *cg)
 	}
 }
 
-void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
+void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 {
 	_starpu_spin_lock(&tag->lock);
 
@@ -192,7 +192,7 @@ void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
 
 void starpu_tag_notify_from_apps(starpu_tag_t id)
 {
-	struct starpu_tag_s *tag = gettag_struct(id);
+	struct _starpu_tag *tag = gettag_struct(id);
 
 	_starpu_notify_tag_dependencies(tag);
 }
@@ -202,7 +202,7 @@ void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job)
 	STARPU_TRACE_TAG(id, job);
 	job->task->use_tag = 1;
 	
-	struct starpu_tag_s *tag= gettag_struct(id);
+	struct _starpu_tag *tag= gettag_struct(id);
 	tag->job = job;
 	tag->is_assigned = 1;
 	
@@ -219,11 +219,11 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	unsigned i;
 
 	/* create the associated completion group */
-	struct starpu_tag_s *tag_child = gettag_struct(id);
+	struct _starpu_tag *tag_child = gettag_struct(id);
 
 	_starpu_spin_lock(&tag_child->lock);
 
-	starpu_cg_t *cg = create_cg_tag(ndeps, tag_child);
+	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 
 	STARPU_ASSERT(ndeps != 0);
 	
@@ -235,7 +235,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		 * so cg should be among dep_id's successors*/
 		STARPU_TRACE_TAG_DEPS(id, dep_id);
 		_starpu_bound_tag_dep(id, dep_id);
-		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
+		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
@@ -250,11 +250,11 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	unsigned i;
 	
 	/* create the associated completion group */
-	struct starpu_tag_s *tag_child = gettag_struct(id);
+	struct _starpu_tag *tag_child = gettag_struct(id);
 
 	_starpu_spin_lock(&tag_child->lock);
 
-	starpu_cg_t *cg = create_cg_tag(ndeps, tag_child);
+	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 
 	STARPU_ASSERT(ndeps != 0);
 	
@@ -269,7 +269,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		 * so cg should be among dep_id's successors*/
 		STARPU_TRACE_TAG_DEPS(id, dep_id);
 		_starpu_bound_tag_dep(id, dep_id);
-		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
+		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
@@ -286,7 +286,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	unsigned i;
 	unsigned current;
 
-	struct starpu_tag_s *tag_array[ntags];
+	struct _starpu_tag *tag_array[ntags];
 
 	_STARPU_LOG_IN();
 
@@ -299,7 +299,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
 	{
-		struct starpu_tag_s *tag = gettag_struct(id[i]);
+		struct _starpu_tag *tag = gettag_struct(id[i]);
 		
 		_starpu_spin_lock(&tag->lock);
 
@@ -323,7 +323,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	}
 	
 	/* there is at least one task that is not finished */
-	starpu_cg_t *cg = create_cg_apps(current);
+	struct _starpu_cg *cg = create_cg_apps(current);
 
 	for (i = 0; i < current; i++)
 	{

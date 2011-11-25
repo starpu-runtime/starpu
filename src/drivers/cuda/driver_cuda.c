@@ -173,7 +173,7 @@ void _starpu_init_cuda(void)
 	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
+static int execute_job_on_cuda(starpu_job_t j, struct _starpu_worker *args)
 {
 	int ret;
 	uint32_t mask = 0;
@@ -219,13 +219,13 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 #endif
 
 	if (cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS) {
-		cl_func func = cl->cuda_func;
+		_starpu_cl_func func = cl->cuda_func;
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}
 	else {
 		/* _STARPU_DEBUG("Cuda driver : running kernel * (%d)\n", j->nimpl); */
-		cl_func func = cl->cuda_funcs[j->nimpl];
+		_starpu_cl_func func = cl->cuda_funcs[j->nimpl];
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}
@@ -241,7 +241,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 void *_starpu_cuda_worker(void *arg)
 {
-	struct starpu_worker_s* args = arg;
+	struct _starpu_worker* args = arg;
 
 	int devid = args->devid;
 	int workerid = args->workerid;

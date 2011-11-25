@@ -151,7 +151,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	
 	/* We detect if the worker is already sleeping or doing some
 	 * computation */
-	starpu_worker_status status = _starpu_worker_get_status(workerid);
+	enum _starpu_worker_status status = _starpu_worker_get_status(workerid);
 
 	if (status == STATUS_SLEEPING)
 	{

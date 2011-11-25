@@ -24,20 +24,20 @@
 #include <common/fxt.h>
 
 /* TODO actually move this struct into this header */
-struct starpu_machine_config_s;
+struct _starpu_machine_config;
 
 /* Detect the number of memory nodes and where to bind the different workers. */
-int _starpu_build_topology(struct starpu_machine_config_s *config);
+int _starpu_build_topology(struct _starpu_machine_config *config);
 
 /* Destroy all resources used to store the topology of the machine. */
-void _starpu_destroy_topology(struct starpu_machine_config_s *config);
+void _starpu_destroy_topology(struct _starpu_machine_config *config);
 
 /* returns the number of physical cpus */
-unsigned _starpu_topology_get_nhwcpu(struct starpu_machine_config_s *config);
+unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
  * or the ordering exposed by the OS. */
-void _starpu_bind_thread_on_cpu(struct starpu_machine_config_s *config, unsigned cpuid);
+void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config, unsigned cpuid);
 
 #endif // __TOPOLOGY_H__

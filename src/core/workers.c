@@ -39,9 +39,9 @@ static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED
 
 static pthread_key_t worker_key;
 
-static struct starpu_machine_config_s config;
+static struct _starpu_machine_config config;
 
-struct starpu_machine_config_s *_starpu_get_machine_config(void)
+struct _starpu_machine_config *_starpu_get_machine_config(void)
 {
 	return &config;
 }
@@ -144,10 +144,10 @@ int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_tas
 
 #ifdef STARPU_USE_GORDON
 static unsigned gordon_inited = 0;	
-static struct starpu_worker_set_s gordon_worker_set;
+static struct _starpu_worker_set gordon_worker_set;
 #endif
 
-static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
+static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
 	pthread_cond_t *cond = workerarg->sched_cond;
 	pthread_mutex_t *mutex = workerarg->sched_mutex;
@@ -157,7 +157,7 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 	_starpu_memory_node_register_condition(cond, mutex, memory_node);
 }
 
-static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
+static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 {
 	config->running = 1;
 
@@ -169,7 +169,7 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct starpu_worker_s *workerarg = &config->workers[worker];
+		struct _starpu_worker *workerarg = &config->workers[worker];
 
 		workerarg->config = config;
 
@@ -258,7 +258,7 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct starpu_worker_s *workerarg = &config->workers[worker];
+		struct _starpu_worker *workerarg = &config->workers[worker];
 
 		switch (workerarg->arch) {
 			case STARPU_CPU_WORKER:
@@ -282,14 +282,14 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 
 }
 
-void _starpu_set_local_worker_key(struct starpu_worker_s *worker)
+void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 {
 	pthread_setspecific(worker_key, worker);
 }
 
-struct starpu_worker_s *_starpu_get_local_worker_key(void)
+struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
-	return (struct starpu_worker_s *) pthread_getspecific(worker_key);
+	return (struct _starpu_worker *) pthread_getspecific(worker_key);
 }
 
 /* Initialize the starpu_conf with default values */
@@ -427,7 +427,7 @@ int starpu_init(struct starpu_conf *user_conf)
  * Handle runtime termination 
  */
 
-static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
+static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 {
 	int status STARPU_ATTRIBUTE_UNUSED;
 	unsigned workerid;
@@ -438,8 +438,8 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 		
 		_STARPU_DEBUG("wait for worker %u\n", workerid);
 
-		struct starpu_worker_set_s *set = config->workers[workerid].set;
-		struct starpu_worker_s *worker = &config->workers[workerid];
+		struct _starpu_worker_set *set = config->workers[workerid].set;
+		struct _starpu_worker *worker = &config->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
@@ -500,7 +500,7 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
-static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
+static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 {
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
@@ -627,7 +627,7 @@ unsigned starpu_spu_worker_get_count(void)
  * that is not controlled by StarPU, starpu_worker_get_id returns -1. */
 int starpu_worker_get_id(void)
 {
-	struct starpu_worker_s * worker;
+	struct _starpu_worker * worker;
 
 	worker = _starpu_get_local_worker_key();
 	if (worker)
@@ -643,7 +643,7 @@ int starpu_worker_get_id(void)
 
 int starpu_combined_worker_get_id(void)
 {
-	struct starpu_worker_s *worker;
+	struct _starpu_worker *worker;
 
 	worker = _starpu_get_local_worker_key();
 	if (worker)
@@ -659,7 +659,7 @@ int starpu_combined_worker_get_id(void)
 
 int starpu_combined_worker_get_size(void)
 {
-	struct starpu_worker_s *worker;
+	struct _starpu_worker *worker;
 
 	worker = _starpu_get_local_worker_key();
 	if (worker)
@@ -675,7 +675,7 @@ int starpu_combined_worker_get_size(void)
 
 int starpu_combined_worker_get_rank(void)
 {
-	struct starpu_worker_s *worker;
+	struct _starpu_worker *worker;
 
 	worker = _starpu_get_local_worker_key();
 	if (worker)
@@ -694,12 +694,12 @@ int starpu_worker_get_devid(int id)
 	return config.workers[id].devid;
 }
 
-struct starpu_worker_s *_starpu_get_worker_struct(unsigned id)
+struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
 	return &config.workers[id];
 }
 
-struct starpu_combined_worker_s *_starpu_get_combined_worker_struct(unsigned id)
+struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
 
@@ -742,14 +742,14 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 }
 
 /* Retrieve the status which indicates what the worker is currently doing. */
-starpu_worker_status _starpu_worker_get_status(int workerid)
+enum _starpu_worker_status _starpu_worker_get_status(int workerid)
 {
 	return config.workers[workerid].status;
 }
 
 /* Change the status of the worker which indicates what the worker is currently
  * doing (eg. executing a callback). */
-void _starpu_worker_set_status(int workerid, starpu_worker_status status)
+void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 {
 	config.workers[workerid].status = status;
 }

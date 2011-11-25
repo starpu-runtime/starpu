@@ -25,7 +25,7 @@
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 
-static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
+static int execute_job_on_cpu(starpu_job_t j, struct _starpu_worker *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
 {
 	int ret;
 	struct timespec codelet_start, codelet_end;
@@ -57,13 +57,13 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
 		if (cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS) {
-			cl_func func = cl->cpu_func;
+			_starpu_cl_func func = cl->cpu_func;
 			STARPU_ASSERT(func);
 			func(task->interfaces, task->cl_arg);
 		}
 		else {
 			/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
-			cl_func func = cl->cpu_funcs[j->nimpl];
+			_starpu_cl_func func = cl->cpu_funcs[j->nimpl];
 			STARPU_ASSERT(func);
 			func(task->interfaces, task->cl_arg);
 		}
@@ -86,7 +86,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 
 void *_starpu_cpu_worker(void *arg)
 {
-	struct starpu_worker_s *cpu_arg = (struct starpu_worker_s *) arg;
+	struct _starpu_worker *cpu_arg = (struct _starpu_worker *) arg;
 	unsigned memnode = cpu_arg->memory_node;
 	int workerid = cpu_arg->workerid;
 	int devid = cpu_arg->devid;
@@ -171,7 +171,7 @@ void *_starpu_cpu_worker(void *arg)
 			rank = j->active_task_alias_count++;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-			struct starpu_combined_worker_s *combined_worker;
+			struct _starpu_combined_worker *combined_worker;
 			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
 
 			cpu_arg->combined_workerid = j->combined_workerid;

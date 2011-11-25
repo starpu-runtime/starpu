@@ -206,12 +206,12 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
     hwloc_obj_t obj = tree->obj;
     int *workers = tree->workers;
 
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     /* Is this a leaf ? (eg. a PU for hwloc) */
     if (!hwloc_compare_types(config->cpu_depth, obj->depth))
     {
-	struct starpu_worker_s *worker = obj->userdata;
+	struct _starpu_worker *worker = obj->userdata;
 
 	/* If this is a CPU worker add it at the beginning
 	 * of the array , write 1 in the field nb_workers and
@@ -414,7 +414,7 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
 
 static void find_and_assign_combinations_without_hwloc(struct starpu_machine_topology *topology)
 {
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     /* We put the id of all CPU workers in this array */
     int cpu_workers[STARPU_NMAXWORKERS];
@@ -453,7 +453,7 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 
 static void combine_all_cpu_workers(struct starpu_machine_topology *topology)
 {
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     int cpu_workers[STARPU_NMAXWORKERS];
     unsigned ncpus = 0;
@@ -475,7 +475,7 @@ static void combine_all_cpu_workers(struct starpu_machine_topology *topology)
 
 void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topology)
 {
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     if ((config->user_conf && config->user_conf->single_combined_worker > 0) || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
 	combine_all_cpu_workers(topology);

@@ -26,9 +26,9 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
 
-static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
+static struct _starpu_cg *create_cg_task(unsigned ntags, starpu_job_t j)
 {
-	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
+	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
@@ -42,7 +42,7 @@ static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
 }
 
 /* the job lock must be taken */
-static void _starpu_task_add_succ(starpu_job_t j, starpu_cg_t *cg)
+static void _starpu_task_add_succ(starpu_job_t j, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(j);
 
@@ -71,7 +71,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 
-	starpu_cg_t *cg = create_cg_task(ndeps, job);
+	struct _starpu_cg *cg = create_cg_task(ndeps, job);
 
 	unsigned i;
 	for (i = 0; i < ndeps; i++)

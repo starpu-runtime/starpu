@@ -49,7 +49,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starp
 	struct starpu_codelet *init_cl = handle->init_cl;
 	STARPU_ASSERT(init_cl);
 
-	cl_func init_func = NULL;
+	_starpu_cl_func init_func = NULL;
 	
 	/* TODO Check that worker may execute the codelet */
 
