@@ -55,6 +55,15 @@ struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list);
 /* Remove the element at the back of the list */
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list);
 
+/* Get the first task of the list */
+struct starpu_task *starpu_task_list_begin(struct starpu_task_list *list);
+
+/* Get the end of the list */
+struct starpu_task *starpu_task_list_end(struct starpu_task_list *list);
+
+/* Get the next task of the list. This is not erase-safe. */
+struct starpu_task *starpu_task_list_next(struct starpu_task *task);
+
 #ifdef __cplusplus
 }
 #endif
