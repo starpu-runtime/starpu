@@ -335,7 +335,7 @@ void _starpu_opencl_init(void)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
         if (!init_done) {
-                cl_platform_id platform_id[STARPU_OPENCL_PLATFORM_MAX];
+                cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
                 cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
                 cl_int err;
@@ -344,7 +344,7 @@ void _starpu_opencl_init(void)
                 _STARPU_DEBUG("Initialising OpenCL\n");
 
                 // Get Platforms
-                err = clGetPlatformIDs(STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
+                err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (err != CL_SUCCESS) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %d\n", nb_platforms);
 
@@ -484,7 +484,7 @@ void *_starpu_opencl_worker(void *arg)
 		j = _starpu_get_job_associated_to_task(task);
 
 		/* can OpenCL do that task ? */
-		if (!STARPU_OPENCL_MAY_PERFORM(j))
+		if (!_STARPU_OPENCL_MAY_PERFORM(j))
 		{
 			/* this is not a OpenCL task */
 			_starpu_push_task(j, 0);

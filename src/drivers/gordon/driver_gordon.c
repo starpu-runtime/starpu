@@ -280,7 +280,7 @@ int inject_task_list(struct starpu_job_list_s *list, struct _starpu_worker *work
 //	
 //	for (j = starpu_job_list_begin(list); j != starpu_job_list_end(list); j = starpu_job_list_next(j) )
 //	{
-//		if (!STARPU_GORDON_MAY_PERFORM(j)) {
+//		if (!_STARPU_GORDON_MAY_PERFORM(j)) {
 //			// XXX TODO
 //			ninvalids++;
 //			assert(0);
@@ -399,7 +399,7 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 			j =  _starpu_pop_task();
 	//		_STARPU_DEBUG("pop task %p\n", j);
 			if (j) {
-				if (STARPU_GORDON_MAY_PERFORM(j)) {
+				if (_STARPU_GORDON_MAY_PERFORM(j)) {
 					/* inject that task */
 					/* XXX we hardcore &arg->workers[0] for now */
 					inject_task(j, &arg->workers[0]);

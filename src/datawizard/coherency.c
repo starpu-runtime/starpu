@@ -321,7 +321,7 @@ static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_
  */
 
 /* This function is called with handle's header lock taken */
-starpu_data_request_t create_request_to_fetch_data(starpu_data_handle_t handle,
+starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 				struct starpu_data_replicate_s *dst_replicate,
                                 enum starpu_access_mode mode, unsigned is_prefetch,
                                 void (*callback_func)(void *), void *callback_arg)
@@ -346,7 +346,7 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle_t handle,
 			_starpu_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 		
-		starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+		_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 
 		_starpu_spin_unlock(&handle->header_lock);
 
@@ -467,11 +467,11 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_r
 	}
 
 	starpu_data_request_t r;
-	r = create_request_to_fetch_data(handle, dst_replicate, mode,
+	r = _starpu_create_request_to_fetch_data(handle, dst_replicate, mode,
 					is_prefetch, callback_func, callback_arg);
 
 	/* If no request was created, the handle was already up-to-date on the
-	 * node. In this case, create_request_to_fetch_data has already
+	 * node. In this case, _starpu_create_request_to_fetch_data has already
 	 * unlocked the header. */
 	if (!r)
 		return 0;

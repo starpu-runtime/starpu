@@ -148,7 +148,7 @@ void *_starpu_cpu_worker(void *arg)
 		j = _starpu_get_job_associated_to_task(task);
 	
 		/* can a cpu perform that task ? */
-		if (!STARPU_CPU_MAY_PERFORM(j)) 
+		if (!_STARPU_CPU_MAY_PERFORM(j)) 
 		{
 			/* put it and the end of the queue ... XXX */
 			_starpu_push_task(j, 0);

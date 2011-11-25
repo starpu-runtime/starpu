@@ -247,14 +247,14 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint
 
 uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
-starpu_data_request_t create_request_to_fetch_data(starpu_data_handle_t handle,
-				struct starpu_data_replicate_s *dst_replicate,
-                                enum starpu_access_mode mode, unsigned is_prefetch,
-                                void (*callback_func)(void *), void *callback_arg);
+starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
+							   struct starpu_data_replicate_s *dst_replicate,
+							   enum starpu_access_mode mode, unsigned is_prefetch,
+							   void (*callback_func)(void *), void *callback_arg);
 
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, int workerid);
-void starpu_data_start_reduction_mode(starpu_data_handle_t handle);
-void starpu_data_end_reduction_mode(starpu_data_handle_t handle);
-void starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
+void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);
+void _starpu_data_end_reduction_mode(starpu_data_handle_t handle);
+void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
 
 #endif // __COHERENCY__H__

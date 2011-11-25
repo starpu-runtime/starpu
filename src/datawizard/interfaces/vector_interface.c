@@ -351,8 +351,8 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 
 	size_t length = src_vector->nx*src_vector->elemsize;
 
-	int src_dev = starpu_memory_node_to_devid(src_node);
-	int dst_dev = starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_to_devid(src_node);
+	int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 	if (is_async)
 	{

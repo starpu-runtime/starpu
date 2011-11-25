@@ -514,8 +514,8 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 
 	cudaError_t status;
 	int size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
-	int src_dev = starpu_memory_node_to_devid(src_node);
-	int dst_dev = starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_to_devid(src_node);
+	int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 	if (stream)
 	{

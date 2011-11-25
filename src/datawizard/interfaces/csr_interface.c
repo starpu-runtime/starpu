@@ -487,8 +487,8 @@ static int copy_cuda_peer(void *src_interface STARPU_ATTRIBUTE_UNUSED, unsigned 
 	uint32_t nrow = src_csr->nrow;
 	size_t elemsize = src_csr->elemsize;
 
-	int src_dev = starpu_memory_node_to_devid(src_node);
-	int dst_dev = starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_to_devid(src_node);
+	int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 	cudaError_t cures;
 
@@ -526,8 +526,8 @@ static int copy_cuda_peer_async(void *src_interface STARPU_ATTRIBUTE_UNUSED, uns
 
 	cudaError_t cures;
 
-	int src_dev = starpu_memory_node_to_devid(src_node);
-	int dst_dev = starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_to_devid(src_node);
+	int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 	int synchronous_fallback = 0;
 

@@ -36,7 +36,7 @@
 
 /* We want more than 10% variance on X to trust regression */
 #define VALID_REGRESSION(reg_model) \
-	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= STARPU_CALIBRATION_MINIMUM)
+	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _STARPU_CALIBRATION_MINIMUM)
 
 static pthread_rwlock_t registered_models_rwlock;
 static struct starpu_model_list *registered_models = NULL;
@@ -890,7 +890,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-		if (entry && entry->nsample >= STARPU_CALIBRATION_MINIMUM)
+		if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 			exp = entry->mean;
 		else if (!model->benchmarking) {
 			_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
@@ -923,7 +923,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	exp = entry?entry->mean:-1.0;
 
-	if (entry && entry->nsample < STARPU_CALIBRATION_MINIMUM)
+	if (entry && entry->nsample < _STARPU_CALIBRATION_MINIMUM)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Not calibrated enough */

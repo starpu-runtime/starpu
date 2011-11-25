@@ -317,8 +317,8 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	}
 	else {
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		int src_dev = starpu_memory_node_to_devid(src_node);
-		int dst_dev = starpu_memory_node_to_devid(dst_node);
+		int src_dev = _starpu_memory_node_to_devid(src_node);
+		int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 		struct starpu_variable_interface *src_variable = src_interface;
 		struct starpu_variable_interface *dst_variable = dst_interface;
@@ -386,8 +386,8 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					v
 	}
 	else {
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		int src_dev = starpu_memory_node_to_devid(src_node);
-		int dst_dev = starpu_memory_node_to_devid(dst_node);
+		int src_dev = _starpu_memory_node_to_devid(src_node);
+		int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 		struct starpu_variable_interface *src_variable = src_interface;
 		struct starpu_variable_interface *dst_variable = dst_interface;

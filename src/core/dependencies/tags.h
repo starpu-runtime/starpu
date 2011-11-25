@@ -23,7 +23,7 @@
 #include <common/starpu_spinlock.h>
 #include <core/dependencies/cg.h>
 
-#define STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
+#define _STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
 enum _starpu_tag_state {
 	/* this tag is not declared by any task */
@@ -56,8 +56,6 @@ struct _starpu_tag {
 	unsigned is_assigned;
 	unsigned is_submitted;
 };
-
-void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void _starpu_notify_dependencies(struct starpu_job_s *j);
 void _starpu_notify_tag_dependencies(struct _starpu_tag *tag);

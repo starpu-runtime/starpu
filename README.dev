@@ -44,6 +44,8 @@ Coding Conventions
   or
        typedef uint64_t starpu_tag_t;
 
+- When a variable can only take a finite set of values, use an enum
+  type instead of defining macros for each of the values.
 
 
 

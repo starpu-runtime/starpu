@@ -37,8 +37,6 @@
 #include "../mpi/starpu_mpi_fxt.h"
 #include <starpu.h>
 
-#define FACTOR  100
-
 void _starpu_fxt_dag_init(char *dag_filename);
 void _starpu_fxt_dag_terminate(void);
 void _starpu_fxt_dag_add_tag_deps(uint64_t child, uint64_t father);

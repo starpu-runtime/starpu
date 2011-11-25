@@ -241,7 +241,7 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the free method of each
 			 * interface. */
-			cudaError_t err = cudaSetDevice(starpu_memory_node_to_devid(node));
+			cudaError_t err = cudaSetDevice(_starpu_memory_node_to_devid(node));
 			STARPU_ASSERT(err == cudaSuccess);
 		}
 #endif
@@ -699,7 +699,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
-			int devid = starpu_memory_node_to_devid(dst_node);
+			int devid = _starpu_memory_node_to_devid(dst_node);
 			global_mem_size = starpu_cuda_get_global_mem_size(devid);
 			break;
 		}
@@ -707,7 +707,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
 		{
-			int devid = starpu_memory_node_to_devid(dst_node);
+			int devid = _starpu_memory_node_to_devid(dst_node);
 			global_mem_size = starpu_opencl_get_global_mem_size(devid);
 			break;
 		}
@@ -770,7 +770,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct st
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the malloc method of each
 			 * interface. */
-			cudaError_t err = cudaSetDevice(starpu_memory_node_to_devid(dst_node));
+			cudaError_t err = cudaSetDevice(_starpu_memory_node_to_devid(dst_node));
 			STARPU_ASSERT(err == cudaSuccess);
 		}
 #endif
@@ -852,7 +852,7 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint
 	return handle->per_node[memory_node].allocated;
 }
 
-void starpu_memchunk_recently_used(starpu_mem_chunk_t mc, unsigned node)
+void _starpu_memchunk_recently_used(starpu_mem_chunk_t mc, unsigned node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&lru_rwlock[node]);
 	starpu_mem_chunk_lru_t mc_lru=starpu_mem_chunk_lru_new();

@@ -323,7 +323,7 @@ void *_starpu_cuda_worker(void *arg)
 		j = _starpu_get_job_associated_to_task(task);
 
 		/* can CUDA do that task ? */
-		if (!STARPU_CUDA_MAY_PERFORM(j))
+		if (!_STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
 			_starpu_push_task(j, 0);

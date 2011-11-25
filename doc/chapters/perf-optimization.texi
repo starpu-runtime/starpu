@@ -141,7 +141,7 @@ which have never been calibrated yet, and save the result in
 The models are indexed by machine name. To share the models between machines (e.g. for a homogeneous cluster), use @code{export STARPU_HOSTNAME=some_global_name}. To force continuing calibration, use
 @code{export STARPU_CALIBRATE=1} . This may be necessary if your application
 has not-so-stable performance. StarPU will force calibration (and thus ignore
-the current result) until 10 (STARPU_CALIBRATION_MINIMUM) measurements have been
+the current result) until 10 (_STARPU_CALIBRATION_MINIMUM) measurements have been
 made on each architecture, to avoid badly scheduling tasks just because the
 first measurements were not so good. Details on the current performance model status
 can be obtained from the @code{starpu_perfmodel_display} command: the @code{-l}

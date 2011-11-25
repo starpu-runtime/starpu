@@ -32,9 +32,9 @@ static unsigned nworkers;
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
-static double alpha = STARPU_DEFAULT_ALPHA;
-static double beta = STARPU_DEFAULT_BETA;
-static double _gamma = STARPU_DEFAULT_GAMMA;
+static double alpha = _STARPU_DEFAULT_ALPHA;
+static double beta = _STARPU_DEFAULT_BETA;
+static double _gamma = _STARPU_DEFAULT_GAMMA;
 static double idle_power = 0.0;
 
 static double exp_start[STARPU_NMAXWORKERS]; /* of the first queued task */

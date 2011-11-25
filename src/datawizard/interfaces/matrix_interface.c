@@ -436,8 +436,8 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	size_t elemsize = src_matrix->elemsize;
 	cudaError_t cures;
 
-	int src_dev = starpu_memory_node_to_devid(src_node);
-	int dst_dev = starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_to_devid(src_node);
+	int dst_dev = _starpu_memory_node_to_devid(dst_node);
 
 
 #if 0

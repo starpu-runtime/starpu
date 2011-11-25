@@ -125,7 +125,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 		if ((handle->reduction_refcnt == 0) && (previous_mode == STARPU_REDUX) && (mode != STARPU_REDUX))
 		{
-			starpu_data_end_reduction_mode(handle);
+			_starpu_data_end_reduction_mode(handle);
 
 			/* Since we need to perform a mode change, we freeze
 			 * the request if needed. */
@@ -167,7 +167,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		handle->current_mode = mode;
 
 		if ((mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
-			starpu_data_start_reduction_mode(handle);
+			_starpu_data_start_reduction_mode(handle);
 
 		/* success */
 		put_in_list = 0;
@@ -276,7 +276,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		//fprintf(stderr, "NOTIFY REDUCTION TASK RED REFCNT %d\n", handle->reduction_refcnt);
 		handle->reduction_refcnt--;
 		if (handle->reduction_refcnt == 0)
-			starpu_data_end_reduction_mode_terminate(handle);
+			_starpu_data_end_reduction_mode_terminate(handle);
 	}
 
 
@@ -291,7 +291,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		int put_in_list = 1;
 		if ((handle->reduction_refcnt == 0) && (handle->current_mode == STARPU_REDUX) && (r_mode != STARPU_REDUX))
 		{
-			starpu_data_end_reduction_mode(handle);
+			_starpu_data_end_reduction_mode(handle);
 
 			/* Since we need to perform a mode change, we freeze
 			 * the request if needed. */
@@ -321,7 +321,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 			 * kept intact because we'll reduce a valid copy of the
 			 * "per-node replicate" with the per-worker replicates .*/
 			if ((r_mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
-				starpu_data_start_reduction_mode(handle);
+				_starpu_data_start_reduction_mode(handle);
 
 			_starpu_spin_unlock(&handle->header_lock);
 

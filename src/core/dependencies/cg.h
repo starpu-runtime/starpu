@@ -44,16 +44,18 @@ struct _starpu_cg_list {
 #endif
 };
 
-#define STARPU_CG_APPS	(1<<0)
-#define STARPU_CG_TAG	(1<<1)
-#define STARPU_CG_TASK	(1<<2)
+enum _starpu_cg_type {
+	STARPU_CG_APPS=(1<<0),
+	STARPU_CG_TAG=(1<<1),
+	STARPU_CG_TASK=(1<<2)
+};
 
 /* Completion Group */
 struct _starpu_cg {
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
 
-	unsigned cg_type; /* STARPU_CG_APPS or STARPU_CG_TAG or STARPU_CG_TASK */
+	enum _starpu_cg_type cg_type;
 
 	union {
 		/* STARPU_CG_TAG */

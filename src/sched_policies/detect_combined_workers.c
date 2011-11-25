@@ -24,8 +24,8 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 
-/* tree_t
- * ======
+/* struct _starpi_tree
+ * ==================
  * Purpose
  * =======
  * Structure representing a tree (which can be a sub-tree itself) whose root is an hwloc
@@ -41,12 +41,11 @@
  * workers		CPU-workers found by recursion in all the sub-trees and in this very one, represented as leaves in hwloc.
  */
 
-typedef struct tree_s{
+struct _starpu_tree {
     hwloc_obj_t obj;
     unsigned nb_workers;
     int *workers;
-} tree_t;
-
+};
 
 /* gather_trees
  * ============
@@ -67,7 +66,7 @@ typedef struct tree_s{
  *			Number of trees we want to combine (size of the array).
  */
 
-static void gather_trees(tree_t *target_tree, tree_t *source_trees, unsigned nb_source_trees)
+static void gather_trees(struct _starpu_tree *target_tree, struct _starpu_tree *source_trees, unsigned nb_source_trees)
 {
     unsigned tree_id, worker_id, index = 0;
     for(tree_id = 0; tree_id < nb_source_trees; ++tree_id)
@@ -101,7 +100,7 @@ static void gather_trees(tree_t *target_tree, tree_t *source_trees, unsigned nb_
  *			Maximum size of a combined worker.
  */
 
-static unsigned assign_multiple_trees(tree_t *trees, unsigned nb_trees, int min_size, int max_size)
+static unsigned assign_multiple_trees(struct _starpu_tree *trees, unsigned nb_trees, int min_size, int max_size)
 {
     unsigned short complete = 0;
     unsigned tree_id, tree_id2, nb_workers_tree, nb_workers_tree2, worker_id, nb_workers_total = 0, nb_workers_assigned = 0;
@@ -199,7 +198,7 @@ static unsigned assign_multiple_trees(tree_t *trees, unsigned nb_trees, int min_
  *			Maximum size of a combined worker.
  */
 
-static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, int min_size, int max_size)
+static unsigned find_and_assign_combinations_with_hwloc_recursive(struct _starpu_tree *tree, int min_size, int max_size)
 {
     unsigned subtree_id, nb_workers = 0;
 
@@ -231,7 +230,7 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
     /* If there is only one child, we go to the next level right away */
     if (obj->arity == 1)
     {
-	tree_t subtree = *tree;
+	struct _starpu_tree subtree = *tree;
 	subtree.obj = obj->children[0];
 	nb_workers = find_and_assign_combinations_with_hwloc_recursive(&subtree, min_size, max_size);
 	tree->nb_workers = nb_workers;
@@ -242,12 +241,12 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
      * CPU leaves that fits between min and max. */
 
     /* We allocate an array of tree structures which will contain the current node's subtrees data */
-    tree_t *subtrees = (tree_t *) malloc(obj->arity * sizeof(tree_t));
+    struct _starpu_tree *subtrees = (struct _starpu_tree *) malloc(obj->arity * sizeof(struct _starpu_tree));
 
     /* We allocate the array containing the workers of each subtree and initialize the fields left */
     for(subtree_id = 0; subtree_id < obj->arity; ++subtree_id)
     {
-	tree_t *subtree = subtrees + subtree_id;
+	struct _starpu_tree *subtree = subtrees + subtree_id;
 
 	subtree->obj = obj->children[subtree_id];
 	subtree->nb_workers = 0;
@@ -384,7 +383,7 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
 
     STARPU_ASSERT(min_size <= max_size);
 
-    tree_t tree;
+    struct _starpu_tree tree;
 
     /* Of course we start from the root */
     tree.obj = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0); 

@@ -89,19 +89,19 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 {
 	if (perf_archtype < STARPU_CUDA_DEFAULT)
 	{
-		return STARPU_CPU_ALPHA * (perf_archtype + 1);
+		return _STARPU_CPU_ALPHA * (perf_archtype + 1);
 	}
 	else if (perf_archtype < STARPU_OPENCL_DEFAULT)
 	{
-		return STARPU_CUDA_ALPHA;
+		return _STARPU_CUDA_ALPHA;
 	}
 	else if (perf_archtype < STARPU_GORDON_DEFAULT)
 	{
-		return STARPU_OPENCL_ALPHA;
+		return _STARPU_OPENCL_ALPHA;
 	}
 	else if (perf_archtype < STARPU_NARCH_VARIATIONS) {
 		/* Gordon value */
-		return STARPU_GORDON_ALPHA;
+		return _STARPU_GORDON_ALPHA;
 	}
 
 	STARPU_ABORT();

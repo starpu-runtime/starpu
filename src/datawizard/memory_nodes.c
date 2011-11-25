@@ -93,7 +93,7 @@ enum _starpu_node_kind _starpu_get_node_kind(uint32_t node)
 	return descr.nodes[node];
 }
 
-int starpu_memory_node_to_devid(unsigned node)
+int _starpu_memory_node_to_devid(unsigned node)
 {
 	return descr.devid[node];
 }

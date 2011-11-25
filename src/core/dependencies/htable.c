@@ -23,10 +23,10 @@ void *_starpu_htbl_search_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 	unsigned currentbit;
 	struct _starpu_htbl_node *current_htbl = htbl;
 
-	/* 000000000001111 with STARPU_HTBL_NODE_SIZE 1's */
-	starpu_tag_t mask = (1<<STARPU_HTBL_NODE_SIZE)-1;
+	/* 000000000001111 with _STARPU_HTBL_NODE_SIZE 1's */
+	starpu_tag_t mask = (1<<_STARPU_HTBL_NODE_SIZE)-1;
 
-	for(currentbit = 0; currentbit < STARPU_TAG_SIZE; currentbit+=STARPU_HTBL_NODE_SIZE)
+	for(currentbit = 0; currentbit < _STARPU_TAG_SIZE; currentbit+=_STARPU_HTBL_NODE_SIZE)
 	{
 	
 	//	printf("search : current bit = %d \n", currentbit);
@@ -40,7 +40,7 @@ void *_starpu_htbl_search_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 		 * */
 
 		unsigned last_currentbit = 
-			STARPU_TAG_SIZE - (currentbit + STARPU_HTBL_NODE_SIZE);
+			_STARPU_TAG_SIZE - (currentbit + _STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
@@ -62,10 +62,10 @@ void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag,
 	struct _starpu_htbl_node **current_htbl_ptr = htbl;
 	struct _starpu_htbl_node *previous_htbl_ptr = NULL;
 
-	/* 000000000001111 with STARPU_HTBL_NODE_SIZE 1's */
-	starpu_tag_t mask = (1<<STARPU_HTBL_NODE_SIZE)-1;
+	/* 000000000001111 with _STARPU_HTBL_NODE_SIZE 1's */
+	starpu_tag_t mask = (1<<_STARPU_HTBL_NODE_SIZE)-1;
 
-	for(currentbit = 0; currentbit < STARPU_TAG_SIZE; currentbit+=STARPU_HTBL_NODE_SIZE)
+	for(currentbit = 0; currentbit < _STARPU_TAG_SIZE; currentbit+=_STARPU_HTBL_NODE_SIZE)
 	{
 		if (*current_htbl_ptr == NULL) {
 			/* TODO pad to change that 1 into 16 ? */
@@ -83,7 +83,7 @@ void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag,
 		 * */
 
 		unsigned last_currentbit = 
-			STARPU_TAG_SIZE - (currentbit + STARPU_HTBL_NODE_SIZE);
+			_STARPU_TAG_SIZE - (currentbit + _STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
@@ -113,14 +113,14 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 	struct _starpu_htbl_node *current_htbl_ptr = htbl;
 
 	/* remember the path to the tag */
-	struct _starpu_htbl_node *path[(STARPU_TAG_SIZE + STARPU_HTBL_NODE_SIZE - 1)/(STARPU_HTBL_NODE_SIZE)];
+	struct _starpu_htbl_node *path[(_STARPU_TAG_SIZE + _STARPU_HTBL_NODE_SIZE - 1)/(_STARPU_HTBL_NODE_SIZE)];
 
-	/* 000000000001111 with STARPU_HTBL_NODE_SIZE 1's */
-	starpu_tag_t mask = (1<<STARPU_HTBL_NODE_SIZE)-1;
+	/* 000000000001111 with _STARPU_HTBL_NODE_SIZE 1's */
+	starpu_tag_t mask = (1<<_STARPU_HTBL_NODE_SIZE)-1;
 	int level, maxlevel;
 	unsigned tag_is_present = 1;
 
-	for(currentbit = 0, level = 0; currentbit < STARPU_TAG_SIZE; currentbit+=STARPU_HTBL_NODE_SIZE, level++)
+	for(currentbit = 0, level = 0; currentbit < _STARPU_TAG_SIZE; currentbit+=_STARPU_HTBL_NODE_SIZE, level++)
 	{
 		path[level] = current_htbl_ptr;
 
@@ -136,7 +136,7 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 		 * */
 
 		unsigned last_currentbit = 
-			STARPU_TAG_SIZE - (currentbit + STARPU_HTBL_NODE_SIZE);
+			_STARPU_TAG_SIZE - (currentbit + _STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);

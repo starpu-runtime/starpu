@@ -75,7 +75,7 @@ unsigned _starpu_register_memory_node(enum _starpu_node_kind kind, int devid);
 void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned memory_node);
 
 enum _starpu_node_kind _starpu_get_node_kind(uint32_t node);
-int starpu_memory_node_to_devid(unsigned node);
+int _starpu_memory_node_to_devid(unsigned node);
 unsigned _starpu_get_memory_nodes_count(void);
 
 struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void);

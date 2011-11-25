@@ -114,7 +114,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle, struct starpu_d
 	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
 	{
 		int node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
-		cures = cudaSetDevice(starpu_memory_node_to_devid(node));
+		cures = cudaSetDevice(_starpu_memory_node_to_devid(node));
 		STARPU_ASSERT(cures == cudaSuccess);
 	}
 #endif

@@ -54,7 +54,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting
 				handle->current_mode = STARPU_R;
 
 				starpu_data_request_t r;
-				r = create_request_to_fetch_data(handle, &handle->per_node[node],
+				r = _starpu_create_request_to_fetch_data(handle, &handle->per_node[node],
 						STARPU_R, 1, wt_callback, handle);
 
 			        /* If no request was created, the handle was already up-to-date on the

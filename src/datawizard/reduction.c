@@ -77,7 +77,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starp
 
 /* Enable reduction mode. This function must be called with the header lock
  * taken. */
-void starpu_data_start_reduction_mode(starpu_data_handle_t handle)
+void _starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle->reduction_refcnt == 0);
 
@@ -95,7 +95,7 @@ void starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 //#define NO_TREE_REDUCTION
 
 /* Force reduction. The lock should already have been taken.  */
-void starpu_data_end_reduction_mode(starpu_data_handle_t handle)
+void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 {
 	unsigned worker;
 
@@ -249,11 +249,11 @@ void starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 	}
 }
 
-void starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
+void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
-//	fprintf(stderr, "starpu_data_end_reduction_mode_terminate\n");
+//	fprintf(stderr, "_starpu_data_end_reduction_mode_terminate\n");
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
 	{

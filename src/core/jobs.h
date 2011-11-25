@@ -47,11 +47,11 @@ struct _starpu_worker;
 /* codelet function */
 typedef void (*_starpu_cl_func)(void **, void *);
 
-#define STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
-#define STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
-#define STARPU_SPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SPU)
-#define STARPU_GORDON_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_GORDON)
-#define STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
+#define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
+#define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
+#define _STARPU_SPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SPU)
+#define _STARPU_GORDON_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_GORDON)
+#define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
 
 /* A job is the internal representation of a task. */
 LIST_TYPE(starpu_job,
