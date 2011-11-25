@@ -34,6 +34,7 @@ static int ncudagpus;
 
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t transfer_streams[STARPU_NMAXWORKERS];
+static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
@@ -52,15 +53,12 @@ static void limit_gpu_mem_if_needed(int devid)
 	}
 
 	/* Find the size of the memory on the device */
-	struct cudaDeviceProp prop;
-	cures = cudaGetDeviceProperties(&prop, devid);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	size_t totalGlobalMem = prop.totalGlobalMem;
+	size_t totalGlobalMem = props[devid].totalGlobalMem;
 
 	/* How much memory to waste ? */
 	size_t to_waste = totalGlobalMem - (size_t)limit*1024*1024;
+
+	props[devid].totalGlobalMem -= to_waste;
 
 	_STARPU_DEBUG("CUDA device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
@@ -88,15 +86,7 @@ static void unlimit_gpu_mem_if_needed(int devid)
 
 size_t starpu_cuda_get_global_mem_size(int devid)
 {
-	cudaError_t cures;
-	struct cudaDeviceProp prop;
-
-	/* Find the size of the memory on the device */
-	cures = cudaGetDeviceProperties(&prop, devid);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	return (size_t)prop.totalGlobalMem;
+	return (size_t)props[devid].totalGlobalMem;
 }
 
 cudaStream_t starpu_cuda_get_local_transfer_stream(void)
@@ -113,6 +103,13 @@ cudaStream_t starpu_cuda_get_local_stream(void)
 	return streams[worker];
 }
 
+const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	unsigned devid = config->workers[workerid].devid;
+	return &props[devid];
+}
+
 static void init_context(int devid)
 {
 	cudaError_t cures;
@@ -124,6 +121,10 @@ static void init_context(int devid)
 
 	/* force CUDA to initialize the context for real */
 	cudaFree(0);
+
+	cures = cudaGetDeviceProperties(&props[devid], devid);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	limit_gpu_mem_if_needed(devid);
 
@@ -267,18 +268,16 @@ void *_starpu_cuda_worker(void *arg)
 
 	/* get the device's name */
 	char devname[128];
-	struct cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, devid);
-	strncpy(devname, prop.name, 128);
-	float size = (float) prop.totalGlobalMem / (1<<30);
+	strncpy(devname, props[devid].name, 128);
+	float size = (float) props[devid].totalGlobalMem / (1<<30);
 
 #ifdef STARPU_HAVE_BUSID
 #ifdef STARPU_HAVE_DOMAINID
-	if (prop.pciDomainID)
-		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, prop.pciDomainID, prop.pciBusID, prop.pciDeviceID);
+	if (props[devid].pciDomainID)
+		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 	else
 #endif
-		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, prop.pciBusID, prop.pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
 	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB)", args->devid, devname, size);
 #endif

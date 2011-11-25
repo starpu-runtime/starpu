@@ -40,6 +40,8 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 size_t starpu_cuda_get_global_mem_size(int devid);
 cudaStream_t starpu_cuda_get_local_stream(void);
 
+const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid);
+
 #ifdef __cplusplus
 }
 #endif

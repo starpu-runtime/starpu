@@ -356,7 +356,7 @@ scheduled (which may however have to wait for a task completion).
 @end deftypefun
 
 @deftypefun starpu_data_handle_t starpu_data_lookup ({const void *}@var{ptr})
-todo
+Return the handle associated to ptr @var{ptr}.
 @end deftypefun
 
 @deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, uint32_t @var{node})
@@ -1577,6 +1577,11 @@ hand. Note that the application is not forced to use the stream provided by
 @code{starpu_cuda_get_local_stream} and may also create its own streams.
 Synchronizing with @code{cudaThreadSynchronize()} is allowed, but will reduce
 the likelihood of having all transfers overlapped.
+@end deftypefun
+
+@deftypefun {const struct cudaDeviceProp *} starpu_cuda_get_device_properties (unsigned @var{workerid})
+This function returns a pointer to device properties for worker @var{workerid}
+(assumed to be a CUDA worker).
 @end deftypefun
 
 @deftypefun void starpu_helper_cublas_init (void)
