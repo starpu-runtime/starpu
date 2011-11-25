@@ -104,7 +104,7 @@ static struct _starpu_deque_jobq *select_workerq(void)
 
 #else
 
-/* who to steal work to ? */
+/* who to steal work from ? */
 static struct _starpu_deque_jobq *select_victimq(void)
 {
 	struct _starpu_deque_jobq *q;
