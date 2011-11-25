@@ -1407,6 +1407,14 @@ if test "x$ICC" != "x"; then
 fi
 AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
+AC_CHECK_MEMBER([struct cudaDeviceProp.pciDomainID],
+  AC_DEFINE([STARPU_HAVE_DOMAINID],[1],[Define to 1 if CUDA device properties include DomainID]),
+  , [[#include <cuda_runtime_api.h>]])
+
+AC_CHECK_MEMBER([struct cudaDeviceProp.pciBusID],
+  AC_DEFINE([STARPU_HAVE_BUSID],[1],[Define to 1 if CUDA device properties include BusID]),
+  , [[#include <cuda_runtime_api.h>]])
+
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
