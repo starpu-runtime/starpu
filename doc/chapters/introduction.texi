@@ -52,11 +52,13 @@ fashion.
 
 From a programming point of view, StarPU is not a new language but a library
 that executes tasks explicitly submitted by the application.  The data that a
-task manipulates are automatically transferred onto the accelerator so that the
-programmer does not have to take care of complex data movements.  StarPU also
-takes particular care of scheduling those tasks efficiently and allows
+task manipulates are automatically transferred onto the accelerator so that
+the programmer does not have to take care of complex data movements.  StarPU
+also takes particular care of scheduling those tasks efficiently and allows
 scheduling experts to implement custom scheduling policies in a portable
-fashion.
+fashion. The target audience is typically developers of compilers or computation
+libraries which want to seamlessly extend them to support heterogeneous
+architectures.
 
 @c explain the notion of codelet and task (i.e. g(A, B)
 @node Codelet and Tasks
