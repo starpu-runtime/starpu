@@ -19,7 +19,7 @@
 
 #ifdef STARPU_USE_FXT
 
-void starpu_fxt_write_paje_header(FILE *file)
+void _starpu_fxt_write_paje_header(FILE *file)
 {
 	fprintf(file, "%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "%%	Alias	string\n");

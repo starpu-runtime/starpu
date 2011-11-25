@@ -31,7 +31,7 @@ struct mpi_transfer {
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
  * filled with the timestamp of the barrier */
-int starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
+int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
 {
 	STARPU_ASSERT(offset);
 
@@ -106,7 +106,7 @@ unsigned mpi_recvs_used[64] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 unsigned mpi_recvs_matched[64] = {0};
 
-void starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
 	unsigned slot = mpi_sends_used[src]++;
 
@@ -130,7 +130,7 @@ void starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, 
 	mpi_sends[src][slot].date = date;
 }
 
-void starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
 {
 	unsigned slot = mpi_recvs_used[dst]++;
 
@@ -224,7 +224,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 	}
 }
 
-void starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
+void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
 {
 	unsigned inputfile;
 

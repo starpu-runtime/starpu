@@ -651,7 +651,7 @@ static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
 	child = ev->param[0]; 
 	father = ev->param[1]; 
 
-	starpu_fxt_dag_add_tag_deps(child, father);
+	_starpu_fxt_dag_add_tag_deps(child, father);
 }
 
 static void handle_task_deps(struct fxt_ev_64 *ev)
@@ -660,7 +660,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev)
 	unsigned long dep_succ = ev->param[1];
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
-	starpu_fxt_dag_add_task_deps(dep_prev, dep_succ);
+	_starpu_fxt_dag_add_task_deps(dep_prev, dep_succ);
 }
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -690,7 +690,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	unsigned exclude_from_dag = ev->param[2];
 
 	if (!exclude_from_dag)
-		starpu_fxt_dag_set_task_done(job_id, name, colour);
+		_starpu_fxt_dag_set_task_done(job_id, name, colour);
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -717,7 +717,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		colour= (worker < 0)?"0.0,0.0,0.0":get_worker_color(worker);
 	}
 
-	starpu_fxt_dag_set_tag_done(tag_id, colour);
+	_starpu_fxt_dag_set_tag_done(tag_id, colour);
 }
 
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -738,7 +738,7 @@ static void handle_mpi_isend(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	size_t size = ev->param[2];
 	float date = get_event_time_stamp(ev, options);
 
-	starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
+	_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
 }
 
 static void handle_mpi_irecv_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -747,7 +747,7 @@ static void handle_mpi_irecv_end(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	int mpi_tag = ev->param[1];
 	float date = get_event_time_stamp(ev, options);
 
-	starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
+	_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
 }
 
 static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -760,7 +760,7 @@ static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static void handle_task_wait_for_all(void)
 {
-	starpu_fxt_dag_add_sync_point();
+	_starpu_fxt_dag_add_sync_point();
 }
 
 static
@@ -1100,7 +1100,7 @@ void starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 			exit(1);
 		}
 
-		starpu_fxt_write_paje_header(out_paje_file);
+		_starpu_fxt_write_paje_header(out_paje_file);
 	}
 	else {
 		out_paje_file = NULL;
@@ -1150,7 +1150,7 @@ static uint64_t starpu_fxt_find_start_time(char *filename_in)
 
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
-	starpu_fxt_dag_init(options->dag_path);
+	_starpu_fxt_dag_init(options->dag_path);
 	starpu_fxt_distrib_file_init(options);
 	starpu_fxt_activity_file_init(options);
 
@@ -1203,7 +1203,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		/* Compute all sync_k if they exist */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
-			int ret = starpu_fxt_mpi_find_sync_point(options->filenames[inputfile],
+			int ret = _starpu_fxt_mpi_find_sync_point(options->filenames[inputfile],
 						&sync_k[inputfile],
 						&unique_keys[inputfile],
 						&rank_k[inputfile]);
@@ -1266,7 +1266,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 		/* display the MPI transfers if possible */
 		if (display_mpi)
-			starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file);
+			_starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file);
 	}
 
 	_starpu_fxt_display_bandwidth(options);
@@ -1276,7 +1276,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	starpu_fxt_activity_file_close();
 	starpu_fxt_distrib_file_close(options);
 
-	starpu_fxt_dag_terminate();
+	_starpu_fxt_dag_terminate();
 
 	options->nworkers = nworkers;
 }
