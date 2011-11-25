@@ -22,27 +22,27 @@
 #ifndef __STARPU_TOP_MESSAGE_QUEUE_H__
 #define __STARPU_TOP_MESSAGE_QUEUE_H__
 
-struct starpu_top_message_queue_item
+struct _starpu_top_message_queue_item
 {
 	char *message;
-	struct starpu_top_message_queue_item* next;
+	struct _starpu_top_message_queue_item* next;
 };
 
-struct starpu_top_message_queue
+struct _starpu_top_message_queue
 {
-	struct starpu_top_message_queue_item* head;
-	struct starpu_top_message_queue_item* tail;
+	struct _starpu_top_message_queue_item* head;
+	struct _starpu_top_message_queue_item* tail;
 	sem_t semaphore;
 	pthread_mutex_t mutex;
 };
 
 
-struct starpu_top_message_queue *starpu_top_message_add(struct starpu_top_message_queue*,
+struct _starpu_top_message_queue *_starpu_top_message_add(struct _starpu_top_message_queue*,
 							char*);
 
-char* starpu_top_message_remove(struct starpu_top_message_queue*);
+char* _starpu_top_message_remove(struct _starpu_top_message_queue*);
 
-struct starpu_top_message_queue* starpu_top_message_queue_new();
-struct starpu_top_message_queue* starpu_top_message_queue_free(struct starpu_top_message_queue*);
+struct _starpu_top_message_queue* _starpu_top_message_queue_new();
+struct _starpu_top_message_queue* _starpu_top_message_queue_free(struct _starpu_top_message_queue*);
 
 #endif

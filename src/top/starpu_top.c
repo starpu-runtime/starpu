@@ -27,7 +27,7 @@
 #include <pthread.h>
 #include <common/timing.h>
 
-extern struct starpu_top_message_queue*  starpu_top_mt;
+extern struct _starpu_top_message_queue*  _starpu_top_mt;
 int starpu_top = 0;
 int starpu_top_debug_on = 0;
 unsigned int starpu_top_data_cpt = 0;
@@ -105,7 +105,7 @@ static void starpu_top_send_devices_info()
 {
 	char* message=(char *)malloc(5*sizeof(char));
 	snprintf(message,5,"DEV\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 
 	unsigned int i;
 	for(i=0;i<starpu_worker_get_count();i++)
@@ -116,12 +116,12 @@ static void starpu_top_send_devices_info()
 		starpu_top_get_device_type(i,dev_type);
 		starpu_worker_get_name(i, dev_name,64);
 		snprintf(message, 128, "%u;%s;%s\n", i, dev_type, dev_name);
-		starpu_top_message_add(starpu_top_mt,message);
+		_starpu_top_message_add(_starpu_top_mt,message);
 	}
 
 	message=(char*)malloc(6*sizeof(char));
 	snprintf(message,6,"/DEV\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 }
 
 
@@ -135,56 +135,56 @@ void starpu_top_init_and_wait(const char* server_name){
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
 	//init locked queue before adding the first message
-	starpu_top_mt = starpu_top_message_queue_new();
-	STARPU_ASSERT(starpu_top_mt);
+	_starpu_top_mt = _starpu_top_message_queue_new();
+	STARPU_ASSERT(_starpu_top_mt);
 
 	//waiting for UI to connect
 	printf("%s:%d launching network threads\n", __FILE__, __LINE__);
-	starpu_top_communications_threads_launcher();
+	_starpu_top_communications_threads_launcher();
 
 	//sending server information (report to protocol)
 	char* message = (char *) malloc(strlen("SERVERINFO\n")+1);
 	sprintf(message, "%s", "SERVERINFO\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(strlen(server_name)+2);
 	sprintf(message, "%s\n", server_name);
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(25);
 	sprintf(message, "%lld\n", current_timestamp());
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(strlen("/SERVERINFO\n")+1);
 	sprintf(message,"%s", "/SERVERINFO\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 
 
 	//sending data list
 	message = (char *) malloc(strlen("DATA\n")+1);
 	sprintf(message, "%s", "DATA\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 	struct starpu_top_data * cur_data = starpu_top_first_data;
 	while(cur_data != NULL)
 	{
-		starpu_top_message_add(starpu_top_mt,message_for_topdata_init(cur_data));
+		_starpu_top_message_add(_starpu_top_mt,message_for_topdata_init(cur_data));
 		cur_data = cur_data->next;
 	}
 	message = (char *) malloc(strlen("/DATA\n")+1);
 	sprintf(message, "%s", "/DATA\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 
 	//sending parameter list
 	message = (char *) malloc(strlen("PARAMS\n")+1);
 	sprintf(message, "%s", "PARAMS\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 	struct starpu_top_param * cur_param = starpu_top_first_param;
 	printf("%s:%d sending parameters\n", __FILE__, __LINE__);
 	while(cur_param != NULL){
-	  starpu_top_message_add(starpu_top_mt,message_for_topparam_init(cur_param));
+	  _starpu_top_message_add(_starpu_top_mt,message_for_topparam_init(cur_param));
 	  cur_param = cur_param->next;
 	}
 	printf("%s:%d parameters sended\n", __FILE__, __LINE__);
 	message = (char *) malloc(strlen("/PARAMS\n")+1);
 	sprintf(message, "%s", "/PARAMS\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 
 
 	//sending DEVICE list
@@ -197,7 +197,7 @@ void starpu_top_init_and_wait(const char* server_name){
 	//sending READY message
 	message = (char *) malloc(strlen("READY\n")+1);
 	sprintf(message, "%s", "READY\n");
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 
 	//This threads keeps locked while we don't receive an GO message from UI
 	printf("%s:%d waiting for GO message\n", __FILE__, __LINE__);
@@ -484,7 +484,7 @@ void starpu_top_update_data_boolean(const struct starpu_top_data* data, int valu
 				data->id,
 				(value?1:0),
 				current_timestamp());
-		starpu_top_message_add(starpu_top_mt,message);
+		_starpu_top_message_add(_starpu_top_mt,message);
 	}
 }
 
@@ -499,7 +499,7 @@ void starpu_top_update_data_integer(const struct starpu_top_data* data, int valu
 				data->id,
 				value,
 				current_timestamp());
-		starpu_top_message_add(starpu_top_mt,message);
+		_starpu_top_message_add(_starpu_top_mt,message);
 	}
 }
 
@@ -513,7 +513,7 @@ void starpu_top_update_data_float(const struct starpu_top_data* data, double val
 				"U;%d;%f;%lld\n",
 				data->id, value,
 				current_timestamp());
-		starpu_top_message_add(starpu_top_mt,message);
+		_starpu_top_message_add(_starpu_top_mt,message);
 	}
 }
 
@@ -543,7 +543,7 @@ void starpu_top_update_parameter(const struct starpu_top_param* param){
 			break;
 	}
 
-	starpu_top_message_add(starpu_top_mt,message);
+	_starpu_top_message_add(_starpu_top_mt,message);
 }
 
 /*********************************************
@@ -575,7 +575,7 @@ void starpu_top_debug_log(const char* debug_message)
 		cur++;
 		*cur='\0';
 
-		starpu_top_message_add(starpu_top_mt,message);
+		_starpu_top_message_add(_starpu_top_mt,message);
 	}
 }
 
@@ -600,7 +600,7 @@ void starpu_top_debug_lock(const char* debug_message)
 		*cur='\n';
 		*(cur+1)='\0';
 
-		starpu_top_message_add(starpu_top_mt,message);
+		_starpu_top_message_add(_starpu_top_mt,message);
 
 		//This threads keeps locked while we don't receive an STEP message
 		pthread_mutex_lock(&starpu_top_wait_for_continue_mutex);
@@ -713,7 +713,7 @@ void starpu_top_change_debug_mode(const char*message)
 
 	char * m = (char *) malloc(strlen(message)+1);
 	sprintf(m,"%s",message);
-	starpu_top_message_add(starpu_top_mt,m);
+	_starpu_top_message_add(_starpu_top_mt,m);
 }
 
 /*

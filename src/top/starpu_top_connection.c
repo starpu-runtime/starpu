@@ -40,7 +40,7 @@
 const char *STARPU_TOP_PORT = "2011";
 const int STARPU_TOP_BUFFER_SIZE=1024;
 
-extern struct starpu_top_message_queue*  starpu_top_mt;
+extern struct _starpu_top_message_queue*  _starpu_top_mt;
 
 //client socket after fopen
 FILE* starpu_top_socket_fd_read;
@@ -80,7 +80,7 @@ void * message_to_ui(void * p)
 	(void) p;
 	while(1)
 	{
-		char* message = starpu_top_message_remove(starpu_top_mt);
+		char* message = _starpu_top_message_remove(_starpu_top_mt);
 		int len=strlen(message);
 		int check=fwrite(message, sizeof(char), len, starpu_top_socket_fd_write);
 		int check2=fflush(starpu_top_socket_fd_write);
@@ -90,7 +90,7 @@ void * message_to_ui(void * p)
 			fprintf(stderr,"Connection dropped : message no longer send\n");
 			while(1)
 			{
-				message=starpu_top_message_remove(starpu_top_mt);
+				message=_starpu_top_message_remove(_starpu_top_mt);
 				free(message);
 			}
 		}
@@ -98,7 +98,7 @@ void * message_to_ui(void * p)
 	return NULL;
 }
 
-void starpu_top_communications_threads_launcher()
+void _starpu_top_communications_threads_launcher()
 {
 	pthread_t from_ui;
 	pthread_t to_ui;

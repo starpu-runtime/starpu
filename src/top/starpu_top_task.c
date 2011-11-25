@@ -43,7 +43,7 @@ void starpu_top_task_started(
 				devid, 
 				_starpu_top_timing_timespec_to_ms(ts));
 
-	starpu_top_message_add(starpu_top_mt, str);
+	_starpu_top_message_add(_starpu_top_mt, str);
 }
 
 void starpu_top_task_ended(
@@ -60,7 +60,7 @@ void starpu_top_task_ended(
 				taskid, 
 				_starpu_top_timing_timespec_to_ms(ts));
 
-	starpu_top_message_add(starpu_top_mt, str);
+	_starpu_top_message_add(_starpu_top_mt, str);
 }
 
 void starpu_top_task_prevision_timespec(
@@ -94,5 +94,5 @@ void starpu_top_task_prevision(
 				start,
 				end);
 
-	starpu_top_message_add(starpu_top_mt, str);
+	_starpu_top_message_add(_starpu_top_mt, str);
 }
