@@ -46,7 +46,7 @@ static void initialize_eager_center_policy(struct starpu_machine_topology *topol
 static void deinitialize_eager_center_policy(__attribute__ ((unused)) struct starpu_machine_topology *topology, 
 		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
 {
-	STARPU_ASSERT(_starpu_fifo_empty(fifo));
+	//STARPU_ASSERT(_starpu_fifo_empty(fifo));
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(fifo);
