@@ -123,7 +123,7 @@ end
 
 define starpu-tasks
   printf "%d submitted tasks\n", nsubmitted
-  printf "TODO: currently running\n"
+  printf "%d ready tasks\n", nready
 end
 
 define starpu
