@@ -25,10 +25,10 @@
 #include <errno.h>
 #include <common/utils.h>
 
-struct starpu_deque_jobq_s *_starpu_create_deque(void)
+struct _starpu_deque_jobq *_starpu_create_deque(void)
 {
-	struct starpu_deque_jobq_s *deque;
-	deque = (struct starpu_deque_jobq_s *) malloc(sizeof(struct starpu_deque_jobq_s));
+	struct _starpu_deque_jobq *deque;
+	deque = (struct _starpu_deque_jobq *) malloc(sizeof(struct _starpu_deque_jobq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	deque->jobq = starpu_job_list_new();
@@ -42,23 +42,23 @@ struct starpu_deque_jobq_s *_starpu_create_deque(void)
 	return deque;
 }
 
-void _starpu_destroy_deque(struct starpu_deque_jobq_s *deque)
+void _starpu_destroy_deque(struct _starpu_deque_jobq *deque)
 {
 	starpu_job_list_delete(deque->jobq);
 	free(deque);
 }
 
-unsigned _starpu_get_deque_njobs(struct starpu_deque_jobq_s *deque_queue)
+unsigned _starpu_get_deque_njobs(struct _starpu_deque_jobq *deque_queue)
 {
 	return deque_queue->njobs;
 }
 
-unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue)
+unsigned _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue)
 {
 	return deque_queue->nprocessed;
 }
 
-struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue, int workerid __attribute__ ((unused)))
+struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queue, int workerid __attribute__ ((unused)))
 {
 	starpu_job_t j = NULL;
 
@@ -84,7 +84,7 @@ struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_que
 	return NULL;
 }
 
-struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
+struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
 	struct starpu_job_list_s *new_list, *old_list;
 

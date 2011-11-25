@@ -31,10 +31,10 @@ void _starpu_init_stack_queues_mechanisms(void)
 	total_number_of_jobs = 0;
 }
 
-struct starpu_stack_jobq_s *_starpu_create_stack(void)
+struct _starpu_stack_jobq *_starpu_create_stack(void)
 {
-	struct starpu_stack_jobq_s *stack;
-	stack = (struct starpu_stack_jobq_s *) malloc(sizeof(struct starpu_stack_jobq_s));
+	struct _starpu_stack_jobq *stack;
+	stack = (struct _starpu_stack_jobq *) malloc(sizeof(struct _starpu_stack_jobq));
 
 	stack->jobq = starpu_job_list_new();
 	stack->njobs = 0;
@@ -47,17 +47,17 @@ struct starpu_stack_jobq_s *_starpu_create_stack(void)
 	return stack;
 }
 
-unsigned _starpu_get_stack_njobs(struct starpu_stack_jobq_s *stack_queue)
+unsigned _starpu_get_stack_njobs(struct _starpu_stack_jobq *stack_queue)
 {
 	return stack_queue->njobs;
 }
 
-unsigned _starpu_get_stack_nprocessed(struct starpu_stack_jobq_s *stack_queue)
+unsigned _starpu_get_stack_nprocessed(struct _starpu_stack_jobq *stack_queue)
 {
 	return stack_queue->nprocessed;
 }
 
-void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
+void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
@@ -74,7 +74,7 @@ void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack_queue, pthread_mu
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-starpu_job_t _starpu_stack_pop_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, int workerid __attribute__ ((unused)))
+starpu_job_t _starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, pthread_mutex_t *sched_mutex, int workerid __attribute__ ((unused)))
 {
 	starpu_job_t j = NULL;
 

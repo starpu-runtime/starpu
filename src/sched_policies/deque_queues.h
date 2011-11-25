@@ -23,7 +23,7 @@
 #include <common/config.h>
 #include <core/jobs.h>
 
-struct starpu_deque_jobq_s {
+struct _starpu_deque_jobq {
 	/* the actual list */
 	starpu_job_list_t jobq;
 
@@ -39,14 +39,14 @@ struct starpu_deque_jobq_s {
 	double exp_len; /* Expected duration of the set of tasks in the queue */
 };
 
-struct starpu_deque_jobq_s *_starpu_create_deque(void);
-void _starpu_destroy_deque(struct starpu_deque_jobq_s *deque);
+struct _starpu_deque_jobq *_starpu_create_deque(void);
+void _starpu_destroy_deque(struct _starpu_deque_jobq *deque);
 
-struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue, int workerid);
-struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, int workerid);
+struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queue, int workerid);
+struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid);
 
-unsigned _starpu_get_deque_njobs(struct starpu_deque_jobq_s *deque_queue);
-unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue);
+unsigned _starpu_get_deque_njobs(struct _starpu_deque_jobq *deque_queue);
+unsigned _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue);
 
 
 #endif // __DEQUE_QUEUES_H__

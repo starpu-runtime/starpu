@@ -22,7 +22,7 @@
 
 static unsigned nworkers;
 static unsigned rr_worker;
-static struct starpu_deque_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct _starpu_deque_jobq *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_mutex_t global_sched_mutex;
 static pthread_cond_t global_sched_cond;
@@ -52,9 +52,9 @@ static float overload_metric(unsigned id)
 }
 
 /* who to steal work to ? */
-static struct starpu_deque_jobq_s *select_victimq(void)
+static struct _starpu_deque_jobq *select_victimq(void)
 {
-	struct starpu_deque_jobq_s *q;
+	struct _starpu_deque_jobq *q;
 
 	unsigned attempts = nworkers;
 
@@ -77,9 +77,9 @@ static struct starpu_deque_jobq_s *select_victimq(void)
 	return q;
 }
 
-static struct starpu_deque_jobq_s *select_workerq(void)
+static struct _starpu_deque_jobq *select_workerq(void)
 {
-	struct starpu_deque_jobq_s *q;
+	struct _starpu_deque_jobq *q;
 
 	unsigned attempts = nworkers;
 
@@ -105,9 +105,9 @@ static struct starpu_deque_jobq_s *select_workerq(void)
 #else
 
 /* who to steal work to ? */
-static struct starpu_deque_jobq_s *select_victimq(void)
+static struct _starpu_deque_jobq *select_victimq(void)
 {
-	struct starpu_deque_jobq_s *q;
+	struct _starpu_deque_jobq *q;
 
 	q = queue_array[rr_worker];
 
@@ -119,9 +119,9 @@ static struct starpu_deque_jobq_s *select_victimq(void)
 
 /* when anonymous threads submit tasks, 
  * we need to select a queue where to dispose them */
-static struct starpu_deque_jobq_s *select_workerq(void)
+static struct _starpu_deque_jobq *select_workerq(void)
 {
-	struct starpu_deque_jobq_s *q;
+	struct _starpu_deque_jobq *q;
 
 	q = queue_array[rr_worker];
 
@@ -141,7 +141,7 @@ static struct starpu_task *ws_pop_task(void)
 
 	int workerid = starpu_worker_get_id();
 
-	struct starpu_deque_jobq_s *q;
+	struct _starpu_deque_jobq *q;
 
 	q = queue_array[workerid];
 
@@ -156,7 +156,7 @@ static struct starpu_task *ws_pop_task(void)
 	}
 	
 	/* we need to steal someone's job */
-	struct starpu_deque_jobq_s *victimq;
+	struct _starpu_deque_jobq *victimq;
 	victimq = select_victimq();
 
 	task = _starpu_deque_pop_task(victimq, workerid);
@@ -176,7 +176,7 @@ static int ws_push_task(struct starpu_task *task)
 
 	int workerid = starpu_worker_get_id();
 
-        struct starpu_deque_jobq_s *deque_queue;
+        struct _starpu_deque_jobq *deque_queue;
 	deque_queue = queue_array[workerid];
 
         _STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);

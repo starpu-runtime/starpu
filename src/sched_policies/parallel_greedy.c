@@ -21,8 +21,8 @@
 #include <sched_policies/detect_combined_workers.h>
 
 /* the former is the actual queue, the latter some container */
-static struct starpu_fifo_taskq_s *fifo;
-static struct starpu_fifo_taskq_s *local_fifo[STARPU_NMAXWORKERS];
+static struct _starpu_fifo_taskq *fifo;
+static struct _starpu_fifo_taskq *local_fifo[STARPU_NMAXWORKERS];
 
 static int master_id[STARPU_NMAXWORKERS];
 

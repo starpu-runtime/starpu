@@ -26,7 +26,7 @@
 #include <starpu_parameters.h>
 
 static unsigned nworkers;
-static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
+static struct _starpu_fifo_taskq *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -67,7 +67,7 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 	return cnt;
 }
 
-static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct starpu_fifo_taskq_s *fifo_queue, unsigned node)
+static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned node)
 {
 	struct starpu_task *task = NULL, *current;
 
@@ -119,7 +119,7 @@ static struct starpu_task *dmda_pop_ready_task(void)
 	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
-	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
+	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
 
 	unsigned node = starpu_worker_get_memory_node(workerid);
 
@@ -151,7 +151,7 @@ static struct starpu_task *dmda_pop_task(void)
 	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
-	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
+	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
 
 	task = _starpu_fifo_pop_task(fifo, -1);
 	if (task) {
@@ -184,7 +184,7 @@ static struct starpu_task *dmda_pop_every_task(void)
 
 	int workerid = starpu_worker_get_id();
 
-	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
+	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
 
 	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], workerid);
 
@@ -203,7 +203,7 @@ static struct starpu_task *dmda_pop_every_task(void)
 }
 
 static
-int _starpu_fifo_push_sorted_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
+int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 
@@ -274,7 +274,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
-	struct starpu_fifo_taskq_s *fifo;
+	struct _starpu_fifo_taskq *fifo;
 	fifo = queue_array[best_workerid];
 
 	fifo->exp_end += predicted;
@@ -300,7 +300,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 static int _dm_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-	struct starpu_fifo_taskq_s *fifo;
+	struct _starpu_fifo_taskq *fifo;
 	unsigned worker;
 	int best = -1;
 
@@ -392,7 +392,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-	struct starpu_fifo_taskq_s *fifo;
+	struct _starpu_fifo_taskq *fifo;
 	unsigned worker;
 	int best = -1;
 	

@@ -25,10 +25,10 @@
 #include <core/task.h>
 #include <core/workers.h>
 
-struct starpu_fifo_taskq_s *_starpu_create_fifo(void)
+struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
-	struct starpu_fifo_taskq_s *fifo;
-	fifo = (struct starpu_fifo_taskq_s *) malloc(sizeof(struct starpu_fifo_taskq_s));
+	struct _starpu_fifo_taskq *fifo;
+	fifo = (struct _starpu_fifo_taskq *) malloc(sizeof(struct _starpu_fifo_taskq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
@@ -42,14 +42,14 @@ struct starpu_fifo_taskq_s *_starpu_create_fifo(void)
 	return fifo;
 }
 
-void _starpu_destroy_fifo(struct starpu_fifo_taskq_s *fifo)
+void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo)
 {
 	free(fifo);
 }
 
 /* TODO: revert front/back? */
 
-int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
+int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
@@ -65,7 +65,7 @@ int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex
 	return 0;
 }
 
-struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue, int workerid __attribute__ ((unused)))
+struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid __attribute__ ((unused)))
 {
 	struct starpu_task *task = NULL;
 
@@ -88,7 +88,7 @@ struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, int workerid)
+struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
 	struct starpu_task_list *old_list;
 	unsigned size;
