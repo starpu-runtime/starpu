@@ -43,11 +43,13 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 	const struct cudaDeviceProp *props;
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		return 1;
+#ifdef STARPU_USE_CUDA
 	/* Cuda device */
 	props = starpu_cuda_get_device_properties(workerid);
 	if (props->major >= 2 || props->minor >= 3)
 		/* At least compute capability 1.3, supports doubles */
 		return 0;
+#endif
 	/* Old card, does not support doubles */
 	return 0;
 }
