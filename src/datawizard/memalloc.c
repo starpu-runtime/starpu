@@ -378,9 +378,9 @@ static void reuse_mem_chunk(unsigned node, struct starpu_data_replicate_s *new_r
 	new_replicate->automatically_allocated = 1;
 	new_replicate->initialized = 0;
 
-	STARPU_ASSERT(new_replicate->chunk_interface);
+	STARPU_ASSERT(new_replicate->data_interface);
 	STARPU_ASSERT(mc->chunk_interface);
-	memcpy(new_replicate->chunk_interface, mc->chunk_interface, old_replicate->ops->interface_size);
+	memcpy(new_replicate->data_interface, mc->chunk_interface, old_replicate->handle->ops->interface_size);
 
 	mc->data = new_replicate->handle;
 	mc->data_was_deleted = 0;
@@ -432,7 +432,7 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 	if (ops_a->interfaceid != ops_b->interfaceid)
 		return -1;
 
-	int ret = ops_a->compare(interface_a, interface_b);
+	int ret = ops_a->compare(data_interface_a, data_interface_b);
 
 	return ret;
 }
@@ -451,7 +451,7 @@ static starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, st
 		if (mc->footprint == footprint)
 		{
 			/* Is that a false hit ? (this is _very_ unlikely) */
-			if (_starpu_data_interface_compare(handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
+			if (_starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->chunk_interface, mc->ops))
 				continue;
 
 			/* Cache hit */
@@ -474,7 +474,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	starpu_mem_chunk_t mc, next_mc;
 
 	/* go through all buffers in the cache */
-	mc = _starpu_memchunk_cache_lookup_locked(node, handle);
+	mc = _starpu_memchunk_cache_lookup_locked(node, data);
 	if (mc)
 	{
 		/* We found an entry in the cache so we can reuse it */
@@ -742,17 +742,17 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 	_STARPU_TRACE_START_ALLOC_REUSE(dst_node);
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 		_starpu_allocation_cache_hit(dst_node);
 		ssize_t data_size = _starpu_data_get_size(handle);
 		return data_size;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 
