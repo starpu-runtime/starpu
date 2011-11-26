@@ -36,7 +36,7 @@ int _starpu_barrier_wait(struct _starpu_barrier *barrier);
 
 #if !defined(PTHREAD_BARRIER_SERIAL_THREAD)
 #  define PTHREAD_BARRIER_SERIAL_THREAD -1
-#  define pthread_barrier_t _starpu_barrier_t
+#  define pthread_barrier_t struct _starpu_barrier
 #  define pthread_barrier_init(b,a,c) _starpu_barrier_init(b, c)
 #  define pthread_barrier_destroy(b) _starpu_barrier_destroy(b)
 #  define pthread_barrier_wait(b) _starpu_barrier_wait(b)
