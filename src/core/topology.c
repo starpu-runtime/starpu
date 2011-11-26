@@ -307,6 +307,10 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 				STARPU_MIN(_starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
 		} else {
 			/* use the specified value */
+			if (explicitval > STARPU_MAXCUDADEVS) {
+				fprintf(stderr,"# Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", explicitval, STARPU_MAXCUDADEVS);
+				explicitval = STARPU_MAXCUDADEVS;
+			}
 			topology->ncudagpus = (unsigned)explicitval;
 			STARPU_ASSERT(topology->ncudagpus <= STARPU_MAXCUDADEVS);
 		}
