@@ -153,7 +153,7 @@ static struct starpu_task *dmda_pop_task(void)
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
 
-	task = _starpu_fifo_pop_task(fifo, -1);
+	task = _starpu_fifo_pop_task(fifo, workerid);
 	if (task) {
 		double model = task->predicted;
 	
