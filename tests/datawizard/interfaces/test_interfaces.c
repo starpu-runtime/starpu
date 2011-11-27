@@ -463,8 +463,11 @@ run_cuda(int async)
 	summary.cuda_to_cuda_async = UNTESTED;
 #endif /* !HAVE_CUDA_MEMCPY_PEER */
 
+#ifdef STARPU_USE_CPU
 	err = cuda_to_ram();
 	set_field(&summary, async, CUDA_TO_CPU, err);
+#endif /* !STARPU_USE_CPU */
+
 #endif /* !STARPU_USE_CUDA */
 }
 
@@ -480,8 +483,11 @@ run_opencl(int async)
 	if (err != SUCCESS)
 		return;
 
+#if STARPU_USE_CPU
 	err = opencl_to_ram();
 	set_field(&summary, async, OPENCL_TO_CPU, err);
+#endif /*!STARPU_USE_CPU */
+
 #endif /* !STARPU_USE_OPENCL */
 }
 
