@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -143,7 +143,7 @@ void _starpu_clock_gettime(struct timespec *ts)
 
 	STARPU_GET_TICK(tick_now);
 
-	uint64_t elapsed_ticks = TICK_DIFF(reference_start_tick, tick_now);
+	uint64_t elapsed_ticks = STARPU_TICK_DIFF(reference_start_tick, tick_now);
 
 	/* We convert this number into nano-seconds so that we can fill the
 	 * timespec structure. */
