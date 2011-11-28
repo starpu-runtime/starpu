@@ -17,7 +17,7 @@
 
 define starpu-print-job
   set language c
-  set $job = (struct starpu_job_s *)$arg0
+  set $job = (struct _starpu_job *)$arg0
 
   printf "StarPU Job (%p)\n", $job
   printf "\ttask:\t\t\t\t<%p>\n", $job->task
@@ -36,7 +36,7 @@ end
 define starpu-print-task
   set language c
   set $task = (struct starpu_task *)$arg0
-  set $job = (struct starpu_job_s *)$task->starpu_private
+  set $job = (struct _starpu_job *)$task->starpu_private
   if $task->status == 0
     set $status="STARPU_TASK_INVALID"
   end
@@ -226,7 +226,7 @@ define starpu-print-datas
 end
 
 define starpu-print-request
-  set $r = (struct starpu_data_request_s *)$arg0
+  set $r = (struct _starpu_data_request *)$arg0
   printf "Request %p\n", $r
   printf "Refcnt %d\n", $r->refcnt
   printf "Handle %p\n", $r->handle

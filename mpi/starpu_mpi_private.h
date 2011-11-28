@@ -72,7 +72,7 @@ LIST_TYPE(_starpu_mpi_req,
 	int mpi_tag;
 	MPI_Comm comm;
 
-	void (*func)(struct starpu_mpi_req_s *);
+	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
 	MPI_Request request;
