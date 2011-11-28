@@ -281,7 +281,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     __cuda_include_dir=$2
     __cuda_lib_dir=$3
 
-    if test "$__cuda_dir" != "no" ; then
+    if test "$__cuda_dir" != "no" -a "$__cuda_dir" != "" ; then
 	AC_MSG_CHECKING(whether CUDA RT is available in $__cuda_dir)
     else
 	AC_MSG_CHECKING(whether CUDA RT is available)
@@ -370,7 +370,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     fi
 
     # in case CUDA was explicitely required, but is not available, this is an error
-    if test x$enable_cuda = xyes -a x$have_valid_cuda = no; then
+    if test x$enable_cuda = xyes -a x$have_valid_cuda = xno; then
 	AC_MSG_ERROR([cannot find CUDA])
     fi
     # now we enable CUDA if and only if a proper setup is available
@@ -593,7 +593,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
         fi
 
 	# in case OpenCL was explicitely required, but is not available, this is an error
-	if test x$enable_opencl = xyes -a x$have_valid_opencl = no; then
+	if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
 	    AC_MSG_ERROR([cannot find OpenCL])
 	fi
 
@@ -654,7 +654,7 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 	# AC_CHECK_FUNC(gordon_init, [gordon], [have_valid_gordon=no])
 
 	# in case Gordon was explicitely required, but is not available, this is an error
-	if test x$enable_gordon = xyes -a x$have_valid_gordon = no; then
+	if test x$enable_gordon = xyes -a x$have_valid_gordon = xno; then
 		AC_MSG_ERROR([cannot find Gordon])
 	fi
 
