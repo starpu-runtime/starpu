@@ -248,7 +248,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int ret = 0;
 		int i;
 
-		starpu_job_t j = _starpu_get_job_associated_to_task(task);
+		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 		j->task_size = worker_size;
 		j->combined_workerid = workerid;
 		j->active_task_alias_count = 0;
@@ -269,7 +269,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 }
 
 /* the generic interface that call the proper underlying implementation */
-int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
+int _starpu_push_task(struct _starpu_job *j, unsigned job_is_already_locked)
 {
 	struct starpu_task *task = j->task;
         _STARPU_LOG_IN();

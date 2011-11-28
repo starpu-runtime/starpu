@@ -72,7 +72,7 @@ struct _starpu_worker {
 	pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
-	struct starpu_job_list_s *terminated_jobs; /* list of pending jobs which were executed */
+	struct _starpu_job_list *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */

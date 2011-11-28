@@ -41,7 +41,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, int workerid)
+void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid)
 {
 	STARPU_ASSERT(replicate);
 	STARPU_ASSERT(replicate->allocated);
@@ -86,7 +86,7 @@ void _starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 	unsigned nworkers = starpu_worker_get_count();
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_worker[worker];
 		replicate->initialized = 0;
 	}
@@ -198,7 +198,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		 * when they try to access the handle (normal tasks are
 		 * data requests to that handle are frozen until the
 		 * data is coherent again). */
-		starpu_job_t j = _starpu_get_job_associated_to_task(redux_task);
+		struct _starpu_job *j = _starpu_get_job_associated_to_task(redux_task);
 		j->reduction_task = 1;
 
 		redux_task->cl = handle->redux_cl;
@@ -227,7 +227,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			 * when they try to access the handle (normal tasks are
 			 * data requests to that handle are frozen until the
 			 * data is coherent again). */
-			starpu_job_t j = _starpu_get_job_associated_to_task(redux_task);
+			struct _starpu_job *j = _starpu_get_job_associated_to_task(redux_task);
 			j->reduction_task = 1;
 	
 			redux_task->cl = handle->redux_cl;
@@ -257,7 +257,7 @@ void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_worker[worker];
 		replicate->initialized = 0;
 

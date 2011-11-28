@@ -856,7 +856,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 	get_model_debug_path(model, archname, path, maxlen);
 }
 
-double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j, unsigned nimpl)
+double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -870,7 +870,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	return exp;
 }
 
-double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
+double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -902,7 +902,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	return exp;
 }
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_job_s *j,unsigned nimpl)
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
 	double exp;
 	struct starpu_per_arch_perfmodel *per_arch_model;
@@ -938,7 +938,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	return exp;
 }
 
-void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
 {
 	if (model)
 	{

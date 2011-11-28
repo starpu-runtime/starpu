@@ -91,7 +91,7 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 
 		struct _starpu_tag *tag;
 		struct _starpu_cg_list *tag_successors, *job_successors;
-		starpu_job_t j;
+		struct _starpu_job *j;
 
 		/* the group is now completed */
 		switch (cg->cg_type) {
@@ -173,7 +173,7 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 
 		if (cg_type == STARPU_CG_TASK)
 		{
-			starpu_job_t j = cg->succ.job;
+			struct _starpu_job *j = cg->succ.job;
 			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		}			
 
@@ -181,7 +181,7 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 
 		if (cg_type == STARPU_CG_TASK)
 		{
-			starpu_job_t j = cg->succ.job;
+			struct _starpu_job *j = cg->succ.job;
 			
 			/* In case this task was immediately terminated, since
 			 * _starpu_notify_cg_list already hold the sync_mutex

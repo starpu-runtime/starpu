@@ -28,7 +28,7 @@ static void wt_callback(void *arg) {
 }
 
 void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node, 
-					   uint32_t write_through_mask)
+				uint32_t write_through_mask)
 {
 	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
 		/* nothing will be done ... */
@@ -53,9 +53,9 @@ void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting
 				handle->busy_count++;
 				handle->current_mode = STARPU_R;
 
-				starpu_data_request_t r;
+				struct _starpu_data_request *r;
 				r = _starpu_create_request_to_fetch_data(handle, &handle->per_node[node],
-						STARPU_R, 1, wt_callback, handle);
+									 STARPU_R, 1, wt_callback, handle);
 
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */

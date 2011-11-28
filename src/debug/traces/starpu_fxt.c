@@ -89,13 +89,13 @@ static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
 static double accumulated_sleep_time[STARPU_NMAXWORKERS];
 static double accumulated_exec_time[STARPU_NMAXWORKERS];
 
-LIST_TYPE(symbol_name,
+LIST_TYPE(_starpu_symbol_name,
 	char *name;
 )
 
-static symbol_name_list_t symbol_list;
+static struct _starpu_symbol_name_list *symbol_list;
 
-LIST_TYPE(communication,
+LIST_TYPE(_starpu_communication,
 	unsigned comid;
 	float comm_start;	
 	float bandwidth;
@@ -103,7 +103,7 @@ LIST_TYPE(communication,
 	unsigned dst_node;
 )
 
-static communication_list_t communication_list;
+static struct _starpu_communication_list *communication_list;
 
 /*
  * Paje trace file tools
@@ -293,10 +293,10 @@ static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options *options)
 {
-	symbol_name_itor_t itor;
-	for (itor = symbol_name_list_begin(symbol_list);
-		itor != symbol_name_list_end(symbol_list);
-		itor = symbol_name_list_next(itor))
+	struct _starpu_symbol_name *itor;
+	for (itor = _starpu_symbol_name_list_begin(symbol_list);
+		itor != _starpu_symbol_name_list_end(symbol_list);
+		itor = _starpu_symbol_name_list_next(itor))
 	{
 		if (!strcmp(name, itor->name))
 		{
@@ -306,12 +306,12 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	}
 
 	/* it's the first time ... */
-	symbol_name_t entry = symbol_name_new();
-		entry->name = malloc(strlen(name));
-		strcpy(entry->name, name);
+	struct _starpu_symbol_name *entry = _starpu_symbol_name_new();
+	entry->name = malloc(strlen(name));
+	strcpy(entry->name, name);
 
-	symbol_name_list_push_front(symbol_list, entry);
-	
+	_starpu_symbol_name_list_push_front(symbol_list, entry);
+
 	/* choose some colour ... that's disguting yes */
 	unsigned hash_symbol_red = get_colour_symbol_red(name);
 	unsigned hash_symbol_green = get_colour_symbol_green(name);
@@ -514,14 +514,14 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		}
 
 		/* create a structure to store the start of the communication, this will be matched later */
-		communication_t com = communication_new();
+		struct _starpu_communication *com = _starpu_communication_new();
 		com->comid = comid;
 		com->comm_start = get_event_time_stamp(ev, options);
 
 		com->src_node = src;
 		com->dst_node = dst;
 
-		communication_list_push_back(communication_list, com);
+		_starpu_communication_list_push_back(communication_list, com);
 	}
 
 }
@@ -543,10 +543,10 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		}
 
 		/* look for a data transfer to match */
-		communication_itor_t itor;
-		for (itor = communication_list_begin(communication_list);
-			itor != communication_list_end(communication_list);
-			itor = communication_list_next(itor))
+		struct _starpu_communication *itor;
+		for (itor = _starpu_communication_list_begin(communication_list);
+			itor != _starpu_communication_list_end(communication_list);
+			itor = _starpu_communication_list_next(itor))
 		{
 			if (itor->comid == comid)
 			{
@@ -555,7 +555,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 				itor->bandwidth = bandwidth;
 
-				communication_t com = communication_new();
+				struct _starpu_communication *com = _starpu_communication_new();
 				com->comid = comid;
 				com->comm_start = get_event_time_stamp(ev, options);
 				com->bandwidth = -bandwidth;
@@ -563,7 +563,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 				com->src_node = itor->src_node;
 				com->dst_node = itor->dst_node;
 
-				communication_list_push_back(communication_list, com);
+				_starpu_communication_list_push_back(communication_list, com);
 
 				break;
 			}
@@ -770,10 +770,10 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 
 	char *prefix = options->file_prefix;
 
-	communication_itor_t itor;
-	for (itor = communication_list_begin(communication_list);
-		itor != communication_list_end(communication_list);
-		itor = communication_list_next(itor))
+	struct _starpu_communication*itor;
+	for (itor = _starpu_communication_list_begin(communication_list);
+		itor != _starpu_communication_list_end(communication_list);
+		itor = _starpu_communication_list_next(itor))
 	{
 		current_bandwidth_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
@@ -815,8 +815,8 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 	/* create a htable to identify each worker(tid) */
 	hcreate(STARPU_NMAXWORKERS);
 
-	symbol_list = symbol_name_list_new(); 
-	communication_list = communication_list_new();
+	symbol_list = _starpu_symbol_name_list_new();
+	communication_list = _starpu_communication_list_new();
 
 	char *prefix = options->file_prefix;
 

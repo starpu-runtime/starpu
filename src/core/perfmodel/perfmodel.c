@@ -161,7 +161,7 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, enum starpu_perf_archtype arch,  unsigned nimpl)
 {
 	if (model) {
-		starpu_job_t j = _starpu_get_job_associated_to_task(task);
+		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 		switch (model->type) {
 			case STARPU_PER_ARCH:
 

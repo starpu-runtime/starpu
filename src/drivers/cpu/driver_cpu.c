@@ -25,7 +25,7 @@
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 
-static int execute_job_on_cpu(starpu_job_t j, struct _starpu_worker *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
+static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
 {
 	int ret;
 	struct timespec codelet_start, codelet_end;
@@ -117,7 +117,7 @@ void *_starpu_cpu_worker(void *arg)
 	_STARPU_PTHREAD_COND_SIGNAL(&cpu_arg->ready_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
 
-        starpu_job_t j;
+        struct _starpu_job *j;
 	struct starpu_task *task;
 
 	int res;

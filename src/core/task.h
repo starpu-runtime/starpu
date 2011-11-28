@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,11 +38,11 @@ void _starpu_set_current_task(struct starpu_task *task);
 
 /* NB the second argument makes it possible to count regenerable tasks only
  * once. */
-int _starpu_submit_job(starpu_job_t j);
+int _starpu_submit_job(struct _starpu_job *j);
 
 /* Returns the job structure (which is the internal data structure associated
  * to a task). */
-starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task);
+struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task);
 
 struct starpu_task *_starpu_create_task_alias(struct starpu_task *task);
 

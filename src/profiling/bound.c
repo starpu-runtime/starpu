@@ -149,7 +149,7 @@ void starpu_bound_start(int deps, int prio)
 		free(td);
 }
 
-static int good_job(starpu_job_t j)
+static int good_job(struct _starpu_job *j)
 {
 	/* No codelet, nothing to measure */
 	if (j->exclude_from_dag)
@@ -165,7 +165,7 @@ static int good_job(starpu_job_t j)
 	return 1;
 }
 
-static void new_task(starpu_job_t j)
+static void new_task(struct _starpu_job *j)
 {
 	struct bound_task *t;
 
@@ -187,7 +187,7 @@ static void new_task(starpu_job_t j)
 	tasks = t;
 }
 
-void _starpu_bound_record(starpu_job_t j)
+void _starpu_bound_record(struct _starpu_job *j)
 {
 	if (!_starpu_bound_recording)
 		return;
@@ -254,7 +254,7 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
-void _starpu_bound_task_dep(starpu_job_t j, starpu_job_t dep_j)
+void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 {
 	struct bound_task *t;
 
@@ -289,7 +289,7 @@ static struct bound_task *find_job(unsigned long id)
 	return NULL;
 }
 
-void _starpu_bound_job_id_dep(starpu_job_t j, unsigned long id)
+void _starpu_bound_job_id_dep(struct _starpu_job *j, unsigned long id)
 {
 	struct bound_task *t, *dep_t;
 
@@ -331,7 +331,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times) {
 	int w, t;
 	for (w = 0; w < nw; w++) {
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-			struct starpu_job_s j = {
+			struct _starpu_job j = {
 				.footprint = tp->footprint,
 				.footprint_is_computed = 1,
 			};
@@ -395,7 +395,7 @@ void starpu_bound_print_lp(FILE *output)
 
 		nt = 0;
 		for (t1 = tasks; t1; t1 = t1->next) {
-			struct starpu_job_s j = {
+			struct _starpu_job j = {
 				.footprint = t1->footprint,
 				.footprint_is_computed = 1,
 			};

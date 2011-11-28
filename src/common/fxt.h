@@ -260,7 +260,7 @@ do {										\
 
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
-        struct starpu_job_s *job = (tag)->job;                                  \
+        struct _starpu_job *job = (tag)->job;                                  \
         const char *model_name = _starpu_get_model_name((job));                       \
 	if (model_name)                                                         \
 	{									\

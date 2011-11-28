@@ -27,7 +27,7 @@
  * memory node. */
 int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node)
 {
-	starpu_data_request_t r;
+	struct _starpu_data_request *r;
 
 	STARPU_ASSERT(handle);
 
@@ -85,10 +85,10 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
 
 	ret = _starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 1,
-			_starpu_data_acquire_fetch_data_callback, wrapper);
+					 _starpu_data_acquire_fetch_data_callback, wrapper);
 	STARPU_ASSERT(!ret);
 }
 
@@ -146,7 +146,7 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 		wrapper->post_sync_task->detach = 1;
 
 #ifdef STARPU_USE_FXT
-                starpu_job_t job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
+                struct _starpu_job *job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
                 job->model_name = "acquire_cb_pre";
                 job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
                 job->model_name = "acquire_cb_post";
@@ -180,7 +180,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
 
 	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, NULL, NULL);
 	
@@ -225,7 +225,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		wrapper.post_sync_task->detach = 1;
 
 #ifdef STARPU_USE_FXT
-                starpu_job_t job = _starpu_get_job_associated_to_task(wrapper.pre_sync_task);
+                struct _starpu_job *job = _starpu_get_job_associated_to_task(wrapper.pre_sync_task);
                 job->model_name = "acquire_pre";
                 job = _starpu_get_job_associated_to_task(wrapper.post_sync_task);
                 job->model_name = "acquire_post";
@@ -250,7 +250,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+		struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
 		int ret = _starpu_fetch_data_on_node(handle, ram_replicate, mode, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
@@ -290,7 +290,7 @@ static void _prefetch_data_on_node(void *arg)
 	starpu_data_handle_t handle = wrapper->handle;
         int ret;
 
-	struct starpu_data_replicate_s *replicate = &handle->per_node[wrapper->node];
+	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, NULL, NULL);
         STARPU_ASSERT(!ret);
 
@@ -329,7 +329,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, wrapper))
 	{
 		/* we can immediately proceed */
-		struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		_starpu_fetch_data_on_node(handle, replicate, mode, async, NULL, NULL);
 
 		/* remove the "lock"/reference */

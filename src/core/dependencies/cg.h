@@ -31,6 +31,8 @@
 #define STARPU_NMAXDEPS	256
 #endif
 
+struct _starpu_job;
+
 /* Completion Group list */
 struct _starpu_cg_list {
 	unsigned nsuccs; /* how many successors ? */
@@ -62,7 +64,7 @@ struct _starpu_cg {
 		struct _starpu_tag *tag;
 
 		/* STARPU_CG_TASK */
-		struct starpu_job_s *job;
+		struct _starpu_job *job;
 
 		/* STARPU_CG_APPS */
 		/* in case this completion group is related to an application,
@@ -81,6 +83,6 @@ void _starpu_cg_list_deinit(struct _starpu_cg_list *list);
 void _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg);
 void _starpu_notify_cg(struct _starpu_cg *cg);
 void _starpu_notify_cg_list(struct _starpu_cg_list *successors);
-void _starpu_notify_task_dependencies(struct starpu_job_s *j);
+void _starpu_notify_task_dependencies(struct _starpu_job *j);
 
 #endif // __CG_H__

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@ struct _starpu_stack_jobq *_starpu_create_stack(void)
 	struct _starpu_stack_jobq *stack;
 	stack = (struct _starpu_stack_jobq *) malloc(sizeof(struct _starpu_stack_jobq));
 
-	stack->jobq = starpu_job_list_new();
+	stack->jobq = _starpu_job_list_new();
 	stack->njobs = 0;
 	stack->nprocessed = 0;
 
@@ -57,16 +57,16 @@ unsigned _starpu_get_stack_nprocessed(struct _starpu_stack_jobq *stack_queue)
 	return stack_queue->nprocessed;
 }
 
-void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
+void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct _starpu_job *task)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
 
 	_STARPU_TRACE_JOB_PUSH(task, 0);
 	if (task->task->priority)
-		starpu_job_list_push_back(stack_queue->jobq, task);
+		_starpu_job_list_push_back(stack_queue->jobq, task);
 	else
-		starpu_job_list_push_front(stack_queue->jobq, task);
+		_starpu_job_list_push_front(stack_queue->jobq, task);
 	stack_queue->njobs++;
 	stack_queue->nprocessed++;
 
@@ -74,9 +74,9 @@ void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, pthread_mut
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-starpu_job_t _starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, pthread_mutex_t *sched_mutex, int workerid __attribute__ ((unused)))
+struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, pthread_mutex_t *sched_mutex, int workerid __attribute__ ((unused)))
 {
-	starpu_job_t j = NULL;
+	struct _starpu_job *j = NULL;
 
 	if (stack_queue->njobs == 0)
 		return NULL;
@@ -85,7 +85,7 @@ starpu_job_t _starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, pthr
 	if (stack_queue->njobs > 0) 
 	{
 		/* there is a task */
-		j = starpu_job_list_pop_back(stack_queue->jobq);
+		j = _starpu_job_list_pop_back(stack_queue->jobq);
 	
 		STARPU_ASSERT(j);
 		stack_queue->njobs--;

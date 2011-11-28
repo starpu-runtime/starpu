@@ -152,8 +152,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->is_readonly = initial_handle->is_readonly;
 
 		/* initialize the chunk lock */
-		child->req_list = starpu_data_requester_list_new();
-		child->reduction_req_list = starpu_data_requester_list_new();
+		child->req_list = _starpu_data_requester_list_new();
+		child->reduction_req_list = _starpu_data_requester_list_new();
 		child->refcnt = 0;
 		child->busy_count = 0;
 		child->busy_waiting = 0;
@@ -185,8 +185,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			struct starpu_data_replicate_s *initial_replicate; 
-			struct starpu_data_replicate_s *child_replicate;
+			struct _starpu_data_replicate *initial_replicate; 
+			struct _starpu_data_replicate *child_replicate;
 
 			initial_replicate = &initial_handle->per_node[node];
 			child_replicate = &child->per_node[node];
@@ -208,7 +208,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		unsigned worker;
 		for (worker = 0; worker < nworkers; worker++)
 		{
-			struct starpu_data_replicate_s *child_replicate;
+			struct _starpu_data_replicate *child_replicate;
 			child_replicate = &child->per_worker[worker];
 			
 			child_replicate->state = STARPU_INVALID;
@@ -271,8 +271,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 		STARPU_ASSERT(ret == 0); 
 
 		_starpu_data_free_interfaces(&root_handle->children[child]);
-		starpu_data_requester_list_delete(child_handle->req_list);
-		starpu_data_requester_list_delete(child_handle->reduction_req_list);
+		_starpu_data_requester_list_delete(child_handle->req_list);
+		_starpu_data_requester_list_delete(child_handle->reduction_req_list);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
@@ -297,7 +297,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			struct starpu_data_replicate_s *local = &root_handle->children[child].per_node[node];
+			struct _starpu_data_replicate *local = &root_handle->children[child].per_node[node];
 
 			if (local->state == STARPU_INVALID) {
 				/* One of the bits is missing */

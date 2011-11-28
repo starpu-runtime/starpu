@@ -25,8 +25,8 @@ void _starpu_debug_display_structures_size(void)
 {
 	fprintf(stderr, "struct starpu_task\t\t%u bytes\t(%x)\n",
 			(unsigned) sizeof(struct starpu_task), (unsigned) sizeof(struct starpu_task));
-	fprintf(stderr, "struct starpu_job_s\t\t%u bytes\t(%x)\n",
-			(unsigned) sizeof(struct starpu_job_s), (unsigned) sizeof(struct starpu_job_s));
+	fprintf(stderr, "struct _starpu_job\t\t%u bytes\t(%x)\n",
+			(unsigned) sizeof(struct _starpu_job), (unsigned) sizeof(struct _starpu_job));
 	fprintf(stderr, "struct _starpu_data_state\t%u bytes\t(%x)\n",
 			(unsigned) sizeof(struct _starpu_data_state), (unsigned) sizeof(struct _starpu_data_state));
 	fprintf(stderr, "struct _starpu_tag\t\t%u bytes\t(%x)\n",

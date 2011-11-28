@@ -33,8 +33,8 @@
 #include <starpu_opencl.h>
 #endif
 
-struct starpu_data_request_s;
-struct starpu_data_replicate_s;
+struct _starpu_data_request;
+struct _starpu_data_replicate;
 
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
@@ -56,11 +56,11 @@ struct _starpu_async_channel {
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
 int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
-					struct starpu_data_replicate_s *src_replicate,
-					struct starpu_data_replicate_s *dst_replicate,
-					unsigned donotread,
-					struct starpu_data_request_s *req,
-					unsigned may_alloc);
+				    struct _starpu_data_replicate *src_replicate,
+				    struct _starpu_data_replicate *dst_replicate,
+				    unsigned donotread,
+				    struct _starpu_data_request *req,
+				    unsigned may_alloc);
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);

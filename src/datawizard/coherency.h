@@ -38,7 +38,7 @@ enum _starpu_cache_state {
 };
 
 /* this should contain the information relative to a given data replicate  */
-LIST_TYPE(starpu_data_replicate,
+LIST_TYPE(_starpu_data_replicate,
 	starpu_data_handle_t handle;
 
 	/* describe the actual data layout */
@@ -68,7 +68,7 @@ LIST_TYPE(starpu_data_replicate,
 	uint8_t automatically_allocated;
 
         /* Pointer to memchunk for LRU strategy */
-	struct starpu_mem_chunk_s * mc;
+	struct _starpu_mem_chunk * mc;
  
 	/* To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request 
@@ -78,10 +78,10 @@ LIST_TYPE(starpu_data_replicate,
 	   use this hint can simply ignore it.
 	 */
 	uint8_t requested[STARPU_MAXNODES];
-	struct starpu_data_request_s *request[STARPU_MAXNODES];
+	struct _starpu_data_request *request[STARPU_MAXNODES];
 )
 
-struct starpu_data_requester_list_s;
+struct _starpu_data_requester_list;
 
 struct _starpu_jobid_list {
 	unsigned long id;
@@ -95,7 +95,7 @@ struct _starpu_task_wrapper_list {
 };
 
 struct _starpu_data_state {
-	struct starpu_data_requester_list_s *req_list;
+	struct _starpu_data_requester_list *req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
@@ -124,8 +124,8 @@ struct _starpu_data_state {
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
-	struct starpu_data_replicate_s per_node[STARPU_MAXNODES];
-	struct starpu_data_replicate_s per_worker[STARPU_NMAXWORKERS];
+	struct _starpu_data_replicate per_node[STARPU_MAXNODES];
+	struct _starpu_data_replicate per_worker[STARPU_NMAXWORKERS];
 
 	struct starpu_data_interface_ops *ops;
 
@@ -195,7 +195,7 @@ struct _starpu_data_state {
 	/* List of requesters that are specific to the pending reduction. This
 	 * list is used when the requests in the req_list list are frozen until
 	 * the end of the reduction. */
-	struct starpu_data_requester_list_s *reduction_req_list;
+	struct _starpu_data_requester_list *reduction_req_list;
 
 	starpu_data_handle_t reduction_tmp_handles[STARPU_NMAXWORKERS];
 
@@ -219,16 +219,16 @@ void _starpu_display_msi_stats(void);
 
 /* This does not take a reference on the handle, the caller has to do it,
  * e.g. through _starpu_attempt_to_submit_data_request_from_apps() */
-int _starpu_fetch_data_on_node(struct _starpu_data_state *state, struct starpu_data_replicate_s *replicate,
-				enum starpu_access_mode mode, unsigned is_prefetch,
-				void (*callback_func)(void *), void *callback_arg);
+int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate,
+			       enum starpu_access_mode mode, unsigned is_prefetch,
+			       void (*callback_func)(void *), void *callback_arg);
 /* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
-				struct starpu_data_replicate_s *replicate);
+				  struct _starpu_data_replicate *replicate);
 
 void _starpu_update_data_state(starpu_data_handle_t handle,
-				struct starpu_data_replicate_s *requesting_replicate,
-				enum starpu_access_mode mode);
+			       struct _starpu_data_replicate *requesting_replicate,
+			       enum starpu_access_mode mode);
 
 uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, uint32_t node);
 
@@ -247,12 +247,12 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint
 
 uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
-starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
-							   struct starpu_data_replicate_s *dst_replicate,
-							   enum starpu_access_mode mode, unsigned is_prefetch,
-							   void (*callback_func)(void *), void *callback_arg);
+struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
+								  struct _starpu_data_replicate *dst_replicate,
+								  enum starpu_access_mode mode, unsigned is_prefetch,
+								  void (*callback_func)(void *), void *callback_arg);
 
-void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, int workerid);
+void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid);
 void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);

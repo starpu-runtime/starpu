@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ struct _starpu_deque_jobq *_starpu_create_deque(void)
 	deque = (struct _starpu_deque_jobq *) malloc(sizeof(struct _starpu_deque_jobq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
-	deque->jobq = starpu_job_list_new();
+	deque->jobq = _starpu_job_list_new();
 	deque->njobs = 0;
 	deque->nprocessed = 0;
 
@@ -44,7 +44,7 @@ struct _starpu_deque_jobq *_starpu_create_deque(void)
 
 void _starpu_destroy_deque(struct _starpu_deque_jobq *deque)
 {
-	starpu_job_list_delete(deque->jobq);
+	_starpu_job_list_delete(deque->jobq);
 	free(deque);
 }
 
@@ -60,7 +60,7 @@ unsigned _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue)
 
 struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queue, int workerid __attribute__ ((unused)))
 {
-	starpu_job_t j = NULL;
+	struct _starpu_job *j = NULL;
 
 	if ((deque_queue->njobs == 0) && _starpu_machine_is_running())
 	{
@@ -68,9 +68,9 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 	}
 
 	/* TODO find a task that suits workerid */
-	for (j  = starpu_job_list_begin(deque_queue->jobq);
-	     j != starpu_job_list_end(deque_queue->jobq);
-	     j  = starpu_job_list_next(j))
+	for (j  = _starpu_job_list_begin(deque_queue->jobq);
+	     j != _starpu_job_list_end(deque_queue->jobq);
+	     j  = _starpu_job_list_next(j))
 	{
 		unsigned nimpl;
 		STARPU_ASSERT(j);
@@ -79,7 +79,7 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 			if (starpu_worker_can_execute_task(workerid, j->task, nimpl))
 			{
 				j->nimpl = nimpl;
-				j = starpu_job_list_pop_front(deque_queue->jobq);
+				j = _starpu_job_list_pop_front(deque_queue->jobq);
 				deque_queue->njobs--;
 				_STARPU_TRACE_JOB_POP(j, 0);
 				return j->task;
@@ -89,9 +89,9 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 	return NULL;
 }
 
-struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
+struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
-	struct starpu_job_list_s *new_list, *old_list;
+	struct _starpu_job_list *new_list, *old_list;
 
 	/* block until some task is available in that queue */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -103,20 +103,20 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq
 	else {
 		/* there is a task */
 		old_list = deque_queue->jobq;
-		new_list = starpu_job_list_new();
+		new_list = _starpu_job_list_new();
 
 		unsigned new_list_size = 0;
 
-		starpu_job_itor_t i;
-		starpu_job_t next_job;
+		struct _starpu_job *i;
+		struct _starpu_job *next_job;
 		/* note that this starts at the _head_ of the list, so we put
  		 * elements at the back of the new list */
-		for(i = starpu_job_list_begin(old_list);
-			i != starpu_job_list_end(old_list);
+		for(i = _starpu_job_list_begin(old_list);
+			i != _starpu_job_list_end(old_list);
 			i  = next_job)
 		{
 			unsigned nimpl;
-			next_job = starpu_job_list_next(i);
+			next_job = _starpu_job_list_next(i);
 
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			if (starpu_worker_can_execute_task(workerid, i->task, nimpl))
@@ -124,8 +124,8 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq
 				/* this elements can be moved into the new list */
 				new_list_size++;
 				
-				starpu_job_list_erase(old_list, i);
-				starpu_job_list_push_back(new_list, i);
+				_starpu_job_list_erase(old_list, i);
+				_starpu_job_list_push_back(new_list, i);
 				i->nimpl = nimpl;
 			}
 		}
@@ -133,7 +133,7 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq
 		if (new_list_size == 0)
 		{
 			/* the new list is empty ... */
-			starpu_job_list_delete(new_list);
+			_starpu_job_list_delete(new_list);
 			new_list = NULL;
 		}
 		else

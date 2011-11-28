@@ -174,7 +174,7 @@ void _starpu_init_cuda(void)
 	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int execute_job_on_cuda(starpu_job_t j, struct _starpu_worker *args)
+static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 {
 	int ret;
 	uint32_t mask = 0;
@@ -292,7 +292,7 @@ void *_starpu_cuda_worker(void *arg)
 	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-	struct starpu_job_s * j;
+	struct _starpu_job * j;
 	struct starpu_task *task;
 	int res;
 

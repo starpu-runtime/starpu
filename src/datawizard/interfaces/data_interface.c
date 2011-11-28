@@ -101,7 +101,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
-	handle->req_list = starpu_data_requester_list_new();
+	handle->req_list = _starpu_data_requester_list_new();
 	handle->refcnt = 0;
 	handle->busy_count = 0;
 	handle->busy_waiting = 0;
@@ -138,7 +138,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->init_cl = NULL;
 
 	handle->reduction_refcnt = 0;
-	handle->reduction_req_list = starpu_data_requester_list_new();
+	handle->reduction_req_list = _starpu_data_requester_list_new();
 
 #ifdef STARPU_USE_FXT
 	handle->last_submitted_ghost_writer_id_is_valid = 0;
@@ -160,7 +160,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_node[node];
 		
 		replicate->memory_node = node;
@@ -184,7 +184,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	unsigned nworkers = starpu_worker_get_count();
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_worker[worker];
 		replicate->allocated = 0;
 		replicate->automatically_allocated = 0;
@@ -238,7 +238,7 @@ static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_inte
 		handle->stats_invalidated[node]=0;
 #endif
 
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_node[node];
 		/* relaxed_coherency = 0 */
 
@@ -252,7 +252,7 @@ static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_inte
 	unsigned nworkers = starpu_worker_get_count();
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_worker[worker];
 
 		replicate->handle = handle;
@@ -389,7 +389,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	STARPU_ASSERT(handle);
 
-	struct starpu_data_replicate_s *replicate = &handle->per_node[arg->memory_node];
+	struct _starpu_data_replicate *replicate = &handle->per_node[arg->memory_node];
 
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
@@ -428,7 +428,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					_starpu_data_unregister_fetch_data_callback, &arg))
 			{
 				/* no one has locked this data yet, so we proceed immediately */
-				struct starpu_data_replicate_s *home_replicate = &handle->per_node[home_node];
+				struct _starpu_data_replicate *home_replicate = &handle->per_node[home_node];
 				int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
 				STARPU_ASSERT(!ret);
 			}
@@ -465,7 +465,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *local = &handle->per_node[node];
+		struct _starpu_data_replicate *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
@@ -473,8 +473,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		}
 	}
 
-	starpu_data_requester_list_delete(handle->req_list);
-	starpu_data_requester_list_delete(handle->reduction_req_list);
+	_starpu_data_requester_list_delete(handle->req_list);
+	_starpu_data_requester_list_delete(handle->reduction_req_list);
 
 	free(handle);
 }
@@ -500,7 +500,7 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *local = &handle->per_node[node];
+		struct _starpu_data_replicate *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */

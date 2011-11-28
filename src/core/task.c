@@ -106,7 +106,7 @@ void starpu_task_deinit(struct starpu_task *task)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	}
 
-	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
+	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
 	if (j)
 		_starpu_job_destroy(j);
@@ -169,7 +169,7 @@ int starpu_task_wait(struct starpu_task *task)
 		return -EDEADLK;
 	}
 
-	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
+	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
 	_starpu_wait_job(j);
 
@@ -182,22 +182,22 @@ int starpu_task_wait(struct starpu_task *task)
 	return 0;
 }
 
-starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
+struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 
 	if (!task->starpu_private)
 	{
-		starpu_job_t j = _starpu_job_create(task);
+		struct _starpu_job *j = _starpu_job_create(task);
 		task->starpu_private = j;
 	}
 
-	return (struct starpu_job_s *)task->starpu_private;
+	return (struct _starpu_job *)task->starpu_private;
 }
 
 /* NB in case we have a regenerable task, it is possible that the job was
  * already counted. */
-int _starpu_submit_job(starpu_job_t j)
+int _starpu_submit_job(struct _starpu_job *j)
 {
         _STARPU_LOG_IN();
 	/* notify bound computation of a new task */
@@ -290,10 +290,10 @@ int starpu_task_submit(struct starpu_task *task)
 	if (profiling)
 		_starpu_clock_gettime(&info->submit_time);
 
-	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
+	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
 	* task structure, it is possible that this job structure was already
 	* allocated, for instance to enforce task depenencies. */
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	ret = _starpu_submit_job(j);
 

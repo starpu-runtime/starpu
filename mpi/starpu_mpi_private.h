@@ -60,7 +60,7 @@
 #define TEST_REQ        3
 #define BARRIER_REQ     4
 
-LIST_TYPE(starpu_mpi_req,
+LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
 
@@ -89,7 +89,7 @@ LIST_TYPE(starpu_mpi_req,
 
 	/* In the case of a Wait/Test request, we are going to post a request
 	 * to test the completion of another request */
-	struct starpu_mpi_req_s *other_request;
+	struct _starpu_mpi_req *other_request;
 
 	/* in the case of detached requests */
 	unsigned detached;

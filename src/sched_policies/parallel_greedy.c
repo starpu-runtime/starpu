@@ -200,7 +200,7 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 			int worker_size = combined_worker->worker_size;
 			int *combined_workerid = combined_worker->combined_workerid;
 
-			starpu_job_t j = _starpu_get_job_associated_to_task(task);
+			struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 			j->task_size = worker_size;
 			j->combined_workerid = best_workerid;
 			j->active_task_alias_count = 0;

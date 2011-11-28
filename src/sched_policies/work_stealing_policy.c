@@ -172,7 +172,7 @@ static struct starpu_task *ws_pop_task(void)
 
 static int ws_push_task(struct starpu_task *task)
 {
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	int workerid = starpu_worker_get_id();
 
@@ -184,7 +184,7 @@ static int ws_push_task(struct starpu_task *task)
         //total_number_of_jobs++;
 
         _STARPU_TRACE_JOB_PUSH(task, 0);
-        starpu_job_list_push_front(deque_queue->jobq, j);
+        _starpu_job_list_push_front(deque_queue->jobq, j);
         deque_queue->njobs++;
         deque_queue->nprocessed++;
 

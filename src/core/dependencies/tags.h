@@ -42,7 +42,7 @@ enum _starpu_tag_state {
 	STARPU_DONE
 };
 
-struct starpu_job_s;
+struct _starpu_job;
 
 struct _starpu_tag {
 	struct _starpu_spinlock lock;
@@ -51,18 +51,18 @@ struct _starpu_tag {
 
 	struct _starpu_cg_list tag_successors;
 
-	struct starpu_job_s *job; /* which job is associated to the tag if any ? */
+	struct _starpu_job *job; /* which job is associated to the tag if any ? */
 
 	unsigned is_assigned;
 	unsigned is_submitted;
 };
 
-void _starpu_notify_dependencies(struct starpu_job_s *j);
+void _starpu_notify_dependencies(struct _starpu_job *j);
 void _starpu_notify_tag_dependencies(struct _starpu_tag *tag);
 
-void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);
+void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job);
 void _starpu_tag_set_ready(struct _starpu_tag *tag);
 
-unsigned _starpu_submit_job_enforce_task_deps(struct starpu_job_s *j);
+unsigned _starpu_submit_job_enforce_task_deps(struct _starpu_job *j);
 
 #endif // __TAGS_H__

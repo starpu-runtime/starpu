@@ -31,34 +31,34 @@
  */
 
 /* the header lock must be taken by the caller */
-static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle_t handle)
+static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_handle_t handle)
 {
-	starpu_data_requester_list_t req_list;
+	struct _starpu_data_requester_list *req_list;
 
 	if (handle->reduction_refcnt > 0)
 	{
 		req_list = handle->reduction_req_list;
 	}
 	else {
-		if (starpu_data_requester_list_empty(handle->reduction_req_list))
+		if (_starpu_data_requester_list_empty(handle->reduction_req_list))
 			req_list = handle->req_list;
 		else
 			req_list = handle->reduction_req_list;
 	}
 
 	/* if there is no one to unlock ... */
-	if (starpu_data_requester_list_empty(req_list))
+	if (_starpu_data_requester_list_empty(req_list))
 		return NULL;
 
 	/* if there is no reference to the data anymore, we can use it */
 	if (handle->refcnt == 0)
-		return starpu_data_requester_list_pop_front(req_list);
+		return _starpu_data_requester_list_pop_front(req_list);
 
 	if (handle->current_mode == STARPU_W)
 		return NULL;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
-	starpu_data_requester_t r = starpu_data_requester_list_front(req_list);
+	struct _starpu_data_requester *r = _starpu_data_requester_list_front(req_list);
 
 	enum starpu_access_mode r_mode = r->mode;
 	if (r_mode == STARPU_RW)
@@ -68,7 +68,7 @@ static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle_
 	 * access, we only proceed if the cuurrent mode is the same as the
 	 * requested mode. */
 	if (r_mode == handle->current_mode)
-		return starpu_data_requester_list_pop_front(req_list);
+		return _starpu_data_requester_list_pop_front(req_list);
 	else
 		return NULL;
 }
@@ -80,7 +80,7 @@ static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle_
 static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
 						       starpu_data_handle_t handle, enum starpu_access_mode mode,
 						       void (*callback)(void *), void *argcb,
-						       starpu_job_t j, unsigned buffer_index)
+						       struct _starpu_job *j, unsigned buffer_index)
 {
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
@@ -143,7 +143,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		
 		handle->busy_count++;
 		/* enqueue the request */
-		starpu_data_requester_t r = starpu_data_requester_new();
+		struct _starpu_data_requester *r = _starpu_data_requester_new();
 			r->mode = mode;
 			r->is_requested_by_codelet = request_from_codelet;
 			r->j = j;
@@ -152,10 +152,10 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 			r->argcb = argcb;
 
 		/* We put the requester in a specific list if this is a reduction task */
-		starpu_data_requester_list_t req_list =
+		struct _starpu_data_requester_list *req_list =
 			is_a_reduction_task?handle->reduction_req_list:handle->req_list;
 
-		starpu_data_requester_list_push_back(req_list, r);
+		_starpu_data_requester_list_push_back(req_list, r);
 
 		/* failed */
 		put_in_list = 1;
@@ -185,7 +185,7 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t h
 	return _starpu_attempt_to_submit_data_request(0, handle, mode, callback, argcb, NULL, 0);
 }
 
-static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned buffer_index)
+static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, unsigned buffer_index)
 {
 	/* Note that we do not access j->task->buffers, but j->ordered_buffers
 	 * which is a sorted copy of it. */
@@ -196,7 +196,7 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 
 }
 
-static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buffer_index)
+static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
 
@@ -216,7 +216,7 @@ static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buf
    with concurrent data-access at the same time in the scheduling engine (eg.
    there can be 2 tasks reading a piece of data, but there cannot be one
    reading and another writing) */
-unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j)
+unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
 
@@ -232,9 +232,9 @@ unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j)
 	return _submit_job_enforce_data_deps(j, 0);
 }
 
-static unsigned unlock_one_requester(starpu_data_requester_t r)
+static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 {
-	starpu_job_t j = r->j;
+	struct _starpu_job *j = r->j;
 	unsigned nbuffers = j->task->cl->nbuffers;
 	unsigned buffer_index = r->buffer_index;
 
@@ -280,7 +280,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 	}
 
 
-	starpu_data_requester_t r;
+	struct _starpu_data_requester *r;
 	while ((r = may_unlock_data_req_list_head(handle)))
 	{
 		/* STARPU_RW accesses are treated as STARPU_W */
@@ -305,7 +305,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		{
 			/* We need to put the request back because we must
 			 * perform a reduction before. */
-			starpu_data_requester_list_push_front(handle->req_list, r);
+			_starpu_data_requester_list_push_front(handle->req_list, r);
 		}
 		else {
 			/* The data is now attributed to that request so we put a
@@ -338,7 +338,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 				r->ready_data_callback(r->argcb);
 			}
 
-			starpu_data_requester_delete(r);
+			_starpu_data_requester_delete(r);
 			
 			_starpu_spin_lock(&handle->header_lock);
 			STARPU_ASSERT(handle->busy_count > 0);

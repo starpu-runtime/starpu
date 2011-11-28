@@ -109,7 +109,7 @@ uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
 void _starpu_update_data_state(starpu_data_handle_t handle,
-			       struct starpu_data_replicate_s *requesting_replicate,
+			       struct _starpu_data_replicate *requesting_replicate,
 			       enum starpu_access_mode mode)
 {
 	/* There is nothing to do for relaxed coherency modes (scratch or
@@ -138,7 +138,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			uint32_t node;
 			for (node = 0; node < nnodes; node++)
 			{
-				struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+				struct _starpu_data_replicate *replicate = &handle->per_node[node];
 				if (replicate->state != STARPU_INVALID)
 					replicate->state = STARPU_SHARED;
 			}
@@ -264,9 +264,9 @@ static int determine_request_path(starpu_data_handle_t handle,
 /* handle->lock should be taken. r is returned locked. The node parameter
  * indicate either the source of the request, or the destination for a
  * write-only request. */
-static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, unsigned node, enum starpu_access_mode mode, unsigned is_prefetch)
+static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_access_mode mode, unsigned is_prefetch)
 {
-	starpu_data_request_t r;
+	struct _starpu_data_request *r;
 
 	r = replicate->request[node];
 
@@ -321,10 +321,10 @@ static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_
  */
 
 /* This function is called with handle's header lock taken */
-starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
-				struct starpu_data_replicate_s *dst_replicate,
-                                enum starpu_access_mode mode, unsigned is_prefetch,
-                                void (*callback_func)(void *), void *callback_arg)
+struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
+								  struct _starpu_data_replicate *dst_replicate,
+								  enum starpu_access_mode mode, unsigned is_prefetch,
+								  void (*callback_func)(void *), void *callback_arg)
 {
 	unsigned requesting_node = dst_replicate->memory_node;
 
@@ -379,7 +379,7 @@ starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t 
 					src_nodes, dst_nodes, handling_nodes);
 
 	STARPU_ASSERT(nhops >= 1 && nhops <= 4);
-	starpu_data_request_t requests[nhops];
+	struct _starpu_data_request *requests[nhops];
 
 	/* Did we reuse a request for that hop ? */
 	int reused_requests[nhops];
@@ -388,14 +388,14 @@ starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t 
 	int hop;
 	for (hop = 0; hop < nhops; hop++)
 	{
-		starpu_data_request_t r;
+		struct _starpu_data_request *r;
 
 		unsigned hop_src_node = src_nodes[hop];
 		unsigned hop_dst_node = dst_nodes[hop];
 		unsigned hop_handling_node = handling_nodes[hop];
 
-		struct starpu_data_replicate_s *hop_src_replicate;
-		struct starpu_data_replicate_s *hop_dst_replicate;
+		struct _starpu_data_replicate *hop_src_replicate;
+		struct _starpu_data_replicate *hop_dst_replicate;
 
 		/* Only the first request is independant */
 		unsigned ndeps = (hop == 0)?0:1;
@@ -413,8 +413,8 @@ starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t 
 		if (!r) {
 			/* Create a new request if there was no request to reuse */
 			r = _starpu_create_data_request(handle, hop_src_replicate,
-					hop_dst_replicate, hop_handling_node,
-					mode, ndeps, is_prefetch);
+							hop_dst_replicate, hop_handling_node,
+							mode, ndeps, is_prefetch);
 		}
 
 		requests[hop] = r; 
@@ -423,7 +423,7 @@ starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t 
 	/* Chain these requests */
 	for (hop = 0; hop < nhops; hop++)
 	{
-		starpu_data_request_t r;
+		struct _starpu_data_request *r;
 		r = requests[hop];
 
 		if (hop != nhops - 1)
@@ -451,7 +451,7 @@ starpu_data_request_t _starpu_create_request_to_fetch_data(starpu_data_handle_t 
 	return requests[nhops - 1];
 }
 
-int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_replicate_s *dst_replicate,
+int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *dst_replicate,
 			       enum starpu_access_mode mode, unsigned is_prefetch,
 			       void (*callback_func)(void *), void *callback_arg)
 {
@@ -466,9 +466,9 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_r
 		dst_replicate->handle->busy_count++;
 	}
 
-	starpu_data_request_t r;
+	struct _starpu_data_request *r;
 	r = _starpu_create_request_to_fetch_data(handle, dst_replicate, mode,
-					is_prefetch, callback_func, callback_arg);
+						 is_prefetch, callback_func, callback_arg);
 
 	/* If no request was created, the handle was already up-to-date on the
 	 * node. In this case, _starpu_create_request_to_fetch_data has already
@@ -483,12 +483,12 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_r
         return ret;
 }
 
-static int prefetch_data_on_node(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, enum starpu_access_mode mode)
+static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_access_mode mode)
 {
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, NULL, NULL);
 }
 
-static int fetch_data(starpu_data_handle_t handle, struct starpu_data_replicate_s *replicate, enum starpu_access_mode mode)
+static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_access_mode mode)
 {
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, NULL, NULL);
 }
@@ -510,7 +510,7 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, struct starpu_data_replicate_s *replicate)
+void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, struct _starpu_data_replicate *replicate)
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
@@ -548,7 +548,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
-static void _starpu_set_data_requested_flag_if_needed(struct starpu_data_replicate_s *replicate)
+static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replicate *replicate)
 {
 // XXX : this is just a hint, so we don't take the lock ...
 //	pthread_spin_lock(&handle->header_lock);
@@ -576,7 +576,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
 
-		struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		prefetch_data_on_node(handle, replicate, mode);
 
 		_starpu_set_data_requested_flag_if_needed(replicate);
@@ -607,7 +607,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_access_mode mode = descrs[index].mode;
 
-		struct starpu_data_replicate_s *local_replicate;
+		struct _starpu_data_replicate *local_replicate;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		{
@@ -665,7 +665,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_access_mode mode = descrs[index].mode;
 
-		struct starpu_data_replicate_s *replicate;
+		struct _starpu_data_replicate *replicate;
 
 		if (mode & STARPU_RW)
 		{

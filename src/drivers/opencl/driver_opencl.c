@@ -409,7 +409,7 @@ void _starpu_opencl_init(void)
 }
 
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
-static int _starpu_opencl_execute_job(starpu_job_t j, struct _starpu_worker *args);
+static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args);
 
 void *_starpu_opencl_worker(void *arg)
 {
@@ -454,7 +454,7 @@ void *_starpu_opencl_worker(void *arg)
 	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-	struct starpu_job_s * j;
+	struct _starpu_job * j;
 	struct starpu_task *task;
 	int res;
 
@@ -547,7 +547,7 @@ unsigned _starpu_opencl_get_device_count(void)
 	return nb_devices;
 }
 
-static int _starpu_opencl_execute_job(starpu_job_t j, struct _starpu_worker *args)
+static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args)
 {
 	int ret;
 	uint32_t mask = 0;

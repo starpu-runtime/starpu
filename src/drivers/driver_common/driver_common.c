@@ -25,7 +25,7 @@
 #include <drivers/driver_common/driver_common.h>
 #include <starpu_top.h>
 
-void _starpu_driver_start_job(struct _starpu_worker *args, starpu_job_t j, struct timespec *codelet_start, int rank)
+void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -59,7 +59,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, starpu_job_t j, struc
 	_STARPU_TRACE_START_CODELET_BODY(j);
 }
 
-void _starpu_driver_end_job(struct _starpu_worker *args, starpu_job_t j, struct timespec *codelet_end, int rank)
+void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_end, int rank)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -85,7 +85,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, starpu_job_t j, struct 
 
 	args->status = STATUS_UNKNOWN;
 }
-void _starpu_driver_update_job_feedback(starpu_job_t j, struct _starpu_worker *worker_args,
+void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
 					enum starpu_perf_archtype perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, double conversion_time)
 {

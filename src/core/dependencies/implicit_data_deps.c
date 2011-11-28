@@ -58,7 +58,7 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 #endif
 		handle->last_submitted_ghost_writer_id_is_valid)
 	{
-		starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
 		_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
@@ -98,7 +98,7 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 #endif
 	{
 		/* Declare all dependencies with ghost readers */
-		starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 
 		struct _starpu_jobid_list *ghost_readers_id = handle->last_submitted_ghost_readers_id;
 		while (ghost_readers_id)
@@ -145,7 +145,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 	{
 		if (handle->last_submitted_ghost_writer_id_is_valid)
 		{
-			starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+			struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 			_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
 			_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
@@ -189,8 +189,8 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 
 	if (handle->sequential_consistency)
 	{
-		starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
-		starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
+		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
 
 		/* Skip tasks that are associated to a reduction phase so that
 		 * they do not interfere with the application. */
@@ -280,7 +280,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 
 	/* We don't want to enforce a sequential consistency for tasks that are
 	 * not visible to the application. */
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	if (j->reduction_task)
 		return;
 
@@ -330,7 +330,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 			{
 				/* Save the previous writer as the ghost last writer */
 				handle->last_submitted_ghost_writer_id_is_valid = 1;
-				starpu_job_t ghost_job = _starpu_get_job_associated_to_task(task);
+				struct _starpu_job *ghost_job = _starpu_get_job_associated_to_task(task);
 				handle->last_submitted_ghost_writer_id = ghost_job->job_id;
 			}
 			
@@ -360,7 +360,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 #endif
 				{
 					/* Save the job id of the reader task in the ghost reader linked list list */
-					starpu_job_t ghost_reader_job = _starpu_get_job_associated_to_task(task);
+					struct _starpu_job *ghost_reader_job = _starpu_get_job_associated_to_task(task);
 					struct _starpu_jobid_list *link = (struct _starpu_jobid_list *) malloc(sizeof(struct _starpu_jobid_list));
 					STARPU_ASSERT(link);
 					link->next = handle->last_submitted_ghost_readers_id;

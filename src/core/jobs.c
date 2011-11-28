@@ -27,7 +27,7 @@
 #include <profiling/bound.h>
 #include <starpu_top.h>
 
-size_t _starpu_job_get_data_size(starpu_job_t j)
+size_t _starpu_job_get_data_size(struct _starpu_job *j)
 {
 	size_t size = 0;
 
@@ -50,18 +50,18 @@ static unsigned job_cnt = 0;
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	j->exclude_from_dag = 1;
 }
 
-/* create an internal starpu_job_t structure to encapsulate the task */
-starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
+/* create an internal struct _starpu_job structure to encapsulate the task */
+struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 {
-	starpu_job_t job;
+	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	job = starpu_job_new();
+	job = _starpu_job_new();
 
 	job->nimpl =0; /* best implementation */
 	job->task = task;
@@ -99,7 +99,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	return job;
 }
 
-void _starpu_job_destroy(starpu_job_t j)
+void _starpu_job_destroy(struct _starpu_job *j)
 {
 	_STARPU_PTHREAD_COND_DESTROY(&j->sync_cond);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
@@ -112,10 +112,10 @@ void _starpu_job_destroy(starpu_job_t j)
 
 	_starpu_cg_list_deinit(&j->job_successors);
 
-	starpu_job_delete(j);
+	_starpu_job_delete(j);
 }
 
-void _starpu_wait_job(starpu_job_t j)
+void _starpu_wait_job(struct _starpu_job *j)
 {
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
@@ -135,7 +135,7 @@ void _starpu_wait_job(starpu_job_t j)
         _STARPU_LOG_OUT();
 }
 
-void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_locked)
+void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_already_locked)
 {
 	struct starpu_task *task = j->task;
 
@@ -237,7 +237,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 
 /* This function is called when a new task is submitted to StarPU 
  * it returns 1 if the tag deps are not fulfilled, 0 otherwise */
-static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
+static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 {
 	unsigned ret;
 
@@ -274,7 +274,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 #ifdef STARPU_DEVEL
 #warning TODO remove the job_is_already_locked parameter
 #endif
-static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned job_is_already_locked)
+static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j, unsigned job_is_already_locked)
 {
 	unsigned ret;
 
@@ -310,7 +310,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
 #ifdef STARPU_DEVEL
 #warning TODO remove the job_is_already_locked parameter
 #endif
-unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked)
+unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_is_already_locked)
 {
 	unsigned ret;
         _STARPU_LOG_IN();
@@ -345,7 +345,7 @@ unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_alrea
 #ifdef STARPU_DEVEL
 #warning TODO remove the job_is_already_locked parameter
 #endif
-unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is_already_locked)
+unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j, unsigned job_is_already_locked)
 {
 	unsigned ret;
 
@@ -393,7 +393,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	return 0;
 }
 
-const char *_starpu_get_model_name(starpu_job_t j)
+const char *_starpu_get_model_name(struct _starpu_job *j)
 {
 	if (!j)
 		return NULL;

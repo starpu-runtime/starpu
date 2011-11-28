@@ -184,7 +184,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		 * may be executed by another thread than that of the Gordon
 		 * driver so that we cannot call the push_codelet_output method
 		 * directly */
-		workerarg->terminated_jobs = starpu_job_list_new();
+		workerarg->terminated_jobs = _starpu_job_list_new();
 
 		starpu_task_list_init(&workerarg->local_tasks);
 	
@@ -470,7 +470,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 		}
 
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
-		starpu_job_list_delete(worker->terminated_jobs);
+		_starpu_job_list_delete(worker->terminated_jobs);
 	}
 }
 

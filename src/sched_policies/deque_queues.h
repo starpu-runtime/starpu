@@ -25,7 +25,7 @@
 
 struct _starpu_deque_jobq {
 	/* the actual list */
-	starpu_job_list_t jobq;
+	struct _starpu_job_list *jobq;
 
 	/* the number of tasks currently in the queue */
 	unsigned njobs;
@@ -43,7 +43,7 @@ struct _starpu_deque_jobq *_starpu_create_deque(void);
 void _starpu_destroy_deque(struct _starpu_deque_jobq *deque);
 
 struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queue, int workerid);
-struct starpu_job_list_s *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid);
+struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid);
 
 unsigned _starpu_get_deque_njobs(struct _starpu_deque_jobq *deque_queue);
 unsigned _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue);

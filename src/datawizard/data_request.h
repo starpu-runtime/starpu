@@ -24,7 +24,7 @@
 #include <common/list.h>
 #include <common/starpu_spinlock.h>
 
-struct starpu_data_replicate_s;
+struct _starpu_data_replicate;
 
 struct _starpu_callback_list {
 	void (*callback_func)(void *);
@@ -32,13 +32,13 @@ struct _starpu_callback_list {
 	struct _starpu_callback_list *next;
 };
 
-LIST_TYPE(starpu_data_request,
+LIST_TYPE(_starpu_data_request,
 	struct _starpu_spinlock lock;
 	unsigned refcnt;
 
 	starpu_data_handle_t handle;
-	struct starpu_data_replicate_s *src_replicate;
-	struct starpu_data_replicate_s *dst_replicate;
+	struct _starpu_data_replicate *src_replicate;
+	struct _starpu_data_replicate *dst_replicate;
 
 	uint32_t handling_node;
 
@@ -55,7 +55,7 @@ LIST_TYPE(starpu_data_request,
 	unsigned ndeps;
 
 	/* in case we have a chain of request (eg. for nvidia multi-GPU) */
-	struct starpu_data_request_s *next_req[STARPU_MAXNODES];
+	struct _starpu_data_request *next_req[STARPU_MAXNODES];
 	/* who should perform the next request ? */
 	unsigned next_req_count;
 
@@ -68,7 +68,7 @@ LIST_TYPE(starpu_data_request,
 
 /* Everyone that wants to access some piece of data will post a request.
  * Not only StarPU internals, but also the application may put such requests */
-LIST_TYPE(starpu_data_requester,
+LIST_TYPE(_starpu_data_requester,
 	/* what kind of access is requested ? */
 	enum starpu_access_mode mode;
 
@@ -76,7 +76,7 @@ LIST_TYPE(starpu_data_requester,
 	unsigned is_requested_by_codelet;
 
 	/* in case this is a codelet that will do the access */
-	struct starpu_job_s *j;
+	struct _starpu_job *j;
 	unsigned buffer_index;
 
 	/* if this is more complicated ... (eg. application request) 
@@ -88,7 +88,7 @@ LIST_TYPE(starpu_data_requester,
 
 void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
-void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node);
+void _starpu_post_data_request(struct _starpu_data_request *r, uint32_t handling_node);
 void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
 void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc);
 
@@ -97,18 +97,19 @@ void _starpu_handle_all_pending_node_data_requests(uint32_t src_node);
 
 int _starpu_check_that_no_data_request_exists(uint32_t node);
 
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle_t handle,
-				struct starpu_data_replicate_s *src_replicate,
-				struct starpu_data_replicate_s *dst_replicate,
-				uint32_t handling_node,
-				enum starpu_access_mode mode,
-				unsigned ndeps,
-				unsigned is_prefetch);
+struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
+							 struct _starpu_data_replicate *src_replicate,
+							 struct _starpu_data_replicate *dst_replicate,
+							 uint32_t handling_node,
+							 enum starpu_access_mode mode,
+							 unsigned ndeps,
+							 unsigned is_prefetch);
 
-int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
+int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
 
-void _starpu_data_request_append_callback(starpu_data_request_t r,
-			void (*callback_func)(void *), void *callback_arg);
+void _starpu_data_request_append_callback(struct _starpu_data_request *r,
+					  void (*callback_func)(void *),
+					  void *callback_arg);
 
-void _starpu_update_prefetch_status(starpu_data_request_t r);
+void _starpu_update_prefetch_status(struct _starpu_data_request *r);
 #endif // __DATA_REQUEST_H__

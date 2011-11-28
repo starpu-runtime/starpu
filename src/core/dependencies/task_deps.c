@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
 
-static struct _starpu_cg *create_cg_task(unsigned ntags, starpu_job_t j)
+static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
 	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
 	STARPU_ASSERT(cg);
@@ -42,7 +42,7 @@ static struct _starpu_cg *create_cg_task(unsigned ntags, starpu_job_t j)
 }
 
 /* the job lock must be taken */
-static void _starpu_task_add_succ(starpu_job_t j, struct _starpu_cg *cg)
+static void _starpu_task_add_succ(struct _starpu_job *j, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(j);
 
@@ -54,7 +54,7 @@ static void _starpu_task_add_succ(starpu_job_t j, struct _starpu_cg *cg)
 	}
 }
 
-void _starpu_notify_task_dependencies(starpu_job_t j)
+void _starpu_notify_task_dependencies(struct _starpu_job *j)
 {
 	_starpu_notify_cg_list(&j->job_successors);
 }
@@ -65,7 +65,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 	if (ndeps == 0)
 		return;
 
-	starpu_job_t job;
+	struct _starpu_job *job;
 
 	job = _starpu_get_job_associated_to_task(task);
 
@@ -78,7 +78,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 	{
 		struct starpu_task *dep_task = task_array[i];
 
-		starpu_job_t dep_job;
+		struct _starpu_job *dep_job;
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
 		STARPU_ASSERT(dep_job != job);
 
