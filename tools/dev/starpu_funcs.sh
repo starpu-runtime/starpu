@@ -32,5 +32,24 @@ for func in $functions ; do
 #	else
 #		echo "function ${greencolor}${fname}${stcolor} at location $location is correctly documented"
 	fi
+done
 
+echo
+
+structs=$(grep "struct.*{" $(find include -name '*.h') |awk '{print $2}')
+for struct in $structs ; do
+    x=$(grep $struct doc/starpu.texi doc/chapters/*texi | grep deftp)
+    if test "$x" == "" ; then
+	echo "struct ${redcolor}${struct}${stcolor} is not (or incorrectly) documented"
+    fi
+done
+
+echo
+
+enums=$(grep "enum.*{" $(find include -name '*.h') |awk '{print $2}')
+for enum in $enums ; do
+    x=$(grep $enum doc/starpu.texi doc/chapters/*texi | grep deftp)
+    if test "$x" == "" ; then
+	echo "enum ${redcolor}${enum}${stcolor} is not (or incorrectly) documented"
+    fi
 done
