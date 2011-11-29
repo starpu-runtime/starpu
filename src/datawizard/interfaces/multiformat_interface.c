@@ -607,17 +607,15 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 		if (src_multiformat->opencl_ptr == NULL) {
 			return -ENOMEM;
 		}
-
-		double tmp = starpu_timing_now();
-		void *buffers[1];
-		struct starpu_codelet *cl = src_multiformat->ops->cpu_to_opencl_cl;
-		buffers[0] = src_interface;
-		cl->cpu_func(buffers, NULL);
-		dst_multiformat->conversion_time = starpu_timing_now() - tmp;
-
-		if (src_multiformat->opencl_ptr == NULL)
-			return -ENOMEM; // XXX
 	}
+
+	double tmp = starpu_timing_now();
+	void *buffers[1];
+	struct starpu_codelet *cl = src_multiformat->ops->cpu_to_opencl_cl;
+	buffers[0] = src_interface;
+	cl->cpu_func(buffers, NULL);
+	dst_multiformat->conversion_time = starpu_timing_now() - tmp;
+
 
 	err = _starpu_opencl_copy_ram_to_opencl_async_sync(src_multiformat->opencl_ptr,
 							   src_node,
