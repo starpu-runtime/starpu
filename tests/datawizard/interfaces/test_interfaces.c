@@ -107,7 +107,7 @@ void data_interface_test_summary_print(FILE *f,
 #ifdef STARPU_USE_OPENCL
 	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
 			enum_to_string(s->cpu_to_opencl_async));
-	(void) fprintf(f, "\tOpenCl -< CPU    : %s\n",
+	(void) fprintf(f, "\tOpenCl -> CPU    : %s\n",
 			enum_to_string(s->opencl_to_cpu_async));
 #endif /* !STARPU_USE_OPENCL */
 
@@ -123,7 +123,7 @@ void data_interface_test_summary_print(FILE *f,
 #ifdef STARPU_USE_OPENCL
 	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
 			enum_to_string(s->cpu_to_opencl));
-	(void) fprintf(f, "\tOpenCl -< CPU    : %s\n",
+	(void) fprintf(f, "\tOpenCl -> CPU    : %s\n",
 			enum_to_string(s->opencl_to_cpu));
 #endif /* !STARPU_USE_OPENCL */
 }
