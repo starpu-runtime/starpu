@@ -14,4 +14,4 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-find . -type f -not -path "*svn*"|xargs sed -i -f $(dirname $0)/rename.sed
+find . -type f -not -path "*svn*"|xargs sed -i -f $(dirname $0)/rename_internal.sed
