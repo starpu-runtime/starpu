@@ -15,9 +15,9 @@
  */
 #include <starpu.h>
 #include <starpu_opencl.h>
-#include "test_interfaces.h"
+#include "../test_interfaces.h"
 
-#define KERNEL_LOCATION "tests/datawizard/interfaces/test_vector_opencl_kernel.cl"
+#define KERNEL_LOCATION "tests/datawizard/interfaces/vector/test_vector_opencl_kernel.cl"
 extern struct test_config vector_config;
 static struct starpu_opencl_program opencl_program;
 

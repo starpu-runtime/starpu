@@ -15,7 +15,7 @@
  */
 #include <starpu.h>
 #include <starpu_cuda.h>
-#include "test_interfaces.h"
+#include "../test_interfaces.h"
 
 extern struct test_config vector_config;
 

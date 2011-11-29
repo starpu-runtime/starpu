@@ -27,7 +27,7 @@ EXTRA_DIST =					\
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
 	datawizard/interfaces/test_interfaces.h	\
-	datawizard/interfaces/test_vector_opencl_kernel.cl
+	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
@@ -149,7 +149,7 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_v2		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
-	datawizard/interfaces/test_vector_interface   \
+	datawizard/interfaces/vector/test_vector_interface   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -254,18 +254,18 @@ endif
 ##############
 # Interfaces #
 ##############
-datawizard_interfaces_test_vector_interface_SOURCES =               \
-	datawizard/interfaces/test_vector_interface.c               \
+datawizard_interfaces_vector_test_vector_interface_SOURCES =               \
+	datawizard/interfaces/vector/test_vector_interface.c               \
 	datawizard/interfaces/test_interfaces.c
 
 if STARPU_USE_CUDA
-datawizard_interfaces_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/test_vector_cuda.cu
+datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
+	datawizard/interfaces/vector/test_vector_cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-datawizard_interfaces_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/test_vector_opencl.c 
+datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
+	datawizard/interfaces/vector/test_vector_opencl.c 
 nobase_STARPU_OPENCL_DATA_DATA += \
-	datawizard/interfaces/test_vector_opencl_kernel.cl
+	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
 endif
