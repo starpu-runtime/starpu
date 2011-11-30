@@ -17,9 +17,10 @@ struct sched_ctx_hypervisor {
 	struct hypervisor_policy policy;
 	struct starpu_htbl32_node_s *configurations[STARPU_NMAX_SCHED_CTXS];
 	struct starpu_htbl32_node_s *advices[STARPU_NMAX_SCHED_CTXS];
+	struct starpu_htbl32_node_s *requests[STARPU_NMAX_SCHED_CTXS];
 };
 
-struct sched_ctx_hypervisor_advice {
+struct sched_ctx_hypervisor_adjustment {
 	int workerids[STARPU_NMAXWORKERS];
 	int nworkers;
 };

@@ -288,6 +288,32 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
 	struct starpu_task *task = j->task;
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	int workerid = starpu_worker_get_id();
+	unsigned no_workers = 0;
+	unsigned nworkers; 
+	
+	PTHREAD_MUTEX_LOCK(&sched_ctx->changing_ctx_mutex);
+	nworkers = sched_ctx->workers->nworkers;
+	PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
+
+	PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
+	if(nworkers == 0)
+	{
+		no_workers = 1;
+		if(workerid == -1)
+			PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
+	}
+	PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
+
+	if(workerid >= 0 && no_workers)
+	{
+		PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+		starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
+		PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+		return 0;
+	}
+
         _STARPU_LOG_IN();
 
 	task->status = STARPU_TASK_READY;
@@ -310,7 +336,6 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	}
 	else 
 	{
-		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 
 		ret = sched_ctx->sched_policy->push_task(task);

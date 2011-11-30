@@ -39,7 +39,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 void sched_ctx_hypervisor_advise(unsigned sched_ctx, int *workers, int nworkers, int task_tag);
 
-struct sched_ctx_hypervisor_reply* sched_ctx_hypervisor_request(unsigned sched_ctx, int *workers, int nworkers);
+void sched_ctx_hypervisor_request(unsigned sched_ctx, int *workers, int nworkers, int task_tag);
 
 /* hypervisor policies */
 #define SIMPLE_POLICY 1

@@ -32,14 +32,6 @@ struct simple_policy_config {
 	double new_workers_max_idle;
 };
 
-static void simple_init(void)
-{
-}
-
-static void simple_deinit(void)
-{
-}
-
 static struct simple_policy_config* _create_config(void)
 {
 	struct simple_policy_config *config = (struct simple_policy_config *)malloc(sizeof(struct simple_policy_config));
@@ -92,7 +84,7 @@ static int _compute_priority(unsigned sched_ctx)
 static unsigned _get_highest_priority_sched_ctx(unsigned req_sched_ctx, int *sched_ctxs, int nsched_ctxs)
 {
 	int i;
-	int highest_priority = 0;
+	int highest_priority = -1;
 	int current_priority = 0;
 	unsigned sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
@@ -198,30 +190,29 @@ static void simple_manage_idle_time(unsigned req_sched_ctx, int *sched_ctxs, int
 			unsigned nworkers_to_move = 0;
 			
 			/* leave at least one */
-			unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx) - 1;
-			
-			if(potential_moving_workers > config->granularity)
+			int potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx) - 1;
+			if(potential_moving_workers > 0)
 			{
-				if((nworkers - config->granularity) > config->min_nprocs)	
-					nworkers_to_move = config->granularity;
-			}
-			else
-			{
-				int nfixed_workers = nworkers - potential_moving_workers;
-				if(nfixed_workers >= config->min_nprocs)
-					nworkers_to_move = potential_moving_workers;
+				if(potential_moving_workers > config->granularity)
+				{
+					if((nworkers - config->granularity) > config->min_nprocs)	
+						nworkers_to_move = config->granularity;
+				}
 				else
-					nworkers_to_move = potential_moving_workers - (config->min_nprocs - nfixed_workers);			
+				{
+					int nfixed_workers = nworkers - potential_moving_workers;
+					if(nfixed_workers >= config->min_nprocs)
+						nworkers_to_move = potential_moving_workers;
+					else
+						nworkers_to_move = potential_moving_workers - (config->min_nprocs - nfixed_workers);			
+				}
 			}
-			
 			if(nworkers_to_move > 0)
 			{
 				unsigned prio_sched_ctx = _get_highest_priority_sched_ctx(req_sched_ctx, sched_ctxs, nsched_ctxs);
 				if(prio_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-				{
-					
+				{					
 					int *workers_to_move = _get_first_workers(req_sched_ctx, nworkers_to_move);
-					
 					sched_ctx_hypervisor_resize(req_sched_ctx, prio_sched_ctx, workers_to_move, nworkers_to_move);
 
 					struct simple_policy_config *prio_config = (struct simple_policy_config*)sched_ctx_hypervisor_get_config(prio_sched_ctx);
@@ -334,8 +325,8 @@ static void simple_remove_sched_ctx(unsigned sched_ctx)
 }
 
 struct hypervisor_policy simple_policy = {
-	.init = simple_init,
-	.deinit = simple_deinit,
+	.init = NULL,
+	.deinit = NULL,
 	.add_sched_ctx = simple_add_sched_ctx,
 	.remove_sched_ctx = simple_remove_sched_ctx,
 	.ioctl = simple_ioctl,

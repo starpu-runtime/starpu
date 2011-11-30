@@ -57,6 +57,18 @@ struct starpu_sched_ctx {
 	/* table of sched mutex corresponding to each worker in this ctx */
 	pthread_mutex_t **sched_mutex;
 
+	/* cond to block push when there are no workers in the ctx */
+	pthread_cond_t no_workers_cond;
+
+	/* mutex to block push when there are no workers in the ctx */
+	pthread_mutex_t no_workers_mutex;
+
+	/*ready tasks that couldn't be pushed because the ctx has no workers*/
+	struct starpu_task_list empty_ctx_tasks;
+
+	/* mutext protecting empty_ctx_tasks list */
+	pthread_mutex_t empty_ctx_mutex;
+
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of criteria determining the resize procedure */
 	struct starpu_sched_ctx_hypervisor_criteria *criteria;

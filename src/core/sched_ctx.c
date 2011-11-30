@@ -102,7 +102,8 @@ static void _starpu_add_workers_to_sched_ctx(struct starpu_sched_ctx *sched_ctx,
 {
 	struct worker_collection *workers = sched_ctx->workers;
 	struct starpu_machine_config_s *config = (struct starpu_machine_config_s *)_starpu_get_machine_config();
-	
+	int init_nworkers = sched_ctx->workers->nworkers;
+
 	int nworkers_to_add = nworkers == -1 ? config->topology.nworkers : nworkers;
 	int workers_to_add[nworkers_to_add];
 
@@ -132,6 +133,7 @@ static void _starpu_add_workers_to_sched_ctx(struct starpu_sched_ctx *sched_ctx,
 	}
 	else
 		sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);		
+
 	return;
 }
 
@@ -143,9 +145,12 @@ static void _starpu_remove_workers_from_sched_ctx(struct starpu_sched_ctx *sched
 	int i = 0;
 	for(i = 0; i < nworkers; i++)
 	{
-		int worker = workers->remove(workers, workerids[i]);
-		if(worker >= 0)
-			removed_workers[(*n_removed_workers)++] = worker;
+		if(workers->nworkers > 0)
+		{
+			int worker = workers->remove(workers, workerids[i]);
+			if(worker >= 0)
+				removed_workers[(*n_removed_workers)++] = worker;
+		}
 	}
 					   
 	return;
@@ -167,6 +172,11 @@ struct starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int 
 	STARPU_ASSERT(nworkers_ctx <= nworkers);
   
 	PTHREAD_MUTEX_INIT(&sched_ctx->changing_ctx_mutex, NULL);
+ 	PTHREAD_MUTEX_INIT(&sched_ctx->no_workers_mutex, NULL);
+	PTHREAD_COND_INIT(&sched_ctx->no_workers_cond, NULL);
+	PTHREAD_MUTEX_INIT(&sched_ctx->empty_ctx_mutex, NULL);
+
+	starpu_task_list_init(&sched_ctx->empty_ctx_tasks);
 
 	sched_ctx->sched_policy = (struct starpu_sched_policy_s*)malloc(sizeof(struct starpu_sched_policy_s));
 	sched_ctx->is_initial_sched = is_initial_sched;
@@ -178,6 +188,7 @@ struct starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int 
 	sched_ctx->sched_mutex = (pthread_mutex_t**)malloc(STARPU_NMAXWORKERS * sizeof(pthread_mutex_t*));
 	sched_ctx->sched_cond = (pthread_cond_t**)malloc(STARPU_NMAXWORKERS * sizeof(pthread_cond_t*));
 
+	
 	/*init the strategy structs and the worker_collection of the ressources of the context */
 	_starpu_init_sched_policy(config, sched_ctx, policy_name);
 
@@ -243,6 +254,9 @@ static void free_sched_ctx_mem(struct starpu_sched_ctx *sched_ctx)
 	sched_ctx->sched_mutex = NULL;
 	sched_ctx->sched_cond = NULL;
 
+	PTHREAD_MUTEX_DESTROY(&sched_ctx->no_workers_mutex);
+	PTHREAD_COND_DESTROY(&sched_ctx->no_workers_cond);
+
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	config->topology.nsched_ctxs--;
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
@@ -263,12 +277,14 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 	struct starpu_machine_config_s *config = (struct starpu_machine_config_s *)_starpu_get_machine_config();
 	int nworkers = config->topology.nworkers;
 
-	if(!(sched_ctx->workers->nworkers == nworkers && sched_ctx->workers->nworkers == inheritor_sched_ctx->workers->nworkers) && sched_ctx->workers->nworkers > 0)
+	if(!(sched_ctx->workers->nworkers == nworkers && sched_ctx->workers->nworkers == inheritor_sched_ctx->workers->nworkers) && sched_ctx->workers->nworkers > 0 && inheritor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		starpu_add_workers_to_sched_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, inheritor_sched_ctx_id);
 	
 	if(!starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
 	{
+		PTHREAD_MUTEX_LOCK(&sched_ctx->changing_ctx_mutex);
 		free_sched_ctx_mem(sched_ctx);
+		PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
 	}
 
 	return;	
@@ -309,6 +325,7 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	int init_workers = sched_ctx->workers->nworkers;
 	int added_workers[nworkers_to_add];
 	int n_added_workers = 0;
 
@@ -322,7 +339,27 @@ void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, u
 		_starpu_update_workers(added_workers, n_added_workers, sched_ctx->id);
 
 	PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
-       
+
+	if(n_added_workers > 0)
+	{
+		PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
+		PTHREAD_COND_BROADCAST(&sched_ctx->no_workers_cond);
+		PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
+	}
+
+	unsigned unlocked = 0;
+	PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
+	{
+		struct starpu_task *old_task = starpu_task_list_pop_back(&sched_ctx->empty_ctx_tasks);
+		PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+		unlocked = 1;
+		starpu_job_t old_j = _starpu_get_job_associated_to_task(old_task);
+		_starpu_push_task(old_j, 1);
+	}
+	if(!unlocked)
+		PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+	
 	return;
 }
 
