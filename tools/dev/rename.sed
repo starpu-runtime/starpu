@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstarpu_access_mode\b/enum starpu_access_mode/g
 s/\bstruct starpu_codelet_t\b/struct starpu_codelet/g
 s/\bstarpu_codelet\b/struct starpu_codelet/g
 s/\bstarpu_data_handle\b/starpu_data_handle_t/g
