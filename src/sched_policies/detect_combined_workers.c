@@ -41,7 +41,8 @@
  * workers		CPU-workers found by recursion in all the sub-trees and in this very one, represented as leaves in hwloc.
  */
 
-struct _starpu_tree {
+struct _starpu_tree
+{
     hwloc_obj_t obj;
     unsigned nb_workers;
     int *workers;
@@ -386,7 +387,7 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
     struct _starpu_tree tree;
 
     /* Of course we start from the root */
-    tree.obj = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0); 
+    tree.obj = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0);
     tree.nb_workers = 0;
     tree.workers = (int *) malloc(topology->nhwcpus * sizeof(int));
 
@@ -441,7 +442,7 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 
 		/* We register this combination */
 		int ret;
-		ret = starpu_combined_worker_assign_workerid(size, workerids); 
+		ret = starpu_combined_worker_assign_workerid(size, workerids);
 		STARPU_ASSERT(ret >= 0);
 	    }
 	}
@@ -478,7 +479,8 @@ void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topo
 
     if ((config->user_conf && config->user_conf->single_combined_worker > 0) || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
 	combine_all_cpu_workers(topology);
-    else {
+    else
+    {
 #ifdef STARPU_HAVE_HWLOC
 	find_and_assign_combinations_with_hwloc(topology);
 #else

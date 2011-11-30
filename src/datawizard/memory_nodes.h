@@ -23,7 +23,8 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 
-enum _starpu_node_kind {
+enum _starpu_node_kind
+{
 	STARPU_UNUSED     = 0x00,
 	STARPU_CPU_RAM    = 0x01,
 	STARPU_CUDA_RAM   = 0x02,
@@ -35,12 +36,14 @@ enum _starpu_node_kind {
 #define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
 #define _STARPU_MEMORY_NODE_TUPLE_SECOND(tuple) (tuple & 0xF0)
 
-struct _starpu_cond_and_mutex {
+struct _starpu_cond_and_mutex
+{
         pthread_cond_t *cond;
         pthread_mutex_t *mutex;
 };
 
-struct _starpu_mem_node_descr {
+struct _starpu_mem_node_descr
+{
 	unsigned nnodes;
 	enum _starpu_node_kind nodes[STARPU_MAXNODES];
 

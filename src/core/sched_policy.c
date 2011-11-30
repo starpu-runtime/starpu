@@ -49,7 +49,8 @@ extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
 extern struct starpu_sched_policy heft_policy;
 
-static struct starpu_sched_policy *predefined_policies[] = {
+static struct starpu_sched_policy *predefined_policies[] =
+{
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_dm_policy,
@@ -98,7 +99,6 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy)
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
 {
-
 	if (!policy_name)
 		return NULL;
 
@@ -109,7 +109,8 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 		p = predefined_policies[i];
 		if (p->policy_name)
 		{
-			if (strcmp(policy_name, p->policy_name) == 0) {
+			if (strcmp(policy_name, p->policy_name) == 0)
+			{
 				/* we found a policy with the requested name */
 				return p;
 			}
@@ -124,7 +125,8 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 static void display_sched_help_message(void)
 {
 	const char *sched_env = getenv("STARPU_SCHED");
-	if (sched_env && (strcmp(sched_env, "help") == 0)) {
+	if (sched_env && (strcmp(sched_env, "help") == 0))
+	{
 		fprintf(stderr, "STARPU_SCHED can be either of\n");
 
 		/* display the description of all predefined policies */
@@ -153,7 +155,8 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 	{
 		sched_pol_name = user_conf->sched_policy_name;
 	}
-	else {
+	else
+	{
 		sched_pol_name = getenv("STARPU_SCHED");
 	}
 
@@ -184,7 +187,8 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config)
 	{
 		do_calibrate = config->user_conf->calibrate;
 	}
-	else {
+	else
+	{
 		int res = starpu_get_env_number("STARPU_CALIBRATE");
 		do_calibrate =  (res < 0)?0:(unsigned)res;
 	}
@@ -215,7 +219,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	/* Is this a basic worker or a combined worker ? */
 	int is_basic_worker = (workerid < nbasic_workers);
 
-	unsigned memory_node; 
+	unsigned memory_node;
 	struct _starpu_worker *worker = NULL;
 	struct _starpu_combined_worker *combined_worker = NULL;
 
@@ -240,7 +244,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	{
 		return _starpu_push_local_task(worker, task, 0);
 	}
-	else {
+	else
+	{
 		/* This is a combined worker so we create task aliases */
 		int worker_size = combined_worker->worker_size;
 		int *combined_workerid = combined_worker->combined_workerid;
@@ -292,7 +297,8 @@ int _starpu_push_task(struct _starpu_job *j, unsigned job_is_already_locked)
 	{
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}
-	else {
+	else
+	{
 		STARPU_ASSERT(policy.push_task);
 		ret = policy.push_task(task);
 	}
@@ -384,5 +390,4 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
 
 	return _starpu_push_local_task(worker, task, back);
 }
-
 

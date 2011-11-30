@@ -95,13 +95,13 @@ void _starpu_display_alloc_cache_stats(void)
 #ifdef STARPU_DATA_STATS
 	fprintf(stderr, "Allocation cache stats:\n");
 	unsigned node;
-	for (node = 0; node < STARPU_MAXNODES; node++) 
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		if (alloc_cnt[node]) 
+		if (alloc_cnt[node])
 		{
 			fprintf(stderr, "memory node %d\n", node);
 			fprintf(stderr, "\ttotal alloc : %u\n", alloc_cnt[node]);
-			fprintf(stderr, "\tcached alloc: %u (%2.2f \%%)\n", 
+			fprintf(stderr, "\tcached alloc: %u (%2.2f \%%)\n",
 				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
 		}
 	}
@@ -161,12 +161,12 @@ void _starpu_display_data_stats(void)
 void _starpu_display_data_handle_stats(starpu_data_handle_t handle)
 {
 	unsigned node;
-	
+
 	fprintf(stderr, "#-----\n");
 	fprintf(stderr, "Data : %p\n", handle);
 	fprintf(stderr, "Size : %d\n", (int)handle->data_size);
 	fprintf(stderr, "\n");
-	
+
 	fprintf(stderr, "#--\n");
 	fprintf(stderr, "Data access stats\n");
 	fprintf(stderr, "/!\\ Work Underway\n");

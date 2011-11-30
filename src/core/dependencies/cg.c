@@ -44,7 +44,7 @@ void _starpu_cg_list_deinit(struct _starpu_cg_list *list)
 		struct _starpu_cg *cg = list->succ[id];
 
 		/* We remove the reference on the completion group, and free it
-		 * if there is no more reference. */		
+		 * if there is no more reference. */
 		unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 		if (ntags == 0)
 			free(list->succ[id]);
@@ -72,7 +72,7 @@ void _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct
 			successors->succ_list_size = 4;
 
 		/* NB: this is thread safe as the tag->lock is taken */
-		successors->succ = (struct _starpu_cg **) realloc(successors->succ, 
+		successors->succ = (struct _starpu_cg **) realloc(successors->succ,
 			successors->succ_list_size*sizeof(struct _starpu_cg *));
 	}
 #else
@@ -86,7 +86,8 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
 
-	if (remaining == 0) {
+	if (remaining == 0)
+	{
 		cg->remaining = cg->ntags;
 
 		struct _starpu_tag *tag;
@@ -94,8 +95,10 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 		struct _starpu_job *j;
 
 		/* the group is now completed */
-		switch (cg->cg_type) {
-			case STARPU_CG_APPS: {
+		switch (cg->cg_type)
+		{
+			case STARPU_CG_APPS:
+			{
 				/* this is a cg for an application waiting on a set of
 	 			 * tags, wake the thread */
 				_STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
@@ -105,17 +108,19 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				break;
 			}
 
-			case STARPU_CG_TAG: {
+			case STARPU_CG_TAG:
+			{
 				tag = cg->succ.tag;
 				tag_successors = &tag->tag_successors;
-	
+
 				tag_successors->ndeps_completed++;
 
 #ifdef STARPU_DEVEL
 #warning FIXME: who locks this?
 #endif
 				if ((tag->state == STARPU_BLOCKED) &&
-					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
+					(tag_successors->ndeps == tag_successors->ndeps_completed))
+				{
 					/* reset the counter so that we can reuse the completion group */
 					tag_successors->ndeps_completed = 0;
 					_starpu_tag_set_ready(tag);
@@ -123,7 +128,8 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				break;
 			}
 
- 		        case STARPU_CG_TASK: {
+ 		        case STARPU_CG_TASK:
+			{
 				j = cg->succ.job;
 
 				job_successors = &j->job_successors;
@@ -175,14 +181,14 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 		{
 			struct _starpu_job *j = cg->succ.job;
 			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-		}			
+		}
 
 		_starpu_notify_cg(cg);
 
 		if (cg_type == STARPU_CG_TASK)
 		{
 			struct _starpu_job *j = cg->succ.job;
-			
+
 			/* In case this task was immediately terminated, since
 			 * _starpu_notify_cg_list already hold the sync_mutex
 			 * lock, it is its reponsability to destroy the task if
@@ -197,9 +203,10 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 
 			if (must_destroy_task)
 				starpu_task_destroy(task);
-		}			
+		}
 
-		if (cg_type == STARPU_CG_APPS) {
+		if (cg_type == STARPU_CG_APPS)
+		{
 			/* Remove the temporary ref to the cg */
 			memmove(&successors->succ[succ], &successors->succ[succ+1], (nsuccs-(succ+1)) * sizeof(successors->succ[succ]));
 			succ--;

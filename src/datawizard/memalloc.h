@@ -33,7 +33,7 @@ LIST_TYPE(_starpu_mem_chunk,
 	size_t size;
 
 	uint32_t footprint;
-	
+
 	/* The footprint of the data is not sufficient to determine whether two
 	 * pieces of data have the same layout (there could be collision in the
 	 * hash function ...) so we still keep a copy of the actual layout (ie.

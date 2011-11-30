@@ -48,7 +48,8 @@ static void _starpu_task_add_succ(struct _starpu_job *j, struct _starpu_cg *cg)
 
 	_starpu_add_successor_to_cg_list(&j->job_successors, cg);
 
-	if (j->terminated) {
+	if (j->terminated)
+	{
 		/* the task was already completed sooner */
 		_starpu_notify_cg(cg);
 	}
@@ -90,6 +91,5 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 	}
 
-	
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 }

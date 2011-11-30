@@ -29,7 +29,8 @@ void starpu_task_list_push_front(struct starpu_task_list *list,
 	{
 		list->tail = task;
 	}
-	else {
+	else
+	{
 		list->head->prev = task;
 	}
 
@@ -45,7 +46,8 @@ void starpu_task_list_push_back(struct starpu_task_list *list,
 	{
 		list->head = task;
 	}
-	else {
+	else
+	{
 		list->tail->next = task;
 	}
 
@@ -78,7 +80,8 @@ void starpu_task_list_erase(struct starpu_task_list *list,
 	{
 		p->next = task->next;
 	}
-	else {
+	else
+	{
 		list->head = task->next;
 	}
 
@@ -86,7 +89,8 @@ void starpu_task_list_erase(struct starpu_task_list *list,
 	{
 		task->next->prev = p;
 	}
-	else {
+	else
+	{
 		list->tail = p;
 	}
 
@@ -103,7 +107,7 @@ struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list)
 
 	return task;
 }
-						
+
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list)
 {
 	struct starpu_task *task = list->tail;

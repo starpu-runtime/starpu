@@ -204,20 +204,25 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node
         err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-        if (STARPU_LIKELY(err == CL_SUCCESS)) {
+        if (STARPU_LIKELY(err == CL_SUCCESS))
+	{
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
         }
-        else {
-                if (event != NULL) {
+        else
+	{
+                if (event != NULL)
+		{
                         /* The asynchronous copy has failed, try to copy synchronously */
                         err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
                 }
-                if (STARPU_LIKELY(err == CL_SUCCESS)) {
+                if (STARPU_LIKELY(err == CL_SUCCESS))
+		{
                         *ret = 0;
                         return CL_SUCCESS;
                 }
-                else {
+                else
+		{
                         STARPU_OPENCL_REPORT_ERROR(err);
                         return err;
                 }
@@ -253,19 +258,23 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_
         err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-        if (STARPU_LIKELY(err == CL_SUCCESS)) {
+        if (STARPU_LIKELY(err == CL_SUCCESS))
+	{
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
         }
-        else {
+        else
+	{
                 if (event != NULL)
                         /* The asynchronous copy has failed, try to copy synchronously */
                         err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-                if (STARPU_LIKELY(err == CL_SUCCESS)) {
+                if (STARPU_LIKELY(err == CL_SUCCESS))
+		{
                         *ret = 0;
                         return CL_SUCCESS;
                 }
-                else {
+                else
+		{
                         STARPU_OPENCL_REPORT_ERROR(err);
                         return err;
                 }
@@ -334,7 +343,8 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
 void _starpu_opencl_init(void)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
-        if (!init_done) {
+        if (!init_done)
+	{
                 cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
                 cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
@@ -351,19 +361,23 @@ void _starpu_opencl_init(void)
                 // Get devices
                 nb_devices = 0;
                 {
-                        for (i=0; i<nb_platforms; i++) {
+                        for (i=0; i<nb_platforms; i++)
+			{
                                 cl_uint num;
 				int platform_valid = 1;
 				char name[1024], vendor[1024];
 
 				err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
-				if (err != CL_SUCCESS) {
+				if (err != CL_SUCCESS)
+				{
 					STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo NAME", err);
 					platform_valid = 0;
 				}
-				else {
+				else
+				{
 					err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
-					if (err != CL_SUCCESS) {
+					if (err != CL_SUCCESS)
+					{
 						STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo VENDOR", err);
 						platform_valid = 0;
 					}
@@ -374,12 +388,15 @@ void _starpu_opencl_init(void)
 				else
 					_STARPU_DEBUG("Platform invalid\n");
 #endif
-				if (platform_valid) {
+				if (platform_valid)
+				{
 					err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
-					if (err == CL_DEVICE_NOT_FOUND) {
+					if (err == CL_DEVICE_NOT_FOUND)
+					{
 						_STARPU_DEBUG("  No devices detected on this platform\n");
 					}
-					else {
+					else
+					{
 						if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 						_STARPU_DEBUG("  %d devices detected\n", num);
 						nb_devices += num;
@@ -391,13 +408,15 @@ void _starpu_opencl_init(void)
                 // Get location of OpenCl kernel source files
                 _starpu_opencl_program_dir = getenv("STARPU_OPENCL_PROGRAM_DIR");
 
-		if (nb_devices > STARPU_MAXOPENCLDEVS) {
+		if (nb_devices > STARPU_MAXOPENCLDEVS)
+		{
 			_STARPU_DISP("# Warning: %d OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices?\n", nb_devices, STARPU_MAXOPENCLDEVS);
 			nb_devices = STARPU_MAXOPENCLDEVS;
 		}
 
                 // initialise internal structures
-                for(i=0 ; i<nb_devices ; i++) {
+                for(i=0 ; i<nb_devices ; i++)
+		{
                         contexts[i] = NULL;
                         queues[i] = NULL;
                         transfer_queues[i] = NULL;
@@ -467,8 +486,8 @@ void *_starpu_opencl_worker(void *arg)
 		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		task = _starpu_pop_task(args);
-		
-                if (task == NULL) 
+
+                if (task == NULL)
 		{
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
@@ -497,8 +516,10 @@ void *_starpu_opencl_worker(void *arg)
 
 		_starpu_set_current_task(NULL);
 
-                if (res) {
-			switch (res) {
+                if (res)
+		{
+			switch (res)
+			{
 				case -EAGAIN:
 					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
 					_starpu_push_task(j, 0);
@@ -527,7 +548,8 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 {
 	int err;
 
-        if (!init_done) {
+        if (!init_done)
+	{
                 _starpu_opencl_init();
         }
 
@@ -541,7 +563,8 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 
 unsigned _starpu_opencl_get_device_count(void)
 {
-        if (!init_done) {
+        if (!init_done)
+	{
                 _starpu_opencl_init();
         }
 	return nb_devices;
@@ -562,7 +585,8 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	STARPU_ASSERT(cl);
 
 	ret = _starpu_fetch_task_input(task, mask);
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the
 		 * codelet back, and try it later */
@@ -572,12 +596,14 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 
 	_starpu_driver_start_job(args, j, &codelet_start, 0);
 
-	if (cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS) {
+	if (cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
+	{
 		_starpu_cl_func func = cl->opencl_func;
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}
-	else {
+	else
+	{
 		/* _STARPU_DEBUG("OpenCL driver : running kernel (%d)\n", j->nimpl); */
 		_starpu_cl_func func = cl->opencl_funcs[j->nimpl];
 		STARPU_ASSERT(func);

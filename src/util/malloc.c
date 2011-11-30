@@ -24,7 +24,8 @@
 #include <drivers/opencl/driver_opencl.h>
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-struct malloc_pinned_codelet_struct {
+struct malloc_pinned_codelet_struct
+{
 	void **ptr;
 	size_t dim;
 };
@@ -52,12 +53,14 @@ static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, 
 #endif
 
 #if defined(STARPU_USE_CUDA)// || defined(STARPU_USE_OPENCL)
-static struct starpu_perfmodel malloc_pinned_model = {
+static struct starpu_perfmodel malloc_pinned_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "malloc_pinned"
 };
 
-static struct starpu_codelet malloc_pinned_cl = {
+static struct starpu_codelet malloc_pinned_cl =
+{
 	.cuda_func = malloc_pinned_cuda_codelet,
 //#ifdef STARPU_USE_OPENCL
 //	.opencl_func = malloc_pinned_opencl_codelet,
@@ -79,7 +82,8 @@ int starpu_malloc(void **A, size_t dim)
 #ifdef STARPU_USE_CUDA
 		int push_res;
 
-		struct malloc_pinned_codelet_struct s = {
+		struct malloc_pinned_codelet_struct s =
+		{
 			.ptr = A,
 			.dim = dim
 		};
@@ -103,7 +107,8 @@ int starpu_malloc(void **A, size_t dim)
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
 //
-//		struct malloc_pinned_codelet_struct s = {
+//		struct malloc_pinned_codelet_struct s =
+//		{
 //			.ptr = A,
 //			.dim = dim
 //		};
@@ -122,7 +127,8 @@ int starpu_malloc(void **A, size_t dim)
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //        }
-        else {
+        else
+	{
 		*A = malloc(dim);
 	}
 
@@ -151,12 +157,14 @@ static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, vo
 //#endif
 
 #if defined(STARPU_USE_CUDA) // || defined(STARPU_USE_OPENCL)
-static struct starpu_perfmodel free_pinned_model = {
+static struct starpu_perfmodel free_pinned_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "free_pinned"
 };
 
-static struct starpu_codelet free_pinned_cl = {
+static struct starpu_codelet free_pinned_cl =
+{
 	.cuda_func = free_pinned_cuda_codelet,
 //#ifdef STARPU_USE_OPENCL
 //	.opencl_func = free_pinned_opencl_codelet,
@@ -209,7 +217,8 @@ int starpu_free(void *A)
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //	}
-	else {
+	else
+	{
 		free(A);
 	}
 

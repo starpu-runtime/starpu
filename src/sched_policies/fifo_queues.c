@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -90,7 +90,7 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 				return task;
 			}
 	}
-	
+
 	return NULL;
 }
 
@@ -102,12 +102,13 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 
 	struct starpu_task *new_list = NULL;
 	struct starpu_task *new_list_tail = NULL;
-	
+
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	size = fifo_queue->ntasks;
 
-	if (size > 0) {
+	if (size > 0)
+	{
 		old_list = &fifo_queue->taskq;
 		unsigned new_list_size = 0;
 
@@ -125,7 +126,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;
-				
+
 				starpu_task_list_erase(old_list, task);
 
 				if (new_list_tail)
@@ -135,7 +136,8 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 					task->next = NULL;
 					new_list_tail = task;
 				}
-				else {
+				else
+				{
 					new_list = task;
 					new_list_tail = task;
 					task->prev = NULL;
@@ -144,7 +146,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 				_starpu_get_job_associated_to_task(task)->nimpl = nimpl;
 				break;
 			}
-		
+
 			task = next_task;
 		}
 

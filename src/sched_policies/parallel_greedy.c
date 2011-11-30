@@ -37,8 +37,8 @@ static int possible_combinations_cnt[STARPU_NMAXWORKERS];
 static int possible_combinations[STARPU_NMAXWORKERS][10];
 static int possible_combinations_size[STARPU_NMAXWORKERS][10];
 
-static void initialize_pgreedy_policy(struct starpu_machine_topology *topology, 
-		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
+static void initialize_pgreedy_policy(struct starpu_machine_topology *topology,
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
 	/* masters pick tasks from that queue */
 	fifo = _starpu_create_fifo();
@@ -65,7 +65,7 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology *topology,
 	}
 
 	unsigned i;
-	
+
 	for (i = 0; i < ncombinedworkers; i++)
 	{
 		workerid = nworkers + i;
@@ -113,7 +113,8 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology *topology,
 			starpu_worker_set_sched_condition(workerid,
 				&sched_cond, &sched_mutex);
 		}
-		else {
+		else
+		{
 			starpu_worker_set_sched_condition(workerid,
 				&master_sched_cond[master],
 				&master_sched_mutex[master]);
@@ -128,8 +129,8 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology *topology,
 #endif
 }
 
-static void deinitialize_pgreedy_policy(__attribute__ ((unused)) struct starpu_machine_topology *topology, 
-		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
+static void deinitialize_pgreedy_policy(__attribute__ ((unused)) struct starpu_machine_topology *topology,
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
 	/* TODO check that there is no task left in the queue */
 
@@ -175,14 +176,14 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 					best_workerid = combined_worker;
 				}
 			}
-		} 
+		}
 
 		/* In case nobody can execute this task, we let the master
 		 * worker take it anyway, so that it can discard it afterward.
 		 * */
 		if (best_workerid == -1)
 			return task;
-		
+
 		/* Is this a basic worker or a combined worker ? */
 		int nbasic_workers = (int)starpu_worker_get_count();
 		int is_basic_worker = (best_workerid < nbasic_workers);
@@ -192,7 +193,8 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 			/* The master is alone */
 			return task;
 		}
-		else {
+		else
+		{
 			/* The master needs to dispatch the task between the
 			 * different combined workers */
 			struct _starpu_combined_worker *combined_worker;
@@ -226,13 +228,15 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 			return master_alias;
 		}
 	}
-	else {
+	else
+	{
 		/* The worker is a slave */
 		return _starpu_fifo_pop_task(local_fifo[workerid], workerid);
 	}
 }
 
-struct starpu_sched_policy _starpu_sched_pgreedy_policy = {
+struct starpu_sched_policy _starpu_sched_pgreedy_policy =
+{
 	.init_sched = initialize_pgreedy_policy,
 	.deinit_sched = deinitialize_pgreedy_policy,
 	.push_task = push_task_pgreedy_policy,

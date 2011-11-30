@@ -31,7 +31,8 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
 
-enum _starpu_cache_state {
+enum _starpu_cache_state
+{
 	STARPU_OWNER,
 	STARPU_SHARED,
 	STARPU_INVALID
@@ -55,23 +56,23 @@ LIST_TYPE(_starpu_data_replicate,
 	unsigned initialized;
 
 	/* describes the state of the local data in term of coherency */
-	enum _starpu_cache_state	state; 
+	enum _starpu_cache_state	state;
 
 	int refcnt;
 
 	/* is the data locally allocated ? */
-	uint8_t allocated; 
+	uint8_t allocated;
 	/* was it automatically allocated ? */
-	/* perhaps the allocation was perform higher in the hiearchy 
+	/* perhaps the allocation was perform higher in the hiearchy
 	 * for now this is just translated into !automatically_allocated
 	 * */
 	uint8_t automatically_allocated;
 
         /* Pointer to memchunk for LRU strategy */
 	struct _starpu_mem_chunk * mc;
- 
+
 	/* To help the scheduling policies to make some decision, we
-	   may keep a track of the tasks that are likely to request 
+	   may keep a track of the tasks that are likely to request
 	   this data on the current node.
 	   It is the responsability of the scheduling _policy_ to set that
 	   flag when it assigns a task to a queue, policies which do not
@@ -83,18 +84,21 @@ LIST_TYPE(_starpu_data_replicate,
 
 struct _starpu_data_requester_list;
 
-struct _starpu_jobid_list {
+struct _starpu_jobid_list
+{
 	unsigned long id;
 	struct _starpu_jobid_list *next;
 };
 
 /* This structure describes a simply-linked list of task */
-struct _starpu_task_wrapper_list {
+struct _starpu_task_wrapper_list
+{
 	struct starpu_task *task;
 	struct _starpu_task_wrapper_list *next;
 };
 
-struct _starpu_data_state {
+struct _starpu_data_state
+{
 	struct _starpu_data_requester_list *req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
@@ -154,7 +158,7 @@ struct _starpu_data_state {
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */
 	pthread_mutex_t sequential_consistency_mutex;
-	
+
 	/* The last submitted task (or application data request) that declared
 	 * it would modify the piece of data ? Any task accessing the data in a
 	 * read-only mode should depend on that task implicitely if the
@@ -172,7 +176,7 @@ struct _starpu_data_state {
 	unsigned last_submitted_ghost_writer_id_is_valid;
 	unsigned long last_submitted_ghost_writer_id;
 	struct _starpu_jobid_list *last_submitted_ghost_readers_id;
-	
+
 	struct _starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
 

@@ -56,12 +56,14 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	 * execute the kernel at all. */
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
-		if (cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS) {
+		if (cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
+		{
 			_starpu_cl_func func = cl->cpu_func;
 			STARPU_ASSERT(func);
 			func(task->interfaces, task->cl_arg);
 		}
-		else {
+		else
+		{
 			/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
 			_starpu_cl_func func = cl->cpu_funcs[j->nimpl];
 			STARPU_ASSERT(func);
@@ -131,8 +133,8 @@ void *_starpu_cpu_worker(void *arg)
 		_STARPU_PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
 
 		task = _starpu_pop_task(cpu_arg);
-	
-                if (!task) 
+
+                if (!task)
 		{
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, cpu_arg->sched_cond, cpu_arg->sched_mutex);
@@ -142,13 +144,13 @@ void *_starpu_cpu_worker(void *arg)
 			continue;
 		};
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);	
+		_STARPU_PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);
 
 		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);
-	
+
 		/* can a cpu perform that task ? */
-		if (!_STARPU_CPU_MAY_PERFORM(j)) 
+		if (!_STARPU_CPU_MAY_PERFORM(j))
 		{
 			/* put it and the end of the queue ... XXX */
 			_starpu_push_task(j, 0);
@@ -158,8 +160,8 @@ void *_starpu_cpu_worker(void *arg)
 		int rank = 0;
 		int is_parallel_task = (j->task_size > 1);
 
-		enum starpu_perf_archtype perf_arch; 
-	
+		enum starpu_perf_archtype perf_arch;
+
 		/* Get the rank in case it is a parallel task */
 		if (is_parallel_task)
 		{
@@ -179,7 +181,8 @@ void *_starpu_cpu_worker(void *arg)
 			cpu_arg->current_rank = rank;
 			perf_arch = combined_worker->perf_arch;
 		}
-		else {
+		else
+		{
 			cpu_arg->combined_workerid = cpu_arg->workerid;
 			cpu_arg->worker_size = 1;
 			cpu_arg->current_rank = 0;
@@ -192,12 +195,14 @@ void *_starpu_cpu_worker(void *arg)
 
 		_starpu_set_current_task(NULL);
 
-		if (res) {
-			switch (res) {
+		if (res)
+		{
+			switch (res)
+			{
 				case -EAGAIN:
 					_starpu_push_task(j, 0);
 					continue;
-				default: 
+				default:
 					assert(0);
 			}
 		}

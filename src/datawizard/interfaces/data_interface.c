@@ -45,7 +45,8 @@ void _starpu_data_interface_shutdown()
 
 	_starpu_spin_destroy(&registered_handles_lock);
 
-	HASH_ITER(hh, registered_handles, entry, tmp) {
+	HASH_ITER(hh, registered_handles, entry, tmp)
+	{
 		HASH_DEL(registered_handles, entry);
 		free(entry);
 	}
@@ -89,7 +90,7 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 	return result;
 }
 
-/* 
+/*
  * Start monitoring a piece of data
  */
 
@@ -162,18 +163,20 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	{
 		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_node[node];
-		
+
 		replicate->memory_node = node;
 		replicate->relaxed_coherency = 0;
 		replicate->refcnt = 0;
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			/* this is the home node with the only valid copy */
 			replicate->state = STARPU_OWNER;
 			replicate->allocated = 1;
 			replicate->automatically_allocated = 0;
 		}
-		else {
+		else
+		{
 			/* the value is not available here yet */
 			replicate->state = STARPU_INVALID;
 			replicate->allocated = 0;
@@ -323,7 +326,7 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
         return 0;
 }
 
-/* 
+/*
  * Stop monitoring a piece of data
  */
 
@@ -360,20 +363,22 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	}
 }
 
-struct _starpu_unregister_callback_arg {
+struct _starpu_unregister_callback_arg
+{
 	unsigned memory_node;
 	starpu_data_handle_t handle;
 	unsigned terminated;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
-}; 
+};
 
 /* Check whether we should tell starpu_data_unregister that the data handle is
  * not busy any more.
  * The header is supposed to be locked */
 void _starpu_data_check_not_busy(starpu_data_handle_t handle)
 {
-	if (!handle->busy_count && handle->busy_waiting) {
+	if (!handle->busy_count && handle->busy_waiting)
+	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 		_STARPU_PTHREAD_COND_BROADCAST(&handle->busy_cond);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
@@ -393,7 +398,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
-	
+
 	/* unlock the caller */
 	_STARPU_PTHREAD_MUTEX_LOCK(&arg->mutex);
 	arg->terminated = 1;
@@ -414,7 +419,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 		/* Fetch data in the home of the data to ensure we have a valid copy
 		 * where we registered it */
-		int home_node = handle->home_node; 
+		int home_node = handle->home_node;
 		if (home_node >= 0)
 		{
 			struct _starpu_unregister_callback_arg arg;
@@ -423,7 +428,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			arg.terminated = 0;
 			_STARPU_PTHREAD_MUTEX_INIT(&arg.mutex, NULL);
 			_STARPU_PTHREAD_COND_INIT(&arg.cond, NULL);
-	
+
 			if (!_starpu_attempt_to_submit_data_request_from_apps(handle, STARPU_R,
 					_starpu_data_unregister_fetch_data_callback, &arg))
 			{
@@ -432,7 +437,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 				int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
 				STARPU_ASSERT(!ret);
 			}
-			else {
+			else
+			{
 				_STARPU_PTHREAD_MUTEX_LOCK(&arg.mutex);
 				while (!arg.terminated)
 					_STARPU_PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
@@ -441,7 +447,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
 	}
-	else {
+	else
+	{
 		/* Should we postpone the unregister operation ? */
 		if ((handle->refcnt > 0) && handle->lazy_unregister)
 			return;
@@ -467,7 +474,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->allocated && local->automatically_allocated){
+		if (local->allocated && local->automatically_allocated)
+		{
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, node);
 		}
@@ -502,12 +510,13 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->allocated && local->automatically_allocated){
+		if (local->allocated && local->automatically_allocated)
+		{
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, node);
 		}
 
-		local->state = STARPU_INVALID; 
+		local->state = STARPU_INVALID;
 	}
 
 	_starpu_spin_unlock(&handle->header_lock);

@@ -76,7 +76,8 @@ static void lock_all_subtree(starpu_data_handle_t handle)
 		while (_starpu_spin_trylock(&handle->header_lock))
 			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 	}
-	else {
+	else
+	{
 		/* lock all sub-subtrees children */
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
@@ -93,7 +94,8 @@ static void unlock_all_subtree(starpu_data_handle_t handle)
 		/* this is a leaf */
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else {
+	else
+	{
 		/* lock all sub-subtrees children
 		 * Note that this is done in the reverse order of the
 		 * lock_all_subtree so that we avoid deadlock */
@@ -143,7 +145,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
 		/* this is a leaf */
-		switch(src_replicate->state) {
+		switch(src_replicate->state)
+		{
 		case STARPU_OWNER:
 			/* the local node has the only copy */
 			/* the owner is now the destination_node */
@@ -176,7 +179,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 			cnt = 0;
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
-				if (handle->per_node[i].state == STARPU_SHARED) {
+				if (handle->per_node[i].state == STARPU_SHARED)
+				{
 					cnt++;
 					last = i;
 				}
@@ -194,7 +198,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 			break;
 		}
 	}
-	else {
+	else
+	{
 		/* lock all sub-subtrees children */
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
@@ -317,7 +322,8 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else {
+	else
+	{
 		/* try to lock all the leafs of the subtree */
 		lock_all_subtree(handle);
 
@@ -562,7 +568,8 @@ static size_t free_potentially_in_use_mc(uint32_t node, unsigned force, size_t r
 				break;
 			#endif
 		}
-		else {
+		else
+		{
 			/* We must free the memory now: note that data
 			 * coherency is not maintained in that case ! */
 			freed += do_free_mem_chunk(mc, node);
@@ -663,7 +670,8 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 	{
 		next_mc = _starpu_mem_chunk_list_next(mc);
 
-		if (mc->data == handle) {
+		if (mc->data == handle)
+		{
 			/* we found the data */
 			mc->data_was_deleted = 1;
 
@@ -756,7 +764,8 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 
-	do {
+	do
+	{
 		STARPU_ASSERT(handle->ops);
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
@@ -806,7 +815,8 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			_starpu_data_check_not_busy(handle);
 		}
 
-	} while((allocated_memory == -ENOMEM) && attempts++ < 2);
+	}
+	while((allocated_memory == -ENOMEM) && attempts++ < 2);
 
 	return allocated_memory;
 }

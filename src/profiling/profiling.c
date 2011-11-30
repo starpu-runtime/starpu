@@ -39,7 +39,8 @@ static struct timespec executing_start_date[STARPU_NMAXWORKERS];
 
 /* Store the busid of the different (src, dst) pairs. busid_matrix[src][dst]
  * contains the busid of (src, dst) or -1 if the bus was not registered. */
-struct node_pair {
+struct node_pair
+{
 	int src;
 	int dst;
 	struct starpu_bus_profiling_info *bus_info;
@@ -47,7 +48,7 @@ struct node_pair {
 
 static int busid_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct starpu_bus_profiling_info bus_profiling_info[STARPU_MAXNODES][STARPU_MAXNODES];
-static struct node_pair busid_to_node_pair[STARPU_MAXNODES*STARPU_MAXNODES]; 
+static struct node_pair busid_to_node_pair[STARPU_MAXNODES*STARPU_MAXNODES];
 static unsigned busid_cnt = 0;
 
 static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info);
@@ -148,7 +149,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	worker_info[workerid].used_cycles = 0;
 	worker_info[workerid].stall_cycles = 0;
 	worker_info[workerid].power_consumed = 0;
-	
+
 	/* We detect if the worker is already sleeping or doing some
 	 * computation */
 	enum _starpu_worker_status status = _starpu_worker_get_status(workerid);
@@ -158,7 +159,8 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 		worker_registered_sleeping_start[workerid] = 1;
 		_starpu_clock_gettime(&sleeping_start_date[workerid]);
 	}
-	else {
+	else
+	{
 		worker_registered_sleeping_start[workerid] = 0;
 	}
 
@@ -167,7 +169,8 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 		worker_registered_executing_start[workerid] = 1;
 		_starpu_clock_gettime(&executing_start_date[workerid]);
 	}
-	else {
+	else
+	{
 		worker_registered_executing_start[workerid] = 0;
 	}
 }
@@ -184,7 +187,7 @@ void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *
 	if (profiling)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		worker_registered_sleeping_start[workerid] = 1;	
+		worker_registered_sleeping_start[workerid] = 1;
 		memcpy(&sleeping_start_date[workerid], sleeping_start, sizeof(struct timespec));
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
@@ -195,7 +198,7 @@ void _starpu_worker_register_executing_start_date(int workerid, struct timespec 
 	if (profiling)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		worker_registered_executing_start[workerid] = 1;	
+		worker_registered_executing_start[workerid] = 1;
 		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
@@ -208,7 +211,7 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
                 /* Perhaps that profiling was enabled while the worker was
-                 * already blocked, so we don't measure (end - start), but 
+                 * already blocked, so we don't measure (end - start), but
                  * (end - max(start,worker_start)) where worker_start is the
                  * date of the previous profiling info reset on the worker */
 		struct timespec *worker_start = &worker_info[workerid].start_time;
@@ -223,7 +226,7 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 
 		starpu_timespec_accumulate(&worker_info[workerid].sleeping_time, &sleeping_time);
 
-		worker_registered_sleeping_start[workerid] = 0;	
+		worker_registered_sleeping_start[workerid] = 0;
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
@@ -243,9 +246,10 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 		worker_info[workerid].stall_cycles += stall_cycles;
 		worker_info[workerid].power_consumed += power_consumed;
 		worker_info[workerid].executed_tasks += executed_tasks;
-	
+
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
-	} else /* Not thread safe, shouldn't be too much a problem */
+	}
+	else /* Not thread safe, shouldn't be too much a problem */
 		worker_info[workerid].executed_tasks += executed_tasks;
 }
 
@@ -329,7 +333,7 @@ void _starpu_initialize_busid_matrix(void)
 	int i, j;
 	for (j = 0; j < STARPU_MAXNODES; j++)
 	for (i = 0; i < STARPU_MAXNODES; i++)
-		busid_matrix[i][j] = -1;	
+		busid_matrix[i][j] = -1;
 
 	busid_cnt = 0;
 }
@@ -400,7 +404,7 @@ int starpu_bus_get_profiling_info(int busid, struct starpu_bus_profiling_info *b
 	_starpu_bus_reset_profiling_info(&bus_profiling_info[src_node][dst_node]);
 
 	return 0;
-} 
+}
 
 void _starpu_bus_update_profiling_info(int src_node, int dst_node, size_t size)
 {

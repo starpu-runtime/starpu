@@ -56,7 +56,7 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 
 		descr = &descrs[index];
 		handle = descr->handle;
-		
+
 		int is_valid;
 		starpu_data_query_status(handle, node, NULL, &is_valid, NULL);
 
@@ -74,7 +74,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 	if (fifo_queue->ntasks == 0)
 		return NULL;
 
-	if (fifo_queue->ntasks > 0) 
+	if (fifo_queue->ntasks > 0)
 	{
 		fifo_queue->ntasks--;
 
@@ -105,12 +105,12 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 
 			current = current->prev;
 		}
-		
+
 		starpu_task_list_erase(&fifo_queue->taskq, task);
 
 		_STARPU_TRACE_JOB_POP(task, 0);
 	}
-	
+
 	return task;
 }
 
@@ -124,9 +124,10 @@ static struct starpu_task *dmda_pop_ready_task(void)
 	unsigned node = starpu_worker_get_memory_node(workerid);
 
 	task = _starpu_fifo_pop_first_ready_task(fifo, node);
-	if (task) {
+	if (task)
+	{
 		double model = task->predicted;
-	
+
 		fifo->exp_len -= model;
 		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
@@ -154,9 +155,10 @@ static struct starpu_task *dmda_pop_task(void)
 	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
 
 	task = _starpu_fifo_pop_task(fifo, workerid);
-	if (task) {
+	if (task)
+	{
 		double model = task->predicted;
-	
+
 		fifo->exp_len -= model;
 		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
@@ -195,7 +197,7 @@ static struct starpu_task *dmda_pop_every_task(void)
 		fifo->exp_len -= model;
 		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
-	
+
 		new_list = new_list->next;
 	}
 
@@ -218,7 +220,8 @@ int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, pthread
 		task->prev = NULL;
 		task->next = NULL;
 	}
-	else {
+	else
+	{
 		struct starpu_task *current = list->head;
 		struct starpu_task *prev = NULL;
 
@@ -239,7 +242,8 @@ int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, pthread
 			task->next = list->head;
 			list->head = task;
 		}
-		else {
+		else
+		{
 			if (current)
 			{
 				/* Insert between prev and current */
@@ -248,7 +252,8 @@ int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, pthread
 				task->next = current;
 				current->prev = task;
 			}
-			else {
+			else
+			{
 				/* Insert at the tail of the list */
 				list->tail->next = task;
 				task->next = NULL;
@@ -318,8 +323,10 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 	unsigned best_impl = 0;
 	unsigned nimpl;
 
-	for (worker = 0; worker < nworkers; worker++) {
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
 			double exp_end;
 
 			fifo = queue_array[worker];
@@ -344,7 +351,8 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
 					|| (!calibrating && local_length == -1.0) /* Not calibrating but this worker is being calibrated */
 					|| (calibrating && local_length == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
-					) {
+					)
+			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
 				best_impl = nimpl;
@@ -377,11 +385,12 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		}
 	}
 
-	if (unknown) {
+	if (unknown)
+	{
 		best = ntasks_best;
 		model_best = 0.0;
 	}
-	
+
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 
 	 _starpu_get_job_associated_to_task(task)->nimpl = best_impl;
@@ -396,7 +405,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	struct _starpu_fifo_taskq *fifo;
 	unsigned worker;
 	int best = -1;
-	
+
 	/* this flag is set if the corresponding worker is selected because
 	   there is no performance prediction available yet */
 	int forced_best = -1;
@@ -423,8 +432,10 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	unsigned best_impl = 0;
 	unsigned nimpl;
 
-	for (worker = 0; worker < nworkers; worker++) {
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
 			fifo = queue_array[worker];
 
 			/* Sometimes workers didn't take the tasks as early as we expected */
@@ -453,7 +464,8 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
 					|| (!calibrating && local_task_length[worker][nimpl] == -1.0) /* Not calibrating but this worker is being calibrated */
 					|| (calibrating && local_task_length[worker][nimpl] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
-					) {
+					)
+			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
 				best_impl = nimpl;
@@ -493,7 +505,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		forced_best = ntasks_best;
 
 	double best_fitness = -1;
-	
+
 	if (forced_best == -1)
 	{
 		for (worker = 0; worker < nworkers; worker++)
@@ -504,12 +516,13 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 				/* no one on that queue may execute this task */
 				continue;
 			}
-	
-			fitness[worker][nimpl] = alpha*(exp_end[worker][nimpl] - best_exp_end) 
+
+			fitness[worker][nimpl] = alpha*(exp_end[worker][nimpl] - best_exp_end)
 				+ beta*(local_data_penalty[worker][nimpl])
 				+ _gamma*(local_power[worker][nimpl]);
 
-			if (exp_end[worker][nimpl] > max_exp_end) {
+			if (exp_end[worker][nimpl] > max_exp_end)
+			{
 				/* This placement will make the computation
 				 * longer, take into account the idle
 				 * consumption of other cpus */
@@ -529,7 +542,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 	STARPU_ASSERT(forced_best != -1 || best != -1);
-	
+
 	if (forced_best != -1)
 	{
 		/* there is no prediction available for that task
@@ -539,7 +552,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		model_best = 0.0;
 		//penality_best = 0.0;
 	}
-	else 
+	else
 	{
 		model_best = local_task_length[best][nimpl];
 		//penality_best = local_data_penalty[best][nimpl];
@@ -568,8 +581,8 @@ static int dmda_push_task(struct starpu_task *task)
 	return _dmda_push_task(task, 0);
 }
 
-static void initialize_dmda_policy(struct starpu_machine_topology *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
+static void initialize_dmda_policy(struct starpu_machine_topology *topology,
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
 	nworkers = topology->nworkers;
 
@@ -593,10 +606,10 @@ static void initialize_dmda_policy(struct starpu_machine_topology *topology,
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		queue_array[workerid] = _starpu_create_fifo();
-	
+
 		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
 		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
-	
+
 		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 	}
 }
@@ -611,8 +624,8 @@ static void initialize_dmda_sorted_policy(struct starpu_machine_topology *topolo
 	starpu_sched_set_max_priority(INT_MAX);
 }
 
-static void deinitialize_dmda_policy(struct starpu_machine_topology *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
+static void deinitialize_dmda_policy(struct starpu_machine_topology *topology,
+	 __attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
@@ -622,10 +635,11 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology *topology,
 }
 
 /* TODO: use post_exec_hook to fix the expected start */
-struct starpu_sched_policy _starpu_sched_dm_policy = {
+struct starpu_sched_policy _starpu_sched_dm_policy =
+{
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	.push_task = dm_push_task, 
+	.push_task = dm_push_task,
 	.pop_task = dmda_pop_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
@@ -633,10 +647,11 @@ struct starpu_sched_policy _starpu_sched_dm_policy = {
 	.policy_description = "performance model"
 };
 
-struct starpu_sched_policy _starpu_sched_dmda_policy = {
+struct starpu_sched_policy _starpu_sched_dmda_policy =
+{
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	.push_task = dmda_push_task, 
+	.push_task = dmda_push_task,
 	.pop_task = dmda_pop_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
@@ -644,10 +659,11 @@ struct starpu_sched_policy _starpu_sched_dmda_policy = {
 	.policy_description = "data-aware performance model"
 };
 
-struct starpu_sched_policy _starpu_sched_dmda_sorted_policy = {
+struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
+{
 	.init_sched = initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	.push_task = dmda_push_sorted_task, 
+	.push_task = dmda_push_sorted_task,
 	.pop_task = dmda_pop_ready_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
@@ -655,10 +671,11 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy = {
 	.policy_description = "data-aware performance model (sorted)"
 };
 
-struct starpu_sched_policy _starpu_sched_dmda_ready_policy = {
+struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
+{
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	.push_task = dmda_push_task, 
+	.push_task = dmda_push_task,
 	.pop_task = dmda_pop_ready_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,

@@ -38,7 +38,8 @@ struct _starpu_data_replicate;
 
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
-union _starpu_async_channel_event {
+union _starpu_async_channel_event
+{
 	int dummy;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t cuda_event;
@@ -48,7 +49,8 @@ union _starpu_async_channel_event {
 #endif
 };
 
-struct _starpu_async_channel {
+struct _starpu_async_channel
+{
 	union _starpu_async_channel_event event;
 	enum _starpu_node_kind type;
 };

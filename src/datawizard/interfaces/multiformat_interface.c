@@ -40,7 +40,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods multiformat_copy_data_methods_s = {
+static const struct starpu_data_copy_methods multiformat_copy_data_methods_s =
+{
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -74,11 +75,12 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b);
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f);
 static uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle);
 #ifdef STARPU_USE_GORDON
-static int convert_multiformat_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_multiformat_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
 
-static struct starpu_data_interface_ops interface_multiformat_ops = {
+static struct starpu_data_interface_ops interface_multiformat_ops =
+{
 	.register_data_handle  = register_multiformat_handle,
 	.allocate_data_on_node = allocate_multiformat_buffer_on_node,
 	.handle_to_pointer     = multiformat_handle_to_pointer,
@@ -98,10 +100,11 @@ static struct starpu_data_interface_ops interface_multiformat_ops = {
 static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
-	struct starpu_multiformat_interface *multiformat_interface = 
+	struct starpu_multiformat_interface *multiformat_interface =
 		starpu_data_get_interface_on_node(handle, node);
 
-	switch(_starpu_get_node_kind(node)) {
+	switch(_starpu_get_node_kind(node))
+	{
 		case STARPU_CPU_RAM:
 			return multiformat_interface->cpu_ptr;
 #ifdef STARPU_USE_CUDA
@@ -123,11 +126,13 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
 
 	unsigned node;
-	for (node = 0; node < STARPU_MAXNODES; node++) {
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
 		struct starpu_multiformat_interface *local_interface =
 			starpu_data_get_interface_on_node(handle, node);
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			local_interface->cpu_ptr    = multiformat_interface->cpu_ptr;
 #ifdef STARPU_USE_CUDA
 			local_interface->cuda_ptr   = multiformat_interface->cuda_ptr;
@@ -138,7 +143,8 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 			local_interface->dev_handle = multiformat_interface->dev_handle;
 			local_interface->offset     = multiformat_interface->offset;
 		}
-		else {
+		else
+		{
 			local_interface->cpu_ptr    = NULL;
 #ifdef STARPU_USE_CUDA
 			local_interface->cuda_ptr   = NULL;
@@ -161,7 +167,8 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
 {
-	struct starpu_multiformat_interface multiformat = {
+	struct starpu_multiformat_interface multiformat =
+	{
 		.cpu_ptr    = ptr,
 #ifdef STARPU_USE_CUDA
 		.cuda_ptr   = NULL,
@@ -169,7 +176,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 #ifdef STARPu_USE_OPENCL
 		.opencl_ptr = NULL,
 #endif
-		.nx         = nobjects, 
+		.nx         = nobjects,
 		.dev_handle = (uintptr_t) ptr,
 		.offset     = 0,
 		.ops        = format_ops
@@ -231,7 +238,8 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
 	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
 
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free(multiformat_interface->cpu_ptr);
 			multiformat_interface->cpu_ptr = NULL;
@@ -261,14 +269,17 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 	ssize_t allocated_memory;
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
 			addr = (uintptr_t)malloc(allocated_memory);
-			if (!addr) {
+			if (!addr)
+			{
 				fail = 1;
 			}
-			else {
+			else
+			{
 				multiformat_interface->cpu_ptr = (void *) addr;
 				multiformat_interface->dev_handle = addr;
 			}
@@ -278,10 +289,12 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 			{
 				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize;
 				cudaError_t status = cudaMalloc((void **)&addr, allocated_memory);
-				if (STARPU_UNLIKELY(status)) {
+				if (STARPU_UNLIKELY(status))
+				{
 					STARPU_CUDA_REPORT_ERROR(status);
 				}
-				else {
+				else
+				{
 					multiformat_interface->cuda_ptr = (void *)addr;
 					multiformat_interface->dev_handle = addr;
 				}
@@ -296,10 +309,12 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
                                 ret = _starpu_opencl_allocate_memory(&ptr, allocated_memory, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
-				if (ret) {
+				if (ret)
+				{
 					fail = 1;
 				}
-				else {
+				else
+				{
 					multiformat_interface->opencl_ptr = (void *)addr;
 					multiformat_interface->dev_handle = addr;
 
@@ -358,11 +373,13 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 
 	cudaError_t status;
 
-	switch (kind) {
+	switch (kind)
+	{
 		case cudaMemcpyHostToDevice:
 		{
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
-			if (src_multiformat->cuda_ptr == NULL) {
+			if (src_multiformat->cuda_ptr == NULL)
+			{
 				src_multiformat->cuda_ptr = malloc(size);
 				if (src_multiformat->cuda_ptr == NULL)
 					return -ENOMEM;
@@ -376,7 +393,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 			dst_multiformat->conversion_time = starpu_timing_now() - tmp;
 
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
-			if (STARPU_UNLIKELY(status)) {
+			if (STARPU_UNLIKELY(status))
+			{
 				STARPU_CUDA_REPORT_ERROR(status);
 			}
 			break;
@@ -387,12 +405,12 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
-		
+
 			void *buffers[1];
 			struct starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
 			buffers[0] = dst_interface;
 			cl->cpu_func(buffers, NULL);
-							  
+
 			break;
 		}
 		case cudaMemcpyDeviceToDevice:
@@ -431,11 +449,13 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 	size_t size;
 	cudaError_t status;
 
-	switch (kind) {
+	switch (kind)
+	{
 		case cudaMemcpyHostToDevice:
 		{
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
-			if (src_multiformat->cuda_ptr == NULL) {
+			if (src_multiformat->cuda_ptr == NULL)
+			{
 				src_multiformat->cuda_ptr = malloc(size);
 				if (src_multiformat->cuda_ptr == NULL)
 					return -ENOMEM;
@@ -451,7 +471,8 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 
 			/* Actual copy from host to device */
 			status = cudaMemcpyAsync(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind, stream);
-			if (STARPU_UNLIKELY(status)) {
+			if (STARPU_UNLIKELY(status))
+			{
 				STARPU_CUDA_REPORT_ERROR(status);
 			}
 			break;
@@ -602,9 +623,11 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize;
 
-	if (src_multiformat->opencl_ptr == NULL) {
+	if (src_multiformat->opencl_ptr == NULL)
+	{
 		src_multiformat->opencl_ptr = malloc(src_multiformat->nx * src_multiformat->ops->opencl_elemsize);
-		if (src_multiformat->opencl_ptr == NULL) {
+		if (src_multiformat->opencl_ptr == NULL)
+		{
 			return -ENOMEM;
 		}
 	}

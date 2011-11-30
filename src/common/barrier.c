@@ -31,12 +31,13 @@ int _starpu_barrier_init(struct _starpu_barrier *barrier, int count)
 static
 int _starpu_barrier_test(struct _starpu_barrier *barrier)
 {
-    /*
-     * Check whether any threads are known to be waiting; report
-     * "BUSY" if so.
-     */
+	/*
+	 * Check whether any threads are known to be waiting; report
+	 * "BUSY" if so.
+	 */
         _STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex_exit);
-        if (barrier->reached_exit != barrier->count) {
+        if (barrier->reached_exit != barrier->count)
+	{
                 _STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex_exit);
                 return EBUSY;
         }
@@ -47,7 +48,8 @@ int _starpu_barrier_test(struct _starpu_barrier *barrier)
 int _starpu_barrier_destroy(struct _starpu_barrier *barrier)
 {
 	int ret = _starpu_barrier_test(barrier);
-	while (ret == EBUSY) {
+	while (ret == EBUSY)
+	{
 		ret = _starpu_barrier_test(barrier);
 	}
 	_STARPU_DEBUG("reached_exit %d\n", barrier->reached_exit);

@@ -22,7 +22,8 @@
 #include <starpu_util.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* Perform a ping pong between the two memory nodes */

@@ -138,18 +138,18 @@ void starpu_task_destroy(struct starpu_task *task)
    /* If starpu_task_destroy is called in a callback, we just set the destroy
       flag. The task will be destroyed after the callback returns */
    if (task == starpu_get_current_task()
-       && _starpu_get_local_worker_status() == STATUS_CALLBACK) {
+       && _starpu_get_local_worker_status() == STATUS_CALLBACK)
+   {
 
-      task->destroy = 1;
+	   task->destroy = 1;
 
-   } else {
-
-      starpu_task_deinit(task);
-
-      /* TODO handle the case of task with detach = 1 and destroy = 1 */
-      /* TODO handle the case of non terminated tasks -> return -EINVAL */
-	
-      free(task);
+   }
+   else
+   {
+	   starpu_task_deinit(task);
+	   /* TODO handle the case of task with detach = 1 and destroy = 1 */
+	   /* TODO handle the case of non terminated tasks -> return -EINVAL */
+	   free(task);
    }
 }
 
@@ -158,13 +158,15 @@ int starpu_task_wait(struct starpu_task *task)
         _STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 
-	if (task->detach || task->synchronous) {
+	if (task->detach || task->synchronous)
+	{
 		_STARPU_DEBUG("Task is detached or asynchronous. Waiting returns immediately\n");
 		_STARPU_LOG_OUT_TAG("einval");
 		return -EINVAL;
 	}
 
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+	{
 		_STARPU_LOG_OUT_TAG("edeadlk");
 		return -EDEADLK;
 	}
@@ -208,7 +210,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	_starpu_increment_nsubmitted_tasks();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-	
+
 	j->submitted = 1;
 
 	int ret = _starpu_enforce_deps_and_schedule(j, 1);
@@ -232,7 +234,8 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-                if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+                if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+		{
                         _STARPU_LOG_OUT_TAG("EDEADLK");
 			return -EDEADLK;
                 }
@@ -245,12 +248,14 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		uint32_t where = task->cl->where;
 		unsigned i;
-		if (!_starpu_worker_exists(where)) {
+		if (!_starpu_worker_exists(where))
+		{
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }
 		assert(task->cl->nbuffers <= STARPU_NMAXBUFS);
-		for (i = 0; i < task->cl->nbuffers; i++) {
+		for (i = 0; i < task->cl->nbuffers; i++)
+		{
 			/* Make sure handles are not partitioned */
 			assert(task->buffers[i].handle->nchildren == 0);
 		}
@@ -258,7 +263,8 @@ int starpu_task_submit(struct starpu_task *task)
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
-		if (task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0)) {
+		if (task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0))
+		{
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }
@@ -313,7 +319,7 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl)
 		fprintf(stderr, "Statistics for codelet %s\n", cl->model->symbol);
 
 	unsigned long total = 0;
-	
+
 	for (worker = 0; worker < nworkers; worker++)
 		total += cl->per_worker_stats[worker];
 
@@ -342,7 +348,7 @@ int starpu_task_wait_for_all(void)
 
 	while (nsubmitted > 0)
 		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
-	
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 	return 0;
@@ -363,7 +369,7 @@ int starpu_task_wait_for_no_ready(void)
 
 	while (nready > 0)
 		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
-	
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 	return 0;
@@ -436,16 +442,18 @@ double _starpu_task_get_conversion_time(struct starpu_task *task)
 	int i;
 	double conversion_time = 0.0;
 
-	for (i = 0; i < task->cl->nbuffers; i++) {
+	for (i = 0; i < task->cl->nbuffers; i++)
+	{
 		starpu_data_handle_t handle = task->buffers[i].handle;
 		enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
-		if (id == STARPU_MULTIFORMAT_INTERFACE_ID) {
+		if (id == STARPU_MULTIFORMAT_INTERFACE_ID)
+		{
 			struct starpu_multiformat_interface *tmp;
 			uint32_t node = starpu_worker_get_memory_node(task->workerid);
 			tmp = starpu_data_get_interface_on_node(handle, node);
 			conversion_time += tmp->conversion_time;
 			/* XXX : this may not be the right place to reset this field,
-			 * but we need to make sure the conversion time won't be counted 
+			 * but we need to make sure the conversion time won't be counted
                          * twice */
 			tmp->conversion_time = 0;
 		}

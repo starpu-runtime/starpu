@@ -20,7 +20,8 @@
 #include <core/jobs.h>
 #include <core/task.h>
 
-struct wrapper_func_args {
+struct wrapper_func_args
+{
 	void (*func)(void *);
 	void *arg;
 };
@@ -40,7 +41,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
 	/* create a wrapper codelet */
-	struct starpu_codelet wrapper_cl = {
+	struct starpu_codelet wrapper_cl =
+	{
 		.where = where,
 		.cuda_func = wrapper_func,
 		.cpu_func = wrapper_func,
@@ -49,7 +51,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		.nbuffers = 0
 	};
 
-	struct wrapper_func_args args = {
+	struct wrapper_func_args args =
+	{
 		.func = func,
 		.arg = arg
 	};

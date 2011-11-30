@@ -29,70 +29,66 @@
  **************TASK RELATED FUNCTIONS********
  *******************************************/
 
-void starpu_top_task_started(
-			struct starpu_task *task, 
-			int devid, 
-			const struct timespec *ts)
+void starpu_top_task_started(struct starpu_task *task,
+			     int devid,
+			     const struct timespec *ts)
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	STARPU_ASSERT(starpu_top_status_get());
 	char *str = (char *) malloc(sizeof(char)*64);
 	snprintf(str, 64,
 				"START;%llu;%d;%llu\n",
-				taskid, 
-				devid, 
+				taskid,
+				devid,
 				_starpu_top_timing_timespec_to_ms(ts));
 
 	_starpu_top_message_add(_starpu_top_mt, str);
 }
 
-void starpu_top_task_ended(
-			struct starpu_task *task, 
-			int devid, 
-			const struct timespec *ts)
+void starpu_top_task_ended(struct starpu_task *task,
+			   int devid,
+			   const struct timespec *ts)
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	(void) devid; //unused
 	STARPU_ASSERT(starpu_top_status_get());
 	char *str = (char *) malloc(sizeof(char)*64);
 	snprintf(str, 64,
-				"END;%llu;%llu\n", 
-				taskid, 
+				"END;%llu;%llu\n",
+				taskid,
 				_starpu_top_timing_timespec_to_ms(ts));
 
 	_starpu_top_message_add(_starpu_top_mt, str);
 }
 
-void starpu_top_task_prevision_timespec(
-			struct starpu_task *task,
-			int devid, 
-			const struct timespec* start, 
-			const struct timespec* end)
+void starpu_top_task_prevision_timespec(struct starpu_task *task,
+					int devid,
+					const struct timespec* start,
+					const struct timespec* end)
 {
-	starpu_top_task_prevision(task, 
-							devid, 
-							_starpu_top_timing_timespec_to_ms(start),
-							_starpu_top_timing_timespec_to_ms(end));
+	starpu_top_task_prevision(task,
+				  devid,
+				  _starpu_top_timing_timespec_to_ms(start),
+				  _starpu_top_timing_timespec_to_ms(end));
 }
 
-void starpu_top_task_prevision(
-			struct starpu_task *task, 
-			int devid, 
-			unsigned long long start, 
-			unsigned long long end)
+void starpu_top_task_prevision(struct starpu_task *task,
+			       int devid,
+			       unsigned long long start,
+			       unsigned long long end)
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	STARPU_ASSERT(starpu_top_status_get());
 	struct timespec now;
 	_starpu_clock_gettime(&now);
 	char * str= (char *)malloc(sizeof(char)*200);
-	snprintf(str, 128, 
-				"PREV;%llu;%d;%llu;%llu;%llu\n",
-				taskid,
-				devid,
-				_starpu_top_timing_timespec_to_ms(&now),
-				start,
-				end);
+	snprintf(str, 128,
+		 "PREV;%llu;%d;%llu;%llu;%llu\n",
+		 taskid,
+		 devid,
+		 _starpu_top_timing_timespec_to_ms(&now),
+		 start,
+		 end);
 
 	_starpu_top_message_add(_starpu_top_mt, str);
 }

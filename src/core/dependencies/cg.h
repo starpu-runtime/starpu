@@ -34,7 +34,8 @@
 struct _starpu_job;
 
 /* Completion Group list */
-struct _starpu_cg_list {
+struct _starpu_cg_list
+{
 	unsigned nsuccs; /* how many successors ? */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
@@ -46,20 +47,23 @@ struct _starpu_cg_list {
 #endif
 };
 
-enum _starpu_cg_type {
+enum _starpu_cg_type
+{
 	STARPU_CG_APPS=(1<<0),
 	STARPU_CG_TAG=(1<<1),
 	STARPU_CG_TASK=(1<<2)
 };
 
 /* Completion Group */
-struct _starpu_cg {
+struct _starpu_cg
+{
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
 
 	enum _starpu_cg_type cg_type;
 
-	union {
+	union
+	{
 		/* STARPU_CG_TAG */
 		struct _starpu_tag *tag;
 
@@ -70,7 +74,8 @@ struct _starpu_cg {
 		/* in case this completion group is related to an application,
 		 * we have to explicitely wake the waiting thread instead of
 		 * reschedule the corresponding task */
-		struct {
+		struct
+		{
 			unsigned completed;
 			pthread_mutex_t cg_mutex;
 			pthread_cond_t cg_cond;

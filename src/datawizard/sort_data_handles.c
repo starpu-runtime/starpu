@@ -39,7 +39,7 @@ static void find_data_path(struct _starpu_data_state *data, unsigned path[])
 		path[depth - level - 1] = current->sibling_index;
 		current = data->father_handle;
 	}
-} 
+}
 
 static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 				const unsigned pathB[], unsigned depthB)

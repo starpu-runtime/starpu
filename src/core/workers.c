@@ -52,7 +52,7 @@ struct _starpu_machine_config *_starpu_get_machine_config(void)
 uint32_t _starpu_worker_exists(uint32_t task_mask)
 {
 	return (task_mask & config.worker_mask);
-} 
+}
 
 uint32_t _starpu_can_submit_cuda_task(void)
 {
@@ -71,7 +71,8 @@ uint32_t _starpu_can_submit_opencl_task(void)
 
 static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
-	switch(arch) {
+	switch(arch)
+	{
 	case STARPU_CPU_WORKER:
 		if (cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
 			return cl->cpu_funcs[nimpl] != NULL;
@@ -119,7 +120,8 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 		return !!((task->cl->where & config.workers[workerid].worker_mask) &&
 				_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 	}
-	else {
+	else
+	{
 		if ((cl->type == STARPU_SPMD) || (cl->type == STARPU_FORKJOIN))
 		{
 			/* TODO we should add other types of constraints */
@@ -142,7 +144,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  */
 
 #ifdef STARPU_USE_GORDON
-static unsigned gordon_inited = 0;	
+static unsigned gordon_inited = 0;
 static struct _starpu_worker_set gordon_worker_set;
 #endif
 
@@ -187,19 +189,20 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		workerarg->terminated_jobs = _starpu_job_list_new();
 
 		starpu_task_list_init(&workerarg->local_tasks);
-	
+
 		workerarg->status = STATUS_INITIALIZING;
 
 		_STARPU_DEBUG("initialising worker %u\n", worker);
 
 		_starpu_init_worker_queue(workerarg);
 
-		switch (workerarg->arch) {
+		switch (workerarg->arch)
+		{
 #ifdef STARPU_USE_CPU
 			case STARPU_CPU_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				pthread_create(&workerarg->worker_thread, 
+				pthread_create(&workerarg->worker_thread,
 						NULL, _starpu_cpu_worker, workerarg);
 				break;
 #endif
@@ -207,7 +210,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				pthread_create(&workerarg->worker_thread, 
+				pthread_create(&workerarg->worker_thread,
 						NULL, _starpu_cuda_worker, workerarg);
 
 				break;
@@ -216,23 +219,23 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_OPENCL_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				pthread_create(&workerarg->worker_thread, 
+				pthread_create(&workerarg->worker_thread,
 						NULL, _starpu_opencl_worker, workerarg);
 
 				break;
 #endif
 #ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
-				/* we will only launch gordon once, but it will handle 
+				/* we will only launch gordon once, but it will handle
 				 * the different SPU workers */
 				if (!gordon_inited)
 				{
-					gordon_worker_set.nworkers = config->ngordon_spus; 
+					gordon_worker_set.nworkers = config->ngordon_spus;
 					gordon_worker_set.workers = &config->workers[worker];
 
 					gordon_worker_set.set_is_initialized = 0;
 
-					pthread_create(&gordon_worker_set.worker_thread, NULL, 
+					pthread_create(&gordon_worker_set.worker_thread, NULL,
 							_starpu_gordon_worker, &gordon_worker_set);
 
 					_STARPU_PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
@@ -243,7 +246,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 					gordon_inited = 1;
 				}
-				
+
 				workerarg->set = &gordon_worker_set;
 				gordon_worker_set.joined = 0;
 				workerarg->worker_is_running = 1;
@@ -259,10 +262,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
 
-		switch (workerarg->arch) {
+		switch (workerarg->arch)
+		{
 			case STARPU_CPU_WORKER:
 			case STARPU_CUDA_WORKER:
-			case STARPU_OPENCL_WORKER:			  
+			case STARPU_OPENCL_WORKER:
 				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
 					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
@@ -355,11 +359,12 @@ int starpu_init(struct starpu_conf *user_conf)
 		/* Wait for the other one changing it */
 		_STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
 	init_count++;
-	if (initialized == INITIALIZED) {
-	  /* He initialized it, don't do it again, and let the others get the mutex */
-	  _STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-	  return 0;
-	  }
+	if (initialized == INITIALIZED)
+	{
+		/* He initialized it, don't do it again, and let the others get the mutex */
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		return 0;
+	}
 	/* initialized == UNINITIALIZED */
 	initialized = CHANGING;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
@@ -370,11 +375,11 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 
 	srand(2008);
-	
+
 #ifdef STARPU_USE_FXT
 	_starpu_start_fxt_profiling();
 #endif
-	
+
 	_starpu_open_debug_logfile();
 
 	_starpu_data_interface_init();
@@ -390,7 +395,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	config.user_conf = user_conf;
 
 	ret = _starpu_build_topology(&config);
-	if (ret) {
+	if (ret)
+	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 		initialized = UNINITIALIZED;
@@ -402,7 +408,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	/* We need to store the current task handled by the different
 	 * threads */
-	_starpu_initialize_current_task_key();	
+	_starpu_initialize_current_task_key();
 
 	/* initialize the scheduling policy */
 	_starpu_init_sched_policy(&config);
@@ -423,7 +429,7 @@ int starpu_init(struct starpu_conf *user_conf)
 }
 
 /*
- * Handle runtime termination 
+ * Handle runtime termination
  */
 
 static void _starpu_terminate_workers(struct _starpu_machine_config *config)
@@ -434,7 +440,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 	for (workerid = 0; workerid < config->topology.nworkers; workerid++)
 	{
 		starpu_wake_all_blocked_workers();
-		
+
 		_STARPU_DEBUG("wait for worker %u\n", workerid);
 
 		struct _starpu_worker_set *set = config->workers[workerid].set;
@@ -442,13 +448,16 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
-		if (set){ 
-			if (!set->joined) {
+		if (set)
+		{
+			if (!set->joined)
+			{
 				if (!pthread_equal(pthread_self(), set->worker_thread))
 				{
 					status = pthread_join(set->worker_thread, NULL);
 #ifdef STARPU_VERBOSE
-					if (status) {
+					if (status)
+					{
 						_STARPU_DEBUG("pthread_join -> %d\n", status);
                                         }
 #endif
@@ -457,12 +466,14 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 				set->joined = 1;
 			}
 		}
-		else {
+		else
+		{
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 			{
 				status = pthread_join(worker->worker_thread, NULL);
 #ifdef STARPU_VERBOSE
-				if (status) {
+				if (status)
+				{
 					_STARPU_DEBUG("pthread_join -> %d\n", status);
                                 }
 #endif
@@ -511,7 +522,8 @@ void starpu_shutdown(void)
 	const char *stats;
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
-	if (init_count) {
+	if (init_count)
+	{
 		_STARPU_DEBUG("Still somebody needing StarPU, don't deinitialize\n");
 		return;
 	}
@@ -633,7 +645,8 @@ int starpu_worker_get_id(void)
 	{
 		return worker->workerid;
 	}
-	else {
+	else
+	{
 		/* there is no worker associated to that thread, perhaps it is
 		 * a thread from the application or this is some SPU worker */
 		return -1;
@@ -649,7 +662,8 @@ int starpu_combined_worker_get_id(void)
 	{
 		return worker->combined_workerid;
 	}
-	else {
+	else
+	{
 		/* there is no worker associated to that thread, perhaps it is
 		 * a thread from the application or this is some SPU worker */
 		return -1;
@@ -665,7 +679,8 @@ int starpu_combined_worker_get_size(void)
 	{
 		return worker->worker_size;
 	}
-	else {
+	else
+	{
 		/* there is no worker associated to that thread, perhaps it is
 		 * a thread from the application or this is some SPU worker */
 		return -1;
@@ -681,7 +696,8 @@ int starpu_combined_worker_get_rank(void)
 	{
 		return worker->current_rank;
 	}
-	else {
+	else
+	{
 		/* there is no worker associated to that thread, perhaps it is
 		 * a thread from the application or this is some SPU worker */
 		return -1;

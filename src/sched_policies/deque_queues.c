@@ -100,7 +100,8 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 	{
 		new_list = NULL;
 	}
-	else {
+	else
+	{
 		/* there is a task */
 		old_list = deque_queue->jobq;
 		new_list = _starpu_job_list_new();
@@ -123,7 +124,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;
-				
+
 				_starpu_job_list_erase(old_list, i);
 				_starpu_job_list_push_back(new_list, i);
 				i->nimpl = nimpl;
@@ -141,7 +142,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 			deque_queue->njobs -= new_list_size;
 		}
 	}
-	
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;

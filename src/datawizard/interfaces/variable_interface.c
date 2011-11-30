@@ -42,7 +42,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods variable_copy_data_methods_s = {
+static const struct starpu_data_copy_methods variable_copy_data_methods_s =
+{
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -75,10 +76,11 @@ static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
 static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
-static struct starpu_data_interface_ops interface_variable_ops = {
+static struct starpu_data_interface_ops interface_variable_ops =
+{
 	.register_data_handle = register_variable_handle,
 	.allocate_data_on_node = allocate_variable_buffer_on_node,
 	.handle_to_pointer = variable_handle_to_pointer,
@@ -91,7 +93,7 @@ static struct starpu_data_interface_ops interface_variable_ops = {
 	.convert_to_gordon = convert_variable_to_gordon,
 #endif
 	.interfaceid = STARPU_VARIABLE_INTERFACE_ID,
-	.interface_size = sizeof(struct starpu_variable_interface), 
+	.interface_size = sizeof(struct starpu_variable_interface),
 	.display = display_variable_interface
 };
 
@@ -110,10 +112,12 @@ static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_
 		struct starpu_variable_interface *local_interface = (struct starpu_variable_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			local_interface->ptr = STARPU_VARIABLE_GET_PTR(data_interface);
 		}
-		else {
+		else
+		{
 			local_interface->ptr = 0;
 		}
 
@@ -122,7 +126,7 @@ static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_
 }
 
 #ifdef STARPU_USE_GORDON
-int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
 {
 	*ptr = STARPU_VARIABLE_GET_PTR(interface);
 	(*ss).size = STARPU_VARIABLE_GET_ELEMSIZE(interface);
@@ -135,12 +139,13 @@ int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strid
 void starpu_variable_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
                         uintptr_t ptr, size_t elemsize)
 {
-	struct starpu_variable_interface variable = {
+	struct starpu_variable_interface variable =
+	{
 		.ptr = ptr,
 		.elemsize = elemsize
-	};	
+	};
 
-	starpu_data_register(handleptr, home_node, &variable, &interface_variable_ops); 
+	starpu_data_register(handleptr, home_node, &variable, &interface_variable_ops);
 }
 
 
@@ -156,7 +161,7 @@ static int variable_compare(void *data_interface_a, void *data_interface_b)
 
 	/* Two variables are considered compatible if they have the same size */
 	return (variable_a->elemsize == variable_b->elemsize);
-} 
+}
 
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f)
 {
@@ -208,7 +213,8 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 	cudaError_t status;
 #endif
 
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			addr = (uintptr_t)malloc(elemsize);
 			if (!addr)
@@ -233,7 +239,8 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
                                 void *ptr;
                                 ret = _starpu_opencl_allocate_memory(&ptr, elemsize, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
-				if (ret) {
+				if (ret)
+				{
 					fail = 1;
 				}
 				break;
@@ -251,14 +258,15 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 
 	/* update the data properly in consequence */
 	variable_interface->ptr = addr;
-	
+
 	return allocated_memory;
 }
 
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 {
 	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void*)STARPU_VARIABLE_GET_PTR(data_interface));
 			break;
@@ -315,7 +323,8 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	{
 		return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
 	}
-	else {
+	else
+	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		int src_dev = _starpu_memory_node_to_devid(src_node);
 		int dst_dev = _starpu_memory_node_to_devid(dst_node);
@@ -384,7 +393,8 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					v
 	{
 		return copy_cuda_async_common(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToDevice);
 	}
-	else {
+	else
+	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		int src_dev = _starpu_memory_node_to_devid(src_node);
 		int dst_dev = _starpu_memory_node_to_devid(dst_node);

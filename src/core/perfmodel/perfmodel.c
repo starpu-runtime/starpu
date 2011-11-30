@@ -30,7 +30,7 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
-		
+
 /* This flag indicates whether performance models should be calibrated or not.
  *	0: models need not be calibrated
  *	1: models must be calibrated
@@ -72,7 +72,7 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum s
 {
 	double exp = -1.0;
 	double (*per_arch_cost_model)(struct starpu_buffer_descr *);
-	
+
 	per_arch_cost_model = model->per_arch[arch][nimpl].cost_model;
 
 	if (per_arch_cost_model)
@@ -99,7 +99,8 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	{
 		return _STARPU_OPENCL_ALPHA;
 	}
-	else if (perf_archtype < STARPU_NARCH_VARIATIONS) {
+	else if (perf_archtype < STARPU_NARCH_VARIATIONS)
+	{
 		/* Gordon value */
 		return _STARPU_GORDON_ALPHA;
 	}
@@ -115,7 +116,8 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, enum sta
 	double exp;
 	double alpha;
 
-	if (model->cost_model) {
+	if (model->cost_model)
+	{
 		exp = model->cost_model(task->buffers);
 		alpha = starpu_worker_get_relative_speedup(arch);
 
@@ -137,7 +139,8 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 	if (!load_model)
 		return;
 
-	switch (model->type) {
+	switch (model->type)
+	{
 		case STARPU_PER_ARCH:
 		case STARPU_COMMON:
 			break;
@@ -160,9 +163,11 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 
 static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, enum starpu_perf_archtype arch,  unsigned nimpl)
 {
-	if (model) {
+	if (model)
+	{
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-		switch (model->type) {
+		switch (model->type)
+		{
 			case STARPU_PER_ARCH:
 
 				return per_arch_task_expected_perf(model, arch, task, nimpl);
@@ -182,7 +187,7 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 
 			default:
 				STARPU_ABORT();
-		};
+		}
 	}
 
 	/* no model was found */
@@ -211,7 +216,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	/* If we don't need to read the content of the handle */
 	if (!(mode & STARPU_R))
 		return 0.0;
-	
+
 	if (_starpu_is_data_present_or_requested(handle, memory_node))
 		return 0.0;
 
@@ -259,9 +264,8 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 	const char *home_path = getenv("HOME");
 	if (!home_path)
 		home_path = getenv("USERPROFILE");
-	if (!home_path) {
+	if (!home_path)
 		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
-	}
 	snprintf(path, maxlen, "%s/.starpu/sampling/", home_path);
 #endif
 }
@@ -294,8 +298,8 @@ void _starpu_create_sampling_directory_if_needed(void)
 		/* The performance of the codelets are stored in
 		 * $STARPU_PERF_MODEL_DIR/codelets/ while those of the bus are stored in
 		 * $STARPU_PERF_MODEL_DIR/bus/ so that we don't have name collisions */
-		
-		/* Testing if a directory exists and creating it otherwise 
+
+		/* Testing if a directory exists and creating it otherwise
 		   may not be safe: it is possible that the permission are
 		   changed in between. Instead, we create it and check if
 		   it already existed before */
@@ -305,13 +309,13 @@ void _starpu_create_sampling_directory_if_needed(void)
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
-	
+
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
-	
+
 		/* Per-task performance models */
 		char perf_model_dir_codelets[256];
 		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
@@ -320,13 +324,13 @@ void _starpu_create_sampling_directory_if_needed(void)
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
-	
+
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir_codelets, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
-	
+
 		/* Performance of the memory subsystem */
 		char perf_model_dir_bus[256];
 		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, 256);
@@ -335,13 +339,13 @@ void _starpu_create_sampling_directory_if_needed(void)
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
-	
+
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir_bus, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
-	
+
 		/* Performance debug measurements */
 		char perf_model_dir_debug[256];
 		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, 256);
@@ -350,13 +354,13 @@ void _starpu_create_sampling_directory_if_needed(void)
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
-	
+
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir_debug, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
-	
+
 		directory_existence_was_tested = 1;
 	}
 }

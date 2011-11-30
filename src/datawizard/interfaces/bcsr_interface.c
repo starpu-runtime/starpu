@@ -42,7 +42,8 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTR
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 #endif
 
-static const struct starpu_data_copy_methods bcsr_copy_data_methods_s = {
+static const struct starpu_data_copy_methods bcsr_copy_data_methods_s =
+{
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -68,7 +69,8 @@ static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle_t handle);
 
 
-static struct starpu_data_interface_ops interface_bcsr_ops = {
+static struct starpu_data_interface_ops interface_bcsr_ops =
+{
 	.register_data_handle = register_bcsr_handle,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.free_data_on_node = free_bcsr_buffer_on_node,
@@ -90,12 +92,14 @@ static void register_bcsr_handle(starpu_data_handle_t handle, uint32_t home_node
 		struct starpu_bcsr_interface *local_interface = (struct starpu_bcsr_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			local_interface->nzval = bcsr_interface->nzval;
 			local_interface->colind = bcsr_interface->colind;
 			local_interface->rowptr = bcsr_interface->rowptr;
 		}
-		else {
+		else
+		{
 			local_interface->nzval = 0;
 			local_interface->colind = NULL;
 			local_interface->rowptr = NULL;
@@ -115,7 +119,8 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, uint32_t home_no
 		uint32_t *rowptr, uint32_t firstentry,
 		uint32_t r, uint32_t c, size_t elemsize)
 {
-	struct starpu_bcsr_interface bcsr_interface = {
+	struct starpu_bcsr_interface bcsr_interface =
+	{
 		.nzval = nzval,
 		.colind = colind,
 		.rowptr = rowptr,
@@ -212,7 +217,7 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, node);
-	
+
 	return data_interface->nzval;
 }
 
@@ -245,7 +250,7 @@ static size_t bcsr_interface_get_size(starpu_data_handle_t handle)
 	uint32_t c = starpu_bcsr_get_c(handle);
 	size_t elemsize = starpu_bcsr_get_elemsize(handle);
 
-	size = nnz*r*c*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t); 
+	size = nnz*r*c*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
 
 	return size;
 }
@@ -272,7 +277,8 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			addr_nzval = (uintptr_t)malloc(nnz*r*c*elemsize);
 			if (!addr_nzval)
@@ -305,42 +311,43 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-                        {
-                                int ret;
-                                void *ptr;
+		{
+			int ret;
+			void *ptr;
 
-                                ret = _starpu_opencl_allocate_memory(&ptr, nnz*r*c*elemsize, CL_MEM_READ_WRITE);
-                                addr_nzval = (uintptr_t)ptr;
-                                if (ret) goto fail_nzval;
+			ret = _starpu_opencl_allocate_memory(&ptr, nnz*r*c*elemsize, CL_MEM_READ_WRITE);
+			addr_nzval = (uintptr_t)ptr;
+			if (ret) goto fail_nzval;
 
-                                ret = _starpu_opencl_allocate_memory(&ptr, nnz*sizeof(uint32_t), CL_MEM_READ_WRITE);
-                                addr_colind = ptr;
-				if (ret) goto fail_colind;
+			ret = _starpu_opencl_allocate_memory(&ptr, nnz*sizeof(uint32_t), CL_MEM_READ_WRITE);
+			addr_colind = ptr;
+			if (ret) goto fail_colind;
 
-                                ret = _starpu_opencl_allocate_memory(&ptr, (nrow+1)*sizeof(uint32_t), CL_MEM_READ_WRITE);
-                                addr_rowptr = ptr;
-				if (ret) goto fail_rowptr;
+			ret = _starpu_opencl_allocate_memory(&ptr, (nrow+1)*sizeof(uint32_t), CL_MEM_READ_WRITE);
+			addr_rowptr = ptr;
+			if (ret) goto fail_rowptr;
 
-                                break;
-                        }
+			break;
+		}
 #endif
 		default:
 			assert(0);
 	}
 
 	/* allocation succeeded */
-	allocated_memory = 
+	allocated_memory =
 		nnz*r*c*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
 
 	/* update the data properly in consequence */
 	bcsr_interface->nzval = addr_nzval;
 	bcsr_interface->colind = addr_colind;
 	bcsr_interface->rowptr = addr_rowptr;
-	
+
 	return allocated_memory;
 
 fail_rowptr:
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void *)addr_colind);
 #ifdef STARPU_USE_CUDA
@@ -358,7 +365,8 @@ fail_rowptr:
 	}
 
 fail_colind:
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void *)addr_nzval);
 #ifdef STARPU_USE_CUDA
@@ -386,7 +394,8 @@ static void free_bcsr_buffer_on_node(void *data_interface, uint32_t node)
 	struct starpu_bcsr_interface *bcsr_interface = (struct starpu_bcsr_interface *) data_interface;
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void*)bcsr_interface->nzval);
 			free((void*)bcsr_interface->colind);

@@ -32,7 +32,7 @@ void _starpu_notify_dependencies(struct _starpu_job *j)
 
 	/* unlock tasks depending on that task */
 	_starpu_notify_task_dependencies(j);
-	
+
 	/* unlock tags depending on that task */
 	if (j->task->use_tag)
 		_starpu_notify_tag_dependencies(j->tag);

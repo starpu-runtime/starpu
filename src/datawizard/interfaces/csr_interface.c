@@ -42,7 +42,8 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #endif
 
-static const struct starpu_data_copy_methods csr_copy_data_methods_s = {
+static const struct starpu_data_copy_methods csr_copy_data_methods_s =
+{
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -70,7 +71,8 @@ static size_t csr_interface_get_size(starpu_data_handle_t handle);
 static int csr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle);
 
-static struct starpu_data_interface_ops interface_csr_ops = {
+static struct starpu_data_interface_ops interface_csr_ops =
+{
 	.register_data_handle = register_csr_handle,
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
 	.free_data_on_node = free_csr_buffer_on_node,
@@ -92,11 +94,13 @@ static void register_csr_handle(starpu_data_handle_t handle, uint32_t home_node,
 		struct starpu_csr_interface *local_interface = (struct starpu_csr_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			local_interface->nzval = csr_interface->nzval;
 			local_interface->colind = csr_interface->colind;
 		}
-		else {
+		else
+		{
 			local_interface->nzval = 0;
 			local_interface->colind = NULL;
 		}
@@ -114,7 +118,8 @@ static void register_csr_handle(starpu_data_handle_t handle, uint32_t home_node,
 void starpu_csr_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
-	struct starpu_csr_interface csr_interface = {
+	struct starpu_csr_interface csr_interface =
+	{
 		.nnz = nnz,
 		.nrow = nrow,
 		.nzval = nzval,
@@ -246,7 +251,8 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			addr_nzval = (uintptr_t)malloc(nnz*elemsize);
 			if (!addr_nzval)
@@ -303,18 +309,19 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 	}
 
 	/* allocation succeeded */
-	allocated_memory = 
+	allocated_memory =
 		nnz*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
 
 	/* update the data properly in consequence */
 	csr_interface->nzval = addr_nzval;
 	csr_interface->colind = addr_colind;
 	csr_interface->rowptr = addr_rowptr;
-	
+
 	return allocated_memory;
 
 fail_rowptr:
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void *)addr_colind);
 #ifdef STARPU_USE_CUDA
@@ -332,7 +339,8 @@ fail_rowptr:
 	}
 
 fail_colind:
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void *)addr_nzval);
 #ifdef STARPU_USE_CUDA
@@ -360,7 +368,8 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void*)csr_interface->nzval);
 			free((void*)csr_interface->colind);
@@ -465,13 +474,14 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
-	
+
 	if (synchronous_fallback)
 	{
 		_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 		return 0;
 	}
-	else {
+	else
+	{
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		return -EAGAIN;
 	}
@@ -569,13 +579,14 @@ static int copy_cuda_peer_async(void *src_interface STARPU_ATTRIBUTE_UNUSED, uns
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
-	
+
 	if (synchronous_fallback)
 	{
 		_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 		return 0;
 	}
-	else {
+	else
+	{
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		return -EAGAIN;
 	}

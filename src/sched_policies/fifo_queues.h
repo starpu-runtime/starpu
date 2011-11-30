@@ -22,7 +22,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
-struct _starpu_fifo_taskq {
+struct _starpu_fifo_taskq
+{
 	/* the actual list */
 	struct starpu_task_list taskq;
 

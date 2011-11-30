@@ -63,7 +63,7 @@ static void limit_gpu_mem_if_needed(int devid)
 	_STARPU_DEBUG("CUDA device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
 			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
-	
+
 	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
 	cures = cudaMalloc((void **)&wasted_memory[devid], to_waste);
 	if (STARPU_UNLIKELY(cures))
@@ -161,7 +161,8 @@ unsigned _starpu_get_cuda_device_count(void)
 	if (STARPU_UNLIKELY(cures))
 		 return 0;
 
-	if (cnt > STARPU_MAXCUDADEVS) {
+	if (cnt > STARPU_MAXCUDADEVS)
+	{
 		fprintf(stderr, "# Warning: %d CUDA devices available. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", cnt, STARPU_MAXCUDADEVS);
 		cnt = STARPU_MAXCUDADEVS;
 	}
@@ -191,13 +192,14 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
-	if (cl->model && cl->model->benchmarking) 
+	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
 	ret = _starpu_fetch_task_input(task, mask);
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the 
+		 * the codelet cannot be fetched ... put the
 		 * codelet back, and try it later */
 		return -EAGAIN;
 	}
@@ -219,12 +221,14 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 
-	if (cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS) {
+	if (cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
+	{
 		_starpu_cl_func func = cl->cuda_func;
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}
-	else {
+	else
+	{
 		/* _STARPU_DEBUG("Cuda driver : running kernel * (%d)\n", j->nimpl); */
 		_starpu_cl_func func = cl->cuda_funcs[j->nimpl];
 		STARPU_ASSERT(func);
@@ -305,8 +309,8 @@ void *_starpu_cuda_worker(void *arg)
 		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		task = _starpu_pop_task(args);
-	
-                if (task == NULL) 
+
+                if (task == NULL)
 		{
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
@@ -335,8 +339,10 @@ void *_starpu_cuda_worker(void *arg)
 
 		_starpu_set_current_task(NULL);
 
-		if (res) {
-			switch (res) {
+		if (res)
+		{
+			switch (res)
+			{
 				case -EAGAIN:
 					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
 					_starpu_push_task(j, 0);
@@ -372,7 +378,8 @@ void *_starpu_cuda_worker(void *arg)
 void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
 {
 	char *errormsg;
-	switch (status) {
+	switch (status)
+	{
 		case CUBLAS_STATUS_SUCCESS:
 			errormsg = "success";
 			break;

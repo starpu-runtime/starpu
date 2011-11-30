@@ -88,7 +88,8 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 	{
 		bundle->list = entry;
 	}
-	else {
+	else
+	{
 		struct starpu_task_bundle_entry *item;
 		item = bundle->list;
 		while (item->next)
@@ -188,7 +189,8 @@ double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle,  en
 	struct starpu_task_bundle_entry *entry;
 	entry = bundle->list;
 
-	while (entry) {
+	while (entry)
+	{
 		double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
 
 		/* In case the task is not calibrated, we consider the task
@@ -198,7 +200,7 @@ double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle,  en
 
 		entry = entry->next;
 	}
-	
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_length;
@@ -215,7 +217,8 @@ double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enu
 	struct starpu_task_bundle_entry *entry;
 	entry = bundle->list;
 
-	while (entry) {
+	while (entry)
+	{
 		double task_power = starpu_task_expected_power(entry->task, arch, nimpl);
 
 		/* In case the task is not calibrated, we consider the task
@@ -225,13 +228,14 @@ double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enu
 
 		entry = entry->next;
 	}
-	
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_power;
 }
 
-struct handle_list {
+struct handle_list
+{
 	starpu_data_handle_t handle;
 	enum starpu_access_mode mode;
 	struct handle_list *next;
@@ -271,7 +275,8 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 		/* The handle is already in the list */
 		prev->mode |= mode;
 	}
-	else {
+	else
+	{
 		/* The handle was not in the list, we insert it after prev */
 		struct handle_list *link = (struct handle_list *) malloc(sizeof(struct handle_list));
 		STARPU_ASSERT(link);
@@ -293,7 +298,8 @@ double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle 
 
 	/* For each task in the bundle */
 	struct starpu_task_bundle_entry *entry = bundle->list;
-	while (entry) {
+	while (entry)
+	{
 		struct starpu_task *task = entry->task;
 
 		if (task->cl)

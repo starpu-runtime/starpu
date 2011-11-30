@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,8 +31,9 @@
 
 #define NPRIO_LEVELS	(MAX_LEVEL - MIN_LEVEL + 1)
 
-struct starpu_priority_taskq_s {
-	/* the actual lists 
+struct starpu_priority_taskq_s
+{
+	/* the actual lists
 	 *	taskq[p] is for priority [p - STARPU_MIN_PRIO] */
 	struct starpu_task_list taskq[NPRIO_LEVELS];
 	unsigned ntasks[NPRIO_LEVELS];
@@ -43,19 +44,19 @@ struct starpu_priority_taskq_s {
 /* the former is the actual queue, the latter some container */
 static struct starpu_priority_taskq_s *taskq;
 
-/* keep track of the total number of tasks to be scheduled to avoid infinite 
+/* keep track of the total number of tasks to be scheduled to avoid infinite
  * polling when there are really few tasks in the overall queue */
 static pthread_cond_t global_sched_cond;
 static pthread_mutex_t global_sched_mutex;
 
 /*
- * Centralized queue with priorities 
+ * Centralized queue with priorities
  */
 
 static struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
 {
 	struct starpu_priority_taskq_s *central_queue;
-	
+
 	central_queue = (struct starpu_priority_taskq_s *) malloc(sizeof(struct starpu_priority_taskq_s));
 	central_queue->total_ntasks = 0;
 
@@ -74,8 +75,8 @@ static void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *prior
 	free(priority_queue);
 }
 
-static void initialize_eager_center_priority_policy(struct starpu_machine_topology *topology, 
-			__attribute__ ((unused))	struct starpu_sched_policy *_policy) 
+static void initialize_eager_center_priority_policy(struct starpu_machine_topology *topology,
+			__attribute__ ((unused))	struct starpu_sched_policy *_policy)
 {
 	/* In this policy, we support more than two levels of priority. */
 	starpu_sched_set_min_priority(MIN_LEVEL);
@@ -93,7 +94,7 @@ static void initialize_eager_center_priority_policy(struct starpu_machine_topolo
 }
 
 static void deinitialize_eager_center_priority_policy(struct starpu_machine_topology *topology __attribute__ ((unused)),
-		   __attribute__ ((unused)) struct starpu_sched_policy *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
 	/* TODO check that there is no task left in the queue */
 
@@ -107,7 +108,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	_STARPU_TRACE_JOB_PUSH(task, 1);
-	
+
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
 	starpu_task_list_push_front(&taskq->taskq[priolevel], task);
@@ -141,15 +142,18 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 	if (taskq->total_ntasks > 0)
 	{
 		unsigned priolevel = NPRIO_LEVELS - 1;
-		do {
-			if (taskq->ntasks[priolevel] > 0) {
+		do
+		{
+			if (taskq->ntasks[priolevel] > 0)
+			{
 				/* there is some task that we can grab */
 				task = starpu_task_list_pop_back(&taskq->taskq[priolevel]);
 				taskq->ntasks[priolevel]--;
 				taskq->total_ntasks--;
 				_STARPU_TRACE_JOB_POP(task, 0);
 			}
-		} while (!task && priolevel-- > 0);
+		}
+		while (!task && priolevel-- > 0);
 	}
 	STARPU_ASSERT(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0) || !"prio does not support \"can_execute\"");
 
@@ -158,7 +162,8 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 	return task;
 }
 
-struct starpu_sched_policy _starpu_sched_prio_policy = {
+struct starpu_sched_policy _starpu_sched_prio_policy =
+{
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
 	/* we always use priorities in that policy */

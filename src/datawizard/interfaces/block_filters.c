@@ -41,7 +41,8 @@ void starpu_block_filter_func_block(void *father_interface, void *child_interfac
 	block_child->nz = nz;
 	block_child->elemsize = elemsize;
 
-	if (block_father->ptr) {
+	if (block_father->ptr)
+	{
                 block_child->ptr = block_father->ptr + offset;
                 block_child->ldy = block_father->ldy;
                 block_child->ldz = block_father->ldz;

@@ -84,7 +84,7 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 	free(h);
 	s->head = p;
 
-	
+
 	if( NULL == s->head )
 		//the element tail was pointing to is free(), so we need an update
 		s->tail = s->head;

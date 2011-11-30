@@ -32,7 +32,8 @@ static void map_filter(starpu_data_handle_t root_handle, struct starpu_data_filt
 		/* this is a leaf */
 		starpu_data_partition(root_handle, f);
 	}
-	else {
+	else
+	{
 		/* try to apply the data filter recursively */
 		unsigned child;
 		for (child = 0; child < root_handle->nchildren; child++)
@@ -94,7 +95,7 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 	starpu_data_handle_t current_handle = root_handle;
 
 	/* the variable number of argument must correlate the depth in the tree */
-	unsigned i; 
+	unsigned i;
 	for (i = 0; i < depth; i++)
 	{
 		unsigned next_child;
@@ -185,7 +186,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			struct _starpu_data_replicate *initial_replicate; 
+			struct _starpu_data_replicate *initial_replicate;
 			struct _starpu_data_replicate *child_replicate;
 
 			initial_replicate = &initial_handle->per_node[node];
@@ -197,7 +198,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
 			child_replicate->relaxed_coherency = 0;
-			
+
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
 			void *child_interface = starpu_data_get_interface_on_node(child, node);
@@ -210,7 +211,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		{
 			struct _starpu_data_replicate *child_replicate;
 			child_replicate = &child->per_worker[worker];
-			
+
 			child_replicate->state = STARPU_INVALID;
 			child_replicate->allocated = 0;
 			child_replicate->automatically_allocated = 0;
@@ -264,11 +265,11 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		int ret;
 		ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
-		/* for now we pretend that the RAM is almost unlimited and that gathering 
+		/* for now we pretend that the RAM is almost unlimited and that gathering
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */
-		STARPU_ASSERT(ret == 0); 
+		STARPU_ASSERT(ret == 0);
 
 		_starpu_data_free_interfaces(&root_handle->children[child]);
 		_starpu_data_requester_list_delete(child_handle->req_list);
@@ -278,7 +279,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 	/* the gathering_node should now have a valid copy of all the children.
 	 * For all nodes, if the node had all copies and none was locally
 	 * allocated then the data is still valid there, else, it's invalidated
-	 * for the gathering node, if we have some locally allocated data, we 
+	 * for the gathering node, if we have some locally allocated data, we
 	 * copy all the children (XXX this should not happen so we just do not
 	 * do anything since this is transparent ?) */
 	unsigned still_valid[STARPU_MAXNODES];
@@ -299,9 +300,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 		{
 			struct _starpu_data_replicate *local = &root_handle->children[child].per_node[node];
 
-			if (local->state == STARPU_INVALID) {
+			if (local->state == STARPU_INVALID)
+			{
 				/* One of the bits is missing */
-				isvalid = 0; 
+				isvalid = 0;
 			}
 
 			if (local->allocated && local->automatically_allocated)
@@ -331,7 +333,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		root_handle->per_node[node].state = 
+		root_handle->per_node[node].state =
 			still_valid[node]?newstate:STARPU_INVALID;
 	}
 
@@ -358,15 +360,15 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 	for (child = 0; child < nchildren; child++)
 	{
 		starpu_data_handle_t handle_child = &handle->children[child];
-		
+
 		struct starpu_data_interface_ops *ops;
-		
+
 		/* what's this child's interface ? */
 		if (f->get_child_ops)
 		  ops = f->get_child_ops(f, child);
 		else
 		  ops = handle->ops;
-		
+
 		handle_child->ops = ops;
 
 		size_t interfacesize = ops->interface_size;
@@ -386,7 +388,7 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 			STARPU_ASSERT(handle_child->per_worker[worker].data_interface);
 		}
 	}
-	
+
 	/* this handle now has children */
 	handle->nchildren = nchildren;
 }

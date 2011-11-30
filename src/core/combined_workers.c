@@ -132,7 +132,8 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 			&config->workers[id].initial_cpu_set);
 #else
 		int j;
-		for (j = 0; j < CPU_SETSIZE; j++) {
+		for (j = 0; j < CPU_SETSIZE; j++)
+		{
 			if (CPU_ISSET(j, &config->workers[id].initial_cpu_set))
 				CPU_SET(j, &combined_worker->cpu_set);
 		}

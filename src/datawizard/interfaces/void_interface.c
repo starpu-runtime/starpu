@@ -33,7 +33,8 @@ static int dummy_cuda_copy_async(void *src_interface, unsigned src_node, void *d
 static int dummy_opencl_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods void_copy_data_methods_s = {
+static const struct starpu_data_copy_methods void_copy_data_methods_s =
+{
 	.ram_to_ram = dummy_copy,
 	.ram_to_spu = dummy_copy,
 #ifdef STARPU_USE_CUDA
@@ -64,7 +65,8 @@ static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle_t handle, FILE *f);
 
-static struct starpu_data_interface_ops interface_void_ops = {
+static struct starpu_data_interface_ops interface_void_ops =
+{
 	.register_data_handle = register_void_handle,
 	.allocate_data_on_node = allocate_void_buffer_on_node,
 	.free_data_on_node = free_void_buffer_on_node,
@@ -73,7 +75,7 @@ static struct starpu_data_interface_ops interface_void_ops = {
 	.footprint = footprint_void_interface_crc32,
 	.compare = void_compare,
 	.interfaceid = STARPU_VOID_INTERFACE_ID,
-	.interface_size = 0, 
+	.interface_size = 0,
 	.display = display_void_interface
 };
 
@@ -87,7 +89,7 @@ static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UN
 /* declare a new data with the void interface */
 void starpu_void_data_register(starpu_data_handle_t *handleptr)
 {
-	starpu_data_register(handleptr, 0, NULL, &interface_void_ops); 
+	starpu_data_register(handleptr, 0, NULL, &interface_void_ops);
 }
 
 

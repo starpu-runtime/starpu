@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,21 +28,20 @@ void *_starpu_htbl_search_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 
 	for(currentbit = 0; currentbit < _STARPU_TAG_SIZE; currentbit+=_STARPU_HTBL_NODE_SIZE)
 	{
-	
 	//	printf("search : current bit = %d \n", currentbit);
 		if (STARPU_UNLIKELY(current_htbl == NULL))
 			return NULL;
 
-		/* 0000000000001111 
+		/* 0000000000001111
 		 *     | currentbit
 		 * 0000111100000000 = offloaded_mask
 		 *         |last_currentbit
 		 * */
 
-		unsigned last_currentbit = 
+		unsigned last_currentbit =
 			_STARPU_TAG_SIZE - (currentbit + _STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
-		unsigned current_index = 
+		unsigned current_index =
 			(tag & (offloaded_mask)) >> (last_currentbit);
 
 		current_htbl = current_htbl->children[current_index];
@@ -57,7 +56,6 @@ void *_starpu_htbl_search_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 
 void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag, void *entry)
 {
-
 	unsigned currentbit;
 	struct _starpu_htbl_node **current_htbl_ptr = htbl;
 	struct _starpu_htbl_node *previous_htbl_ptr = NULL;
@@ -67,7 +65,8 @@ void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag,
 
 	for(currentbit = 0; currentbit < _STARPU_TAG_SIZE; currentbit+=_STARPU_HTBL_NODE_SIZE)
 	{
-		if (*current_htbl_ptr == NULL) {
+		if (*current_htbl_ptr == NULL)
+		{
 			/* TODO pad to change that 1 into 16 ? */
 			*current_htbl_ptr = (struct _starpu_htbl_node *) calloc(1, sizeof(struct _starpu_htbl_node));
 			assert(*current_htbl_ptr);
@@ -76,25 +75,24 @@ void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag,
 				previous_htbl_ptr->nentries++;
 		}
 
-		/* 0000000000001111 
+		/* 0000000000001111
 		 *     | currentbit
 		 * 0000111100000000 = offloaded_mask
 		 *         |last_currentbit
 		 * */
 
-		unsigned last_currentbit = 
+		unsigned last_currentbit =
 			_STARPU_TAG_SIZE - (currentbit + _STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
-		unsigned current_index = 
+		unsigned current_index =
 			(tag & (offloaded_mask)) >> (last_currentbit);
 
 		previous_htbl_ptr = *current_htbl_ptr;
-		current_htbl_ptr = 
+		current_htbl_ptr =
 			&((*current_htbl_ptr)->children[current_index]);
-
 	}
 
-	/* current_htbl either contains NULL or a previous entry 
+	/* current_htbl either contains NULL or a previous entry
 	 * we overwrite it anyway */
 	void *old_entry = *current_htbl_ptr;
 	*current_htbl_ptr = (struct _starpu_htbl_node *) entry;
@@ -124,24 +122,25 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 	{
 		path[level] = current_htbl_ptr;
 
-		if (STARPU_UNLIKELY(!current_htbl_ptr)) {
+		if (STARPU_UNLIKELY(!current_htbl_ptr))
+		{
 			tag_is_present = 0;
 			break;
 		}
 
-		/* 0000000000001111 
+		/* 0000000000001111
 		 *     | currentbit
 		 * 0000111100000000 = offloaded_mask
 		 *         |last_currentbit
 		 * */
 
-		unsigned last_currentbit = 
+		unsigned last_currentbit =
 			_STARPU_TAG_SIZE - (currentbit + _STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
-		unsigned current_index = 
+		unsigned current_index =
 			(tag & (offloaded_mask)) >> (last_currentbit);
-		
-		current_htbl_ptr = 
+
+		current_htbl_ptr =
 			current_htbl_ptr->children[current_index];
 	}
 
@@ -151,8 +150,9 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 
 	void *old_entry = current_htbl_ptr;
 
-	if (tag_is_present) {
-		/* the tag was in the htbl, so we have to unroll the search 
+	if (tag_is_present)
+	{
+		/* the tag was in the htbl, so we have to unroll the search
  		 * to remove possibly useless htbl (internal) nodes */
 		for (level = maxlevel - 1; level >= 0; level--)
 		{

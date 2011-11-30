@@ -25,7 +25,8 @@
 
 #define _STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
-enum _starpu_tag_state {
+enum _starpu_tag_state
+{
 	/* this tag is not declared by any task */
 	STARPU_INVALID_STATE,
 	/* _starpu_tag_declare was called to associate the tag to a task */
@@ -44,7 +45,8 @@ enum _starpu_tag_state {
 
 struct _starpu_job;
 
-struct _starpu_tag {
+struct _starpu_tag
+{
 	struct _starpu_spinlock lock;
 	starpu_tag_t id; /* an identifier for the task */
 	enum _starpu_tag_state state;

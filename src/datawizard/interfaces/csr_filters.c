@@ -35,20 +35,21 @@ void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_i
 
 	uint32_t first_index = id*chunk_size - firstentry;
 	uint32_t local_firstentry = rowptr[first_index];
-	
-	uint32_t child_nrow = 
+
+	uint32_t child_nrow =
 	  STARPU_MIN(chunk_size, nrow - id*chunk_size);
-	
-	uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index]; 
-	
+
+	uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index];
+
 	csr_child->nnz = local_nnz;
 	csr_child->nrow = child_nrow;
 	csr_child->firstentry = local_firstentry;
 	csr_child->elemsize = elemsize;
-	
-	if (csr_father->nzval) {
-	  csr_child->rowptr = &csr_father->rowptr[first_index];
-	  csr_child->colind = &csr_father->colind[local_firstentry];
-	  csr_child->nzval = csr_father->nzval + local_firstentry * elemsize;
+
+	if (csr_father->nzval)
+	{
+		csr_child->rowptr = &csr_father->rowptr[first_index];
+		csr_child->colind = &csr_father->colind[local_firstentry];
+		csr_child->nzval = csr_father->nzval + local_firstentry * elemsize;
 	}
 }

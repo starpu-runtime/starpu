@@ -157,7 +157,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 	if (!job_is_already_locked)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	/* the callback is executed after the dependencies so that we may remove the tag 
+	/* the callback is executed after the dependencies so that we may remove the tag
  	 * of the task itself */
 	if (task->callback_func)
 	{
@@ -168,8 +168,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 		/* so that we can check whether we are doing blocking calls
 		 * within the callback */
 		_starpu_set_local_worker_status(STATUS_CALLBACK);
-		
-		
+
+
 		/* Perhaps we have nested callbacks (eg. with chains of empty
 		 * tasks). So we store the current task and we will restore it
 		 * later. */
@@ -180,7 +180,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 		_STARPU_TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
 		_STARPU_TRACE_END_CALLBACK(j);
-		
+
 		_starpu_set_current_task(current_task);
 
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
@@ -214,7 +214,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 		if (!job_is_already_locked)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
-	else {
+	else
+	{
 		/* no one is going to synchronize with that task so we release
 		 * the data structures now. In case the job was already locked
 		 * by the caller, it is its responsability to destroy the task.
@@ -235,7 +236,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 	_starpu_decrement_nready_tasks();
 }
 
-/* This function is called when a new task is submitted to StarPU 
+/* This function is called when a new task is submitted to StarPU
  * it returns 1 if the tag deps are not fulfilled, 0 otherwise */
 static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 {
@@ -259,7 +260,8 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
                 j->task->status = STARPU_TASK_BLOCKED_ON_TAG;
 		ret = 1;
 	}
-	else {
+	else
+	{
 		/* existing deps (if any) are fulfilled */
 		tag->state = STARPU_READY;
 		/* already prepare for next run */
@@ -281,14 +283,15 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j, u
 	struct _starpu_cg_list *job_successors = &j->job_successors;
 
 	if (!job_is_already_locked)
-		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
+		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
                 j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
 		ret = 1;
 	}
-	else {
+	else
+	{
 		/* existing deps (if any) are fulfilled */
 		/* already prepare for next run */
 		job_successors->ndeps_completed = 0;
@@ -300,8 +303,6 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j, u
 
 	return ret;
 }
-
-
 
 /*
  *	In order, we enforce tag, task and data dependencies. The task is
@@ -316,19 +317,22 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_i
         _STARPU_LOG_IN();
 
 	/* enfore tag dependencies */
-	if (_starpu_not_all_tag_deps_are_fulfilled(j)) {
+	if (_starpu_not_all_tag_deps_are_fulfilled(j))
+	{
                 _STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
         }
 
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked)) {
+	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked))
+	{
                 _STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
         }
 
 	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j)) {
+	if (_starpu_submit_job_enforce_data_deps(j))
+	{
                 _STARPU_LOG_OUT_TAG("enforce_data_deps");
 		return 0;
         }
@@ -403,7 +407,8 @@ const char *_starpu_get_model_name(struct _starpu_job *j)
             && task->cl->model
             && task->cl->model->symbol)
                 return task->cl->model->symbol;
-        else {
+        else
+	{
 #ifdef STARPU_USE_FXT
                 return j->model_name;
 #else

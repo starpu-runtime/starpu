@@ -29,7 +29,8 @@ static void data_cpy_func(void *descr[], void *cl_arg)
 	void *dst_interface = descr[0];
 	void *src_interface = descr[1];
 
-	switch (type) {
+	switch (type)
+	{
 		case STARPU_CPU_WORKER:
 			STARPU_ASSERT(copy_methods->ram_to_ram);
 			copy_methods->ram_to_ram(src_interface, memory_node, dst_interface, memory_node);
@@ -49,12 +50,14 @@ static void data_cpy_func(void *descr[], void *cl_arg)
 
 }
 
-struct starpu_perfmodel copy_model = {
+struct starpu_perfmodel copy_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "starpu_data_cpy"
 };
 
-static struct starpu_codelet copy_cl = {
+static struct starpu_codelet copy_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = data_cpy_func,
 	.cuda_func = data_cpy_func,

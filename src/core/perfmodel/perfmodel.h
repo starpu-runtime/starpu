@@ -33,7 +33,8 @@ struct _starpu_job;
 enum starpu_perf_archtype;
 
 ///* File format */
-//struct model_file_format {
+//struct model_file_format
+// {
 //	unsigned ncore_entries;
 //	unsigned ncuda_entries;
 //	/* contains core entries, then cuda ones */

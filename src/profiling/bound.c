@@ -45,7 +45,8 @@
  * - the total numer of tasks of a given kind is equal to the number run by the
  *   application.
  */
-struct bound_task_pool {
+struct bound_task_pool
+{
 	/* Which codelet has been executed */
 	struct starpu_codelet *cl;
 	/* Task footprint key */
@@ -77,7 +78,8 @@ struct bound_task_pool {
 /* Note: only task-task, implicit data dependencies or task-tag dependencies
  * are taken into account. Tags released in a callback or something like this
  * is not taken into account, only tags associated with a task are. */
-struct bound_task {
+struct bound_task
+{
 	/* Unique ID */
 	unsigned long id;
 	/* Tag ID, if any */
@@ -100,7 +102,8 @@ struct bound_task {
 	struct bound_task *next;
 };
 
-struct bound_tag_dep {
+struct bound_tag_dep
+{
 	starpu_tag_t tag;
 	starpu_tag_t dep_tag;
 	struct bound_tag_dep *next;
@@ -197,14 +200,18 @@ void _starpu_bound_record(struct _starpu_job *j)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
-	if (!_starpu_bound_recording) {
+	if (!_starpu_bound_recording)
+	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 
-	if (recorddeps) {
+	if (recorddeps)
+	{
 		new_task(j);
-	} else {
+	}
+	else
+	{
 		struct bound_task_pool *tp;
 
 		_starpu_compute_buffers_footprint(j);
@@ -216,7 +223,8 @@ void _starpu_bound_record(struct _starpu_job *j)
 				if (tp->cl == j->task->cl && tp->footprint == j->footprint)
 					break;
 
-		if (!tp) {
+		if (!tp)
+		{
 			tp = (struct bound_task_pool *) malloc(sizeof(*tp));
 			tp->cl = j->task->cl;
 			tp->footprint = j->footprint;
@@ -241,7 +249,8 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
-	if (!_starpu_bound_recording || !recorddeps) {
+	if (!_starpu_bound_recording || !recorddeps)
+	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
@@ -266,7 +275,8 @@ void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
-	if (!_starpu_bound_recording || !recorddeps) {
+	if (!_starpu_bound_recording || !recorddeps)
+	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
@@ -301,14 +311,16 @@ void _starpu_bound_job_id_dep(struct _starpu_job *j, unsigned long id)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
-	if (!_starpu_bound_recording || !recorddeps) {
+	if (!_starpu_bound_recording || !recorddeps)
+	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 
 	new_task(j);
 	dep_t = find_job(id);
-	if (!dep_t) {
+	if (!dep_t)
+	{
 		fprintf(stderr,"dependency %lu not found !\n", id);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
@@ -326,12 +338,16 @@ void starpu_bound_stop(void)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
-static void _starpu_get_tasks_times(int nw, int nt, double *times) {
+static void _starpu_get_tasks_times(int nw, int nt, double *times)
+{
 	struct bound_task_pool *tp;
 	int w, t;
-	for (w = 0; w < nw; w++) {
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-			struct _starpu_job j = {
+	for (w = 0; w < nw; w++)
+	{
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		{
+			struct _starpu_job j =
+			{
 				.footprint = tp->footprint,
 				.footprint_is_computed = 1,
 			};
@@ -345,9 +361,11 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times) {
 	}
 }
 
-static int ancestor(struct bound_task *child, struct bound_task *parent) {
+static int ancestor(struct bound_task *child, struct bound_task *parent)
+{
 	int i;
-	for (i = 0; i < child->depsn; i++) {
+	for (i = 0; i < child->depsn; i++)
+	{
 		if (parent == child->deps[i])
 			return 1;
 		if (ancestor(child->deps[i], parent))
@@ -356,17 +374,20 @@ static int ancestor(struct bound_task *child, struct bound_task *parent) {
 	return 0;
 }
 
-void starpu_bound_print_dot(FILE *output) {
+void starpu_bound_print_dot(FILE *output)
+{
 	struct bound_task *t;
 	struct bound_tag_dep *td;
 	int i;
 
-	if (!recorddeps) {
+	if (!recorddeps)
+	{
 		fprintf(output, "Not supported\n");
 		return;
 	}
 	fprintf(output, "strict digraph bounddeps {\n");
-	for (t = tasks; t; t = t->next) {
+	for (t = tasks; t; t = t->next)
+	{
 		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, t->cl->model->symbol);
 		for (i = 0; i < t->depsn; i++)
 			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i]->id, t->id);
@@ -388,20 +409,25 @@ void starpu_bound_print_lp(FILE *output)
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nw = starpu_worker_get_count();
 
-	if (recorddeps) {
+	if (recorddeps)
+	{
 		struct bound_task *t1, *t2;
 		struct bound_tag_dep *td;
 		int i;
 
 		nt = 0;
-		for (t1 = tasks; t1; t1 = t1->next) {
-			struct _starpu_job j = {
+		for (t1 = tasks; t1; t1 = t1->next)
+		{
+			struct _starpu_job j =
+			{
 				.footprint = t1->footprint,
 				.footprint_is_computed = 1,
 			};
-			for (w = 0; w < nw; w++) {
+			for (w = 0; w < nw; w++)
+			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (t1->duration[arch] == 0.) {
+				if (t1->duration[arch] == 0.)
+				{
 					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
 					if (length == -1.0)
 						/* Avoid problems with binary coding of doubles */
@@ -422,8 +448,10 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "c%lu <= tmax;\n", t1->id);
 
 		fprintf(output, "\n/* We have tasks executing on workers, exactly one worker executes each task */\n");
-		for (t1 = tasks; t1; t1 = t1->next) {
-			for (w = 0; w < nw; w++) {
+		for (t1 = tasks; t1; t1 = t1->next)
+		{
+			for (w = 0; w < nw; w++)
+			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
 				if (t1->duration[arch] != -1.0)
 					fprintf(output, " +t%luw%d", t1->id, w);
@@ -433,9 +461,11 @@ void starpu_bound_print_lp(FILE *output)
 
 		fprintf(output, "\n/* Completion time is start time plus computation time */\n");
 		fprintf(output, "/* According to where the task is indeed executed */\n");
-		for (t1 = tasks; t1; t1 = t1->next) {
+		for (t1 = tasks; t1; t1 = t1->next)
+		{
 			fprintf(output, "/* %s %x */\tc%lu = s%lu", t1->cl->model->symbol, (unsigned) t1->footprint, t1->id, t1->id);
-			for (w = 0; w < nw; w++) {
+			for (w = 0; w < nw; w++)
+			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
 				if (t1->duration[arch] != -1.0)
 					fprintf(output, " + %f t%luw%d", t1->duration[arch], t1->id, w);
@@ -451,7 +481,8 @@ void starpu_bound_print_lp(FILE *output)
 
 		fprintf(output, "\n/* Each tag finishes when its corresponding task finishes */");
 		for (t1 = tasks; t1; t1 = t1->next)
-			if (t1->use_tag) {
+			if (t1->use_tag)
+			{
 				for (w = 0; w < nw; w++)
 					fprintf(output, "c%lu = tag%lu;\n", t1->id, (unsigned long) t1->tag_id);
 			}
@@ -463,13 +494,17 @@ void starpu_bound_print_lp(FILE *output)
 /* TODO: factorize ancestor calls */
 		fprintf(output, "\n/* For each task pair and each worker, if both tasks are executed by the same worker,\n");
 		fprintf(output, "   one is started after the other's completion */\n");
-		for (t1 = tasks; t1; t1 = t1->next) {
+		for (t1 = tasks; t1; t1 = t1->next)
+		{
 			for (t2 = t1->next; t2; t2 = t2->next)
 			{
-				if (!ancestor(t1, t2) && !ancestor(t2, t1)) {
-					for (w = 0; w < nw; w++) {
+				if (!ancestor(t1, t2) && !ancestor(t2, t1))
+				{
+					for (w = 0; w < nw; w++)
+					{
 						enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-						if (t1->duration[arch] != -1.0) {
+						if (t1->duration[arch] != -1.0)
+						{
 							fprintf(output, "s%lu - c%lu >= -3e5 + 1e5 t%luw%d + 1e5 t%luw%d + 1e5 t%luafter%lu;\n",
 									t1->id, t2->id, t1->id, w, t2->id, w, t1->id, t2->id);
 							fprintf(output, "s%lu - c%lu >= -2e5 + 1e5 t%luw%d + 1e5 t%luw%d - 1e5 t%luafter%lu;\n",
@@ -491,26 +526,32 @@ void starpu_bound_print_lp(FILE *output)
 				}
 #endif
 
-		if (recordprio) {
+		if (recordprio)
+		{
 			fprintf(output, "\n/* For StarPU, a priority means given schedulable tasks it will consider the\n");
 			fprintf(output, " * more prioritized first */\n");
-			for (t1 = tasks; t1; t1 = t1->next) {
+			for (t1 = tasks; t1; t1 = t1->next)
+			{
 				for (t2 = t1->next; t2; t2 = t2->next)
 				{
 					if (!ancestor(t1, t2) && !ancestor(t2, t1)
-					     && t1->priority != t2->priority) {
-						if (t1->priority > t2->priority) {
+					     && t1->priority != t2->priority)
+					{
+						if (t1->priority > t2->priority)
+						{
 							/* Either t2 is scheduled before t1, but then it
 							   needs to be scheduled before some t dep finishes */
 
 							/* One of the t1 deps to give the maximum start time for t2 */
-							if (t1->depsn > 1) {
+							if (t1->depsn > 1)
+							{
 								for (i = 0; i < t1->depsn; i++)
 									fprintf(output, " + t%lut%lud%d", t2->id, t1->id, i);
 								fprintf(output, " = 1;\n");
 							}
 
-							for (i = 0; i < t1->depsn; i++) {
+							for (i = 0; i < t1->depsn; i++)
+							{
 								fprintf(output, "c%lu - s%lu >= ", t1->deps[i]->id, t2->id);
 								if (t1->depsn > 1)
 									/* Only checks this when it's this dependency that is chosen */
@@ -524,18 +565,22 @@ void starpu_bound_print_lp(FILE *output)
 
 							/* Or t2 is scheduled after t1 is.  */
 							fprintf(output, "s%lu - s%lu >= -1e5 t%luafter%lu;\n", t2->id, t1->id, t1->id, t2->id);
-						} else {
+						}
+						else
+						{
 							/* Either t1 is scheduled before t2, but then it
 							   needs to be scheduled before some t2 dep finishes */
 
 							/* One of the t2 deps to give the maximum start time for t1 */
-							if (t2->depsn > 1) {
+							if (t2->depsn > 1)
+							{
 								for (i = 0; i < t2->depsn; i++)
 									fprintf(output, " + t%lut%lud%d", t1->id, t2->id, i);
 								fprintf(output, " = 1;\n");
 							}
 
-							for (i = 0; i < t2->depsn; i++) {
+							for (i = 0; i < t2->depsn; i++)
+							{
 								fprintf(output, "c%lu - s%lu >= ", t2->deps[i]->id, t1->id);
 								if (t2->depsn > 1)
 									/* Only checks this when it's this dependency that is chosen */
@@ -555,14 +600,19 @@ void starpu_bound_print_lp(FILE *output)
 
 		for (t1 = tasks; t1; t1 = t1->next)
 			for (t2 = t1->next; t2; t2 = t2->next)
-				if (!ancestor(t1, t2) && !ancestor(t2, t1)) {
+				if (!ancestor(t1, t2) && !ancestor(t2, t1))
+				{
 					fprintf(output, "bin t%luafter%lu;\n", t1->id, t2->id);
-					if (recordprio && t1->priority != t2->priority) {
-						if (t1->priority > t2->priority) {
+					if (recordprio && t1->priority != t2->priority)
+					{
+						if (t1->priority > t2->priority)
+						{
 							if (t1->depsn > 1)
 								for (i = 0; i < t1->depsn; i++)
 									fprintf(output, "bin t%lut%lud%d;\n", t2->id, t1->id, i);
-						} else {
+						}
+						else
+						{
 							if (t2->depsn > 1)
 								for (i = 0; i < t2->depsn; i++)
 									fprintf(output, "bin t%lut%lud%d;\n", t1->id, t2->id, i);
@@ -573,7 +623,9 @@ void starpu_bound_print_lp(FILE *output)
 		for (t1 = tasks; t1; t1 = t1->next)
 			for (w = 0; w < nw; w++)
 				fprintf(output, "bin t%luw%d;\n", t1->id, w);
-	} else {
+	}
+	else
+	{
 		struct bound_task_pool *tp;
 		nt = 0;
 		for (tp = task_pools; tp; tp = tp->next)
@@ -589,11 +641,13 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "min: tmax;\n\n");
 
 			fprintf(output, "/* Which is the maximum of all worker execution times (ms) */\n");
-			for (w = 0; w < nw; w++) {
+			for (w = 0; w < nw; w++)
+			{
 				char name[32];
 				starpu_worker_get_name(w, name, sizeof(name));
 				fprintf(output, "/* worker %s */\n0", name);
-				for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+				for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+				{
 					if (times[w*nt+t] != -1.0)
 						fprintf(output, "\t%+f * w%dt%dn", (float) times[w*nt+t], w, t);
 				}
@@ -602,7 +656,8 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "\n");
 
 			fprintf(output, "/* And we have to have computed exactly all tasks */\n");
-			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+			{
 				fprintf(output, "/* task %s key %x */\n0", tp->cl->model->symbol, (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
 					if (times[w*nt+t] != -1.0)
@@ -619,7 +674,8 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* int ");
 			int first = 1;
 			for (w = 0; w < nw; w++)
-				for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+				for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+				{
 					if (!first)
 						fprintf(output, ",");
 					else
@@ -643,7 +699,8 @@ void starpu_bound_print_mps(FILE *output)
 	int nw; /* Number of different workers */
 	int t, w;
 
-	if (recorddeps) {
+	if (recorddeps)
+	{
 		fprintf(output, "Not supported\n");
 		return;
 	}
@@ -654,7 +711,6 @@ void starpu_bound_print_mps(FILE *output)
 	nt = 0;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
-
 	{
 		double times[nw*nt];
 
@@ -668,7 +724,8 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, " N  TMAX\n");
 
 		fprintf(output, "\n* Which is the maximum of all worker execution times (ms)\n");
-		for (w = 0; w < nw; w++) {
+		for (w = 0; w < nw; w++)
+		{
 			char name[32];
 			starpu_worker_get_name(w, name, sizeof(name));
 			fprintf(output, "* worker %s\n", name);
@@ -676,7 +733,8 @@ void starpu_bound_print_mps(FILE *output)
 		}
 
 		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		{
 			fprintf(output, "* task %s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			fprintf(output, " E  T%d\n", t);
 		}
@@ -686,7 +744,8 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "\n* Execution times and completion of all tasks\n");
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-				if (times[w*nt+t] != -1.0) {
+				if (times[w*nt+t] != -1.0)
+				{
 					char name[9];
 					snprintf(name, sizeof(name), "W%dT%d", w, t);
 					fprintf(stderr,"    %-8s  W%-7d  %12f\n", name, w, times[w*nt+t]);
@@ -751,7 +810,8 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 		glp_set_obj_coef(lp, nw*nt+1, 1.);
 
 		for (w = 0; w < nw; w++)
-			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+			{
 				char name[32];
 				snprintf(name, sizeof(name), "w%dt%dn", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
@@ -763,23 +823,27 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 
 		/* Total worker execution time */
 		glp_add_rows(lp, nw);
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		{
 			int someone = 0;
 			for (w = 0; w < nw; w++)
 				if (times[w*nt+t] != -1.)
 					someone = 1;
-			if (!someone) {
+			if (!someone)
+			{
 				/* This task does not have any performance model at all, abort */
 				glp_delete_prob(lp);
 				return NULL;
 			}
 		}
-		for (w = 0; w < nw; w++) {
+		for (w = 0; w < nw; w++)
+		{
 			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
 			snprintf(title, sizeof(title), "worker %s", name);
 			glp_set_row_name(lp, w+1, title);
-			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+			{
 				ia[n] = w+1;
 				ja[n] = colnum(w, t);
 				if (times[w*nt+t] == -1.)
@@ -798,12 +862,14 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 
 		/* Total task completion */
 		glp_add_rows(lp, nt);
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		{
 			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
 			snprintf(title, sizeof(title), "task %s key %x", tp->cl->model->symbol, (unsigned) tp->footprint);
 			glp_set_row_name(lp, nw+t+1, title);
-			for (w = 0; w < nw; w++) {
+			for (w = 0; w < nw; w++)
+			{
 				ia[n] = nw+t+1;
 				ja[n] = colnum(w, t);
 				ar[n] = 1;
@@ -821,12 +887,14 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 	glp_init_smcp(&parm);
 	parm.msg_lev = GLP_MSG_OFF;
 	ret = glp_simplex(lp, &parm);
-	if (ret) {
+	if (ret)
+	{
 		glp_delete_prob(lp);
 		lp = NULL;
 		return NULL;
 	}
-	if (integer) {
+	if (integer)
+	{
 		glp_iocp iocp;
 		glp_init_iocp(&iocp);
 		iocp.msg_lev = GLP_MSG_OFF;
@@ -837,16 +905,19 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 }
 #endif /* HAVE_GLPK_H */
 
-void starpu_bound_print(FILE *output, int integer __attribute__ ((unused))) {
+void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
+{
 #ifdef HAVE_GLPK_H
-	if (recorddeps) {
+	if (recorddeps)
+	{
 		fprintf(output, "Not supported\n");
 		return;
 	}
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	glp_prob *lp = _starpu_bound_glp_resolve(integer);
-	if (lp) {
+	if (lp)
+	{
 		struct bound_task_pool * tp;
 		int t, w;
 		int nw; /* Number of different workers */
@@ -861,7 +932,8 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused))) {
 
 		fprintf(output, "Theoretical minimum execution time: %f ms\n", tmax);
 
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		{
 			fprintf(output, "%s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
 				if (integer)
@@ -872,7 +944,9 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused))) {
 		}
 
 		glp_delete_prob(lp);
-	} else {
+	}
+	else
+	{
 		fprintf(stderr, "Simplex failed\n");
 	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -881,23 +955,27 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused))) {
 #endif /* HAVE_GLPK_H */
 }
 
-void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unused)), int integer __attribute__ ((unused))) {
+void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unused)), int integer __attribute__ ((unused)))
+{
 #ifdef HAVE_GLPK_H
 	double ret;
 
-	if (recorddeps) {
+	if (recorddeps)
+	{
 		*res = 0.;
 		return;
 	}
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	glp_prob *lp = _starpu_bound_glp_resolve(integer);
-	if (lp) {
+	if (lp)
+	{
 		ret = glp_get_obj_val(lp);
 		if (integer)
 			*integer_res = glp_mip_obj_val(lp);
 		glp_delete_prob(lp);
-	} else
+	}
+	else
 		ret = 0.;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	*res = ret;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,8 @@
 
 #define NMAXHOOKS	16
 
-struct progression_hook {
+struct progression_hook
+{
 	unsigned (*func)(void *arg);
 	void *arg;
 	unsigned active;
@@ -48,7 +49,7 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 			active_hook_cnt++;
 
 			_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
-			
+
 			return hook;
 		}
 	}

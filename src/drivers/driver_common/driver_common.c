@@ -39,13 +39,14 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 		calibrate_model = 1;
 
 	args->status = STATUS_EXECUTING;
-	task->status = STARPU_TASK_RUNNING;	
+	task->status = STARPU_TASK_RUNNING;
 
-	if (rank == 0) {
+	if (rank == 0)
+	{
 		cl->per_worker_stats[workerid]++;
 
 		profiling_info = task->profiling_info;
-	
+
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
 			_starpu_clock_gettime(codelet_start);
@@ -75,7 +76,8 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	if (rank == 0) {
+	if (rank == 0)
+	{
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 			_starpu_clock_gettime(codelet_end);
 	}
@@ -112,7 +114,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			memcpy(&profiling_info->end_time, codelet_end, sizeof(struct timespec));
 
 			profiling_info->workerid = workerid;
-			
+
 			_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1,
 				profiling_info->used_cycles,
 				profiling_info->stall_cycles,
@@ -130,11 +132,13 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	if (!updated)
 		_starpu_worker_update_profiling_info_executing(workerid, NULL, 1, 0, 0, 0);
 
-	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking) {
+	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking)
+	{
 		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed,j->nimpl);
-		}
+	}
 
-	if (j->task->cl->conversion_model) {
+	if (j->task->cl->conversion_model)
+	{
 		_starpu_update_perfmodel_history(j, j->task->cl->conversion_model, perf_arch,
 						 worker_args->devid, conversion_time, j->nimpl);
 	}

@@ -19,7 +19,8 @@
 
 #include <pthread.h>
 
-struct _starpu_barrier {
+struct _starpu_barrier
+{
 	int count;
 	int reached_start;
 	int reached_exit;

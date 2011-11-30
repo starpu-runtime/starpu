@@ -46,7 +46,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods matrix_copy_data_methods_s = {
+static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
+{
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -80,10 +81,11 @@ static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
-struct starpu_data_interface_ops _starpu_interface_matrix_ops = {
+struct starpu_data_interface_ops _starpu_interface_matrix_ops =
+{
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
 	.handle_to_pointer = matrix_handle_to_pointer,
@@ -95,13 +97,13 @@ struct starpu_data_interface_ops _starpu_interface_matrix_ops = {
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_matrix_to_gordon,
 #endif
-	.interfaceid = STARPU_MATRIX_INTERFACE_ID, 
+	.interfaceid = STARPU_MATRIX_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_matrix_interface),
 	.display = display_matrix_interface
 };
 
 #ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
 {
 	size_t elemsize = GET_MATRIX_ELEMSIZE(interface);
 	uint32_t nx = STARPU_MATRIX_GET_NX(interface);
@@ -128,13 +130,15 @@ static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_no
 		struct starpu_matrix_interface *local_interface = (struct starpu_matrix_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			local_interface->ptr = matrix_interface->ptr;
                         local_interface->dev_handle = matrix_interface->dev_handle;
                         local_interface->offset = matrix_interface->offset;
 			local_interface->ld  = matrix_interface->ld;
 		}
-		else {
+		else
+		{
 			local_interface->ptr = 0;
 			local_interface->dev_handle = 0;
 			local_interface->offset = 0;
@@ -163,7 +167,8 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, uint32_t home_
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
-	struct starpu_matrix_interface matrix_interface = {
+	struct starpu_matrix_interface matrix_interface =
+	{
 		.ptr = ptr,
 		.ld = ld,
 		.nx = nx,
@@ -206,7 +211,7 @@ static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	size_t size;
-	size = (size_t)matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize; 
+	size = (size_t)matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
 
 	return size;
 }
@@ -284,10 +289,11 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
-			if (!addr) 
+			if (!addr)
 				fail = 1;
 
 			break;
@@ -298,7 +304,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
 					 STARPU_CUDA_REPORT_ERROR(status);
-					
+
 				fail = 1;
 			}
 
@@ -313,7 +319,8 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
                                 void *ptr;
                                 ret = _starpu_opencl_allocate_memory(&ptr, nx*ny*elemsize, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
-				if (ret) {
+				if (ret)
+				{
 					fail = 1;
 				}
 				break;
@@ -323,7 +330,8 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 			assert(0);
 	}
 
-	if (!fail) {
+	if (!fail)
+	{
 		/* allocation succeeded */
 		allocated_memory = (size_t)nx*ny*elemsize;
 
@@ -332,11 +340,13 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
                 matrix_interface->dev_handle = addr;
                 matrix_interface->offset = 0;
 		matrix_interface->ld = ld;
-	} else {
+	}
+	else
+	{
 		/* allocation failed */
 		allocated_memory = -ENOMEM;
 	}
-	
+
 	return allocated_memory;
 }
 
@@ -349,13 +359,14 @@ static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void*)matrix_interface->ptr);
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			status = cudaFree((void*)matrix_interface->ptr);			
+			status = cudaFree((void*)matrix_interface->ptr);
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 
@@ -663,7 +674,7 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 		uint32_t src_offset = y*ld_src*elemsize;
 		uint32_t dst_offset = y*ld_dst*elemsize;
 
-		memcpy((void *)(ptr_dst + dst_offset), 
+		memcpy((void *)(ptr_dst + dst_offset),
 			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
 

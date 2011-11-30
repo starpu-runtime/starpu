@@ -23,7 +23,8 @@
 #include <starpu_top.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 extern struct _starpu_top_message_queue* _starpu_top_mt;

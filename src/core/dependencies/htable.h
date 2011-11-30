@@ -30,7 +30,8 @@
 
 #define _STARPU_HTBL_NODE_SIZE	16
 
-struct _starpu_htbl_node {
+struct _starpu_htbl_node
+{
 	unsigned nentries;
 	struct _starpu_htbl_node *children[1<<_STARPU_HTBL_NODE_SIZE];
 };

@@ -41,7 +41,8 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node)
 	return 0;
 }
 
-struct user_interaction_wrapper {
+struct user_interaction_wrapper
+{
 	starpu_data_handle_t handle;
 	enum starpu_access_mode mode;
 	unsigned node;
@@ -159,7 +160,8 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 		int ret = starpu_task_submit(wrapper->pre_sync_task);
 		STARPU_ASSERT(!ret);
 	}
-	else {
+	else
+	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
@@ -183,7 +185,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
 
 	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, NULL, NULL);
-	
+
 	/* continuation of starpu_data_acquire */
 	_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 	wrapper->finished = 1;
@@ -198,7 +200,8 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
         _STARPU_LOG_IN();
 
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+	{
                 _STARPU_LOG_OUT_TAG("EDEADLK");
 		return -EDEADLK;
         }
@@ -240,7 +243,8 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		STARPU_ASSERT(!ret);
 		//starpu_task_wait(wrapper.pre_sync_task);
 	}
-	else {
+	else
+	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 
@@ -254,7 +258,8 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		int ret = _starpu_fetch_data_on_node(handle, ram_replicate, mode, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
-	else {
+	else
+	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper.lock);
 		while (!wrapper.finished)
 			_STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
@@ -336,7 +341,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 		_starpu_spin_lock(&handle->header_lock);
 
-		if (!async) {
+		if (!async)
+		{
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
 			STARPU_ASSERT(handle->busy_count > 0);
@@ -348,7 +354,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		_starpu_spin_unlock(&handle->header_lock);
 
 	}
-	else if (!async) {
+	else if (!async)
+	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		while (!wrapper->finished)
 			_STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);

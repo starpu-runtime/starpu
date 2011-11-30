@@ -23,7 +23,8 @@
 #include <common/utils.h>
 #include <common/config.h>
 
-struct _starpu_spinlock {
+struct _starpu_spinlock
+{
 #ifdef STARPU_SPINLOCK_CHECK
 	pthread_mutexattr_t errcheck_attr;
 	pthread_mutex_t errcheck_lock;

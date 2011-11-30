@@ -41,7 +41,7 @@ void _starpu_init_data_request_lists(void)
 
 		data_requests_pending[i] = _starpu_data_request_list_new();
 		_STARPU_PTHREAD_MUTEX_INIT(&data_requests_pending_list_mutex[i], NULL);
-		
+
 		starpu_memstrategy_drop_prefetch[i]=0;
 	}
 }
@@ -72,7 +72,8 @@ static void starpu_data_request_destroy(struct _starpu_data_request *r)
 	{
 		node = r->src_replicate->memory_node;
 	}
-	else {
+	else
+	{
 		node = r->dst_replicate->memory_node;
 	}
 
@@ -119,7 +120,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 		src_replicate->refcnt++;
 		handle->busy_count++;
 	}
-	else {
+	else
+	{
 		unsigned dst_node = dst_replicate->memory_node;
 		dst_replicate->request[dst_node] = r;
 	}
@@ -138,7 +140,8 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 	uint32_t local_node = _starpu_get_local_memory_node();
 
-	do {
+	do
+	{
 		_starpu_spin_lock(&r->lock);
 
 		if (r->completed)
@@ -152,13 +155,14 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 		_starpu_datawizard_progress(local_node, may_alloc);
 
-	} while (1);
+	}
+	while (1);
 
 
 	retval = r->retval;
 	if (retval)
 		_STARPU_DISP("REQUEST %p COMPLETED (retval %d) !\n", r, r->retval);
-		
+
 
 	r->refcnt--;
 
@@ -167,10 +171,10 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 		do_delete = 1;
 
 	_starpu_spin_unlock(&r->lock);
-	
+
 	if (do_delete)
 		starpu_data_request_destroy(r);
-	
+
 	return retval;
 }
 
@@ -191,9 +195,9 @@ void _starpu_post_data_request(struct _starpu_data_request *r, uint32_t handling
 
 	/* insert the request in the proper list */
 	_STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
-	if (r->prefetch) {
+	if (r->prefetch)
 		_starpu_data_request_list_push_back(prefetch_requests[handling_node], r);
-	} else
+	else
 		_starpu_data_request_list_push_back(data_requests[handling_node], r);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node]);
 
@@ -240,12 +244,12 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	{
 		if (old_src_replicate_state == STARPU_OWNER)
 			_starpu_handle_stats_invalidated(handle, src_replicate->memory_node);
-		else 
+		else
 		{
 			/* XXX Currently only ex-OWNER are tagged as invalidated */
 			/* XXX Have to check all old state of every node in case a SHARED data become OWNED by the dst_replicate */
 		}
-		
+
 	}
 	if (dst_replicate->state == STARPU_SHARED)
 		_starpu_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
@@ -274,7 +278,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	}
 
 	r->completed = 1;
-	
+
 	/* Remove a reference on the destination replicate  */
 	STARPU_ASSERT(dst_replicate->refcnt > 0);
 	dst_replicate->refcnt--;
@@ -297,12 +301,12 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	/* if nobody is waiting on that request, we can get rid of it */
 	if (r->refcnt == 0)
 		do_delete = 1;
-	
+
 	r->retval = 0;
 
 	/* In case there are one or multiple callbacks, we execute them now. */
 	struct _starpu_callback_list *callbacks = r->callbacks;
-	
+
 	_starpu_spin_unlock(&r->lock);
 
 	if (do_delete)
@@ -426,7 +430,8 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 	_starpu_data_request_list_delete(local_list);
 }
 
-void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc){
+void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc)
+{
 	starpu_memstrategy_drop_prefetch[src_node]=0;
 
 	struct _starpu_data_request *r;
@@ -437,7 +442,7 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
         _STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 
 	struct _starpu_data_request_list *local_list = prefetch_requests[src_node];
-	
+
 	if (_starpu_data_request_list_empty(local_list))
 	{
 		/* there is no request */
@@ -516,24 +521,26 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 		r = _starpu_data_request_list_pop_front(local_list);
 
 		starpu_data_handle_t handle = r->handle;
-		
+
 		_starpu_spin_lock(&handle->header_lock);
-	
+
 		_starpu_spin_lock(&r->lock);
-	
+
 		/* wait until the transfer is terminated */
 		if (force)
 		{
 			_starpu_driver_wait_request_completion(&r->async_channel);
 			starpu_handle_data_request_completion(r);
 		}
-		else {
+		else
+		{
 			if (_starpu_driver_test_request_completion(&r->async_channel))
 			{
 				/* The request was completed */
 				starpu_handle_data_request_completion(r);
 			}
-			else {
+			else
+			{
 				/* The request was not completed, so we put it
 				 * back again on the list of pending requests
 				 * so that it can be handled later on. */
@@ -572,10 +579,11 @@ int _starpu_check_that_no_data_request_exists(uint32_t node)
 }
 
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r){
+void _starpu_update_prefetch_status(struct _starpu_data_request *r)
+{
 	STARPU_ASSERT(r->prefetch > 0);
 	r->prefetch=0;
-	
+
 	/* We have to promote chained_request too! */
 	unsigned chained_req;
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
@@ -586,7 +594,7 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r){
 	}
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[r->handling_node]);
-	
+
 	/* The request can be in a different list (handling request or the temp list)
 	 * we have to check that it is really in the prefetch list. */
 	struct _starpu_data_request *r_iter;
@@ -594,13 +602,13 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r){
 	     r_iter != _starpu_data_request_list_end(prefetch_requests[r->handling_node]);
 	     r_iter = _starpu_data_request_list_next(r_iter))
 	{
-		
+
 		if (r==r_iter)
 		{
 			_starpu_data_request_list_erase(prefetch_requests[r->handling_node],r);
 			_starpu_data_request_list_push_front(data_requests[r->handling_node],r);
 			break;
-		}		
+		}
 	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[r->handling_node]);
 }

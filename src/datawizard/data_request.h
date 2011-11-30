@@ -26,7 +26,8 @@
 
 struct _starpu_data_replicate;
 
-struct _starpu_callback_list {
+struct _starpu_callback_list
+{
 	void (*callback_func)(void *);
 	void *callback_arg;
 	struct _starpu_callback_list *next;

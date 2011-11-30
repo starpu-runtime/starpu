@@ -39,42 +39,50 @@ char *_starpu_opencl_program_dir;
 #define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
 
 static
-int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_name, char *located_dir_name) {
+int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_name, char *located_dir_name)
+{
 	int ret = EXIT_FAILURE;
 
         _STARPU_DEBUG("Trying to locate <%s>\n", source_file_name);
-        if (access(source_file_name, R_OK) == 0) {
+        if (access(source_file_name, R_OK) == 0)
+	{
                 strcpy(located_file_name, source_file_name);
 		ret = EXIT_SUCCESS;
         }
 
-	if (ret == EXIT_FAILURE && _starpu_opencl_program_dir) {
+	if (ret == EXIT_FAILURE && _starpu_opencl_program_dir)
+	{
 		sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
 		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
 	}
 
-	if (ret == EXIT_FAILURE) {
+	if (ret == EXIT_FAILURE)
+	{
 		sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
 		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
 	}
 
-	if (ret == EXIT_FAILURE) {
+	if (ret == EXIT_FAILURE)
+	{
 		sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
 		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
 	}
 
-	if (ret == EXIT_FAILURE) {
+	if (ret == EXIT_FAILURE)
+	{
 		strcpy(located_file_name, "");
 		strcpy(located_dir_name, "");
 		_STARPU_ERROR("Cannot locate file <%s>\n", source_file_name);
 	}
-	else {
+	else
+	{
 		char *last = strrchr(located_file_name, '/');
 		if (!last) strcpy(located_dir_name, "");
-		else {
+		else
+		{
 			sprintf(located_dir_name, "%s", located_file_name);
 			located_dir_name[strlen(located_file_name)-strlen(last)+1] = '\0';
 		}
@@ -96,7 +104,8 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
         starpu_opencl_get_queue(devid, queue);
 
         program = opencl_programs->programs[devid];
-        if (!program) {
+        if (!program)
+	{
                 _STARPU_DISP("Program not available\n");
                 return CL_INVALID_PROGRAM;
         }
@@ -108,7 +117,8 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
 	return CL_SUCCESS;
 }
 
-cl_int starpu_opencl_release_kernel(cl_kernel kernel) {
+cl_int starpu_opencl_release_kernel(cl_kernel kernel)
+{
 	cl_int err;
 
 	err = clReleaseKernel(kernel);
@@ -133,8 +143,9 @@ char *_starpu_opencl_load_program_source(const char *filename)
         stat(filename, &statbuf);
         source = (char *) malloc(statbuf.st_size + 1);
 
-        for(c=fgetc(fh), x=0 ; c != EOF ; c = fgetc(fh), x++) {
-          source[x] = c;
+        for(c=fgetc(fh), x=0 ; c != EOF ; c = fgetc(fh), x++)
+	{
+		source[x] = c;
         }
         source[x] = '\0';
 
@@ -154,7 +165,8 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 
         nb_devices = _starpu_opencl_get_device_count();
         // Iterate over each device
-        for(dev = 0; dev < nb_devices; dev ++) {
+        for(dev = 0; dev < nb_devices; dev ++)
+	{
                 cl_device_id device;
                 cl_context   context;
                 cl_program   program;
@@ -162,7 +174,8 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 
                 starpu_opencl_get_device(dev, &device);
                 starpu_opencl_get_context(dev, &context);
-                if (context == NULL) {
+                if (context == NULL)
+		{
                         _STARPU_DEBUG("[%d] is not a valid OpenCL context\n", dev);
                         continue;
                 }
@@ -177,7 +190,8 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 
                 // Build the program executable
                 err = clBuildProgram(program, 1, &device, build_options, NULL, NULL);
-                if (err != CL_SUCCESS) {
+                if (err != CL_SUCCESS)
+		{
                         size_t len;
                         static char buffer[4096];
 
@@ -237,7 +251,8 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
 
         nb_devices = _starpu_opencl_get_device_count();
         // Iterate over each device
-        for(dev = 0; dev < nb_devices; dev ++) {
+        for(dev = 0; dev < nb_devices; dev ++)
+	{
                 if (opencl_programs->programs[dev])
                         clReleaseProgram(opencl_programs->programs[dev]);
         }
@@ -252,7 +267,8 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 #endif
 
 #ifdef CL_PROFILING_CLOCK_CYCLE_COUNT
-	if (starpu_profiling_status_get() && info) {
+	if (starpu_profiling_status_get() && info)
+	{
 		cl_int err;
 		unsigned int clock_cycle_count;
 		size_t size;
@@ -263,7 +279,8 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	}
 #endif
 #ifdef CL_PROFILING_STALL_CYCLE_COUNT
-	if (starpu_profiling_status_get() && info) {
+	if (starpu_profiling_status_get() && info)
+	{
 		cl_int err;
 		unsigned int stall_cycle_count;
 		size_t size;
@@ -275,7 +292,8 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	}
 #endif
 #ifdef CL_PROFILING_POWER_CONSUMED
-	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->power_model && task->cl->power_model->benchmarking))) {
+	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->power_model && task->cl->power_model->benchmarking)))
+	{
 		cl_int err;
 		double power_consumed;
 		size_t size;
@@ -293,7 +311,8 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
 {
 	const char *errormsg;
-	switch (status) {
+	switch (status)
+	{
 	case CL_SUCCESS:
 		errormsg = "success";
 		break;

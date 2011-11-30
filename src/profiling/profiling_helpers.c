@@ -30,7 +30,7 @@ void starpu_bus_profiling_helper_display_summary(void)
 	for (busid = 0; busid < bus_cnt; busid++)
 	{
 		int src, dst;
-	
+
 		src = starpu_bus_get_src(busid);
 		dst = starpu_bus_get_dst(busid);
 
@@ -67,7 +67,8 @@ void starpu_worker_profiling_helper_display_summary(void)
 
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
-		if (profiling) {
+		if (profiling)
+		{
 			double total_time = starpu_timing_timespec_to_us(&info.total_time) / 1000.;
 			double executing_time = starpu_timing_timespec_to_us(&info.executing_time) / 1000.;
 			double sleeping_time = starpu_timing_timespec_to_us(&info.sleeping_time) / 1000.;
@@ -80,16 +81,20 @@ void starpu_worker_profiling_helper_display_summary(void)
 				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
 			if (info.power_consumed)
 				fprintf(stderr, "\t%f J consumed\n", info.power_consumed);
-		} else {
+		}
+		else
+		{
 			fprintf(stderr, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
 		}
 
 		sum_consumed += info.power_consumed;
 	}
 
-	if (profiling) {
+	if (profiling)
+	{
 		const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
-		if (strval_idle_power) {
+		if (strval_idle_power)
+		{
 			double idle_power = atof(strval_idle_power); /* Watt */
 			double idle_consumption = idle_power * overall_time / 1000.; /* J */
 

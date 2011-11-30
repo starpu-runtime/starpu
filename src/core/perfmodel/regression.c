@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -117,7 +117,8 @@ static unsigned find_list_size(struct starpu_history_list *list_history)
 	unsigned cnt = 0;
 
 	struct starpu_history_list *ptr = list_history;
-	while (ptr) {
+	while (ptr)
+	{
 		cnt++;
 		ptr = ptr->next;
 	}
@@ -143,7 +144,8 @@ static void dump_list(unsigned *x, double *y, struct starpu_history_list *list_h
 	struct starpu_history_list *ptr = list_history;
 	unsigned i = 0;
 
-	while (ptr) {
+	while (ptr)
+	{
 		x[i] = ptr->entry->size;
 		y[i] = ptr->entry->mean;
 
@@ -153,7 +155,7 @@ static void dump_list(unsigned *x, double *y, struct starpu_history_list *list_h
 }
 
 
-/* y = ax^b + c 
+/* y = ax^b + c
  * 	return 0 if success, -1 otherwise
  * 	if success, a, b and c are modified
  * */
@@ -171,7 +173,7 @@ int _starpu_regression_non_linear_power(struct starpu_history_list *ptr, double 
 
 	double cmin = 0.0;
 	double cmax = find_list_min(y, n);
-	
+
 	unsigned iter;
 
 	double err = 100000.0;
@@ -180,7 +182,7 @@ int _starpu_regression_non_linear_power(struct starpu_history_list *ptr, double 
 	{
 		double c1, c2;
 		double r1, r2;
-		
+
 		double radius = 0.01;
 
 		c1 = cmin + (0.5-radius)*(cmax - cmin);
@@ -197,7 +199,8 @@ int _starpu_regression_non_linear_power(struct starpu_history_list *ptr, double 
 		{
 			cmax = (cmin + cmax)/2;
 		}
-		else {
+		else
+		{
 			/* 2 is better */
 			cmin = (cmin + cmax)/2;
 		}
@@ -210,7 +213,7 @@ int _starpu_regression_non_linear_power(struct starpu_history_list *ptr, double 
 
 	*c = (cmin + cmax)/2;
 
-	*b = compute_b(*c, n, x, y); 
+	*b = compute_b(*c, n, x, y);
 	*a = exp(compute_a(*c, *b, n, x, y));
 
 	free(x);
@@ -218,4 +221,3 @@ int _starpu_regression_non_linear_power(struct starpu_history_list *ptr, double 
 
 	return 0;
 }
-

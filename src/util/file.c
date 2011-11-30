@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,17 +20,21 @@
 
 void _starpu_drop_comments(FILE *f)
 {
-	while(1) {
+	while(1)
+	{
 		int c = getc(f);
 
-		switch (c) {
+		switch (c)
+		{
 			case '#':
 			{
 				char s[128];
 				char *ret;
-				do {
+				do
+				{
 					ret = fgets(s, sizeof(s), f);
-				} while (ret && (!strchr(s, '\n')));
+				}
+				while (ret && (!strchr(s, '\n')));
 			}
 			case '\n':
 				continue;

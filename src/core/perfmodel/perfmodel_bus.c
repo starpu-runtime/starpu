@@ -47,7 +47,8 @@
 #define MAXCPUS	32
 
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
-struct dev_timing {
+struct dev_timing
+{
 	int cpu_id;
 	double timing_htod;
 	double timing_dtoh;
@@ -785,12 +786,14 @@ static int load_bus_latency_file_content(void)
 			double latency;
 
 			n = fscanf(f, "%lf", &latency);
-			if (n != 1) {
+			if (n != 1)
+			{
 				fclose(f);
 				return 0;
 			}
 			n = getc(f);
-			if (n != '\t') {
+			if (n != '\t')
+			{
 				fclose(f);
 				return 0;
 			}
@@ -799,7 +802,8 @@ static int load_bus_latency_file_content(void)
 		}
 
 		n = getc(f);
-		if (n != '\n') {
+		if (n != '\n')
+		{
 			fclose(f);
 			return 0;
 		}
@@ -852,7 +856,8 @@ static void write_bus_latency_file_content(void)
 			{
 				latency = 0.0;
 			}
-			else {
+			else
+			{
 				/* µs */
                                 latency = ((src && dst)?2000.0:500.0);
 			}
@@ -925,13 +930,15 @@ static int load_bus_bandwidth_file_content(void)
 			double bandwidth;
 
 			n = fscanf(f, "%lf", &bandwidth);
-			if (n != 1) {
+			if (n != 1)
+			{
 				fprintf(stderr,"didn't get a number\n");
 				fclose(f);
 				return 0;
 			}
 			n = getc(f);
-			if (n != '\t') {
+			if (n != '\t')
+			{
 				fclose(f);
 				return 0;
 			}
@@ -940,7 +947,8 @@ static int load_bus_bandwidth_file_content(void)
 		}
 
 		n = getc(f);
-		if (n != '\n') {
+		if (n != '\n')
+		{
 			fclose(f);
 			return 0;
 		}
@@ -1010,7 +1018,8 @@ static void write_bus_bandwidth_file_content(void)
 				bandwidth = 1.0/slowness;
 			}
 #endif
-			else {
+			else
+			{
 			        /* convention */
 			        bandwidth = 0.0;
 			}
@@ -1094,12 +1103,14 @@ static void check_bus_config_file()
 
         get_config_path(path, 256);
         res = access(path, F_OK);
-        if (res) {
+        if (res)
+	{
 		fprintf(stderr, "No performance model for the bus, calibrating...");
 		starpu_force_bus_sampling();
 		fprintf(stderr, "done\n");
         }
-        else {
+        else
+	{
                 FILE *f;
                 int ret, read_cuda, read_opencl;
                 unsigned read_cpus;
@@ -1130,17 +1141,20 @@ static void check_bus_config_file()
 #endif
 
                 // Checking if both configurations match
-                if (read_cpus != ncpus) {
+                if (read_cpus != ncpus)
+		{
 			fprintf(stderr, "Current configuration does not match the bus performance model (CPUS: (stored) %u != (current) %u), recalibrating...", read_cpus, ncpus);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");
                 }
-                else if (read_cuda != ncuda) {
+                else if (read_cuda != ncuda)
+		{
                         fprintf(stderr, "Current configuration does not match the bus performance model (CUDA: (stored) %d != (current) %d), recalibrating...", read_cuda, ncuda);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");
                 }
-                else if (read_opencl != nopencl) {
+                else if (read_opencl != nopencl)
+		{
                         fprintf(stderr, "Current configuration does not match the bus performance model (OpenCL: (stored) %d != (current) %d), recalibrating...", read_opencl, nopencl);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");

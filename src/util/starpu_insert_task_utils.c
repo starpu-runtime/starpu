@@ -23,7 +23,8 @@ typedef void (*_starpu_callback_func_t)(void *);
 /* Deal with callbacks. The unpack function may be called multiple times when
  * we have a parallel task, and we should not free the cl_arg parameter from
  * the callback function. */
-struct insert_task_cb_wrapper {
+struct insert_task_cb_wrapper
+{
 	_starpu_callback_func_t callback_func;
 	void *callback_arg;
 	void *arg_stack;
@@ -51,34 +52,43 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 
 	arg_buffer_size += sizeof(char);
 
-	while ((arg_type = va_arg(varg_list, int)) != 0) {
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX) {
+	while ((arg_type = va_arg(varg_list, int)) != 0)
+	{
+		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_VALUE) {
+		else if (arg_type==STARPU_VALUE)
+		{
 			(void)va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
 			arg_buffer_size += sizeof(size_t);
 			arg_buffer_size += cst_size;
 		}
-		else if (arg_type==STARPU_CALLBACK) {
+		else if (arg_type==STARPU_CALLBACK)
+		{
 			(void)va_arg(varg_list, _starpu_callback_func_t);
 		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
 			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
 			(void)va_arg(varg_list, void *);
 		}
-		else if (arg_type==STARPU_PRIORITY) {
+		else if (arg_type==STARPU_PRIORITY)
+		{
 			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
 			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
@@ -130,17 +140,20 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
 			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
 			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
@@ -150,7 +163,8 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {
+int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+{
         int arg_type;
 	unsigned current_buffer = 0;
 
@@ -194,20 +208,23 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codele
 			cl_arg_wrapper->callback_func = callback_func;
 			cl_arg_wrapper->callback_arg = callback_arg;
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
 			void *callback_arg = va_arg(varg_list, void *);
 			cl_arg_wrapper->callback_arg = callback_arg;
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			/* Followed by a priority level */
-			int prio = va_arg(varg_list, int); 
+			int prio = va_arg(varg_list, int);
 			(*task)->priority = prio;
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
 			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}

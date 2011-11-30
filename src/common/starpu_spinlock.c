@@ -74,9 +74,11 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 	return ret;
 #else
 	uint32_t prev;
-	do {
+	do
+	{
 		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
-	} while (prev);
+	}
+	while (prev);
 	return 0;
 #endif
 #endif

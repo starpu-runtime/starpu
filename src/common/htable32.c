@@ -33,21 +33,20 @@ void *_starpu_htbl_search_32(struct starpu_htbl32_node *htbl, uint32_t key)
 
 	for(currentbit = 0; currentbit < keysize; currentbit+=_STARPU_HTBL32_NODE_SIZE)
 	{
-	
-	//	printf("search : current bit = %d \n", currentbit);
+		//	printf("search : current bit = %d \n", currentbit);
 		if (STARPU_UNLIKELY(current_htbl == NULL))
 			return NULL;
 
-		/* 0000000000001111 
+		/* 0000000000001111
 		 *     | currentbit
 		 * 0000111100000000 = offloaded_mask
 		 *         |last_currentbit
 		 * */
 
-		unsigned last_currentbit = 
+		unsigned last_currentbit =
 			keysize - (currentbit + _STARPU_HTBL32_NODE_SIZE);
 		uint32_t offloaded_mask = mask << last_currentbit;
-		unsigned current_index = 
+		unsigned current_index =
 			(key & (offloaded_mask)) >> (last_currentbit);
 
 		current_htbl = current_htbl->children[current_index];
@@ -73,29 +72,30 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 	for(currentbit = 0; currentbit < keysize; currentbit+=_STARPU_HTBL32_NODE_SIZE)
 	{
 		//printf("insert : current bit = %d \n", currentbit);
-		if (*current_htbl_ptr == NULL) {
+		if (*current_htbl_ptr == NULL)
+		{
 			/* TODO pad to change that 1 into 16 ? */
 			*current_htbl_ptr = (struct starpu_htbl32_node*)calloc(sizeof(struct starpu_htbl32_node), 1);
 			assert(*current_htbl_ptr);
 		}
 
-		/* 0000000000001111 
+		/* 0000000000001111
 		 *     | currentbit
 		 * 0000111100000000 = offloaded_mask
 		 *         |last_currentbit
 		 * */
 
-		unsigned last_currentbit = 
+		unsigned last_currentbit =
 			keysize - (currentbit + _STARPU_HTBL32_NODE_SIZE);
 		uint32_t offloaded_mask = mask << last_currentbit;
-		unsigned current_index = 
+		unsigned current_index =
 			(key & (offloaded_mask)) >> (last_currentbit);
 
-		current_htbl_ptr = 
+		current_htbl_ptr =
 			&((*current_htbl_ptr)->children[current_index]);
 	}
 
-	/* current_htbl either contains NULL or a previous entry 
+	/* current_htbl either contains NULL or a previous entry
 	 * we overwrite it anyway */
 	void *old_entry = *current_htbl_ptr;
 	*current_htbl_ptr = (struct starpu_htbl32_node *) entry;

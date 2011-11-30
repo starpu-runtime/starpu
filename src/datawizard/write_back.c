@@ -19,7 +19,8 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 
-static void wt_callback(void *arg) {
+static void wt_callback(void *arg)
+{
 	starpu_data_handle_t handle = (starpu_data_handle_t) arg;
 
 	_starpu_spin_lock(&handle->header_lock);
@@ -27,10 +28,11 @@ static void wt_callback(void *arg) {
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node, 
+void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node,
 				uint32_t write_through_mask)
 {
-	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
+	if ((write_through_mask & ~(1<<requesting_node)) == 0)
+	{
 		/* nothing will be done ... */
 		return;
 	}
@@ -39,9 +41,10 @@ void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting
 	uint32_t node;
 	for (node = 0; node < _starpu_get_memory_nodes_count(); node++)
 	{
-		if (write_through_mask & (1<<node)) {
+		if (write_through_mask & (1<<node))
+		{
 			/* we need to commit the buffer on that node */
-			if (node != requesting_node) 
+			if (node != requesting_node)
 			{
 				while (_starpu_spin_trylock(&handle->header_lock))
 					_starpu_datawizard_progress(requesting_node, 1);
@@ -71,7 +74,7 @@ void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask)
 	handle->wt_mask = wt_mask;
 
 	/* in case the data has some children, set their wt_mask as well */
-	if (handle->nchildren > 0) 
+	if (handle->nchildren > 0)
 	{
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)

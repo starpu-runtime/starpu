@@ -23,7 +23,8 @@
 #include <common/config.h>
 #include <core/jobs.h>
 
-struct _starpu_deque_jobq {
+struct _starpu_deque_jobq
+{
 	/* the actual list */
 	struct _starpu_job_list *jobq;
 

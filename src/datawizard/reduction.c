@@ -50,10 +50,11 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 	STARPU_ASSERT(init_cl);
 
 	_starpu_cl_func init_func = NULL;
-	
+
 	/* TODO Check that worker may execute the codelet */
 
-	switch (starpu_worker_get_type(workerid)) {
+	switch (starpu_worker_get_type(workerid))
+	{
 		case STARPU_CPU_WORKER:
 			init_func = init_cl->cpu_func;
 			break;
@@ -112,7 +113,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			/* Make sure the replicate is not removed */
 			handle->per_worker[worker].refcnt++;
 
-			uint32_t home_node = starpu_worker_get_memory_node(worker); 
+			uint32_t home_node = starpu_worker_get_memory_node(worker);
 			starpu_data_register(&handle->reduction_tmp_handles[worker],
 				home_node, handle->per_worker[worker].data_interface, handle->ops);
 
@@ -120,7 +121,8 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 			replicate_array[replicate_count++] = handle->reduction_tmp_handles[worker];
 		}
-		else {
+		else
+		{
 			handle->reduction_tmp_handles[worker] = NULL;
 		}
 	}
@@ -133,7 +135,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 #endif
 
 //	fprintf(stderr, "REDUX REFCNT = %d\n", handle->reduction_refcnt);
-	
+
 	if (replicate_count > 0)
 	{
 		/* Temporarily unlock the handle */
@@ -144,7 +146,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		 * replicate */
 		struct starpu_task *last_replicate_deps[replicate_count];
 		memset(last_replicate_deps, 0, replicate_count*sizeof(struct starpu_task *));
-	
+
 		unsigned step = 1;
 		while (step <= replicate_count)
 		{
@@ -156,42 +158,42 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					/* Perform the reduction between replicates i
 					 * and i+step and put the result in replicate i */
 					struct starpu_task *redux_task = starpu_task_create();
-		
+
 					redux_task->cl = handle->redux_cl;
 					STARPU_ASSERT(redux_task->cl);
-		
+
 					redux_task->buffers[0].handle = replicate_array[i];
 					redux_task->buffers[0].mode = STARPU_RW;
-		
+
 					redux_task->buffers[1].handle = replicate_array[i+step];
 					redux_task->buffers[1].mode = STARPU_R;
-	
+
 					redux_task->detach = 0;
-	
+
 					int ndeps = 0;
 					struct starpu_task *task_deps[2];
-	
+
 					if (last_replicate_deps[i])
 						task_deps[ndeps++] = last_replicate_deps[i];
-	
+
 					if (last_replicate_deps[i+step])
 						task_deps[ndeps++] = last_replicate_deps[i+step];
-	
+
 					/* i depends on this task */
 					last_replicate_deps[i] = redux_task;
-	
+
 					/* we don't perform the reduction until both replicates are ready */
-					starpu_task_declare_deps_array(redux_task, ndeps, task_deps); 
-		
+					starpu_task_declare_deps_array(redux_task, ndeps, task_deps);
+
 					int ret = starpu_task_submit(redux_task);
 					STARPU_ASSERT(!ret);
-		
+
 				}
 			}
 
 			step *= 2;
 		}
-	
+
 		struct starpu_task *redux_task = starpu_task_create();
 
 		/* Mark these tasks so that StarPU does not block them
@@ -222,23 +224,23 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		for (replicate = 0; replicate < replicate_count; replicate++)
 		{
 			struct starpu_task *redux_task = starpu_task_create();
-	
+
 			/* Mark these tasks so that StarPU does not block them
 			 * when they try to access the handle (normal tasks are
 			 * data requests to that handle are frozen until the
 			 * data is coherent again). */
 			struct _starpu_job *j = _starpu_get_job_associated_to_task(redux_task);
 			j->reduction_task = 1;
-	
+
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
-	
+
 			redux_task->buffers[0].handle = handle;
 			redux_task->buffers[0].mode = STARPU_RW;
-	
+
 			redux_task->buffers[1].handle = replicate_array[replicate];
 			redux_task->buffers[1].mode = STARPU_R;
-	
+
 			int ret = starpu_task_submit(redux_task);
 			STARPU_ASSERT(!ret);
 		}

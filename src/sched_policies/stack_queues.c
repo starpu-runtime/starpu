@@ -22,7 +22,7 @@
 #include <errno.h>
 #include <common/utils.h>
 
-/* keep track of the total number of jobs to be scheduled to avoid infinite 
+/* keep track of the total number of jobs to be scheduled to avoid infinite
  * polling when there are really few jobs in the overall queue */
 static unsigned total_number_of_jobs;
 
@@ -82,23 +82,23 @@ struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queu
 		return NULL;
 
 	/* TODO find a task that suits workerid */
-	if (stack_queue->njobs > 0) 
+	if (stack_queue->njobs > 0)
 	{
 		/* there is a task */
 		j = _starpu_job_list_pop_back(stack_queue->jobq);
-	
+
 		STARPU_ASSERT(j);
 		stack_queue->njobs--;
-		
+
 		_STARPU_TRACE_JOB_POP(j, 0);
 
-		/* we are sure that we got it now, so at worst, some people thought 
+		/* we are sure that we got it now, so at worst, some people thought
 		 * there remained some work and will soon discover it is not true */
 		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		total_number_of_jobs--;
 		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
-	
+
 	return j;
 
 }

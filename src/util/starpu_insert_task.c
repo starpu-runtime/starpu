@@ -55,7 +55,7 @@ void starpu_unpack_cl_args(void *_cl_arg, ...)
 		size_t arg_size = *(size_t *)&cl_arg[current_arg_offset];
 		current_arg_offset += sizeof(size_t);
 
-		memcpy(argptr, &cl_arg[current_arg_offset], arg_size); 
+		memcpy(argptr, &cl_arg[current_arg_offset], arg_size);
 		current_arg_offset += arg_size;
 	}
 

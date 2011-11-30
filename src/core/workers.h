@@ -53,7 +53,8 @@
 
 #include <starpu_parameters.h>
 
-struct _starpu_worker {
+struct _starpu_worker
+{
 	struct _starpu_machine_config *config;
         pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
@@ -89,7 +90,8 @@ struct _starpu_worker {
 #endif
 };
 
-struct _starpu_combined_worker {
+struct _starpu_combined_worker
+{
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	uint32_t worker_mask; /* what is the type of workers ? */
 	int worker_size;
@@ -104,9 +106,10 @@ struct _starpu_combined_worker {
 #endif
 };
 
-/* in case a single CPU worker may control multiple 
+/* in case a single CPU worker may control multiple
  * accelerators (eg. Gordon for n SPUs) */
-struct _starpu_worker_set {
+struct _starpu_worker_set
+{
         pthread_mutex_t mutex;
 	pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
@@ -117,8 +120,8 @@ struct _starpu_worker_set {
 	unsigned set_is_initialized;
 };
 
-struct _starpu_machine_config {
-
+struct _starpu_machine_config
+{
 	struct starpu_machine_topology topology;
 
 #ifdef STARPU_HAVE_HWLOC
@@ -127,13 +130,13 @@ struct _starpu_machine_config {
 
 	/* Where to bind workers ? */
 	int current_bindid;
-	
+
 	/* Which GPU(s) do we use for CUDA ? */
 	int current_cuda_gpuid;
 
 	/* Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
-	
+
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];

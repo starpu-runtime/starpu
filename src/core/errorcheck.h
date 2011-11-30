@@ -21,7 +21,8 @@
 #include <starpu.h>
 
 /* This type describes in which state a worker may be. */
-enum _starpu_worker_status {
+enum _starpu_worker_status
+{
 	/* invalid status (for instance if we request the status of some thread
 	 * that is not controlled by StarPU */
 	STATUS_INVALID,

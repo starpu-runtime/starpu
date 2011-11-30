@@ -25,6 +25,7 @@ static pthread_mutex_t logfile_mutex = PTHREAD_MUTEX_INITIALIZER;
 static FILE *logfile;
 #endif
 
+/* Tell gdb whether FXT is compiled in or not */
 int _starpu_use_fxt
 #ifdef STARPU_USE_FXT
 	= 1
@@ -36,7 +37,7 @@ void _starpu_open_debug_logfile(void)
 #ifdef STARPU_VERBOSE
 	/* what is  the name of the file ? default = "starpu.log" */
 	char *logfile_name;
-	
+
 	logfile_name = getenv("STARPU_LOGFILENAME");
 	if (!logfile_name)
 	{

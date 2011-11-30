@@ -42,7 +42,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods vector_copy_data_methods_s = {
+static const struct starpu_data_copy_methods vector_copy_data_methods_s =
+{
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -75,10 +76,11 @@ static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle);
 static int vector_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
-static struct starpu_data_interface_ops interface_vector_ops = {
+static struct starpu_data_interface_ops interface_vector_ops =
+{
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.handle_to_pointer = vector_handle_to_pointer,
@@ -91,7 +93,7 @@ static struct starpu_data_interface_ops interface_vector_ops = {
 	.convert_to_gordon = convert_vector_to_gordon,
 #endif
 	.interfaceid = STARPU_VECTOR_INTERFACE_ID,
-	.interface_size = sizeof(struct starpu_vector_interface), 
+	.interface_size = sizeof(struct starpu_vector_interface),
 	.display = display_vector_interface
 };
 
@@ -115,12 +117,14 @@ static void register_vector_handle(starpu_data_handle_t handle, uint32_t home_no
 		struct starpu_vector_interface *local_interface = (struct starpu_vector_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		if (node == home_node) {
+		if (node == home_node)
+		{
 			local_interface->ptr = vector_interface->ptr;
                         local_interface->dev_handle = vector_interface->dev_handle;
                         local_interface->offset = vector_interface->offset;
 		}
-		else {
+		else
+		{
 			local_interface->ptr = 0;
                         local_interface->dev_handle = 0;
                         local_interface->offset = 0;
@@ -132,10 +136,10 @@ static void register_vector_handle(starpu_data_handle_t handle, uint32_t home_no
 }
 
 #ifdef STARPU_USE_GORDON
-int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
 {
 	struct starpu_vector_interface *vector_interface = interface;
-	
+
 	*ptr = vector_interface->ptr;
 	(*ss).size = vector_interface->nx * vector_interface->elemsize;
 
@@ -147,15 +151,16 @@ int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideS
 void starpu_vector_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
-	struct starpu_vector_interface vector = {
+	struct starpu_vector_interface vector =
+	{
 		.ptr = ptr,
 		.nx = nx,
 		.elemsize = elemsize,
                 .dev_handle = ptr,
                 .offset = 0
-	};	
+	};
 
-	starpu_data_register(handleptr, home_node, &vector, &interface_vector_ops); 
+	starpu_data_register(handleptr, home_node, &vector, &interface_vector_ops);
 }
 
 
@@ -243,7 +248,8 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 	cudaError_t status;
 #endif
 
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			addr = (uintptr_t)malloc(nx*elemsize);
 			if (!addr)
@@ -268,7 +274,8 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
                                 void *ptr;
                                 ret = _starpu_opencl_allocate_memory(&ptr, nx*elemsize, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
-				if (ret) {
+				if (ret)
+				{
 					fail = 1;
 				}
 				break;
@@ -288,7 +295,7 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 	vector_interface->ptr = addr;
         vector_interface->dev_handle = addr;
         vector_interface->offset = 0;
-	
+
 	return allocated_memory;
 }
 
@@ -301,7 +308,8 @@ static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 
 	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
-	switch(kind) {
+	switch(kind)
+	{
 		case STARPU_CPU_RAM:
 			free((void*)vector_interface->ptr);
 			break;
@@ -395,7 +403,8 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	{
 		return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
 	}
-	else {
+	else
+	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		return copy_cuda_peer_common(src_interface, src_node, dst_interface, dst_node, 0, 0);
 #else
@@ -433,13 +442,14 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 	return -EAGAIN;
 }
 
-static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					void *dst_interface, unsigned dst_node, cudaStream_t stream)
+static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
 {
 	if (src_node == dst_node)
 	{
 		return copy_cuda_async_common(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToDevice);
 	}
-	else {
+	else
+	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		return copy_cuda_peer_common(src_interface, src_node, dst_interface, dst_node, 1, stream);
 #else
@@ -525,7 +535,7 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 
 	size_t size = src_vector->nx*src_vector->elemsize;
 
-	err = clEnqueueCopyBuffer(cq, (cl_mem)src_vector->dev_handle, (cl_mem)dst_vector->dev_handle, src_vector->offset, dst_vector->offset, size, 0, NULL, NULL); 
+	err = clEnqueueCopyBuffer(cq, (cl_mem)src_vector->dev_handle, (cl_mem)dst_vector->dev_handle, src_vector->offset, dst_vector->offset, size, 0, NULL, NULL);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 

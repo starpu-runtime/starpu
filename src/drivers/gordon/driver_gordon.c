@@ -34,7 +34,8 @@ pthread_t progress_thread;
 pthread_cond_t progress_cond;
 pthread_mutex_t progress_mutex;
 
-struct gordon_task_wrapper_s {
+struct gordon_task_wrapper_s
+{
 	/* who has executed that ? */
 	struct _starpu_worker *worker;
 
@@ -53,7 +54,7 @@ void *gordon_worker_progress(void *arg)
 
 	/* fix the thread on the correct cpu */
 	struct _starpu_worker_set *gordon_set_arg = arg;
-	unsigned prog_thread_bind_id = 
+	unsigned prog_thread_bind_id =
 		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
 	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
 
@@ -62,8 +63,9 @@ void *gordon_worker_progress(void *arg)
 	_STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-	while (1) {
-		/* the Gordon runtime needs to make sure that we poll it 
+	while (1)
+	{
+		/* the Gordon runtime needs to make sure that we poll it
 		 * so that we handle jobs that are done */
 
 		/* wait for one task termination */
@@ -89,10 +91,11 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 
 	/* if it is non null, the argument buffer is considered
  	 * as the first read-only buffer */
-	if (task->cl_arg) {
+	if (task->cl_arg)
+	{
 		gordon_job->buffers[in] = (uint64_t)task->cl_arg;
 		gordon_job->ss[in].size = (uint32_t)task->cl_arg_size;
-		
+
 		nin++; in++;
 	}
 
@@ -103,7 +106,8 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 		struct starpu_buffer_descr *descr;
 		descr = &task->buffers[buffer];
 
-		switch (descr->mode) {
+		switch (descr->mode)
+		{
 			case STARPU_R:
 				nin++;
 				break;
@@ -123,7 +127,8 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 		struct starpu_buffer_descr *descr;
 		descr = &task->buffers[buffer];
 
-		switch (descr->mode) {
+		switch (descr->mode)
+		{
 			case STARPU_R:
 				gordon_buffer = in++;
 				break;
@@ -150,7 +155,7 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 	}
 }
 
-/* we assume the data are already available so that the data interface fields are 
+/* we assume the data are already available so that the data interface fields are
  * already filled */
 static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 {
@@ -183,8 +188,8 @@ static void handle_terminated_job(struct _starpu_job *j)
 
 static void gordon_callback_list_func(void *arg)
 {
-	struct gordon_task_wrapper_s *task_wrapper = arg; 
-	struct _starpu_job_list *wrapper_list; 
+	struct gordon_task_wrapper_s *task_wrapper = arg;
+	struct _starpu_job_list *wrapper_list;
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
@@ -232,7 +237,7 @@ static void gordon_callback_list_func(void *arg)
 
 static void gordon_callback_func(void *arg)
 {
-	struct gordon_task_wrapper_s *task_wrapper = arg; 
+	struct gordon_task_wrapper_s *task_wrapper = arg;
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
@@ -254,7 +259,8 @@ int inject_task(struct _starpu_job *j, struct _starpu_worker *worker)
 	struct starpu_task *task = j->task;
 	int ret = _starpu_fetch_task_input(task, 0);
 
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		/* there was not enough memory so the codelet cannot be executed right now ... */
 		/* push the codelet back and try another one ... */
 		return STARPU_TRYAGAIN;
@@ -277,15 +283,17 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 	struct _starpu_job *j;
 
 	// TODO !
-//	
+//
 //	for (j = _starpu_job_list_begin(list); j != _starpu_job_list_end(list); j = _starpu_job_list_next(j) )
 //	{
-//		if (!_STARPU_GORDON_MAY_PERFORM(j)) {
+//		if (!_STARPU_GORDON_MAY_PERFORM(j))
+//              {
 //			// XXX TODO
 //			ninvalids++;
 //			assert(0);
 //		}
-//		else {
+//		else
+//              {
 //			nvalids++;
 //		}
 //	}
@@ -293,7 +301,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 	nvalids = _job_list_size(list);
 //	_STARPU_DEBUG("nvalids %d \n", nvalids);
 
-	
+
 
 	struct gordon_task_wrapper_s *task_wrapper = malloc(sizeof(struct gordon_task_wrapper_s));
 	gordon_job_t *gordon_jobs = gordon_alloc_jobs(nvalids, 0);
@@ -303,7 +311,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 	task_wrapper->j = NULL;
 	task_wrapper->terminated = 0;
 	task_wrapper->worker = worker;
-	
+
 	unsigned index;
 	for (j = _starpu_job_list_begin(list), index = 0; j != _starpu_job_list_end(list); j = _starpu_job_list_next(j), index++)
 	{
@@ -322,7 +330,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 		/* we should not hardcore the memory node ... XXX */
 		unsigned memory_node = 0;
 		starpu_to_gordon_buffers(j, &gordon_jobs[index], memory_node);
-		
+
 	}
 
 	gordon_pushjob(task_wrapper->gordon_job, gordon_callback_list_func, task_wrapper);
@@ -333,12 +341,15 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 void *gordon_worker_inject(struct _starpu_worker_set *arg)
 {
 
-	while(_starpu_machine_is_running()) {
-		if (gordon_busy_enough()) {
+	while(_starpu_machine_is_running())
+	{
+		if (gordon_busy_enough())
+		{
 			/* gordon already has enough work, wait a little TODO */
 			_starpu_wait_on_sched_event();
 		}
-		else {
+		else
+		{
 #ifndef NOCHAIN
 			int ret = 0;
 #ifdef STARPU_DEVEL
@@ -382,7 +393,8 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 						list->_head = it_j;
 						it_j->_prev = NULL;
 					}
-					else {
+					else
+					{
 						/* this is the last chunk */
 						chunk_list = list;
 					}
@@ -390,7 +402,8 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 					ret = inject_task_list(chunk_list, &arg->workers[0]);
 				}
 			}
-			else {
+			else
+			{
 				_starpu_wait_on_sched_event();
 			}
 #else
@@ -398,18 +411,21 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 			struct _starpu_job *j;
 			j =  _starpu_pop_task();
 	//		_STARPU_DEBUG("pop task %p\n", j);
-			if (j) {
-				if (_STARPU_GORDON_MAY_PERFORM(j)) {
+			if (j)
+			{
+				if (_STARPU_GORDON_MAY_PERFORM(j))
+				{
 					/* inject that task */
 					/* XXX we hardcore &arg->workers[0] for now */
 					inject_task(j, &arg->workers[0]);
 				}
-				else {
+				else
+				{
 					_starpu_push_task(j, 0);
 				}
 			}
 #endif
-			
+
 		}
 	}
 
@@ -423,7 +439,7 @@ void *_starpu_gordon_worker(void *arg)
 	_starpu_bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
 
 	/* TODO set_local_memory_node per SPU */
-	gordon_init(gordon_set_arg->nworkers);	
+	gordon_init(gordon_set_arg->nworkers);
 
 	/* NB: On SPUs, the worker_key is set to NULL since there is no point
 	 * in associating the PPU thread with a specific SPU (worker) while
@@ -448,7 +464,7 @@ void *_starpu_gordon_worker(void *arg)
 	/* launch the progression thread */
 	_STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
-	
+
 	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
@@ -458,7 +474,7 @@ void *_starpu_gordon_worker(void *arg)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	_STARPU_DEBUG("progress thread is running ... \n");
-	
+
 	/* tell the core that gordon is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&gordon_set_arg->mutex);
 	gordon_set_arg->set_is_initialized = 1;
