@@ -205,16 +205,78 @@ double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_arc
 	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
 }
 
-double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double starpu_task_expected_conversion_time(struct starpu_task *task,
+					    enum starpu_perf_archtype arch,
+					    unsigned nimpl)
 {
-	/* XXX : 
-	   sum = 0.0;
-	   For each multiformat handle that needs a conversion task :
-		sum += length of the conversion task
-	   return sum;
-	*/
-	return 0;
-	//return starpu_model_expected_perf(task, task->cl->conversion_model, arch, nimpl);
+	int i, err;
+	double sum = 0.0;
+	int cpu_worker, cuda_worker, opencl_worker;
+	unsigned int node, cpu_node, cuda_node, opencl_node;
+
+	/* We need to get one node per archtype. This is kinda ugly,
+	 * but it does the job.
+	 * XXX : Should we return 0 if there are no devices ?
+	 * (err != 1 && err != -ERANGE)
+	 */
+#ifdef STARPU_USE_CPU
+	err = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
+					    &cpu_worker, 1);
+	if (err != 1 && err != -ERANGE)
+		return 0.0;
+	cpu_node = starpu_worker_get_memory_node(cpu_worker);
+#endif
+#ifdef STARPU_USE_CUDA
+	err = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
+					    &cuda_worker, 1);
+	if (err != 1 && err != -ERANGE)
+		return 0.0;
+	cuda_node = starpu_worker_get_memory_node(cuda_worker);
+#endif
+#ifdef STARPU_USE_OPENCL
+	err = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
+					    &opencl_worker, 1);
+	if (err != 1 && err != -ERANGE)
+		return 0.0;
+
+	opencl_node = starpu_worker_get_memory_node(opencl_worker);
+#endif
+
+	for (i = 0; i < task->cl->nbuffers; i++)
+	{
+		unsigned int id;
+		starpu_data_handle_t handle;
+		struct starpu_task *conversion_task;
+		
+		handle = task->buffers[i].handle;
+		id = starpu_get_handle_interface_id(handle);
+		if (id != STARPU_MULTIFORMAT_INTERFACE_ID)
+			continue;
+
+		if (arch >= STARPU_CPU_DEFAULT && 
+		    arch < STARPU_CUDA_DEFAULT)
+			node = cpu_node;
+		else if (arch >= STARPU_CUDA_DEFAULT &&
+			 arch < STARPU_OPENCL_DEFAULT)
+			node = cuda_node;
+		else if (arch >= STARPU_OPENCL_DEFAULT &&
+			 arch < STARPU_GORDON_DEFAULT)
+			node = opencl_node;
+		else
+			STARPU_ASSERT(0);
+
+		if (!_starpu_handle_needs_conversion_task(handle, node))
+			continue;
+
+		conversion_task = _starpu_create_conversion_task(handle, node);
+		sum += starpu_task_expected_length(conversion_task, arch, nimpl);
+		handle->refcnt--;
+		handle->busy_count--;
+		starpu_task_deinit(conversion_task);
+		free(conversion_task);
+	}
+
+	return sum;
 }
 
 /* Predict the transfer time (in µs) to move a handle to a memory node */
