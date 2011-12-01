@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <starpu_config.h>
+#include <starpu.h>
 #include <starpu_perfmodel.h>
 
 #ifdef __cplusplus

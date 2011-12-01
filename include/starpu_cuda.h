@@ -18,12 +18,13 @@
 #ifndef __STARPU_CUDA_H__
 #define __STARPU_CUDA_H__
 
+#include <starpu_config.h>
+
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <cublas.h>
-#include <starpu_config.h>
 
 #ifdef __cplusplus
 extern "C"

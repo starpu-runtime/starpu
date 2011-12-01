@@ -16,19 +16,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
-
 #ifndef __STARPU_TASK_H__
 #define __STARPU_TASK_H__
 
+#include <starpu.h>
+#include <starpu_data.h>
 #include <errno.h>
-#include <starpu_config.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 # include <cuda.h>
 #endif
-
-#include <starpu_data.h>
 
 #ifdef __cplusplus
 extern "C"

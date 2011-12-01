@@ -16,13 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
-
 #ifndef __STARPU_DATA_INTERFACES_H__
 #define __STARPU_DATA_INTERFACES_H__
 
-#include <starpu_data.h>
-#include <starpu_util.h>
+#include <starpu.h>
 
 #ifdef STARPU_USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
