@@ -47,6 +47,7 @@ extern "C"
 #define starpu_perfmodel_t		starpu_perfmodel
 #define starpu_sched_policy_s		starpu_sched_policy
 #define starpu_data_interface_ops_t	starpu_data_interface_ops
+#define starpu_access_mode		enum starpu_access_mode
 
 #ifdef __cplusplus
 }
