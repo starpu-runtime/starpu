@@ -25,7 +25,6 @@ extern "C"
 
 #warning deprecated types. Please update your code to use the latest API, e.g. using tools/dev/rename.sh
 
-#define starpu_codelet			struct starpu_codelet
 #define starpu_data_handle		starpu_data_handle_t
 #define starpu_block_interface_t	struct starpu_block_interface
 #define starpu_matrix_interface_t	struct starpu_matrix_interface
@@ -43,11 +42,13 @@ extern "C"
 #define starpu_model_list_t		starpu_model_list
 #define starpu_regression_model_t	starpu_regression_model
 #define starpu_per_arch_perfmodel_t	starpu_per_arch_perfmodel
-#define starpu_buffer_descr		struct starpu_buffer_descr
 #define starpu_perfmodel_t		starpu_perfmodel
 #define starpu_sched_policy_s		starpu_sched_policy
 #define starpu_data_interface_ops_t	starpu_data_interface_ops
-#define starpu_access_mode		enum starpu_access_mode
+
+typedef struct starpu_buffer_descr starpu_buffer_descr;
+typedef struct starpu_codelet starpu_codelet;
+typedef enum starpu_access_mode starpu_access_mode;
 
 #ifdef __cplusplus
 }
