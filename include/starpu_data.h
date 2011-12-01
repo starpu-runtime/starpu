@@ -22,16 +22,13 @@
 
 #include <starpu_config.h>
 
-struct _starpu_data_state;
-typedef struct _starpu_data_state* starpu_data_handle_t;
-
-#include <starpu_data_interfaces.h>
-#include <starpu_data_filters.h>
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+struct _starpu_data_state;
+typedef struct _starpu_data_state* starpu_data_handle_t;
 
 enum starpu_access_mode
 {

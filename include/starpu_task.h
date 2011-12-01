@@ -30,6 +30,11 @@
 
 #include <starpu_data.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
 #define STARPU_SPU	((1ULL)<<4)
@@ -55,11 +60,6 @@ enum starpu_task_status
 	STARPU_TASK_BLOCKED_ON_TASK,
 	STARPU_TASK_BLOCKED_ON_DATA
 };
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 typedef uint64_t starpu_tag_t;
 

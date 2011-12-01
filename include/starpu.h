@@ -37,6 +37,8 @@ typedef unsigned long long uint64_t;
 
 #include <starpu_util.h>
 #include <starpu_data.h>
+#include <starpu_data_interfaces.h>
+#include <starpu_data_filters.h>
 #include <starpu_perfmodel.h>
 #include <starpu_task.h>
 #include <starpu_task_list.h>

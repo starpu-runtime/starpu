@@ -18,6 +18,11 @@
 #ifndef __STARPU_DEPRECATED_API_H__
 #define _STARPU_DEPRECATED_API_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #warning deprecated types. Please update your code to use the latest API.
 
 #define starpu_codelet			struct starpu_codelet
@@ -43,5 +48,8 @@
 #define starpu_sched_policy_s		starpu_sched_policy
 #define starpu_data_interface_ops_t	starpu_data_interface_ops
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _STARPU_DEPRECATED_API_H__ */

@@ -243,8 +243,6 @@ void starpu_top_debug_lock(const char* message);
 void starpu_top_process_input_message(char *message);
 
 
-
-
 #ifdef __cplusplus
 }
 #endif
