@@ -66,7 +66,10 @@ if test x$SIZEOF_VOID_P = x4; then
 	esac
 fi
 
-
+# Get the version of StarPU that we are installing
+STARPU_VERSION=1.0.0
+AC_SUBST(STARPU_VERSION)
+AC_DEFINE_UNQUOTED([STARPU_VERSION], [$STARPU_VERSION], [Version of StarPU])
 
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
