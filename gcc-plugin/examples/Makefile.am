@@ -30,7 +30,9 @@ AM_CPPFLAGS =						\
 
 AM_CFLAGS = -fplugin="$(builddir)/../src/.libs/starpu.so" -Wall
 
-noinst_HEADERS = cholesky/cholesky.h
+noinst_HEADERS =				\
+  cholesky/cholesky.h				\
+  cholesky/cholesky_kernels.h
 
 if !NO_BLAS_LIB
 cholesky_cholesky_SOURCES	=		\
