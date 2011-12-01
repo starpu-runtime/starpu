@@ -157,7 +157,6 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 		}
 		local_interface->nx = multiformat_interface->nx;
 		local_interface->ops = multiformat_interface->ops;
-		local_interface->conversion_time = 0;
 	}
 }
 

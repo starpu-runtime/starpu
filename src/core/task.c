@@ -276,9 +276,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 		if (task->cl->power_model)
 			_starpu_load_perfmodel(task->cl->power_model);
-
-		if (task->cl->conversion_model)
-			_starpu_load_perfmodel(task->cl->conversion_model);
 	}
 
 	/* If profiling is activated, we allocate a structure to store the
@@ -435,31 +432,6 @@ struct starpu_task *starpu_get_current_task(void)
 void _starpu_set_current_task(struct starpu_task *task)
 {
 	pthread_setspecific(current_task_key, task);
-}
-
-double _starpu_task_get_conversion_time(struct starpu_task *task)
-{
-	int i;
-	double conversion_time = 0.0;
-
-	for (i = 0; i < task->cl->nbuffers; i++)
-	{
-		starpu_data_handle_t handle = task->buffers[i].handle;
-		enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
-		if (id == STARPU_MULTIFORMAT_INTERFACE_ID)
-		{
-			struct starpu_multiformat_interface *tmp;
-			uint32_t node = starpu_worker_get_memory_node(task->workerid);
-			tmp = starpu_data_get_interface_on_node(handle, node);
-			conversion_time += tmp->conversion_time;
-			/* XXX : this may not be the right place to reset this field,
-			 * but we need to make sure the conversion time won't be counted
-                         * twice */
-			tmp->conversion_time = 0;
-		}
-	}
-
-	return conversion_time;
 }
 
 /*

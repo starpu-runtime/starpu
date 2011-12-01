@@ -363,7 +363,6 @@ struct starpu_multiformat_interface
 	size_t offset;
 	uint32_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
-	double conversion_time;
 };
 
 void starpu_multiformat_data_register(starpu_data_handle_t *handle,

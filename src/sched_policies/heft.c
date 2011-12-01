@@ -299,7 +299,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_task_length[worker][nimpl] = starpu_task_expected_length(task, perf_arch, nimpl);
 				local_data_penalty[worker][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
 				local_power[worker][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
-
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
 					local_task_length[worker][nimpl] += conversion_time;

@@ -68,11 +68,6 @@ extern void multiformat_scal_cuda_func(void *buffers[], void *arg);
 extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 #endif
 
-static struct starpu_perfmodel conversion_model = {
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "multiformat_conversion_model"
-};
-
 static struct starpu_codelet  cl = {
 	.where = STARPU_CUDA | STARPU_OPENCL,
 	.cpu_func = multiformat_scal_cpu_func,
@@ -83,7 +78,6 @@ static struct starpu_codelet  cl = {
 	.opencl_func = multiformat_scal_opencl_func,
 #endif
 	.nbuffers = 1,
-	.conversion_model = &conversion_model
 };
 
 /*

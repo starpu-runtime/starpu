@@ -207,7 +207,14 @@ double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_arc
 
 double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
-	return starpu_model_expected_perf(task, task->cl->conversion_model, arch, nimpl);
+	/* XXX : 
+	   sum = 0.0;
+	   For each multiformat handle that needs a conversion task :
+		sum += length of the conversion task
+	   return sum;
+	*/
+	return 0;
+	//return starpu_model_expected_perf(task, task->cl->conversion_model, arch, nimpl);
 }
 
 /* Predict the transfer time (in µs) to move a handle to a memory node */

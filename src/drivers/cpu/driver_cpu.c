@@ -79,7 +79,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	if (rank == 0)
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
-				perf_arch, &codelet_start, &codelet_end, 0);
+				perf_arch, &codelet_start, &codelet_end);
 		_starpu_push_task_output(task, 0);
 	}
 

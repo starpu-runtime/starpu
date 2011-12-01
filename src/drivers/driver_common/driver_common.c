@@ -89,7 +89,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 }
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
 					enum starpu_perf_archtype perf_arch,
-					struct timespec *codelet_start, struct timespec *codelet_end, double conversion_time)
+					struct timespec *codelet_start, struct timespec *codelet_end)
 {
 	struct starpu_task_profiling_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
@@ -136,13 +136,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	{
 		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed,j->nimpl);
 	}
-
-	if (j->task->cl->conversion_model)
-	{
-		_starpu_update_perfmodel_history(j, j->task->cl->conversion_model, perf_arch,
-						 worker_args->devid, conversion_time, j->nimpl);
-	}
-
 }
 
 /* Workers may block when there is no work to do at all. We assume that the

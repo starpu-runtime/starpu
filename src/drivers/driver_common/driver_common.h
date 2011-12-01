@@ -29,7 +29,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j,
 			    struct timespec *codelet_end, int rank);
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
 					enum starpu_perf_archtype perf_arch,
-					struct timespec *codelet_start, struct timespec *codelet_end, double);
+					struct timespec *codelet_start, struct timespec *codelet_end);
 
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 
