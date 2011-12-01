@@ -32,9 +32,7 @@ The extensions-again release
   * Documentation improvement.
   * Add a STARPU_DATA_ACQUIRE_CB which permits to inline the code to
     be done.
-  * Permit to specify MPI tags for more efficient
-    starpu_mpi_insert_task
-  * Add a communications.
+  * Permit to specify MPI tags for more efficient starpu_mpi_insert_task
   * Add SOCL, an OpenCL interface on top of StarPU.
   * Add gdb functions.
   * Add complex support to LU example.
