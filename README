@@ -150,7 +150,7 @@ Some examples ready to run are installed into $prefix/lib/starpu/{examples,mpi}
 ++==============++
 
 To upgrade your source code from older version (there were quite a few
-renamings), use the tools/rename.sh script
+renamings), use the tools/dev/rename.sh script
 
 ++===============++
 || VIII. Contact ||
