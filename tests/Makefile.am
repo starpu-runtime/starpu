@@ -102,6 +102,8 @@ noinst_PROGRAMS =				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
+	core/multiformat_data_release           \
+	core/multiformat_handle_conversion      \
 	core/multithreaded			\
 	core/multithreaded_init			\
 	core/starpu_task_wait_for_all		\
@@ -152,6 +154,7 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_v2		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
+	datawizard/interfaces/multiformat/multiformat_interface \
 	datawizard/interfaces/vector/test_vector_interface   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
@@ -253,6 +256,11 @@ BUILT_SOURCES += 						\
 	microbenchs/null_kernel_gordon.spuelf
 endif
 
+core_multiformat_handle_conversion_SOURCES = \
+	core/multiformat_handle_conversion.c
+
+core_multiformat_data_release_SOURCES = \
+	core/multiformat_data_release.c
 
 ##############
 # Interfaces #
@@ -271,4 +279,24 @@ datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
 	datawizard/interfaces/vector/test_vector_opencl.c 
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
+endif
+
+datawizard_interfaces_multiformat_multiformat_interface_SOURCES =           \
+	datawizard/interfaces/test_interfaces.c                             \
+	datawizard/interfaces/multiformat/multiformat_interface.c           \
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets.c
+
+if STARPU_USE_CUDA
+datawizard_interfaces_multiformat_multiformat_interface_SOURCES+=                  \
+	datawizard/interfaces/multiformat/multiformat_cuda.cu                      \
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_multiformat_multiformat_interface_SOURCES+=                  \
+	datawizard/interfaces/multiformat/multiformat_opencl.c                     \
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA +=                                                          \
+	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl                     \
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets_opencl_kernel.cl
 endif

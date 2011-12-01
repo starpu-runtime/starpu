@@ -74,7 +74,7 @@ static struct starpu_perfmodel conversion_model = {
 };
 
 static struct starpu_codelet  cl = {
-	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
+	.where = STARPU_CUDA | STARPU_OPENCL,
 	.cpu_func = multiformat_scal_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = multiformat_scal_cuda_func,
@@ -112,24 +112,40 @@ register_data(void)
 static void
 create_and_submit_tasks(void)
 {
-	struct starpu_task *task = starpu_task_create();
+	int err;
 
+#ifdef STARPU_USE_CUDA
+	struct starpu_task *task = starpu_task_create();
+	cl.where = STARPU_CUDA;
 	task->cl = &cl;
 	task->synchronous = 1;
 	task->buffers[0].handle = array_of_structs_handle;
 	task->buffers[0].mode = STARPU_RW;
 	task->cl_arg = NULL;
 	task->cl_arg_size = 0;
-	starpu_task_submit(task);
+	err = starpu_task_submit(task);
+	if (err != 0)
+	{
+		fprintf(stderr, "Err : %s\n", strerror(-err));
+		return;
+	}
+#endif
 
 	struct starpu_task *task2 = starpu_task_create();
+	cl.where = STARPU_CPU;
 	task2->cl = &cl;
 	task2->synchronous = 1;
 	task2->buffers[0].handle = array_of_structs_handle;
 	task2->buffers[0].mode = STARPU_RW;
 	task2->cl_arg = NULL;
+	cl.where = STARPU_CPU;
 	task2->cl_arg_size = 0;
-	starpu_task_submit(task2);
+	err = starpu_task_submit(task2);
+	if (err != 0)
+	{
+		fprintf(stderr, "Err : %s\n", strerror(-err));
+		return;
+	}
 }
 
 static void
@@ -156,7 +172,9 @@ check_it(void)
 	int i;
 	for (i = 0; i < N_ELEMENTS; i++) {
 		float expected_value = i + 1.0;
+#if STARPU_USE_CUDA
 		expected_value *= array_of_structs[i].y;
+#endif
 		expected_value *= array_of_structs[i].y;
 		if (array_of_structs[i].x != expected_value)
 			return EXIT_FAILURE;
@@ -172,6 +190,7 @@ struct starpu_opencl_program opencl_conversion_program;
 int
 main(void)
 {
+#ifdef STARPU_USE_CPU
 	starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
@@ -200,4 +219,9 @@ main(void)
 
 
 	return check_it();
+#else
+	/* Without the CPU, there is no point in using the multiformat
+	 * interface, so this test is pointless. */
+	return EXIT_SUCCESS;
+#endif
 }

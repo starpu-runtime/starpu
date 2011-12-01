@@ -246,8 +246,16 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree(multiformat_interface->cuda_ptr);
-			multiformat_interface->cuda_ptr = NULL;
+			if (multiformat_interface->cpu_ptr)
+			{
+				cudaFree(multiformat_interface->cpu_ptr);
+				multiformat_interface->cpu_ptr = NULL;
+			}
+			if (multiformat_interface->cuda_ptr)
+			{
+				cudaFree(multiformat_interface->cuda_ptr);
+				multiformat_interface->cuda_ptr = NULL;
+			}
 			break;
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -283,6 +291,15 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 				multiformat_interface->cpu_ptr = (void *) addr;
 				multiformat_interface->dev_handle = addr;
 			}
+
+#ifdef STARPU_USE_CUDA
+			multiformat_interface->cuda_ptr = malloc(multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize);
+			STARPU_ASSERT(multiformat_interface->cuda_ptr != NULL);
+#endif
+#ifdef STARPU_USE_OPENCL
+			multiformat_interface->opencl_ptr = malloc(multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
+			STARPU_ASSERT(multiformat_interface->opencl_ptr != NULL);
+#endif
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
@@ -298,6 +315,9 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 					multiformat_interface->cuda_ptr = (void *)addr;
 					multiformat_interface->dev_handle = addr;
 				}
+
+				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
+				status = cudaMalloc((void **)&multiformat_interface->cpu_ptr, allocated_memory);
 				break;
 			}
 #endif
@@ -319,6 +339,11 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 					multiformat_interface->dev_handle = addr;
 
 				}
+
+				_starpu_opencl_allocate_memory(&multiformat_interface->cpu_ptr,
+							multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize,
+							CL_MEM_READ_WRITE);
+				
 				break;
 			}
 #endif
@@ -384,15 +409,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 				if (src_multiformat->cuda_ptr == NULL)
 					return -ENOMEM;
 			}
-			/* Converting data , from host to host */
-			double tmp = starpu_timing_now();
-			void *buffers[1];
-			buffers[0] = src_interface;
-			struct starpu_codelet *cl = src_multiformat->ops->cpu_to_cuda_cl;
-			cl->cpu_func(buffers, NULL);
-			dst_multiformat->conversion_time = starpu_timing_now() - tmp;
-
-			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
+			status = cudaMemcpy(dst_multiformat->cpu_ptr, src_multiformat->cpu_ptr, size, kind);
 			if (STARPU_UNLIKELY(status))
 			{
 				STARPU_CUDA_REPORT_ERROR(status);
@@ -405,11 +422,6 @@ static int copy_cuda_common(void *src_interface, unsigned src_node,
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
-
-			void *buffers[1];
-			struct starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
-			buffers[0] = dst_interface;
-			cl->cpu_func(buffers, NULL);
 
 			break;
 		}
@@ -461,16 +473,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 					return -ENOMEM;
 			}
 
-			/* Converting data , from host to host */
-			double tmp = starpu_timing_now();
-			void *buffers[1]; // XXX
-			buffers[0] = src_interface;
-			struct starpu_codelet *cl = src_multiformat->ops->cpu_to_cuda_cl;
-			cl->cpu_func(buffers, NULL);
-			dst_multiformat->conversion_time = starpu_timing_now() - tmp;
-
-			/* Actual copy from host to device */
-			status = cudaMemcpyAsync(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind, stream);
+			status = cudaMemcpyAsync(dst_multiformat->cpu_ptr, src_multiformat->cpu_ptr, size, kind, stream);
 			if (STARPU_UNLIKELY(status))
 			{
 				STARPU_CUDA_REPORT_ERROR(status);
@@ -483,12 +486,6 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node, void *
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
-
-			/* Converting data */
-			void *buffers[1];
-			struct starpu_codelet *cl = src_multiformat->ops->cuda_to_cpu_cl;
-			buffers[0] = dst_interface;
-			cl->cpu_func(buffers, NULL);
 
 			break;
 		}
@@ -623,26 +620,10 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize;
 
-	if (src_multiformat->opencl_ptr == NULL)
-	{
-		src_multiformat->opencl_ptr = malloc(src_multiformat->nx * src_multiformat->ops->opencl_elemsize);
-		if (src_multiformat->opencl_ptr == NULL)
-		{
-			return -ENOMEM;
-		}
-	}
 
-	double tmp = starpu_timing_now();
-	void *buffers[1];
-	struct starpu_codelet *cl = src_multiformat->ops->cpu_to_opencl_cl;
-	buffers[0] = src_interface;
-	cl->cpu_func(buffers, NULL);
-	dst_multiformat->conversion_time = starpu_timing_now() - tmp;
-
-
-	err = _starpu_opencl_copy_ram_to_opencl_async_sync(src_multiformat->opencl_ptr,
+	err = _starpu_opencl_copy_ram_to_opencl_async_sync(src_multiformat->cpu_ptr,
 							   src_node,
-							   (cl_mem) dst_multiformat->dev_handle,
+							   (cl_mem) dst_multiformat->cpu_ptr,
 							   dst_node,
 							   size,
 							   dst_multiformat->offset,
@@ -672,9 +653,13 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	STARPU_ASSERT(src_multiformat->ops != NULL);
 	STARPU_ASSERT(dst_multiformat->ops != NULL);
 
-	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize,
+	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize;
 
-	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_multiformat->dev_handle,
+	if (dst_multiformat->opencl_ptr == NULL) {
+		/* XXX : it is weird that we might have to allocate memory here... */
+		dst_multiformat->opencl_ptr = malloc(dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
+	}
+	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_multiformat->opencl_ptr,
 							   src_node,
 							   dst_multiformat->opencl_ptr,
 							   dst_node,
@@ -687,12 +672,6 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 
-	/* XXX So much for asynchronicity */
-	clWaitForEvents(1, _event);
-	void *buffers[1];
-	struct starpu_codelet *cl = src_multiformat->ops->opencl_to_cpu_cl;
-	buffers[0] = dst_interface;
-	cl->cpu_func(buffers, NULL);
 
 	return ret;
 }

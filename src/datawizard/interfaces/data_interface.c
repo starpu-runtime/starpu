@@ -277,7 +277,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
-
+	handle->mf_node = home_node;
 
 	/* fill the interface fields with the appropriate method */
 	ops->register_data_handle(handle, home_node, data_interface);
@@ -412,6 +412,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 {
 	STARPU_ASSERT(handle);
 
+
 	if (coherent)
 	{
 		/* If sequential consistency is enabled, wait until data is available */
@@ -445,6 +446,42 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&arg.mutex);
 			}
 			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
+		}
+
+		/* If this handle uses the multiformat interface, we may have to convert
+		 * this piece of data back into the CPU format.
+		 * XXX : This is quite hacky, could we submit a task instead ?
+		 */
+		unsigned int id = starpu_get_handle_interface_id(handle);
+		if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
+			_starpu_get_node_kind(handle->mf_node) != STARPU_CPU_RAM)
+		{
+			_STARPU_DEBUG("Conversion needed\n");
+			void *buffers[1];
+			struct starpu_multiformat_interface *interface;
+			interface = starpu_data_get_interface_on_node(handle, 0);
+			struct starpu_codelet *cl;
+			enum _starpu_node_kind node_kind = _starpu_get_node_kind(handle->mf_node);
+			
+			switch (node_kind)
+			{
+#ifdef STARPU_USE_CUDA
+				case STARPU_CUDA_RAM:
+					cl = interface->ops->cuda_to_cpu_cl;
+					break;
+#endif
+#ifdef STARPU_USE_OPENCL
+				case STARPU_OPENCL_RAM:
+					cl = interface->ops->opencl_to_cpu_cl;
+					break;
+#endif
+				case STARPU_CPU_RAM:      /* Impossible ! */
+				case STARPU_SPU_LS:       /* Not supported */
+				default:
+					STARPU_ASSERT(0);
+			}
+			buffers[0] = interface;
+			cl->cpu_func(buffers, NULL);
 		}
 	}
 	else

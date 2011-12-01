@@ -22,6 +22,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
+#include <core/sched_policy.h>
 
 /* Explicitly ask StarPU to allocate room for a piece of data on the specified
  * memory node. */
@@ -205,6 +206,18 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
                 _STARPU_LOG_OUT_TAG("EDEADLK");
 		return -EDEADLK;
         }
+
+	unsigned int id = starpu_get_handle_interface_id(handle);
+	if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
+	    _starpu_handle_needs_conversion_task(handle, 0))
+	{
+		struct starpu_task *task = _starpu_create_conversion_task(handle, 0);
+		handle->refcnt--;
+		handle->busy_count--;
+		handle->mf_node = 0;
+		task->synchronous = 1;
+		starpu_task_submit(task);
+	}
 
 	struct user_interaction_wrapper wrapper =
 	{

@@ -461,3 +461,36 @@ double _starpu_task_get_conversion_time(struct starpu_task *task)
 
 	return conversion_time;
 }
+
+/*
+ * Returns 0 if tasks does not use any multiformat handle, 1 otherwise.
+ */
+int
+_starpu_task_uses_multiformat_handles(struct starpu_task *task)
+{
+	int i;
+	for (i = 0; i < task->cl->nbuffers; i++)
+	{
+		unsigned int id;
+		id = starpu_get_handle_interface_id(task->buffers[i].handle);
+		if (id == STARPU_MULTIFORMAT_INTERFACE_ID)
+			return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * Checks whether the given handle needs to be converted in order to be used on
+ * the node given as the second argument.
+ */
+int
+_starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
+				     unsigned int node)
+{
+	enum _starpu_node_kind node_kind;
+
+	node_kind = _starpu_get_node_kind(node);
+
+	return !!(node_kind != _starpu_get_node_kind(handle->mf_node));
+}

@@ -212,6 +212,33 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
 
+	if (!_starpu_task_uses_multiformat_handles(task))
+		goto push_task;
+
+	/*
+	 * Our task uses multiformat handles, which may need to be converted.
+	 */
+	int i;
+	for (i = 0; i < task->cl->nbuffers; i++)
+	{
+		struct starpu_task *conversion_task;
+		starpu_data_handle_t handle;
+
+		handle = task->buffers[i].handle;
+		unsigned int node = starpu_worker_get_memory_node(best_workerid);
+		if (!_starpu_handle_needs_conversion_task(handle, node))
+			continue;
+
+		conversion_task = _starpu_create_conversion_task(handle, node);
+		starpu_push_local_task(best_workerid, conversion_task, prio);
+	}
+
+	unsigned node = starpu_worker_get_memory_node(best_workerid);
+	for (i = 0; i < task->cl->nbuffers; i++)
+		task->buffers[i].handle->mf_node = node;
+
+push_task:
+	//_STARPU_DEBUG("Heft : pushing local task\n");
 	return starpu_push_local_task(best_workerid, task, prio);
 }
 
@@ -275,7 +302,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
-					local_data_penalty[worker][nimpl] += conversion_time;
+					local_task_length[worker][nimpl] += conversion_time;
 				//_STARPU_DEBUG("Scheduler heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
 
 			}

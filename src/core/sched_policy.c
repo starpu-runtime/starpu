@@ -242,6 +242,27 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 	if (is_basic_worker)
 	{
+		unsigned node = starpu_worker_get_memory_node(workerid);
+		if (_starpu_task_uses_multiformat_handles(task))
+		{
+			int i;
+			for (i = 0; i < task->cl->nbuffers; i++)
+			{
+				struct starpu_task *conversion_task;
+				starpu_data_handle_t handle;
+
+				handle = task->buffers[i].handle;
+				if (!_starpu_handle_needs_conversion_task(handle, node))
+					continue;
+
+				conversion_task = _starpu_create_conversion_task(handle, node);
+				_starpu_push_local_task(worker, conversion_task, 0);
+				//_STARPU_DEBUG("Pushing a conversion task\n");
+			}
+
+			for (i = 0; i < task->cl->nbuffers; i++)
+				task->buffers[i].handle->mf_node = node;
+		}
 		return _starpu_push_local_task(worker, task, 0);
 	}
 	else
@@ -309,8 +330,74 @@ int _starpu_push_task(struct _starpu_job *j, unsigned job_is_already_locked)
         return ret;
 }
 
+/*
+ * Given a handle that needs to be converted in order to be used on the given
+ * node, returns a task that takes care of the conversion.
+ */
+struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
+						   unsigned int node)
+{
+	struct starpu_task *conversion_task;
+	struct starpu_multiformat_interface *interface;
+	enum _starpu_node_kind node_kind;
+
+	conversion_task = starpu_task_create();
+	conversion_task->synchronous = 0;
+	conversion_task->buffers[0].handle = handle;
+	conversion_task->buffers[0].mode = STARPU_RW;
+
+	/* The node does not really matter here */
+	interface = (struct starpu_multiformat_interface *)
+		starpu_data_get_interface_on_node(handle, 0);
+	node_kind = _starpu_get_node_kind(node);
+	
+	handle->refcnt++;
+	handle->busy_count++;
+
+	switch(node_kind)
+	{
+	case STARPU_CPU_RAM:
+		switch (_starpu_get_node_kind(handle->mf_node))
+		{
+		case STARPU_CPU_RAM:
+			STARPU_ASSERT(0);
+#ifdef STARPU_USE_CUDA
+		case STARPU_CUDA_RAM:
+			conversion_task->cl = interface->ops->cuda_to_cpu_cl;
+			break;
+#endif
+#ifdef STARPU_USE_OPENCL
+		case STARPU_OPENCL_RAM:
+			conversion_task->cl = interface->ops->opencl_to_cpu_cl;
+			break;
+#endif
+		default:
+			fprintf(stderr, "Oops : %d\n", handle->mf_node);
+			STARPU_ASSERT(0);
+		}
+		break;
+#if STARPU_USE_CUDA
+	case STARPU_CUDA_RAM:
+		conversion_task->cl = interface->ops->cpu_to_cuda_cl;
+		break;
+#endif
+#if STARPU_USE_OPENCL
+	case STARPU_OPENCL_RAM:
+		conversion_task->cl = interface->ops->cpu_to_opencl_cl;
+		break;
+#endif
+	case STARPU_SPU_LS: /* Not supported */
+	default:
+		STARPU_ASSERT(0);
+	}
+
+	return conversion_task;
+}
+
+
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 {
+	int i;
 	struct starpu_task *task;
 
 	/* We can't tell in advance which task will be picked up, so we measure
@@ -322,10 +409,81 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
+	if (task)
+		goto profiling;
 
+	/*
+	 * The first STARPU_NMAXBUFS elements of queued_tasks[i] are conversion
+	 * tasks for multiformat handles. The last element is the "real" task.
+	 */
+	int worker_id = starpu_worker_get_id();
+	static struct starpu_task *queued_tasks[STARPU_NMAXWORKERS][STARPU_NMAXBUFS+1] = { NULL };
+
+	/* Maybe there is a queued task for this worker */
+pick_from_queued_tasks:
+	for (i = 0; i < STARPU_NMAXBUFS+1; i++)
+	{
+		if (queued_tasks[worker_id][i])
+		{
+			task = queued_tasks[worker_id][i];
+			queued_tasks[worker_id][i] = NULL;
+			goto profiling;
+		}
+	}
+	
 	if (!task && policy.pop_task)
 		task = policy.pop_task();
 
+	if (!task)
+		return NULL;
+
+	/* Make sure we do not bother with all the multiformat-specific code if 
+	 * it is not necessary. */
+	if (!_starpu_task_uses_multiformat_handles(task))
+		goto profiling;
+
+	/*
+	 * This worker may not be able to execute this task. In this case, we
+	 * should return the task anyway. It will be pushed back almost immediatly.
+	 * This way, we avoid computing and executing the conversions tasks.
+	 * Here, we do not care about what implementation is used.
+	 */
+	if (!starpu_worker_can_execute_task(worker_id, task, 0))
+		return task;
+
+	unsigned node = starpu_worker_get_memory_node(worker_id);
+
+	/*
+	 * We do have a task that uses multiformat handles. Let's create the 
+	 * required conversion tasks.
+	 */
+	for (i = 0; i < task->cl->nbuffers; i++)
+	{
+		struct starpu_task *conversion_task;
+		starpu_data_handle_t handle;
+
+		handle = task->buffers[i].handle;
+		if (!_starpu_handle_needs_conversion_task(handle, node))
+			continue;
+
+		conversion_task = _starpu_create_conversion_task(handle, node);
+		queued_tasks[worker_id][i] = conversion_task;
+	}
+
+	/*
+	 * Next tasks will need to know where these handles have gone.
+	 */
+	for (i = 0; i < task->cl->nbuffers; i++)
+		task->buffers[i].handle->mf_node = node;
+
+	queued_tasks[worker_id][STARPU_NMAXBUFS] = task;
+
+	/* We know there is at least one task in queued_tasks[worker_id]. */
+	goto pick_from_queued_tasks;
+	
+
+	/* We finally got our task */
+profiling:
 	/* Note that we may get a NULL task in case the scheduler was unlocked
 	 * for some reason. */
 	if (profiling && task)

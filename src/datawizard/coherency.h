@@ -217,6 +217,8 @@ struct _starpu_data_state
 	unsigned stats_shared_to_owner[STARPU_MAXNODES];
 	unsigned stats_invalidated[STARPU_MAXNODES];
 #endif
+
+	unsigned int mf_node; //XXX
 };
 
 void _starpu_display_msi_stats(void);
