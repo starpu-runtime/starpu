@@ -46,7 +46,6 @@ struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 
 struct starpu_task *_starpu_create_task_alias(struct starpu_task *task);
 
-int _task_needs_conversion(struct starpu_task *task, int worker_id);
 int _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 					 unsigned int node);
 
