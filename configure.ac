@@ -67,7 +67,7 @@ if test x$SIZEOF_VOID_P = x4; then
 fi
 
 # Get the version of StarPU that we are installing
-STARPU_VERSION=1.0.0
+STARPU_VERSION=1
 AC_SUBST(STARPU_VERSION)
 AC_DEFINE_UNQUOTED([STARPU_VERSION], [$STARPU_VERSION], [Version of StarPU])
 
