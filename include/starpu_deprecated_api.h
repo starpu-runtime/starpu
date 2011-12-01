@@ -25,26 +25,26 @@ extern "C"
 
 #warning deprecated types. Please update your code to use the latest API, e.g. using tools/dev/rename.sh
 
-#define starpu_data_handle		starpu_data_handle_t
-#define starpu_block_interface_t	struct starpu_block_interface
-#define starpu_matrix_interface_t	struct starpu_matrix_interface
-#define starpu_vector_interface_t	struct starpu_vector_interface
-#define starpu_variable_interface_t	struct starpu_variable_interface
-#define starpu_csr_interface_t		struct starpu_csr_interface
-#define starpu_bcsr_interface_t		struct starpu_bcsr_interface
-#define starpu_multiformat_interface_t	struct starpu_multiformat_interface
-#define starpu_machine_topology_s	starpu_machine_topology
-#define starpu_htbl32_node_s		starpu_htbl32_node
-#define starpu_history_list_t		starpu_history_list
-#define starpu_buffer_descr_t		starpu_buffer_descr
-#define starpu_history_entry_t 		starpu_history_entry
-#define starpu_history_list_t		starpu_history_list
-#define starpu_model_list_t		starpu_model_list
-#define starpu_regression_model_t	starpu_regression_model
-#define starpu_per_arch_perfmodel_t	starpu_per_arch_perfmodel
-#define starpu_perfmodel_t		starpu_perfmodel
-#define starpu_sched_policy_s		starpu_sched_policy
-#define starpu_data_interface_ops_t	starpu_data_interface_ops
+typedef starpu_data_handle_t starpu_data_handle;
+typedef struct starpu_block_interface starpu_block_interface_t;
+typedef struct starpu_matrix_interface starpu_matrix_interface_t;
+typedef struct starpu_vector_interface starpu_vector_interface_t;
+typedef struct starpu_variable_interface starpu_variable_interface_t;
+typedef struct starpu_csr_interface starpu_csr_interface_t;
+typedef struct starpu_bcsr_interface starpu_bcsr_interface_t;
+typedef struct starpu_multiformat_interface starpu_multiformat_interface_t;
+typedef starpu_machine_topology starpu_machine_topology_s;
+typedef starpu_htbl32_node starpu_htbl32_node_s;
+typedef starpu_history_list starpu_history_list_t;
+typedef starpu_buffer_descr starpu_buffer_descr_t;
+typedef starpu_history_entry starpu_history_entry_t;
+typedef starpu_history_list starpu_history_list_t;
+typedef starpu_model_list starpu_model_list_t;
+typedef starpu_regression_model starpu_regression_model_t;
+typedef starpu_per_arch_perfmodel starpu_per_arch_perfmodel_t;
+typedef starpu_perfmodel starpu_perfmodel_t;
+typedef starpu_sched_policy starpu_sched_policy_s;
+typedef starpu_data_interface_ops starpu_data_interface_ops_t;
 
 typedef struct starpu_buffer_descr starpu_buffer_descr;
 typedef struct starpu_codelet starpu_codelet;
