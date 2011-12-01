@@ -399,6 +399,9 @@ void starpu_bound_print_dot(FILE *output)
 
 /*
  * lp_solve format
+ *
+ * When dependencies are enabled, you can check the set of tasks and deps that
+ * were recorded by using tools/lp2paje and vite.
  */
 void starpu_bound_print_lp(FILE *output)
 {
