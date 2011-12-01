@@ -23,7 +23,7 @@ extern "C"
 {
 #endif
 
-#warning deprecated types. Please update your code to use the latest API.
+#warning deprecated types. Please update your code to use the latest API, e.g. using tools/dev/rename.sh
 
 #define starpu_codelet			struct starpu_codelet
 #define starpu_data_handle		starpu_data_handle_t
