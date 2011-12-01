@@ -1,0 +1,23 @@
+Naming Conventions
+------------------
+
+* Prefix names of public objects (types, functions, etc.) with "starpu"
+
+* Prefix names of internal objects (types, functions, etc.) with "_starpu"
+
+* Names for qualified types (struct, union, enum) do not end with _t, _s or similar.
+  Use _t only for typedef types, such as opaque public types, e.g
+       typedef struct _starpu_data_state* starpu_data_handle_t;
+  or
+       typedef uint64_t starpu_tag_t;
+
+* When a variable can only take a finite set of values, use an enum
+  type instead of defining macros for each of the values.
+
+
+
+
+
+Style
+-----
+* curly braces always go on a new line
