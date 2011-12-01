@@ -29,10 +29,12 @@ typedef struct _starpu_data_state* starpu_data_handle_t;
 #include <starpu_data_filters.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-enum starpu_access_mode {
+enum starpu_access_mode
+{
 	STARPU_R=(1<<0),
 	STARPU_W=(1<<1),
 	STARPU_RW=(STARPU_R|STARPU_W),
@@ -40,7 +42,8 @@ enum starpu_access_mode {
 	STARPU_REDUX=(1<<3)
 };
 
-struct starpu_buffer_descr {
+struct starpu_buffer_descr
+{
 	starpu_data_handle_t handle;
 	enum starpu_access_mode mode;
 };
@@ -63,13 +66,16 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_access_mode mode, void (*callback)(void *), void *arg);
 #ifdef __GCC__
-#  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do { \
-	void callback(void *arg) { \
-		code; \
-		starpu_data_release(handle); \
-	} \
-	starpu_data_acquire_cb(handle, mode, callback, NULL); \
-} while(0)
+#  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do \
+	{ \						\
+		void callback(void *arg)		\
+		{					\
+			code;				\
+			starpu_data_release(handle);  	\
+		}			      		\
+		starpu_data_acquire_cb(handle, mode, callback, NULL);	\
+	}						\
+	while(0)
 #endif
 
 void starpu_data_release(starpu_data_handle_t handle);

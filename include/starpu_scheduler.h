@@ -31,12 +31,14 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 struct starpu_task;
 
-struct starpu_machine_topology {
+struct starpu_machine_topology
+{
 	unsigned nworkers;
 
 	unsigned ncombinedworkers;
@@ -59,7 +61,7 @@ struct starpu_machine_topology {
 
 	/* Where to bind workers ? */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
-	
+
 	/* Which GPU(s) do we use for CUDA ? */
 	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
 
@@ -70,7 +72,8 @@ struct starpu_machine_topology {
 /* This structure contains all the methods that implement a scheduling policy.
  * An application may specify which scheduling strategy in the "sched_policy"
  * field of the starpu_conf structure passed to the starpu_init function. */
-struct starpu_sched_policy {
+struct starpu_sched_policy
+{
 	/* Initialize the scheduling policy. */
 	void (*init_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *);
 

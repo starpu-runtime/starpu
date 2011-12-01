@@ -20,10 +20,12 @@
 #include <starpu_task.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-struct starpu_task_list {
+struct starpu_task_list
+{
 	struct starpu_task *head;
 	struct starpu_task *tail;
 };

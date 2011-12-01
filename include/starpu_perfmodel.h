@@ -30,20 +30,22 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 struct starpu_htbl32_node;
 struct starpu_history_list;
 struct starpu_buffer_descr;
 
-/* 
+/*
    it is possible that we have multiple versions of the same kind of workers,
    for instance multiple GPUs or even different CPUs within the same machine
    so we do not use the archtype enum type directly for performance models
 */
 
-enum starpu_perf_archtype {
+enum starpu_perf_archtype
+{
 	STARPU_CPU_DEFAULT = 0,
 	/* CPU combined workers between 0 and STARPU_MAXCPUS-1 */
 	STARPU_CUDA_DEFAULT = STARPU_MAXCPUS,
@@ -54,9 +56,10 @@ enum starpu_perf_archtype {
 
 #define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
 
-struct starpu_history_entry {
+struct starpu_history_entry
+{
 	//double measured;
-	
+
 	/* mean_n = 1/n sum */
 	double mean;
 
@@ -89,17 +92,20 @@ struct starpu_history_entry {
 #endif
 };
 
-struct starpu_history_list {
+struct starpu_history_list
+{
 	struct starpu_history_list *next;
 	struct starpu_history_entry *entry;
 };
 
-struct starpu_model_list {
+struct starpu_model_list
+{
 	struct starpu_model_list *next;
 	struct starpu_perfmodel *model;
 };
 
-struct starpu_regression_model {
+struct starpu_regression_model
+{
 	/* sum of ln(measured) */
 	double sumlny;
 
@@ -126,7 +132,8 @@ struct starpu_regression_model {
 	unsigned nsample;
 };
 
-struct starpu_per_arch_perfmodel {
+struct starpu_per_arch_perfmodel
+{
 	double (*cost_model)(struct starpu_buffer_descr *t); /* returns expected duration in µs */
 
 	/* internal variables */
@@ -139,7 +146,8 @@ struct starpu_per_arch_perfmodel {
 #endif
 };
 
-enum starpu_perfmodel_type {
+enum starpu_perfmodel_type
+{
 	STARPU_PER_ARCH,	/* Application-provided per-arch cost model function */
 	STARPU_COMMON,		/* Application-provided common cost model function, with per-arch factor */
 	STARPU_HISTORY_BASED,	/* Automatic history-based cost model */
@@ -147,7 +155,8 @@ enum starpu_perfmodel_type {
 	STARPU_NL_REGRESSION_BASED	/* Automatic non-linear regression-based cost model (a * size ^ b + c) */
 };
 
-struct starpu_perfmodel {
+struct starpu_perfmodel
+{
 	/* which model is used for that task ? */
 	enum starpu_perfmodel_type type;
 

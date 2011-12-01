@@ -27,17 +27,20 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-struct starpu_task_bundle_entry {
+struct starpu_task_bundle_entry
+{
 	struct starpu_task *task;
 	struct starpu_task_bundle_entry *next;
 };
 
 /* The task bundle structure describes a list of tasks that should be scheduled
  * together whenever possible. */
-struct starpu_task_bundle {
+struct starpu_task_bundle
+{
 	/* Mutex protecting the bundle */
 #if defined(_MSC_VER)
 	void *mutex;

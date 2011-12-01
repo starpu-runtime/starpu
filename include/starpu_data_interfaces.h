@@ -39,14 +39,16 @@ typedef void *cudaStream_t;
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* The following structures are used to describe data interfaces */
 
 /* This structure contains the different methods to transfer data between the
  * different types of memory nodes */
-struct starpu_data_copy_methods {
+struct starpu_data_copy_methods
+{
 	/* src type is ram */
 	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
@@ -88,7 +90,8 @@ struct starpu_data_copy_methods {
 #endif
 };
 
-enum starpu_data_interface_id {
+enum starpu_data_interface_id
+{
 	STARPU_MATRIX_INTERFACE_ID=0,
 	STARPU_BLOCK_INTERFACE_ID=1,
 	STARPU_VECTOR_INTERFACE_ID=2,
@@ -100,7 +103,8 @@ enum starpu_data_interface_id {
 	STARPU_NINTERFACES_ID=8 /* number of data interfaces */
 };
 
-struct starpu_data_interface_ops {
+struct starpu_data_interface_ops
+{
 	/* Register an existing interface into a data handle. */
 	void (*register_data_handle)(starpu_data_handle_t handle,
 					uint32_t home_node, void *data_interface);
@@ -153,7 +157,8 @@ void *starpu_handle_get_local_ptr(starpu_data_handle_t handle);
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
 /* Matrix interface for dense matrices */
-struct starpu_matrix_interface {
+struct starpu_matrix_interface
+{
 	uintptr_t ptr;
         uintptr_t dev_handle;
         size_t offset;
@@ -182,7 +187,8 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 
 /* BLOCK interface for 3D dense blocks */
 /* TODO: rename to 3dmatrix? */
-struct starpu_block_interface {
+struct starpu_block_interface
+{
 	uintptr_t ptr;
         uintptr_t dev_handle;
         size_t offset;
@@ -215,7 +221,8 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_BLOCK_GET_ELEMSIZE(interface)	(((struct starpu_block_interface *)(interface))->elemsize)
 
 /* vector interface for contiguous (non-strided) buffers */
-struct starpu_vector_interface {
+struct starpu_vector_interface
+{
 	uintptr_t ptr;
         uintptr_t dev_handle;
         size_t offset;
@@ -235,7 +242,8 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
 
 /* variable interface for a single data (not a vector, a matrix, a list, ...) */
-struct starpu_variable_interface {
+struct starpu_variable_interface
+{
 	uintptr_t ptr;
 	size_t elemsize;
 };
@@ -257,7 +265,8 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 void starpu_void_data_register(starpu_data_handle_t *handleptr);
 
 /* CSR interface for sparse matrices (compressed sparse row representation) */
-struct starpu_csr_interface {
+struct starpu_csr_interface
+{
 	uint32_t nnz; /* number of non-zero entries */
 	uint32_t nrow; /* number of rows */
 	uintptr_t nzval; /* non-zero values */
@@ -291,7 +300,8 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 
 /* BCSR interface for sparse matrices (blocked compressed sparse row
  * representation) */
-struct starpu_bcsr_interface {
+struct starpu_bcsr_interface
+{
 	uint32_t nnz; /* number of non-zero BLOCKS */
 	uint32_t nrow; /* number of rows (in terms of BLOCKS) */
 
@@ -328,7 +338,8 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 /*
  * Multiformat interface
  */
-struct starpu_multiformat_data_interface_ops {
+struct starpu_multiformat_data_interface_ops
+{
 	size_t cpu_elemsize;
 #ifdef STARPU_USE_OPENCL
 	size_t opencl_elemsize;
@@ -342,7 +353,8 @@ struct starpu_multiformat_data_interface_ops {
 #endif
 };
 
-struct starpu_multiformat_interface {
+struct starpu_multiformat_interface
+{
 	void *cpu_ptr;
 #ifdef STARPU_USE_CUDA
 	void *cuda_ptr;

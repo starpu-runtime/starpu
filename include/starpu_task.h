@@ -53,7 +53,8 @@
 #define STARPU_TASK_BLOCKED_ON_DATA	7
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 typedef uint64_t starpu_tag_t;
@@ -71,11 +72,12 @@ typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
 
 
 /*
- * A codelet describes the various function 
+ * A codelet describes the various function
  * that may be called from a worker
  */
 struct starpu_task;
-struct starpu_codelet {
+struct starpu_codelet
+{
 	/* where can it be performed ? */
 	uint32_t where;
 	int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl);
@@ -115,7 +117,8 @@ struct starpu_codelet {
 typedef struct starpu_codelet starpu_codelet_gcc;
 #endif /* STARPU_GCC_PLUGIN */
 
-struct starpu_task {
+struct starpu_task
+{
 	struct starpu_codelet *cl;
 
 	/* arguments managed by the DSM */
@@ -126,7 +129,7 @@ struct starpu_task {
 	void *cl_arg;
 	/* in case the argument buffer has to be uploaded explicitely */
 	size_t cl_arg_size;
-	
+
 	/* when the task is done, callback_func(callback_arg) is called */
 	void (*callback_func)(void *);
 	void *callback_arg;
@@ -136,7 +139,7 @@ struct starpu_task {
 
 	/* options for the task execution */
 	unsigned synchronous; /* if set, a call to push is blocking */
-	int priority; /* STARPU_MAX_PRIO = most important 
+	int priority; /* STARPU_MAX_PRIO = most important
         		: STARPU_MIN_PRIO = least important */
 
 	/* in case the task has to be executed on a specific worker */
@@ -163,7 +166,7 @@ struct starpu_task {
 
 	/* If this flag is set, the task will be re-submitted to StarPU once it
 	 * has been executed. This flag must not be set if the destroy flag is
-	 * set too. */ 
+	 * set too. */
 	int regenerate;
 
 	unsigned status;

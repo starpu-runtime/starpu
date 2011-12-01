@@ -23,16 +23,19 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-enum starpu_top_data_type {
+enum starpu_top_data_type
+{
 	STARPU_TOP_DATA_BOOLEAN,
 	STARPU_TOP_DATA_INTEGER,
 	STARPU_TOP_DATA_FLOAT
 };
 
-struct starpu_top_data {
+struct starpu_top_data
+{
 	unsigned int id;
 	const char* name;
 	int int_min_value;
@@ -44,14 +47,16 @@ struct starpu_top_data {
 	struct starpu_top_data * next;
 };
 
-enum starpu_top_param_type {
+enum starpu_top_param_type
+{
 	STARPU_TOP_PARAM_BOOLEAN,
 	STARPU_TOP_PARAM_INTEGER,
 	STARPU_TOP_PARAM_FLOAT,
 	STARPU_TOP_PARAM_ENUM
 };
 
-struct starpu_top_param {
+struct starpu_top_param
+{
 	unsigned int id;
 	const char* name;
 	enum starpu_top_param_type type;
@@ -66,7 +71,8 @@ struct starpu_top_param {
 	struct starpu_top_param * next;
 };
 
-enum starpu_top_message_type {
+enum starpu_top_message_type
+{
 	TOP_TYPE_GO,
 	TOP_TYPE_SET,
 	TOP_TYPE_CONTINUE,

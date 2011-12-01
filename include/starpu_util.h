@@ -26,7 +26,8 @@
 #include <starpu_perfmodel.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #define STARPU_POISON_PTR	((void *)0xdeadbeef)
@@ -61,11 +62,13 @@ extern "C" {
 
 #if defined(__i386__) || defined(__x86_64__)
 
-static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next) {
+static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
+{
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next) {
+static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
+{
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
 	return next;
@@ -74,9 +77,11 @@ static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next) {
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
-static __inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) { \
+static __inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) \
+{ \
 	unsigned old, next; \
-	while (1) { \
+	while (1) \
+	{ \
 		old = *ptr; \
 		next = expr; \
 		if (starpu_cmpxchg(ptr, old, next) == old) \
@@ -132,7 +137,8 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #include <starpu_task.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 static __inline int starpu_get_env_number(const char *str)
@@ -140,7 +146,8 @@ static __inline int starpu_get_env_number(const char *str)
 	char *strval;
 
 	strval = getenv(str);
-	if (strval) {
+	if (strval)
+	{
 		/* the env variable was actually set */
 		unsigned val;
 		char *check;
@@ -151,7 +158,8 @@ static __inline int starpu_get_env_number(const char *str)
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
 		return val;
 	}
-	else {
+	else
+	{
 		/* there is no such env variable */
 		/* fprintf("There was no %s ENV\n", str); */
 		return -1;
@@ -163,7 +171,8 @@ void starpu_trace_user_event(unsigned long code);
 
 #define STARPU_FXT_MAX_FILES	64
 
-struct starpu_fxt_codelet_event {
+struct starpu_fxt_codelet_event
+{
 	char symbol[256]; /* name of the codelet */
 	int workerid;
 	enum starpu_perf_archtype archtype;
@@ -172,7 +181,8 @@ struct starpu_fxt_codelet_event {
 	float time;
 };
 
-struct starpu_fxt_options {
+struct starpu_fxt_options
+{
 	unsigned per_task_colour;
 	unsigned no_counter;
 	unsigned no_bus;

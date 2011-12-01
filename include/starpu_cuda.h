@@ -26,7 +26,8 @@
 #include <starpu_config.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status);

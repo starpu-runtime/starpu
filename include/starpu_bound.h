@@ -25,7 +25,8 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* Start recording tasks (resets stats).  `deps' tells whether dependencies
