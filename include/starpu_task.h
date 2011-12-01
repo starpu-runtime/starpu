@@ -37,20 +37,24 @@
 #define STARPU_OPENCL	((1ULL)<<6)
 
 /* Codelet types */
-#define STARPU_SEQ		0
-#define STARPU_SPMD		1
-#define STARPU_FORKJOIN		2
+enum starpu_codelet_type {
+	STARPU_SEQ,
+	STARPU_SPMD,
+	STARPU_FORKJOIN
+};
 
 /* task status */
-#define STARPU_TASK_INVALID	0
-#define STARPU_TASK_BLOCKED	1
-#define STARPU_TASK_READY	2
-#define STARPU_TASK_RUNNING	3
-#define STARPU_TASK_FINISHED	4
-
-#define STARPU_TASK_BLOCKED_ON_TAG	5
-#define STARPU_TASK_BLOCKED_ON_TASK	6
-#define STARPU_TASK_BLOCKED_ON_DATA	7
+enum starpu_task_status
+{
+	STARPU_TASK_INVALID,
+	STARPU_TASK_BLOCKED,
+	STARPU_TASK_READY,
+	STARPU_TASK_RUNNING,
+	STARPU_TASK_FINISHED,
+	STARPU_TASK_BLOCKED_ON_TAG,
+	STARPU_TASK_BLOCKED_ON_TASK,
+	STARPU_TASK_BLOCKED_ON_DATA
+};
 
 #ifdef __cplusplus
 extern "C"
@@ -58,7 +62,6 @@ extern "C"
 #endif
 
 typedef uint64_t starpu_tag_t;
-
 
 typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
 typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
@@ -70,7 +73,6 @@ typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
 #define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
 #define STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS 255
 
-
 /*
  * A codelet describes the various function
  * that may be called from a worker
@@ -81,7 +83,7 @@ struct starpu_codelet
 	/* where can it be performed ? */
 	uint32_t where;
 	int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl);
-	unsigned type;
+	enum starpu_codelet_type type;
 	int max_parallelism;
 
 	/* the different implementations of the codelet */
@@ -169,7 +171,7 @@ struct starpu_task
 	 * set too. */
 	int regenerate;
 
-	unsigned status;
+	enum starpu_task_status status;
 
 	/* This gets filled when profiling is enabled by using
 	 * starpu_profiling_status_set */
