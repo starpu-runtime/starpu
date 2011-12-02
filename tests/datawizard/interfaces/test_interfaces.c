@@ -494,8 +494,12 @@ run_opencl(int async)
 static void
 run_async(void)
 {
+#ifdef STARPU_USE_CUDA
 	run_cuda(1);
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
 	run_opencl(1);
+#endif /* !STARPU_USE_OPENCL */
 }
 
 static void
@@ -523,8 +527,12 @@ run_sync(void)
 
 	handle->ops->copy_methods = &new_copy_methods;
 
+#ifdef STARPU_USE_CUDA
 	run_cuda(0);
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
 	run_opencl(0);
+#endif /* !STARPU_USE_OPENCL */
 
 	handle->ops->copy_methods = old_copy_methods;
 }
