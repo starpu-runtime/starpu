@@ -211,7 +211,6 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 {
 	int i, err;
 	double sum = 0.0;
-	int cpu_worker, cuda_worker, opencl_worker;
 	unsigned int node, cpu_node, cuda_node, opencl_node;
 
 	/* We need to get one node per archtype. This is kinda ugly,
@@ -220,6 +219,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	 * (err != 1 && err != -ERANGE)
 	 */
 #ifdef STARPU_USE_CPU
+	int cpu_worker;
 	err = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
 					    &cpu_worker, 1);
 	if (err != 1 && err != -ERANGE)
@@ -227,6 +227,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	cpu_node = starpu_worker_get_memory_node(cpu_worker);
 #endif
 #ifdef STARPU_USE_CUDA
+	int cuda_worker;
 	err = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
 					    &cuda_worker, 1);
 	if (err != 1 && err != -ERANGE)
@@ -234,6 +235,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	cuda_node = starpu_worker_get_memory_node(cuda_worker);
 #endif
 #ifdef STARPU_USE_OPENCL
+	int opencl_worker;
 	err = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
 					    &opencl_worker, 1);
 	if (err != 1 && err != -ERANGE)
@@ -247,7 +249,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		unsigned int id;
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
-		
+
 		handle = task->buffers[i].handle;
 		id = starpu_get_handle_interface_id(handle);
 		if (id != STARPU_MULTIFORMAT_INTERFACE_ID)
