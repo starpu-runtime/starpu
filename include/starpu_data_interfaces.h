@@ -153,6 +153,11 @@ void *starpu_handle_get_local_ptr(starpu_data_handle_t handle);
 
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
+#ifdef STARPU_DEVEL
+#  warning the declaration below is needed for the spvm example (dw_block_spmv.c:110) which filters a data in sub-data with a different interface. However exposing a private object is certainly not something to do. Either turn the object public or find another way to specify interfaces when filtering
+#endif /* STARPU_DEVEL */
+extern struct starpu_data_interface_ops _starpu_interface_matrix_ops;
+
 /* Matrix interface for dense matrices */
 struct starpu_matrix_interface
 {
