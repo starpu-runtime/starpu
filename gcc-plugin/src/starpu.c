@@ -833,25 +833,31 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
   else
     {
       tree array_type = TREE_TYPE (var);
-      tree pointer_type = build_pointer_type (array_type);
+      tree pointer_type = build_pointer_type (strip_array_types (array_type));
 
-      TREE_TYPE (var) = pointer_type;
+      /* We want VAR to feel like an array, but to really be a pointer.  So
+	 the hack consists in keeping its array type, but giving it the
+	 storage of a pointer.  (XXX) */
       DECL_SIZE (var) = TYPE_SIZE (pointer_type);
       DECL_SIZE_UNIT (var) = TYPE_SIZE_UNIT (pointer_type);
+      DECL_ALIGN (var) = TYPE_ALIGN (pointer_type);
+      DECL_USER_ALIGN (var) = false;
       DECL_MODE (var) = TYPE_MODE (pointer_type);
 
       tree malloc_fn = lookup_name (get_identifier ("starpu_malloc"));
       gcc_assert (malloc_fn != NULL_TREE);
 
-      add_stmt (build_call_expr (malloc_fn, 2,
-				 build_addr (var, current_function_decl),
-				 TYPE_SIZE_UNIT (array_type)));
+      tree alloc = build_call_expr (malloc_fn, 2,
+				    build_addr (var, current_function_decl),
+				    TYPE_SIZE_UNIT (array_type));
+      TREE_SIDE_EFFECTS (alloc) = true;
+      add_stmt (alloc);
 
       /* Add a destructor for VAR.
 	 TODO: Provide a way to disable this.  */
       DECL_ATTRIBUTES (var) =
 	tree_cons (get_identifier ("cleanup"),
-		   lookup_name (get_identifier ("_starpu_free_unref")),
+		   lookup_name (get_identifier ("starpu_free")),
 		   DECL_ATTRIBUTES (var));
     }
 

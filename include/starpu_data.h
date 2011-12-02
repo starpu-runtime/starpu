@@ -78,10 +78,6 @@ void starpu_data_release(starpu_data_handle_t handle);
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
 
-#ifdef STARPU_GCC_PLUGIN
-void _starpu_free_unref(void *p);
-#endif
-
 /* XXX These macros are provided to avoid breaking old codes. But consider
  * these function names as deprecated. */
 #define starpu_data_malloc_pinned_if_possible	starpu_malloc
