@@ -27,7 +27,8 @@ EXTRA_DIST =					\
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
 	datawizard/interfaces/test_interfaces.h	\
-	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
+	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
+	datawizard/interfaces/multiformat/multiformat_types.h
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
