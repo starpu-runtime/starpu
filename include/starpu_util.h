@@ -47,7 +47,6 @@ extern "C"
 
 #define STARPU_ABORT()		abort()
 
-
 #ifdef __GNUC__
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
@@ -59,6 +58,12 @@ extern "C"
 #  define STARPU_ATTRIBUTE_UNUSED
 #  define STARPU_ATTRIBUTE_INTERNAL
 #endif
+
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#define STARPU_DEPRECATED  __attribute__((__deprecated__))
+#else
+#define STARPU_DEPRECATED
+#endif /* __GNUC__ */
 
 #if defined(__i386__) || defined(__x86_64__)
 
