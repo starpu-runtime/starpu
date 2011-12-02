@@ -100,7 +100,7 @@ union starpu_u_tick
 
 #define STARPU_GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
 #define STARPU_TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
-#define STARPU_TICK_DIFF(t1, t2) (STARPU_TICK_RAW_DIFF(t1, t2) - residual)
+#define STARPU_TICK_DIFF(t1, t2) (STARPU_TICK_RAW_DIFF(t1, t2) - _starpu_residual)
 
 static union starpu_u_tick _starpu_reference_start_tick;
 static double _starpu_scale = 0.0;
