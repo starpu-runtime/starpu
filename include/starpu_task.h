@@ -107,6 +107,8 @@ struct starpu_codelet
 	 * not be accessed directly (use the starpu_display_codelet_stats
 	 * function instead for instance). */
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
+
+	const char *name;
 };
 
 #ifdef STARPU_GCC_PLUGIN

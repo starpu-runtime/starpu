@@ -312,7 +312,9 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl)
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 
-	if (cl->model && cl->model->symbol)
+	if (cl->name)
+		fprintf(stderr, "Statistics for codelet %s\n", cl->name);
+	else if (cl->model && cl->model->symbol)
 		fprintf(stderr, "Statistics for codelet %s\n", cl->model->symbol);
 
 	unsigned long total = 0;

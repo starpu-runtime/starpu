@@ -388,7 +388,7 @@ void starpu_bound_print_dot(FILE *output)
 	fprintf(output, "strict digraph bounddeps {\n");
 	for (t = tasks; t; t = t->next)
 	{
-		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, t->cl->model->symbol);
+		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, t->cl->name);
 		for (i = 0; i < t->depsn; i++)
 			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i]->id, t->id);
 	}
@@ -466,7 +466,7 @@ void starpu_bound_print_lp(FILE *output)
 		fprintf(output, "/* According to where the task is indeed executed */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 		{
-			fprintf(output, "/* %s %x */\tc%lu = s%lu", t1->cl->model->symbol, (unsigned) t1->footprint, t1->id, t1->id);
+			fprintf(output, "/* %s %x */\tc%lu = s%lu", t1->cl->name, (unsigned) t1->footprint, t1->id, t1->id);
 			for (w = 0; w < nw; w++)
 			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
@@ -661,7 +661,7 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 			{
-				fprintf(output, "/* task %s key %x */\n0", tp->cl->model->symbol, (unsigned) tp->footprint);
+				fprintf(output, "/* task %s key %x */\n0", tp->cl->name, (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
 					if (times[w*nt+t] != -1.0)
 						fprintf(output, "\t+w%dt%dn", w, t);
@@ -738,7 +738,7 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
-			fprintf(output, "* task %s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
+			fprintf(output, "* task %s key %x\n", tp->cl->name, (unsigned) tp->footprint);
 			fprintf(output, " E  T%d\n", t);
 		}
 
@@ -869,7 +869,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 		{
 			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
-			snprintf(title, sizeof(title), "task %s key %x", tp->cl->model->symbol, (unsigned) tp->footprint);
+			snprintf(title, sizeof(title), "task %s key %x", tp->cl->name, (unsigned) tp->footprint);
 			glp_set_row_name(lp, nw+t+1, title);
 			for (w = 0; w < nw; w++)
 			{
@@ -937,7 +937,7 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
-			fprintf(output, "%s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
+			fprintf(output, "%s key %x\n", tp->cl->name, (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
 				if (integer)
 					fprintf(output, "\tw%dt%dn %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
