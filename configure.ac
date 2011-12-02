@@ -1405,6 +1405,10 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
            AC_MSG_RESULT(no)]
    )
 fi
+# Disable ICC on windows
+if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
+    ICC=""
+fi
 if test "x$ICC" != "x"; then
   AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
 fi
