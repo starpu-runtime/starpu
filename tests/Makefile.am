@@ -27,6 +27,7 @@ EXTRA_DIST =					\
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
 	datawizard/interfaces/test_interfaces.h	\
+	datawizard/interfaces/variable/variable_opencl_kernel.cl \
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_types.h
 
@@ -156,6 +157,7 @@ noinst_PROGRAMS =				\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
 	datawizard/interfaces/multiformat/multiformat_interface \
+	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
@@ -301,3 +303,20 @@ nobase_STARPU_OPENCL_DATA_DATA +=                                               
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl                     \
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_opencl_kernel.cl
 endif
+
+datawizard_interfaces_variable_variable_interface_SOURCES=   \
+	datawizard/interfaces/test_interfaces.c              \
+	datawizard/interfaces/variable/variable_interface.c
+
+if STARPU_USE_CUDA
+datawizard_interfaces_variable_variable_interface_SOURCES+= \
+	datawizard/interfaces/variable/variable_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_variable_variable_interface_SOURCES+= \
+	datawizard/interfaces/variable/variable_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/variable/variable_opencl_kernel.cl
+endif
+
