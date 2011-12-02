@@ -442,12 +442,12 @@ opencl_to_ram()
 #endif /* !STARPU_USE_OPENCL */
 /* End of the <device1>_to_<device2> functions. */
 
+#ifdef STARPU_USE_CUDA
 static void
 run_cuda(int async)
 {
 	/* RAM -> CUDA (-> CUDA) -> RAM */
 	int err;
-#ifdef STARPU_USE_CUDA
 	err = ram_to_cuda();
 	set_field(&summary, async, CPU_TO_CUDA, err);
 	/* If this failed, there is no point in continuing. */
@@ -468,16 +468,16 @@ run_cuda(int async)
 	set_field(&summary, async, CUDA_TO_CPU, err);
 #endif /* !STARPU_USE_CPU */
 
-#endif /* !STARPU_USE_CUDA */
 }
+#endif /* !STARPU_USE_CUDA */
 
+#if STARPU_USE_OPENCL
 static void
 run_opencl(int async)
 {
 	/* RAM -> OpenCL -> RAM */
 	int err;
 
-#if STARPU_USE_OPENCL
 	err = ram_to_opencl();
 	set_field(&summary, async, CPU_TO_OPENCL, err);
 	if (err != SUCCESS)
@@ -488,8 +488,8 @@ run_opencl(int async)
 	set_field(&summary, async, OPENCL_TO_CPU, err);
 #endif /*!STARPU_USE_CPU */
 
-#endif /* !STARPU_USE_OPENCL */
 }
+#endif /* !STARPU_USE_OPENCL */
 
 static void
 run_async(void)
