@@ -458,21 +458,21 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		{
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
-			struct starpu_multiformat_interface *interface;
-			interface = starpu_data_get_interface_on_node(handle, 0);
+			struct starpu_multiformat_interface *format_interface;
+			format_interface = starpu_data_get_interface_on_node(handle, 0);
 			struct starpu_codelet *cl;
 			enum _starpu_node_kind node_kind = _starpu_get_node_kind(handle->mf_node);
-			
+
 			switch (node_kind)
 			{
 #ifdef STARPU_USE_CUDA
 				case STARPU_CUDA_RAM:
-					cl = interface->ops->cuda_to_cpu_cl;
+					cl = format_interface->ops->cuda_to_cpu_cl;
 					break;
 #endif
 #ifdef STARPU_USE_OPENCL
 				case STARPU_OPENCL_RAM:
-					cl = interface->ops->opencl_to_cpu_cl;
+					cl = format_interface->ops->opencl_to_cpu_cl;
 					break;
 #endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
@@ -480,7 +480,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 				default:
 					STARPU_ASSERT(0);
 			}
-			buffers[0] = interface;
+			buffers[0] = format_interface;
 			cl->cpu_func(buffers, NULL);
 		}
 	}
