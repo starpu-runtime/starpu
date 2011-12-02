@@ -57,22 +57,19 @@ test_vector_opencl_func(void *buffers[], void *args)
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err  = clSetKernelArg(kernel, 0, sizeof(val), &val);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	int nargs;
+	nargs = starpu_opencl_set_kernel_args(&err, 4, &kernel,
+					      sizeof(val), &val,
+					      sizeof(n), &n,
+					      sizeof(fail), &fail,
+					      sizeof(factor), &factor);
 
-	err = clSetKernelArg(kernel, 1, sizeof(n), &n);
-	if (err)
+	if (nargs != 4)
+	{
+		fprintf(stderr, "Failed to set argument #%d\n", err);
 		STARPU_OPENCL_REPORT_ERROR(err);
-
-	err = clSetKernelArg(kernel, 2, sizeof(fail), &fail);
-	if (err)
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	err = clSetKernelArg(kernel, 3, sizeof(factor), &factor);
-	if (err)
-		STARPU_OPENCL_REPORT_ERROR(err);
-
+	}
+			
 	{
 		size_t global=n;
 		size_t local;
