@@ -29,7 +29,9 @@ EXTRA_DIST =					\
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/variable/variable_opencl_kernel.cl \
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
-	datawizard/interfaces/multiformat/multiformat_types.h
+	datawizard/interfaces/multiformat/multiformat_types.h \
+	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl \
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
@@ -301,7 +303,7 @@ datawizard_interfaces_multiformat_multiformat_interface_SOURCES+=               
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA +=                                                          \
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl                     \
-	datawizard/interfaces/multiformat/multiformat_conversion_codelets_opencl_kernel.cl
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl
 endif
 
 datawizard_interfaces_variable_variable_interface_SOURCES=   \

@@ -16,7 +16,7 @@
 #include <starpu.h>
 #include <starpu_opencl.h>
 
-#define KERNEL_LOCATION "tests/datawizard/interfaces/multiformat/multiformat_conversion_codelets_opencl_kernel.cl"
+#define KERNEL_LOCATION "tests/datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl"
 static struct starpu_opencl_program opencl_conversion_program;
 
 void cpu_to_opencl_opencl_func(void *buffers[], void *args)
