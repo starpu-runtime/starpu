@@ -155,11 +155,11 @@ int* _get_first_workers(unsigned sched_ctx, int nworkers)
 	return curr_workers;
 }
 
-static unsigned _get_potential_nworkers(struct simple_policy_config *config, unsigned sched_ctx)
+static int _get_potential_nworkers(struct simple_policy_config *config, unsigned sched_ctx)
 {
 	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
 
-	unsigned potential_workers = 0;
+	int potential_workers = 0;
 	int worker;
 
 	if(workers->init_cursor)
@@ -176,11 +176,11 @@ static unsigned _get_potential_nworkers(struct simple_policy_config *config, uns
 	return potential_workers;
 }
 
-static void simple_manage_idle_time(unsigned req_sched_ctx, int *sched_ctxs, int nsched_ctxs, int worker, double idle_time)
+static unsigned simple_manage_idle_time(unsigned req_sched_ctx, int *sched_ctxs, int nsched_ctxs, int worker, double idle_time)
 {
        	struct simple_policy_config *config = (struct simple_policy_config*)sched_ctx_hypervisor_get_config(req_sched_ctx);
 
-	if(config && idle_time > config->max_idle[worker])
+	if(config != NULL && idle_time > config->max_idle[worker])
 	{
 		int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
@@ -190,7 +190,7 @@ static void simple_manage_idle_time(unsigned req_sched_ctx, int *sched_ctxs, int
 			unsigned nworkers_to_move = 0;
 			
 			/* leave at least one */
-			int potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx) - 1;
+			int potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx);
 			if(potential_moving_workers > 0)
 			{
 				if(potential_moving_workers > config->granularity)
@@ -204,9 +204,10 @@ static void simple_manage_idle_time(unsigned req_sched_ctx, int *sched_ctxs, int
 					if(nfixed_workers >= config->min_nprocs)
 						nworkers_to_move = potential_moving_workers;
 					else
-						nworkers_to_move = potential_moving_workers - (config->min_nprocs - nfixed_workers);			
+						nworkers_to_move = potential_moving_workers - (config->min_nprocs - nfixed_workers);	
 				}
 			}
+
 			if(nworkers_to_move > 0)
 			{
 				unsigned prio_sched_ctx = _get_highest_priority_sched_ctx(req_sched_ctx, sched_ctxs, nsched_ctxs);
@@ -218,14 +219,16 @@ static void simple_manage_idle_time(unsigned req_sched_ctx, int *sched_ctxs, int
 					struct simple_policy_config *prio_config = (struct simple_policy_config*)sched_ctx_hypervisor_get_config(prio_sched_ctx);
 					int i;
 					for(i = 0; i < nworkers_to_move; i++)
-						prio_config->max_idle[workers_to_move[i]] = prio_config->new_workers_max_idle;
+						prio_config->max_idle[workers_to_move[i]] = prio_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? prio_config->max_idle[workers_to_move[i]] :  prio_config->new_workers_max_idle;
 					
 					free(workers_to_move);
 				}
 			}	
 			pthread_mutex_unlock(&act_hypervisor_mutex);
+			return 0;
 		}
 	}
+	return 1;
 }
 
 static void* simple_ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
@@ -243,7 +246,6 @@ static void* simple_ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 	int i;
 	int *workerids;
 	int nworkers;
-	int it = 0;
 
 	while ((arg_type = va_arg(varg_list, int)) != 0) 
 	{
@@ -319,6 +321,26 @@ static void* simple_ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 	return later ? (void*)config : NULL;
 }
 
+static void simple_update_config(void *old_config, void* config)
+{
+	struct simple_policy_config *old = (struct simple_policy_config*)old_config;
+	struct simple_policy_config *new = (struct simple_policy_config*)config;
+
+	old->min_nprocs = new->min_nprocs != 0 ? new->min_nprocs : old->min_nprocs ;
+	old->max_nprocs = new->max_nprocs != 0 ? new->max_nprocs : old->max_nprocs ;
+	old->new_workers_max_idle = new->new_workers_max_idle != MAX_IDLE_TIME ? new->new_workers_max_idle : old->new_workers_max_idle;
+	old->granularity = new->min_nprocs != 1 ? new->granularity : old->granularity;
+
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		old->priority[i] = new->priority[i] != 0 ? new->priority[i] : old->priority[i];
+		old->fixed_procs[i] = new->fixed_procs[i] != 0 ? new->fixed_procs[i] : old->fixed_procs[i];
+		old->max_idle[i] = new->max_idle[i] != MAX_IDLE_TIME ? new->max_idle[i] : old->max_idle[i];;
+		old->min_working[i] = new->min_working[i] != MIN_WORKING_TIME ? new->min_working[i] : old->min_working[i];
+	}
+}
+
 static void simple_remove_sched_ctx(unsigned sched_ctx)
 {
 	sched_ctx_hypervisor_set_config(sched_ctx, NULL);
@@ -330,5 +352,6 @@ struct hypervisor_policy simple_policy = {
 	.add_sched_ctx = simple_add_sched_ctx,
 	.remove_sched_ctx = simple_remove_sched_ctx,
 	.ioctl = simple_ioctl,
-	.manage_idle_time = simple_manage_idle_time
+	.manage_idle_time = simple_manage_idle_time,
+	.update_config = simple_update_config
 };

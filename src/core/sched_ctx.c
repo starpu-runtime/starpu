@@ -521,7 +521,10 @@ void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 
 pthread_mutex_t *_starpu_get_sched_mutex(struct starpu_sched_ctx *sched_ctx, int workerid)
 {
-	return sched_ctx->sched_mutex[workerid];
+	if(sched_ctx->sched_mutex)
+		return sched_ctx->sched_mutex[workerid];
+	else 
+		return NULL;
 }
 
 pthread_cond_t *_starpu_get_sched_cond(struct starpu_sched_ctx *sched_ctx, int workerid)

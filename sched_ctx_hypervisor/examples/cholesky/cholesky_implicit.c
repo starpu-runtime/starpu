@@ -119,8 +119,8 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 					starpu_data_handle sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
 					starpu_data_handle sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 
-					if(k == (nblocks-1) && j == (nblocks-1) &&
-					   i == (nblocks-1) && with_ctxs)
+					if(k == (nblocks-2) && j == (nblocks-1) &&
+					   i == (k + 1) && with_ctxs)
 					{
 						starpu_insert_task(&cl22,
 								   STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,

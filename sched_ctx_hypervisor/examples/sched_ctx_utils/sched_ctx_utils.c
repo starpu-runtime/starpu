@@ -34,6 +34,7 @@ int first = 1;
 pthread_mutex_t mut;
 retvals rv[2];
 params p1, p2;
+int it = 0;
 
 struct sched_ctx_hypervisor_reply reply1[NSAMPLES*2*2];
 struct sched_ctx_hypervisor_reply reply2[NSAMPLES*2*2];
@@ -83,22 +84,21 @@ void* start_bench(void *val){
 
 	for(i = 0; i < NSAMPLES; i++)
 		p->bench(p->mat[i], p->size, p->nblocks);
-
-	if(p->ctx != 0)
-	{
-		pthread_mutex_lock(&mut);
-		if(first){
-		 	sched_ctx_hypervisor_ignore_ctx(p->ctx);
-			starpu_delete_sched_ctx(p->ctx, p->the_other_ctx);
-		}
-
-		first = 0;
-		pthread_mutex_unlock(&mut);
-	}
-
+	
+	/* if(p->ctx != 0) */
+	/* { */
+	/* 	pthread_mutex_lock(&mut); */
+	/* 	if(first){ */
+	/* 		sched_ctx_hypervisor_ignore_ctx(p->ctx); */
+	/* 		starpu_delete_sched_ctx(p->ctx, p->the_other_ctx); */
+	/* 	} */
+		
+	/* 	first = 0; */
+	/* 	pthread_mutex_unlock(&mut); */
+	/* } */
+	sched_ctx_hypervisor_stop_resize(p->the_other_ctx);
 	rv[p->id].flops /= NSAMPLES;
 	rv[p->id].avg_timing /= NSAMPLES;
-	
 }
 
 float* construct_matrix(unsigned size)
@@ -151,8 +151,6 @@ void start_2benchs(void (*bench)(float*, unsigned, unsigned))
 	gettimeofday(&end, NULL);
 
 	pthread_mutex_destroy(&mut);
-//	sched_ctx_hypervisor_ignore_ctx(p1.ctx);
-//	sched_ctx_hypervisor_ignore_ctx(p2.ctx);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
@@ -251,17 +249,11 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	sched_ctx_hypervisor_handle_ctx(p1.ctx);
 	
 	sched_ctx_hypervisor_ioctl(p1.ctx,
-				   HYPERVISOR_MAX_IDLE, p1.procs, p1.nprocs, 1000000.0,
-				   HYPERVISOR_MAX_IDLE, p1.procs, gpu+gpu1, 100000000.0,
-				   HYPERVISOR_MIN_WORKING, p1.procs, p1.nprocs, 200.0,
-//				   HYPERVISOR_PRIORITY, p1.procs, p1.nprocs, 1,
-				   HYPERVISOR_PRIORITY, p1.procs, gpu+gpu1, 2,
-				   HYPERVISOR_MIN_PROCS, 0,
-				   HYPERVISOR_MAX_PROCS, 11,
-				   HYPERVISOR_GRANULARITY, 2,
-//				   HYPERVISOR_FIXED_PROCS, p1.procs, gpu,
-				   HYPERVISOR_MIN_TASKS, 10000,
-				   HYPERVISOR_NEW_WORKERS_MAX_IDLE, 1000000.0,
+				   HYPERVISOR_MAX_IDLE, p1.procs, p1.nprocs, 5000.0,
+				   HYPERVISOR_MAX_IDLE, p1.procs, gpu+gpu1, 100000.0,
+				   HYPERVISOR_GRANULARITY, 4,
+				   HYPERVISOR_MIN_TASKS, 1000,
+				   HYPERVISOR_NEW_WORKERS_MAX_IDLE, 100000.0,
 				   NULL);
 
 	k = 0;
@@ -282,66 +274,77 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	sched_ctx_hypervisor_handle_ctx(p2.ctx);
 	
 	sched_ctx_hypervisor_ioctl(p2.ctx,
-				   HYPERVISOR_MAX_IDLE, p2.procs, p2.nprocs, 100000.0,
-				   HYPERVISOR_MAX_IDLE, p2.procs, gpu+gpu2, 10000000000.0,
-				   HYPERVISOR_MIN_WORKING, p2.procs, p2.nprocs, 200.0,
-//				   HYPERVISOR_PRIORITY, p2.procs, p2.nprocs, 1,
-				   HYPERVISOR_PRIORITY, p2.procs, gpu+gpu2, 2,
-				   HYPERVISOR_MIN_PROCS, 0,
-				   HYPERVISOR_MAX_PROCS, 11,
+				   HYPERVISOR_MAX_IDLE, p2.procs, p2.nprocs, 2000.0,
+				   HYPERVISOR_MAX_IDLE, p2.procs, gpu+gpu2, 5000.0,
 				   HYPERVISOR_GRANULARITY, 4,
-				   HYPERVISOR_FIXED_PROCS, p2.procs, gpu,
-				   HYPERVISOR_MIN_TASKS, 10000,
-				   HYPERVISOR_NEW_WORKERS_MAX_IDLE, 100000.0,
+				   HYPERVISOR_MIN_TASKS, 500,
+				   HYPERVISOR_NEW_WORKERS_MAX_IDLE, 1000.0,
 				   NULL);
 }
 
 void set_hypervisor_conf(int event, int task_tag)
 {
 	unsigned *id = pthread_getspecific(key);
-	int reset_conf = 1;
-	pthread_mutex_lock(&mut);
-	reset_conf = first;
-	pthread_mutex_unlock(&mut);
 
-
-	if(reset_conf)
+	if(*id == 1)
 	{
-		if(*id == 1)
-		{			
-			if(event == START_BENCH)
-			{
-				//sched_ctx_hypervisor_request(p2.ctx, p2.procs, p2.nprocs, task_tag);
-				/* sched_ctx_hypervisor_ioctl(p2.ctx, */
-				/* 			   HYPERVISOR_MAX_IDLE, p2.procs, p2.nprocs, 10000000.0, */
-				/* 			   HYPERVISOR_TIME_TO_APPLY, task_tag, */
-				/* 			   HYPERVISOR_GRANULARITY, 1, */
-				/* 			   NULL); */
-			}
-		} else {
-
-			if(event == START_BENCH)
+		if(event == START_BENCH)
+		{
+			int procs[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+			sched_ctx_hypervisor_ioctl(p1.ctx,
+						   HYPERVISOR_MAX_IDLE, procs, 12, 500.0,
+						   HYPERVISOR_MAX_IDLE, procs, 3, 100.0,
+						   HYPERVISOR_TIME_TO_APPLY, task_tag,
+						   NULL);
+		}
+		else
+		{
+			/* int procs[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; */
+			/* sched_ctx_hypervisor_ioctl(p2.ctx, */
+			/* 			   HYPERVISOR_MAX_IDLE, procs, 12, 800.0, */
+			/* 			   HYPERVISOR_MAX_IDLE, procs, 3, 100.0, */
+			/* 			   HYPERVISOR_TIME_TO_APPLY, task_tag, */
+			/* 			   NULL); */
+		}
+		
+	} else {
+		if(event == START_BENCH)
+		{
+			int procs[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+			sched_ctx_hypervisor_ioctl(p1.ctx,
+						   HYPERVISOR_MAX_IDLE, procs, 12, 500.0,
+//						   HYPERVISOR_MAX_IDLE, procs, 3, 1000.0,
+						   HYPERVISOR_TIME_TO_APPLY, task_tag,
+						   HYPERVISOR_GRANULARITY, 2,
+						   NULL);
+		}
+		if(event == END_BENCH)
+		{
+			if(it < 3)
 			{
 				int procs[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-				sched_ctx_hypervisor_request(p1.ctx, procs, 12, task_tag);
-				/* sched_ctx_hypervisor_ioctl(p1.ctx, */
-				/* 			   HYPERVISOR_MAX_IDLE, procs, 12, 1000.0, */
-				/* 			   HYPERVISOR_MAX_IDLE, procs, 3, 1000000.0, */
-				/* 			   HYPERVISOR_TIME_TO_APPLY, task_tag, */
-				/* 			   HYPERVISOR_GRANULARITY, 4, */
-				/* 			   NULL); */
+				sched_ctx_hypervisor_ioctl(p1.ctx,
+							   HYPERVISOR_MAX_IDLE, procs, 12, 300.0,
+							   HYPERVISOR_MAX_IDLE, procs, 3, 800.0,
+							   HYPERVISOR_TIME_TO_APPLY, task_tag,
+							   HYPERVISOR_GRANULARITY, 4,
+							   NULL);
 			}
-			else
+			if(it == 4)
 			{
-				/* int procs[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; */
-				/* sched_ctx_hypervisor_ioctl(p1.ctx, */
-				/* 			   HYPERVISOR_MAX_IDLE, procs, 12, 1000.0, */
-				/* 			   HYPERVISOR_TIME_TO_APPLY, task_tag, */
-				/* 			   HYPERVISOR_GRANULARITY, 4, */
-				/* 			   NULL); */
-			}
+				int procs[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+				sched_ctx_hypervisor_ioctl(p1.ctx,
+							   HYPERVISOR_MAX_IDLE, procs, 12, 200.0,
+							   HYPERVISOR_MAX_IDLE, procs, 3, 10000.0,
+							   HYPERVISOR_TIME_TO_APPLY, task_tag,
+							   HYPERVISOR_GRANULARITY, 2,
+							   NULL);
 
+			}
+			
+			it++;
 		}
+
 	}
 }
 

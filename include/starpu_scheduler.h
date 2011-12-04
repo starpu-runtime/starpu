@@ -129,6 +129,7 @@ struct worker_collection {
 
 struct starpu_sched_ctx_hypervisor_criteria {
 	void (*idle_time_cb)(unsigned sched_ctx, int worker, double idle_time);
+	void (*reset_idle_time_cb)(unsigned sched_ctx, int worker);
 	void (*working_time_cb)(unsigned sched_ctx, double working_time);
 	void (*pushed_task_cb)(unsigned sched_ctx, int worker);
 	void (*poped_task_cb)(unsigned sched_ctx, int worker);

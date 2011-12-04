@@ -292,26 +292,26 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	int workerid = starpu_worker_get_id();
 	unsigned no_workers = 0;
 	unsigned nworkers; 
-	
+       
 	PTHREAD_MUTEX_LOCK(&sched_ctx->changing_ctx_mutex);
 	nworkers = sched_ctx->workers->nworkers;
 	PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
 
-	PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
 	if(nworkers == 0)
 	{
-		no_workers = 1;
 		if(workerid == -1)
+		{
+			PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
 			PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
-	}
-	PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
-
-	if(workerid >= 0 && no_workers)
-	{
-		PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
-		starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-		PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-		return 0;
+			PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
+		}
+		else
+		{
+			PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
+			PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			return 0;
+		}
 	}
 
         _STARPU_LOG_IN();
@@ -339,6 +339,11 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 
 		ret = sched_ctx->sched_policy->push_task(task);
+		if(ret == -1)
+		{
+			printf("repush task \n");
+			_starpu_push_task(j, job_is_already_locked);
+		}
 	}
 
 	_starpu_profiling_set_task_push_end_time(task);
@@ -381,7 +386,7 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 				if(sched_ctx_mutex != NULL)
 				{
 					PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
-					if (sched_ctx->sched_policy->pop_task)
+					if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 					{
 						task = sched_ctx->sched_policy->pop_task();
 						PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
@@ -412,19 +417,16 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 	}
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	/* if task is NULL, the work is idle for this round
-	   therefore we let the sched_ctx_manager know in order 
-	   to decide a possible resize */
-	if(!task)
+	unsigned i;
+	struct starpu_sched_ctx *sched_ctx = NULL;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
-		unsigned i;
-		struct starpu_sched_ctx *sched_ctx = NULL;
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-		{
-			sched_ctx = worker->sched_ctx[i];
-			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->criteria != NULL)
+		sched_ctx = worker->sched_ctx[i];
+		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->criteria != NULL)
+			if(!task)
 				sched_ctx->criteria->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
-		}
+			else
+				sched_ctx->criteria->reset_idle_time_cb(sched_ctx->id, worker->workerid);
 	}
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
