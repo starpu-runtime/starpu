@@ -541,7 +541,9 @@ static int
 load_conf(struct test_config *config)
 {
 	if (!config ||
+#ifdef STARPU_USE_CPU
 	    !config->cpu_func ||
+#endif
 #ifdef STARPU_USE_CUDA
 	    !config->cuda_func ||
 #endif
