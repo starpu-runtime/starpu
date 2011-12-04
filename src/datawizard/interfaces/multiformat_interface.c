@@ -317,6 +317,8 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 
 				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
 				status = cudaMalloc((void **)&multiformat_interface->cpu_ptr, allocated_memory);
+				if (STARPU_UNLIKELY(status != cudaSuccess))
+					STARPU_CUDA_REPORT_ERROR(status);
 				break;
 			}
 #endif
