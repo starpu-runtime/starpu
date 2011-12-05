@@ -265,6 +265,6 @@ main(void)
 #else /* ! STARPU_USE_CPU */
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */
-	return EXIT_SUCCESS;
+	return STARPU_TEST_SKIPPED;
 #endif
 }
