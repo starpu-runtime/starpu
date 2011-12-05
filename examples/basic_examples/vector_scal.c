@@ -93,7 +93,8 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
 
 	/* Initialize StarPU with default configuration */
-	starpu_init(NULL);
+	if (starpu_init(NULL) == -ENODEV)
+		goto enodev;
 
 #ifdef STARPU_USE_OPENCL
 	starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
@@ -155,4 +156,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
 	return 0;
+
+enodev:
+	return 77;
 }
