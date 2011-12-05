@@ -1,3 +1,20 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #include <starpu.h>
 
 #define NX 4
@@ -8,7 +25,7 @@
 #define SYNCHRONOUS 1 /* Easier to debug with synchronous tasks */
 #define ENTER() do { fprintf(stderr, "Entering %s\n", __func__); } while (0)
 #else
-#define SYNCHRONOUS 0 
+#define SYNCHRONOUS 0
 #define ENTER()
 #endif
 
@@ -190,7 +207,7 @@ print_stats(struct stats *s)
 {
 	fprintf(stderr, "cpu         : %d\n", s->cpu);
 #ifdef STARPU_USE_CUDA
-	fprintf(stderr, "cuda        : %d\n" 
+	fprintf(stderr, "cuda        : %d\n"
 			"cpu->cuda   : %d\n"
 			"cuda->cpu   : %d\n",
 			s->cuda,
@@ -198,7 +215,7 @@ print_stats(struct stats *s)
 			s->cuda_to_cpu);
 #endif
 #ifdef STARPU_USE_OPENCL
-	fprintf(stderr, "opencl      : %d\n" 
+	fprintf(stderr, "opencl      : %d\n"
 			"cpu->opencl : %d\n"
 			"opencl->cpu : %d\n",
 			s->opencl,
@@ -276,7 +293,7 @@ test_opencl(void)
 		 global_stats.cpu_to_opencl == 2 &&
 		 global_stats.opencl_to_cpu == 2 &&
 		 global_stats.opencl == 2);
-	
+
 }
 #endif /* !STARPU_USE_OPENCL */
 
@@ -284,13 +301,15 @@ int
 main(void)
 {
 #ifdef STARPU_USE_CPU
+	int ret;
 	struct starpu_conf conf = {
 		.ncpus   = -1,
 		.ncuda   = 2,
 		.nopencl = 1
 	};
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_OPENCL
 	if (test_opencl() != 0)
@@ -306,12 +325,12 @@ main(void)
 		exit(1);
 	}
 #endif
-	
+
 	starpu_shutdown();
 #endif
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */
 
-	return EXIT_SUCCESS;
+	return STARPU_TEST_SKIPPED;
 }
 

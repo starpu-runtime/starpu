@@ -1,4 +1,22 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define NX 16
 
@@ -246,13 +264,15 @@ int
 main(void)
 {
 #ifdef STARPU_USE_CPU
+	int ret;
 	struct starpu_conf conf = {
 		.ncpus = -1,
 		.ncuda = 1,
 		.nopencl = 1
 	};
 	memset(&global_stats, 0, sizeof(global_stats));
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	register_handle();
 
