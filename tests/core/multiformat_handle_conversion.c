@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include "../common/helper.h"
 
 #define NX 4
 
@@ -315,22 +316,25 @@ main(void)
 	if (test_opencl() != 0)
 	{
 		fprintf(stderr, "OPENCL FAILED\n");
-		exit(1);
+		return EXIT_FAILURE;
 	}
 #endif
 #ifdef STARPU_USE_CUDA
 	if (test_cuda() != 0)
 	{
 		fprintf(stderr, "CUDA FAILED \n");
-		exit(1);
+		return EXIT_FAILURE;
 	}
 #endif
 
 	starpu_shutdown();
-#endif
+
+	return EXIT_SUCCESS;
+#else /* !STARPU_USE_CPU */
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */
 
 	return STARPU_TEST_SKIPPED;
+#endif
 }
 
