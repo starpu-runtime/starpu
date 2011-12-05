@@ -22,6 +22,8 @@
 #include <signal.h>
 #include <string.h>
 
+#include <common/config.h>
+
 #define  DEFAULT_TIMEOUT       600
 #define  AUTOTEST_SKIPPED_TEST 77
 
@@ -43,9 +45,11 @@ int main(int argc, char *argv[])
 {
 	int   child_exit_status;
 	char *test_name;
+	char *test_args;
 	int   status;
 	struct sigaction sa;
 
+	test_args = NULL;
 	timeout = 0;
 	test_name = argv[1];
 
@@ -53,6 +57,11 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "[error] Need name of program to start\n");
 		exit(EXIT_FAILURE);
+	}
+
+	if (strstr(test_name, "spmv/dw_block_spmv")) {
+		test_args = (char *) malloc(150*sizeof(char));
+		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
 
 	/* get user-defined iter_max value */
@@ -78,7 +87,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "[error] setpgid. Mark test as failed\n");
 			exit(EXIT_FAILURE);
 		}
-		execl(test_name, test_name, NULL);
+		execl(test_name, test_name, test_args, NULL);
 		fprintf(stderr, "[error] execl. Mark test as failed\n");
 		exit(EXIT_FAILURE);
 	}
