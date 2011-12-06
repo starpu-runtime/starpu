@@ -16,6 +16,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include "multiformat_types.h"
+#include "../../../common/helper.h"
 
 static __global__ void cpu_to_cuda_cuda(struct point *src,
 	struct struct_of_arrays *dst, unsigned n)
@@ -32,7 +33,7 @@ static __global__ void cpu_to_cuda_cuda(struct point *src,
 
 extern "C" void cpu_to_cuda_cuda_func(void *buffers[], void *_args)
 {
-	fprintf(stderr, "Entering %s\n", __func__);
+	FPRINTF(stderr, "Entering %s\n", __func__);
 	struct point *src;
 	struct struct_of_arrays *dst;
 
