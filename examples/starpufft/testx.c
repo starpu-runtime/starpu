@@ -39,6 +39,66 @@
 #define SIGN (-1)
 /* #define SIGN (1) */
 
+#ifdef STARPU_HAVE_FFTW
+static void check_fftw(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, int size)
+{
+	int i;
+	double max = 0., tot = 0., norm = 0., normdiff = 0.;
+	for (i = 0; i < size; i++) {
+		double diff = cabs(out[i]-out_fftw[i]);
+		double diff2 = diff * diff;
+		double size = cabs(out_fftw[i]);
+		double size2 = size * size;
+		if (diff > max)
+			max = diff;
+		tot += diff;
+		normdiff += diff2;
+		norm += size2;
+	}
+	fprintf(stderr, "\nmaximum difference %g\n", max);
+	fprintf(stderr, "average difference %g\n", tot / size);
+	fprintf(stderr, "difference norm %g\n", sqrt(normdiff));
+	double relmaxdiff = max / sqrt(norm);
+	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
+	double relavgdiff = (tot / size) / sqrt(norm);
+	fprintf(stderr, "relative average difference %g\n", relavgdiff);
+	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
+		exit(EXIT_FAILURE);
+	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
+		exit(EXIT_FAILURE);
+}
+#endif
+
+#ifdef STARPU_USE_CUDA
+static void check_cuda(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, int size)
+{
+	int i;
+	double max = 0., tot = 0., norm = 0., normdiff = 0.;
+	for (i = 0; i < size; i++) {
+		double diff = cabs(out_cuda[i]-out_fftw[i]);
+		double diff2 = diff * diff;
+		double size = cabs(out_fftw[i]);
+		double size2 = size * size;
+		if (diff > max)
+			max = diff;
+		tot += diff;
+		normdiff += diff2;
+		norm += size2;
+	}
+	fprintf(stderr, "\nmaximum difference %g\n", max);
+	fprintf(stderr, "average difference %g\n", tot / size);
+	fprintf(stderr, "difference norm %g\n", sqrt(normdiff));
+	double relmaxdiff = max / sqrt(norm);
+	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
+	double relavgdiff = (tot / size) / sqrt(norm);
+	fprintf(stderr, "relative average difference %g\n", relavgdiff);
+	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
+		exit(EXIT_FAILURE);
+	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
+		exit(EXIT_FAILURE);
+}
+#endif
+
 int main(int argc, char *argv[]) {
 	int i;
 	struct timeval begin, end;
@@ -46,6 +106,7 @@ int main(int argc, char *argv[]) {
 	size_t bytes;
 	int n = 0, m = 0;
 	STARPUFFT(plan) plan;
+	starpu_data_handle_t in_handle, out_handle;
 #ifdef STARPU_HAVE_FFTW
 	_FFTW(plan) fftw_plan;
 #endif
@@ -91,13 +152,13 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef STARPU_USE_CUDA
-	STARPUFFT(complex) *out_cuda = malloc(size * sizeof(*out_cuda));
+	STARPUFFT(complex) *out_cuda = STARPUFFT(malloc)(size * sizeof(*out_cuda));
 #endif
 
 	if (argc == 2) {
 		plan = STARPUFFT(plan_dft_1d)(n, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW
-		fftw_plan = _FFTW(plan_dft_1d)(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_1d)(n, NULL, NULL, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef STARPU_USE_CUDA
 		if (cufftPlan1d(&cuda_plan, n, _CUFFT_C2C, 1) != CUFFT_SUCCESS)
@@ -107,7 +168,7 @@ int main(int argc, char *argv[]) {
 	} else if (argc == 3) {
 		plan = STARPUFFT(plan_dft_2d)(n, m, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW
-		fftw_plan = _FFTW(plan_dft_2d)(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_2d)(n, m, NULL, NULL, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef STARPU_USE_CUDA
 		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, _CUFFT_C2C) == CUFFT_SUCCESS);
@@ -118,7 +179,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef STARPU_HAVE_FFTW
 	gettimeofday(&begin, NULL);
-	_FFTW(execute)(fftw_plan);
+	_FFTW(execute_dft)(fftw_plan, in, out_fftw);
 	gettimeofday(&end, NULL);
 	_FFTW(destroy_plan)(fftw_plan);
 	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
@@ -137,6 +198,31 @@ int main(int argc, char *argv[]) {
 #endif
 
 	STARPUFFT(execute)(plan, in, out);
+	STARPUFFT(showstats)(stdout);
+
+#ifdef STARPU_HAVE_FFTW
+	check_fftw(out, out_fftw, size);
+#endif
+#ifdef STARPU_USE_CUDA
+	check_cuda(out, out_cuda, size);
+#endif
+
+#if 1
+	starpu_vector_data_register(&in_handle, 0, (uintptr_t) in, size, sizeof(*in));
+	starpu_vector_data_register(&out_handle, 0, (uintptr_t) out, size, sizeof(*out));
+
+	STARPUFFT(execute_handle)(plan, in_handle, out_handle);
+
+	starpu_data_unregister(in_handle);
+	starpu_data_unregister(out_handle);
+
+#ifdef STARPU_HAVE_FFTW
+	check_fftw(out, out_fftw, size);
+#endif
+#ifdef STARPU_USE_CUDA
+	check_cuda(out, out_cuda, size);
+#endif
+#endif
 
 	STARPUFFT(showstats)(stdout);
 	STARPUFFT(destroy_plan)(plan);
@@ -154,62 +240,6 @@ int main(int argc, char *argv[]) {
 		printf("(%f,%f) ", cimag(out_fftw[i]), creal(out_fftw[i]));
 	printf("\n\n");
 #endif
-#endif
-
-#ifdef STARPU_HAVE_FFTW
-{
-	double max = 0., tot = 0., norm = 0., normdiff = 0.;
-	for (i = 0; i < size; i++) {
-		double diff = cabs(out[i]-out_fftw[i]);
-		double diff2 = diff * diff;
-		double size = cabs(out_fftw[i]);
-		double size2 = size * size;
-		if (diff > max)
-			max = diff;
-		tot += diff;
-		normdiff += diff2;
-		norm += size2;
-	}
-	fprintf(stderr, "\nmaximum difference %g\n", max);
-	fprintf(stderr, "average difference %g\n", tot / size);
-	fprintf(stderr, "difference norm %g\n", sqrt(normdiff));
-	double relmaxdiff = max / sqrt(norm);
-	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
-	double relavgdiff = (tot / size) / sqrt(norm);
-	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
-		return EXIT_FAILURE;
-	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
-		return EXIT_FAILURE;
-}
-#endif
-
-#ifdef STARPU_USE_CUDA
-{
-	double max = 0., tot = 0., norm = 0., normdiff = 0.;
-	for (i = 0; i < size; i++) {
-		double diff = cabs(out_cuda[i]-out_fftw[i]);
-		double diff2 = diff * diff;
-		double size = cabs(out_fftw[i]);
-		double size2 = size * size;
-		if (diff > max)
-			max = diff;
-		tot += diff;
-		normdiff += diff2;
-		norm += size2;
-	}
-	fprintf(stderr, "\nmaximum difference %g\n", max);
-	fprintf(stderr, "average difference %g\n", tot / size);
-	fprintf(stderr, "difference norm %g\n", sqrt(normdiff));
-	double relmaxdiff = max / sqrt(norm);
-	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
-	double relavgdiff = (tot / size) / sqrt(norm);
-	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
-		return EXIT_FAILURE;
-	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
-		return EXIT_FAILURE;
-}
 #endif
 
 	STARPUFFT(free)(in);

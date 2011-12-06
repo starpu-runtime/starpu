@@ -40,7 +40,10 @@ void *starpufft(malloc)(size_t n); \
 void starpufft(free)(void *p); \
 \
 void starpufft(execute)(starpufft(plan) p, void *in, void *out); \
-starpu_tag_t starpufft(start)(starpufft(plan) p, void *in, void *out); \
+struct starpu_task *starpufft(start)(starpufft(plan) p, void *in, void *out); \
+\
+void starpufft(execute_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
+struct starpu_task *starpufft(start_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
 \
 void starpufft(destroy_plan)(starpufft(plan) p); \
 \
@@ -52,5 +55,5 @@ __STARPUFFT_INTERFACE(__STARPUFFT, double)
 __STARPUFFT_INTERFACE(__STARPUFFTF, float)
 __STARPUFFT_INTERFACE(__STARPUFFTL, long double)
 
+/* Internal use */
 extern int starpufft_last_plan_number;
-extern int starpufft_last_tag;

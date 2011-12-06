@@ -579,7 +579,7 @@ if (PARALLEL) {
 		case STARPU_CUDA_WORKER:
 			break;
 		default:
-			STARPU_ABORT();
+			/* Do not care, we won't be executing anything there. */
 			break;
 		}
 	}
@@ -624,6 +624,8 @@ if (PARALLEL) {
 	for (z = 0; z < plan->totsize1; z++) {
 		int i = z;
 #define STEP_TAG(step)	STEP_TAG_1D(plan, step, i)
+
+		/* TODO: get rid of tags */
 
 		plan->fft1_args[z].plan = plan;
 		plan->fft1_args[z].i = i;
@@ -767,8 +769,8 @@ if (PARALLEL) {
 }
 
 /* Actually submit all the tasks. */
-static starpu_tag_t
-STARPUFFT(start1dC2C)(STARPUFFT(plan) plan)
+static struct starpu_task *
+STARPUFFT(start1dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
 	STARPU_ASSERT(plan->type == C2C);
 	int z;
@@ -789,23 +791,21 @@ if (PARALLEL) {
 
 	starpu_task_submit(plan->end_task);
 
-	return STEP_TAG_1D(plan, END, 0);
+	return plan->end_task;
 } else /* !PARALLEL */ {
 	struct starpu_task *task;
 
 	/* Create FFT task */
-	plan->fft_task = task = starpu_task_create();
+	task = starpu_task_create();
 	task->cl = &STARPUFFT(fft_1d_codelet);
-	task->buffers[0].handle = plan->in_handle;
+	task->buffers[0].handle = in;
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = plan->out_handle;
+	task->buffers[1].handle = out;
 	task->buffers[1].mode = STARPU_W;
 	task->cl_arg = plan;
-	task->tag_id = STARPU_ATOMIC_ADD(&starpufft_last_tag, 1);
-	task->use_tag = 1;
 
-	starpu_task_submit(plan->fft_task);
-	return task->tag_id;
+	starpu_task_submit(task);
+	return task;
 }
 }
 

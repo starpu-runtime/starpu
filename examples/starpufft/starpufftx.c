@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,6 +33,7 @@
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
+/* Steps for the parallel variant */
 enum steps {
 	SPECIAL, TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
 };
@@ -42,6 +43,7 @@ enum steps {
 #define STEP_BITS 3
 #define STEP_SHIFT (NUMBER_SHIFT - STEP_BITS)
 
+/* Tags for the steps of the parallel variant */
 #define _STEP_TAG(plan, step, i) (((starpu_tag_t) plan->number << NUMBER_SHIFT) | ((starpu_tag_t)(step) << STEP_SHIFT) | (starpu_tag_t) (i))
 
 
@@ -106,8 +108,6 @@ struct STARPUFFT(plan) {
 	/* Tasks */
 	struct starpu_task **twist1_tasks, **fft1_tasks, **twist2_tasks, **fft2_tasks, **twist3_tasks;
 	struct starpu_task *join_task, *end_task;
-	/* Sequential version */
-	struct starpu_task *fft_task;
 
 	/* Arguments for tasks */
 	struct STARPUFFT(args) *fft1_args, *fft2_args;
@@ -161,10 +161,10 @@ compute_roots(STARPUFFT(plan) plan)
 #include "starpufftx1d.c"
 #include "starpufftx2d.c"
 
-starpu_tag_t
+struct starpu_task *
 STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
-	starpu_tag_t tag;
+	struct starpu_task *task;
 	int z;
 
 	plan->in = _in;
@@ -181,7 +181,7 @@ if (PARALLEL) {
 				for (z = 0; z < plan->totsize1; z++)
 					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
 }
-				tag = STARPUFFT(start1dC2C)(plan);
+				task = STARPUFFT(start1dC2C)(plan, plan->in_handle, plan->out_handle);
 				break;
 			default:
 				STARPU_ABORT();
@@ -197,19 +197,30 @@ if (PARALLEL) {
 			for (z = 0; z < plan->totsize1; z++)
 				plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
 }
-			tag = STARPUFFT(start2dC2C)(plan);
+			task = STARPUFFT(start2dC2C)(plan, plan->in_handle, plan->out_handle);
 			break;
 		default:
 			STARPU_ABORT();
 			break;
 	}
-	return tag;
+	return task;
 }
 
 void
 STARPUFFT(cleanup)(STARPUFFT(plan) plan)
 {
-	starpu_data_unregister(plan->in_handle);
+	if (plan->in_handle)
+		starpu_data_unregister(plan->in_handle);
+if (!PARALLEL) {
+	if (plan->out_handle)
+		starpu_data_unregister(plan->out_handle);
+}
+}
+
+struct starpu_task *
+STARPUFFT(start_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
+{
+	return STARPUFFT(start1dC2C)(plan, in, out);
 }
 
 void
@@ -220,13 +231,20 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 
 	gettimeofday(&start, NULL);
 
-	starpu_tag_t tag = STARPUFFT(start)(plan, in, out);
+	struct starpu_task *task = STARPUFFT(start)(plan, in, out);
 	gettimeofday(&submit_tasks, NULL);
-	starpu_tag_wait(tag);
+	starpu_task_wait(task);
 
 	STARPUFFT(cleanup)(plan);
 
 	gettimeofday(&end, NULL);
+}
+
+void
+STARPUFFT(execute_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
+{
+	struct starpu_task *task = STARPUFFT(start_handle)(plan, in, out);
+	starpu_task_wait(task);
 }
 
 /* Destroy FFTW plans, unregister and free buffers, and free tags */
@@ -253,7 +271,7 @@ if (PARALLEL) {
 #endif
 			break;
 		default:
-			STARPU_ABORT();
+			/* Do not care, we won't be executing anything there. */
 			break;
 		}
 	}

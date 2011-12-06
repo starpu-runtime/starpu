@@ -387,7 +387,7 @@ STARPUFFT(fft_2d_plan_gpu)(void *args)
 	int m = plan->n[1];
 	int workerid = starpu_worker_get_id();
 
-	cures = cufftPlan2d(&plan->plans[workerid].plan1_cuda, n, m, _CUFFT_C2C);
+	cures = cufftPlan2d(&plan->plans[workerid].plan_cuda, n, m, _CUFFT_C2C);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 	cufftSetStream(plan->plans[workerid].plan_cuda, starpu_cuda_get_local_stream());
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
@@ -534,7 +534,11 @@ if (PARALLEL) {
 	plan->n2 = malloc(plan->dim * sizeof(*plan->n2));
 	plan->n2[0] = n2;
 	plan->n2[1] = m2;
+}
+
 	plan->totsize = n * m;
+
+if (PARALLEL) {
 	plan->totsize1 = n1 * m1;
 	plan->totsize2 = n2 * m2;
 	plan->totsize3 = DIV_2D_N * DIV_2D_M;
@@ -577,7 +581,7 @@ if (PARALLEL) {
 		case STARPU_CUDA_WORKER:
 			break;
 		default:
-			STARPU_ABORT();
+			/* Do not care, we won't be executing anything there. */
 			break;
 		}
 	}
@@ -591,6 +595,7 @@ if (PARALLEL) {
 #endif
 
 if (PARALLEL) {
+	/* Allocate buffers. */
 	plan->twisted1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->twisted1));
 	memset(plan->twisted1, 0, plan->totsize * sizeof(*plan->twisted1));
 	plan->fft1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->fft1));
@@ -600,17 +605,20 @@ if (PARALLEL) {
 	plan->fft2 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->fft2));
 	memset(plan->fft2, 0, plan->totsize * sizeof(*plan->fft2));
 
+	/* Allocate handle arrays */
 	plan->twisted1_handle = malloc(plan->totsize1 * sizeof(*plan->twisted1_handle));
 	plan->fft1_handle = malloc(plan->totsize1 * sizeof(*plan->fft1_handle));
 	plan->twisted2_handle = malloc(plan->totsize3 * sizeof(*plan->twisted2_handle));
 	plan->fft2_handle = malloc(plan->totsize3 * sizeof(*plan->fft2_handle));
 
+	/* Allocate task arrays */
 	plan->twist1_tasks = malloc(plan->totsize1 * sizeof(*plan->twist1_tasks));
 	plan->fft1_tasks = malloc(plan->totsize1 * sizeof(*plan->fft1_tasks));
 	plan->twist2_tasks = malloc(plan->totsize3 * sizeof(*plan->twist2_tasks));
 	plan->fft2_tasks = malloc(plan->totsize3 * sizeof(*plan->fft2_tasks));
 	plan->twist3_tasks = malloc(plan->totsize3 * sizeof(*plan->twist3_tasks));
 
+	/* Allocate codelet argument arrays */
 	plan->fft1_args = malloc(plan->totsize1 * sizeof(*plan->fft1_args));
 	plan->fft2_args = malloc(plan->totsize3 * sizeof(*plan->fft2_args));
 
@@ -618,6 +626,8 @@ if (PARALLEL) {
 	for (z = 0; z < plan->totsize1; z++) {
 		int i = z / m1, j = z % m1;
 #define STEP_TAG(step)	STEP_TAG_2D(plan, step, i, j)
+
+		/* TODO: get rid of tags */
 
 		plan->fft1_args[z].plan = plan;
 		plan->fft1_args[z].i = i;
@@ -640,7 +650,6 @@ if (PARALLEL) {
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(TWIST1);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that fft1 depends on twisted1 */
@@ -661,7 +670,6 @@ if (PARALLEL) {
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(FFT1);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that to be done with first step we need to have
@@ -676,7 +684,6 @@ if (PARALLEL) {
 	task->cl = NULL;
 	task->tag_id = STEP_TAG_2D(plan, JOIN, 0, 0);
 	task->use_tag = 1;
-	task->detach = 1;
 	task->destroy = 0;
 
 	/* Create second-round tasks */
@@ -708,7 +715,6 @@ if (PARALLEL) {
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(TWIST2);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that fft2 depends on twisted2 */
@@ -725,7 +731,6 @@ if (PARALLEL) {
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(FFT2);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that twist3 depends on fft2 */
@@ -733,6 +738,8 @@ if (PARALLEL) {
 				1, STEP_TAG(FFT2));
 
 		/* Create twist3 tasks */
+		/* These run only on CPUs and thus write directly into the
+		 * application output buffer. */
 		plan->twist3_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(twist3_2d_codelet);
 		task->buffers[0].handle = plan->fft2_handle[z];
@@ -740,7 +747,6 @@ if (PARALLEL) {
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(TWIST3);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that to be completely finished we need to have finished this twisted3 */
@@ -754,7 +760,6 @@ if (PARALLEL) {
 	task->cl = NULL;
 	task->tag_id = STEP_TAG_2D(plan, END, 0, 0);
 	task->use_tag = 1;
-	task->detach = 1;
 	task->destroy = 0;
 
 }
@@ -763,8 +768,8 @@ if (PARALLEL) {
 }
 
 /* Actually submit all the tasks. */
-static starpu_tag_t
-STARPUFFT(start2dC2C)(STARPUFFT(plan) plan)
+static struct starpu_task *
+STARPUFFT(start2dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
 	STARPU_ASSERT(plan->type == C2C);
 	int z;
@@ -785,24 +790,21 @@ if (PARALLEL) {
 
 	starpu_task_submit(plan->end_task);
 
-	return STEP_TAG_2D(plan, END, 0, 0);
+	return plan->end_task;
 } else /* !PARALLEL */ {
 	struct starpu_task *task;
 
-	/* FIXME: rather return the task? */
 	/* Create FFT task */
-	plan->fft_task = task = starpu_task_create();
+	task = starpu_task_create();
 	task->cl = &STARPUFFT(fft_2d_codelet);
-	task->buffers[0].handle = plan->in_handle;
+	task->buffers[0].handle = in;
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = plan->out_handle;
+	task->buffers[1].handle = out;
 	task->buffers[1].mode = STARPU_W;
 	task->cl_arg = plan;
-	task->tag_id = STARPU_ATOMIC_ADD(&starpufft_last_tag, 1);
-	task->use_tag = 1;
 
-	starpu_task_submit(plan->fft_task);
-	return task->tag_id;
+	starpu_task_submit(task);
+	return task;
 }
 }
 
