@@ -25,9 +25,6 @@ struct test_config {
 	 * the ones pointed to by the previous handle. */
 	starpu_data_handle_t *dummy_handle;
 
-	/* Unregisters data, frees memory, tidies your room */
-	void (*cleanup)(void);
-
 	/* StarPU codelets. The following functions should :
 	 * 1) Check that the values are correct
 	 * 2) Negate every element
