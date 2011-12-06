@@ -113,7 +113,7 @@ register_data(void)
 					 &format_ops);
 	starpu_multiformat_data_register(&multiformat_dummy_handle,
 					 0,
-					 &array_of_structs,
+					 &array_of_structs_dummy,
 					 N_ELEMENTS,
 					 &format_ops);
 }
