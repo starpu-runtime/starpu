@@ -1444,6 +1444,7 @@ AC_OUTPUT([
 	examples/starpufft/Makefile
 	examples/stencil/Makefile
 	examples/socl/Makefile
+	examples/starpufft/libstarpufft.pc
 	tests/Makefile
         tests/opt/Makefile
 	doc/Makefile
