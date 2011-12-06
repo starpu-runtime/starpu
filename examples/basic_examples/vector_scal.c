@@ -89,12 +89,12 @@ int main(int argc, char **argv)
 	for (i = 0; i < NX; i++)
                 vector[i] = (i+1.0f);
 
+	/* Initialize StarPU with default configuration */
+	int ret = starpu_init(NULL);
+	if (ret == -ENODEV) goto enodev;
+
 	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
 	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
-
-	/* Initialize StarPU with default configuration */
-	if (starpu_init(NULL) == -ENODEV)
-		goto enodev;
 
 #ifdef STARPU_USE_OPENCL
 	starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
