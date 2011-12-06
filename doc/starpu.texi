@@ -75,6 +75,7 @@ was last updated on @value{UPDATED}.
 * Tips and Tricks::             Tips and tricks to know about
 * Configuring StarPU::          How to configure StarPU
 * StarPU MPI support::          How to combine StarPU with MPI
+* StarPU FFT support::          How to perform FFT computations with StarPU
 * C Extensions::                Easier StarPU programming with GCC
 * Full source code for the 'Scaling a Vector' example::
 * GNU Free Documentation License::    How you can copy and share this manual.
@@ -153,6 +154,12 @@ was last updated on @value{UPDATED}.
 @c ---------------------------------------------------------------------
 
 @include chapters/mpi-support.texi
+
+@c ---------------------------------------------------------------------
+@c FFT support
+@c ---------------------------------------------------------------------
+
+@include chapters/fft-support.texi
 
 @c ---------------------------------------------------------------------
 @c C Extensions
