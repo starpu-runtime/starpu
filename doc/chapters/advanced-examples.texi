@@ -113,6 +113,47 @@ tries to match a task with a worker, and should thus be very fast. The
 @code{starpu_cuda_get_device_properties} provides a quick access to CUDA
 properties of CUDA devices to achieve such efficiency.
 
+Another example is compiling CUDA code for various compute capabilities,
+resulting with two GPU functions, e.g. @code{scal_gpu_13} for compute capability
+1.3, and @code{scal_gpu_20} for compute capability 2.0. Both functions can be
+provided to StarPU by using @code{gpu_funcs}, and @code{can_execute} can then be
+used to rule out the @code{scal_gpu_20} variant on GPU which will not be able to
+execute it:
+
+@cartouche
+@smallexample
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+@{
+  const struct cudaDeviceProp *props;
+  if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+    return 1;
+  /* Cuda device */
+  if (nimpl == 0)
+    /* Trying to execute the 1.3 capability variant, we assume it is ok in all cases.  */
+    return 1;
+  /* Trying to execute the 2.0 capability variant, check that the card can do it.  */
+  props = starpu_cuda_get_device_properties(workerid);
+  if (props->major >= 2 || props->minor >= 0)
+    /* At least compute capability 2.0, can run it */
+    return 1;
+  /* Old card, does not support 2.0, will not be able to execute the 2.0 variant.  */
+  return 0;
+@}
+
+struct starpu_codelet cl = @{
+    .where = STARPU_CPU|STARPU_GPU,
+    .can_execute = can_execute,
+    .cpu_func = cpu_func,
+    .gpu_func = STARPU_MULTIPLE_GPU_IMPLEMENTATIONS,
+    .gpu_funcs = @{ scal_gpu_13, scal_gpu_20 @},
+    .nbuffers = 1
+@};
+@end smallexample
+@end cartouche
+
+Note: the most generic variant should be provided first, as some schedulers are
+not able to try the different variants.
+
 @node Task and Worker Profiling
 @section Task and Worker Profiling
 
