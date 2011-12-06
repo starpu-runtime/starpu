@@ -27,19 +27,19 @@ if STARPU_HAVE_WINDOWS
 LC_MESSAGES=C
 export LC_MESSAGES
 
-ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu.def
+ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def
 
 if STARPU_HAVE_MS_LIB
-.libs/libstarpu.lib: libstarpu.la dolib
-	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu.def libstarpu-0 .libs/libstarpu.lib
-all-local: .libs/libstarpu.lib
+.libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib: libstarpu-@STARPU_EFFECTIVE_VERSION@.la dolib
+	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def libstarpu-0 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
+all-local: .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 endif STARPU_HAVE_MS_LIB
 
 install-exec-hook:
-	$(INSTALL) .libs/libstarpu.def $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def $(DESTDIR)$(libdir)
 if STARPU_HAVE_MS_LIB
-	$(INSTALL) .libs/libstarpu.lib $(DESTDIR)$(libdir)
-	$(INSTALL) .libs/libstarpu.exp $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.exp $(DESTDIR)$(libdir)
 endif STARPU_HAVE_MS_LIB
 
 endif STARPU_HAVE_WINDOWS
