@@ -3,6 +3,7 @@
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
+# Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +19,19 @@
 AC_INIT([StarPU],1.0.0, [starpu-devel@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
+
+dnl Versioning.
+
+STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
+STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
+STARPU_EFFECTIVE_VERSION="$STARPU_MAJOR_VERSION.$STARPU_MINOR_VERSION"
+AC_SUBST([STARPU_MAJOR_VERSION])
+AC_SUBST([STARPU_MINOR_VERSION])
+AC_SUBST([STARPU_EFFECTIVE_VERSION])
+AC_DEFINE_UNQUOTED([STARPU_MAJOR_VERSION], [$STARPU_MAJOR_VERSION],
+  [Major version number of StarPU.])
+AC_DEFINE_UNQUOTED([STARPU_MINOR_VERSION], [$STARPU_MINOR_VERSION],
+  [Major version number of StarPU.])
 
 . "$srcdir/STARPU-VERSION"
 AC_SUBST([LIBSTARPU_INTERFACE_CURRENT])
