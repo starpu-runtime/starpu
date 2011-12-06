@@ -45,7 +45,8 @@ if USE_MPI
 pkgconfig_DATA += libstarpumpi.pc
 endif
 
-include_HEADERS = 				\
+versincludedir = $(includedir)/$(STARPU_EFFECTIVE_VERSION)
+versinclude_HEADERS = 				\
 	include/starpu.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
@@ -64,7 +65,7 @@ include_HEADERS = 				\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h
 
-nodist_include_HEADERS = 			\
+nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
 
 if BUILD_STARPU_TOP
