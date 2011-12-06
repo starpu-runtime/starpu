@@ -17,7 +17,8 @@
 #include <starpu_mpi.h>
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes) {
+int my_distrib(int x, int y, int nb_nodes)
+{
         return (x+y) % nb_nodes;
 }
 

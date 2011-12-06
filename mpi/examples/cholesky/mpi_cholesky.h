@@ -51,31 +51,38 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 		        char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nbigblocks") == 0) {
+		if (strcmp(argv[i], "-nbigblocks") == 0)
+		{
 		        char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-no-prio") == 0) {
+		if (strcmp(argv[i], "-no-prio") == 0)
+		{
 			noprio = 1;
 		}
 
-		if (strcmp(argv[i], "-display") == 0) {
+		if (strcmp(argv[i], "-display") == 0)
+		{
 			display = 1;
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-display] [-size size] [-nblocks nblocks]\n", argv[0]);
 		}
 	}

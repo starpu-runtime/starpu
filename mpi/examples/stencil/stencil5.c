@@ -29,7 +29,8 @@ void stencil5_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         *xy = (*xy + *xm1y + *xp1y + *xym1 + *xyp1) / 5;
 }
 
-struct starpu_codelet stencil5_cl = {
+struct starpu_codelet stencil5_cl =
+{
 	.where = STARPU_CPU,
 	.cpu_func = stencil5_cpu,
         .nbuffers = 5
@@ -43,7 +44,8 @@ int display = 0;
 int niter = NITER_DEF;
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes) {
+int my_distrib(int x, int y, int nb_nodes)
+{
 	/* Block distrib */
 	return ((int)(x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * sqrt(nb_nodes))) % nb_nodes;
 }
@@ -52,12 +54,15 @@ int my_distrib(int x, int y, int nb_nodes) {
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-iter") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
 		}
-		if (strcmp(argv[i], "-display") == 0) {
+		if (strcmp(argv[i], "-display") == 0)
+		{
 			display = 1;
 		}
 	}
@@ -74,8 +79,10 @@ int main(int argc, char **argv)
 	starpu_mpi_initialize_extended(&my_rank, &size);
         parse_args(argc, argv);
 
-        for(x = 0; x < X; x++) {
-                for (y = 0; y < Y; y++) {
+        for(x = 0; x < X; x++)
+	{
+                for (y = 0; y < Y; y++)
+		{
                         matrix[x][y] = (my_rank+1)*10 + value;
                         value++;
                         mean += matrix[x][y];
@@ -83,20 +90,25 @@ int main(int argc, char **argv)
         }
         mean /= value;
 
-        for(x = 0; x < X; x++) {
-                for (y = 0; y < Y; y++) {
+        for(x = 0; x < X; x++)
+	{
+                for (y = 0; y < Y; y++)
+		{
                         int mpi_rank = my_distrib(x, y, size);
-                        if (mpi_rank == my_rank) {
+                        if (mpi_rank == my_rank)
+			{
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
                                 starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
                         }
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
-			      || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size)) {
+			      || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
+			{
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
                                 starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
                         }
-                        else {
+                        else
+			{
                                 /* I know it's useless to allocate anything for this */
                                 data_handles[x][y] = NULL;
                         }
@@ -108,9 +120,12 @@ int main(int argc, char **argv)
                 }
         }
 
-        for(loop=0 ; loop<niter; loop++) {
-                for (x = 1; x < X-1; x++) {
-                        for (y = 1; y < Y-1; y++) {
+        for(loop=0 ; loop<niter; loop++)
+	{
+                for (x = 1; x < X-1; x++)
+		{
+                        for (y = 1; y < Y-1; y++)
+			{
                                 starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
                                                        STARPU_R, data_handles[x-1][y], STARPU_R, data_handles[x+1][y],
                                                        STARPU_R, data_handles[x][y-1], STARPU_R, data_handles[x][y+1],
@@ -124,11 +139,14 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-        if (display) {
+        if (display)
+	{
                 fprintf(stdout, "[%d] mean=%d\n", my_rank, mean);
-                for(x = 0; x < X; x++) {
+                for(x = 0; x < X; x++)
+		{
                         fprintf(stdout, "[%d] ", my_rank);
-                        for (y = 0; y < Y; y++) {
+                        for (y = 0; y < Y; y++)
+			{
                                 fprintf(stdout, "%3d ", matrix[x][y]);
                         }
                         fprintf(stdout, "\n");

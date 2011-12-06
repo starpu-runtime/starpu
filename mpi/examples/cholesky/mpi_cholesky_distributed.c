@@ -58,7 +58,8 @@ static struct starpu_codelet cl22 =
 };
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes) {
+int my_distrib(int x, int y, int nb_nodes)
+{
         return (x+y) % nb_nodes;
 }
 
@@ -82,16 +83,20 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	gettimeofday(&start, NULL);
 
-        for(x = 0; x < nblocks ;  x++) {
-                for (y = 0; y < nblocks; y++) {
+        for(x = 0; x < nblocks ;  x++)
+	{
+                for (y = 0; y < nblocks; y++)
+		{
                         int mpi_rank = my_distrib(x, y, nodes);
-                        if (mpi_rank == rank) {
+                        if (mpi_rank == rank)
+			{
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)matA[x][y],
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
                         }
 			/* TODO: make better test to only registering what is needed */
-                        else {
+                        else
+			{
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)NULL,
@@ -144,8 +149,10 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 
         starpu_task_wait_for_all();
 
-        for(x = 0; x < nblocks ;  x++) {
-                for (y = 0; y < nblocks; y++) {
+        for(x = 0; x < nblocks ;  x++)
+	{
+                for (y = 0; y < nblocks; y++)
+		{
                         if (data_handles[x][y])
                                 starpu_data_unregister(data_handles[x][y]);
                 }
@@ -197,7 +204,8 @@ int main(int argc, char **argv)
                 for(y=0 ; y<nblocks ; y++)
 		{
                         int mpi_rank = my_distrib(x, y, nodes);
-                        if (mpi_rank == rank) {
+                        if (mpi_rank == rank)
+			{
 				starpu_malloc((void **)&bmat[x][y], BLOCKSIZE*BLOCKSIZE*sizeof(float));
 				for (i = 0; i < BLOCKSIZE; i++)
 				{
@@ -220,7 +228,8 @@ int main(int argc, char **argv)
                 for(y=0 ; y<nblocks ; y++)
 		{
                         int mpi_rank = my_distrib(x, y, nodes);
-                        if (mpi_rank == rank) {
+                        if (mpi_rank == rank)
+			{
 				starpu_free((void *)bmat[x][y]);
 			}
 		}
