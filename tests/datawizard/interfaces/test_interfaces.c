@@ -71,6 +71,8 @@ enum_to_string(exit_code)
 
 struct data_interface_test_summary {
 	int success;
+
+	/* Copy methods */
 #ifdef STARPU_USE_CPU
 	int cpu_to_cpu;
 #endif
@@ -88,6 +90,9 @@ struct data_interface_test_summary {
 	int cpu_to_opencl_async;
 	int opencl_to_cpu_async;
 #endif
+
+	/* Other stuff */
+	int compare;
 };
 
 void data_interface_test_summary_print(FILE *f,
@@ -132,6 +137,8 @@ void data_interface_test_summary_print(FILE *f,
 #ifdef STARPU_USE_CPU
 	(void) fprintf(f, "CPU    -> CPU    : %s\n",
 			enum_to_string(s->cpu_to_cpu));
+	(void) fprintf(f, "compare()        : %s\n",
+			enum_to_string(s->compare));
 #endif /* !STARPU_USE_CPU */
 }
 
@@ -585,6 +592,31 @@ run_sync(void)
 	handle->ops->copy_methods = old_copy_methods;
 }
 
+static void
+compare(void)
+{
+	int err;
+	void *interface_a, *interface_b;
+	starpu_data_handle_t handle, dummy_handle;
+
+	handle = *current_config->handle;
+	dummy_handle = *current_config->dummy_handle;
+	interface_a = starpu_data_get_interface_on_node(handle, 0);
+	interface_b = starpu_data_get_interface_on_node(dummy_handle, 0);
+
+	err = handle->ops->compare(interface_a, interface_b);
+
+	if (err == 0)
+	{
+		summary.compare = FAILURE;
+		summary.success = FAILURE;
+	}
+	else
+	{
+		summary.compare = SUCCESS;
+	}
+}
+
 static int
 load_conf(struct test_config *config)
 {
@@ -622,6 +654,7 @@ run_tests(struct test_config *conf)
 
 #ifdef STARPU_USE_CPU
 	ram_to_ram();
+	compare();
 #endif
 
 	return &summary;
