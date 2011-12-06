@@ -27,7 +27,10 @@ extern void test_multiformat_opencl_func(void *buffers[], void *args);
 #endif
 
 static struct point array_of_structs[N_ELEMENTS];
+static struct point array_of_structs_dummy[N_ELEMENTS];
+
 static starpu_data_handle_t multiformat_handle;
+static starpu_data_handle_t multiformat_dummy_handle;
 
 struct test_config multiformat_config = {
 	.cpu_func      = test_multiformat_cpu_func,
@@ -38,6 +41,7 @@ struct test_config multiformat_config = {
 	.opencl_func   = test_multiformat_opencl_func,
 #endif
 	.handle        = &multiformat_handle,
+	.dummy_handle  = &multiformat_dummy_handle,
 	.copy_failed   = 0,
 	.name          = "multiformat_interface"
 };
@@ -107,12 +111,18 @@ register_data(void)
 					 &array_of_structs,
 					 N_ELEMENTS,
 					 &format_ops);
+	starpu_multiformat_data_register(&multiformat_dummy_handle,
+					 0,
+					 &array_of_structs,
+					 N_ELEMENTS,
+					 &format_ops);
 }
 
 static void
 unregister_data(void)
 {
 	starpu_data_unregister(multiformat_handle);
+	starpu_data_unregister(multiformat_dummy_handle);
 }
 
 int

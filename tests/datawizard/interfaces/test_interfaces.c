@@ -71,6 +71,9 @@ enum_to_string(exit_code)
 
 struct data_interface_test_summary {
 	int success;
+#ifdef STARPU_USE_CPU
+	int cpu_to_cpu;
+#endif
 #ifdef STARPU_USE_CUDA
 	int cpu_to_cuda;
 	int cuda_to_cuda;
@@ -95,7 +98,6 @@ void data_interface_test_summary_print(FILE *f,
 
 	FPRINTF(f, "%s : %s\n",
 		current_config->name, enum_to_string(s->success));
-
 	FPRINTF(f, "Asynchronous :\n");
 #ifdef STARPU_USE_CUDA
 	FPRINTF(f, "\tCPU    -> CUDA   : %s\n",
@@ -127,6 +129,10 @@ void data_interface_test_summary_print(FILE *f,
 	FPRINTF(f, "\tOpenCl -> CPU    : %s\n",
 		enum_to_string(s->opencl_to_cpu));
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_CPU
+	(void) fprintf(f, "CPU    -> CPU    : %s\n",
+			enum_to_string(s->cpu_to_cpu));
+#endif /* !STARPU_USE_CPU */
 }
 
 int
@@ -153,6 +159,10 @@ get_field(struct data_interface_test_summary *s, int async, enum operation op)
 {
 	switch (op)
 	{
+#ifdef STARPU_USE_CPU
+	case CPU_TO_CPU:
+		return &s->cpu_to_cpu;
+#endif
 #ifdef STARPU_USE_CUDA
 	case CPU_TO_CUDA:
 		return async?&s->cpu_to_cuda_async:&s->cpu_to_cuda;
@@ -201,6 +211,9 @@ set_field(struct data_interface_test_summary *s, int async,
 }
 
 static struct data_interface_test_summary summary = {
+#ifdef STARPU_USE_CPU
+	.cpu_to_cpu            = UNTESTED,
+#endif
 #ifdef STARPU_USE_CUDA
 	.cpu_to_cuda           = UNTESTED,
 	.cuda_to_cuda          = UNTESTED,
@@ -492,6 +505,40 @@ run_opencl(int async)
 }
 #endif /* !STARPU_USE_OPENCL */
 
+#ifdef STARPU_USE_CPU
+static void
+ram_to_ram(void)
+{
+	int err;
+	struct starpu_task *task;
+	starpu_data_handle_t src, dst;
+
+	src = *current_config->handle;
+	dst = *current_config->dummy_handle;
+	starpu_data_cpy(dst, src, 1, NULL, NULL);
+
+	err = create_task(&task, STARPU_CPU_WORKER, -1);
+	if (err != 0)
+		goto out;
+
+	task->buffers[0].handle = dst;
+	err = starpu_task_submit(task);
+	if (err != 0)
+	{
+		err = TASK_SUBMISSION_FAILURE;
+		goto out;
+	}
+
+
+	
+	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	err = current_config->copy_failed;
+
+out:
+	set_field(&summary, 0, CPU_TO_CPU, err);
+}
+#endif /* !STARPU_USE_CPU */
+
 static void
 run_async(void)
 {
@@ -544,6 +591,7 @@ load_conf(struct test_config *config)
 	if (!config ||
 #ifdef STARPU_USE_CPU
 	    !config->cpu_func ||
+	    !config->dummy_handle ||
 #endif
 #ifdef STARPU_USE_CUDA
 	    !config->cuda_func ||
@@ -560,6 +608,7 @@ load_conf(struct test_config *config)
 	return 0;
 }
 
+
 data_interface_test_summary*
 run_tests(struct test_config *conf)
 {
@@ -570,5 +619,10 @@ run_tests(struct test_config *conf)
 	}
 	run_async();
 	run_sync();
+
+#ifdef STARPU_USE_CPU
+	ram_to_ram();
+#endif
+
 	return &summary;
 }

@@ -17,8 +17,13 @@
 #define TEST_INTERFACES_H
 
 struct test_config {
-	/* A pointer to a valid handle */
+	/* A pointer to a registered handle */
 	starpu_data_handle_t *handle;
+
+	/* A pointer to a registered handle, that will be used to test
+	 * RAM to RAM copy. The values it points to should be different from
+	 * the ones pointed to by the previous handle. */
+	starpu_data_handle_t *dummy_handle;
 
 	/* Unregisters data, frees memory, tidies your room */
 	void (*cleanup)(void);

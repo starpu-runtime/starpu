@@ -17,7 +17,9 @@
 #include "../test_interfaces.h"
 
 static int variable;
+static int variable2;
 static starpu_data_handle_t variable_handle;
+static starpu_data_handle_t variable2_handle;
 
 /* Codelets */
 #ifdef STARPU_USE_CPU
@@ -33,17 +35,18 @@ static void test_variable_opencl_func(void *buffers[], void *args);
 struct test_config variable_config =
 {
 #ifdef STARPU_USE_CPU
-	.cpu_func    = test_variable_cpu_func,
+	.cpu_func     = test_variable_cpu_func,
 #endif
 #ifdef STARPU_USE_CUDA
-	.cuda_func   = test_variable_cuda_func,
+	.cuda_func    = test_variable_cuda_func,
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = test_variable_opencl_func,
+	.opencl_func  = test_variable_opencl_func,
 #endif
-	.handle      = &variable_handle,
-	.copy_failed = 0,
-	.name        = "variable_interface"
+	.handle       = &variable_handle,
+	.dummy_handle = &variable2_handle,
+	.copy_failed  = 0,
+	.name         = "variable_interface"
 };
 
 static void
@@ -66,14 +69,19 @@ static
 void register_data(void)
 {
 	variable = 42;
+	variable2 = 12;
+
 	starpu_variable_data_register(&variable_handle, 0,
 				      (uintptr_t) &variable, sizeof(variable));
+	starpu_variable_data_register(&variable2_handle, 0,
+				      (uintptr_t) &variable2, sizeof(variable2));
 }
 
 static
 void unregister_data(void)
 {
 	starpu_data_unregister(variable_handle);
+	starpu_data_unregister(variable2_handle);
 }
 
 int
