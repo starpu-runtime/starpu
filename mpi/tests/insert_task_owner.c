@@ -16,6 +16,7 @@
 
 #include <starpu_mpi.h>
 #include <math.h>
+#include "helper.h"
 
 void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -26,7 +27,8 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         *y = *y + 1;
 }
 
-struct starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet =
+{
 	.where = STARPU_CPU,
 	.cpu_func = func_cpu,
         .nbuffers = 2
@@ -35,7 +37,7 @@ struct starpu_codelet mycodelet = {
 #define ACQUIRE_DATA \
         if (rank == 0) starpu_data_acquire(data_handlesx0, STARPU_R);    \
         if (rank == 1) starpu_data_acquire(data_handlesx1, STARPU_R);    \
-        fprintf(stderr, "[%d] Values: %d %d\n", rank, x0, x1);
+        FPRINTF(stderr, "[%d] Values: %d %d\n", rank, x0, x1);
 
 #define RELEASE_DATA \
         if (rank == 0) starpu_data_release(data_handlesx0); \
@@ -47,22 +49,26 @@ struct starpu_codelet mycodelet = {
 
 int main(int argc, char **argv)
 {
-        int rank, size, err;
+        int ret, rank, size, err;
         int x0=0, x1=0, vx0[2] = {x0, x0}, vx1[2]={x1,x1};
         starpu_data_handle_t data_handlesx0;
         starpu_data_handle_t data_handlesx1;
 
-	starpu_init(NULL);
-	starpu_mpi_initialize_extended(&rank, &size);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize_extended(&rank, &size);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
 
-        if (size != 2) {
-		if (rank == 0) fprintf(stderr, "We need exactly 2 processes.\n");
+        if (size != 2)
+	{
+		if (rank == 0) FPRINTF(stderr, "We need exactly 2 processes.\n");
                 starpu_mpi_shutdown();
                 starpu_shutdown();
-                return 0;
+                return STARPU_TEST_SKIPPED;
         }
 
-        if (rank == 0) {
+        if (rank == 0)
+	{
                 starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
                 starpu_data_set_rank(data_handlesx0, rank);
 		starpu_data_set_tag(data_handlesx0, 0);
@@ -70,7 +76,8 @@ int main(int argc, char **argv)
                 starpu_data_set_rank(data_handlesx1, 1);
 		starpu_data_set_tag(data_handlesx1, 1);
         }
-        else if (rank == 1) {
+        else if (rank == 1)
+	{
                 starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
                 starpu_data_set_rank(data_handlesx1, rank);
 		starpu_data_set_tag(data_handlesx1, 1);

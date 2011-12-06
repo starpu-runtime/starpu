@@ -17,6 +17,7 @@
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <math.h>
+#include "helper.h"
 
 void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -25,20 +26,21 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	int *x2 = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
 	int *y = (int *)STARPU_VARIABLE_GET_PTR(descr[3]);
 
-//        fprintf(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
+//        FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
 //
 //        *x2 = 45;
 //        *y = 144;
 //
-        fprintf(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
+        FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
         *y = (*x0 + *x1) * 100;
         *x1 = 12;
         *x2 = 24;
         *x0 = 36;
-        fprintf(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
+        FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
 }
 
-struct starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet =
+{
 	.where = STARPU_CPU,
 	.cpu_func = func_cpu,
         .nbuffers = 4
@@ -48,20 +50,25 @@ int main(int argc, char **argv)
 {
         int rank, size, err;
         int x[3], y=0;
-        int i;
+        int i, ret;
         starpu_data_handle_t data_handles[4];
 
-	starpu_init(NULL);
-	starpu_mpi_initialize_extended(&rank, &size);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize_extended(&rank, &size);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
 
-        if (rank > 1) {
+        if (rank > 1)
+	{
                 starpu_mpi_shutdown();
                 starpu_shutdown();
-                return 0;
+                return STARPU_TEST_SKIPPED;
         }
 
-        if (rank == 0) {
-                for(i=0 ; i<3 ; i++) {
+        if (rank == 0)
+	{
+                for(i=0 ; i<3 ; i++)
+		{
                         x[i] = 10*(i+1);
                         starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(x[i]));
                         starpu_data_set_rank(data_handles[i], rank);
@@ -72,8 +79,10 @@ int main(int argc, char **argv)
                 starpu_data_set_rank(data_handles[3], 1);
 		starpu_data_set_tag(data_handles[3], 3);
         }
-        else if (rank == 1) {
-                for(i=0 ; i<3 ; i++) {
+        else if (rank == 1)
+	{
+                for(i=0 ; i<3 ; i++)
+		{
                         x[i] = -1;
                         starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
                         starpu_data_set_rank(data_handles[i], 0);
@@ -84,24 +93,25 @@ int main(int argc, char **argv)
                 starpu_data_set_rank(data_handles[3], rank);
 		starpu_data_set_tag(data_handles[3], 3);
         }
-        fprintf(stderr, "[%d][init] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
+        FPRINTF(stderr, "[%d][init] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
 
         err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
                                      STARPU_R, data_handles[0], STARPU_RW, data_handles[1],
                                      STARPU_W, data_handles[2],
                                      STARPU_W, data_handles[3],
                                      STARPU_EXECUTE_ON_NODE, 1, 0);
-        assert(err == 0);
+	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_insert_task");
         starpu_task_wait_for_all();
 
         int *values = malloc(4 * sizeof(int *));
-        for(i=0 ; i<4 ; i++) {
+        for(i=0 ; i<4 ; i++)
+	{
                 starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[i], 0);
                 starpu_data_acquire(data_handles[i], STARPU_R);
                 values[i] = *((int *)starpu_mpi_handle_to_ptr(data_handles[i]));
         }
-        fprintf(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
-        fprintf(stderr, "[%d][end] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
+        FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
+        FPRINTF(stderr, "[%d][end] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

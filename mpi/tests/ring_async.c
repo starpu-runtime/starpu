@@ -16,6 +16,7 @@
  */
 
 #include <starpu_mpi.h>
+#include "helper.h"
 
 #define NITER	2048
 
@@ -32,7 +33,8 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	(*tokenptr)++;
 }
 
-static struct starpu_codelet increment_cl = {
+static struct starpu_codelet increment_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda,
@@ -46,7 +48,7 @@ void increment_token(void)
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &increment_cl;
-	
+
 	task->buffers[0].handle = token_handle;
 	task->buffers[0].mode = STARPU_RW;
 
@@ -57,24 +59,25 @@ void increment_token(void)
 
 int main(int argc, char **argv)
 {
+	int ret, rank, size;
+
 	MPI_Init(NULL, NULL);
-
-	int rank, size;
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	if (size < 2)
 	{
 		if (rank == 0)
-			fprintf(stderr, "We need at least 2 processes.\n");
+			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		MPI_Finalize();
-		return 0;
+		return STARPU_TEST_SKIPPED;
 	}
 
-	starpu_init(NULL);
-	starpu_mpi_initialize();
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
 
 	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
 
@@ -91,9 +94,10 @@ int main(int argc, char **argv)
 		if (loop == 0 && rank == 0)
 		{
 			token = 0;
-			fprintf(stdout, "Start with token value %d\n", token);
+			FPRINTF(stdout, "Start with token value %d\n", token);
 		}
-		else {
+		else
+		{
 			MPI_Status status;
 			starpu_mpi_req req;
 			starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD);
@@ -105,7 +109,7 @@ int main(int argc, char **argv)
 		if (loop == last_loop && rank == last_rank)
 		{
 			starpu_data_acquire(token_handle, STARPU_R);
-			fprintf(stdout, "Finished : token value %d\n", token);
+			FPRINTF(stdout, "Finished : token value %d\n", token);
 			starpu_data_release(token_handle);
 		}
 		else {

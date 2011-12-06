@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
 
 #include <starpu_mpi.h>
 #include <stdlib.h>
+#include "helper.h"
 
 #define NITER	2048
 
@@ -25,31 +26,32 @@
 
 int main(int argc, char **argv)
 {
+	int ret, rank, size;
+
 	MPI_Init(NULL, NULL);
-
-	int rank, size;
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	if (size < 2)
 	{
 		if (rank == 0)
-			fprintf(stderr, "We need at least processes.\n");
+			FPRINTF(stderr, "We need at least processes.\n");
 
 		MPI_Finalize();
-		return 0;
+		return STARPU_TEST_SKIPPED;
 	}
 
 	/* We only use 2 nodes for that test */
 	if (rank >= 2)
 	{
 		MPI_Finalize();
-		return 0;
+		return STARPU_TEST_SKIPPED;
 	}
-		
-	starpu_init(NULL);
-	starpu_mpi_initialize();
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
 
 	/* Node 0 will allocate a big block and only register an inner part of
 	 * it as the block data, Node 1 will allocate a block of small size and
@@ -89,13 +91,17 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_mpi_send(block_handle, 1, 0x42, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(block_handle, 1, 0x42, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 
 		MPI_Status status;
-		starpu_mpi_recv(block_handle, 1, 0x1337, MPI_COMM_WORLD, &status);
+		ret = starpu_mpi_recv(block_handle, 1, 0x1337, MPI_COMM_WORLD, &status);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
 		/* check the content of the block */
-		starpu_data_acquire(block_handle, STARPU_R);
+		ret = starpu_data_acquire(block_handle, STARPU_R);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+
 		unsigned i, j, k;
 		for (k = 0; k < SIZE; k++)
 		for (j = 0; j < SIZE; j++)
@@ -104,15 +110,18 @@ int main(int argc, char **argv)
 			assert(block[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE] == 33.0f);
 		}
 		starpu_data_release(block_handle);
-		
+
 	}
 	else /* rank == 1 */
 	{
 		MPI_Status status;
-		starpu_mpi_recv(block_handle, 0, 0x42, MPI_COMM_WORLD, &status);
+		ret = starpu_mpi_recv(block_handle, 0, 0x42, MPI_COMM_WORLD, &status);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
 		/* check the content of the block and modify it */
-		starpu_data_acquire(block_handle, STARPU_RW);
+		ret = starpu_data_acquire(block_handle, STARPU_RW);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+
 		unsigned i, j, k;
 		for (k = 0; k < SIZE; k++)
 		for (j = 0; j < SIZE; j++)
@@ -123,10 +132,11 @@ int main(int argc, char **argv)
 		}
 		starpu_data_release(block_handle);
 
-		starpu_mpi_send(block_handle, 0, 0x1337, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(block_handle, 0, 0x1337, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 	}
 
-	fprintf(stdout, "Rank %d is done\n", rank);
+	FPRINTF(stdout, "Rank %d is done\n", rank);
 	fflush(stdout);
 
 	starpu_mpi_shutdown();
