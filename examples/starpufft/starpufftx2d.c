@@ -376,6 +376,7 @@ static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
  *
  */
 
+#ifdef STARPU_USE_CUDA
 /* Perform one fft of size n,m */
 static void
 STARPUFFT(fft_2d_plan_gpu)(void *args)
@@ -410,6 +411,7 @@ STARPUFFT(fft_2d_kernel_gpu)(void *descr[], void *args)
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
+#endif
 
 #ifdef STARPU_HAVE_FFTW
 /* Perform one fft of size n,m */
