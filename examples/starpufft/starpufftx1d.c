@@ -15,10 +15,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define PARALLEL
-#ifdef PARALLEL
-
-/* Dumb parallel version, disabled */
+/*
+ *
+ * Dumb parallel version
+ *
+ */
 
 #define DIV_1D 64
 
@@ -87,9 +88,9 @@ static void
 STARPUFFT(fft1_1d_plan_gpu)(void *args)
 {
 	STARPUFFT(plan) plan = args;
-	cufftResult cures;
 	int n2 = plan->n2[0];
 	int workerid = starpu_worker_get_id();
+	cufftResult cures;
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan1_cuda, n2, _CUFFT_C2C, 1);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
@@ -129,10 +130,10 @@ static void
 STARPUFFT(fft2_1d_plan_gpu)(void *args)
 {
 	STARPUFFT(plan) plan = args;
-	cufftResult cures;
 	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];
 	int n3 = n2/DIV_1D;
+	cufftResult cures;
 	int workerid = starpu_worker_get_id();
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
@@ -384,7 +385,86 @@ static struct starpu_codelet STARPUFFT(twist3_1d_codelet) = {
 	.nbuffers = 1
 };
 
-#endif /* PARALLEL */
+/*
+ *
+ * Sequential version
+ *
+ */
+
+/* Perform one fft of size n */
+static void
+STARPUFFT(fft_1d_plan_gpu)(void *args)
+{
+	STARPUFFT(plan) plan = args;
+	cufftResult cures;
+	int n = plan->n[0];
+	int workerid = starpu_worker_get_id();
+
+	cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, n, _CUFFT_C2C, 1);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	cufftSetStream(plan->plans[workerid].plan_cuda, starpu_cuda_get_local_stream());
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+}
+
+static void
+STARPUFFT(fft_1d_kernel_gpu)(void *descr[], void *args)
+{
+	STARPUFFT(plan) plan = args;
+	cufftResult cures;
+
+	_cufftComplex * restrict in = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
+	_cufftComplex * restrict out = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
+
+	int workerid = starpu_worker_get_id();
+
+	task_per_worker[workerid]++;
+
+	cures = _cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+}
+
+#ifdef STARPU_HAVE_FFTW
+/* Perform one fft of size n */
+static void
+STARPUFFT(fft_1d_kernel_cpu)(void *descr[], void *_args)
+{
+	STARPUFFT(plan) plan = _args;
+	int workerid = starpu_worker_get_id();
+
+	task_per_worker[workerid]++;
+
+	STARPUFFT(complex) * restrict in = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[0]);
+	STARPUFFT(complex) * restrict out = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[1]);
+
+	_FFTW(execute_dft)(plan->plans[workerid].plan_cpu, in, out);
+}
+#endif
+
+static struct starpu_perfmodel STARPUFFT(fft_1d_model) = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = TYPE"fft_1d"
+};
+
+static struct starpu_codelet STARPUFFT(fft_1d_codelet) = {
+	.where =
+#ifdef STARPU_USE_CUDA
+		STARPU_CUDA|
+#endif
+#ifdef STARPU_HAVE_FFTW
+		STARPU_CPU|
+#endif
+		0,
+#ifdef STARPU_USE_CUDA
+	.cuda_func = STARPUFFT(fft_1d_kernel_gpu),
+#endif
+#ifdef STARPU_HAVE_FFTW
+	.cpu_func = STARPUFFT(fft_1d_kernel_cpu),
+#endif
+	.model = &STARPUFFT(fft_1d_model),
+	.nbuffers = 2
+};
 
 /* Planning:
  *
@@ -406,6 +486,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	int z;
 	struct starpu_task *task;
 
+if (PARALLEL) {
 #ifdef STARPU_USE_CUDA
 	/* cufft 1D limited to 8M elements */
 	while (n2 > 8 << 20) {
@@ -419,6 +500,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	/* distribute the n2 second ffts into DIV_1D packages */
 	n3 = n2 / DIV_1D;
 	STARPU_ASSERT(n2 == n3*DIV_1D);
+}
 
 	/* TODO: flags? Automatically set FFTW_MEASURE on calibration? */
 	STARPU_ASSERT(flags == 0);
@@ -426,40 +508,50 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	STARPUFFT(plan) plan = malloc(sizeof(*plan));
 	memset(plan, 0, sizeof(*plan));
 
+if (PARALLEL) {
 	plan->number = STARPU_ATOMIC_ADD(&starpufft_last_plan_number, 1) - 1;
 
 	/* The plan number has a limited size */
 	STARPU_ASSERT(plan->number < (1ULL << NUMBER_BITS));
+}
 
 	/* Just one dimension */
 	plan->dim = 1;
 	plan->n = malloc(plan->dim * sizeof(*plan->n));
 	plan->n[0] = n;
 
+if (PARALLEL) {
 	check_dims(plan);
 
 	plan->n1 = malloc(plan->dim * sizeof(*plan->n1));
 	plan->n1[0] = n1;
 	plan->n2 = malloc(plan->dim * sizeof(*plan->n2));
 	plan->n2[0] = n2;
+}
 
 	/* Note: this is for coherency with the 2D case */
 	plan->totsize = n;
+
+if (PARALLEL) {
 	plan->totsize1 = n1;
 	plan->totsize2 = n2;
 	plan->totsize3 = DIV_1D;
 	plan->totsize4 = plan->totsize / plan->totsize3;
+}
 	plan->type = C2C;
 	plan->sign = sign;
 
+if (PARALLEL) {
 	/* Compute the w^k just once. */
 	compute_roots(plan);
+}
 
 	/* Initialize per-worker working set */
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
 		switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
 #ifdef STARPU_HAVE_FFTW
+if (PARALLEL) {
 			/* first fft plan: one fft of size n2.
 			 * FFTW imposes that buffer pointers are known at
 			 * planning time. */
@@ -473,8 +565,13 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 					NULL, NULL, 1, plan->totsize1,
 					sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan2_cpu);
+} else {
+			/* fft plan: one fft of size n. */
+			plan->plans[workerid].plan_cpu = _FFTW(plan_dft_1d)(n, NULL, NULL, sign, _FFTW_FLAGS);
+			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
+}
 #else
-#warning libstarpufft can not work correctly if libfftw3 is not installed
+/* #warning libstarpufft can not work correctly if libfftw3 is not installed */
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
@@ -485,10 +582,15 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		}
 	}
 #ifdef STARPU_USE_CUDA
+if (PARALLEL) {
 	starpu_execute_on_each_worker(STARPUFFT(fft1_1d_plan_gpu), plan, STARPU_CUDA);
 	starpu_execute_on_each_worker(STARPUFFT(fft2_1d_plan_gpu), plan, STARPU_CUDA);
+} else {
+	starpu_execute_on_each_worker(STARPUFFT(fft_1d_plan_gpu), plan, STARPU_CUDA);
+}
 #endif
 
+if (PARALLEL) {
 	/* Allocate buffers. */
 	plan->twisted1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->twisted1));
 	memset(plan->twisted1, 0, plan->totsize * sizeof(*plan->twisted1));
@@ -545,7 +647,6 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(TWIST1);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that fft1 depends on twisted1 */
@@ -564,7 +665,6 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(FFT1);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that the join task will depend on the fft1 task. */
@@ -579,7 +679,6 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	task->cl = NULL;
 	task->tag_id = STEP_TAG_1D(plan, JOIN, 0);
 	task->use_tag = 1;
-	task->detach = 1;
 	task->destroy = 0;
 
 	/* Create second-round tasks: DIV_1D batches of n2/DIV_1D twist2, fft2,
@@ -612,7 +711,6 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(TWIST2);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that fft2 depends on twisted2 */
@@ -629,7 +727,6 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(FFT2);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that twist3 depends on fft2 */
@@ -646,7 +743,6 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(TWIST3);
 		task->use_tag = 1;
-		task->detach = 1;
 		task->destroy = 0;
 
 		/* Tell that to be completely finished we need to have finished
@@ -661,8 +757,9 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	task->cl = NULL;
 	task->tag_id = STEP_TAG_1D(plan, END, 0);
 	task->use_tag = 1;
-	task->detach = 1;
 	task->destroy = 0;
+
+}
 
 	return plan;
 }
@@ -674,6 +771,7 @@ STARPUFFT(start1dC2C)(STARPUFFT(plan) plan)
 	STARPU_ASSERT(plan->type == C2C);
 	int z;
 
+if (PARALLEL) {
 	for (z=0; z < plan->totsize1; z++) {
 		starpu_task_submit(plan->twist1_tasks[z]);
 		starpu_task_submit(plan->fft1_tasks[z]);
@@ -690,6 +788,23 @@ STARPUFFT(start1dC2C)(STARPUFFT(plan) plan)
 	starpu_task_submit(plan->end_task);
 
 	return STEP_TAG_1D(plan, END, 0);
+} else /* !PARALLEL */ {
+	struct starpu_task *task;
+
+	/* Create FFT task */
+	plan->fft_task = task = starpu_task_create();
+	task->cl = &STARPUFFT(fft_1d_codelet);
+	task->buffers[0].handle = plan->in_handle;
+	task->buffers[0].mode = STARPU_R;
+	task->buffers[1].handle = plan->out_handle;
+	task->buffers[1].mode = STARPU_W;
+	task->cl_arg = plan;
+	task->tag_id = STARPU_ATOMIC_ADD(&starpufft_last_tag, 1);
+	task->use_tag = 1;
+
+	starpu_task_submit(plan->fft_task);
+	return task->tag_id;
+}
 }
 
 /* Free all the tags. The generic code handles freeing the buffers. */
@@ -698,6 +813,9 @@ STARPUFFT(free_1d_tags)(STARPUFFT(plan) plan)
 {
 	unsigned i;
 	int n1 = plan->n1[0];
+
+	if (!PARALLEL)
+		return;
 
 	for (i = 0; i < n1; i++) {
 		starpu_tag_remove(STEP_TAG_1D(plan, TWIST1, i));

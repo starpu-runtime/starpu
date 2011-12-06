@@ -15,6 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#define PARALLEL 0
+
 #include <math.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -31,9 +33,6 @@
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
-#define PARALLEL
-#ifdef PARALLEL
-
 enum steps {
 	SPECIAL, TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
 };
@@ -47,8 +46,6 @@ enum steps {
 
 
 #define I_BITS STEP_SHIFT
-
-#endif /* PARALLEL */
 
 enum type {
 	R2C,
@@ -89,10 +86,14 @@ struct STARPUFFT(plan) {
 #ifdef STARPU_USE_CUDA
 		/* CUFFT plans */
 		cufftHandle plan1_cuda, plan2_cuda;
+		/* Sequential version */
+		cufftHandle plan_cuda;
 #endif
 #ifdef STARPU_HAVE_FFTW
 		/* FFTW plans */
 		_fftw_plan plan1_cpu, plan2_cpu;
+		/* Sequential version */
+		_fftw_plan plan_cpu;
 #endif
 	} plans[STARPU_NMAXWORKERS];
 
@@ -100,11 +101,13 @@ struct STARPUFFT(plan) {
 	STARPUFFT(complex) *in, *twisted1, *fft1, *twisted2, *fft2, *out;
 
 	/* corresponding starpu DSM handles */
-	starpu_data_handle_t in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
+	starpu_data_handle_t in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle, out_handle;
 
 	/* Tasks */
 	struct starpu_task **twist1_tasks, **fft1_tasks, **twist2_tasks, **fft2_tasks, **twist3_tasks;
 	struct starpu_task *join_task, *end_task;
+	/* Sequential version */
+	struct starpu_task *fft_task;
 
 	/* Arguments for tasks */
 	struct STARPUFFT(args) *fft1_args, *fft2_args;
@@ -172,8 +175,12 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			switch (plan->type) {
 			case C2C:
 				starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+if (!PARALLEL)
+				starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+if (PARALLEL) {
 				for (z = 0; z < plan->totsize1; z++)
 					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+}
 				tag = STARPUFFT(start1dC2C)(plan);
 				break;
 			default:
@@ -184,8 +191,12 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 		}
 		case 2:
 			starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+if (!PARALLEL)
+			starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+if (PARALLEL) {
 			for (z = 0; z < plan->totsize1; z++)
 				plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+}
 			tag = STARPUFFT(start2dC2C)(plan);
 			break;
 		default:
@@ -228,8 +239,12 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 		switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
 #ifdef STARPU_HAVE_FFTW
+if (PARALLEL) {
 			_FFTW(destroy_plan)(plan->plans[workerid].plan1_cpu);
 			_FFTW(destroy_plan)(plan->plans[workerid].plan2_cpu);
+} else {
+			_FFTW(destroy_plan)(plan->plans[workerid].plan_cpu);
+}
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
@@ -242,6 +257,8 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 			break;
 		}
 	}
+
+if (PARALLEL) {
 	for (i = 0; i < plan->totsize1; i++) {
 		starpu_data_unregister(plan->twisted1_handle[i]);
 		free(plan->twist1_tasks[i]);
@@ -291,13 +308,14 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 			break;
 	}
 
-	free(plan->n);
 	free(plan->n1);
 	free(plan->n2);
 	STARPUFFT(free)(plan->twisted1);
 	STARPUFFT(free)(plan->fft1);
 	STARPUFFT(free)(plan->twisted2);
 	STARPUFFT(free)(plan->fft2);
+}
+	free(plan->n);
 	free(plan);
 }
 

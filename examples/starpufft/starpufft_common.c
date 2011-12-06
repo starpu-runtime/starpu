@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,3 +19,6 @@
 
 /* Used as an identifier in starpu tags to let plans run concurrently */
 int starpufft_last_plan_number;
+
+/* Used as an identifier in starpu tags to let sequential executions run concurrently */
+int starpufft_last_tag;

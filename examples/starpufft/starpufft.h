@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009  Université de Bordeaux 1
+ * Copyright (C) 2009, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,4 +52,5 @@ __STARPUFFT_INTERFACE(__STARPUFFT, double)
 __STARPUFFT_INTERFACE(__STARPUFFTF, float)
 __STARPUFFT_INTERFACE(__STARPUFFTL, long double)
 
-int starpufft_last_plan_number;
+extern int starpufft_last_plan_number;
+extern int starpufft_last_tag;
