@@ -13,9 +13,11 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include "multiformat_types.h"
+
 static __global__ void multiformat_cuda(struct struct_of_arrays *soa, unsigned n)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
@@ -28,7 +30,7 @@ extern "C" void multiformat_scal_cuda_func(void *buffers[], void *_args)
 {
 	(void) _args;
 
-	fprintf(stderr, "Running the cuda kernel (%s)\n", __func__);
+	FPRINTF(stderr, "Running the cuda kernel (%s)\n", __func__);
 	unsigned int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	struct struct_of_arrays *soa;
 

@@ -15,6 +15,7 @@
  */
 
 #include "multiformat_types.h"
+
 __kernel void multiformat_opencl(__global struct struct_of_arrays *soa, int nx)
 {
         const int i = get_global_id(0);

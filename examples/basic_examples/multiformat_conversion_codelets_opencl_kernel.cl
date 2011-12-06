@@ -13,7 +13,9 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include "multiformat_types.h"
+
 __kernel void cpu_to_opencl_opencl(__global struct point *src,
 				   __global struct struct_of_arrays *dst,
 				   unsigned int n)
