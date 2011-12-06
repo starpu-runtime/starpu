@@ -93,9 +93,6 @@ struct STARPUFFT(plan) {
 #ifdef STARPU_HAVE_FFTW
 		/* FFTW plans */
 		_fftw_plan plan1_cpu, plan2_cpu;
-		/* Buffers used by the plans above */
-		_fftw_complex *in1, *out1;
-		_fftw_complex *in2, *out2;
 #endif
 	} plans[STARPU_NMAXWORKERS];
 
@@ -231,11 +228,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 		switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
 #ifdef STARPU_HAVE_FFTW
-			_FFTW(free)(plan->plans[workerid].in1);
-			_FFTW(free)(plan->plans[workerid].out1);
 			_FFTW(destroy_plan)(plan->plans[workerid].plan1_cpu);
-			_FFTW(free)(plan->plans[workerid].in2);
-			_FFTW(free)(plan->plans[workerid].out2);
 			_FFTW(destroy_plan)(plan->plans[workerid].plan2_cpu);
 #endif
 			break;
