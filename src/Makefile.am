@@ -44,13 +44,13 @@ endif STARPU_HAVE_MS_LIB
 
 endif STARPU_HAVE_WINDOWS
 
-lib_LTLIBRARIES = libstarpu.la
+lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/
 
-libstarpu_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
-libstarpu_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
-libstarpu_la_LDFLAGS = $(ldflags) -no-undefined									\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined									\
   -version-info $(LIBSTARPU_INTERFACE_CURRENT):$(LIBSTARPU_INTERFACE_REVISION):$(LIBSTARPU_INTERFACE_AGE)
 
 noinst_HEADERS = 						\
@@ -114,7 +114,7 @@ noinst_HEADERS = 						\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h
 
-libstarpu_la_SOURCES = 						\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
 	common/hash.c 						\
 	common/htable32.c					\
@@ -210,18 +210,18 @@ libstarpu_la_SOURCES = 						\
 	top/starpu_top_connection.c
 
 if STARPU_USE_CPU
-libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
 
 if STARPU_USE_CUDA
-libstarpu_la_SOURCES += drivers/cuda/driver_cuda.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
 
 if STARPU_USE_GORDON
-libstarpu_la_SOURCES += drivers/gordon/driver_gordon.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/gordon/driver_gordon.c
 endif
 
 if STARPU_USE_OPENCL
-libstarpu_la_SOURCES += drivers/opencl/driver_opencl.c
-libstarpu_la_SOURCES += drivers/opencl/driver_opencl_utils.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
 endif

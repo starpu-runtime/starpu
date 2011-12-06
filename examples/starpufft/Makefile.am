@@ -41,7 +41,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpufft.pc
 
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
-libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
+libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
 if STARPU_USE_CUDA
@@ -69,18 +69,18 @@ examplebin_PROGRAMS =				\
 	testf
 
 check_PROGRAMS = testf
-testf_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
+testf_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 
 # If we don't have CUDA, we assume that we have fftw available in double
 # precision anyway, we just want to make sure that if CUFFT is used, it also
 # supports double precision.
 if !STARPU_USE_CUDA
 check_PROGRAMS += test
-test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
 else
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 check_PROGRAMS += test
-test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
 endif
 endif
 

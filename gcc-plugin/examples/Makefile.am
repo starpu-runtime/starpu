@@ -21,7 +21,7 @@ noinst_PROGRAMS +=				\
   cholesky/cholesky
 endif
 
-AM_LDFLAGS = $(top_builddir)/src/libstarpu.la
+AM_LDFLAGS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
 AM_CPPFLAGS =						\
   -I$(top_srcdir)/include				\
