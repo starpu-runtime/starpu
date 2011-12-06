@@ -30,8 +30,20 @@ Only complex numbers are supported at the moment.
 
 The application has to call @code{starpu_init} before calling starpufft functions.
 
-Several FFT tasks can be submitted for a given plan, which permits e.g. to start
-a series of FFT with just one plan.
+Either main memory pointers or data handles can be provided.
+
+@enumerate
+@item To provide main memory pointers, use @code{starpufft_start} or
+@code{starpufft_execute}. Only one FFT can be performed at a time, because
+StarPU will have to register the data on the fly. In the @code{starpufft_start}
+case, @code{starpufft_cleanup} needs to be called to unregister the data.
+@item To provide data handles (which is preferrable),
+use @code{starpufft_start_handle} (preferred) or
+@code{starpufft_execute_handle}. Several FFTs Several FFT tasks can be submitted
+for a given plan, which permits e.g. to start a series of FFT with just one
+plan. @code{starpufft_start_handle} is preferrable since it does not wait for
+the task completion, and thus permits to enqueue a series of tasks.
+@end enumerate
 
 @subsection Compilation
 
@@ -67,6 +79,7 @@ Initializes a plan for 2D FFT of size (@var{n}, @var{m}). @var{sign} can be
 @deftypefun {struct starpu_task *} starpufft_start (starpufft_plan @var{p}, void *@var{in}, void *@var{out})
 Start an FFT previously planned as @var{p}, using @var{in} and @var{out} as
 input and output. This only submits the task and does not wait for it.
+The application should call @code{starpufft_cleanup} to unregister the data.
 @end deftypefun
 
 @deftypefun {struct starpu_task *} starpufft_start_handle (starpufft_plan @var{p}, starpu_data_handle_t @var{in}, starpu_data_handle_t @var{out})
@@ -84,6 +97,10 @@ input and output. This submits and waits for the task.
 Execute an FFT previously planned as @var{p}, using data handles @var{in} and
 @var{out} as input and output (assumed to be vectors of elements of the expected
 types). This submits and waits for the task.
+@end deftypefun
+
+@deftypefun void starpufft_cleanup (starpufft_plan @var{p})
+Releases data for plan @var{p}, in the @code{starpufft_start} case.
 @end deftypefun
 
 @deftypefun void starpufft_destroy_plan (starpufft_plan @var{p})

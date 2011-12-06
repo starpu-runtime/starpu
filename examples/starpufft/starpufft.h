@@ -45,6 +45,7 @@ struct starpu_task *starpufft(start)(starpufft(plan) p, void *in, void *out); \
 void starpufft(execute_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
 struct starpu_task *starpufft(start_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
 \
+void starpufft(cleanup)(starpufft(plan) p); \
 void starpufft(destroy_plan)(starpufft(plan) p); \
 \
 void starpufft(startstats)(void); \
