@@ -31,6 +31,9 @@
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
+#define PARALLEL
+#ifdef PARALLEL
+
 enum steps {
 	SPECIAL, TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
 };
@@ -44,6 +47,8 @@ enum steps {
 
 
 #define I_BITS STEP_SHIFT
+
+#endif /* PARALLEL */
 
 enum type {
 	R2C,
@@ -84,8 +89,6 @@ struct STARPUFFT(plan) {
 #ifdef STARPU_USE_CUDA
 		/* CUFFT plans */
 		cufftHandle plan1_cuda, plan2_cuda;
-		/* Whether the plans above are initialized */
-		int initialized1, initialized2;
 #endif
 #ifdef STARPU_HAVE_FFTW
 		/* FFTW plans */

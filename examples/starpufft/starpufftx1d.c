@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -14,6 +14,11 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+#define PARALLEL
+#ifdef PARALLEL
+
+/* Dumb parallel version, disabled */
 
 #define DIV_1D 64
 
@@ -79,6 +84,20 @@ STARPUFFT(twist1_1d_kernel_gpu)(void *descr[], void *_args)
  *
  * Perform one fft of size n2 */
 static void
+STARPUFFT(fft1_1d_plan_gpu)(void *args)
+{
+	STARPUFFT(plan) plan = args;
+	cufftResult cures;
+	int n2 = plan->n2[0];
+	int workerid = starpu_worker_get_id();
+
+	cures = cufftPlan1d(&plan->plans[workerid].plan1_cuda, n2, _CUFFT_C2C, 1);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+}
+
+static void
 STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
 {
 	struct STARPUFFT(args) *args = _args;
@@ -95,15 +114,6 @@ STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
 
 	task_per_worker[workerid]++;
 
-	if (!plan->plans[workerid].initialized1) {
-		cures = cufftPlan1d(&plan->plans[workerid].plan1_cuda, n2, _CUFFT_C2C, 1);
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
-
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		plan->plans[workerid].initialized1 = 1;
-	}
-
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
@@ -116,13 +126,26 @@ STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
  *
  * Perform n3 = n2/DIV_1D ffts of size n1 */
 static void
+STARPUFFT(fft2_1d_plan_gpu)(void *args)
+{
+	STARPUFFT(plan) plan = args;
+	cufftResult cures;
+	int n1 = plan->n1[0];
+	int n2 = plan->n2[0];
+	int n3 = n2/DIV_1D;
+	int workerid = starpu_worker_get_id();
+
+	cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+}
+
+static void
 STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 {
 	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
-	int n1 = plan->n1[0];
-	int n2 = plan->n2[0];
-	int n3 = n2/DIV_1D;
 	cufftResult cures;
 
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -131,15 +154,6 @@ STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 	int workerid = starpu_worker_get_id();
 
 	task_per_worker[workerid]++;
-
-	if (!plan->plans[workerid].initialized2) {
-		cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
-
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		plan->plans[workerid].initialized2 = 1;
-	}
 
 	/* NOTE using batch support */
 	cures = _cufftExecC2C(plan->plans[workerid].plan2_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
@@ -380,6 +394,8 @@ static struct starpu_codelet STARPUFFT(twist3_1d_codelet) = {
 	.nbuffers = 1
 };
 
+#endif /* PARALLEL */
+
 /* Planning:
  *
  * - For each CPU worker, we need to plan the two fftw stages.
@@ -480,18 +496,16 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
-#ifdef STARPU_USE_CUDA
-			/* Perform CUFFT planning lazily. */
-			plan->plans[workerid].initialized1 = 0;
-			plan->plans[workerid].initialized2 = 0;
-#endif
-
 			break;
 		default:
 			STARPU_ABORT();
 			break;
 		}
 	}
+#ifdef STARPU_USE_CUDA
+	starpu_execute_on_each_worker(STARPUFFT(fft1_1d_plan_gpu), plan, STARPU_CUDA);
+	starpu_execute_on_each_worker(STARPUFFT(fft2_1d_plan_gpu), plan, STARPU_CUDA);
+#endif
 
 	/* Allocate buffers. */
 	plan->twisted1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->twisted1));

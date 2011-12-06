@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#define PARALLEL
+#ifdef PARALLEL
 #define DIV_2D_N 8
 #define DIV_2D_M 8
 
@@ -44,7 +46,24 @@ STARPUFFT(twist1_2d_kernel_gpu)(void *descr[], void *_args)
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
-/* Perform an n2,m2 fft */
+/* fft1:
+ *
+ * Perform one fft of size n2,m2 */
+static void
+STARPUFFT(fft1_2d_plan_gpu)(void *args)
+{
+	STARPUFFT(plan) plan = args;
+	int n2 = plan->n2[0];
+	int m2 = plan->n2[1];
+	int workerid = starpu_worker_get_id();
+	cufftResult cures;
+
+	cures = cufftPlan2d(&plan->plans[workerid].plan1_cuda, n2, m2, _CUFFT_C2C);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+}
+
 static void
 STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 {
@@ -65,15 +84,6 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 
 	task_per_worker[workerid]++;
 
-	if (!plan->plans[workerid].initialized1) {
-		cures = cufftPlan2d(&plan->plans[workerid].plan1_cuda, n2, m2, _CUFFT_C2C);
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
-
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		plan->plans[workerid].initialized1 = 1;
-	}
-
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
@@ -81,6 +91,24 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 	STARPUFFT(cuda_twiddle_2d_host)(out, roots0, roots1, n2, m2, i, j);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+}
+
+/* fft2:
+ *
+ * Perform n3*m3 ffts of size n1,m1 */
+static void
+STARPUFFT(fft2_2d_plan_gpu(void *args))
+{
+	STARPUFFT(plan) plan = args;
+	int n1 = plan->n1[0];
+	int m1 = plan->n1[1];
+	cufftResult cures;
+	int workerid = starpu_worker_get_id();
+
+	cures = cufftPlan2d(&plan->plans[workerid].plan2_cuda, n1, m1, _CUFFT_C2C);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 }
 
 static void
@@ -103,15 +131,6 @@ STARPUFFT(fft2_2d_kernel_gpu)(void *descr[], void *_args)
 	int workerid = starpu_worker_get_id();
 
 	task_per_worker[workerid]++;
-
-	if (!plan->plans[workerid].initialized2) {
-		cures = cufftPlan2d(&plan->plans[workerid].plan2_cuda, n1, m1, _CUFFT_C2C);
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
-
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-		plan->plans[workerid].initialized2 = 1;
-	}
 
 	for (n = 0; n < n3*m3; n++) {
 		cures = _cufftExecC2C(plan->plans[workerid].plan2_cuda, in + n * n1*m1, out + n * n1*m1, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
@@ -362,6 +381,7 @@ static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
 	.model = &STARPUFFT(twist3_2d_model),
 	.nbuffers = 1
 };
+#endif
 
 STARPUFFT(plan)
 STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
@@ -477,16 +497,16 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
-#ifdef STARPU_USE_CUDA
-			plan->plans[workerid].initialized1 = 0;
-			plan->plans[workerid].initialized2 = 0;
-#endif
 			break;
 		default:
 			STARPU_ABORT();
 			break;
 		}
 	}
+#ifdef STARPU_USE_CUDA
+	starpu_execute_on_each_worker(STARPUFFT(fft1_2d_plan_gpu), plan, STARPU_CUDA);
+	starpu_execute_on_each_worker(STARPUFFT(fft2_2d_plan_gpu), plan, STARPU_CUDA);
+#endif
 
 	plan->twisted1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->twisted1));
 	memset(plan->twisted1, 0, plan->totsize * sizeof(*plan->twisted1));
