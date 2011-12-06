@@ -20,7 +20,6 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUFFT_LDFL
 lib_LTLIBRARIES = libstarpufft.la
 
 EXTRA_DIST =			\
-	starpufft.h		\
 	float.h			\
 	double.h		\
 	cudax_kernels.h		\
@@ -34,6 +33,12 @@ EXTRA_DIST =			\
 	testx_threads.c		\
 	testf_threads.c		\
 	test_threads.c
+
+include_HEADERS =		\
+	starpufft.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libstarpufft.pc
 
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
 libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
