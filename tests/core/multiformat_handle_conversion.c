@@ -24,7 +24,7 @@
 
 #if DEBUG
 #define SYNCHRONOUS 1 /* Easier to debug with synchronous tasks */
-#define ENTER() do { fprintf(stderr, "Entering %s\n", __func__); } while (0)
+#define ENTER() do { FPRINTF(stderr, "Entering %s\n", __func__); } while (0)
 #else
 #define SYNCHRONOUS 0
 #define ENTER()
@@ -141,7 +141,7 @@ static void opencl_func(void *buffers[], void *args)
 static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 {
-	fprintf(stderr, "***** Starting Task 1\n");
+	FPRINTF(stderr, "***** Starting Task 1\n");
 	static struct starpu_codelet cl = {
 #ifdef STARPU_USE_CUDA
 		.cuda_func   = cuda_func,
@@ -160,7 +160,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task->buffers[0].mode = STARPU_RW;
 	starpu_task_submit(task);
 
-	fprintf(stderr, "***** Starting Task 2\n");
+	FPRINTF(stderr, "***** Starting Task 2\n");
 	static struct starpu_codelet cl2 = {
 		.where = STARPU_CPU,
 		.cpu_func = cpu_func,
@@ -175,7 +175,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	starpu_task_submit(task2);
 
 
-	fprintf(stderr, "***** Starting Task 3\n");
+	FPRINTF(stderr, "***** Starting Task 3\n");
 	static struct starpu_codelet cl3 = {
 		.cpu_func    = cpu_func,
 #ifdef STARPU_USE_CUDA
@@ -198,7 +198,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	starpu_task_submit(task3);
 
 	starpu_task_wait_for_all();
-	fprintf(stderr, "***** End of all tasks\n");
+	FPRINTF(stderr, "***** End of all tasks\n");
 	return;
 }
 
@@ -206,9 +206,9 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 static void
 print_stats(struct stats *s)
 {
-	fprintf(stderr, "cpu         : %d\n", s->cpu);
+	FPRINTF(stderr, "cpu         : %d\n", s->cpu);
 #ifdef STARPU_USE_CUDA
-	fprintf(stderr, "cuda        : %d\n"
+	FPRINTF(stderr, "cuda        : %d\n"
 			"cpu->cuda   : %d\n"
 			"cuda->cpu   : %d\n",
 			s->cuda,
@@ -216,7 +216,7 @@ print_stats(struct stats *s)
 			s->cuda_to_cpu);
 #endif
 #ifdef STARPU_USE_OPENCL
-	fprintf(stderr, "opencl      : %d\n"
+	FPRINTF(stderr, "opencl      : %d\n"
 			"cpu->opencl : %d\n"
 			"opencl->cpu : %d\n",
 			s->opencl,
@@ -315,14 +315,14 @@ main(void)
 #ifdef STARPU_USE_OPENCL
 	if (test_opencl() != 0)
 	{
-		fprintf(stderr, "OPENCL FAILED\n");
+		FPRINTF(stderr, "OPENCL FAILED\n");
 		return EXIT_FAILURE;
 	}
 #endif
 #ifdef STARPU_USE_CUDA
 	if (test_cuda() != 0)
 	{
-		fprintf(stderr, "CUDA FAILED \n");
+		FPRINTF(stderr, "CUDA FAILED \n");
 		return EXIT_FAILURE;
 	}
 #endif

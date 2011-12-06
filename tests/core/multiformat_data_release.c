@@ -23,7 +23,7 @@
 static int vector[NX];
 static starpu_data_handle_t handle;
 
-#define ENTER() do { fprintf(stderr, "Entering %s\n", __func__); } while (0)
+#define ENTER() do { FPRINTF(stderr, "Entering %s\n", __func__); } while (0)
 
 /* Counting the calls to the codelets */
 struct stats {
@@ -169,9 +169,9 @@ create_and_submit(int where)
 static void
 print_stats(struct stats *s)
 {
-	fprintf(stderr, "cpu         : %d\n", s->cpu);
+	FPRINTF(stderr, "cpu         : %d\n", s->cpu);
 #ifdef STARPU_USE_CUDA
-	fprintf(stderr, "cuda        : %d\n" 
+	FPRINTF(stderr, "cuda        : %d\n" 
 			"cpu->cuda   : %d\n"
 			"cuda->cpu   : %d\n",
 			s->cuda,
@@ -179,7 +179,7 @@ print_stats(struct stats *s)
 			s->cuda_to_cpu);
 #endif
 #ifdef STARPU_USE_OPENCL
-	fprintf(stderr, "opencl      : %d\n" 
+	FPRINTF(stderr, "opencl      : %d\n" 
 			"cpu->opencl : %d\n"
 			"opencl->cpu : %d\n",
 			s->opencl,
@@ -230,9 +230,9 @@ test(void)
 	starpu_data_release(handle);
 	if (compare(&global_stats, &expected_stats) != 0)
 	{
-		fprintf(stderr, "CUDA failed\n");
+		FPRINTF(stderr, "CUDA failed\n");
 		print_stats(&global_stats);
-		fprintf(stderr ,"\n");
+		FPRINTF(stderr ,"\n");
 		print_stats(&expected_stats);
 		return 1;
 	}
@@ -248,9 +248,9 @@ test(void)
 	starpu_data_release(handle);
 	if (compare(&global_stats, &expected_stats) != 0)
 	{
-		fprintf(stderr, "OPENCL failed\n");
+		FPRINTF(stderr, "OPENCL failed\n");
 		print_stats(&global_stats);
-		fprintf(stderr ,"\n");
+		FPRINTF(stderr ,"\n");
 		print_stats(&expected_stats);
 		return 1;
 	}
