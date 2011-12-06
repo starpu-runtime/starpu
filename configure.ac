@@ -18,6 +18,12 @@
 AC_INIT([StarPU],1.0.0, [starpu-devel@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
+
+. "$srcdir/STARPU-VERSION"
+AC_SUBST([LIBSTARPU_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPU_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPU_INTERFACE_AGE])
+
 AC_CANONICAL_SYSTEM
 
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them

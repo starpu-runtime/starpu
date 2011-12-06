@@ -50,7 +50,8 @@ libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
 
 libstarpu_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
 libstarpu_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
-libstarpu_la_LDFLAGS = $(ldflags) -version-number 0:0:0 -no-undefined
+libstarpu_la_LDFLAGS = $(ldflags) -no-undefined									\
+  -version-info $(LIBSTARPU_INTERFACE_CURRENT):$(LIBSTARPU_INTERFACE_REVISION):$(LIBSTARPU_INTERFACE_AGE)
 
 noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\
