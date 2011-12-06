@@ -13,11 +13,14 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
 #include "multiformat_types.h"
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
@@ -120,7 +123,7 @@ create_and_submit_tasks(void)
 	err = starpu_task_submit(task);
 	if (err != 0)
 	{
-		fprintf(stderr, "Err : %s\n", strerror(-err));
+		FPRINTF(stderr, "Err : %s\n", strerror(-err));
 		return;
 	}
 #endif
@@ -137,7 +140,7 @@ create_and_submit_tasks(void)
 	err = starpu_task_submit(task2);
 	if (err != 0)
 	{
-		fprintf(stderr, "Err : %s\n", strerror(-err));
+		FPRINTF(stderr, "Err : %s\n", strerror(-err));
 		return;
 	}
 }
@@ -153,11 +156,11 @@ print_it(void)
 {
 	int i;
 	for (i = 0; i < N_ELEMENTS; i++) {
-		fprintf(stderr, "(%.2f %.2f) ",
+		FPRINTF(stderr, "(%.2f %.2f) ",
 			array_of_structs[i].x,
 			array_of_structs[i].y);
 	}
-	fprintf(stderr, "\n");
+	FPRINTF(stderr, "\n");
 }
 
 static int
