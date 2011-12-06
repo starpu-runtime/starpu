@@ -30,6 +30,9 @@ Only complex numbers are supported at the moment.
 
 The application has to call @code{starpu_init} before calling starpufft functions.
 
+Several FFT tasks can be submitted for a given plan, which permits e.g. to start
+a series of FFT with just one plan.
+
 @subsection Compilation
 
 The flags required to compile or link against the FFT library are accessible
