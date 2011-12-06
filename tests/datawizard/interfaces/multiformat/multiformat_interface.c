@@ -16,6 +16,7 @@
 #include <starpu.h>
 #include "multiformat_types.h"
 #include "../test_interfaces.h"
+#include "../../../common/helper.h"
 
 static void test_multiformat_cpu_func(void *buffers[], void *args);
 #ifdef STARPU_USE_CUDA
@@ -54,7 +55,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 
 	for (i = 0; i < n; i++)
 	{
-			fprintf(stderr, "(%d %d) [%d]", aos[i].x, aos[i].y, factor);
+			FPRINTF(stderr, "(%d %d) [%d]", aos[i].x, aos[i].y, factor);
 		if (aos[i].x != i * factor || aos[i].y != i * factor)
 		{
 			multiformat_config.copy_failed = 1;
@@ -62,7 +63,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 		aos[i].x = -aos[i].x;
 		aos[i].y = -aos[i].y;
 	}
-	fprintf(stderr, "\n");
+	FPRINTF(stderr, "\n");
 }
 
 
@@ -118,6 +119,7 @@ int
 main(void)
 {
 #ifdef STARPU_USE_CPU
+	int ret;
 	data_interface_test_summary *summary;
 	struct starpu_conf conf = {
 		.ncpus   = -1,
@@ -125,7 +127,8 @@ main(void)
 		.nopencl = 1
 	};
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	register_data();
 
@@ -143,6 +146,6 @@ main(void)
 #else
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */
-	return EXIT_SUCCESS;
+	return STARPU_TEST_SKIPPED;
 #endif
 }

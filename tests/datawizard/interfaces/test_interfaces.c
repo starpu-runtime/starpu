@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "test_interfaces.h"
+#include "../../common/helper.h"
 
 /*
  * This is definitely note thrad-safe.
@@ -92,39 +93,39 @@ void data_interface_test_summary_print(FILE *f,
 	if (!f)
 		f = stderr;
 
-	(void) fprintf(f, "%s : %s\n",
-			current_config->name, enum_to_string(s->success));
+	FPRINTF(f, "%s : %s\n",
+		current_config->name, enum_to_string(s->success));
 
-	(void) fprintf(f, "Asynchronous :\n");
+	FPRINTF(f, "Asynchronous :\n");
 #ifdef STARPU_USE_CUDA
-	(void) fprintf(f, "\tCPU    -> CUDA   : %s\n",
-			enum_to_string(s->cpu_to_cuda_async));
-	(void) fprintf(f, "\tCUDA   -> CUDA   : %s\n",
+	FPRINTF(f, "\tCPU    -> CUDA   : %s\n",
+		enum_to_string(s->cpu_to_cuda_async));
+	FPRINTF(f, "\tCUDA   -> CUDA   : %s\n",
 			enum_to_string(s->cuda_to_cuda_async));
-	(void) fprintf(f, "\tCUDA   -> CPU    : %s\n",
+	FPRINTF(f, "\tCUDA   -> CPU    : %s\n",
 			enum_to_string(s->cuda_to_cpu_async));
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
-	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
-			enum_to_string(s->cpu_to_opencl_async));
-	(void) fprintf(f, "\tOpenCl -> CPU    : %s\n",
-			enum_to_string(s->opencl_to_cpu_async));
+	FPRINTF(f, "\tCPU    -> OpenCl : %s\n",
+		enum_to_string(s->cpu_to_opencl_async));
+	FPRINTF(f, "\tOpenCl -> CPU    : %s\n",
+		enum_to_string(s->opencl_to_cpu_async));
 #endif /* !STARPU_USE_OPENCL */
 
-	(void) fprintf(f, "Synchronous :\n");
+	FPRINTF(f, "Synchronous :\n");
 #ifdef STARPU_USE_CUDA
-	(void) fprintf(f, "\tCPU    -> CUDA   ; %s\n",
-			enum_to_string(s->cpu_to_cuda));
-	(void) fprintf(f, "\tCUDA   -> CUDA   : %s\n",
-			enum_to_string(s->cuda_to_cuda));
-	(void) fprintf(f, "\tCUDA   -> CPU    : %s\n",
-			enum_to_string(s->cuda_to_cpu));
+	FPRINTF(f, "\tCPU    -> CUDA   ; %s\n",
+		enum_to_string(s->cpu_to_cuda));
+	FPRINTF(f, "\tCUDA   -> CUDA   : %s\n",
+		enum_to_string(s->cuda_to_cuda));
+	FPRINTF(f, "\tCUDA   -> CPU    : %s\n",
+		enum_to_string(s->cuda_to_cpu));
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
-	(void) fprintf(f, "\tCPU    -> OpenCl : %s\n",
-			enum_to_string(s->cpu_to_opencl));
-	(void) fprintf(f, "\tOpenCl -> CPU    : %s\n",
-			enum_to_string(s->opencl_to_cpu));
+	FPRINTF(f, "\tCPU    -> OpenCl : %s\n",
+		enum_to_string(s->cpu_to_opencl));
+	FPRINTF(f, "\tOpenCl -> CPU    : %s\n",
+		enum_to_string(s->opencl_to_cpu));
 #endif /* !STARPU_USE_OPENCL */
 }
 
@@ -276,7 +277,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 			{
 				if (id >= n_cpus)
 				{
-					fprintf(stderr, "Not enough CPU workers\n");
+					FPRINTF(stderr, "Not enough CPU workers\n");
 					return -ENODEV;
 				}
 				workerid = *(cpu_workers + id);
@@ -290,7 +291,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 			{
 				if (id >= n_cudas)
 				{
-					fprintf(stderr, "Not enough CUDA workers\n");
+					FPRINTF(stderr, "Not enough CUDA workers\n");
 					return -ENODEV;
 				}
 				workerid = cuda_workers[id];
@@ -305,7 +306,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 			{
 				if (id >= n_opencls)
 				{
-					fprintf(stderr, "Not enough OpenCL workers\n");
+					FPRINTF(stderr, "Not enough OpenCL workers\n");
 					return -ENODEV;
 				}
 				workerid = *(opencl_workers + id);
@@ -360,7 +361,7 @@ ram_to_cuda(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 
@@ -379,7 +380,7 @@ cuda_to_cuda(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 #endif
@@ -398,7 +399,7 @@ cuda_to_ram(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 #endif /* !STARPU_USE_CUDA */
@@ -418,7 +419,7 @@ ram_to_opencl()
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 
@@ -436,7 +437,7 @@ opencl_to_ram()
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 #endif /* !STARPU_USE_OPENCL */
@@ -564,7 +565,7 @@ run_tests(struct test_config *conf)
 {
 	if (load_conf(conf) == 1)
 	{
-		fprintf(stderr, "Failed to load conf.\n");
+		FPRINTF(stderr, "Failed to load conf.\n");
 		return NULL;
 	}
 	run_async();

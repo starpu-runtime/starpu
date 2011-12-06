@@ -15,11 +15,12 @@
  */
 #include <starpu.h>
 #include "multiformat_types.h"
+#include "../../../common/helper.h"
 
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)
 {
-	fprintf(stderr, "Entering %s\n", __func__);
+	FPRINTF(stderr, "Entering %s\n", __func__);
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
 	struct point *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
