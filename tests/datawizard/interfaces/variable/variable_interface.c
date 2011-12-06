@@ -26,10 +26,10 @@ static starpu_data_handle_t variable2_handle;
 static void test_variable_cpu_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_CUDA
-static void test_variable_cuda_func(void *buffers[], void *args);
+extern void test_variable_cuda_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_OPENCL
-static void test_variable_opencl_func(void *buffers[], void *args);
+extern void test_variable_opencl_func(void *buffers[], void *args);
 #endif
 
 struct test_config variable_config =
