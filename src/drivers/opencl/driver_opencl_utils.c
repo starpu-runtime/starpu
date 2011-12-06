@@ -467,16 +467,19 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 
 }
 
-int starpu_opencl_set_kernel_args(cl_int *error, int nargs, cl_kernel *kernel, ...)
+int starpu_opencl_set_kernel_args(cl_int *error, cl_kernel *kernel, ...)
 {
 	int i;
 	va_list ap;
 
 	va_start(ap, kernel);
 
-	for (i = 0; i < nargs; i++)
+	for (i = 0; ; i++)
 	{
 		int size = va_arg(ap, int);
+		if (size == 0)
+			break;
+
 		cl_mem *ptr = va_arg(ap, cl_mem *);
 		int err = clSetKernelArg(*kernel, i, size, ptr);
 		if (err != CL_SUCCESS)

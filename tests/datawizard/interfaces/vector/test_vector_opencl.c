@@ -58,11 +58,12 @@ test_vector_opencl_func(void *buffers[], void *args)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	int nargs;
-	nargs = starpu_opencl_set_kernel_args(&err, 4, &kernel,
+	nargs = starpu_opencl_set_kernel_args(&err, &kernel,
 					      sizeof(val), &val,
 					      sizeof(n), &n,
 					      sizeof(fail), &fail,
-					      sizeof(factor), &factor);
+					      sizeof(factor), &factor,
+					      0);
 
 	if (nargs != 4)
 	{
