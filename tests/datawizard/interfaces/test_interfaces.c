@@ -33,7 +33,6 @@ static struct test_config *current_config;
 
 /* TODO :
 - OpenCL to OpenCL support
-- RAM to RAM ?
 */
 
 /*
@@ -513,16 +512,22 @@ run_opencl(int async)
 #endif /* !STARPU_USE_OPENCL */
 
 #ifdef STARPU_USE_CPU
+/* Valid data should be in RAM before calling this function */
 static void
 ram_to_ram(void)
 {
 	int err;
 	struct starpu_task *task;
 	starpu_data_handle_t src, dst;
+	void *src_interface, *dst_interface;
 
 	src = *current_config->handle;
 	dst = *current_config->dummy_handle;
-	starpu_data_cpy(dst, src, 1, NULL, NULL);
+
+	/* We do not care about the nodes */
+	src_interface = starpu_data_get_interface_on_node(src, 0);
+	dst_interface = starpu_data_get_interface_on_node(dst, 0);
+	src->ops->copy_methods->ram_to_ram(src_interface, 0, dst_interface, 0);
 
 	err = create_task(&task, STARPU_CPU_WORKER, -1);
 	if (err != 0)
