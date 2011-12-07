@@ -466,5 +466,42 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 
 	node_kind = _starpu_get_node_kind(node);
 
-	return !!(node_kind != _starpu_get_node_kind(handle->mf_node));
+	/*
+	 * Here, we assume that CUDA devices and OpenCL devices use the 
+	 * same data structure. A conversion is only needed when moving 
+	 * data from a CPU to a GPU, or the other way around.
+	 */
+	switch (node_kind)
+	{
+		case STARPU_CPU_RAM:
+			switch(_starpu_get_node_kind(handle->mf_node))
+			{
+				case STARPU_CPU_RAM:
+					return 0;
+				case STARPU_CUDA_RAM:      /* Fall through */
+				case STARPU_OPENCL_RAM:
+					return 1;
+				case STARPU_SPU_LS: /* Not supported */
+				default:
+					STARPU_ASSERT(0);
+			}
+			break;
+		case STARPU_CUDA_RAM:    /* Fall through */
+		case STARPU_OPENCL_RAM:
+			switch(_starpu_get_node_kind(handle->mf_node))
+			{
+				case STARPU_CPU_RAM:
+					return 1;
+				case STARPU_CUDA_RAM:
+				case STARPU_OPENCL_RAM:
+					return 0;
+				case STARPU_SPU_LS: /* Not supported */
+				default:
+					STARPU_ASSERT(0);
+			}
+			break;
+		case STARPU_SPU_LS:            /* Not supported */
+		default:
+			STARPU_ASSERT(0);
+	}
 }

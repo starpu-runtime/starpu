@@ -32,7 +32,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_types.h \
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl \
-	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl
+	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl \
+	datawizard/interfaces/multiformat/advanced/generic.h
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
@@ -161,6 +162,7 @@ noinst_PROGRAMS =				\
 	datawizard/lazy_allocation		\
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
+	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
 	errorcheck/starpu_init_noworker		\
@@ -307,6 +309,10 @@ nobase_STARPU_OPENCL_DATA_DATA+= \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl
 endif
 
+
+#########################
+# Multiformat interface #
+#########################
 datawizard_interfaces_multiformat_multiformat_interface_SOURCES =           \
 	datawizard/interfaces/test_interfaces.c                             \
 	datawizard/interfaces/multiformat/multiformat_interface.c           \
@@ -326,6 +332,10 @@ nobase_STARPU_OPENCL_DATA_DATA +=                                               
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl                     \
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl
 endif
+
+datawizard_interfaces_multiformat_advanced_multiformat_cuda_opencl_SOURCES=\
+	datawizard/interfaces/multiformat/advanced/generic.c               \
+	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl.c
 
 datawizard_interfaces_variable_variable_interface_SOURCES=   \
 	datawizard/interfaces/test_interfaces.c              \
