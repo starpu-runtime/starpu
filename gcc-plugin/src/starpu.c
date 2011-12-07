@@ -1618,6 +1618,34 @@ build_task_body (const_tree task_decl)
 				  insert_task_fn, args);
 }
 
+/* Raise an error when IMPL doesn't satisfy the constraints of a task
+   implementations, such as not invoking another task.  */
+
+static void
+validate_task_implementation (tree impl)
+{
+  gcc_assert (task_implementation_p (impl));
+
+  const struct cgraph_node *cgraph;
+  const struct cgraph_edge *callee;
+
+  cgraph = cgraph_get_node (impl);
+  for (callee = cgraph->callees;
+       callee != NULL;
+       callee = callee->next_callee)
+    {
+      if (task_p (callee->callee->decl))
+	{
+	  location_t loc;
+
+	  loc = gimple_location (callee->call_stmt);
+	  error_at (loc, "task %qE cannot be invoked from task implementation %qE",
+		    DECL_NAME (callee->callee->decl),
+		    DECL_NAME (impl));
+	}
+    }
+}
+
 static unsigned int
 lower_starpu (void)
 {
@@ -1630,6 +1658,11 @@ lower_starpu (void)
 
   if (task_p (fndecl))
     {
+      /* Make sure the task implementations are valid.  */
+
+      for_each (validate_task_implementation,
+		task_implementation_list (fndecl));
+
       /* Generate a `struct starpu_codelet' structure and a wrapper function for
 	 each implementation of TASK_DECL.  This cannot be done earlier
 	 because we need to have a complete list of task implementations.  */

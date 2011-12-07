@@ -16,6 +16,8 @@
 
 /* Test error handling for the `task' and `task_implementation' attributes.  */
 
+extern void my_external_task (int foo, char *bar) __attribute__ ((task));
+
 static void my_task (int foo, char *bar) __attribute__ ((task));
 static void my_task_cpu (int foo, float *bar)    /* (error "type differs") */
   __attribute__ ((task_implementation ("cpu", my_task)));
@@ -51,6 +53,12 @@ static void my_task_with_a_body (int foo, char *bar)
 
 extern int my_task_not_void (int foo) /* (error "return type") */
   __attribute__ ((task));
+
+void my_task_that_invokes_task (int x, char *y)
+  __attribute__ ((task));
+
+void my_task_that_invokes_task_cpu (int x, char *y)
+  __attribute__ ((task_implementation ("cpu", my_task_that_invokes_task)));
 
 
 static void
@@ -92,3 +100,10 @@ static void
 my_task_with_a_body (int foo, char *bar)  /* (error "must not have a body") */
 {
 }
+
+void
+my_task_that_invokes_task_cpu (int x, char *y)
+{
+  my_external_task (x, y); /* (error "cannot be invoked from task implementation") */
+}
+
