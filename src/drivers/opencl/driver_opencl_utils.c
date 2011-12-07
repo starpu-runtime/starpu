@@ -137,7 +137,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
         char        c;
 
         fh = fopen(filename, "r");
-        if (fh == 0)
+        if (!fh)
                 return NULL;
 
         stat(filename, &statbuf);
