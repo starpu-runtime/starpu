@@ -40,6 +40,9 @@ The StarPU GCC plug-in views @dfn{tasks} as ``extended'' C functions:
 tasks may have several implementations---e.g., one for CPUs, one written
 in OpenCL, one written in CUDA;
 @item
+tasks may have several implementations of the same target---e.g.,
+several CPU implementations;
+@item
 when a task is invoked, it may run in parallel, and StarPU is free to
 choose any of its implementations.
 @end enumerate

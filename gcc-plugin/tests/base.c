@@ -48,11 +48,19 @@ static void my_other_task (int x) __attribute__ ((task));
 
 static void my_other_task_cpu (int)
   __attribute__ ((task_implementation ("cpu", my_other_task)));
+static void my_other_task_cpu_bis (int)
+  __attribute__ ((task_implementation ("cpu", my_other_task)));
 
 static void
 my_other_task_cpu (int x)
 {
   printf ("cpu\n");
+}
+
+static void
+my_other_task_cpu_bis (int x)
+{
+  printf ("second cpu implementation\n");
 }
 
 static void my_other_task_opencl (int)
@@ -104,9 +112,6 @@ main (int argc, char *argv[])
 
   my_scalar_task (42, 77, 99);
 
-  /* FIXME: Currently this one only works on little endian since we take the
-     address of `y_as_long_int' directly.  Instead a new `char' variable
-     should be introduced, and we should take its address.  */
   my_scalar_task (42, y_as_long_int, 99);
 
   struct insert_task_argument expected2[] =

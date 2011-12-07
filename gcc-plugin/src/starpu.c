@@ -1363,8 +1363,12 @@ build_codelet_initializer (tree task_decl)
     field = lookup_field (name);
     init = make_node (TREE_LIST);
     TREE_PURPOSE (init) = field;
-    TREE_VALUE (init) = fold_convert (TREE_TYPE (field), value);
     TREE_CHAIN (init) = NULL_TREE;
+
+    if (TREE_CODE (TREE_TYPE (value)) != ARRAY_TYPE)
+      TREE_VALUE (init) = fold_convert (TREE_TYPE (field), value);
+    else
+      TREE_VALUE (init) = value;
 
     return init;
   }
@@ -1391,11 +1395,12 @@ build_codelet_initializer (tree task_decl)
     return build_int_cstu (integer_type_node, where_int);
   }
 
-  tree implementation_pointer (tree impls, int where)
+  tree implementation_pointers (tree impls, int where)
   {
-    tree impl;
+    size_t len;
+    tree impl, pointers;
 
-    for (impl = impls;
+    for (impl = impls, pointers = NULL_TREE, len = 0;
 	 impl != NULL_TREE;
 	 impl = TREE_CHAIN (impl))
       {
@@ -1407,12 +1412,17 @@ build_codelet_initializer (tree task_decl)
 	    /* Return a pointer to the wrapper of IMPL_DECL.  */
 	    tree addr = build_addr (task_implementation_wrapper (impl_decl),
 				    NULL_TREE);
-	    return addr;
+	    pointers = tree_cons (size_int (len), addr, pointers);
+	    len++;
 	  }
       }
 
-    /* Default to a NULL pointer.  */
-    return build_int_cstu (build_pointer_type (void_type_node), 0);
+    /* Return a (potentially empty) array initializer.  */
+    tree index_type = build_index_type (size_int (list_length (pointers)));
+
+    return build_constructor_from_list (build_array_type (ptr_type_node,
+							  index_type),
+					nreverse (pointers));
   }
 
   tree pointer_arg_count (void)
@@ -1430,18 +1440,28 @@ build_codelet_initializer (tree task_decl)
 
   impls = task_implementation_list (task_decl);
 
+#define multiple_impls(x)						\
+  build_int_cstu (ptr_type_node,					\
+		  (uintptr_t) STARPU_MULTIPLE_ ## x ## _IMPLEMENTATIONS)
+
   inits =
     chain_trees (field_initializer ("where", where_init (impls)),
 		 field_initializer ("nbuffers", pointer_arg_count ()),
-		 field_initializer ("cpu_func",
-				    implementation_pointer (impls, STARPU_CPU)),
-		 field_initializer ("opencl_func",
-		 		    implementation_pointer (impls,
-		 					    STARPU_OPENCL)),
-		 field_initializer ("cuda_func",
-		 		    implementation_pointer (impls,
-		 					    STARPU_CUDA)),
+		 field_initializer ("cpu_funcs",
+				    implementation_pointers (impls,
+							     STARPU_CPU)),
+		 field_initializer ("opencl_funcs",
+		 		    implementation_pointers (impls,
+							     STARPU_OPENCL)),
+		 field_initializer ("cuda_funcs",
+		 		    implementation_pointers (impls,
+							     STARPU_CUDA)),
+		 field_initializer ("cpu_func", multiple_impls (CPU)),
+		 field_initializer ("cuda_func", multiple_impls (CUDA)),
+		 field_initializer ("opencl_func", multiple_impls (OPENCL)),
 		 NULL_TREE);
+
+#undef multiple_impls
 
   return build_constructor_from_unsorted_list (codelet_type (), inits);
 }

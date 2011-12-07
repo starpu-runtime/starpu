@@ -61,9 +61,13 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
   /* TODO: Call `cpu_func' & co. and check whether they do the right
      thing.  */
 
-  assert (cl->cpu_func != NULL);
-  assert (cl->opencl_func != NULL);
-  assert (cl->cuda_func == NULL);
+  assert (cl->cpu_funcs[0] != NULL);
+  assert (cl->opencl_funcs[0] != NULL);
+  assert (cl->cuda_funcs[0] == NULL);
+
+  assert (cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS);
+  assert (cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS);
+  assert (cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS);
 
   va_list args;
 
