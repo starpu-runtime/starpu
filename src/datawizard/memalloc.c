@@ -789,7 +789,6 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 
 		if (allocated_memory == -ENOMEM)
 		{
-			_STARPU_DEBUG("needs to reclaim memory\n");
 			size_t reclaim = 0.25*_starpu_get_global_mem_size(dst_node);
 			if (starpu_memstrategy_data_size_coefficient*handle->data_size > reclaim)
 				reclaim = starpu_memstrategy_data_size_coefficient*handle->data_size;
