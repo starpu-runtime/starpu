@@ -21,6 +21,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/uthash.h>
 #include <common/starpu_spinlock.h>
+#include <core/task.h>
 
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry
