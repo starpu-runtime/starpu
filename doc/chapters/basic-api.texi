@@ -1016,49 +1016,43 @@ argument being the array of data managed by the data management library, and
 the second argument is a pointer to the argument passed from the @code{cl_arg}
 field of the @code{starpu_task} structure.
 The @code{cpu_func} field is ignored if @code{STARPU_CPU} does not appear in
-the @code{where} field, it must be non-null otherwise. When multiple CPU
-implementations are used, this field must be set to
-@code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}.
+the @code{where} field, it must be non-null otherwise.
 
-@item @code{cpu_funcs} (optional)
-Is an array of function pointers to the CPU implementations of the codelet. This
-field is ignored if the @code{cpu_func} field is set to anything else than
-@code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}. Otherwise, it should contain at
-least one function pointer, and at most @code{STARPU_MAXIMPLEMENTATIONS}.
+@item @code{cpu_funcs}
+Is an array of function pointers to the CPU implementations of the codelet.
+It must be terminated by a NULL value.
 
 @item @code{cuda_func} (optional)
 Is a function pointer to the CUDA implementation of the codelet. @emph{This
 must be a host-function written in the CUDA runtime API}. Its prototype must
 be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_func}
 field is ignored if @code{STARPU_CUDA} does not appear in the @code{where}
-field, it must be non-null otherwise. When multiple CUDA implementations are
-used, this field must be set to @code{STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS}.
+field, it must be non-null otherwise.
 
-@item @code{cuda_funcs} (optional)
+@item @code{cuda_funcs}
 Is an array of function pointers to the CUDA implementations of the codelet.
-This field is ignored if the @code{cuda_func} field is set to anything else than
-@code{STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS}. Otherwise, it should contain at
-least one function pointer, and at most @code{STARPU_MAXIMPLEMENTATIONS}.
+It must be terminated by a NULL value.
 
 @item @code{opencl_func} (optional)
 Is a function pointer to the OpenCL implementation of the codelet. Its
 prototype must be:
 @code{void opencl_func(void *buffers[], void *cl_arg);}.
 This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
-@code{where} field, it must be non-null otherwise. When multiple OpenCL
-implementations are used, this field must be set to
-@code{STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS}.
+@code{where} field, it must be non-null otherwise.
 
-@item @code{opencl_funcs} (optional)
+@item @code{opencl_funcs}
 Is an array of function pointers to the OpenCL implementations of the codelet.
-This field is ignored if the @code{opencl_func} field is set to anything else
-than @code{STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS}. Otherwise, it should contain
-at least one function pointer, and at most @code{STARPU_MAXIMPLEMENTATIONS}.
+It must be terminated by a NULL value.
 
 @item @code{gordon_func} (optional)
 This is the index of the Cell SPU implementation within the Gordon library.
 See Gordon documentation for more details on how to register a kernel and
 retrieve its index.
+
+@item @code{gordon_funcs}
+Is an array of index of the Cell SPU implementations of the codelet within the
+Gordon library.
+It must be terminated by a NULL value.
 
 @item @code{nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are

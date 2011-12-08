@@ -83,7 +83,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 struct starpu_codelet cl =
 @{
     .where = STARPU_CPU,
-    .cpu_func = cpu_func,
+    .cpu_funcs = @{ cpu_func, NULL @},
     .nbuffers = 0
 @};
 @end smallexample
@@ -318,7 +318,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 
 struct starpu_codelet cl = @{
     .where = STARPU_CPU,
-    .cpu_func = scal_cpu_func,
+    .cpu_funcs = @{ scal_cpu_func, NULL @},
     .nbuffers = 1
 @};
 @end smallexample
@@ -495,9 +495,9 @@ extern void scal_opencl_func(void *buffers[], void *_args);
 static struct starpu_codelet cl = @{
     .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU,} */
                                      /* @b{on a CUDA device, or on an OpenCL device} */
-    .cuda_func = scal_cuda_func,
-    .cpu_func = scal_cpu_func,
-    .opencl_func = scal_opencl_func,
+    .cuda_funcs = @{ scal_cuda_func, NULL @},
+    .cpu_funcs = @{ scal_cpu_func, NULL @},
+    .opencl_funcs = @{ scal_opencl_func, NULL @},
     .nbuffers = 1
 @}
 

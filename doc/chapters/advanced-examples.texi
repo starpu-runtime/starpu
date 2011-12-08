@@ -50,17 +50,11 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 @end smallexample
 @end cartouche
 
-The @code{cpu_func} field of the @code{struct starpu_codelet} structure has to be set
-to the special value @code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}. Note that
-@code{STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS} and
-@code{STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS} are also available.
-
 @cartouche
 @smallexample
 struct starpu_codelet cl = @{
     .where = STARPU_CPU,
-    .cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-    .cpu_funcs = @{ scal_cpu_func, scal_sse_func @},
+    .cpu_funcs = @{ scal_cpu_func, scal_sse_func, NULL @},
     .nbuffers = 1
 @};
 @end smallexample
@@ -98,8 +92,8 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 struct starpu_codelet cl = @{
     .where = STARPU_CPU|STARPU_GPU,
     .can_execute = can_execute,
-    .cpu_func = cpu_func,
-    .gpu_func = gpu_func
+    .cpu_funcs = @{ cpu_func, NULL @},
+    .gpu_funcs = @{ gpu_func, NULL @}
     .nbuffers = 1
 @};
 @end smallexample
@@ -143,9 +137,8 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 struct starpu_codelet cl = @{
     .where = STARPU_CPU|STARPU_GPU,
     .can_execute = can_execute,
-    .cpu_func = cpu_func,
-    .gpu_func = STARPU_MULTIPLE_GPU_IMPLEMENTATIONS,
-    .gpu_funcs = @{ scal_gpu_13, scal_gpu_20 @},
+    .cpu_funcs = @{ cpu_func, NULL @},
+    .gpu_funcs = @{ scal_gpu_13, scal_gpu_20, NULL @},
     .nbuffers = 1
 @};
 @end smallexample
@@ -306,7 +299,7 @@ static struct starpu_perfmodel mult_perf_model = @{
 
 struct starpu_codelet cl = @{
     .where = STARPU_CPU,
-    .cpu_func = cpu_mult,
+    .cpu_funcs = @{ cpu_mult, NULL @},
     .nbuffers = 3,
     /* for the scheduling policy to be able to use performance models */
     .model = &mult_perf_model
@@ -459,7 +452,7 @@ void func_cpu(void *descr[], void *_args)
 
 struct starpu_codelet mycodelet = @{
         .where = STARPU_CPU,
-        .cpu_func = func_cpu,
+        .cpu_funcs = @{ func_cpu, NULL @},
         .nbuffers = 2
 @};
 @end smallexample
