@@ -91,7 +91,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 	case STARPU_GORDON_WORKER:
 	{
 		starpu_gordon_func_t func = _starpu_task_get_gordon_nth_implementation(cl, nimpl);
-		return func != NULL;
+		return func != 0;
 	}
 	default:
 		STARPU_ASSERT(!"Unknown arch type");
