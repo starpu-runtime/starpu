@@ -220,9 +220,9 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 static void null_func(void *descr[] __attribute__((unused)), void *arg __attribute__((unused))) { }
 static struct starpu_codelet null = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = null_func,
-	.cuda_func = null_func,
-	.opencl_func = null_func,
+	.cpu_funcs = {null_func, NULL},
+	.cuda_funcs = {null_func, NULL},
+	.opencl_funcs = {null_func, NULL},
 	.nbuffers = 2
 };
 

@@ -42,9 +42,9 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
-	.cpu_func = chol_cpu_codelet_update_u11,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u11,
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 #ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_POTRF
@@ -83,9 +83,9 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
-	.cpu_func = chol_cpu_codelet_update_u21,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u21,
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 #ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_STRSM
@@ -128,9 +128,9 @@ static void create_task_21(unsigned k, unsigned j)
 static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
-	.cpu_func = chol_cpu_codelet_update_u22,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u22,
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 #ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_SGEMM

@@ -42,9 +42,9 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
 
 	cl.where = where;
-        cl.cuda_func = func;
-        cl.cpu_func = func;
-        cl.opencl_func = func;
+        cl.cuda_funcs[0] = func;
+        cl.cpu_funcs[0] = func;
+        cl.opencl_funcs[0] = func;
         cl.nbuffers = 1;
         cl.model = NULL;
 

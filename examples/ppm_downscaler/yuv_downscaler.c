@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -84,7 +84,7 @@ static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 
 static struct starpu_codelet ds_codelet = {
 	.where = STARPU_CPU,
-	.cpu_func = ds_kernel_cpu,
+	.cpu_funcs = {ds_kernel_cpu, NULL},
 	.nbuffers = 2, /* input -> output */
 	.model = NULL
 };

@@ -77,9 +77,9 @@ static struct starpu_codelet axpy_cl = {
 #endif
                 STARPU_CPU,
 
-	.cpu_func = axpy_cpu,
+	.cpu_funcs = {axpy_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = axpy_gpu,
+	.cuda_funcs = {axpy_gpu, NULL},
 #endif
 	.nbuffers = 2
 };

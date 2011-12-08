@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -276,9 +276,9 @@ struct starpu_perfmodel band_filter_model = {
 static struct starpu_codelet band_filter_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = band_filter_kernel_gpu,
+	.cuda_funcs = {band_filter_kernel_gpu, NULL},
 #endif
-	.cpu_func = band_filter_kernel_cpu,
+	.cpu_funcs = {band_filter_kernel_cpu, NULL},
 	.model = &band_filter_model,
 	.nbuffers = 1
 };

@@ -135,7 +135,7 @@ void init_cg(struct cg_problem *problem)
 	/* r = b  - A x */
 	struct starpu_task *task1 = create_task(1UL);
 	task1->cl->where = STARPU_CPU;
-	task1->cl->cpu_func = cpu_codelet_func_1;
+	task1->cl->cpu_funcs[0] = cpu_codelet_func_1;
 	task1->cl->nbuffers = 4;
 		task1->buffers[0].handle = problem->ds_matrixA;
 		task1->buffers[0].mode = STARPU_R;
@@ -149,7 +149,7 @@ void init_cg(struct cg_problem *problem)
 	/* d = r */
 	struct starpu_task *task2 = create_task(2UL);
 	task2->cl->where = STARPU_CPU;
-	task2->cl->cpu_func = cpu_codelet_func_2;
+	task2->cl->cpu_funcs[0] = cpu_codelet_func_2;
 	task2->cl->nbuffers = 2;
 		task2->buffers[0].handle = problem->ds_vecd;
 		task2->buffers[0].mode = STARPU_W;
@@ -162,9 +162,9 @@ void init_cg(struct cg_problem *problem)
 	struct starpu_task *task3 = create_task(3UL);
 	task3->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
-	task3->cl->cuda_func = cublas_codelet_func_3;
+	task3->cl->cuda_funcs[0] = cublas_codelet_func_3;
 #endif
-	task3->cl->cpu_func = cpu_codelet_func_3;
+	task3->cl->cpu_funcs[0] = cpu_codelet_func_3;
 	task3->cl_arg = problem;
 	task3->cl->nbuffers = 1;
 		task3->buffers[0].handle = problem->ds_vecr;
@@ -196,7 +196,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* q = A d */
 	struct starpu_task *task4 = create_task(maskiter | 4UL);
 	task4->cl->where = STARPU_CPU;
-	task4->cl->cpu_func = cpu_codelet_func_4;
+	task4->cl->cpu_funcs[0] = cpu_codelet_func_4;
 	task4->cl->nbuffers = 3;
 		task4->buffers[0].handle = problem->ds_matrixA;
 		task4->buffers[0].mode = STARPU_R;
@@ -209,9 +209,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
 	task5->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
-	task5->cl->cuda_func = cublas_codelet_func_5;
+	task5->cl->cuda_funcs[0] = cublas_codelet_func_5;
 #endif
-	task5->cl->cpu_func = cpu_codelet_func_5;
+	task5->cl->cpu_funcs[0] = cpu_codelet_func_5;
 	task5->cl_arg = problem;
 	task5->cl->nbuffers = 2;
 		task5->buffers[0].handle = problem->ds_vecd;
@@ -225,9 +225,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
 	task6->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
-	task6->cl->cuda_func = cublas_codelet_func_6;
+	task6->cl->cuda_funcs[0] = cublas_codelet_func_6;
 #endif
-	task6->cl->cpu_func = cpu_codelet_func_6;
+	task6->cl->cpu_funcs[0] = cpu_codelet_func_6;
 	task6->cl_arg = problem;
 	task6->cl->nbuffers = 2;
 		task6->buffers[0].handle = problem->ds_vecx;
@@ -241,9 +241,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
 	task7->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
-	task7->cl->cuda_func = cublas_codelet_func_7;
+	task7->cl->cuda_funcs[0] = cublas_codelet_func_7;
 #endif
-	task7->cl->cpu_func = cpu_codelet_func_7;
+	task7->cl->cpu_funcs[0] = cpu_codelet_func_7;
 	task7->cl_arg = problem;
 	task7->cl->nbuffers = 2;
 		task7->buffers[0].handle = problem->ds_vecr;
@@ -257,9 +257,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
 	task8->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
-	task8->cl->cuda_func = cublas_codelet_func_8;
+	task8->cl->cuda_funcs[0] = cublas_codelet_func_8;
 #endif
-	task8->cl->cpu_func = cpu_codelet_func_8;
+	task8->cl->cpu_funcs[0] = cpu_codelet_func_8;
 	task8->cl_arg = problem;
 	task8->cl->nbuffers = 1;
 		task8->buffers[0].handle = problem->ds_vecr;
@@ -271,9 +271,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
 	task9->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
-	task9->cl->cuda_func = cublas_codelet_func_9;
+	task9->cl->cuda_funcs[0] = cublas_codelet_func_9;
 #endif
-	task9->cl->cpu_func = cpu_codelet_func_9;
+	task9->cl->cpu_funcs[0] = cpu_codelet_func_9;
 	task9->cl_arg = problem;
 	task9->cl->nbuffers = 2;
 		task9->buffers[0].handle = problem->ds_vecd;

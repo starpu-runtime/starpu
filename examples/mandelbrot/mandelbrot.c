@@ -375,9 +375,9 @@ static struct starpu_codelet spmd_mandelbrot_cl = {
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
-	.cpu_func = compute_block_spmd,
+	.cpu_funcs = {compute_block_spmd, NULL},
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = compute_block_opencl,
+	.opencl_funcs = {compute_block_opencl, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -385,9 +385,9 @@ static struct starpu_codelet spmd_mandelbrot_cl = {
 static struct starpu_codelet mandelbrot_cl = {
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SEQ,
-	.cpu_func = compute_block,
+	.cpu_funcs = {compute_block, NULL},
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = compute_block_opencl,
+	.opencl_funcs = {compute_block_opencl, NULL},
 #endif
 	.nbuffers = 1
 };

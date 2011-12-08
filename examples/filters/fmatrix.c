@@ -58,7 +58,7 @@ int main(int argc, char **argv)
         starpu_data_handle_t handle;
         struct starpu_codelet cl = {
                 .where = STARPU_CPU,
-                .cpu_func = cpu_func,
+                .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1
         };
         starpu_init(NULL);

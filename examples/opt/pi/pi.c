@@ -115,9 +115,9 @@ int main(int argc, char **argv)
 
 	struct starpu_codelet cl = {
 		.where = STARPU_CPU|STARPU_CUDA,
-		.cpu_func = cpu_kernel,
+		.cpu_funcs = {cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
-		.cuda_func = cuda_kernel,
+		.cuda_funcs = {cuda_kernel, NULL},
 #endif
 		.nbuffers = 2,
 		.model = &model

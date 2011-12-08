@@ -189,9 +189,9 @@ static struct starpu_codelet pi_cl = {
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-	.cpu_func = pi_func_cpu,
+	.cpu_funcs = {pi_func_cpu, NULL},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_func = pi_func_cuda,
+	.cuda_funcs = {pi_func_cuda, NULL},
 #endif
 	.nbuffers = 2,
 	.model = NULL
@@ -222,9 +222,9 @@ static struct starpu_codelet init_codelet = {
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-        .cpu_func = init_cpu_func,
+        .cpu_funcs = {init_cpu_func, NULL},
 #ifdef STARPU_HAVE_CURAND
-        .cuda_func = init_cuda_func,
+        .cuda_funcs = {init_cuda_func, NULL},
 #endif
         .nbuffers = 1
 };
@@ -261,9 +261,9 @@ static struct starpu_codelet redux_codelet = {
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-	.cpu_func = redux_cpu_func,
+	.cpu_funcs = {redux_cpu_func, NULL},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_func = redux_cuda_func,
+	.cuda_funcs = {redux_cuda_func, NULL},
 #endif
 	.nbuffers = 2
 };

@@ -35,9 +35,9 @@ static unsigned no_prio = 0;
 static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u11,
+	.cpu_funcs = {dw_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u11,
+	.cuda_funcs = {dw_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &model_11
@@ -46,9 +46,9 @@ static struct starpu_codelet cl11 =
 static struct starpu_codelet cl12 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u12,
+	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u12,
+	.cuda_funcs = {dw_cublas_codelet_update_u12, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &model_12
@@ -57,9 +57,9 @@ static struct starpu_codelet cl12 =
 static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u21,
+	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u21,
+	.cuda_funcs = {dw_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &model_21
@@ -68,9 +68,9 @@ static struct starpu_codelet cl21 =
 static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u22,
+	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u22,
+	.cuda_funcs = {dw_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &model_22

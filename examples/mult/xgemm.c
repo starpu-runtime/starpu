@@ -185,9 +185,9 @@ static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
-	.cpu_func = cpu_mult,
+	.cpu_funcs = {cpu_mult, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cublas_mult,
+	.cuda_funcs = {cublas_mult, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &starpu_gemm_model

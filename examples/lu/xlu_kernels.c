@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,9 +105,9 @@ static struct starpu_perfmodel STARPU_LU(model_22) = {
 
 struct starpu_codelet cl22 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u22),
+	.cpu_funcs = {STARPU_LU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u22),
+	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
 #endif
 	.nbuffers = 3,
 	.model = &STARPU_LU(model_22)
@@ -188,9 +188,9 @@ static struct starpu_perfmodel STARPU_LU(model_12) = {
 
 struct starpu_codelet cl12 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u12),
+	.cpu_funcs = {STARPU_LU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u12),
+	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
 #endif
 	.nbuffers = 2,
 	.model = &STARPU_LU(model_12)
@@ -268,9 +268,9 @@ static struct starpu_perfmodel STARPU_LU(model_21) = {
 
 struct starpu_codelet cl21 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u21),
+	.cpu_funcs = {STARPU_LU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u21),
+	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
 #endif
 	.nbuffers = 2,
 	.model = &STARPU_LU(model_21)
@@ -363,9 +363,9 @@ static struct starpu_perfmodel STARPU_LU(model_11) = {
 
 struct starpu_codelet cl11 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u11),
+	.cpu_funcs = {STARPU_LU(cpu_u11), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u11),
+	.cuda_funcs = {STARPU_LU(cublas_u11), NULL},
 #endif
 	.nbuffers = 1,
 	.model = &STARPU_LU(model_11)
@@ -499,9 +499,9 @@ static struct starpu_perfmodel STARPU_LU(model_11_pivot) = {
 
 struct starpu_codelet cl11_pivot = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u11_pivot),
+	.cpu_funcs = {STARPU_LU(cpu_u11_pivot), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u11_pivot),
+	.cuda_funcs = {STARPU_LU(cublas_u11_pivot), NULL},
 #endif
 	.nbuffers = 1,
 	.model = &STARPU_LU(model_11_pivot)
@@ -584,9 +584,9 @@ static struct starpu_perfmodel STARPU_LU(model_pivot) = {
 
 struct starpu_codelet cl_pivot = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_pivot),
+	.cpu_funcs = {STARPU_LU(cpu_pivot), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_pivot),
+	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
 #endif
 	.nbuffers = 1,
 	.model = &STARPU_LU(model_pivot)

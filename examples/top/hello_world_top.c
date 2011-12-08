@@ -100,7 +100,7 @@ struct starpu_codelet cl =
 	/* this codelet may only be executed on a CPU, and its cpu
  	 * implementation is function "cpu_func" */
 	.where = STARPU_CPU,
-	.cpu_func = cpu_func,
+	.cpu_funcs = {cpu_func, NULL},
 	/* the codelet does not manipulate any data that is managed
 	 * by our DSM */
 	.nbuffers = 0

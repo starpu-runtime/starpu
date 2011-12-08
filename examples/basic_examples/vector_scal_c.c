@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,11 +40,11 @@ static struct starpu_perfmodel vector_scal_model = {
 
 static struct starpu_codelet cl = {
   .where = STARPU_CPU | STARPU_CUDA,
-	/* CPU implementation of the codelet */
-	.cpu_func = scal_cpu_func,
+  /* CPU implementation of the codelet */
+  .cpu_funcs = {scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-	/* CUDA implementation of the codelet */
-	.cuda_func = scal_cuda_func,
+  /* CUDA implementation of the codelet */
+  .cuda_funcs = {scal_cuda_func, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &vector_scal_model

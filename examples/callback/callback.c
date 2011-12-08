@@ -33,7 +33,7 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 struct starpu_codelet cl =
 {
 	.where = STARPU_CPU,
-	.cpu_func = cpu_codelet,
+	.cpu_funcs = {cpu_codelet, NULL},
 	.nbuffers = 1
 };
 

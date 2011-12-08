@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
         struct starpu_codelet cl = {
                 .where = STARPU_CPU,
-                .cpu_func = cpu_func,
+                .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1
         };
 

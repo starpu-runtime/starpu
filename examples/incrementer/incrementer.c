@@ -64,12 +64,12 @@ int main(int argc, char **argv)
 	struct starpu_codelet cl =
 	{
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-		.cpu_func = cpu_codelet,
+		.cpu_funcs = {cpu_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-		.cuda_func = cuda_codelet,
+		.cuda_funcs = {cuda_codelet, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-		.opencl_func = opencl_codelet,
+		.opencl_funcs = {opencl_codelet, NULL},
 #endif
 		.nbuffers = 1
 	};

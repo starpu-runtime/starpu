@@ -57,12 +57,12 @@ int main(int argc, char **argv)
 #endif
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL;
-        cl.cpu_func = cpu_codelet;
+        cl.cpu_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_CUDA
-        cl.cuda_func = cuda_codelet;
+        cl.cuda_funcs[0] = cuda_codelet;
 #endif
 #ifdef STARPU_USE_OPENCL
-        cl.opencl_func = opencl_codelet;
+        cl.opencl_funcs[0] = opencl_codelet;
 #endif
         cl.nbuffers = 1;
         cl.model = NULL;

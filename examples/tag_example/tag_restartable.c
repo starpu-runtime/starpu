@@ -123,8 +123,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	cl.cpu_func = cpu_codelet;
-	cl.cuda_func = cpu_codelet;
+	cl.cpu_funcs[0] = cpu_codelet;
+	cl.cuda_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif

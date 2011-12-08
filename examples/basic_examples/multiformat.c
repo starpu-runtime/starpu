@@ -71,12 +71,12 @@ extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 
 static struct starpu_codelet  cl = {
 	.where = STARPU_CUDA | STARPU_OPENCL,
-	.cpu_func = multiformat_scal_cpu_func,
+	.cpu_funcs = {multiformat_scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = multiformat_scal_cuda_func,
+	.cuda_funcs = {multiformat_scal_cuda_func, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = multiformat_scal_opencl_func,
+	.opencl_funcs = {multiformat_scal_opencl_func, NULL},
 #endif
 	.nbuffers = 1,
 };

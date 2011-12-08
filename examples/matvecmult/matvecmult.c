@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 
 	cl.where = STARPU_OPENCL;
 #ifdef STARPU_USE_OPENCL
-        cl.opencl_func = opencl_codelet;
+        cl.opencl_funcs[0] = opencl_codelet;
 #endif
         cl.nbuffers = 3;
         cl.model = NULL;

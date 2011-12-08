@@ -75,9 +75,9 @@ static struct starpu_perfmodel accumulate_variable_model = {
 
 struct starpu_codelet accumulate_variable_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = accumulate_variable_cpu,
+	.cpu_funcs = {accumulate_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = accumulate_variable_cuda,
+	.cuda_funcs = {accumulate_variable_cuda, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &accumulate_variable_model
@@ -111,9 +111,9 @@ static struct starpu_perfmodel accumulate_vector_model = {
 
 struct starpu_codelet accumulate_vector_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = accumulate_vector_cpu,
+	.cpu_funcs = {accumulate_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = accumulate_vector_cuda,
+	.cuda_funcs = {accumulate_vector_cuda, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &accumulate_vector_model
@@ -149,9 +149,9 @@ static struct starpu_perfmodel bzero_variable_model = {
 
 struct starpu_codelet bzero_variable_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = bzero_variable_cpu,
+	.cpu_funcs = {bzero_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = bzero_variable_cuda,
+	.cuda_funcs = {bzero_variable_cuda, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &bzero_variable_model
@@ -184,9 +184,9 @@ static struct starpu_perfmodel bzero_vector_model = {
 
 struct starpu_codelet bzero_vector_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = bzero_vector_cpu,
+	.cpu_funcs = {bzero_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = bzero_vector_cuda,
+	.cuda_funcs = {bzero_vector_cuda, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &bzero_vector_model
@@ -237,9 +237,9 @@ static struct starpu_perfmodel dot_kernel_model = {
 
 static struct starpu_codelet dot_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dot_kernel_cpu,
+	.cpu_funcs = {dot_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dot_kernel_cuda,
+	.cuda_funcs = {dot_kernel_cuda, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &dot_kernel_model
@@ -304,9 +304,9 @@ static struct starpu_perfmodel scal_kernel_model = {
 
 static struct starpu_codelet scal_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = scal_kernel_cpu,
+	.cpu_funcs = {scal_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = scal_kernel_cuda,
+	.cuda_funcs = {scal_kernel_cuda, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &scal_kernel_model
@@ -377,9 +377,9 @@ static struct starpu_codelet gemv_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
-	.cpu_func = gemv_kernel_cpu,
+	.cpu_funcs = {gemv_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = gemv_kernel_cuda,
+	.cuda_funcs = {gemv_kernel_cuda, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &gemv_kernel_model
@@ -467,9 +467,9 @@ static struct starpu_perfmodel scal_axpy_kernel_model = {
 
 static struct starpu_codelet scal_axpy_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = scal_axpy_kernel_cpu,
+	.cpu_funcs = {scal_axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = scal_axpy_kernel_cuda,
+	.cuda_funcs = {scal_axpy_kernel_cuda, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &scal_axpy_kernel_model
@@ -535,9 +535,9 @@ static struct starpu_perfmodel axpy_kernel_model = {
 
 static struct starpu_codelet axpy_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = axpy_kernel_cpu,
+	.cpu_funcs = {axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = axpy_kernel_cuda,
+	.cuda_funcs = {axpy_kernel_cuda, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &axpy_kernel_model
@@ -595,9 +595,9 @@ static struct starpu_perfmodel copy_handle_model = {
 
 static struct starpu_codelet copy_handle_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = copy_handle_cpu,
+	.cpu_funcs = {copy_handle_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = copy_handle_cuda,
+	.cuda_funcs = {copy_handle_cuda, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &copy_handle_model

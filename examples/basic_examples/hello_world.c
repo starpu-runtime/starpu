@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	/* this codelet may only be executed on a CPU, and its cpu
  	 * implementation is function "cpu_func" */
 	cl.where = STARPU_CPU;
-	cl.cpu_func = cpu_func;
+	cl.cpu_funcs[0] = cpu_func;
 	/* the codelet does not manipulate any data that is managed
 	 * by our DSM */
 	cl.nbuffers = 0;

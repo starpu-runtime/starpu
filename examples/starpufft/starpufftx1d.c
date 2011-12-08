@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -326,9 +326,9 @@ static struct starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 #endif
 		STARPU_CPU,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPUFFT(twist1_1d_kernel_gpu),
+	.cuda_funcs = {STARPUFFT(twist1_1d_kernel_gpu), NULL},
 #endif
-	.cpu_func = STARPUFFT(twist1_1d_kernel_cpu),
+	.cpu_funcs = {STARPUFFT(twist1_1d_kernel_cpu), NULL},
 	.model = &STARPUFFT(twist1_1d_model),
 	.nbuffers = 2
 };
@@ -343,10 +343,10 @@ static struct starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 #endif
 		0,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPUFFT(fft1_1d_kernel_gpu),
+	.cuda_funcs = {STARPUFFT(fft1_1d_kernel_gpu), NULL},
 #endif
 #ifdef STARPU_HAVE_FFTW
-	.cpu_func = STARPUFFT(fft1_1d_kernel_cpu),
+	.cpu_funcs = {STARPUFFT(fft1_1d_kernel_cpu), NULL},
 #endif
 	.model = &STARPUFFT(fft1_1d_model),
 	.nbuffers = 3
@@ -354,7 +354,7 @@ static struct starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 
 static struct starpu_codelet STARPUFFT(twist2_1d_codelet) = {
 	.where = STARPU_CPU,
-	.cpu_func = STARPUFFT(twist2_1d_kernel_cpu),
+	.cpu_funcs = {STARPUFFT(twist2_1d_kernel_cpu), NULL},
 	.model = &STARPUFFT(twist2_1d_model),
 	.nbuffers = 1
 };
@@ -369,10 +369,10 @@ static struct starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 #endif
 		0,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPUFFT(fft2_1d_kernel_gpu),
+	.cuda_funcs = {STARPUFFT(fft2_1d_kernel_gpu), NULL},
 #endif
 #ifdef STARPU_HAVE_FFTW
-	.cpu_func = STARPUFFT(fft2_1d_kernel_cpu),
+	.cpu_funcs = {STARPUFFT(fft2_1d_kernel_cpu), NULL},
 #endif
 	.model = &STARPUFFT(fft2_1d_model),
 	.nbuffers = 2
@@ -380,7 +380,7 @@ static struct starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 
 static struct starpu_codelet STARPUFFT(twist3_1d_codelet) = {
 	.where = STARPU_CPU,
-	.cpu_func = STARPUFFT(twist3_1d_kernel_cpu),
+	.cpu_funcs = {STARPUFFT(twist3_1d_kernel_cpu), NULL},
 	.model = &STARPUFFT(twist3_1d_model),
 	.nbuffers = 1
 };
@@ -459,10 +459,10 @@ static struct starpu_codelet STARPUFFT(fft_1d_codelet) = {
 #endif
 		0,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPUFFT(fft_1d_kernel_gpu),
+	.cuda_funcs = {STARPUFFT(fft_1d_kernel_gpu), NULL},
 #endif
 #ifdef STARPU_HAVE_FFTW
-	.cpu_func = STARPUFFT(fft_1d_kernel_cpu),
+	.cpu_funcs = {STARPUFFT(fft_1d_kernel_cpu), NULL},
 #endif
 	.model = &STARPUFFT(fft_1d_model),
 	.nbuffers = 2

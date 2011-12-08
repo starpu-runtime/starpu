@@ -39,9 +39,9 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u11,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u11,
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
@@ -52,7 +52,7 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11_AUX(k, reclevel));
-	
+
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
@@ -73,9 +73,9 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u21,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u21,
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
@@ -85,12 +85,12 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 {
 	struct starpu_task *task = create_task(TAG21_AUX(k, j, reclevel));
 
-	task->cl = &cl21;	
+	task->cl = &cl21;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j);
 	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
@@ -111,9 +111,9 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u22,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u22,
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22
@@ -128,11 +128,11 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, i); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, i);
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j);
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
+	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j);
 	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
@@ -153,7 +153,7 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  *	and construct the DAG
  */
 
@@ -195,7 +195,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		else {
 			starpu_task_submit(task);
 		}
-		
+
 		for (j = k+1; j<nblocks; j++)
 		{
 			create_task_21(dataA, k, j, reclevel);
@@ -260,7 +260,7 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	if (pinned)
 	{
 		starpu_malloc((void **)A, dim*dim*sizeof(float));
-	} 
+	}
 	else {
 		*A = malloc(dim*dim*sizeof(float));
 	}
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
-	SSYRK("L", "N", size, size, 1.0f, 
+	SSYRK("L", "N", size, size, 1.0f,
 				mat, size, 0.0f, test_mat, size);
 
 	FPRINTF(stderr, "comparing results ...\n");

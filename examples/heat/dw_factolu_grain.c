@@ -44,9 +44,9 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static struct starpu_codelet cl11 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u11,
+	.cpu_funcs = {dw_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u11,
+	.cuda_funcs = {dw_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &model_11
@@ -77,9 +77,9 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 
 static struct starpu_codelet cl12 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u12,
+	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u12,
+	.cuda_funcs = {dw_cublas_codelet_update_u12, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &model_12
@@ -116,9 +116,9 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 
 static struct starpu_codelet cl21 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u21,
+	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u21,
+	.cuda_funcs = {dw_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &model_21
@@ -153,9 +153,9 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 
 static struct starpu_codelet cl22 = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u22,
+	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u22,
+	.cuda_funcs = {dw_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &model_22
