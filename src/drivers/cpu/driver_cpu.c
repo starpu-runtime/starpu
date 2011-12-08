@@ -37,7 +37,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 
 	if (rank == 0)
 	{
-		ret = _starpu_fetch_task_input(task, 0);
+		ret = _starpu_fetch_task_input(j, 0);
 		if (ret != 0)
 		{
 			/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -69,7 +69,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
 				perf_arch, &codelet_start, &codelet_end);
-		_starpu_push_task_output(task, 0);
+		_starpu_push_task_output(j, 0);
 	}
 
 	return 0;

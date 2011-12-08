@@ -205,6 +205,12 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	unsigned nbuffers = j->task->cl->nbuffers;
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
+		if (buf && j->ordered_buffers[buf-1].handle == j->ordered_buffers[buf].handle)
+			/* We have already requested this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles.  */
+			continue;
+
                 if (attempt_to_submit_data_request_from_job(j, buf))
 		{
                         j->task->status = STARPU_TASK_BLOCKED_ON_DATA;

@@ -37,7 +37,7 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 	handle->last_submitted_readers = link;
 
 	/* This task depends on the previous writer if any */
-	if (handle->last_submitted_writer)
+	if (handle->last_submitted_writer && handle->last_submitted_writer != post_sync_task)
 	{
 		_STARPU_DEP_DEBUG("RAW %p\n", handle);
 		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
@@ -74,7 +74,8 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 	l = handle->last_submitted_readers;
 	while (l)
 	{
-		nreaders++;
+		if (l->task != post_sync_task)
+			nreaders++;
 		l = l->next;
 	}
 	_STARPU_DEP_DEBUG("%d readers\n", nreaders);
@@ -86,8 +87,10 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 	while (l)
 	{
 		STARPU_ASSERT(l->task);
-		task_array[i++] = l->task;
-		_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
+		if (l->task != post_sync_task) {
+			task_array[i++] = l->task;
+			_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
+		}
 
 		struct _starpu_task_wrapper_list *prev = l;
 		l = l->next;
@@ -125,7 +128,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 {
 	/* (Read) Write */
 	/* This task depends on the previous writer */
-	if (handle->last_submitted_writer)
+	if (handle->last_submitted_writer && handle->last_submitted_writer != post_sync_task)
 	{
 		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 		starpu_task_declare_deps_array(pre_sync_task, 1, task_array);

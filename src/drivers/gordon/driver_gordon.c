@@ -178,7 +178,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 
 static void handle_terminated_job(struct _starpu_job *j)
 {
-	_starpu_push_task_output(j->task, 0);
+	_starpu_push_task_output(j, 0);
 	_starpu_handle_job_termination(j, 0);
 	starpu_wake_all_blocked_workers();
 }
@@ -216,7 +216,7 @@ static void gordon_callback_list_func(void *arg)
 			_starpu_update_perfmodel_history(j, j->task->cl->model, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
 
-		_starpu_push_task_output(j->task, 0);
+		_starpu_push_task_output(j, 0);
 		_starpu_handle_job_termination(j, 0);
 		//starpu_wake_all_blocked_workers();
 
@@ -254,7 +254,7 @@ static void gordon_callback_func(void *arg)
 int inject_task(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	struct starpu_task *task = j->task;
-	int ret = _starpu_fetch_task_input(task, 0);
+	int ret = _starpu_fetch_task_input(j, 0);
 
 	if (ret != 0)
 	{
@@ -315,7 +315,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 		int ret;
 
 		struct starpu_task *task = j->task;
-		ret = _starpu_fetch_task_input(task, 0);
+		ret = _starpu_fetch_task_input(j, 0);
 		STARPU_ASSERT(!ret);
 
 		gordon_jobs[index].index = _starpu_task_get_gordon_nth_implementation(task->cl, j->nimpl);

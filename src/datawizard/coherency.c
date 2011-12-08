@@ -596,15 +596,16 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 	return 0;
 }
 
-int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
+int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 {
 	_STARPU_TRACE_START_FETCH_INPUT(NULL);
 
 	int profiling = starpu_profiling_status_get();
+	struct starpu_task *task = j->task;
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
-	struct starpu_buffer_descr *descrs = task->buffers;
+	struct starpu_buffer_descr *descrs = j->ordered_buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned local_memory_node = _starpu_get_local_memory_node();
@@ -619,6 +620,12 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		enum starpu_access_mode mode = descrs[index].mode;
 
 		struct _starpu_data_replicate *local_replicate;
+
+		if (index && descrs[index-1].handle == descrs[index].handle)
+			/* We have already released this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles */
+			continue;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		{
@@ -656,19 +663,20 @@ enomem:
 	/* XXX broken ... */
 	_STARPU_DISP("something went wrong with buffer %u\n", index);
 	//push_codelet_output(task, index, mask);
-	_starpu_push_task_output(task, mask);
+	_starpu_push_task_output(j, mask);
 	return -1;
 }
 
-void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
+void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 {
 	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
 	int profiling = starpu_profiling_status_get();
+	struct starpu_task *task = j->task;
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
-        struct starpu_buffer_descr *descrs = task->buffers;
+        struct starpu_buffer_descr *descrs = j->ordered_buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
@@ -678,6 +686,12 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 		enum starpu_access_mode mode = descrs[index].mode;
 
 		struct _starpu_data_replicate *replicate;
+
+		if (index && descrs[index-1].handle == descrs[index].handle)
+			/* We have already released this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles */
+			continue;
 
 		if (mode & STARPU_RW)
 		{

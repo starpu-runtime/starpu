@@ -56,8 +56,6 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	SUBMIT(R,R);
-	/* Not possible yet */
-#if 0
 	SUBMIT(R,W);
 	SUBMIT(R,RW);
 	SUBMIT(W,R);
@@ -66,7 +64,6 @@ int main(int argc, char **argv)
 	SUBMIT(RW,R);
 	SUBMIT(RW,W);
 	SUBMIT(RW,RW);
-#endif
 
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");

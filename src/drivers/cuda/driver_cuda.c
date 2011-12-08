@@ -192,7 +192,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	ret = _starpu_fetch_task_input(task, mask);
+	ret = _starpu_fetch_task_input(j, mask);
 	if (ret != 0)
 	{
 		/* there was not enough memory, so the input of
@@ -225,7 +225,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 
 	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end);
 
-	_starpu_push_task_output(task, mask);
+	_starpu_push_task_output(j, mask);
 
 	return 0;
 }

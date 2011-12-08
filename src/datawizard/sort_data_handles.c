@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -64,12 +64,31 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 
 /* A comparision function between two handles makes it possible to use qsort to
  * sort a list of handles */
-static int _starpu_compar_handles(struct _starpu_data_state *dataA,
-				  struct _starpu_data_state *dataB)
+static int _starpu_compar_handles(const struct starpu_buffer_descr *descrA,
+				  const struct starpu_buffer_descr *descrB)
 {
+	struct _starpu_data_state *dataA = descrA->handle;
+	struct _starpu_data_state *dataB = descrB->handle;
+
 	/* Perhaps we have the same piece of data */
-	if (dataA == dataB)
-		return 0;
+	if (dataA == dataB) {
+		/* Process write requests first, this is needed for proper
+		 * locking, see _submit_job_enforce_data_deps,
+		 * _starpu_fetch_task_input, and _starpu_push_task_output  */
+		if (descrA->mode & STARPU_W) {
+			if (descrB->mode & STARPU_W)
+				/* Both A and B write, take the reader first */
+				if (descrA->mode & STARPU_R)
+					return -1;
+				else
+					return 1;
+			else
+				/* Only A writes, take it first */
+				return -1;
+		} else
+			/* A doesn't write, take B before */
+			return 1;
+	}
 
 	/* In case we have data/subdata from different trees */
 	if (dataA->root_handle != dataB->root_handle)
@@ -91,7 +110,7 @@ static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)
 	const struct starpu_buffer_descr *descrA = (const struct starpu_buffer_descr *) _descrA;
 	const struct starpu_buffer_descr *descrB = (const struct starpu_buffer_descr *) _descrB;
 
-	return _starpu_compar_handles(descrA->handle, descrB->handle);
+	return _starpu_compar_handles(descrA, descrB);
 }
 
 /* The descr array will be overwritten, so this must be a copy ! */

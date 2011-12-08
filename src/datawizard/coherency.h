@@ -242,10 +242,10 @@ size_t _starpu_data_get_size(starpu_data_handle_t handle);
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 
-void _starpu_push_task_output(struct starpu_task *task, uint32_t mask);
+void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask);
 
 __attribute__((warn_unused_result))
-int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
+int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, uint32_t node);
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node);
