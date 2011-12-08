@@ -61,7 +61,7 @@ test(void)
 	static struct starpu_codelet cl_opencl =
 	{
 		.where       = STARPU_OPENCL,
-		.opencl_func = opencl_func,
+		.opencl_funcs = {opencl_func, NULL},
 		.nbuffers    = 1
 	};
 

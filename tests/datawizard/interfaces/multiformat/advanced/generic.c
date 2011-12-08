@@ -43,7 +43,7 @@ struct starpu_codelet cpu_to_cuda_cl = {
 
 struct starpu_codelet cuda_to_cpu_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = cuda_to_cpu_func,
+	.cpu_funcs = {cuda_to_cpu_func, NULL},
 	.nbuffers = 1
 };
 #endif /* !STARPU_USE_CUDA */
@@ -66,13 +66,13 @@ void opencl_to_cpu_func(void *buffers[], void *args)
 
 struct starpu_codelet cpu_to_opencl_cl = {
 	.where = STARPU_OPENCL,
-	.opencl_func = cpu_to_opencl_func,
+	.opencl_funcs = {cpu_to_opencl_func, NULL},
 	.nbuffers = 1
 };
 
 struct starpu_codelet opencl_to_cpu_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = opencl_to_cpu_func,
+	.cpu_funcs = {opencl_to_cpu_func, NULL},
 	.nbuffers = 1
 };
 #endif /* !STARPU_USE_OPENCL */

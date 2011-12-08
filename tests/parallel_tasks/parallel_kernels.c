@@ -44,9 +44,9 @@ static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
-	.cpu_func = codelet_null,
-	.cuda_func = codelet_null,
-        .opencl_func = codelet_null,
+	.cpu_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null, NULL},
+        .opencl_funcs = {codelet_null, NULL},
 	.model = &model,
 	.nbuffers = 1
 };

@@ -36,8 +36,8 @@ static void f(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_f = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = f,
-	.cuda_func = f,
+	.cpu_funcs = {f, NULL},
+	.cuda_funcs = {f, NULL},
 	.nbuffers = 2
 };
 
@@ -49,8 +49,8 @@ static void g(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_g = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = g,
-	.cuda_func = g,
+	.cpu_funcs = {g, NULL},
+	.cuda_funcs = {g, NULL},
 	.nbuffers = 2
 };
 
@@ -62,8 +62,8 @@ static void h(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_h = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = h,
-	.cuda_func = h,
+	.cpu_funcs = {h, NULL},
+	.cuda_funcs = {h, NULL},
 	.nbuffers = 2
 };
 

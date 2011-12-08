@@ -51,9 +51,9 @@ static struct starpu_codelet memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = memset_cuda,
+	.cuda_funcs = {memset_cuda, NULL},
 #endif
-	.cpu_func = memset_cpu,
+	.cpu_funcs = {memset_cpu, NULL},
 	.model = &model,
 	.nbuffers = 1
 };
@@ -62,9 +62,9 @@ static struct starpu_codelet nl_memset_cl =
 {
 	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = memset_cuda,
+	.cuda_funcs = {memset_cuda, NULL},
 #endif
-	.cpu_func = memset_cpu,
+	.cpu_funcs = {memset_cpu, NULL},
 	.model = &nl_model,
 	.nbuffers = 1
 };

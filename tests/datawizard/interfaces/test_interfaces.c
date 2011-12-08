@@ -302,7 +302,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 				workerid = *(cpu_workers + id);
 			}
 			cl.where = STARPU_CPU;
-			cl.cpu_func = current_config->cpu_func;
+			cl.cpu_funcs[0] = current_config->cpu_func;
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_WORKER:
@@ -316,7 +316,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 				workerid = cuda_workers[id];
 			}
 			cl.where = STARPU_CUDA;
-			cl.cuda_func = current_config->cuda_func;
+			cl.cuda_funcs[0] = current_config->cuda_func;
 			break;
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
@@ -331,7 +331,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 				workerid = *(opencl_workers + id);
 			}
 			cl.where = STARPU_OPENCL;
-			cl.opencl_func = current_config->opencl_func;
+			cl.opencl_funcs[0] = current_config->opencl_func;
 			break;
 #endif /* ! STARPU_USE_OPENCL */
 		case STARPU_GORDON_WORKER: /* Not supported */

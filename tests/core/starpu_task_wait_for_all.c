@@ -28,12 +28,12 @@ static void dummy_func(void *descr[], void *arg)
 {
 }
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
-	.cpu_func = dummy_func,
-	.cuda_func = dummy_func,
-	.opencl_func = dummy_func,
+	.cpu_funcs = {dummy_func, NULL},
+	.cuda_funcs = {dummy_func, NULL},
+	.opencl_funcs = {dummy_func, NULL},
 #ifdef STARPU_USE_GORDON
 	.gordon_func = 0, /* this will be defined later */
 #endif
@@ -44,7 +44,7 @@ static struct starpu_codelet dummy_codelet =
 static void init_gordon_kernel(void)
 {
 #ifdef STARPU_USE_GORDON
-	unsigned elf_id = 
+	unsigned elf_id =
 		gordon_register_elf_plugin("./microbenchs/null_kernel_gordon.spuelf");
 	gordon_load_plugin_on_all_spu(elf_id);
 

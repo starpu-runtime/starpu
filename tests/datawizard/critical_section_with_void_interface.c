@@ -34,9 +34,9 @@ static void critical_section(void *descr[], __attribute__ ((unused)) void *_args
 
 static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = critical_section,
-	.cuda_func = critical_section,
-	.opencl_func = critical_section,
+	.cpu_funcs = {critical_section, NULL},
+	.cuda_funcs = {critical_section, NULL},
+	.opencl_funcs = {critical_section, NULL},
 	.nbuffers = 1
 };
 

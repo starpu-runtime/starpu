@@ -53,9 +53,9 @@ static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_f = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = cpu_f,
+	.cpu_funcs = {cpu_f, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_f,
+	.cuda_funcs = {cuda_f, NULL},
 #endif
 	.nbuffers = 2
 };

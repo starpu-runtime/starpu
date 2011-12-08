@@ -90,8 +90,8 @@ static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
 
 static struct starpu_codelet reduction_codelet = {
 	.where = STARPU_CPU,
-	.cpu_func = cpu_redux_func,
-	.cuda_func = NULL,
+	.cpu_funcs = {cpu_redux_func, NULL},
+	.cuda_funcs = {NULL, NULL},
 	.nbuffers = 2,
 	.model = NULL
 };
@@ -137,12 +137,12 @@ static void opencl_func_incr(void *descr[], void *cl_arg __attribute__((unused))
 
 static struct starpu_codelet use_data_on_worker_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = cpu_func_incr,
+	.cpu_funcs = {cpu_func_incr, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_func_incr,
+	.cuda_funcs = {cuda_func_incr, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = opencl_func_incr,
+	.opencl_funcs = {opencl_func_incr, NULL},
 #endif
 	.nbuffers = 1,
 	.model = NULL

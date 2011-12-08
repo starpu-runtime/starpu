@@ -64,13 +64,13 @@ static void cuda_to_cpu_func(void *buffers[], void *args)
 
 struct starpu_codelet cpu_to_cuda_cl = {
 	.where = STARPU_CUDA,
-	.cuda_func = cpu_to_cuda_func,
+	.cuda_funcs = {cpu_to_cuda_func, NULL},
 	.nbuffers = 1
 };
 
 struct starpu_codelet cuda_to_cpu_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = cuda_to_cpu_func,
+	.cpu_funcs = {cuda_to_cpu_func, NULL},
 	.nbuffers = 1
 };
 #endif /* !STARPU_USE_CUDA */
@@ -90,13 +90,13 @@ static void opencl_to_cpu_func(void *buffers[], void *args)
 
 struct starpu_codelet cpu_to_opencl_cl = {
 	.where = STARPU_OPENCL,
-	.opencl_func = cpu_to_opencl_func,
+	.opencl_funcs = {cpu_to_opencl_func, NULL},
 	.nbuffers = 1
 };
 
 struct starpu_codelet opencl_to_cpu_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = opencl_to_cpu_func,
+	.cpu_funcs = {opencl_to_cpu_func, NULL},
 	.nbuffers = 1
 };
 #endif /* !STARPU_USE_OPENCL */
@@ -144,10 +144,10 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** Starting Task 1\n");
 	static struct starpu_codelet cl = {
 #ifdef STARPU_USE_CUDA
-		.cuda_func   = cuda_func,
+		.cuda_funcs  = {cuda_func, NULL},
 #endif
 #if STARPU_USE_OPENCL
-		.opencl_func = opencl_func,
+		.opencl_funcs = {opencl_func, NULL},
 #endif
 		.nbuffers    = 1
 	};
@@ -163,7 +163,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** Starting Task 2\n");
 	static struct starpu_codelet cl2 = {
 		.where = STARPU_CPU,
-		.cpu_func = cpu_func,
+		.cpu_funcs = {cpu_func, NULL},
 		.nbuffers = 1
 	};
 
@@ -177,12 +177,12 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 
 	FPRINTF(stderr, "***** Starting Task 3\n");
 	static struct starpu_codelet cl3 = {
-		.cpu_func    = cpu_func,
+		.cpu_funcs   = {cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-		.cuda_func   = cuda_func,
+		.cuda_funcs   = {cuda_func, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-		.opencl_func = opencl_func,
+		.opencl_funcs = {opencl_func, NULL},
 #endif
 		.nbuffers    = 2
 	};

@@ -52,9 +52,9 @@ static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_ar
 
 static struct starpu_codelet memset_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = cpu_memset_codelet,
+	.cpu_funcs = {cpu_memset_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_memset_codelet,
+	.cuda_funcs = {cuda_memset_codelet, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -81,7 +81,7 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 
 static struct starpu_codelet check_content_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = cpu_check_content_codelet,
+	.cpu_funcs = {cpu_check_content_codelet, NULL},
 	.nbuffers = 1
 };
 

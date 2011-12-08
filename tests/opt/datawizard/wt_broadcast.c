@@ -73,12 +73,12 @@ static void increment_cpu_kernel(void *descr[], void *arg)
 static struct starpu_codelet increment_cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = increment_cuda_kernel,
+	.cuda_funcs = {increment_cuda_kernel, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = increment_opencl_kernel,
+	.opencl_funcs = {increment_opencl_kernel, NULL},
 #endif
-	.cpu_func = increment_cpu_kernel,
+	.cpu_funcs = {increment_cpu_kernel, NULL},
 	.nbuffers = 1
 };
 

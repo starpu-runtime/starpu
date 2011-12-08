@@ -40,7 +40,7 @@ extern void cpu_to_cuda_cuda_func(void *buffers[], void *args); struct starpu_co
 
 struct starpu_codelet cuda_to_cpu_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = cuda_to_cpu,
+	.cpu_funcs = {cuda_to_cpu, NULL},
 	.nbuffers = 1
 };
 #endif
@@ -62,13 +62,13 @@ void opencl_to_cpu(void *buffers[], void *arg)
 extern void cpu_to_opencl_opencl_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_opencl_cl = {
 	.where = STARPU_OPENCL,
-	.opencl_func = cpu_to_opencl_opencl_func,
+	.opencl_funcs = {cpu_to_opencl_opencl_func, NULL},
 	.nbuffers = 1
 };
 
 struct starpu_codelet opencl_to_cpu_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = opencl_to_cpu,
+	.cpu_funcs = {opencl_to_cpu, NULL},
 	.nbuffers = 1
 };
 #endif

@@ -27,9 +27,9 @@ static void dummy_kernel(void *descr[], void *arg)
 
 static struct starpu_codelet rw_cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cuda_func = dummy_kernel,
-	.cpu_func = dummy_kernel,
-	.opencl_func = dummy_kernel,
+	.cuda_funcs = {dummy_kernel, NULL},
+	.cpu_funcs = {dummy_kernel, NULL},
+	.opencl_funcs = {dummy_kernel, NULL},
 	.nbuffers = 1
 };
 

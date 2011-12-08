@@ -54,9 +54,9 @@ static void cuda_task(void **buffers, void *args)
 
 static struct starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA,
-	.cpu_func = cpu_task,
+	.cpu_funcs = {cpu_task, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_task,
+	.cuda_funcs = {cuda_task, NULL},
 #endif
 	.nbuffers = 1
 };

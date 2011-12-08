@@ -70,19 +70,19 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = cpu_codelet_null,
+	.cpu_funcs = {cpu_codelet_null, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_codelet_null,
+	.cuda_funcs = {cuda_codelet_null, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = opencl_codelet_null,
+	.opencl_funcs = {opencl_codelet_null, NULL},
 #endif
 	.nbuffers = 1
 };
 
 static struct starpu_codelet display_cl = {
 	.where = STARPU_CPU,
-	.cpu_func = display_var,
+	.cpu_funcs = {display_var, NULL},
 	.nbuffers = 1
 };
 

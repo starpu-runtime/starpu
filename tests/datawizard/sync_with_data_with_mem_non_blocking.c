@@ -37,12 +37,12 @@ static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = dummy_codelet,
+	.cpu_funcs = {dummy_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dummy_codelet,
+	.cuda_funcs = {dummy_codelet, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = dummy_codelet,
+	.opencl_funcs = {dummy_codelet, NULL},
 #endif
 	.nbuffers = 1
 };

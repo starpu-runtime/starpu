@@ -31,7 +31,7 @@ void which_index_cpu(void *descr[], void *_args)
 
 struct starpu_codelet which_index = {
 	.where = STARPU_CPU,
-	.cpu_func = which_index_cpu,
+	.cpu_funcs = {which_index_cpu, NULL},
         .nbuffers = 1
 };
 
@@ -46,7 +46,7 @@ void work_cpu(void *descr[], void *_args)
 
 struct starpu_codelet work = {
 	.where = STARPU_CPU,
-	.cpu_func = work_cpu,
+	.cpu_funcs = {work_cpu, NULL},
         .nbuffers = 1
 };
 

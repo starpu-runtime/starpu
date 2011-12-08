@@ -26,7 +26,7 @@ static void dummy_func(void *descr[], void *arg)
 static struct starpu_codelet cuda_only_cl = 
 {
 	.where = STARPU_CUDA,
-	.cuda_func = dummy_func,
+	.cuda_funcs = {dummy_func, NULL},
 	.model = NULL,
 	.nbuffers = 0
 };

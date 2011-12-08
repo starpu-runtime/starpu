@@ -70,9 +70,9 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 
 static struct starpu_codelet increment_handle_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = increment_handle_cpu_kernel,
+	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_codelet_unsigned_inc,
+	.cuda_funcs = {cuda_codelet_unsigned_inc, NULL},
 #endif
 	.nbuffers = 1
 };
