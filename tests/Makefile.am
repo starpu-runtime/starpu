@@ -161,6 +161,7 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_v2		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
+	datawizard/interfaces/csr/csr_interface \
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl \
@@ -272,9 +273,26 @@ core_multiformat_handle_conversion_SOURCES = \
 core_multiformat_data_release_SOURCES = \
 	core/multiformat_data_release.c
 
-##############
-# Interfaces #
-##############
+#################
+# CSR interface #
+#################
+datawizard_interfaces_csr_csr_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c  \
+	datawizard/interfaces/csr/csr_interface.c
+
+if STARPU_USE_CUDA
+datawizard_interfaces_csr_csr_interface_SOURCES+= \
+	datawizard/interfaces/csr/csr_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_csr_csr_interface_SOURCES+= \
+	datawizard/interfaces/csr/csr_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/csr/csr_opencl_kernel.cl
+endif
+
+
 datawizard_interfaces_vector_test_vector_interface_SOURCES =               \
 	datawizard/interfaces/vector/test_vector_interface.c               \
 	datawizard/interfaces/test_interfaces.c
