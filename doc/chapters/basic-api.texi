@@ -1103,7 +1103,8 @@ The @code{struct starpu_buffer_descr} structure is composed of two fields, the
 of entries in this array must be specified in the @code{nbuffers} field of the
 @code{struct starpu_codelet} structure, and should not excede @code{STARPU_NMAXBUFS}.
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
-option when configuring StarPU.
+option when configuring StarPU. As of the current implementation, a data handle
+can appear several times only if it is only accessed with @code{STARPU_R} mode.
 
 @item @code{cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
