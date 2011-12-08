@@ -481,7 +481,10 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					STARPU_ASSERT(0);
 			}
 			buffers[0] = format_interface;
-			cl->cpu_func(buffers, NULL);
+
+			_starpu_cl_func_t func = _starpu_task_get_cpu_nth_implementation(cl, 0);
+			STARPU_ASSERT(func);
+			func(buffers, NULL);
 		}
 	}
 	else

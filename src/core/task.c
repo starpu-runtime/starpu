@@ -221,6 +221,27 @@ int _starpu_submit_job(struct _starpu_job *j)
         return ret;
 }
 
+void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
+{
+	/* Check deprecated fields */
+	if (cl && cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS) {
+		cl->cpu_funcs[0] = cl->cpu_func;
+		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
+	}
+	if (cl && cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS) {
+		cl->cuda_funcs[0] = cl->cuda_func;
+		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
+	}
+	if (cl && cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS) {
+		cl->opencl_funcs[0] = cl->opencl_func;
+		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
+	}
+	if (cl && cl->gordon_func && cl->gordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS) {
+		cl->gordon_funcs[0] = cl->gordon_func;
+		cl->gordon_func = STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS;
+	}
+}
+
 /* application should submit new tasks to StarPU through this function */
 int starpu_task_submit(struct starpu_task *task)
 {
@@ -248,11 +269,17 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		uint32_t where = task->cl->where;
 		unsigned i;
+
+		_starpu_codelet_check_deprecated_fields(task->cl);
+
+		/* Check the type of worker(s) required by the task exist */
 		if (!_starpu_worker_exists(where))
 		{
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }
+
+		/* Check buffers */
 		assert(task->cl->nbuffers <= STARPU_NMAXBUFS);
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
@@ -504,4 +531,28 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 		default:
 			STARPU_ASSERT(0);
 	}
+}
+
+starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+{
+	STARPU_ASSERT(cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS);
+	return cl->cpu_funcs[nimpl];
+}
+
+starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+{
+	STARPU_ASSERT(cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS);
+	return cl->cuda_funcs[nimpl];
+}
+
+starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+{
+	STARPU_ASSERT(cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS);
+	return cl->opencl_funcs[nimpl];
+}
+
+starpu_gordon_func_t _starpu_task_get_gordon_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+{
+	STARPU_ASSERT(cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS);
+	return cl->gordon_funcs[nimpl];
 }

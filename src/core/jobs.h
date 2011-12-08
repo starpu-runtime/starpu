@@ -45,7 +45,7 @@
 struct _starpu_worker;
 
 /* codelet function */
-typedef void (*_starpu_cl_func)(void **, void *);
+typedef void (*_starpu_cl_func_t)(void **, void *);
 
 #define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
 #define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)

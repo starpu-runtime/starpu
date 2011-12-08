@@ -34,7 +34,6 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	struct starpu_codelet *cl = task->cl;
 
 	STARPU_ASSERT(cl);
-	STARPU_ASSERT(cl->cpu_func);
 
 	if (rank == 0)
 	{
@@ -56,19 +55,9 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	 * execute the kernel at all. */
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
-		if (cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
-		{
-			_starpu_cl_func func = cl->cpu_func;
-			STARPU_ASSERT(func);
-			func(task->interfaces, task->cl_arg);
-		}
-		else
-		{
-			/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
-			_starpu_cl_func func = cl->cpu_funcs[j->nimpl];
-			STARPU_ASSERT(func);
-			func(task->interfaces, task->cl_arg);
-		}
+		_starpu_cl_func_t func = _starpu_task_get_cpu_nth_implementation(cl, j->nimpl);
+		STARPU_ASSERT(func);
+		func(task->interfaces, task->cl_arg);
 	}
 
 	_starpu_driver_end_job(cpu_args, j, &codelet_end, rank);

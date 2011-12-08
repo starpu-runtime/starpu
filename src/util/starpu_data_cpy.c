@@ -59,9 +59,12 @@ struct starpu_perfmodel copy_model =
 static struct starpu_codelet copy_cl =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = data_cpy_func,
-	.cuda_func = data_cpy_func,
-	.opencl_func = data_cpy_func,
+	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
+	.cpu_funcs = {data_cpy_func, NULL},
+	.cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS,
+	.cuda_funcs = {data_cpy_func, NULL},
+	.opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS,
+	.opencl_funcs = {data_cpy_func, NULL},
 	.nbuffers = 2,
 	.model = &copy_model
 };

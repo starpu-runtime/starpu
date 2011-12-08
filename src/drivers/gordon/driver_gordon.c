@@ -167,10 +167,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 	task_wrapper->j = j;
 	task_wrapper->terminated = 0;
 
-	if (j->task->clgordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
-		gordon_job->index = j->task->cl->gordon_func;
-	else
-		gordon_job->index = j->task->cl->gordon_funcs[j->nimpl];
+	gordon_job->index = _starpu_task_get_gordon_nth_implementation(j->task->cl, j->nimpl);
 
 	/* we should not hardcore the memory node ... XXX */
 	unsigned memory_node = 0;
@@ -321,7 +318,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 		ret = _starpu_fetch_task_input(task, 0);
 		STARPU_ASSERT(!ret);
 
-		gordon_jobs[index].index = task->cl->gordon_func;
+		gordon_jobs[index].index = _starpu_task_get_gordon_nth_implementation(task->cl, j->nimpl);
 
 		struct starpu_perfmodel *model = j->task->cl->model;
 		if (model && model->benchmarking)

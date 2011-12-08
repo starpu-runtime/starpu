@@ -217,19 +217,9 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 
-	if (cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
-	{
-		_starpu_cl_func func = cl->cuda_func;
-		STARPU_ASSERT(func);
-		func(task->interfaces, task->cl_arg);
-	}
-	else
-	{
-		/* _STARPU_DEBUG("Cuda driver : running kernel * (%d)\n", j->nimpl); */
-		_starpu_cl_func func = cl->cuda_funcs[j->nimpl];
-		STARPU_ASSERT(func);
-		func(task->interfaces, task->cl_arg);
-	}
+	starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, j->nimpl);
+	STARPU_ASSERT(func);
+	func(task->interfaces, task->cl_arg);
 
 	_starpu_driver_end_job(args, j, &codelet_end, 0);
 

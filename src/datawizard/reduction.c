@@ -21,10 +21,13 @@
 #include <datawizard/datawizard.h>
 
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
-					struct starpu_codelet *redux_cl,
-					struct starpu_codelet *init_cl)
+				       struct starpu_codelet *redux_cl,
+				       struct starpu_codelet *init_cl)
 {
 	_starpu_spin_lock(&handle->header_lock);
+
+	_starpu_codelet_check_deprecated_fields(redux_cl);
+	_starpu_codelet_check_deprecated_fields(init_cl);
 
 	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
@@ -49,20 +52,20 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 	struct starpu_codelet *init_cl = handle->init_cl;
 	STARPU_ASSERT(init_cl);
 
-	_starpu_cl_func init_func = NULL;
+	_starpu_cl_func_t init_func = NULL;
 
 	/* TODO Check that worker may execute the codelet */
 
 	switch (starpu_worker_get_type(workerid))
 	{
 		case STARPU_CPU_WORKER:
-			init_func = init_cl->cpu_func;
+			init_func = _starpu_task_get_cpu_nth_implementation(init_cl, 0);
 			break;
 		case STARPU_CUDA_WORKER:
-			init_func = init_cl->cuda_func;
+			init_func = _starpu_task_get_cuda_nth_implementation(init_cl, 0);
 			break;
 		case STARPU_OPENCL_WORKER:
-			init_func = init_cl->opencl_func;
+			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;
 		default:
 			STARPU_ABORT();

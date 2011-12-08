@@ -593,19 +593,9 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 
 	_starpu_driver_start_job(args, j, &codelet_start, 0);
 
-	if (cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
-	{
-		_starpu_cl_func func = cl->opencl_func;
-		STARPU_ASSERT(func);
-		func(task->interfaces, task->cl_arg);
-	}
-	else
-	{
-		/* _STARPU_DEBUG("OpenCL driver : running kernel (%d)\n", j->nimpl); */
-		_starpu_cl_func func = cl->opencl_funcs[j->nimpl];
-		STARPU_ASSERT(func);
-		func(task->interfaces, task->cl_arg);
-	}
+	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
+	STARPU_ASSERT(func);
+	func(task->interfaces, task->cl_arg);
 
 	_starpu_driver_end_job(args, j, &codelet_end, 0);
 

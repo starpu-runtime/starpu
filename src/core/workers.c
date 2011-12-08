@@ -74,21 +74,25 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 	switch(arch)
 	{
 	case STARPU_CPU_WORKER:
-		if (cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
-			return cl->cpu_funcs[nimpl] != NULL;
-		return nimpl == 0;
+	{
+		starpu_cpu_func_t func = _starpu_task_get_cpu_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
 	case STARPU_CUDA_WORKER:
-		if (cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
-			return cl->cuda_funcs[nimpl] != NULL;
-		return nimpl == 0;
+	{
+		starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
 	case STARPU_OPENCL_WORKER:
-		if (cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
-			return cl->opencl_funcs[nimpl] != NULL;
-		return nimpl == 0;
+	{
+		starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
 	case STARPU_GORDON_WORKER:
-		if (cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
-			return cl->gordon_funcs[nimpl] != 0;
-		return nimpl == 0;
+	{
+		starpu_gordon_func_t func = _starpu_task_get_gordon_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
 	default:
 		STARPU_ASSERT(!"Unknown arch type");
 	}

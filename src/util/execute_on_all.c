@@ -44,9 +44,12 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 	struct starpu_codelet wrapper_cl =
 	{
 		.where = where,
-		.cuda_func = wrapper_func,
-		.cpu_func = wrapper_func,
-		.opencl_func = wrapper_func,
+		.cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS,
+		.cuda_funcs = {wrapper_func, NULL},
+		.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
+		.cpu_funcs = {wrapper_func, NULL},
+		.opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS,
+		.opencl_funcs = {wrapper_func, NULL},
 		/* XXX we do not handle Cell .. */
 		.nbuffers = 0
 	};
