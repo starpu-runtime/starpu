@@ -42,9 +42,9 @@ int main(int argc, char **argv)
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)&foo, sizeof(foo));
 
-	task = starpu_task_create();
-
 #define SUBMIT(mode1, mode2) \
+	task = starpu_task_create(); \
+\
 	task->cl = &codelet; \
 	task->buffers[0].handle = handle; \
 	task->buffers[0].mode = STARPU_##mode1; \
@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	SUBMIT(R,R);
-#if 0
 	/* Not possible yet */
+#if 0
 	SUBMIT(R,W);
 	SUBMIT(R,RW);
 	SUBMIT(W,R);
