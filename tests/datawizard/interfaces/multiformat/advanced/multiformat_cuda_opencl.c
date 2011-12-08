@@ -127,13 +127,19 @@ main(void)
 
 	struct stats expected_stats =
 	{
+#ifdef STARPU_USE_CPU
 		.cpu           = 0,
+#endif
+#ifdef STARPU_USE_CUDA
 		.cuda          = 2,
 		.cpu_to_cuda   = 1,
 		.cuda_to_cpu   = 1,
+#endif
+#ifdef STARPU_USE_OPENCL
 		.opencl        = 1,
 		.cpu_to_opencl = 0,
 		.opencl_to_cpu = 0
+#endif
 	};
 	
 	ret = compare_stats(&global_stats, &expected_stats);
