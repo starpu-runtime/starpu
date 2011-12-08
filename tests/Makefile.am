@@ -142,6 +142,7 @@ noinst_PROGRAMS =				\
 	datawizard/sync_and_notify_data		\
 	datawizard/sync_and_notify_data_implicit\
 	datawizard/dsm_stress			\
+	datawizard/double_parameter		\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/data_invalidation		\
 	datawizard/dining_philosophers		\
