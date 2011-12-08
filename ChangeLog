@@ -18,6 +18,8 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Fields xxx_func of struct starpu_codelet are made deprecated. One
+	should use instead fields xxx_funcs.
   * Applications can provide several implementations of a codelet for
     the same architecture.
   * A new multi-format interface permits to use different binary
