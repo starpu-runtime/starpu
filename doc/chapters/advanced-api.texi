@@ -182,11 +182,11 @@ Push a task at the front of a list
 Push a task at the back of a list
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_front ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *} starpu_task_list_front ({struct starpu_task_list *}@var{list})
 Get the front of the list (without removing it)
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_back ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *} starpu_task_list_back ({struct starpu_task_list *}@var{list})
 Get the back of the list (without removing it)
 @end deftypefun
 
@@ -198,23 +198,23 @@ Test if a list is empty
 Remove an element from the list
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_pop_front ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *} starpu_task_list_pop_front ({struct starpu_task_list *}@var{list})
 Remove the element at the front of the list
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_pop_back ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *} starpu_task_list_pop_back ({struct starpu_task_list *}@var{list})
 Remove the element at the back of the list
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_begin ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *} starpu_task_list_begin ({struct starpu_task_list *}@var{list})
 Get the first task of the list.
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_end ({struct starpu_task_list *}@var{list})
+@deftypefun {struct starpu_task *} starpu_task_list_end ({struct starpu_task_list *}@var{list})
 Get the end of the list.
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_list_next ({struct starpu_task *}@var{task})
+@deftypefun {struct starpu_task *} starpu_task_list_next ({struct starpu_task *}@var{task})
 Get the next task of the list. This is not erase-safe.
 @end deftypefun
 

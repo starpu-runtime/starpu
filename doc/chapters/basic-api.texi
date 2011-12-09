@@ -555,7 +555,7 @@ The different values are:
 @node Accessing Handle
 @subsubsection Accessing Handle
 
-@deftypefun {void *}starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, uint32_t @var{node})
+@deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, uint32_t @var{node})
 Return the pointer associated with @var{handle} on node @var{node} or
 @code{NULL} if @var{handle}'s interface does not support this
 operation or data for this handle is not allocated on that node.
