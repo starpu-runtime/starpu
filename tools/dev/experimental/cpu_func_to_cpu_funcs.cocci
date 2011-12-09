@@ -9,7 +9,23 @@ identifier cl;
 @@
 struct starpu_codelet cl = {
 -	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-	.cpu_funcs = { ... }
+	.cpu_funcs = { ...
+- }
++ ,NULL}
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// The previous rule may have added "NULL" twice in the initialization of the //
+// cpu_funcs field. Let's take care of that.                                  //
+////////////////////////////////////////////////////////////////////////////////
+@@
+identifier cl;
+@@
+struct starpu_codelet cl = {
+	.cpu_funcs = { ..., NULL
+- ,NULL
+}
 };
 
 
