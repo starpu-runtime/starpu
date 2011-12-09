@@ -67,9 +67,9 @@ implementations it was given, and pick the one that seems to be the fastest.
 @node Enabling implementation according to capabilities
 @section Enabling implementation according to capabilities
 
-Some implementations may not run on some devices. For instance, some GPU
+Some implementations may not run on some devices. For instance, some CUDA
 devices do not support double floating point precision, and thus the kernel
-execution would just fail; or the GPU may not have enough shared memory for
+execution would just fail; or the device may not have enough shared memory for
 the implementation being used. The @code{can_execute} field of the @code{struct
 starpu_codelet} structure permits to express this. For instance:
 
@@ -90,17 +90,17 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 @}
 
 struct starpu_codelet cl = @{
-    .where = STARPU_CPU|STARPU_GPU,
+    .where = STARPU_CPU|STARPU_CUDA,
     .can_execute = can_execute,
     .cpu_funcs = @{ cpu_func, NULL @},
-    .gpu_funcs = @{ gpu_func, NULL @}
+    .cuda_funcs = @{ gpu_func, NULL @}
     .nbuffers = 1
 @};
 @end smallexample
 @end cartouche
 
 This can be essential e.g. when running on a machine which mixes various models
-of GPUs, to take benefit from the new models without crashing on old models.
+of CUDA devices, to take benefit from the new models without crashing on old models.
 
 Note: the @code{can_execute} function is called by the scheduler each time it
 tries to match a task with a worker, and should thus be very fast. The
@@ -108,11 +108,11 @@ tries to match a task with a worker, and should thus be very fast. The
 properties of CUDA devices to achieve such efficiency.
 
 Another example is compiling CUDA code for various compute capabilities,
-resulting with two GPU functions, e.g. @code{scal_gpu_13} for compute capability
+resulting with two CUDA functions, e.g. @code{scal_gpu_13} for compute capability
 1.3, and @code{scal_gpu_20} for compute capability 2.0. Both functions can be
-provided to StarPU by using @code{gpu_funcs}, and @code{can_execute} can then be
-used to rule out the @code{scal_gpu_20} variant on GPU which will not be able to
-execute it:
+provided to StarPU by using @code{cuda_funcs}, and @code{can_execute} can then be
+used to rule out the @code{scal_gpu_20} variant on a CUDA device which
+will not be able to execute it:
 
 @cartouche
 @smallexample
@@ -135,10 +135,10 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 @}
 
 struct starpu_codelet cl = @{
-    .where = STARPU_CPU|STARPU_GPU,
+    .where = STARPU_CPU|STARPU_CUDA,
     .can_execute = can_execute,
     .cpu_funcs = @{ cpu_func, NULL @},
-    .gpu_funcs = @{ scal_gpu_13, scal_gpu_20, NULL @},
+    .cuda_funcs = @{ scal_gpu_13, scal_gpu_20, NULL @},
     .nbuffers = 1
 @};
 @end smallexample
