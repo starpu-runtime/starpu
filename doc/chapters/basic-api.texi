@@ -1010,39 +1010,43 @@ implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
 indicates that it is only available on Cell SPUs.
 
 @item @code{cpu_func} (optional)
-Is a function pointer to the CPU implementation of the codelet. Its prototype
-must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
-argument being the array of data managed by the data management library, and
-the second argument is a pointer to the argument passed from the @code{cl_arg}
-field of the @code{starpu_task} structure.
-The @code{cpu_func} field is ignored if @code{STARPU_CPU} does not appear in
-the @code{where} field, it must be non-null otherwise.
+This field has been made deprecated. One should use instead the
+@code{cpu_funcs} field.
 
 @item @code{cpu_funcs}
 Is an array of function pointers to the CPU implementations of the codelet.
 It must be terminated by a NULL value.
+The functions prototype must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
+argument being the array of data managed by the data management library, and
+the second argument is a pointer to the argument passed from the @code{cl_arg}
+field of the @code{starpu_task} structure.
+The @code{cpu_funcs} field is ignored if @code{STARPU_CPU} does not appear in
+the @code{where} field, it must be non-null otherwise.
 
 @item @code{cuda_func} (optional)
-Is a function pointer to the CUDA implementation of the codelet. @emph{This
-must be a host-function written in the CUDA runtime API}. Its prototype must
-be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_func}
-field is ignored if @code{STARPU_CUDA} does not appear in the @code{where}
-field, it must be non-null otherwise.
+This field has been made deprecated. One should use instead the
+@code{cuda_funcs} field.
 
 @item @code{cuda_funcs}
 Is an array of function pointers to the CUDA implementations of the codelet.
 It must be terminated by a NULL value.
+@emph{The functions must be host-functions written in the CUDA runtime
+API}. Their prototype must
+be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_funcs}
+field is ignored if @code{STARPU_CUDA} does not appear in the @code{where}
+field, it must be non-null otherwise.
 
 @item @code{opencl_func} (optional)
-Is a function pointer to the OpenCL implementation of the codelet. Its
-prototype must be:
-@code{void opencl_func(void *buffers[], void *cl_arg);}.
-This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
-@code{where} field, it must be non-null otherwise.
+This field has been made deprecated. One should use instead the
+@code{opencl_funcs} field.
 
 @item @code{opencl_funcs}
 Is an array of function pointers to the OpenCL implementations of the codelet.
 It must be terminated by a NULL value.
+The functions prototype must be:
+@code{void opencl_func(void *buffers[], void *cl_arg);}.
+This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
+@code{where} field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optional)
 This is the index of the Cell SPU implementation within the Gordon library.
