@@ -126,3 +126,4 @@ enodev:
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
+}
