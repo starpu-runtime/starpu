@@ -24,3 +24,22 @@
 -	assert(
 +	STARPU_ASSERT(
 ...)
+
+
+@min_max@
+identifier i;
+expression E1, E2;
+@@
+(
+- 	return E1<E2?E1:E2;
++ 	return STARPU_MIN(E1, E2);
+|
+-	i =  E1<E2?E1:E2            // No semi-colon at the end, so that it
++	i = STARPU_MIN(E1, E2)      // matches both "i = ..." and "t i = ..."
+|
+-	return E1>E2?E1:E2;
++	return STAPU_MAX(E1, E2);
+|
+-	i = E1>E2?E1:E2             // No semi-colon at the end, so that it
++	i = STARPU_MAX(E1, E2)      // matches both "i = ..." and "t i = ..."
+)
