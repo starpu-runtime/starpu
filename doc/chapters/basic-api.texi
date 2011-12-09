@@ -1049,14 +1049,15 @@ This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
 @code{where} field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optional)
-This is the index of the Cell SPU implementation within the Gordon library.
-See Gordon documentation for more details on how to register a kernel and
-retrieve its index.
+This field has been made deprecated. One should use instead the
+@code{gordon_funcs} field.
 
 @item @code{gordon_funcs}
 Is an array of index of the Cell SPU implementations of the codelet within the
 Gordon library.
 It must be terminated by a NULL value.
+See Gordon documentation for more details on how to register a kernel and
+retrieve its index.
 
 @item @code{nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are
