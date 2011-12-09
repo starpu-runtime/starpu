@@ -40,6 +40,8 @@ void _starpu_set_current_task(struct starpu_task *task);
  * once. */
 int _starpu_submit_job(struct _starpu_job *j);
 
+int _starpu_task_submit_nodeps(struct starpu_task *task);
+
 /* Returns the job structure (which is the internal data structure associated
  * to a task). */
 struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task);

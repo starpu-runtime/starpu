@@ -357,6 +357,41 @@ int starpu_task_submit(struct starpu_task *task)
 	return ret;
 }
 
+/* The StarPU core can submit tasks directly to the scheduler or a worker,
+ * skipping dependencies completely (when it knows what it is doing).  */
+int _starpu_task_submit_nodeps(struct starpu_task *task)
+{
+	int ret;
+
+	if (task->cl)
+	{
+		if (task->cl->model)
+			_starpu_load_perfmodel(task->cl->model);
+
+		if (task->cl->power_model)
+			_starpu_load_perfmodel(task->cl->power_model);
+	}
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	_starpu_increment_nsubmitted_tasks();
+
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+
+	j->submitted = 1;
+
+	_starpu_increment_nready_tasks();
+
+	if (task->cl)
+		/* This would be done by data dependencies checking */
+		memcpy(j->ordered_buffers, j->task->buffers, task->cl->nbuffers*sizeof(struct starpu_buffer_descr));
+
+	ret = _starpu_push_task(j, 1);
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	return ret;
+}
+
 void starpu_display_codelet_stats(struct starpu_codelet *cl)
 {
 	unsigned worker;
