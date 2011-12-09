@@ -45,7 +45,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 struct starpu_codelet cl =
 {
     .where = STARPU_CPU,
-    .cpu_func = cpu_func,
+    .cpu_funcs = {cpu_func, NULL},
     .nbuffers = 0
 };
 
