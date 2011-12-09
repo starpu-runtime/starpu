@@ -66,6 +66,6 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 #else
 	fprintf(stderr,"WARNING: Can not test this without CPUs\n");
-	return 77;
+	return STARPU_TEST_SKIPPED;
 #endif
 }

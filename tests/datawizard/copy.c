@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "This application requires a CUDA or OpenCL Worker\n");
 		starpu_shutdown();
-		return 77;
+		return STARPU_TEST_SKIPPED;
 	}
 
         foo = 0.0f;
@@ -101,5 +101,5 @@ enodev:
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
-	return 77;
+	return STARPU_TEST_SKIPPED;
 }
