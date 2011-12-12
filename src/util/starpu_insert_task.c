@@ -41,7 +41,7 @@ void starpu_unpack_cl_args(void *_cl_arg, ...)
 	unsigned current_arg_offset = 0;
 	va_list varg_list;
 
-	assert(cl_arg);
+	STARPU_ASSERT(cl_arg);
 	va_start(varg_list, _cl_arg);
 
 	/* We fill the different pointers with the appropriate arguments */

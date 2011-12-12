@@ -303,11 +303,11 @@ int starpu_task_submit(struct starpu_task *task)
                 }
 
 		/* Check buffers */
-		assert(task->cl->nbuffers <= STARPU_NMAXBUFS);
+		STARPU_ASSERT(task->cl->nbuffers <= STARPU_NMAXBUFS);
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
 			/* Make sure handles are not partitioned */
-			assert(task->buffers[i].handle->nchildren == 0);
+			STARPU_ASSERT(task->buffers[i].handle->nchildren == 0);
 		}
 
 		/* In case we require that a task should be explicitely

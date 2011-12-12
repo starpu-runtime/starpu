@@ -348,7 +348,7 @@ static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst
 			}
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 
 	if (!fail)
@@ -400,7 +400,7 @@ static void free_block_buffer_on_node(void *data_interface, uint32_t node)
                         break;
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 }
 

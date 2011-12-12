@@ -331,7 +331,7 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 		}
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 
 	/* allocation succeeded */
@@ -361,7 +361,7 @@ fail_rowptr:
 			break;
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 
 fail_colind:
@@ -380,7 +380,7 @@ fail_colind:
 			break;
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 
 fail_nzval:
@@ -416,7 +416,7 @@ static void free_bcsr_buffer_on_node(void *data_interface, uint32_t node)
 			break;
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 }
 

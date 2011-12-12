@@ -192,7 +192,7 @@ void *_starpu_cpu_worker(void *arg)
 					_starpu_push_task(j, 0);
 					continue;
 				default:
-					assert(0);
+					STARPU_ASSERT(0);
 			}
 		}
 

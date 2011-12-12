@@ -524,7 +524,7 @@ void *_starpu_opencl_worker(void *arg)
 					STARPU_ABORT();
 					continue;
 				default:
-					assert(0);
+					STARPU_ASSERT(0);
 			}
 		}
 

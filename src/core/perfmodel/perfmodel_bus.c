@@ -114,7 +114,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
 	cudaMalloc((void **)&d_buffer, size);
-	assert(d_buffer);
+	STARPU_ASSERT(d_buffer);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -122,7 +122,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 	cures = cudaHostAlloc((void **)&h_buffer, size, 0);
-	assert(cures == cudaSuccess);
+	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -191,7 +191,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Allocate a buffer on the device */
 	unsigned char *s_buffer;
 	cudaMalloc((void **)&s_buffer, size);
-	assert(s_buffer);
+	STARPU_ASSERT(s_buffer);
 	cudaMemset(s_buffer, 0, size);
 
 	/* Initiliaze CUDA context on the destination */
@@ -200,7 +200,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
 	cudaMalloc((void **)&d_buffer, size);
-	assert(d_buffer);
+	STARPU_ASSERT(d_buffer);
 	cudaMemset(d_buffer, 0, size);
 
 	unsigned iter;
@@ -267,7 +267,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         /* Allocate a buffer on the host */
 	unsigned char *h_buffer;
         h_buffer = malloc(size);
-	assert(h_buffer);
+	STARPU_ASSERT(h_buffer);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);

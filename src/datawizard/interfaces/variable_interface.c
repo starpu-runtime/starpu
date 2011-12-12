@@ -247,7 +247,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 			}
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 
 	if (fail)
@@ -281,7 +281,7 @@ static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
                         break;
 #endif
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 }
 

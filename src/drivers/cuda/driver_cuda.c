@@ -169,7 +169,7 @@ unsigned _starpu_get_cuda_device_count(void)
 void _starpu_init_cuda(void)
 {
 	ncudagpus = _starpu_get_cuda_device_count();
-	assert(ncudagpus <= STARPU_MAXCUDADEVS);
+	STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
 static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
@@ -335,7 +335,7 @@ void *_starpu_cuda_worker(void *arg)
 					STARPU_ABORT();
 					continue;
 				default:
-					assert(0);
+					STARPU_ASSERT(0);
 			}
 		}
 
@@ -392,12 +392,12 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, cu
 			break;
 	}
 	printf("oops in %s (%s:%u)... %s \n", func, file, line, errormsg);
-	assert(0);
+	STARPU_ASSERT(0);
 }
 
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
 	printf("oops in %s (%s:%u)... %s \n", func, file, line, errormsg);
-	assert(0);
+	STARPU_ASSERT(0);
 }

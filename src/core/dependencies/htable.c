@@ -69,7 +69,7 @@ void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag,
 		{
 			/* TODO pad to change that 1 into 16 ? */
 			*current_htbl_ptr = (struct _starpu_htbl_node *) calloc(1, sizeof(struct _starpu_htbl_node));
-			assert(*current_htbl_ptr);
+			STARPU_ASSERT(*current_htbl_ptr);
 
 			if (previous_htbl_ptr)
 				previous_htbl_ptr->nentries++;

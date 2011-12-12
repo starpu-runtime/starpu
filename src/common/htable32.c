@@ -76,7 +76,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 		{
 			/* TODO pad to change that 1 into 16 ? */
 			*current_htbl_ptr = (struct starpu_htbl32_node*)calloc(sizeof(struct starpu_htbl32_node), 1);
-			assert(*current_htbl_ptr);
+			STARPU_ASSERT(*current_htbl_ptr);
 		}
 
 		/* 0000000000001111
