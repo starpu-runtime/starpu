@@ -215,8 +215,10 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 
 	for (arch = archmin; arch < archmax; arch++)
 	{
+		_STARPU_DEBUG("Parsing arch %u\n", arch);
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &nimpls);
+		_STARPU_DEBUG("%u implementations\n", nimpls);
 		STARPU_ASSERT(ret == 1);
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
@@ -236,12 +238,14 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	if (skiparch > 0)
 	{
 		_starpu_drop_comments(f);
-		ret = fscanf(f, "%d\n", &nimpls);
-		STARPU_ASSERT(ret == 1);
-		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
-		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
 		for (arch = 0; arch < skiparch; arch ++)
 		{
+			_STARPU_DEBUG("skipping arch %u\n", arch);
+			ret = fscanf(f, "%d\n", &nimpls);
+			_STARPU_DEBUG("%u implementations\n", nimpls);
+			STARPU_ASSERT(ret == 1);
+			implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
+			skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
 			for (impl = 0; impl < implmax; impl++)
 			{
 				parse_per_arch_model_file(f, &dummy, 0);
@@ -278,7 +282,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 		parse_arch(f, model, scan_history,
 			   archmin,
 			   STARPU_MIN(narchs, STARPU_MAXCPUS),
-			   narchs - STARPU_MAXCPUS);
+			   narchs > STARPU_MAXCPUS ? narchs - STARPU_MAXCPUS : 0);
 	}
 
 	/* Parsing CUDA devs */
@@ -292,7 +296,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 		parse_arch(f, model, scan_history,
 			   archmin,
 			   archmin + STARPU_MIN(narchs, STARPU_MAXCUDADEVS),
-			   narchs - STARPU_MAXCUDADEVS);
+			   narchs > STARPU_MAXCUDADEVS ? narchs - STARPU_MAXCUDADEVS : 0);
 	}
 
 	/* Parsing OpenCL devs */
@@ -307,7 +311,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 		parse_arch(f, model, scan_history,
 			   archmin,
 			   archmin + STARPU_MIN(narchs, STARPU_MAXOPENCLDEVS),
-			   narchs - STARPU_MAXOPENCLDEVS);
+			   narchs > STARPU_MAXOPENCLDEVS ? narchs - STARPU_MAXOPENCLDEVS : 0);
 	}
 
 	/* Parsing Gordon implementations */
@@ -322,7 +326,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 		parse_arch(f, model, scan_history,
 			   archmin,
 			   archmin + max_gordondevs,
-			   narchs - max_gordondevs);
+			   narchs > max_gordondevs ? narchs - max_gordondevs : 0);
 	}
 }
 
