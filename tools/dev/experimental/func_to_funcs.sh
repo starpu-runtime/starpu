@@ -41,7 +41,7 @@ rm /tmp/cuda.cocci
 sed 's/cpu_funcs/opencl_funcs/;
     s/cpu_func/opencl_func/;
     s/STARPU_MULTIPLE_CPU_IMPLEMENTATIONS/STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS/'  \
-    cpu_func_to_cpu_funcs.cocci > /tmp/opencl.cocci
+    ${path_to_cocci_scripts}/cpu_func_to_cpu_funcs.cocci > /tmp/opencl.cocci
 
 spatch -sp_file /tmp/opencl.cocci -dir $dir -in_place -very_quiet
 rm /tmp/opencl.cocci
