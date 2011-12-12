@@ -1417,7 +1417,12 @@ build_codelet_initializer (tree task_decl)
 	  }
       }
 
-    /* Return a (potentially empty) array initializer.  */
+    /* POINTERS must be null-terminated.  */
+    pointers = tree_cons (size_int (len), build_zero_cst (ptr_type_node),
+			  pointers);
+    len++;
+
+    /* Return an array initializer.  */
     tree index_type = build_index_type (size_int (list_length (pointers)));
 
     return build_constructor_from_list (build_array_type (ptr_type_node,
@@ -1440,10 +1445,6 @@ build_codelet_initializer (tree task_decl)
 
   impls = task_implementation_list (task_decl);
 
-#define multiple_impls(x)						\
-  build_int_cstu (ptr_type_node,					\
-		  (uintptr_t) STARPU_MULTIPLE_ ## x ## _IMPLEMENTATIONS)
-
   inits =
     chain_trees (field_initializer ("where", where_init (impls)),
 		 field_initializer ("nbuffers", pointer_arg_count ()),
@@ -1456,12 +1457,7 @@ build_codelet_initializer (tree task_decl)
 		 field_initializer ("cuda_funcs",
 		 		    implementation_pointers (impls,
 							     STARPU_CUDA)),
-		 field_initializer ("cpu_func", multiple_impls (CPU)),
-		 field_initializer ("cuda_func", multiple_impls (CUDA)),
-		 field_initializer ("opencl_func", multiple_impls (OPENCL)),
 		 NULL_TREE);
-
-#undef multiple_impls
 
   return build_constructor_from_unsorted_list (codelet_type (), inits);
 }
