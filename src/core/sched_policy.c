@@ -416,7 +416,7 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 	 * tasks for multiformat handles. The last element is the "real" task.
 	 */
 	int worker_id = starpu_worker_get_id();
-	static struct starpu_task *queued_tasks[STARPU_NMAXWORKERS][STARPU_NMAXBUFS+1] = { NULL };
+	static struct starpu_task *queued_tasks[STARPU_NMAXWORKERS][STARPU_NMAXBUFS+1] = { };
 
 	/* Maybe there is a queued task for this worker */
 pick_from_queued_tasks:
