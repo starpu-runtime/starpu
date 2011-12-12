@@ -33,7 +33,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/multiformat/multiformat_types.h \
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl \
-	datawizard/interfaces/multiformat/advanced/generic.h
+	datawizard/interfaces/multiformat/advanced/generic.h \
+	datawizard/interfaces/csr/csr_opencl_kernel.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
