@@ -209,7 +209,8 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 					    enum starpu_perf_archtype arch,
 					    unsigned nimpl)
 {
-	int i, err;
+	unsigned i;
+	int err;
 	double sum = 0.0;
 	unsigned int node, cpu_node, cuda_node, opencl_node;
 
@@ -255,14 +256,11 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (id != STARPU_MULTIFORMAT_INTERFACE_ID)
 			continue;
 
-		if (arch >= STARPU_CPU_DEFAULT && 
-		    arch < STARPU_CUDA_DEFAULT)
+		if (arch >= STARPU_CPU_DEFAULT && arch < STARPU_CUDA_DEFAULT)
 			node = cpu_node;
-		else if (arch >= STARPU_CUDA_DEFAULT &&
-			 arch < STARPU_OPENCL_DEFAULT)
+		else if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
 			node = cuda_node;
-		else if (arch >= STARPU_OPENCL_DEFAULT &&
-			 arch < STARPU_GORDON_DEFAULT)
+		else if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
 			node = opencl_node;
 		else
 			STARPU_ASSERT(0);
