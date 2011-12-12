@@ -24,7 +24,7 @@
 #include <assert.h>
 
 #include "test_interfaces.h"
-#include "../../common/helper.h"
+#include "../../helper.h"
 
 /*
  * This is definitely note thrad-safe.
@@ -184,7 +184,7 @@ get_field(struct data_interface_test_summary *s, int async, enum operation op)
 		return async?&s->opencl_to_cpu_async:&s->opencl_to_cpu;
 #endif /* !STARPU_USE_OPENCL */
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 }
 
@@ -212,7 +212,7 @@ set_field(struct data_interface_test_summary *s, int async,
 			*field = TASK_SUBMISSION_FAILURE;
 			break;
 		default:
-			assert(0);
+			STARPU_ASSERT(0);
 	}
 }
 

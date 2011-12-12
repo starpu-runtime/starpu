@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <stdlib.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define VECTORSIZE	1024
 

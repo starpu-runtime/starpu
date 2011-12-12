@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned ntasks = 40000;
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(token_handle);
         FPRINTF(stderr, "Token: %u\n", token);
-        assert(token==ntasks);
+        STARPU_ASSERT(token==ntasks);
 
 	starpu_shutdown();
 

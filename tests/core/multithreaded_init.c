@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define NUM_THREADS 5
 

@@ -19,7 +19,7 @@
 #include <starpu.h>
 #include <pthread.h>
 
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned niter = 16384;
 

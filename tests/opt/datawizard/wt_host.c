@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../../common/helper.h"
+#include "../../helper.h"
 
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>

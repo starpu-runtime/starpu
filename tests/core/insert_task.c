@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 void func_cpu(void *descr[], void *_args)
 {

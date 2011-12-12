@@ -16,7 +16,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include "multiformat_types.h"
-#include "../../../common/helper.h"
+#include "../../../helper.h"
 
 static __global__ void cpu_to_cuda_cuda(struct point *src,
 	struct struct_of_arrays *dst, unsigned n)

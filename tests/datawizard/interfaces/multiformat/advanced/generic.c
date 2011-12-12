@@ -15,7 +15,7 @@
  */
 #include <starpu_data_interfaces.h>
 #include "generic.h"
-#include "../../../../common/helper.h"
+#include "../../../../helper.h"
 
 struct stats global_stats;
 

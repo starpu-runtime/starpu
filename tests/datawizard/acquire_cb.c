@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 unsigned token = 0;
 starpu_data_handle_t token_handle;

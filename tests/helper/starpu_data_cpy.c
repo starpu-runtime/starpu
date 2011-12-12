@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 int var1, var2;
 starpu_data_handle_t var1_handle, var2_handle;

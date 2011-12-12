@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static starpu_tag_t tagA = 0x0042;
 static starpu_tag_t tagB = 0x1042;

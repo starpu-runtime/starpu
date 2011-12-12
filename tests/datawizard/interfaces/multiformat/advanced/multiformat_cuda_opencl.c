@@ -16,7 +16,7 @@
 #include <starpu.h>
 
 #include "generic.h"
-#include "../../../../common/helper.h"
+#include "../../../../helper.h"
 
 extern struct stats global_stats;
 static int vector[NX];

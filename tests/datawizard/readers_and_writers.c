@@ -16,7 +16,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned book = 0;
 static starpu_data_handle_t book_handle;

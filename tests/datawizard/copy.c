@@ -16,7 +16,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned nloops = 1000;
 

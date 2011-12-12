@@ -20,7 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned ntasks = 65536;
 static starpu_tag_t tag = 0x32;

@@ -20,7 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define NLOOPS	128
 

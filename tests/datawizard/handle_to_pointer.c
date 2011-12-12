@@ -72,21 +72,21 @@ int main(int argc, char *argv[])
 	starpu_init(NULL);
 
 	err = starpu_malloc((void **)&pointer, count * sizeof(int));
-	assert((err == 0) && (pointer != NULL));
+	STARPU_ASSERT((err == 0) && (pointer != NULL));
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)pointer,
 				      sizeof(int));
-	assert(starpu_handle_to_pointer(handle, 0) == pointer);
+	STARPU_ASSERT(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)pointer,
 				    count, sizeof(int));
-	assert(starpu_handle_to_pointer(handle, 0) == pointer);
+	STARPU_ASSERT(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)pointer, 0,
 				    count, 1, sizeof(int));
-	assert(starpu_handle_to_pointer(handle, 0) == pointer);
+	STARPU_ASSERT(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_free(pointer);
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	/* Lazy allocation.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
 				    count, sizeof(int));
-	assert(starpu_handle_to_pointer(handle, 0) == NULL);
+	STARPU_ASSERT(starpu_handle_to_pointer(handle, 0) == NULL);
 
 	/* Pass the handle to a task.  */
 	starpu_insert_task(&cl,
@@ -108,11 +108,11 @@ int main(int argc, char *argv[])
 
 	/* Make sure we have a local pointer to it.  */
 	pointer = (int *) starpu_handle_to_pointer(handle, 0);
-	assert(pointer != NULL);
+	STARPU_ASSERT(pointer != NULL);
 	for(i = 0; i < count; i++)
 	{
 		int *numbers = (int *)pointer;
-		assert(numbers[i] == i);
+		STARPU_ASSERT(numbers[i] == i);
 	}
 	starpu_data_release(handle);
 

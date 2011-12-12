@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned ntasks = 1024;
 

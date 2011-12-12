@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 starpu_data_handle_t void_handle;
 

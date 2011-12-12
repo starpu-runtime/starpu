@@ -20,7 +20,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 /* This is equivalent to calling starpu_task_init later on */
 struct starpu_task task = STARPU_TASK_INITIALIZER;

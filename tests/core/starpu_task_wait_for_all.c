@@ -20,7 +20,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned ntasks = 65536;
 

@@ -88,8 +88,8 @@ static void parse_args(int argc, char **argv)
 		}
 	}
 
-	assert(CPU_LD >= MATRIXSIZE);
-	assert(GPU_LD >= MATRIXSIZE);
+	STARPU_ASSERT(CPU_LD >= MATRIXSIZE);
+	STARPU_ASSERT(GPU_LD >= MATRIXSIZE);
 }
 
 
@@ -124,11 +124,11 @@ void benchmark_memcpy(void)
 		h_A = malloc(CPUBUFFERSIZE);
 	}
 
-	assert(h_A);
+	STARPU_ASSERT(h_A);
 
 	/* malloc a buffer on the device */
 	cublasAlloc(GPU_LD*GPU_LD, sizeof(float), &d_A);
-	assert(d_A);
+	STARPU_ASSERT(d_A);
 
 	gettimeofday(&tv_start, NULL);	
 

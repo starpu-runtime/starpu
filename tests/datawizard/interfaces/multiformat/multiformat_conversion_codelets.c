@@ -15,7 +15,7 @@
  */
 #include <starpu.h>
 #include "multiformat_types.h"
-#include "../../../common/helper.h"
+#include "../../../helper.h"
 
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)

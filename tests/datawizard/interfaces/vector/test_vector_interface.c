@@ -15,7 +15,7 @@
  */
 #include <starpu.h>
 #include "../test_interfaces.h"
-#include "../../../common/helper.h"
+#include "../../../helper.h"
 
 /* Prototypes */
 static void register_data(void);

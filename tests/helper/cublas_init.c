@@ -21,7 +21,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 struct timeval start;
 struct timeval end;

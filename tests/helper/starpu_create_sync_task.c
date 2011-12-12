@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define NITER	10
 

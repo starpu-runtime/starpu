@@ -56,16 +56,16 @@ void send_data(unsigned src, unsigned dst)
 #ifdef DO_TRANSFER_GPU_TO_RAM
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost, stream[src]);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 
 	cures = cudaStreamSynchronize(stream[src]);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 
 	cures = cudaThreadSynchronize();
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #endif
 #endif
 
@@ -95,15 +95,15 @@ void recv_data(unsigned src, unsigned dst)
 #ifdef DO_TRANSFER_RAM_TO_GPU
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice, stream[dst]);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 	cures = cudaThreadSynchronize();
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 
 	cures = cudaThreadSynchronize();
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #endif
 #endif
 }
@@ -127,7 +127,7 @@ void *launch_gpu_thread(void *arg)
 	{
 		cudaError_t cures;
 		cures = cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
-		assert(!cures);
+		STARPU_ASSERT(!cures);
 		cudaThreadSynchronize();
 	}
 

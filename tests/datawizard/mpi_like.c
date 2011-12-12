@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <errno.h>
 #include <pthread.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define NTHREADS	4
 #define NITER		128

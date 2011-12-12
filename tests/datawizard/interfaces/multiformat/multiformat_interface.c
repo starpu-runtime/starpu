@@ -16,7 +16,7 @@
 #include <starpu.h>
 #include "multiformat_types.h"
 #include "../test_interfaces.h"
-#include "../../../common/helper.h"
+#include "../../../helper.h"
 
 static void test_multiformat_cpu_func(void *buffers[], void *args);
 #ifdef STARPU_USE_CUDA

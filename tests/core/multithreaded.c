@@ -23,7 +23,7 @@
 #include <pthread.h>
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 pthread_t threads[16];
 

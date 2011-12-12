@@ -24,7 +24,7 @@
 #include <gordon.h>
 #endif
 
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define N	100
 #define K	256

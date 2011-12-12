@@ -25,7 +25,7 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
-#include "../common/helper.h"
+#include "../helper.h"
 
 #ifdef STARPU_SLOW_MACHINE
 #  define BLOCK_SIZE (64*1024)
@@ -95,9 +95,9 @@ int main(int argc, char **argv)
 	for (i = 0; i < mb; i++)
 	{
 		host_ptr_array[i] = (float *) malloc(BLOCK_SIZE);
-		assert(host_ptr_array[i]);
+		STARPU_ASSERT(host_ptr_array[i]);
 		starpu_variable_data_register(&handle_array[i], 0, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);
-		assert(handle_array[i]);
+		STARPU_ASSERT(handle_array[i]);
 	}
 
 	for (taskid = 0; taskid < ntasks; taskid++)

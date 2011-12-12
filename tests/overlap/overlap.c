@@ -22,7 +22,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define NTASKS	10000
 #define VECTORSIZE	1024

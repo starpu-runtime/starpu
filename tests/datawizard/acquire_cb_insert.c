@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define N 16
 #define M 4

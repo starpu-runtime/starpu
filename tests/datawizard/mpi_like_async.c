@@ -17,7 +17,7 @@
 
 #include <starpu.h>
 #include <pthread.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define NTHREADS	16
 #define NITER		128

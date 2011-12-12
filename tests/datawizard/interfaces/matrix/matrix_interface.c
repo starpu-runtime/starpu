@@ -15,7 +15,7 @@
  */
 #include <starpu.h>
 #include "../test_interfaces.h"
-#include "../../../common/helper.h"
+#include "../../../helper.h"
 
 #define WIDTH  16
 #define HEIGHT 16

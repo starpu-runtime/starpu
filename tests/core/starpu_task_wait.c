@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #include <starpu.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned ntasks = 65536;
 

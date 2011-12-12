@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define N	10000
 

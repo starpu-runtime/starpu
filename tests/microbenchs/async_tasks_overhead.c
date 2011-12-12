@@ -22,7 +22,7 @@
 
 #include <starpu.h>
 #include <starpu_profiling.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static unsigned ntasks = 65536;
 

@@ -17,7 +17,7 @@
 #include <starpu_cuda.h>
 #include "multiformat_types.h"
 #include "../test_interfaces.h"
-#include "../../../common/helper.h"
+#include "../../../helper.h"
 
 extern struct test_config multiformat_config;
 

@@ -22,7 +22,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <debug/starpu_debug_helpers.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static size_t vector_size = 1;
 

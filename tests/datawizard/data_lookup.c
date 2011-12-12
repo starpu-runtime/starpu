@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 static void task(void **buffers, void *args)
 {
@@ -70,20 +70,20 @@ static int test_lazy_allocation()
 
 	/* Make sure we have a local pointer to it.  */
 	pointer = starpu_handle_get_local_ptr(handle);
-	assert(pointer != NULL);
+	STARPU_ASSERT(pointer != NULL);
 	for(i = 0; i < count; i++)
 	{
 		float *numbers = (float *)pointer;
-		assert(numbers[i] == i);
+		STARPU_ASSERT(numbers[i] == i);
 	}
 
 	/* Make sure the pointer/handle mapping is up-to-date.  */
-	assert(starpu_data_lookup(pointer) == handle);
+	STARPU_ASSERT(starpu_data_lookup(pointer) == handle);
 
 	starpu_data_release(handle);
 	starpu_data_unregister(handle);
 
-	assert(starpu_data_lookup(pointer) == NULL);
+	STARPU_ASSERT(starpu_data_lookup(pointer) == NULL);
 	return 0;
 }
 
@@ -111,7 +111,7 @@ static void test_filters()
 		.nchildren = CHILDREN_COUNT
 	};
 	starpu_data_partition(handle, &f);
-	assert(starpu_data_get_nb_children(handle) == CHILDREN_COUNT);
+	STARPU_ASSERT(starpu_data_get_nb_children(handle) == CHILDREN_COUNT);
 
 	for (i = 0; i < CHILDREN_COUNT; i++)
 	{
@@ -119,10 +119,10 @@ static void test_filters()
 
 		child = starpu_data_get_sub_data(handle, 1, i);
 		children_pointers[i] = (int *) starpu_handle_get_local_ptr(child);
-		assert(children_pointers[i] != NULL);
+		STARPU_ASSERT(children_pointers[i] != NULL);
 
 		/* Make sure we have a pointer -> handle mapping for CHILD.  */
-		assert(starpu_data_lookup(children_pointers[i]) == child);
+		STARPU_ASSERT(starpu_data_lookup(children_pointers[i]) == child);
 	}
 
 	starpu_data_unpartition(handle, 0);
@@ -131,11 +131,11 @@ static void test_filters()
 	{
 		if (children_pointers[i] != ptr)
 			/* Make sure the pointer -> handle mapping is gone.  */
-			assert(starpu_data_lookup(children_pointers[i]) == NULL);
+			STARPU_ASSERT(starpu_data_lookup(children_pointers[i]) == NULL);
 	}
 
 	/* Make sure the parent's mapping is back.  */
-	assert(starpu_data_lookup(ptr) == handle);
+	STARPU_ASSERT(starpu_data_lookup(ptr) == handle);
 
 	starpu_data_unregister(handle);
 	starpu_free(ptr);
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(variables[i]);
-		assert(handle == variable_handles[i]);
+		STARPU_ASSERT(handle == variable_handles[i]);
 	}
 
 	for(i = 0; i < VECTOR_COUNT; i++)
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(vectors[i]);
-		assert(handle == vector_handles[i]);
+		STARPU_ASSERT(handle == vector_handles[i]);
 	}
 
 	/* Unregister them.  */
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(variables[i]);
-		assert(handle == NULL);
+		STARPU_ASSERT(handle == NULL);
 		starpu_free(variables[i]);
 	}
 
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 		starpu_data_handle_t handle;
 
 		handle = starpu_data_lookup(vectors[i]);
-		assert(handle == NULL);
+		STARPU_ASSERT(handle == NULL);
 		starpu_free(vectors[i]);
 	}
 

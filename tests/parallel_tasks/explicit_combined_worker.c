@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <limits.h>
 #include <unistd.h>
-#include "../common/helper.h"
+#include "../helper.h"
 
 #define N	1000
 #define VECTORSIZE	1024
@@ -26,7 +26,7 @@
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	int worker_size = starpu_combined_worker_get_size();
-	assert(worker_size > 0);
+	STARPU_ASSERT(worker_size > 0);
 	usleep(1000/worker_size);
 #if 0
 	int id = starpu_worker_get_id();
