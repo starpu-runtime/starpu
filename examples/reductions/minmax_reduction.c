@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 		{
 			STARPU_ASSERT(ret == -ENODEV);
 			FPRINTF(stderr, "This test can only run on CPUs, but there are no CPU workers (this is not a bug).\n");
-			return 0;
+			return 77;
 		}
 	}
 
