@@ -58,7 +58,7 @@ expression E1, E2;
 )
 
 
-@pthraed_barrier_@
+@pthread_barrier_@
 expression E1, E2, E3;
 @@
 (
