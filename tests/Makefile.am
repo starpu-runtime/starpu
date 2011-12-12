@@ -21,7 +21,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 EXTRA_DIST =					\
-	common/helper.h				\
+	helper.h				\
 	microbenchs/null_kernel_gordon.c	\
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
@@ -53,7 +53,7 @@ if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include $(HWLOC_CFLAGS)
+NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/include $(HWLOC_CFLAGS)
 
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`
