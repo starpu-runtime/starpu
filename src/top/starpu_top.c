@@ -26,6 +26,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <common/timing.h>
+#include <common/utils.h>
 
 extern struct _starpu_top_message_queue*  _starpu_top_mt;
 int starpu_top = 0;
@@ -131,7 +132,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	starpu_top=1;
 	sem_init(&starpu_top_wait_for_go,0,0);
 
-	pthread_mutex_init(&starpu_top_wait_for_continue_mutex, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&starpu_top_wait_for_continue_mutex, NULL);
 
 	//profiling activation
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
@@ -609,9 +610,10 @@ void starpu_top_debug_lock(const char* debug_message)
 		_starpu_top_message_add(_starpu_top_mt,message);
 
 		//This threads keeps locked while we don't receive an STEP message
-		pthread_mutex_lock(&starpu_top_wait_for_continue_mutex);
-		pthread_cond_wait(&starpu_top_wait_for_continue_cond,&starpu_top_wait_for_continue_mutex);
-		pthread_mutex_unlock(&starpu_top_wait_for_continue_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&starpu_top_wait_for_continue_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&starpu_top_wait_for_continue_cond,
+					  &starpu_top_wait_for_continue_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_top_wait_for_continue_mutex);
 	}
 }
 
@@ -728,7 +730,7 @@ void starpu_top_change_debug_mode(const char*message)
 */
 void starpu_top_debug_next_step()
 {
-	pthread_cond_signal(&starpu_top_wait_for_continue_cond);
+	_STARPU_PTHREAD_COND_SIGNAL(&starpu_top_wait_for_continue_cond);
 }
 
 

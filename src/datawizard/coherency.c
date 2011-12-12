@@ -562,7 +562,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replicate *replicate)
 {
 // XXX : this is just a hint, so we don't take the lock ...
-//	pthread_spin_lock(&handle->header_lock);
+//	_STARPU_PTHREAD_SPIN_LOCK(&handle->header_lock);
 
 	if (replicate->state == STARPU_INVALID)
 	{
@@ -570,7 +570,7 @@ static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replic
 		replicate->requested[dst_node] = 1;
 	}
 
-//	pthread_spin_unlock(&handle->header_lock);
+//	_STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
 }
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
@@ -737,7 +737,7 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, uint3
 	unsigned ret = 0;
 
 // XXX : this is just a hint, so we don't take the lock ...
-//	pthread_spin_lock(&handle->header_lock);
+//	_STARPU_PTHREAD_SPIN_LOCK(&handle->header_lock);
 
 	if (handle->per_node[node].state != STARPU_INVALID)
 	{
@@ -756,7 +756,7 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, uint3
 
 	}
 
-//	pthread_spin_unlock(&handle->header_lock);
+//	_STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
 
 	return ret;
 }

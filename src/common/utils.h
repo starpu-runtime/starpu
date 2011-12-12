@@ -77,4 +77,8 @@ void _starpu_drop_comments(FILE *f);
 #define _STARPU_PTHREAD_BARRIER_DESTROY(barrier) { int p_ret = pthread_barrier_destroy((barrier)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_barrier_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
 #define _STARPU_PTHREAD_BARRIER_WAIT(barrier) { int p_ret = pthread_barrier_wait(barrier); if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == PTHREAD_BARRIER_SERIAL_THREAD)))) { fprintf(stderr, "pthread_barrier_wait : %s\n", strerror(p_ret)); STARPU_ABORT();}}
 
+#define _STARPU_PTHREAD_SPIN_DESTROY(lock) { int p_ret = pthread_spin_destroy(lock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_spin_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define _STARPU_PTHREAD_SPIN_LOCK(lock) { int p_ret = pthread_spin_lock(lock);  if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_spin_lock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define _STARPU_PTHREAD_SPIN_UNLOCK(lock) { int p_ret = pthread_spin_unlock(lock);  if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_spin_unlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+
 #endif // __COMMON_UTILS_H__

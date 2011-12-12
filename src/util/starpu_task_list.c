@@ -123,7 +123,7 @@ struct starpu_task *starpu_task_list_begin(struct starpu_task_list *list)
 	return list->head;
 }
 
-struct starpu_task *starpu_task_list_end(struct starpu_task_list *list)
+struct starpu_task *starpu_task_list_end(struct starpu_task_list *list __attribute__ ((unused)))
 {
 	return NULL;
 }

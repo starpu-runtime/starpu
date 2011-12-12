@@ -113,7 +113,7 @@ void _starpu_display_alloc_cache_stats(void)
 static size_t comm_amount[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif /* STARPU_DATA_STATS */
 
-void _starpu_comm_amounts_inc(unsigned src, unsigned dst, size_t size)
+void _starpu_comm_amounts_inc(unsigned src  __attribute__ ((unused)), unsigned dst  __attribute__ ((unused)), size_t size  __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	comm_amount[src][dst] += size;

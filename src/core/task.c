@@ -398,8 +398,6 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 int _starpu_task_submit_conversion_task(struct starpu_task *task,
 					unsigned int workerid)
 {
-	int ret;
-
 	STARPU_ASSERT(task->cl);
 	STARPU_ASSERT(task->execute_on_a_specific_worker);
 
@@ -574,7 +572,7 @@ void _starpu_set_current_task(struct starpu_task *task)
 int
 _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 {
-	int i;
+	unsigned i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
 		unsigned int id;
