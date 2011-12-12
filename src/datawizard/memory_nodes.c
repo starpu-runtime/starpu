@@ -129,7 +129,7 @@ void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_
 	unsigned cond_id;
 	unsigned nconds_total, nconds;
 
-	pthread_rwlock_wrlock(&descr.conditions_rwlock);
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&descr.conditions_rwlock);
 
 	/* we only insert the queue if it's not already in the list */
 	nconds = descr.condition_count[nodeid];
@@ -140,7 +140,7 @@ void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_
 			STARPU_ASSERT(descr.conditions_attached_to_node[nodeid][cond_id].mutex == mutex);
 
 			/* the condition is already in the list */
-			pthread_rwlock_unlock(&descr.conditions_rwlock);
+			_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
 			return;
 		}
 	}
@@ -157,7 +157,7 @@ void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_
 		if (descr.conditions_all[cond_id].cond == cond)
 		{
 			/* the queue is already in the global list */
-			pthread_rwlock_unlock(&descr.conditions_rwlock);
+			_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
 			return;
 		}
 	}
@@ -167,7 +167,7 @@ void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_
 	descr.conditions_all[nconds_total].mutex = mutex;
 	descr.total_condition_count++;
 
-	pthread_rwlock_unlock(&descr.conditions_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
 }
 
 unsigned starpu_worker_get_memory_node(unsigned workerid)

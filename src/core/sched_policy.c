@@ -512,7 +512,8 @@ void _starpu_wait_on_sched_event(void)
 	if (_starpu_machine_is_running())
 	{
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-		pthread_cond_wait(worker->sched_cond, worker->sched_mutex);
+		_STARPU_PTHREAD_COND_WAIT(worker->sched_cond,
+					  worker->sched_mutex);
 #endif
 	}
 

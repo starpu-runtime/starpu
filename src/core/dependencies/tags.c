@@ -83,11 +83,11 @@ void starpu_tag_remove(starpu_tag_t id)
 {
 	struct _starpu_tag *tag;
 
-	pthread_rwlock_wrlock(&tag_global_rwlock);
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(tag_htbl, id);
 
-	pthread_rwlock_unlock(&tag_global_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
 	if (tag)
 	{
@@ -120,7 +120,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 {
-	pthread_rwlock_wrlock(&tag_global_rwlock);
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	/* search if the tag is already declared or not */
 	struct _starpu_tag *tag;
@@ -137,7 +137,7 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 		STARPU_ASSERT(old == NULL);
 	}
 
-	pthread_rwlock_unlock(&tag_global_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
 	return tag;
 }
