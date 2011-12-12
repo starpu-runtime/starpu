@@ -185,6 +185,8 @@ struct starpu_task
 	struct starpu_task *prev;
 	struct starpu_task *next;
 
+	unsigned int mf_skip;
+
 	/* this is private to StarPU, do not modify. If the task is allocated
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */

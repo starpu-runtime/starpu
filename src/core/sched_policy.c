@@ -256,7 +256,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 					continue;
 
 				conversion_task = _starpu_create_conversion_task(handle, node);
-				_starpu_push_local_task(worker, conversion_task, 0);
+				conversion_task->mf_skip = 1;
+				conversion_task->execute_on_a_specific_worker = 1;
+				conversion_task->workerid = workerid;
+				_starpu_task_submit_conversion_task(conversion_task, workerid);
 				//_STARPU_DEBUG("Pushing a conversion task\n");
 			}
 
@@ -393,10 +396,8 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	return conversion_task;
 }
 
-
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 {
-	int i;
 	struct starpu_task *task;
 
 	/* We can't tell in advance which task will be picked up, so we measure
@@ -406,30 +407,10 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 	if (profiling)
 		_starpu_clock_gettime(&pop_start_time);
 
+pick:
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
-	if (task)
-		goto profiling;
 
-	/*
-	 * The first STARPU_NMAXBUFS elements of queued_tasks[i] are conversion
-	 * tasks for multiformat handles. The last element is the "real" task.
-	 */
-	int worker_id = starpu_worker_get_id();
-	static struct starpu_task *queued_tasks[STARPU_NMAXWORKERS][STARPU_NMAXBUFS+1] = { };
-
-	/* Maybe there is a queued task for this worker */
-pick_from_queued_tasks:
-	for (i = 0; i < STARPU_NMAXBUFS+1; i++)
-	{
-		if (queued_tasks[worker_id][i])
-		{
-			task = queued_tasks[worker_id][i];
-			queued_tasks[worker_id][i] = NULL;
-			goto profiling;
-		}
-	}
-	
 	if (!task && policy.pop_task)
 		task = policy.pop_task();
 
@@ -441,12 +422,13 @@ pick_from_queued_tasks:
 	if (!_starpu_task_uses_multiformat_handles(task))
 		goto profiling;
 
-	/*
-	 * This worker may not be able to execute this task. In this case, we
-	 * should return the task anyway. It will be pushed back almost immediatly.
-	 * This way, we avoid computing and executing the conversions tasks.
-	 * Here, we do not care about what implementation is used.
-	 */
+
+	/* This is either a conversion task, or a regular task for which the
+	 * conversion tasks have already been created and submitted */
+	if (task->mf_skip)
+		goto profiling;
+
+	int worker_id = starpu_worker_get_id();
 	if (!starpu_worker_can_execute_task(worker_id, task, 0))
 		return task;
 
@@ -456,6 +438,7 @@ pick_from_queued_tasks:
 	 * We do have a task that uses multiformat handles. Let's create the 
 	 * required conversion tasks.
 	 */
+	int i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
 		struct starpu_task *conversion_task;
@@ -466,7 +449,10 @@ pick_from_queued_tasks:
 			continue;
 
 		conversion_task = _starpu_create_conversion_task(handle, node);
-		queued_tasks[worker_id][i] = conversion_task;
+		conversion_task->mf_skip = 1;
+		conversion_task->execute_on_a_specific_worker = 1;
+		conversion_task->workerid = worker_id;
+		_starpu_task_submit_conversion_task(conversion_task, worker_id);
 	}
 
 	/*
@@ -475,13 +461,10 @@ pick_from_queued_tasks:
 	for (i = 0; i < task->cl->nbuffers; i++)
 		task->buffers[i].handle->mf_node = node;
 
-	queued_tasks[worker_id][STARPU_NMAXBUFS] = task;
+	task->mf_skip = 1;
+	starpu_task_list_push_front(&worker->local_tasks, task);
+	goto pick;
 
-	/* We know there is at least one task in queued_tasks[worker_id]. */
-	goto pick_from_queued_tasks;
-	
-
-	/* We finally got our task */
 profiling:
 	/* Note that we may get a NULL task in case the scheduler was unlocked
 	 * for some reason. */

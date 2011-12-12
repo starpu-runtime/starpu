@@ -392,6 +392,53 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	return ret;
 }
 
+/*
+ * worker->sched_mutex must be locked when calling this function.
+ */
+int _starpu_task_submit_conversion_task(struct starpu_task *task,
+					unsigned int workerid)
+{
+	int ret;
+
+	STARPU_ASSERT(task->cl);
+	STARPU_ASSERT(task->execute_on_a_specific_worker);
+
+	/* We should factorize that */
+	if (task->cl->model)
+		_starpu_load_perfmodel(task->cl->model);
+
+	if (task->cl->power_model)
+		_starpu_load_perfmodel(task->cl->power_model);
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	_starpu_increment_nsubmitted_tasks();
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	j->submitted = 1;
+	_starpu_increment_nready_tasks();
+
+	memcpy(j->ordered_buffers, j->task->buffers, task->cl->nbuffers*sizeof(struct starpu_buffer_descr));
+
+        _STARPU_LOG_IN();
+
+	task->status = STARPU_TASK_READY;
+	_starpu_profiling_set_task_push_start_time(task);
+
+	unsigned node = starpu_worker_get_memory_node(workerid);
+	if (starpu_get_prefetch_flag())
+		starpu_prefetch_task_input_on_node(task, node);
+
+	struct _starpu_worker *worker;
+	worker = _starpu_get_worker_struct(workerid);
+	starpu_task_list_push_front(&worker->local_tasks, task);
+
+	_starpu_profiling_set_task_push_end_time(task);
+
+        _STARPU_LOG_OUT();
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	return 0;
+}
+
 void starpu_display_codelet_stats(struct starpu_codelet *cl)
 {
 	unsigned worker;

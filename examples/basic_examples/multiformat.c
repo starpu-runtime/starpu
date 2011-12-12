@@ -79,6 +79,7 @@ static struct starpu_codelet  cl = {
 	.opencl_funcs = {multiformat_scal_opencl_func, NULL},
 #endif
 	.nbuffers = 1,
+	.name = "codelet_real"
 };
 
 /*
