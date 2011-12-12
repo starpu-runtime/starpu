@@ -34,7 +34,12 @@ void cuda_to_cpu(void *buffers[], void *arg)
 
 extern void cpu_to_cuda_cuda_func(void *buffers[], void *args); struct starpu_codelet cpu_to_cuda_cl = {
 	.where = STARPU_CUDA,
-	.cuda_func = cpu_to_cuda_cuda_func,
+	.cuda_funcs = {
+		cpu_to_cuda_cuda_func
+		,
+		NULL
+		,
+	}
 	.nbuffers = 1
 };
 

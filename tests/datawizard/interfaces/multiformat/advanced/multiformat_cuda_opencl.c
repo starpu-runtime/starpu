@@ -46,7 +46,12 @@ test(void)
 	static struct starpu_codelet cl_cuda =
 	{
 		.where     = STARPU_CUDA,
-		.cuda_func = cuda_func,
+		.cuda_funcs = {
+			cuda_func
+			,
+			NULL
+			,
+		}
 		.nbuffers  = 1
 	};
 

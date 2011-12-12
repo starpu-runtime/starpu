@@ -91,7 +91,7 @@ static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
 static struct starpu_codelet reduction_codelet = {
 	.where = STARPU_CPU,
 	.cpu_funcs = {cpu_redux_func, NULL},
-	.cuda_funcs = {NULL, NULL},
+	.cuda_funcs = {NULL},
 	.nbuffers = 2,
 	.model = NULL
 };
