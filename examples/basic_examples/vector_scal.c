@@ -50,7 +50,6 @@ static struct starpu_perfmodel vector_scal_power_model = {
 static struct starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
 	/* CPU implementation of the codelet */
-	.cpu_funcs = {STARPU_MULTIPLE_CPU_IMPLEMENTATIONS, NULL},
 	.cpu_funcs = {
 		scal_cpu_func
 #ifdef STARPU_HAVE_ICC
