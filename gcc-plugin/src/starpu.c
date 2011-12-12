@@ -1414,6 +1414,11 @@ build_codelet_initializer (tree task_decl)
 				    NULL_TREE);
 	    pointers = tree_cons (size_int (len), addr, pointers);
 	    len++;
+
+	    if (len > STARPU_MAXIMPLEMENTATIONS)
+	      error_at (DECL_SOURCE_LOCATION (impl_decl),
+			"maximum number of per-target task implementations "
+			"exceeded");
 	  }
       }
 
