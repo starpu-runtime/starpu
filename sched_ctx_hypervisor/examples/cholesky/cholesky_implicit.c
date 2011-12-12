@@ -331,10 +331,12 @@ int main(int argc, char **argv)
 		execute_cholesky(mat, size, nblocks);
 	}
 
+
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
 	if(with_ctxs)
 		end_contexts();
+
 	return 0;
 }

@@ -6,7 +6,6 @@ struct sched_ctx_wrapper {
 	double current_idle_time[STARPU_NMAXWORKERS];
 	int tasks[STARPU_NMAXWORKERS];
 	int poped_tasks[STARPU_NMAXWORKERS];
-	int unsucceded_resizes[STARPU_NMAXWORKERS];
 };
 
 struct sched_ctx_hypervisor {
@@ -17,8 +16,8 @@ struct sched_ctx_hypervisor {
 	int min_tasks;
 	struct hypervisor_policy policy;
 	struct starpu_htbl32_node_s *configurations[STARPU_NMAX_SCHED_CTXS];
-	struct starpu_htbl32_node_s *advices[STARPU_NMAX_SCHED_CTXS];
-	struct starpu_htbl32_node_s *requests[STARPU_NMAX_SCHED_CTXS];
+	struct starpu_htbl32_node_s *steal_requests[STARPU_NMAX_SCHED_CTXS];
+	struct starpu_htbl32_node_s *resize_requests[STARPU_NMAX_SCHED_CTXS];
 };
 
 struct sched_ctx_hypervisor_adjustment {
