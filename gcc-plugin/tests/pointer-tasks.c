@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* (instructions run (ldflags "-lstarpu")) */
+/* (instructions run (ldflags "-lstarpu-1.0")) */
 
 #undef NDEBUG
 
