@@ -241,7 +241,7 @@ test(void)
 		print_stats(&global_stats);
 		FPRINTF(stderr ,"\n");
 		print_stats(&expected_stats);
-		return 1;
+		return -ENODEV;
 	}
 #endif /* !STARPU_USE_CUDA */
 
@@ -259,7 +259,7 @@ test(void)
 		print_stats(&global_stats);
 		FPRINTF(stderr ,"\n");
 		print_stats(&expected_stats);
-		return 1;
+		return -ENODEV;
 	}
 
 #endif /* !STARPU_USE_OPENCL */
@@ -289,7 +289,15 @@ main(void)
 	unregister_handle();
 	starpu_shutdown();
 
-	return err?EXIT_FAILURE:EXIT_SUCCESS;
+	switch (err)
+	{
+		case -ENODEV:
+			return STARPU_TEST_SKIPPED;
+		case 0:
+			return EXIT_SUCCESS;
+		default:
+			return EXIT_FAILURE;
+	}
 #else /* ! STARPU_USE_CPU */
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */

@@ -322,15 +322,18 @@ main(void)
 	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	unsigned int ncuda = starpu_cuda_worker_get_count();
+	unsigned int nopencl = starpu_opencl_worker_get_count();
+
 #ifdef STARPU_USE_OPENCL
-	if (test_opencl() != 0)
+	if (nopencl > 0 && test_opencl() != 0)
 	{
 		FPRINTF(stderr, "OPENCL FAILED\n");
 		return EXIT_FAILURE;
 	}
 #endif
 #ifdef STARPU_USE_CUDA
-	if (test_cuda() != 0)
+	if (ncuda > 0 && test_cuda() != 0)
 	{
 		FPRINTF(stderr, "CUDA FAILED \n");
 		return EXIT_FAILURE;
@@ -339,7 +342,10 @@ main(void)
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	if (ncuda == 0 && nopencl == 0)
+		return STARPU_TEST_SKIPPED;
+	else
+		return EXIT_SUCCESS;
 #else /* !STARPU_USE_CPU */
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */
