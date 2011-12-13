@@ -39,7 +39,8 @@ extern "C"
 #define STARPU_OPENCL	((1ULL)<<6)
 
 /* Codelet types */
-enum starpu_codelet_type {
+enum starpu_codelet_type
+{
 	STARPU_SEQ,
 	STARPU_SPMD,
 	STARPU_FORKJOIN

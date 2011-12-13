@@ -71,11 +71,13 @@ static int _starpu_compar_handles(const struct starpu_buffer_descr *descrA,
 	struct _starpu_data_state *dataB = descrB->handle;
 
 	/* Perhaps we have the same piece of data */
-	if (dataA == dataB) {
+	if (dataA == dataB)
+	{
 		/* Process write requests first, this is needed for proper
 		 * locking, see _submit_job_enforce_data_deps,
 		 * _starpu_fetch_task_input, and _starpu_push_task_output  */
-		if (descrA->mode & STARPU_W) {
+		if (descrA->mode & STARPU_W)
+		{
 			if (descrB->mode & STARPU_W)
 				/* Both A and B write, take the reader first */
 				if (descrA->mode & STARPU_R)
