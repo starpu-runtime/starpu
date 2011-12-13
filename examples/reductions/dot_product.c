@@ -73,7 +73,8 @@ void init_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet init_codelet = {
+static struct starpu_codelet init_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.can_execute = can_execute,
 	.cpu_funcs = {init_cpu_func, NULL},
@@ -99,7 +100,8 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 extern void redux_cuda_func(void *descr[], void *_args);
 #endif
 
-static struct starpu_codelet redux_codelet = {
+static struct starpu_codelet redux_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.can_execute = can_execute,
 	.cpu_funcs = {redux_cpu_func, NULL},
@@ -161,7 +163,8 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet dot_codelet = {
+static struct starpu_codelet dot_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.can_execute = can_execute,
 	.cpu_funcs = {dot_cpu_func, NULL},

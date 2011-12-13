@@ -50,13 +50,15 @@ extern struct starpu_top_data* starpu_top_achieved_loop;
 
 
 /* Split only on the z axis to make things simple */
-typedef enum {
+typedef enum
+{
 	B = 0,
 	T = 1
 } direction;
 
 /* Description of a domain block */
-struct block_description {
+struct block_description
+{
 	/* Which MPI node should process that block ? */
 	unsigned mpi_node;
 	

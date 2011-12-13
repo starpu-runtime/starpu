@@ -65,7 +65,8 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
@@ -86,15 +87,18 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j)
 	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, j, k); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (!no_prio && (j == k+1)) {
+	if (!no_prio && (j == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG12(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
 	}
 
@@ -113,15 +117,18 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i)
 	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, i); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (!no_prio && (i == k+1)) {
+	if (!no_prio && (i == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), TAG22(k-1, i, k));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, i), 1, TAG11(k));
 	}
 
@@ -144,15 +151,18 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, j, i); /* produced by TAG22(k-1, i, j) */
 	task->buffers[2].mode = STARPU_RW;
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
+	if (!no_prio &&  (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG12(k, j), TAG21(k, i));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
 	}
 
@@ -178,10 +188,12 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 		struct starpu_task *task = create_task_11(dataA, k);
 
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
+		else
+		{
 			starpu_task_submit(task);
 		}
 		
@@ -236,12 +248,14 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 	/* We already enforce deps by hand */
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};

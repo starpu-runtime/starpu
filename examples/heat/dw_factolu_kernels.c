@@ -121,7 +121,8 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attr
 	cublasStatus status;
 #endif
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			SGEMM("N", "N",	dy, dx, dz, 
 				-1.0f, left, ld21, right, ld12,
@@ -168,7 +169,8 @@ void dw_cublas_codelet_update_u22(void *descr[], void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribute__((unused)) void *_args)
+{
 	float *sub11;
 	float *sub12;
 
@@ -186,7 +188,8 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 #endif
 
 	/* solve L11 U12 = A12 (find U12) */
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			STRSM("L", "L", "N", "N",
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
@@ -231,7 +234,8 @@ void dw_cublas_codelet_update_u12(void *descr[], void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribute__((unused)) void *_args)
+{
 	float *sub11;
 	float *sub21;
 
@@ -248,7 +252,8 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 	cublasStatus status;
 #endif
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			STRSM("R", "U", "N", "U", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -317,7 +322,8 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 
 	unsigned long z;
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			for (z = 0; z < nx; z++)
 			{

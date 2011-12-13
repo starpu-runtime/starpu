@@ -36,65 +36,80 @@ extern void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint3
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-cg") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-cg") == 0)
+		{
 			use_cg = 1;
 		}
 
-		if (strcmp(argv[i], "-shape") == 0) {
+		if (strcmp(argv[i], "-shape") == 0)
+		{
 		        char *argptr;
 			shape = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nthick") == 0) {
+		if (strcmp(argv[i], "-nthick") == 0)
+		{
 		        char *argptr;
 			nthick = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-ntheta") == 0) {
+		if (strcmp(argv[i], "-ntheta") == 0)
+		{
 		        char *argptr;
 			ntheta = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nbigblocks") == 0) {
+		if (strcmp(argv[i], "-nbigblocks") == 0)
+		{
 		        char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-v1") == 0) {
+		if (strcmp(argv[i], "-v1") == 0)
+		{
 			version = 1;
 		}
 
-		if (strcmp(argv[i], "-v2") == 0) {
+		if (strcmp(argv[i], "-v2") == 0)
+		{
 			version = 2;
 		}
 
-		if (strcmp(argv[i], "-v3") == 0) {
+		if (strcmp(argv[i], "-v3") == 0)
+		{
 			version = 3;
 		}
 
-		if (strcmp(argv[i], "-v4") == 0) {
+		if (strcmp(argv[i], "-v4") == 0)
+		{
 			version = 4;
 		}
 
-		if (strcmp(argv[i], "-pin") == 0) {
+		if (strcmp(argv[i], "-pin") == 0)
+		{
 			pinned = 1;
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-no-prio") == 0) {
+		if (strcmp(argv[i], "-no-prio") == 0)
+		{
 			no_prio = 1;
 		}
 
-		if (strcmp(argv[i], "-size") == 0) {
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			unsigned size = strtol(argv[++i], &argptr, 10);
 			nthick = 130;
@@ -102,7 +117,8 @@ static void parse_args(int argc, char **argv)
 			STARPU_ASSERT((nthick - 2)*(ntheta - 2) == size);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number] [-no-prio]\n", argv[0]);
 		}
 	}
@@ -136,11 +152,14 @@ static inline float diff_psi(unsigned theta_tr, unsigned thick_tr, unsigned side
 	ya = pmesh[NODE_NUMBER(theta_tr, thick_tr)].y;
 
 	/* B */
-	if (side_tr) {
+	if (side_tr)
+	{
 		/* lower D is actually B here */
 		xb = pmesh[NODE_NUMBER(theta_tr+1, thick_tr)].x;
 		yb = pmesh[NODE_NUMBER(theta_tr+1, thick_tr)].y;
-	} else {
+	}
+	else
+	{
 		/* upper */
 		xb = pmesh[NODE_NUMBER(theta_tr, thick_tr+1)].x;
 		yb = pmesh[NODE_NUMBER(theta_tr, thick_tr+1)].y;
@@ -150,24 +169,31 @@ static inline float diff_psi(unsigned theta_tr, unsigned thick_tr, unsigned side
 	yc = pmesh[NODE_NUMBER(theta_tr+1, thick_tr+1)].y;
 
 	/* now look for the actual psi node */
-	if (NODE_NUMBER(theta_tr, thick_tr) == NODE_NUMBER(theta_psi, thick_psi)) {
+	if (NODE_NUMBER(theta_tr, thick_tr) == NODE_NUMBER(theta_psi, thick_psi))
+	{
 		/* A nothing to do */
-	} else if (NODE_NUMBER(theta_tr+1, thick_tr+1) == NODE_NUMBER(theta_psi, thick_psi)) {
+	}
+	else if (NODE_NUMBER(theta_tr+1, thick_tr+1) == NODE_NUMBER(theta_psi, thick_psi))
+	{
 		/* psi matches C */
 		/* swap A and C coordinates  */
 		tmp = xa; xa = xc; xc = tmp;
 		tmp = ya; ya = yc; yc = tmp;
-	} else if
-		(side_tr && (NODE_NUMBER(theta_tr+1, thick_tr) == NODE_NUMBER(theta_psi, thick_psi))) {
+	}
+	else if (side_tr && (NODE_NUMBER(theta_tr+1, thick_tr) == NODE_NUMBER(theta_psi, thick_psi)))
+	{
 		/* psi is D (that was stored in C) XXX */
 		tmp = xa; xa = xb; xb = tmp;
 		tmp = ya; ya = yb; yb = tmp;
-	} else if
-		(!side_tr && (NODE_NUMBER(theta_tr, thick_tr+1) == NODE_NUMBER(theta_psi, thick_psi))) {
+	}
+	else if	(!side_tr && (NODE_NUMBER(theta_tr, thick_tr+1) == NODE_NUMBER(theta_psi, thick_psi)))
+	{
 		/* psi is C */
 		tmp = xa; xa = xb; xb = tmp;
 		tmp = ya; ya = yb; yb = tmp;
-	} else {
+	}
+	else
+	{
 		/* the psi node is not a node of the current triangle */
 		return 0.0f;
 	}
@@ -178,7 +204,8 @@ static inline float diff_psi(unsigned theta_tr, unsigned thick_tr, unsigned side
 
 	denom = (xa - xb)*(yc - ya) - (xc - xb)*(ya - yb);
 
-	switch (xy) {
+	switch (xy)
+	{
 		case X:
 			value = (yc - yb)/denom;
 			break;
@@ -220,11 +247,14 @@ static inline float surface_triangle(unsigned theta_tr, unsigned thick_tr, unsig
 	xj = pmesh[NODE_NUMBER(theta_tr+1, thick_tr+1)].x;
 	yj = pmesh[NODE_NUMBER(theta_tr+1, thick_tr+1)].y;
 
-	if (side_tr) {
+	if (side_tr)
+	{
 		/* lower */
 		xk = pmesh[NODE_NUMBER(theta_tr+1, thick_tr)].x;
 		yk = pmesh[NODE_NUMBER(theta_tr+1, thick_tr)].y;
-	} else {
+	}
+	else
+	{
 		xk = pmesh[NODE_NUMBER(theta_tr, thick_tr+1)].x;
 		yk = pmesh[NODE_NUMBER(theta_tr, thick_tr+1)].y;
 	}
@@ -314,8 +344,6 @@ done:
 
 static void solve_system(unsigned size, unsigned subsize, float *result, int *RefArray, float *Bformer, float *A, float *B)
 {
-
-
 	unsigned i;
 
 	/* solve the actual problem LU X = B */
@@ -452,7 +480,8 @@ void build_mesh(point *mesh)
 			float r;
 			r = thick * (RMAX - RMIN)/(nthick - 1) + RMIN;
 
-			switch (shape) {
+			switch (shape)
+			{
 				default:
 				case 0:
 					mesh[NODE_NUMBER(theta,thick)].x = r*cosf(angle);
@@ -604,11 +633,13 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 			float val;
 			unsigned nodeneighbour =  neighbours[neighbour];
 
-			if (nodeneighbour < newsize) {
+			if (nodeneighbour < newsize)
+			{
 
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
 	
-				if (val != 0.0f) {
+				if (val != 0.0f)
+				{
 					*nzval = realloc(*nzval, (pos+1)*sizeof(float));
 					*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
 	
@@ -648,7 +679,8 @@ static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned news
 		{
 			unsigned long nodeneighbour =  neighbours[neighbour];
 
-			if (nodeneighbour < newsize) {
+			if (nodeneighbour < newsize)
+			{
 				float val;
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
 				A[j+ (unsigned long)newsize*nodeneighbour] = val;
@@ -686,7 +718,8 @@ int main(int argc, char **argv)
 
 	/* we can either use a direct method (LU decomposition here) or an 
 	 * iterative method (conjugate gradient here) */
-	if (use_cg) {
+	if (use_cg)
+	{
 		unsigned nnz;
 		float *nzval;
 		uint32_t *colind;
@@ -718,7 +751,8 @@ int main(int argc, char **argv)
 		}
 	
 	}
-	else {
+	else
+	{
 
 		/* unfortunately CUDA does not allow late memory registration, 
 		 * we need to do the malloc using CUDA itself ... */
@@ -733,7 +767,8 @@ int main(int argc, char **argv)
 
 		STARPU_ASSERT(newsize % nblocks == 0);
 
-		switch (version) {
+		switch (version)
+		{
 			case 1:
 			case 2:
 				dw_factoLU(A, newsize, newsize, nblocks, version, no_prio);

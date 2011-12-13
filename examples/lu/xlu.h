@@ -106,7 +106,8 @@ extern struct starpu_perfmodel model_12;
 extern struct starpu_perfmodel model_21;
 extern struct starpu_perfmodel model_22;
 
-struct piv_s {
+struct piv_s
+{
 	unsigned *piv; /* complete pivot array */
 	unsigned first; /* first element */
 	unsigned last; /* last element */

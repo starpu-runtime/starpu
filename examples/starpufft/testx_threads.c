@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,8 @@
 #define SIGN (-1)
 /* #define SIGN (1) */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	int i;
 	struct timeval begin, end;
 	int size;
@@ -50,23 +51,29 @@ int main(int argc, char *argv[]) {
 		num_threads = atoi(num);
 	_FFTW(plan_with_nthreads)(num_threads);
 
-	if (argc < 2 || argc > 3) {
+	if (argc < 2 || argc > 3)
+	{
 		fprintf(stderr,"need one or two size of vector\n");
 		exit(EXIT_FAILURE);
 	}
 
-	if (argc == 2) {
+	if (argc == 2)
+	{
 		n = atoi(argv[1]);
 
 		/* 1D */
 		size = n;
-	} else if (argc == 3) {
+	}
+	else if (argc == 3)
+	{
 		n = atoi(argv[1]);
 		m = atoi(argv[2]);
 
 		/* 2D */
 		size = n * m;
-	} else {
+	}
+	else
+	{
 		assert(0);
 	}
 
@@ -79,12 +86,17 @@ int main(int argc, char *argv[]) {
 
 	_FFTW(complex) *out_fftw = _FFTW(malloc)(size * sizeof(*out_fftw));
 
-	if (argc == 2) {
+	if (argc == 2)
+	{
 		fftw_plan = _FFTW(plan_dft_1d)(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
 
-	} else if (argc == 3) {
+	}
+	else if (argc == 3)
+	{
 		fftw_plan = _FFTW(plan_dft_2d)(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
-	} else {
+	}
+	else
+	{
 		assert(0);
 	}
 

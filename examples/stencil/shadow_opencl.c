@@ -38,7 +38,8 @@ shadow( int bz, __global TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, in
 	unsigned x, y, z;\n\
 	if (idy == 0)\n\
 		for (z = i-1 + idz; z < nz-(i-1); z += stepz)\n\
-			for (x = K + idx; x < nx-K; x += stepx) {\n\
+			for (x = K + idx; x < nx-K; x += stepx) \
+			{\n								\
 				unsigned index = x+z*ldz;\n\
 				ptr[index+(K-1)*ldy] = ptr[index+(ny-K-1)*ldy];\n\
 				ptr[index+(ny-K)*ldy] = ptr[index+K*ldy];\n\
@@ -46,14 +47,16 @@ shadow( int bz, __global TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, in
 \n\
 	if (idx == 0)\n\
 		for (z = i-1 + idz; z < nz-(i-1); z += stepz)\n\
-			for (y = K + idy; y < ny-K; y += stepy) {\n\
+			for (y = K + idy; y < ny-K; y += stepy) \
+			{\n					\
 				unsigned index = y*ldy+z*ldz;\n\
 				ptr[(K-1)+index] = ptr[(nx-K-1)+index];\n\
 				ptr[(nx-K)+index] = ptr[K+index];\n\
 			}\n\
 \n\
 	if (idx == 0 && idy == 0)\n\
-		for (z = i-1 + idz; z < nz-(i-1); z += stepz) {\n\
+		for (z = i-1 + idz; z < nz-(i-1); z += stepz) \
+		{\n					      \
 			unsigned index = z*ldz;\n\
 			ptr[K-1+(K-1)*ldy+index] = ptr[(nx-K-1)+(ny-K-1)*ldy+index];\n\
 			ptr[(nx-K)+(K-1)*ldy+index] = ptr[K+(ny-K-1)*ldy+index];\n\
@@ -66,11 +69,13 @@ static const char * src = clsrc(TYPE,K);
 static struct starpu_opencl_program program;
 
 void
-opencl_shadow_init(void) {
+opencl_shadow_init(void)
+{
   starpu_opencl_load_opencl_from_string(src, &program, NULL);
 }
 
-void opencl_shadow_free(void) {
+void opencl_shadow_free(void)
+{
   starpu_opencl_unload_opencl(&program);
 }
 

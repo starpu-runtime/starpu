@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,8 @@ struct ppm_image *file_to_ppm(char *filename)
 
 	/* read the file's dimensions */
 	ret = fscanf(file, "P6\n%d %d\n%d\n", &ppm->ncols, &ppm->nlines, &ppm->coldepth);
-	if (ret != 3) {
+	if (ret != 3)
+	{
 		fclose(file);
 		fprintf(stderr, "file %s is not valid\n", filename);
 		exit(-1);
@@ -105,7 +106,8 @@ char *filename_out = "serpents.small.ppm";
 
 void parse_args(int argc, char **argv)
 {
-	if (argc == 3) {
+	if (argc == 3)
+	{
 		filename_in = argv[1];
 		filename_out = argv[2];
 	}

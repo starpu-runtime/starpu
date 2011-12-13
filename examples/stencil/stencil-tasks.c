@@ -76,7 +76,8 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, unsigned 
 /* R(z) = local & R(z+d) != local */
 /* We need to send our save over MPI */
 
-static void send_done(void *arg) {
+static void send_done(void *arg)
+{
 	uintptr_t z = (uintptr_t) arg;
 	DEBUG("DO SEND %d\n", (int)z);
 }
@@ -103,7 +104,8 @@ static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, unsign
 /* R(z) != local & R(z+d) = local */
 /* We need to receive over MPI */
 
-static void recv_done(void *arg) {
+static void recv_done(void *arg)
+{
 	uintptr_t z = (uintptr_t) arg;
 	DEBUG("DO RECV %d\n", (int)z);
 }
@@ -146,12 +148,14 @@ void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank)
 		}
 
 	}
-	else {	/* node_z != local_rank, this MPI node doesn't have the saved data */
+	else
+	{	/* node_z != local_rank, this MPI node doesn't have the saved data */
 		if (node_z_and_d == local_rank)
 		{
 			create_task_save_mpi_recv(iter, z, dir, local_rank);
 		}
-		else { /* R(z) != local & R(z+d) != local We don't have
+		else
+		{ /* R(z) != local & R(z+d) != local We don't have
 			      the saved data and don't need it, we shouldn't
 			      even have been called! */
 			STARPU_ASSERT(0);
@@ -176,7 +180,8 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 	unsigned niter = get_niter();
 
 	/* We are going to synchronize with the last tasks */
-	if (iter == niter) {
+	if (iter == niter)
+	{
 		task->detach = 0;
 		task->use_tag = 1;
 		task->tag_id = TAG_FINISH(z);
@@ -218,7 +223,8 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 
 /* Dummy empty codelet taking one buffer */
 static void null_func(void *descr[] __attribute__((unused)), void *arg __attribute__((unused))) { }
-static struct starpu_codelet null = {
+static struct starpu_codelet null =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {null_func, NULL},
 	.cuda_funcs = {null_func, NULL},
@@ -226,7 +232,8 @@ static struct starpu_codelet null = {
 	.nbuffers = 2
 };
 
-void create_start_task(int z, int dir) {
+void create_start_task(int z, int dir)
+{
 	/* Dumb task depending on the init task and simulating writing the
 	   neighbour buffers, to avoid communications and computation running
 	   before we start measuring time */
@@ -261,7 +268,8 @@ void create_tasks(int rank)
 	int niter = get_niter();
 	int nbz = get_nbz();
 
-	for (bz = 0; bz < nbz; bz++) {
+	for (bz = 0; bz < nbz; bz++)
+	{
 		if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz+1) == rank))
 			create_start_task(bz, +1);
 		if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz-1) == rank))

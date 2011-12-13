@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,13 +27,15 @@
 
 #include <stdint.h>
 
-struct yuv_frame {
+struct yuv_frame
+{
 	uint8_t y[WIDTH*HEIGHT];
 	uint8_t u[(WIDTH*HEIGHT)/4];
 	uint8_t v[(WIDTH*HEIGHT)/4];
 };
 
-struct yuv_new_frame {
+struct yuv_new_frame
+{
 	uint8_t y[NEW_WIDTH*NEW_HEIGHT];
 	uint8_t u[(NEW_WIDTH*NEW_HEIGHT)/4];
 	uint8_t v[(NEW_WIDTH*NEW_HEIGHT)/4];

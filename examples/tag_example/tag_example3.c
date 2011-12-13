@@ -40,18 +40,22 @@ static unsigned ni = Ni, nk = Nk;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-iter") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 		        char *argptr;
 			nk = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 		        char *argptr;
 			ni = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-iter iter] [-i i]\n", argv[0]);
 		}
 	}

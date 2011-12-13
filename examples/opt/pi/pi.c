@@ -64,8 +64,10 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-ntasks") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-ntasks") == 0)
+		{
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
 		}
@@ -101,19 +103,22 @@ int main(int argc, char **argv)
 	 * accessed by the CPU later on */
 	starpu_data_set_wt_mask(cnt_array_handle, (1<<0));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = ntasks
 	};
 	
 	starpu_data_partition(cnt_array_handle, &f);
 
-	static struct starpu_perfmodel model = {
+	static struct starpu_perfmodel model =
+	{
 		.type = STARPU_HISTORY_BASED,
 		.symbol = "monte_carlo_pi"
 	};
 
-	struct starpu_codelet cl = {
+	struct starpu_codelet cl =
+	{
 		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_funcs = {cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,10 +27,13 @@
 #define DISTRIB_1d(n, func,args) \
 	unsigned threads_per_block = 128; \
 \
-	if (n < threads_per_block) { \
+	if (n < threads_per_block) \
+	{			   \
 		dim3 dimGrid(n); \
 		func <<<dimGrid, 1, 0, starpu_cuda_get_local_stream()>>> args; \
-	} else { \
+	} 					\
+	else 					\
+	{				     \
 		dim3 dimGrid(n / threads_per_block); \
 		dim3 dimBlock(threads_per_block); \
 		func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
@@ -81,21 +84,30 @@ STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsign
 /* FIXME: introduce threads_per_dim_n / m instead */
 #define DISTRIB_2d(n, m, func, args) \
 	unsigned threads_per_dim = 16; \
-	if (n < threads_per_dim) { \
-		if (m < threads_per_dim) { \
+	if (n < threads_per_dim) \
+	{				   \
+		if (m < threads_per_dim) \
+		{			    \
 			dim3 dimGrid(n, m); \
 			func <<<dimGrid, 1, 0, starpu_cuda_get_local_stream()>>> args; \
-		} else { \
+		} \
+		else \
+		{					      \
 			dim3 dimGrid(1, m / threads_per_dim); \
 			dim3 dimBlock(n, threads_per_dim); \
 			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
 		} \
-	} else {  \
-		if (m < threads_per_dim) { \
+	} \
+	else \
+	{				   \
+		if (m < threads_per_dim) \
+		{					      \
 			dim3 dimGrid(n / threads_per_dim, 1); \
 			dim3 dimBlock(threads_per_dim, m); \
 			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
-		} else { \
+		} \
+		else \
+		{							\
 			dim3 dimGrid(n / threads_per_dim, m / threads_per_dim); \
 			dim3 dimBlock(threads_per_dim, threads_per_dim); \
 			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \

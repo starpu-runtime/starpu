@@ -35,8 +35,10 @@ cuda_life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, in
 	unsigned num, alive;
 
 	for (z = iter + idz; z < nz - iter; z += stepz)
-		for (y = K + idy; y < ny - K; y += stepy) {
-			for (x = K + idx; x < nx - K; x += stepx) {
+		for (y = K + idy; y < ny - K; y += stepy)
+		{
+			for (x = K + idx; x < nx - K; x += stepx)
+			{
 				unsigned index = x + y*ldy + z*ldz;
 				num = 0
                                         + old[index+1*ldy+0*ldz]

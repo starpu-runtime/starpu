@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -214,9 +214,11 @@ double task_22_cost_cpu(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-struct starpu_perfmodel model_11 = {
+struct starpu_perfmodel model_11 =
+{
 	.cost_model = task_11_cost,
-	.per_arch = {
+	.per_arch =
+	{
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_11_cost_cpu },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_11_cost_cuda }
 	},
@@ -230,9 +232,11 @@ struct starpu_perfmodel model_11 = {
 #endif
 };
 
-struct starpu_perfmodel model_12 = {
+struct starpu_perfmodel model_12 =
+{
 	.cost_model = task_12_cost,
-	.per_arch = {
+	.per_arch =
+	{
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_12_cost_cpu },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_12_cost_cuda }
 	},
@@ -246,9 +250,11 @@ struct starpu_perfmodel model_12 = {
 #endif
 };
 
-struct starpu_perfmodel model_21 = {
+struct starpu_perfmodel model_21 =
+{
 	.cost_model = task_21_cost,
-	.per_arch = {
+	.per_arch =
+	{
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_21_cost_cpu },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_21_cost_cuda }
 	},
@@ -262,9 +268,11 @@ struct starpu_perfmodel model_21 = {
 #endif
 };
 
-struct starpu_perfmodel model_22 = {
+struct starpu_perfmodel model_22 =
+{
 	.cost_model = task_22_cost,
-	.per_arch = {
+	.per_arch =
+	{
 		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_22_cost_cpu },
 		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_22_cost_cuda }
 	},

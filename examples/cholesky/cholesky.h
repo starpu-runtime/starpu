@@ -81,39 +81,48 @@ extern struct starpu_perfmodel chol_model_22;
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 		        char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nbigblocks") == 0) {
+		if (strcmp(argv[i], "-nbigblocks") == 0)
+		{
 		        char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0) {
+		if (strcmp(argv[i], "-pin") == 0)
+		{
 			pinned = 1;
 		}
 
-		if (strcmp(argv[i], "-no-prio") == 0) {
+		if (strcmp(argv[i], "-no-prio") == 0)
+		{
 			noprio = 1;
 		}
 
-		if (strcmp(argv[i], "-bound") == 0) {
+		if (strcmp(argv[i], "-bound") == 0)
+		{
 			bound = 1;
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
 		}
 	}

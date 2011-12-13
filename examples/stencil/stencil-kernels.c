@@ -23,10 +23,12 @@
 
 #ifndef timersub
 #define	timersub(x, y, res) \
-	do { \
+	do \
+	{						   \
 		(res)->tv_sec = (x)->tv_sec - (y)->tv_sec; \
 		(res)->tv_usec = (x)->tv_usec - (y)->tv_usec; \
-		if ((res)->tv_usec < 0) { \
+		if ((res)->tv_usec < 0) \
+		{			 \
 			(res)->tv_sec--; \
 			(res)->tv_usec += 1000000; \
 		} \
@@ -34,10 +36,12 @@
 #endif
 #ifndef timeradd
 #define	timeradd(x, y, res) \
-	do { \
+	do \
+	{						   \
 		(res)->tv_sec = (x)->tv_sec + (y)->tv_sec; \
 		(res)->tv_usec = (x)->tv_usec + (y)->tv_usec; \
-		if ((res)->tv_usec >= 1000000) { \
+		if ((res)->tv_usec >= 1000000) \
+		{			       \
 			(res)->tv_sec++; \
 			(res)->tv_usec -= 1000000; \
 		} \
@@ -138,7 +142,8 @@ static void record_who_runs_what(struct block_description *block)
 	gettimeofday(&tv, NULL);
 	timersub(&tv, &start, &tv2);
 	timersub(&tv2, &last_tick[block->bz], &diff);
-	while (timercmp(&diff, &delta, >=)) {
+	while (timercmp(&diff, &delta, >=))
+	{
 		timeradd(&last_tick[block->bz], &delta, &last_tick[block->bz]);
 		timersub(&tv2, &last_tick[block->bz], &diff);
 		if (who_runs_what_index[block->bz] < who_runs_what_len)
@@ -439,12 +444,14 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 }
 
 /* Performance model and codelet structure */
-static struct starpu_perfmodel cl_update_model = {
+static struct starpu_perfmodel cl_update_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "cl_update" 
 };
 
-struct starpu_codelet cl_update = {
+struct starpu_codelet cl_update =
+{
 	.where = 0 |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -634,17 +641,20 @@ static void dummy_func_bottom_opencl(void *descr[] __attribute__((unused)), void
 #endif /* STARPU_USE_OPENCL */
 
 /* Performance models and codelet for save */
-static struct starpu_perfmodel save_cl_bottom_model = {
+static struct starpu_perfmodel save_cl_bottom_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "save_cl_bottom" 
 };
 
-static struct starpu_perfmodel save_cl_top_model = {
+static struct starpu_perfmodel save_cl_top_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "save_cl_top" 
 };
 
-struct starpu_codelet save_cl_bottom = {
+struct starpu_codelet save_cl_bottom =
+{
 	.where = 0 |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -664,7 +674,8 @@ struct starpu_codelet save_cl_bottom = {
 	.nbuffers = 4
 };
 
-struct starpu_codelet save_cl_top = {
+struct starpu_codelet save_cl_top =
+{
 	.where = 0|
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|

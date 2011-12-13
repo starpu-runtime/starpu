@@ -27,13 +27,16 @@ starpu_data_handle_t vector_in, vector_out;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
@@ -66,7 +69,8 @@ static void csr_filter_func(void *father_interface, void *child_interface, struc
 	csr_child->firstentry = local_firstentry;
 	csr_child->elemsize = elemsize;
 	
-	if (csr_father->nzval) {
+	if (csr_father->nzval)
+	{
 		csr_child->rowptr = &csr_father->rowptr[first_index];
 		csr_child->colind = &csr_father->colind[local_firstentry];
 		csr_child->nzval = csr_father->nzval + local_firstentry * elemsize;
@@ -74,20 +78,23 @@ static void csr_filter_func(void *father_interface, void *child_interface, struc
 }
 
 /* partition the CSR matrix along a block distribution */
-static struct starpu_data_filter csr_f = {
+static struct starpu_data_filter csr_f =
+{
 	.filter_func = csr_filter_func,
 	/* This value is defined later on */
 	.nchildren = -1,
 	/* the children also use a csr interface */
 };
 
-static struct starpu_data_filter vector_f = {
+static struct starpu_data_filter vector_f =
+{
 	.filter_func = starpu_block_filter_func_vector,
 	/* This value is defined later on */
 	.nchildren = -1,
 };
 
-static struct starpu_codelet spmv_cl = {
+static struct starpu_codelet spmv_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {spmv_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -143,7 +150,8 @@ int main(int argc, char **argv)
 	{
 		rowptr[row] = pos;
 
-		if (row > 0) {
+		if (row > 0)
+		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row-1;
 			pos++;
@@ -153,7 +161,8 @@ int main(int argc, char **argv)
 		colind[pos] = row;
 		pos++;
 
-		if (row < size - 1) {
+		if (row < size - 1)
+		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row+1;
 			pos++;

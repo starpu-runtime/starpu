@@ -64,7 +64,8 @@ static void init_rng(void *arg __attribute__((unused)))
 
 	int workerid = starpu_worker_get_id();
 
-	switch (starpu_worker_get_type(workerid)) {
+	switch (starpu_worker_get_type(workerid))
+	{
 		case STARPU_CPU_WORKER:
 			/* create a seed */
 			starpu_srand48_r((long int)workerid, &randbuffer[PADDING*workerid]);
@@ -96,22 +97,27 @@ static void init_rng(void *arg __attribute__((unused)))
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-ntasks") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-ntasks") == 0)
+		{
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-noredux") == 0) {
+		if (strcmp(argv[i], "-noredux") == 0)
+		{
 			use_redux = 0;
 		}
 
-		if (strcmp(argv[i], "-warmup") == 0) {
+		if (strcmp(argv[i], "-warmup") == 0)
+		{
 			do_warmup = 1;
 			ntasks_warmup = 8; /* arbitrary number of warmup tasks */
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			fprintf(stderr, "Usage: %s [-ntasks n] [-noredux] [-warmup] [-h]\n", argv[0]);
 			exit(-1);
 		}
@@ -183,7 +189,8 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 }
 #endif
 
-static struct starpu_codelet pi_cl = {
+static struct starpu_codelet pi_cl =
+{
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
@@ -216,7 +223,8 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet init_codelet = {
+static struct starpu_codelet init_codelet =
+{
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
@@ -255,7 +263,8 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 	*a = *a + *b;
 };
 
-static struct starpu_codelet redux_codelet = {
+static struct starpu_codelet redux_codelet =
+{
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|

@@ -68,12 +68,14 @@ static void accumulate_variable_cpu(void *descr[], void *cl_arg)
 	*v_dst = *v_dst + *v_src;
 }
 
-static struct starpu_perfmodel accumulate_variable_model = {
+static struct starpu_perfmodel accumulate_variable_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "accumulate_variable"
 };
 
-struct starpu_codelet accumulate_variable_cl = {
+struct starpu_codelet accumulate_variable_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {accumulate_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -104,12 +106,14 @@ static void accumulate_vector_cpu(void *descr[], void *cl_arg)
 	AXPY(n, (TYPE)1.0, v_src, 1, v_dst, 1);
 }
 
-static struct starpu_perfmodel accumulate_vector_model = {
+static struct starpu_perfmodel accumulate_vector_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "accumulate_vector"
 };
 
-struct starpu_codelet accumulate_vector_cl = {
+struct starpu_codelet accumulate_vector_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {accumulate_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -142,12 +146,14 @@ static void bzero_variable_cpu(void *descr[], void *cl_arg)
 	*v = (TYPE)0.0;
 }
 
-static struct starpu_perfmodel bzero_variable_model = {
+static struct starpu_perfmodel bzero_variable_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "bzero_variable"
 };
 
-struct starpu_codelet bzero_variable_cl = {
+struct starpu_codelet bzero_variable_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {bzero_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -177,12 +183,14 @@ static void bzero_vector_cpu(void *descr[], void *cl_arg)
 	memset(v, 0, n*sizeof(TYPE));
 }
 
-static struct starpu_perfmodel bzero_vector_model = {
+static struct starpu_perfmodel bzero_vector_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "bzero_vector"
 };
 
-struct starpu_codelet bzero_vector_cl = {
+struct starpu_codelet bzero_vector_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {bzero_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -230,12 +238,14 @@ static void dot_kernel_cpu(void *descr[], void *cl_arg)
 	*dot = *dot + local_dot;
 }
 
-static struct starpu_perfmodel dot_kernel_model = {
+static struct starpu_perfmodel dot_kernel_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "dot_kernel"
 };
 
-static struct starpu_codelet dot_kernel_cl = {
+static struct starpu_codelet dot_kernel_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dot_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -297,12 +307,14 @@ static void scal_kernel_cpu(void *descr[], void *cl_arg)
 	SCAL(n, alpha, v1, 1);
 }
 
-static struct starpu_perfmodel scal_kernel_model = {
+static struct starpu_perfmodel scal_kernel_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "scal_kernel"
 };
 
-static struct starpu_codelet scal_kernel_cl = {
+static struct starpu_codelet scal_kernel_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {scal_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -368,12 +380,14 @@ static void gemv_kernel_cpu(void *descr[], void *cl_arg)
 	GEMV("N", nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
 }
 
-static struct starpu_perfmodel gemv_kernel_model = {
+static struct starpu_perfmodel gemv_kernel_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "gemv_kernel"
 };
 
-static struct starpu_codelet gemv_kernel_cl = {
+static struct starpu_codelet gemv_kernel_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
@@ -460,12 +474,14 @@ static void scal_axpy_kernel_cpu(void *descr[], void *cl_arg)
 	AXPY(nx, p2, v2, 1, v1, 1);
 }
 
-static struct starpu_perfmodel scal_axpy_kernel_model = {
+static struct starpu_perfmodel scal_axpy_kernel_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "scal_axpy_kernel"
 };
 
-static struct starpu_codelet scal_axpy_kernel_cl = {
+static struct starpu_codelet scal_axpy_kernel_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {scal_axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -528,12 +544,14 @@ static void axpy_kernel_cpu(void *descr[], void *cl_arg)
 	AXPY(nx, p1, v2, 1, v1, 1);
 }
 
-static struct starpu_perfmodel axpy_kernel_model = {
+static struct starpu_perfmodel axpy_kernel_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "axpy_kernel"
 };
 
-static struct starpu_codelet axpy_kernel_cl = {
+static struct starpu_codelet axpy_kernel_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -588,12 +606,14 @@ static void copy_handle_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_perfmodel copy_handle_model = {
+static struct starpu_perfmodel copy_handle_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "copy_handle"
 };
 
-static struct starpu_codelet copy_handle_cl = {
+static struct starpu_codelet copy_handle_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {copy_handle_cpu, NULL},
 #ifdef STARPU_USE_CUDA

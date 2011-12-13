@@ -141,7 +141,8 @@ void call_filters(void)
 #define NSPMV	32
 unsigned totaltasks;
 
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = { cpu_block_spmv, NULL},
 #ifdef STARPU_USE_CUDA
@@ -224,7 +225,8 @@ void launch_spmv_codelets(void)
 
 					is_entry_tab[taskid] = 0;
 				}
-				else {
+				else
+				{
 					/* this is an entry task */
 					is_entry_tab[taskid] = 1;
 				}
@@ -241,7 +243,8 @@ void launch_spmv_codelets(void)
 	unsigned task;
 	for (task = 0; task < totaltasks; task++)
 	{
-		if (is_entry_tab[task]) {
+		if (is_entry_tab[task])
+		{
 			nchains++;
 		}
 

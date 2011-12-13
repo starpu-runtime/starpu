@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,8 +22,10 @@ static void print_block(tmp_block_t *block, unsigned r, unsigned c)
 	printf(" **** block %d %d **** \n", block->i, block->j);
 
 	unsigned i, j;
-	for (j = 0; j < r; j++) {
-		for (i = 0; i < c; i++) {
+	for (j = 0; j < r; j++)
+	{
+		for (i = 0; i < c; i++)
+		{
 			printf("%2.2f\t", block->val[i + j*c]);
 		}
 		printf("\n");
@@ -34,11 +36,12 @@ static void print_all_blocks(tmp_block_t *block_list, unsigned r, unsigned c)
 {
 	tmp_block_t *current_block = block_list;
 
-	while(current_block) {
+	while(current_block)
+	{
 		print_block(current_block, r, c);
 
 		current_block = current_block->next;
-	};
+	}
 }
 
 static void print_bcsr(bcsr_t *bcsr)
@@ -54,10 +57,11 @@ static unsigned count_blocks(tmp_block_t *block_list)
 	unsigned count = 0;
 	tmp_block_t *current_block = block_list;
 
-	while(current_block) {
+	while(current_block)
+	{
 		count++;
 		current_block = current_block->next;
-	};
+	}
 
 	return count;
 }
@@ -67,12 +71,13 @@ static unsigned count_row_blocks(tmp_block_t *block_list)
 	unsigned maxrow = 0;
 	tmp_block_t *current_block = block_list;
 
-	while(current_block) {
+	while(current_block)
+	{
 		if (current_block->j > maxrow)
 			maxrow = current_block->j;
 
 		current_block = current_block->next;
-	};
+	}
 
 	return (maxrow+1);
 }
@@ -86,7 +91,8 @@ static tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j
 	tmp_block_t *current_block = block_list;
 	/* printf("search %d %d\n", i, j); */
 
-	while (current_block) {
+	while (current_block)
+	{
 		if ((current_block->i == i) && (current_block->j == j)) 
 		{
 			/* we found the block */
@@ -143,15 +149,18 @@ static void insert_block(tmp_block_t *block, tmp_block_t **block_list, unsigned 
 	/* first find an element that is bigger, then insert the block just before it */
 	tmp_block_t *current_block = *block_list;
 
-	if (!current_block) {
+	if (!current_block)
+	{
 		/* list was empty */
 		*block_list = block;
 		block->next = NULL;
 		return;
 	}
 
-	while (current_block) {
-		if (next_block_is_bigger(current_block, i, j)) {
+	while (current_block)
+	{
+		if (next_block_is_bigger(current_block, i, j))
+		{
 			/* insert block here */
 			block->next = current_block->next;
 			current_block->next = block;
@@ -177,7 +186,8 @@ static void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j
 
 	block = search_block(*block_list, i, j);
 
-	if (!block) {
+	if (!block)
+	{
 		/* the block does not exist yet */
 		/* create it */
 		block = create_block(c, r);
@@ -225,7 +235,8 @@ static void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *b
 
 	tmp_block_t *current_block = block_list;
 
-	while(current_block) {
+	while(current_block)
+	{
 		/* copy the val from the block to the contiguous area in the BCSR */
 		memcpy(&bcsr->val[current_offset], current_block->val, block_size);
 
@@ -314,9 +325,9 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 		exit(1);
 
 	if (mm_read_banner(f, &matcode) != 0)
-	{                                                       	
+	{
 		printf("Could not process Matrix Market banner.\n");
-		exit(1);                                            	
+		exit(1);
 	}
 
 	/*  This is how one can screen matrix types if their application */

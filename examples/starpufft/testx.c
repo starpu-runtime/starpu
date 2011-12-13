@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,8 @@ static void check_fftw(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, in
 {
 	int i;
 	double max = 0., tot = 0., norm = 0., normdiff = 0.;
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		double diff = cabs(out[i]-out_fftw[i]);
 		double diff2 = diff * diff;
 		double size = cabs(out_fftw[i]);
@@ -74,7 +75,8 @@ static void check_cuda(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, in
 {
 	int i;
 	double max = 0., tot = 0., norm = 0., normdiff = 0.;
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		double diff = cabs(out_cuda[i]-out_fftw[i]);
 		double diff2 = diff * diff;
 		double size = cabs(out_fftw[i]);
@@ -99,7 +101,8 @@ static void check_cuda(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, in
 }
 #endif
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	int i;
 	struct timeval begin, end;
 	int size;
@@ -116,25 +119,31 @@ int main(int argc, char *argv[]) {
 #endif
 	double timing;
 
-	if (argc < 2 || argc > 3) {
+	if (argc < 2 || argc > 3)
+	{
 		fprintf(stderr,"need one or two size of vector\n");
 		exit(EXIT_FAILURE);
 	}
 
 	starpu_init(NULL);
 
-	if (argc == 2) {
+	if (argc == 2)
+	{
 		n = atoi(argv[1]);
 
 		/* 1D */
 		size = n;
-	} else if (argc == 3) {
+	}
+	else if (argc == 3)
+	{
 		n = atoi(argv[1]);
 		m = atoi(argv[2]);
 
 		/* 2D */
 		size = n * m;
-	} else {
+	}
+	else
+	{
 		assert(0);
 	}
 
@@ -155,7 +164,8 @@ int main(int argc, char *argv[]) {
 	STARPUFFT(complex) *out_cuda = STARPUFFT(malloc)(size * sizeof(*out_cuda));
 #endif
 
-	if (argc == 2) {
+	if (argc == 2)
+	{
 		plan = STARPUFFT(plan_dft_1d)(n, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW
 		fftw_plan = _FFTW(plan_dft_1d)(n, NULL, (void*) 1, SIGN, FFTW_ESTIMATE);
@@ -165,7 +175,9 @@ int main(int argc, char *argv[]) {
 			printf("erf\n");
 #endif
 
-	} else if (argc == 3) {
+	}
+	else if (argc == 3)
+	{
 		plan = STARPUFFT(plan_dft_2d)(n, m, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW
 		fftw_plan = _FFTW(plan_dft_2d)(n, m, NULL, (void*) 1, SIGN, FFTW_ESTIMATE);
@@ -173,7 +185,9 @@ int main(int argc, char *argv[]) {
 #ifdef STARPU_USE_CUDA
 		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, _CUFFT_C2C) == CUFFT_SUCCESS);
 #endif
-	} else {
+	}
+	else
+	{
 		assert(0);
 	}
 

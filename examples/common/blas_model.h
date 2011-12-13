@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,8 @@
 
 double gemm_cost(struct starpu_buffer_descr *descr);
 
-static struct starpu_perfmodel starpu_sgemm_model = {
+static struct starpu_perfmodel starpu_sgemm_model =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = "sgemm_atlas"
@@ -33,12 +34,14 @@ static struct starpu_perfmodel starpu_sgemm_model = {
 #endif
 };
 
-static struct starpu_perfmodel starpu_sgemm_model_common = {
+static struct starpu_perfmodel starpu_sgemm_model_common =
+{
 	.cost_model = gemm_cost,
 	.type = STARPU_COMMON,
 };
 
-static struct starpu_perfmodel starpu_dgemm_model = {
+static struct starpu_perfmodel starpu_dgemm_model =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = "dgemm_atlas"
@@ -49,7 +52,8 @@ static struct starpu_perfmodel starpu_dgemm_model = {
 #endif
 };
 
-static struct starpu_perfmodel starpu_dgemm_model_common = {
+static struct starpu_perfmodel starpu_dgemm_model_common =
+{
 	.cost_model = gemm_cost,
 	.type = STARPU_COMMON,
 };

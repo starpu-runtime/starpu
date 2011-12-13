@@ -21,7 +21,8 @@ __kernel void cpu_to_opencl_opencl(__global struct point *src,
 				   unsigned int n)
 {
 	const unsigned int i = get_global_id(0);
-	if (i < n) {
+	if (i < n)
+	{
 		dst->x[i] = src[i].x;
 		dst->y[i] = src[i].y;
 	}

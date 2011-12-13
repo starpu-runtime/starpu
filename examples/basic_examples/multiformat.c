@@ -32,7 +32,8 @@ multiformat_scal_cpu_func(void *buffers[], void *args)
 	aos = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
 	n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		aos[i].x *= aos[i].y;
 	}
 }
@@ -47,7 +48,8 @@ extern struct starpu_codelet cpu_to_opencl_cl;
 extern struct starpu_codelet opencl_to_cpu_cl;
 #endif
 
-static struct starpu_multiformat_data_interface_ops format_ops = {
+static struct starpu_multiformat_data_interface_ops format_ops =
+{
 #ifdef STARPU_USE_CUDA
 	.cuda_elemsize = 2* sizeof(float),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
@@ -69,7 +71,8 @@ extern void multiformat_scal_cuda_func(void *buffers[], void *arg);
 extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 #endif
 
-static struct starpu_codelet  cl = {
+static struct starpu_codelet  cl =
+{
 	.where = STARPU_CUDA | STARPU_OPENCL,
 	.cpu_funcs = {multiformat_scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
@@ -89,7 +92,8 @@ static void
 init_problem_data(void)
 {
 	int i; 
-	for (i = 0; i < N_ELEMENTS; i++) {
+	for (i = 0; i < N_ELEMENTS; i++)
+	{
 		array_of_structs[i].x = 1.0 + i;
 		array_of_structs[i].y = 42.0;
 	}
@@ -154,7 +158,8 @@ static void
 print_it(void)
 {
 	int i;
-	for (i = 0; i < N_ELEMENTS; i++) {
+	for (i = 0; i < N_ELEMENTS; i++)
+	{
 		FPRINTF(stderr, "(%.2f %.2f) ",
 			array_of_structs[i].x,
 			array_of_structs[i].y);
@@ -166,7 +171,8 @@ static int
 check_it(void)
 {
 	int i;
-	for (i = 0; i < N_ELEMENTS; i++) {
+	for (i = 0; i < N_ELEMENTS; i++)
+	{
 		float expected_value = i + 1.0;
 #if STARPU_USE_CUDA
 		expected_value *= array_of_structs[i].y;

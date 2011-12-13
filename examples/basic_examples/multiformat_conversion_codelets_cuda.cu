@@ -23,7 +23,8 @@ static __global__ void cpu_to_cuda_cuda(struct point *src,
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
 
-	if (i < n) {
+	if (i < n)
+	{
 		dst->x[i] = src[i].x;
 		dst->y[i] = src[i].y;
 	}

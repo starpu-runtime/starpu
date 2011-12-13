@@ -33,7 +33,8 @@ __kernel void matVecMult(
 {
         // Row index
         uint y = get_global_id(0);
-        if (y < height) {
+        if (y < height)
+	{
                 // Row pointer
                 const __global float* row = M + y * width;
 

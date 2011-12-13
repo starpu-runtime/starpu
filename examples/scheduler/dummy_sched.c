@@ -77,7 +77,8 @@ static struct starpu_task *pop_task_dummy(void)
 	return starpu_task_list_pop_back(&sched_list);
 }
 
-static struct starpu_sched_policy dummy_sched_policy = {
+static struct starpu_sched_policy dummy_sched_policy =
+{
 	.init_sched = init_dummy_sched,
 	.deinit_sched = deinit_dummy_sched,
 	.push_task = push_task_dummy,
@@ -88,7 +89,8 @@ static struct starpu_sched_policy dummy_sched_policy = {
 	.policy_description = "dummy scheduling strategy"
 };
 
-static struct starpu_conf conf = {
+static struct starpu_conf conf =
+{
 	.sched_policy_name = NULL,
 	.sched_policy = &dummy_sched_policy,
 	.ncpus = -1,
@@ -105,7 +107,7 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_func, NULL},

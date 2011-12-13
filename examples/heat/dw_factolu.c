@@ -97,7 +97,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	/* we did task 22k,i,j */
 	advance_22[k*nblocks*nblocks + i + j*nblocks] = DONE;
 	
-	if ( (i == j) && (i == k+1)) {
+	if ( (i == j) && (i == k+1))
+	{
 		/* we now reduce the LU22 part (recursion appears there) */
 		cl_args *u11arg = malloc(sizeof(cl_args));
 
@@ -123,14 +124,17 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
-	if ( i == k + 1) {
+	if ( i == k + 1)
+	{
 		uint8_t dep;
 		/* 11 k+1*/
 		dep = advance_11[(k+1)];
-		if (dep & DONE) {
+		if (dep & DONE)
+		{
 			/* try to push the task */
 			uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[(k+1) + j*nblocks], STARTED);
-				if ((u & STARTED) == 0) {
+				if ((u & STARTED) == 0)
+				{
 					/* we are the only one that should 
 					 * launch that task */
 					cl_args *u21a = malloc(sizeof(cl_args));
@@ -159,14 +163,17 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	}
 
 	/* 11k + 22k-1,i,k => 12 k,i */
-	if (j == k + 1) {
+	if (j == k + 1)
+	{
 		uint8_t dep;
 		/* 11 k+1*/
 		dep = advance_11[(k+1)];
-		if (dep & DONE) {
+		if (dep & DONE)
+		{
 			/* try to push the task */
 			uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[(k+1)*nblocks + i], STARTED);
-				 if ((u & STARTED) == 0) {
+				 if ((u & STARTED) == 0)
+				 {
 					/* we are the only one that should launch that task */
 					cl_args *u12a = malloc(sizeof(cl_args));
 
@@ -217,7 +224,8 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 		{
 			/* perhaps we may schedule the 22 i,args->k,slicey task */
 			uint8_t u = STARPU_ATOMIC_OR(&advance_22[i*nblocks*nblocks + slicey*nblocks + k], STARTED);
-                        if ((u & STARTED) == 0) {
+                        if ((u & STARTED) == 0)
+			{
 				/* update that square matrix */
 				cl_args *u22a = malloc(sizeof(cl_args));
 
@@ -276,7 +284,8 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 		{
 			/* perhaps we may schedule the 22 i,args->k,slicey task */
 			uint8_t u = STARPU_ATOMIC_OR(&advance_22[i*nblocks*nblocks + k*nblocks + slicex], STARTED);
-                        if ((u & STARTED) == 0) {
+                        if ((u & STARTED) == 0)
+			{
 				/* update that square matrix */
 				cl_args *u22a = malloc(sizeof(cl_args));
 
@@ -340,16 +349,20 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 
 			/* can we launch 12i,slice ? */
 			uint8_t deps12;
-			if (i == 0) {
+			if (i == 0)
+			{
 				deps12 = DONE;
 			}
-			else {
+			else
+			{
 				deps12 = advance_22[(i-1)*nblocks*nblocks + slice + i*nblocks];		
 			}
-			if (deps12 & DONE) {
+			if (deps12 & DONE)
+			{
 				/* we may perhaps launch the task 12i,slice */
 				 uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i*nblocks + slice], STARTED);
-				 if ((u & STARTED) == 0) {
+				 if ((u & STARTED) == 0)
+				 {
 					/* we are the only one that should launch that task */
 					cl_args *u12a = malloc(sizeof(cl_args));
 
@@ -377,16 +390,20 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 			}
 
 			/* can we launch 21i,slice ? */
-			if (i == 0) {
+			if (i == 0)
+			{
 				deps12 = DONE;
 			}
-			else {
+			else
+			{
 				deps12 = advance_22[(i-1)*nblocks*nblocks + slice*nblocks + i];		
 			}
-			if (deps12 & DONE) {
+			if (deps12 & DONE)
+			{
 				/* we may perhaps launch the task 12i,slice */
 				 uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i + slice*nblocks], STARTED);
-				 if ((u & STARTED) == 0) {
+				 if ((u & STARTED) == 0)
+				 {
 					/* we are the only one that should launch that task */
 					cl_args *u21a = malloc(sizeof(cl_args));
 
@@ -700,7 +717,8 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
 		starpu_malloc((void **)B, (size_t)dim*sizeof(float));
 	} 
-	else {
+	else
+	{
 		*A = malloc((size_t)dim*dim*sizeof(float));
 		STARPU_ASSERT(*A);
 		*B = malloc((size_t)dim*sizeof(float));
@@ -730,19 +748,22 @@ void dw_factoLU(float *matA, unsigned size,
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, 
 			size, size, sizeof(float));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	switch (version) {
+	switch (version)
+	{
 		case 1:
 			dw_codelet_facto(dataA, nblocks);
 			break;

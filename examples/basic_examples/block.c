@@ -57,7 +57,8 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	task->cl_arg_size = sizeof(multiplier);
 
         int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 return 1;
 	}
@@ -67,8 +68,9 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	/* update the array in RAM */
 	starpu_data_unregister(block_handle);
 
-        for(i=0 ; i<pnx*pny*pnz; i++) {
-          FPRINTF(stderr, "%f ", block[i]);
+        for(i=0 ; i<pnx*pny*pnz; i++)
+	{
+		FPRINTF(stderr, "%f ", block[i]);
         }
         FPRINTF(stderr, "\n");
 
@@ -88,9 +90,12 @@ int main(int argc, char **argv)
 
         block = (float*)malloc(nx*ny*nz*sizeof(float));
         assert(block);
-        for(k=0 ; k<nz ; k++) {
-                for(j=0 ; j<ny ; j++) {
-                        for(i=0 ; i<nx ; i++) {
+        for(k=0 ; k<nz ; k++)
+	{
+                for(j=0 ; j<ny ; j++)
+		{
+                        for(i=0 ; i<nx ; i++)
+			{
                                 block[(k*nx*ny)+(j*nx)+i] = n++;
                         }
                 }
@@ -110,11 +115,13 @@ int main(int argc, char **argv)
 
         /* Check result is correct */
         ret=1;
-        for(i=0 ; i<nx*ny*nz ; i++) {
-          if (block[i] != (i+1) * multiplier) {
-            ret=0;
-            break;
-          }
+        for(i=0 ; i<nx*ny*nz ; i++)
+	{
+		if (block[i] != (i+1) * multiplier)
+		{
+			ret=0;
+			break;
+		}
         }
 
         FPRINTF(stderr,"TEST %s\n", ret==1?"PASSED":"FAILED");

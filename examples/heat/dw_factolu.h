@@ -41,7 +41,8 @@
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
-typedef struct {
+typedef struct
+{
 	starpu_data_handle_t dataA;
 	unsigned i;
 	unsigned j;
@@ -89,10 +90,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-/*			if (i <= j) { */
+/*			if (i <= j)
+			{ */
 				FPRINTF(stdout, "%2.2f\t", LU[j +i*size]);
 /*			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -107,10 +110,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-/*			if (i <= j) { */
+/*			if (i <= j)
+			{ */
 				FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
 /*			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -123,10 +128,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-/*			if (i <= j) { */
+/*			if (i <= j)
+			{ */
 				FPRINTF(stdout, "%2.2f\t", U[j +i*size]);
 /*			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -155,10 +162,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-	/*		if (i <= j) { */
+	/*		if (i <= j)
+			{ */
 	      			FPRINTF(stdout, "%2.2f\t", A[j +i*size]);
 	/*		}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -172,10 +181,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-	/*		if (i <= j) { */
+	/*		if (i <= j)
+			{ */
 	      			FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
 	/*		}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}

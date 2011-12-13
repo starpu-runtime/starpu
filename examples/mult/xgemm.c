@@ -53,10 +53,12 @@ static void check_output(void)
 	TYPE err;
 	err = CPU_ASUM(xdim*ydim, C, 1);
 
-	if (err < xdim*ydim*0.001) {
+	if (err < xdim*ydim*0.001)
+	{
 		FPRINTF(stderr, "Results are OK\n");
 	}
-	else {
+	else
+	{
 		int max;
 		max = CPU_IAMAX(xdim*ydim, C, 1);
 
@@ -74,20 +76,26 @@ static void init_problem_data(void)
 	starpu_malloc((void **)&C, xdim*ydim*sizeof(TYPE));
 
 	/* fill the A and B matrices */
-	for (j=0; j < ydim; j++) {
-		for (i=0; i < zdim; i++) {
+	for (j=0; j < ydim; j++)
+	{
+		for (i=0; i < zdim; i++)
+		{
 			A[j+i*ydim] = (TYPE)(starpu_drand48());
 		}
 	}
 
-	for (j=0; j < zdim; j++) {
-		for (i=0; i < xdim; i++) {
+	for (j=0; j < zdim; j++)
+	{
+		for (i=0; i < xdim; i++)
+		{
 			B[j+i*zdim] = (TYPE)(starpu_drand48());
 		}
 	}
 
-	for (j=0; j < ydim; j++) {
-		for (i=0; i < xdim; i++) {
+	for (j=0; j < ydim; j++)
+	{
+		for (i=0; i < xdim; i++)
+		{
 			C[j+i*ydim] = (TYPE)(0);
 		}
 	}
@@ -132,7 +140,8 @@ static void mult_kernel_common(void *descr[], int type)
 	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
 	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
-	if (type == STARPU_CPU) {
+	if (type == STARPU_CPU)
+	{
 		int worker_size = starpu_combined_worker_get_size();
 
 		if (worker_size == 1)
@@ -140,7 +149,8 @@ static void mult_kernel_common(void *descr[], int type)
 			/* Sequential CPU task */
 			CPU_GEMM("N", "N", nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB, (TYPE)0.0, subC, ldC);
 		}
-		else {
+		else
+		{
 			/* Parallel CPU task */
 			int rank = starpu_combined_worker_get_rank();
 		
@@ -156,7 +166,8 @@ static void mult_kernel_common(void *descr[], int type)
 		}
 	}
 #ifdef STARPU_USE_CUDA
-	else {
+	else
+	{
 		CUBLAS_GEMM('n', 'n', nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB,
 					     (TYPE)0.0, subC, ldC);
 		cudaStreamSynchronize(starpu_cuda_get_local_stream());
@@ -176,12 +187,14 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	mult_kernel_common(descr, STARPU_CPU);
 }
 
-static struct starpu_perfmodel starpu_gemm_model = {
+static struct starpu_perfmodel starpu_gemm_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = STARPU_GEMM_STR(gemm)
 };
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
@@ -196,48 +209,58 @@ static struct starpu_codelet cl = {
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-nblocks") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
 		}
 
-		if (strcmp(argv[i], "-nblocksx") == 0) {
+		if (strcmp(argv[i], "-nblocksx") == 0)
+		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocksy") == 0) {
+		if (strcmp(argv[i], "-nblocksy") == 0)
+		{
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-x") == 0) {
+		if (strcmp(argv[i], "-x") == 0)
+		{
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-y") == 0) {
+		if (strcmp(argv[i], "-y") == 0)
+		{
 			char *argptr;
 			ydim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-z") == 0) {
+		if (strcmp(argv[i], "-z") == 0)
+		{
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-iter") == 0) {
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-spmd") == 0) {
+		if (strcmp(argv[i], "-spmd") == 0)
+		{
 			cl.type = STARPU_SPMD;
 		}
 	}

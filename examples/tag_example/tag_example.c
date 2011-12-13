@@ -43,23 +43,28 @@ static unsigned iter = 0;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-iter") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 		        char *argptr;
 			nk = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 		        char *argptr;
 			ni = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-j") == 0) {
+		if (strcmp(argv[i], "-j") == 0)
+		{
 		        char *argptr;
 			nj = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-iter iter] [-i i] [-j j]\n", argv[0]);
 		}
 	}
@@ -153,27 +158,29 @@ void cpu_codelet(void *descr[] __attribute__((unused)),
 
 static void express_deps(unsigned i, unsigned j, unsigned iter)
 {
-	if (j > 0) {
+	if (j > 0)
+	{
 		/* (i,j-1) exists */
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
 			starpu_tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
 		}
-		else 
+		else
 		{
 			/* (i,j+1) does not exist */
 			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
 		}
 	}
-	else {
+	else
+	{
 		/* (i, (j-1) does not exist */
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
 			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
 		}
-		else 
+		else
 		{
 			/* (i,j+1) does not exist */
 			STARPU_ABORT();

@@ -28,7 +28,8 @@
 #define	NX	2048
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
-void scal_cpu_func(void *buffers[], void *_args) {
+void scal_cpu_func(void *buffers[], void *_args)
+{
 	unsigned i;
 	float *factor = _args;
 	struct starpu_vector_interface *vector = buffers[0];
@@ -42,12 +43,14 @@ void scal_cpu_func(void *buffers[], void *_args) {
 		val[i] *= *factor;
 }
 
-static struct starpu_perfmodel vector_scal_model = {
+static struct starpu_perfmodel vector_scal_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "vector_scale_parallel"
 };
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,

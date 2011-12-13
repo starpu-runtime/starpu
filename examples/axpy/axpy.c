@@ -70,7 +70,8 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 }
 #endif
 
-static struct starpu_codelet axpy_cl = {
+static struct starpu_codelet axpy_cl =
+{
         .where =
 #ifdef STARPU_USE_CUDA
                 STARPU_CUDA|
@@ -116,7 +117,8 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle_y, 0, (uintptr_t)vec_y, N, sizeof(TYPE));
 
 	/* Divide the vector into blocks */
-	struct starpu_data_filter block_filter = {
+	struct starpu_data_filter block_filter =
+	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = NBLOCKS
 	};

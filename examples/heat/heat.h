@@ -52,7 +52,8 @@
 #define NODE_TO_THICK(n)		((n) % nthick)
 #define NODE_TO_THETA(n)		((n) / nthick)
 
-typedef struct point_t {
+typedef struct point_t
+{
 	float x;
 	float y;
 } point;

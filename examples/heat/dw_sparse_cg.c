@@ -63,7 +63,8 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 	{
 		rowptr[row] = pos;
 
-		if (row > 0) {
+		if (row > 0)
+		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row-1;
 			pos++;
@@ -73,7 +74,8 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 		colind[pos] = row;
 		pos++;
 
-		if (row < size - 1) {
+		if (row < size - 1)
+		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row+1;
 			pos++;
@@ -312,7 +314,8 @@ void iteration_cg(void *problem)
 		/* we did not reach the stop condition yet */
 		launch_new_cg_iteration(problem);
 	}
-	else {
+	else
+	{
 		/* we may stop */
 		FPRINTF(stdout, "We are done ... after %d iterations \n", pb->i - 1);
 		FPRINTF(stdout, "i : %d\n\tdelta_new %2.5f\n", pb->i, pb->delta_new);

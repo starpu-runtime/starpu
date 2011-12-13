@@ -155,7 +155,8 @@ static int handle_events(void)
 			topY -= 0.25*heightY;
 			bottomY -= 0.25*heightY;
 		}
-		else {
+		else
+		{
 			double widthX = rightX - leftX;
 			double heightY = topY - bottomY;
 
@@ -177,13 +178,15 @@ static int handle_events(void)
 			}
 		}
 
-		if (text[0]=='q') {
+		if (text[0]=='q')
+		{
 			return -1;
 		}
 	}
 
-	if (event.type==ButtonPress) {
-	/* tell where the mouse Button was Pressed */
+	if (event.type==ButtonPress)
+	{
+		/* tell where the mouse Button was Pressed */
 		printf("You pressed a button at (%i,%i)\n",
 			event.xbutton.x,event.xbutton.y);
 	}
@@ -371,7 +374,8 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 
 
-static struct starpu_codelet spmd_mandelbrot_cl = {
+static struct starpu_codelet spmd_mandelbrot_cl =
+{
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
@@ -382,7 +386,8 @@ static struct starpu_codelet spmd_mandelbrot_cl = {
 	.nbuffers = 1
 };
 
-static struct starpu_codelet mandelbrot_cl = {
+static struct starpu_codelet mandelbrot_cl =
+{
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {compute_block, NULL},
@@ -395,38 +400,46 @@ static struct starpu_codelet mandelbrot_cl = {
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-h") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy] [-niter 1000] [-spmd] [-demo] [-demozoom 0.2]\n", argv[0]);
 			exit(-1);
 		}
 
-		if (strcmp(argv[i], "-width") == 0) {
+		if (strcmp(argv[i], "-width") == 0)
+		{
 			char *argptr;
 			width = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-height") == 0) {
+		if (strcmp(argv[i], "-height") == 0)
+		{
 			char *argptr;
 			height = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-niter") == 0) {
+		if (strcmp(argv[i], "-niter") == 0)
+		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pos") == 0) {
+		if (strcmp(argv[i], "-pos") == 0)
+		{
 			int ret = sscanf(argv[++i], "%lf:%lf:%lf:%lf", &leftX, &rightX, &bottomY, &topY);
 			assert(ret == 4);
 		}
 
-		if (strcmp(argv[i], "-demo") == 0) {
+		if (strcmp(argv[i], "-demo") == 0)
+		{
 			demo = 1;
 			leftX = -50.22749575062760;
 			rightX = 48.73874621262927;
@@ -435,18 +448,21 @@ static void parse_args(int argc, char **argv)
 
 		}
 
-		if (strcmp(argv[i], "-demozoom") == 0) {
+		if (strcmp(argv[i], "-demozoom") == 0)
+		{
 			char *argptr;
 			demozoom = strtof(argv[++i], &argptr);
 		}
 
-		if (strcmp(argv[i], "-no-x11") == 0) {
+		if (strcmp(argv[i], "-no-x11") == 0)
+		{
 #ifdef STARPU_HAVE_X11
 			use_x11 = 0;
 #endif
 		}
 
-		if (strcmp(argv[i], "-spmd") == 0) {
+		if (strcmp(argv[i], "-spmd") == 0)
+		{
 			use_spmd = 1;
 		}
 	}
@@ -567,7 +583,8 @@ int main(int argc, char **argv)
 				iter = 0;
 				gettimeofday(&start, NULL);
 			}
-			else {
+			else
+			{
 				leftX += (zoom_factor/2)*widthX;
 				rightX -= (zoom_factor/2)*widthX;
 				topY -= (zoom_factor/2)*heightY;

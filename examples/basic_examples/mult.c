@@ -133,20 +133,26 @@ static void init_problem_data(void)
 
 	/* fill the A and B matrices */
 	srand(2009);
-	for (j=0; j < ydim; j++) {
-		for (i=0; i < zdim; i++) {
+	for (j=0; j < ydim; j++)
+	{
+		for (i=0; i < zdim; i++)
+		{
 			A[j+i*ydim] = (float)(starpu_drand48());
 		}
 	}
 
-	for (j=0; j < zdim; j++) {
-		for (i=0; i < xdim; i++) {
+	for (j=0; j < zdim; j++)
+	{
+		for (i=0; i < xdim; i++)
+		{
 			B[j+i*zdim] = (float)(starpu_drand48());
 		}
 	}
 
-	for (j=0; j < ydim; j++) {
-		for (i=0; i < xdim; i++) {
+	for (j=0; j < ydim; j++)
+	{
+		for (i=0; i < xdim; i++)
+		{
 			C[j+i*ydim] = (float)(0);
 		}
 	}
@@ -186,16 +192,18 @@ static void partition_mult_data(void)
 	/* StarPU supplies some basic filters such as the partition of a matrix
 	 * into blocks, note that we are using a FORTRAN ordering so that the
 	 * name of the filters are a bit misleading */
-	struct starpu_data_filter vert = {
+	struct starpu_data_filter vert =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nslicesx
 	};
-		
-	struct starpu_data_filter horiz = {
+
+	struct starpu_data_filter horiz =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nslicesy
 	};
-		
+
 /*
  *	Illustration with nslicex = 4 and nslicey = 2, it is possible to access
  *	sub-data by using the "starpu_data_get_sub_data" method, which takes a data handle,
@@ -246,12 +254,14 @@ static void partition_mult_data(void)
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
 }
 
-static struct starpu_perfmodel mult_perf_model = {
+static struct starpu_perfmodel mult_perf_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "mult_perf_model"
 };
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
         /* we can only execute that kernel on a CPU yet */
         .where = STARPU_CPU,
         /* CPU implementation of the codelet */

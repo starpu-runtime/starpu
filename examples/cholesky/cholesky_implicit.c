@@ -137,7 +137,8 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double flop = (1.0f*n*n*n)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
-	if (bound) {
+	if (bound)
+	{
 		double res;
 		starpu_bound_compute(&res, NULL, 0);
 		FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
@@ -152,12 +153,14 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	 * one block is now determined by 2 unsigned (i,j) */
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -203,10 +206,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			}
 		}
@@ -222,10 +227,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 				mat[j+i*size] = 0.0f; /* debug */
 			}
@@ -241,7 +248,8 @@ int main(int argc, char **argv)
 		{
 			for (i = 0; i < size; i++)
 			{
-				if (i > j) {
+				if (i > j)
+				{
 					mat[j+i*size] = 0.0f; /* debug */
 				}
 			}
@@ -258,10 +266,12 @@ int main(int argc, char **argv)
 		{
 			for (i = 0; i < size; i++)
 			{
-				if (i <= j) {
+				if (i <= j)
+				{
 					FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
 				}
-				else {
+				else
+				{
 					FPRINTF(stdout, ".\t");
 				}
 			}
@@ -273,10 +283,12 @@ int main(int argc, char **argv)
 		{
 			for (i = 0; i < size; i++)
 			{
-				if (i <= j) {
+				if (i <= j)
+				{
 	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
 	                                float err = abs(test_mat[j +i*size] - orig);
-	                                if (err > 0.00001) {
+	                                if (err > 0.00001)
+					{
 	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
 	                                        assert(0);
 	                                }

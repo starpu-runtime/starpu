@@ -42,7 +42,8 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static struct starpu_codelet cl11 = {
+static struct starpu_codelet cl11 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
@@ -68,14 +69,16 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k, tag_prefix), 1, TAG22(k-1, k, k, tag_prefix));
 	}
 
 	return task;
 }
 
-static struct starpu_codelet cl12 = {
+static struct starpu_codelet cl12 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
@@ -99,22 +102,26 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (i == k+1) {
+	if (i == k+1)
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, i, k, tag_prefix));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
 	starpu_task_submit(task);
 }
 
-static struct starpu_codelet cl21 = {
+static struct starpu_codelet cl21 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
@@ -136,22 +143,26 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (j == k+1) {
+	if (j == k+1)
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, k, j, tag_prefix));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
 	starpu_task_submit(task);
 }
 
-static struct starpu_codelet cl22 = {
+static struct starpu_codelet cl22 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
@@ -177,15 +188,18 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if ( (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 3, TAG22(k-1, i, j, tag_prefix), TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
 
@@ -207,12 +221,14 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	unsigned nblocks = size / blocksize;
 	unsigned maxk = inner_size / blocksize;
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -235,10 +251,12 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		struct starpu_task *task = create_task_11(dataA, k, tag_prefix);
 
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
+		else
+		{
 			starpu_task_submit(task);
 		}
 		
@@ -272,7 +290,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		starpu_data_unpartition(dataA, 0);		
 		return;
 	}
-	else {
+	else
+	{
 		/*
 		 * call dw_factoLU_grain_inner recursively in the remaining blocks
 		 */
@@ -301,7 +320,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		{
 			dw_factoLU_grain_inner(newmatA, size-inner_size, (size-inner_size)/2, ld, blocksize/2, tag_prefix+1);
 		}
-		else { */
+		else
+		{ */
 			dw_factoLU_grain_inner(newmatA, size-inner_size, size-inner_size, ld, blocksize/2, tag_prefix+1);
 /*		} */
 	}

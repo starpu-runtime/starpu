@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,8 @@
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
 /* Steps for the parallel variant */
-enum steps {
+enum steps
+{
 	SPECIAL, TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
 };
 
@@ -49,7 +50,8 @@ enum steps {
 
 #define I_BITS STEP_SHIFT
 
-enum type {
+enum type
+{
 	R2C,
 	C2R,
 	C2C
@@ -65,7 +67,8 @@ static struct timeval start, submit_tasks, end;
  *
  */
 
-struct STARPUFFT(plan) {
+struct STARPUFFT(plan)
+{
 	int number;	/* uniquely identifies the plan, for starpu tags */
 
 	int *n;
@@ -84,7 +87,8 @@ struct STARPUFFT(plan) {
 	starpu_data_handle_t roots_handle[2];
 
 	/* For each worker, we need some data */
-	struct {
+	struct
+	{
 #ifdef STARPU_USE_CUDA
 		/* CUFFT plans */
 		cufftHandle plan1_cuda, plan2_cuda;
@@ -113,7 +117,8 @@ struct STARPUFFT(plan) {
 	struct STARPUFFT(args) *fft1_args, *fft2_args;
 };
 
-struct STARPUFFT(args) {
+struct STARPUFFT(args)
+{
 	struct STARPUFFT(plan) *plan;
 	int i, j, jj, kk, ll, *iv, *kkv;
 };
@@ -123,7 +128,8 @@ check_dims(STARPUFFT(plan) plan)
 {
 	int dim;
 	for (dim = 0; dim < plan->dim; dim++)
-		if (plan->n[dim] & (plan->n[dim]-1)) {
+		if (plan->n[dim] & (plan->n[dim]-1))
+		{
 			fprintf(stderr,"can't cope with non-power-of-2\n");
 			STARPU_ABORT();
 		}
@@ -135,7 +141,8 @@ compute_roots(STARPUFFT(plan) plan)
 	int dim, k;
 
 	/* Compute the n-roots and m-roots of unity for twiddling */
-	for (dim = 0; dim < plan->dim; dim++) {
+	for (dim = 0; dim < plan->dim; dim++)
+	{
 		STARPUFFT(complex) exp = (plan->sign * 2. * 4.*atan(1.)) * _Complex_I / (STARPUFFT(complex)) plan->n[dim];
 		plan->roots[dim] = malloc(plan->n[dim] * sizeof(**plan->roots));
 		for (k = 0; k < plan->n[dim]; k++)
@@ -143,7 +150,8 @@ compute_roots(STARPUFFT(plan) plan)
 		starpu_vector_data_register(&plan->roots_handle[dim], 0, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
 
 #ifdef STARPU_USE_CUDA
-		if (plan->n[dim] > 100000) {
+		if (plan->n[dim] > 100000)
+		{
 			/* prefetch the big root array on GPUs */
 			unsigned worker;
 			unsigned nworkers = starpu_worker_get_count();
@@ -170,17 +178,21 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 	plan->in = _in;
 	plan->out = _out;
 
-	switch (plan->dim) {
-		case 1: {
-			switch (plan->type) {
+	switch (plan->dim)
+	{
+		case 1:
+		{
+			switch (plan->type)
+			{
 			case C2C:
 				starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
-if (!PARALLEL)
-				starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
-if (PARALLEL) {
-				for (z = 0; z < plan->totsize1; z++)
-					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
-}
+				if (!PARALLEL)
+					starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+				if (PARALLEL)
+				{
+					for (z = 0; z < plan->totsize1; z++)
+						plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+				}
 				task = STARPUFFT(start1dC2C)(plan, plan->in_handle, plan->out_handle);
 				break;
 			default:
@@ -191,12 +203,13 @@ if (PARALLEL) {
 		}
 		case 2:
 			starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
-if (!PARALLEL)
-			starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
-if (PARALLEL) {
-			for (z = 0; z < plan->totsize1; z++)
-				plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
-}
+			if (!PARALLEL)
+				starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+			if (PARALLEL)
+			{
+				for (z = 0; z < plan->totsize1; z++)
+					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+			}
 			task = STARPUFFT(start2dC2C)(plan, plan->in_handle, plan->out_handle);
 			break;
 		default:
@@ -211,10 +224,11 @@ STARPUFFT(cleanup)(STARPUFFT(plan) plan)
 {
 	if (plan->in_handle)
 		starpu_data_unregister(plan->in_handle);
-if (!PARALLEL) {
-	if (plan->out_handle)
-		starpu_data_unregister(plan->out_handle);
-}
+	if (!PARALLEL)
+	{
+		if (plan->out_handle)
+			starpu_data_unregister(plan->out_handle);
+	}
 }
 
 struct starpu_task *
@@ -253,16 +267,21 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 {
 	int workerid, dim, i;
 
-	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
-		switch (starpu_worker_get_type(workerid)) {
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+	{
+		switch (starpu_worker_get_type(workerid))
+		{
 		case STARPU_CPU_WORKER:
 #ifdef STARPU_HAVE_FFTW
-if (PARALLEL) {
-			_FFTW(destroy_plan)(plan->plans[workerid].plan1_cpu);
-			_FFTW(destroy_plan)(plan->plans[workerid].plan2_cpu);
-} else {
-			_FFTW(destroy_plan)(plan->plans[workerid].plan_cpu);
-}
+			if (PARALLEL)
+			{
+				_FFTW(destroy_plan)(plan->plans[workerid].plan1_cpu);
+				_FFTW(destroy_plan)(plan->plans[workerid].plan2_cpu);
+			}
+			else
+			{
+				_FFTW(destroy_plan)(plan->plans[workerid].plan_cpu);
+			}
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
@@ -276,45 +295,50 @@ if (PARALLEL) {
 		}
 	}
 
-if (PARALLEL) {
-	for (i = 0; i < plan->totsize1; i++) {
-		starpu_data_unregister(plan->twisted1_handle[i]);
-		free(plan->twist1_tasks[i]);
-		starpu_data_unregister(plan->fft1_handle[i]);
-		free(plan->fft1_tasks[i]);
-	}
+	if (PARALLEL)
+	{
+		for (i = 0; i < plan->totsize1; i++)
+		{
+			starpu_data_unregister(plan->twisted1_handle[i]);
+			free(plan->twist1_tasks[i]);
+			starpu_data_unregister(plan->fft1_handle[i]);
+			free(plan->fft1_tasks[i]);
+		}
 
-	free(plan->twisted1_handle);
-	free(plan->twist1_tasks);
-	free(plan->fft1_handle);
-	free(plan->fft1_tasks);
-	free(plan->fft1_args);
+		free(plan->twisted1_handle);
+		free(plan->twist1_tasks);
+		free(plan->fft1_handle);
+		free(plan->fft1_tasks);
+		free(plan->fft1_args);
 
-	free(plan->join_task);
+		free(plan->join_task);
 
-	for (i = 0; i < plan->totsize3; i++) {
-		starpu_data_unregister(plan->twisted2_handle[i]);
-		free(plan->twist2_tasks[i]);
-		starpu_data_unregister(plan->fft2_handle[i]);
-		free(plan->fft2_tasks[i]);
-		free(plan->twist3_tasks[i]);
-	}
+		for (i = 0; i < plan->totsize3; i++)
+		{
+			starpu_data_unregister(plan->twisted2_handle[i]);
+			free(plan->twist2_tasks[i]);
+			starpu_data_unregister(plan->fft2_handle[i]);
+			free(plan->fft2_tasks[i]);
+			free(plan->twist3_tasks[i]);
+		}
 
-	free(plan->end_task);
+		free(plan->end_task);
 
-	free(plan->twisted2_handle);
-	free(plan->twist2_tasks);
-	free(plan->fft2_handle);
-	free(plan->fft2_tasks);
-	free(plan->twist3_tasks);
-	free(plan->fft2_args);
+		free(plan->twisted2_handle);
+		free(plan->twist2_tasks);
+		free(plan->fft2_handle);
+		free(plan->fft2_tasks);
+		free(plan->twist3_tasks);
+		free(plan->fft2_args);
 
-	for (dim = 0; dim < plan->dim; dim++) {
-		starpu_data_unregister(plan->roots_handle[dim]);
-		free(plan->roots[dim]);
-	}
+		for (dim = 0; dim < plan->dim; dim++)
+		{
+			starpu_data_unregister(plan->roots_handle[dim]);
+			free(plan->roots[dim]);
+		}
 
-	switch (plan->dim) {
+		switch (plan->dim)
+		{
 		case 1:
 			STARPUFFT(free_1d_tags)(plan);
 			break;
@@ -324,15 +348,15 @@ if (PARALLEL) {
 		default:
 			STARPU_ABORT();
 			break;
-	}
+		}
 
-	free(plan->n1);
-	free(plan->n2);
-	STARPUFFT(free)(plan->twisted1);
-	STARPUFFT(free)(plan->fft1);
-	STARPUFFT(free)(plan->twisted2);
-	STARPUFFT(free)(plan->fft2);
-}
+		free(plan->n1);
+		free(plan->n2);
+		STARPUFFT(free)(plan->twisted1);
+		STARPUFFT(free)(plan->fft1);
+		STARPUFFT(free)(plan->twisted2);
+		STARPUFFT(free)(plan->fft2);
+	}
 	free(plan->n);
 	free(plan);
 }

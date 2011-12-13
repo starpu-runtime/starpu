@@ -46,41 +46,51 @@ TYPE **A_blocks;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-piv") == 0) {
+		if (strcmp(argv[i], "-piv") == 0)
+		{
 			pivot = 1;
 		}
 
-		if (strcmp(argv[i], "-no-stride") == 0) {
+		if (strcmp(argv[i], "-no-stride") == 0)
+		{
 			no_stride = 1;
 		}
 
-		if (strcmp(argv[i], "-profile") == 0) {
+		if (strcmp(argv[i], "-profile") == 0)
+		{
 			profile = 1;
 		}
 
-		if (strcmp(argv[i], "-bound") == 0) {
+		if (strcmp(argv[i], "-bound") == 0)
+		{
 			bound = 1;
 		}
-		if (strcmp(argv[i], "-bounddeps") == 0) {
+		if (strcmp(argv[i], "-bounddeps") == 0)
+		{
 			bound = 1;
 			bounddeps = 1;
 		}
-		if (strcmp(argv[i], "-bounddepsprio") == 0) {
+		if (strcmp(argv[i], "-bounddepsprio") == 0)
+		{
 			bound = 1;
 			bounddeps = 1;
 			boundprio = 1;
@@ -344,14 +354,18 @@ int main(int argc, char **argv)
 		starpu_bus_profiling_helper_display_summary();
 	}
 
-	if (bound) {
+	if (bound)
+	{
 		double min;
 		starpu_bound_stop();
-		if (bounddeps) {
+		if (bounddeps)
+		{
 			FILE *f = fopen("lu.pl", "w");
 			starpu_bound_print_lp(f);
 			FPRINTF(stderr,"system printed to lu.pl\n");
-		} else {
+		}
+		else
+		{
 			starpu_bound_compute(&min, NULL, 0);
 			if (min != 0.)
 				FPRINTF(stderr, "theoretical min: %f ms\n", min);

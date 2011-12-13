@@ -20,7 +20,8 @@
 /* TODO: rather use a dummy for loop, to assign the job to the threads that will work on it? */
 	if (idy == 0)
 		for (z = i-1 + idz; z < nz-(i-1); z += stepz)
-			for (x = K + idx; x < nx-K; x += stepx) {
+			for (x = K + idx; x < nx-K; x += stepx)
+			{
 				unsigned index = x+z*ldz;
 				ptr[index+(K-1)*ldy] = ptr[index+(ny-K-1)*ldy];
 				ptr[index+(ny-K)*ldy] = ptr[index+K*ldy];
@@ -28,14 +29,16 @@
 
 	if (idx == 0)
 		for (z = i-1 + idz; z < nz-(i-1); z += stepz)
-			for (y = K + idy; y < ny-K; y += stepy) {
+			for (y = K + idy; y < ny-K; y += stepy)
+			{
 				unsigned index = y*ldy+z*ldz;
 				ptr[(K-1)+index] = ptr[(nx-K-1)+index];
 				ptr[(nx-K)+index] = ptr[K+index];
 			}
 
 	if (idx == 0 && idy == 0)
-		for (z = i-1 + idz; z < nz-(i-1); z += stepz) {
+		for (z = i-1 + idz; z < nz-(i-1); z += stepz)
+		{
 			unsigned index = z*ldz;
 			ptr[K-1+(K-1)*ldy+index] = ptr[(nx-K-1)+(ny-K-1)*ldy+index];
 			ptr[(nx-K)+(K-1)*ldy+index] = ptr[K+(ny-K-1)*ldy+index];

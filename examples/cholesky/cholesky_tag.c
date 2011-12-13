@@ -64,7 +64,8 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
@@ -94,20 +95,24 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (!noprio && (j == k+1)) {
+	if (!noprio && (j == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
 	int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 exit(0);
         }
@@ -141,20 +146,24 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
-	if (!noprio && (i == k + 1) && (j == k +1) ) {
+	if (!noprio && (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
 	int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 exit(0);
         }
@@ -183,12 +192,15 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	{
 		struct starpu_task *task = create_task_11(dataA, k);
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
+		else
+		{
 			int ret = starpu_task_submit(task);
-                        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+                        if (STARPU_UNLIKELY(ret == -ENODEV))
+			{
                                 FPRINTF(stderr, "No worker may execute this task\n");
                                 exit(0);
                         }
@@ -209,7 +221,8 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	int ret = starpu_task_submit(entry_task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 exit(0);
         }
@@ -243,7 +256,8 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	{
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
 	} 
-	else {
+	else
+	{
 		*A = malloc(dim*dim*sizeof(float));
 	}
 }
@@ -258,12 +272,14 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -311,10 +327,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			}
 		}
@@ -332,10 +350,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 				mat[j+i*size] = 0.0f; /* debug */
 			}
@@ -355,10 +375,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			}
 		}

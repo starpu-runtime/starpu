@@ -39,9 +39,12 @@ void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {
         int i, j, k;
         FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
-        for(k=0 ; k<nz ; k++) {
-                for(j=0 ; j<ny ; j++) {
-                        for(i=0 ; i<nx ; i++) {
+        for(k=0 ; k<nz ; k++)
+	{
+                for(j=0 ; j<ny ; j++)
+		{
+                        for(i=0 ; i<nx ; i++)
+			{
                                 FPRINTF(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
                         }
                         FPRINTF(stderr,"\n");
@@ -74,9 +77,12 @@ int main(int argc, char **argv)
 
         block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
         assert(block);
-        for(k=0 ; k<NZ ; k++) {
-                for(j=0 ; j<NY ; j++) {
-                        for(i=0 ; i<NX ; i++) {
+        for(k=0 ; k<NZ ; k++)
+	{
+                for(j=0 ; j<NY ; j++)
+		{
+                        for(i=0 ; i<NX ; i++)
+			{
                                 block[(k*NX*NY)+(j*NX)+i] = n++;
                         }
                 }
@@ -138,7 +144,8 @@ int main(int argc, char **argv)
                 task->cl_arg = &multiplier;
 
                 ret = starpu_task_submit(task);
-                if (ret) {
+                if (ret)
+		{
                         FPRINTF(stderr, "Error when submitting task\n");
                         exit(ret);
                 }

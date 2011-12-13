@@ -46,10 +46,12 @@ void callback_func(void *callback_arg)
  * DSM; the second arguments references read-only data that is passed as an
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
-struct params {
+struct params
+{
 	int i;
 	float f;
 };
+
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	struct params *params = (struct params *) cl_arg;

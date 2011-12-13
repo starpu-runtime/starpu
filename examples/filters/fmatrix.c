@@ -34,7 +34,8 @@ void cpu_func(void *buffers[], void *cl_arg)
         /* local copy of the matrix pointer */
         int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
-        for(j=0; j<ny ; j++) {
+        for(j=0; j<ny ; j++)
+	{
                 for(i=0; i<nx ; i++)
                         val[(j*ld)+i] = *factor;
         }
@@ -46,8 +47,10 @@ int main(int argc, char **argv)
         int matrix[NX*NY];
 
         FPRINTF(stderr,"IN  Matrix: \n");
-        for(j=0 ; j<NY ; j++) {
-                for(i=0 ; i<NX ; i++) {
+        for(j=0 ; j<NY ; j++)
+	{
+                for(i=0 ; i<NX ; i++)
+		{
                         matrix[(j*NX)+i] = n++;
                         FPRINTF(stderr, "%2d ", matrix[(j*NX)+i]);
                 }
@@ -56,7 +59,8 @@ int main(int argc, char **argv)
         FPRINTF(stderr,"\n");
 
         starpu_data_handle_t handle;
-        struct starpu_codelet cl = {
+        struct starpu_codelet cl =
+	{
                 .where = STARPU_CPU,
                 .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1
@@ -96,8 +100,10 @@ int main(int argc, char **argv)
 
         /* Print result matrix */
         FPRINTF(stderr,"OUT Matrix: \n");
-        for(j=0 ; j<NY ; j++) {
-                for(i=0 ; i<NX ; i++) {
+        for(j=0 ; j<NY ; j++)
+	{
+                for(i=0 ; i<NX ; i++)
+		{
                         FPRINTF(stderr, "%2d ", matrix[(j*NX)+i]);
                 }
                 FPRINTF(stderr,"\n");

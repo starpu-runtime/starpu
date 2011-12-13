@@ -67,36 +67,45 @@ unsigned get_ticks(void)
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-b") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-b") == 0)
+		{
 			bind_tasks = 1;
 		}
 
-		if (strcmp(argv[i], "-nbz") == 0) {
+		if (strcmp(argv[i], "-nbz") == 0)
+		{
 			nbz = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-sizex") == 0) {
+		if (strcmp(argv[i], "-sizex") == 0)
+		{
 			sizex = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-sizey") == 0) {
+		if (strcmp(argv[i], "-sizey") == 0)
+		{
 			sizey = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-sizez") == 0) {
+		if (strcmp(argv[i], "-sizez") == 0)
+		{
 			sizez = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-niter") == 0) {
+		if (strcmp(argv[i], "-niter") == 0)
+		{
 			niter = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-ticks") == 0) {
+		if (strcmp(argv[i], "-ticks") == 0)
+		{
 			ticks = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			 fprintf(stderr, "Usage : %s [options...]\n", argv[0]);
 			 fprintf(stderr, "\n");
 			 fprintf(stderr, "Options:\n");
@@ -114,7 +123,8 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 {
 	parse_args(argc, argv);
 
-	if (getenv("STARPU_TOP")) {
+	if (getenv("STARPU_TOP"))
+	{
 		starpu_top_init_loop = starpu_top_add_data_integer("Task creation iter", 0, niter, 1);
 		starpu_top_achieved_loop = starpu_top_add_data_integer("Task achieved iter", 0, niter, 1);
 		starpu_top_init_and_wait("stencil_top example");
@@ -152,8 +162,10 @@ void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
 
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 		total += task_per_worker[worker];
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {
-		if (task_per_worker[worker]) {
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		if (task_per_worker[worker])
+		{
 			char name[32];
 			starpu_worker_get_name(worker, name, sizeof(name));
 			fprintf(stderr,"\t%s -> %d (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
@@ -181,7 +193,8 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_USE_MPI
 	int thread_support;
-	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support)) {
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support))
+	{
 		fprintf(stderr, "MPI_Init_thread failed\n");
 	}
 	if (thread_support == MPI_THREAD_FUNNELED)
@@ -295,15 +308,18 @@ int main(int argc, char **argv)
 
 		unsigned bz, iter;
 		unsigned last;
-		for (iter = 0; iter < who_runs_what_len; iter++) {
+		for (iter = 0; iter < who_runs_what_len; iter++)
+		{
 			last = 1;
-			for (bz = 0; bz < nbz; bz++) {
+			for (bz = 0; bz < nbz; bz++)
+			{
 				if ((bz % nzblocks_per_process) == 0)
 					fprintf(stderr, "| ");
 
 				if (who_runs_what_index[bz] <= iter)
 					fprintf(stderr,"_ ");
-				else {
+				else
+				{
 					last = 0;
 					if (who_runs_what[bz + iter * nbz] == -1)
 						fprintf(stderr,"* ");

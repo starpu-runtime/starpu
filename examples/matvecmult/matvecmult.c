@@ -64,27 +64,34 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 }
 #endif
 
-void fillArray(float* pfData, int iSize) {
+void fillArray(float* pfData, int iSize)
+{
     int i;
     const float fScale = 1.0f / (float)RAND_MAX;
-    for (i = 0; i < iSize; ++i) {
+    for (i = 0; i < iSize; ++i)
+    {
             pfData[i] = fScale * rand();
     }
 }
 
-void printArray(float* pfData, int iSize) {
+void printArray(float* pfData, int iSize)
+{
     int i;
-    for (i = 0; i < iSize; ++i) {
+    for (i = 0; i < iSize; ++i)
+    {
             FPRINTF(stderr, "%f ", pfData[i]);
     }
     FPRINTF(stderr, "\n");
 }
 
-void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult) {
+void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult)
+{
     int i, j;
-    for (i = 0; i < height; ++i) {
+    for (i = 0; i < height; ++i)
+    {
         double sum = 0;
-        for (j = 0; j < width; ++j) {
+        for (j = 0; j < width; ++j)
+	{
             double a = matrix[i * width + j];
             double b = vector[j];
             sum += a * b;
@@ -93,12 +100,14 @@ void matVecMult(const float *matrix, const float *vector, int width, int height,
     }
 }
 
-int compareL2fe(const float* reference, const float* data, const unsigned int len, const float epsilon) {
+int compareL2fe(const float* reference, const float* data, const unsigned int len, const float epsilon)
+{
     float error = 0;
     float ref = 0;
     unsigned int i;
 
-    for(i = 0; i < len; ++i) {
+    for(i = 0; i < len; ++i)
+    {
         float diff = reference[i] - data[i];
         error += diff * diff;
         ref += reference[i] * reference[i];
@@ -117,7 +126,8 @@ int main(int argc, char **argv)
 {
 	struct starpu_codelet cl = {};
 
-	struct starpu_conf conf = {
+	struct starpu_conf conf =
+	{
 		.ncpus = 0,
 		.ncuda = 0,
                 .nopencl = 1,
@@ -136,7 +146,8 @@ int main(int argc, char **argv)
 	int ret, submit;
 
         ret = starpu_init(&conf);
-	if (STARPU_UNLIKELY(ret == -ENODEV)) {
+	if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "This application requires an OpenCL worker.\n");
 		starpu_shutdown();
 		return 77;
@@ -186,10 +197,12 @@ int main(int argc, char **argv)
         task->buffers[2].mode = STARPU_RW;
 
         submit = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(submit == -ENODEV)) {
+        if (STARPU_UNLIKELY(submit == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task. This application requires an OpenCL worker.\n");
 	}
-	else {
+	else
+	{
 		starpu_task_wait_for_all();
 	}
 
@@ -197,7 +210,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handle);
 	starpu_data_unregister(mult_handle);
 
-        if (STARPU_LIKELY(submit != -ENODEV)) {
+        if (STARPU_LIKELY(submit != -ENODEV))
+	{
 		int res = compareL2fe(correctResult, mult, height, 1e-6f);
 		FPRINTF(stdout, "TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
 	}

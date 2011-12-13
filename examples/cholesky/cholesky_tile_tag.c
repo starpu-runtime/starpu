@@ -73,7 +73,8 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 	task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
@@ -110,15 +111,18 @@ static void create_task_21(unsigned k, unsigned j)
 	task->buffers[1].handle = A_state[j][k]; 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (j == k+1) {
+	if (j == k+1)
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
@@ -159,15 +163,18 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 	task->buffers[2].handle = A_state[j][i]; 
 	task->buffers[2].mode = STARPU_RW;
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if ( (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
@@ -195,10 +202,12 @@ static void cholesky_no_stride(void)
 	{
 		struct starpu_task *task = create_task_11(k, nblocks);
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
+		else
+		{
 			starpu_task_submit(task);
 		}
 		
@@ -251,7 +260,8 @@ int main(int argc, char **argv)
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
-		if (x <= y) {
+		if (x <= y)
+		{
 			A[y][x] = malloc(BLOCKSIZE*BLOCKSIZE*sizeof(float));
 			assert(A[y][x]);
 		}
@@ -261,7 +271,8 @@ int main(int argc, char **argv)
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
-		if (x <= y) {
+		if (x <= y)
+		{
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&A[y][x], 128, BLOCKSIZE*BLOCKSIZE*sizeof(float));
 #else
@@ -277,7 +288,8 @@ int main(int argc, char **argv)
 	 * */
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
-	if (x <= y) {
+	if (x <= y)
+	{
 		for (i = 0; i < BLOCKSIZE; i++)
 		for (j = 0; j < BLOCKSIZE; j++)
 		{
@@ -293,7 +305,8 @@ int main(int argc, char **argv)
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
-		if (x <= y) {
+		if (x <= y)
+		{
 			starpu_matrix_data_register(&A_state[y][x], 0, (uintptr_t)A[y][x], 
 				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
@@ -304,7 +317,8 @@ int main(int argc, char **argv)
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
-		if (x <= y) {
+		if (x <= y)
+		{
 			starpu_data_unregister(A_state[y][x]);
 		}
 	}

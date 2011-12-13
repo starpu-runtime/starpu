@@ -18,11 +18,13 @@
 
 #define N_ELEMENTS 10
 
-struct struct_of_arrays{
+struct struct_of_arrays
+{
 	float x[N_ELEMENTS];
 	float y[N_ELEMENTS];
 };
-struct point {
+struct point
+{
 	float x, y;
 };
 

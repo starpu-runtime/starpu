@@ -299,7 +299,8 @@ static void cg(void)
 			/* r <- r - A x */
 			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
 		}
-		else {
+		else
+		{
 			/* r <- r - alpha q */
 			axpy_kernel(r_handle, q_handle, -alpha, nblocks);
 		}
@@ -342,28 +343,34 @@ static int check(void)
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-	        if (strcmp(argv[i], "-n") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+	        if (strcmp(argv[i], "-n") == 0)
+		{
 			n = (int long long)atoi(argv[++i]);
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-maxiter") == 0) {
+	        if (strcmp(argv[i], "-maxiter") == 0)
+		{
 			i_max = atoi(argv[++i]);
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-nblocks") == 0) {
+	        if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			nblocks = atoi(argv[++i]);
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-no-reduction") == 0) {
+	        if (strcmp(argv[i], "-no-reduction") == 0)
+		{
 			use_reduction = 0;
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-h") == 0) {
+	        if (strcmp(argv[i], "-h") == 0)
+		{
 			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
 			continue;

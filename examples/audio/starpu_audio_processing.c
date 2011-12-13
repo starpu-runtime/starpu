@@ -101,7 +101,8 @@ void read_16bit_wav(FILE *infile, unsigned size, float *arrayout, FILE *save_fil
 	/* we skip the header to only keep the data */
 	fseek(infile, headersize, SEEK_SET);
 	
-	for (v=0;v<size;v++) {
+	for (v=0;v<size;v++)
+	{
 		signed char val = (signed char)fgetc(infile);
 		signed char val2 = (signed char)fgetc(infile);
 
@@ -124,7 +125,8 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
 	/* we assume that the header is copied using copy_wav_header */
 	fseek(outfile, headersize, SEEK_SET);
 	
-	for (v=0;v<size;v++) {
+	for (v=0;v<size;v++)
+	{
 		signed char val = ((int)arrayin[v]) % 256; 
 		signed char val2  = ((int)arrayin[v]) / 256;
 
@@ -146,7 +148,8 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
  */
 
 /* we don't reinitialize the CUFFT plan for every kernel, so we "cache" it */
-typedef struct {
+typedef struct
+{
 	unsigned is_initialized;
 #ifdef STARPU_USE_CUDA
 	cufftHandle plan;
@@ -268,12 +271,14 @@ static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *
 		localA[i] /= nsamples;
 }
 
-struct starpu_perfmodel band_filter_model = {
+struct starpu_perfmodel band_filter_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "FFT_band_filter"
 };
 
-static struct starpu_codelet band_filter_cl = {
+static struct starpu_codelet band_filter_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {band_filter_kernel_gpu, NULL},
@@ -330,7 +335,8 @@ static void init_problem(void)
 	{
 		starpu_malloc((void **)&A, length_data*sizeof(float));
 	}
-	else {
+	else
+	{
 		A = malloc(length_data*sizeof(float));
 	}
 
@@ -344,31 +350,38 @@ static void init_problem(void)
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-h") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			fprintf(stderr, "Usage: %s [-pin] [-nsamples block_size] [-i input.wav] [-o output.wav | -no-output] [-h]\n", argv[0]);
 			exit(-1);
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 			inputfilename = argv[++i];;
 		}
 
-		if (strcmp(argv[i], "-o") == 0) {
+		if (strcmp(argv[i], "-o") == 0)
+		{
 			outputfilename = argv[++i];;
 		}
 
-		if (strcmp(argv[i], "-no-output") == 0) {
+		if (strcmp(argv[i], "-no-output") == 0)
+		{
 			outputfilename = NULL;;
 		}
 
 		/* block size */
-		if (strcmp(argv[i], "-nsamples") == 0) {
+		if (strcmp(argv[i], "-nsamples") == 0)
+		{
 			char *argptr;
 			nsamples = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0) {
+		if (strcmp(argv[i], "-pin") == 0)
+		{
 			use_pin = 1;
 		}
 	}
@@ -393,7 +406,7 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
-	struct starpu_data_filter f = 
+	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = niter
