@@ -26,7 +26,8 @@
 //static pthread_cond_t cond;
 //static pthread_mutex_t mutex;
 
-struct thread_data {
+struct thread_data
+{
 	unsigned index;
 	unsigned val;
 	starpu_data_handle_t handle;
@@ -54,7 +55,8 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 	*val += 1;
 }
 
-static struct starpu_codelet increment_handle_cl = {
+static struct starpu_codelet increment_handle_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA

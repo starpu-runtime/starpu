@@ -141,11 +141,13 @@ void *launch_gpu_thread(void *arg)
 	unsigned iter;
 	for (iter = 0; iter < niter; iter++)
 	{
-		if (id == 0) {
+		if (id == 0)
+		{
 			send_data(0, 1);
 			recv_data(1, 0);
 		}
-		else {
+		else
+		{
 			recv_data(0, 1);
 			send_data(1, 0);
 		}

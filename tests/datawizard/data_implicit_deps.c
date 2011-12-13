@@ -34,7 +34,8 @@ static void f(void *descr[], __attribute__ ((unused)) void *_args)
 	usleep(200000);
 }
 
-static struct starpu_codelet cl_f = {
+static struct starpu_codelet cl_f =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {f, NULL},
 	.cuda_funcs = {f, NULL},
@@ -47,7 +48,8 @@ static void g(void *descr[], __attribute__ ((unused)) void *_args)
 	var = 42;
 }
 
-static struct starpu_codelet cl_g = {
+static struct starpu_codelet cl_g =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {g, NULL},
 	.cuda_funcs = {g, NULL},
@@ -60,7 +62,8 @@ static void h(void *descr[], __attribute__ ((unused)) void *_args)
 	STARPU_ASSERT(var == 42);
 }
 
-static struct starpu_codelet cl_h = {
+static struct starpu_codelet cl_h =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {h, NULL},
 	.cuda_funcs = {h, NULL},

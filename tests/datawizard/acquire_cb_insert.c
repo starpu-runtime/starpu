@@ -29,7 +29,8 @@ void which_index_cpu(void *descr[], void *_args)
 	*x0 = X;
 }
 
-struct starpu_codelet which_index = {
+struct starpu_codelet which_index =
+{
 	.where = STARPU_CPU,
 	.cpu_funcs = {which_index_cpu, NULL},
         .nbuffers = 1
@@ -44,7 +45,8 @@ void work_cpu(void *descr[], void *_args)
 		x0[i] = i + 1;
 }
 
-struct starpu_codelet work = {
+struct starpu_codelet work =
+{
 	.where = STARPU_CPU,
 	.cpu_funcs = {work_cpu, NULL},
         .nbuffers = 1
@@ -53,7 +55,8 @@ struct starpu_codelet work = {
 static int x;
 static starpu_data_handle_t x_handle, f_handle;
 
-void callback(void *arg) {
+void callback(void *arg)
+{
 	starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);
 	starpu_data_release(x_handle);
 }
@@ -76,7 +79,8 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&f_handle, 0, (uintptr_t)f, N, sizeof(*f));
 
 	/* Partition f */
-	struct starpu_data_filter filter = {
+	struct starpu_data_filter filter =
+	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = M,
 	};
@@ -106,7 +110,8 @@ int main(int argc, char **argv)
 
         FPRINTF(stderr, "VALUES: %d", x);
 
-        for(i=0 ; i<N ; i++) {
+        for(i=0 ; i<N ; i++)
+	{
 		FPRINTF(stderr, " %f", f[i]);
         }
 

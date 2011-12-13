@@ -40,7 +40,8 @@ static struct test_config *current_config;
  * FAILURE is 1. Therefore, the values of SUCCESS and FAILURE shall not be
  * changed.
  */
-enum exit_code {
+enum exit_code
+{
 	SUCCESS                 = 0,
 	FAILURE                 = 1,
 	UNTESTED                = 2,
@@ -68,7 +69,8 @@ enum_to_string(exit_code)
 	}
 }
 
-struct data_interface_test_summary {
+struct data_interface_test_summary
+{
 	int success;
 
 	/* Copy methods */
@@ -147,7 +149,8 @@ data_interface_test_summary_success(data_interface_test_summary *s)
 	return s->success;
 }
 
-enum operation {
+enum operation
+{
 	CPU_TO_CPU,
 #ifdef STARPU_USE_CUDA
 	CPU_TO_CUDA,
@@ -216,7 +219,8 @@ set_field(struct data_interface_test_summary *s, int async,
 	}
 }
 
-static struct data_interface_test_summary summary = {
+static struct data_interface_test_summary summary =
+{
 #ifdef STARPU_USE_CPU
 	.cpu_to_cpu            = UNTESTED,
 #endif

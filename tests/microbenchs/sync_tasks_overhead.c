@@ -75,7 +75,8 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:")) != -1)
-	switch(c) {
+	switch(c)
+	{
 		case 'i':
 			ntasks = atoi(optarg);
 			break;
@@ -119,7 +120,8 @@ int main(int argc, char **argv)
                 char *output_dir = getenv("STARPU_BENCH_DIR");
                 char *bench_id = getenv("STARPU_BENCH_ID");
 
-                if (output_dir && bench_id) {
+                if (output_dir && bench_id)
+		{
                         char file[1024];
                         FILE *f;
 

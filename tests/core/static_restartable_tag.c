@@ -43,7 +43,8 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:")) != -1)
-	switch(c) {
+	switch(c)
+	{
 		case 'i':
 			ntasks = atoi(optarg);
 			break;

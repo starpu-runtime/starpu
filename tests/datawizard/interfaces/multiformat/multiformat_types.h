@@ -18,12 +18,14 @@
 
 #define N_ELEMENTS 2
 
-struct struct_of_arrays{
+struct struct_of_arrays
+{
 	int x[N_ELEMENTS];
 	int y[N_ELEMENTS];
 };
 
-struct point {
+struct point
+{
 	int x, y;
 };
 

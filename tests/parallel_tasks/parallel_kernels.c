@@ -35,12 +35,14 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 #endif
 }
 
-struct starpu_perfmodel model = {
+struct starpu_perfmodel model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "parallel_kernel_test"
 };
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
@@ -58,7 +60,8 @@ int main(int argc, char **argv)
 	starpu_data_handle_t v_handle;
 	unsigned *v;
 
-        struct starpu_conf conf = {
+        struct starpu_conf conf =
+	{
                 .sched_policy_name = "pheft",
                 .ncpus = -1,
                 .ncuda = -1,

@@ -54,36 +54,44 @@ unsigned cuda_initialized = 0;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-gpu-ld") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-gpu-ld") == 0)
+		{
 		        char *argptr;
 			GPU_LD = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-cpu-ld") == 0) {
+		if (strcmp(argv[i], "-cpu-ld") == 0)
+		{
 		        char *argptr;
 			CPU_LD = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-size") == 0) {
+		if (strcmp(argv[i], "-size") == 0)
+		{
 		        char *argptr;
 			MATRIXSIZE = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0) {
+		if (strcmp(argv[i], "-pin") == 0)
+		{
 			pinned = 1;
 		}
 
-		if (strcmp(argv[i], "-HtoD") == 0) {
+		if (strcmp(argv[i], "-HtoD") == 0)
+		{
 			htod = 1;
 		}
 
-		if (strcmp(argv[i], "-iter") == 0) {
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 		        char *argptr;
 			ITER = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-pin] [-HtoD] [-size size] [-cpu-ld ld] [-gpu-ld ld] [-iter n]\n", argv[0]);
 		}
 	}
@@ -166,7 +174,8 @@ void benchmark_memcpy(void)
 				cuCtxSynchronize();
 			}
 		}
-		else {
+		else
+		{
 			for (count = 0; count < ITER; count++)
 			{
 				cublasSetMatrix(MATRIXSIZE, MATRIXSIZE, sizeof(float),

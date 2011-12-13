@@ -54,12 +54,14 @@ static void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
 	usleep(TASKDURATION);
 }
 
-static struct starpu_perfmodel model = {
+static struct starpu_perfmodel model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = NULL /* to be defined later */
 };
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_sleep, NULL},
 	.cuda_funcs = {codelet_sleep, NULL},

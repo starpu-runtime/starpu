@@ -27,7 +27,8 @@
 //static pthread_cond_t cond;
 //static pthread_mutex_t mutex;
 
-struct thread_data {
+struct thread_data
+{
 	unsigned index;
 	unsigned val;
 	starpu_data_handle_t handle;
@@ -39,7 +40,8 @@ struct thread_data {
 	struct thread_data *neighbour;
 };
 
-struct data_req {
+struct data_req
+{
 	int (*test_func)(void *);
 	void *test_arg;
 	struct data_req *next;
@@ -68,7 +70,8 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 //	FPRINTF(stderr, "VAL %d (&val = %p)\n", *val, val);
 }
 
-static struct starpu_codelet increment_handle_cl = {
+static struct starpu_codelet increment_handle_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
@@ -192,7 +195,8 @@ static void *progress_func(void *arg)
 	progress_thread_running = 1;
 	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);	
 
-	while (progress_thread_running) {
+	while (progress_thread_running)
+	{
 		struct data_req *req;
 
 		if (data_req_list == NULL)
@@ -214,7 +218,8 @@ static void *progress_func(void *arg)
 				free(req);
 				_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 			}
-			else {
+			else
+			{
 				/* ret = 0 : the request is not finished, we put it back at the end of the list */
 				_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 
@@ -224,7 +229,8 @@ static void *progress_func(void *arg)
 					/* The list is empty */
 					data_req_list = req;
 				}
-				else {
+				else
+				{
 					while (req_aux)
 					{
 						if (req_aux->next == NULL)

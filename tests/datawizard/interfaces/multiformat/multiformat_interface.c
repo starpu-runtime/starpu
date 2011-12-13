@@ -32,7 +32,8 @@ static struct point array_of_structs_dummy[N_ELEMENTS];
 static starpu_data_handle_t multiformat_handle;
 static starpu_data_handle_t multiformat_dummy_handle;
 
-struct test_config multiformat_config = {
+struct test_config multiformat_config =
+{
 	.cpu_func      = test_multiformat_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func     = test_multiformat_cuda_func,
@@ -82,7 +83,8 @@ extern struct starpu_codelet cpu_to_opencl_cl;
 extern struct starpu_codelet opencl_to_cpu_cl;
 #endif
 
-struct starpu_multiformat_data_interface_ops format_ops = {
+struct starpu_multiformat_data_interface_ops format_ops =
+{
 #ifdef STARPU_USE_CUDA
 	.cuda_elemsize = 2* sizeof(float),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
@@ -131,7 +133,8 @@ main(void)
 #ifdef STARPU_USE_CPU
 	int ret;
 	data_interface_test_summary *summary;
-	struct starpu_conf conf = {
+	struct starpu_conf conf =
+	{
 		.ncpus   = -1,
 		.ncuda   = 2,
 		.nopencl = 1

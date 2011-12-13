@@ -33,8 +33,9 @@ parse <- function (size, sched)
 	filename = paste("timings-sched/sched", sched, size, sep=".");
 
 	if (file.exists(filename))
-	{	ret <- scan(paste("timings-sched/sched", sched, size, sep="."));
-		return(ret);
+	{
+		ret <- scan(paste("timings-sched/sched", sched, size, sep="."));
+	    	return(ret);
 	};
 
 	return(NULL);
@@ -53,7 +54,8 @@ handle_sched <- function(sched)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size(size, sched);
 		gflopstab <- c(gflopstab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));
@@ -69,7 +71,8 @@ handle_sched_mean <- function(sched)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, sched));
 		meantab <- c(meantab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));
@@ -86,7 +89,8 @@ handle_sched_max <- function(sched)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		prout <- handle_size(size, sched);
 		list <- max(prout);
 		print(list);
@@ -105,7 +109,8 @@ handle_sched_min <- function(sched)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- min((handle_size(size, sched)));
 		print("MIN"); print( list);
 		gflopstab <- c(gflopstab, list);

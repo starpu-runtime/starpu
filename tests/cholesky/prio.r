@@ -32,7 +32,8 @@ parse <- function (size, sched)
 	filename = paste("timings_sched/sched", sched, size, sep=".");
 
 	if (file.exists(filename))
-	{	ret <- scan(paste("timings_sched/sched", sched, size, sep="."));
+	{
+		ret <- scan(paste("timings_sched/sched", sched, size, sep="."));
 		return(ret);
 	};
 
@@ -52,7 +53,8 @@ handle_sched <- function(sched)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size(size, sched);
 		gflopstab <- c(gflopstab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));
@@ -68,7 +70,8 @@ handle_sched_mean <- function(sched)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, sched));
 		meantab <- c(meantab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));

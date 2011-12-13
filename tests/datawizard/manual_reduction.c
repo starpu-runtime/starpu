@@ -39,7 +39,8 @@ static void initialize_per_worker_handle(void *arg __attribute__((unused)))
 	int workerid = starpu_worker_get_id();
 
 	/* Allocate memory on the worker, and initialize it to 0 */
-	switch (starpu_worker_get_type(workerid)) {
+	switch (starpu_worker_get_type(workerid))
+	{
 		case STARPU_CPU_WORKER:
 			per_worker[workerid] = (uintptr_t)calloc(1, sizeof(variable));
 			break;
@@ -88,7 +89,8 @@ static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
 	*a = *a + *b;
 }
 
-static struct starpu_codelet reduction_codelet = {
+static struct starpu_codelet reduction_codelet =
+{
 	.where = STARPU_CPU,
 	.cpu_funcs = {cpu_redux_func, NULL},
 	.cuda_funcs = {NULL},
@@ -135,7 +137,8 @@ static void opencl_func_incr(void *descr[], void *cl_arg __attribute__((unused))
 }
 #endif
 
-static struct starpu_codelet use_data_on_worker_codelet = {
+static struct starpu_codelet use_data_on_worker_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_func_incr, NULL},
 #ifdef STARPU_USE_CUDA

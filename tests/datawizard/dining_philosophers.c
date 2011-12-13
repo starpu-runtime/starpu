@@ -28,7 +28,8 @@ static void eat_kernel(void *descr[], void *arg)
 {
 }
 
-static struct starpu_codelet eating_cl = {
+static struct starpu_codelet eating_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cuda_funcs = {eat_kernel, NULL},
 	.cpu_funcs = {eat_kernel, NULL},

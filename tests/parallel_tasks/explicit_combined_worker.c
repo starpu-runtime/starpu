@@ -35,7 +35,8 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 #endif
 }
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
@@ -52,7 +53,8 @@ int main(int argc, char **argv)
 	unsigned *v;
 	int ret;
 
-//        struct starpu_conf conf = {
+//      struct starpu_conf conf =
+//	{
 //                .sched_policy_name = "pheft",
 //                .ncpus = -1,
 //                .ncuda = -1,

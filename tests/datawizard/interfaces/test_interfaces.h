@@ -16,7 +16,8 @@
 #ifndef TEST_INTERFACES_H
 #define TEST_INTERFACES_H
 
-struct test_config {
+struct test_config
+{
 	/* A pointer to a registered handle */
 	starpu_data_handle_t *handle;
 

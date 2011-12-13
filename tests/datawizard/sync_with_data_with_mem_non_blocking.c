@@ -35,7 +35,8 @@ static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_codelet, NULL},
 #ifdef STARPU_USE_CUDA
@@ -101,7 +102,8 @@ int main(int argc, char **argv)
 	{
 		/* Use the buffers on the different workers so that it may not
 		 * be in main memory anymore */
-		for (b = 0; b < NBUFFERS; b++) {
+		for (b = 0; b < NBUFFERS; b++)
+		{
 			ret = use_handle(v_handle[b]);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -136,7 +138,8 @@ int main(int argc, char **argv)
 	}
 
 	/* do some cleanup */
-	for (b = 0; b < NBUFFERS; b++) {
+	for (b = 0; b < NBUFFERS; b++)
+	{
 		starpu_data_unregister(v_handle[b]);
 		starpu_free(buffer[b]);
 	}

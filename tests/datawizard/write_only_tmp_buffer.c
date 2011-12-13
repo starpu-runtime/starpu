@@ -68,7 +68,8 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 	}
 }
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 #ifdef STARPU_USE_CUDA
@@ -80,7 +81,8 @@ static struct starpu_codelet cl = {
 	.nbuffers = 1
 };
 
-static struct starpu_codelet display_cl = {
+static struct starpu_codelet display_cl =
+{
 	.where = STARPU_CPU,
 	.cpu_funcs = {display_var, NULL},
 	.nbuffers = 1

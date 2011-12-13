@@ -61,7 +61,8 @@ handle_grain <- function(grain)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size(size, grain);
 
 		if (!is.na(list))
@@ -81,7 +82,8 @@ handle_grain_mean <- function(grain)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, grain));
 
 		if (!is.na(list))
@@ -139,7 +141,8 @@ handle_grain_nm <- function(grain)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size_nm(size, grain);
 
 		if (!is.na(list))
@@ -159,7 +162,8 @@ handle_grain_mean_nm <- function(grain)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size_nm(size, grain));
 
 		if (!is.na(list))
@@ -180,7 +184,8 @@ handle_grain_mean <- function(grain)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, grain));
 
 		if (!is.na(list))
@@ -223,7 +228,8 @@ display_grain <- function()
 
 	colarray <- c("magenta", "blue", "peru", "green3", "navy", "red", "green2", "black", "orange");
 
-	for (grain in grainlist) {
+	for (grain in grainlist)
+	{
 		trace_grain(grain, colarray[i+1], -1);
 		i <- i + 1;
 	}

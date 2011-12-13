@@ -38,7 +38,8 @@ extern "C" void test_vector_cuda_func(void *buffers[], void *args)
 	int *ret;
 
 	error = cudaMalloc(&ret, sizeof(int));
-	if (error != cudaSuccess) {
+	if (error != cudaSuccess)
+	{
 		fprintf(stderr, "cudaMalloc failed...\n");
 		return;
 	}
@@ -56,7 +57,8 @@ extern "C" void test_vector_cuda_func(void *buffers[], void *args)
 
         framework_cuda<<<nblocks,threads_per_block,0,starpu_cuda_get_local_stream()>>>(val, n, ret, factor);
 	error = cudaMemcpy(&vector_config.copy_failed, ret, sizeof(int), cudaMemcpyDeviceToHost);
-	if (error != cudaSuccess) {
+	if (error != cudaSuccess)
+	{
 		return;
 	}
 

@@ -73,7 +73,8 @@ handle_ampl <- function(ampl)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size(size, ampl);
 		gflopstab <- c(gflopstab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));
@@ -89,7 +90,8 @@ handle_ampl_mean <- function(ampl)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, ampl));
 		meantab <- c(meantab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));
@@ -106,7 +108,8 @@ handle_ref_mean <- function()
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size_ref(size));
 		meantab <- c(meantab, list);
 		sizetab <- c(sizetab, array(size, c(length(list))));

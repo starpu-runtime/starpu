@@ -34,7 +34,8 @@ static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_codelet, NULL},
 #ifdef STARPU_USE_CUDA
@@ -74,7 +75,8 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vector_divide_in_2_filter_func,
 		/* there are only 2 children */
 		.nchildren = 2,

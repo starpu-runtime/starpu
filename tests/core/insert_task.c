@@ -29,7 +29,8 @@ void func_cpu(void *descr[], void *_args)
         *x1 = *x1 * ffactor;
 }
 
-struct starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet =
+{
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
         .nbuffers = 2
@@ -64,13 +65,15 @@ int main(int argc, char **argv)
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-        for(i=0 ; i<2 ; i++) {
+        for(i=0 ; i<2 ; i++)
+	{
                 ret = starpu_data_acquire(data_handles[i], STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
         }
         FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
-        for(i=0 ; i<2 ; i++) {
+        for(i=0 ; i<2 ; i++)
+	{
                 starpu_data_release(data_handles[i]);
         }
 
@@ -96,13 +99,15 @@ int main(int argc, char **argv)
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-        for(i=0 ; i<2 ; i++) {
+        for(i=0 ; i<2 ; i++)
+	{
                 ret = starpu_data_acquire(data_handles[i], STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
         }
         FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
-        for(i=0 ; i<2 ; i++) {
+        for(i=0 ; i<2 ; i++)
+	{
                 starpu_data_release(data_handles[i]);
 		starpu_data_unregister(data_handles[i]);
         }

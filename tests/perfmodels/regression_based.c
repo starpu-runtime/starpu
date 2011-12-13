@@ -37,12 +37,14 @@ static void memset_cpu(void *descr[], void *arg)
 	memset(ptr, 42, n);
 }
 
-static struct starpu_perfmodel model = {
+static struct starpu_perfmodel model =
+{
 	.type = STARPU_REGRESSION_BASED,
 	.symbol = "memset_regression_based"
 };
 
-static struct starpu_perfmodel nl_model = {
+static struct starpu_perfmodel nl_model =
+{
 	.type = STARPU_NL_REGRESSION_BASED,
 	.symbol = "non_linear_memset_regression_based"
 };
@@ -93,14 +95,17 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
         starpu_data_unregister(handle);
 }
 
-static void show_task_perfs(int size, struct starpu_task *task) {
+static void show_task_perfs(int size, struct starpu_task *task)
+{
 	unsigned workerid;
-	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+	{
 		char name[16];
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
 		unsigned nimpl;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
 			FPRINTF(stdout, "Expected time for %d on %s:\t%f\n",
 				size, name, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid), nimpl));
 		}

@@ -34,7 +34,8 @@ extern void test_matrix_opencl_func(void *buffers[], void *args);
 static starpu_data_handle_t matrix_handle;
 static starpu_data_handle_t matrix2_handle;
 
-struct test_config matrix_config = {
+struct test_config matrix_config =
+{
 #ifdef STARPU_USE_CPU
 	.cpu_func      = test_matrix_cpu_func,
 #endif /* ! STARPU_USE_CPU */
@@ -112,7 +113,8 @@ int
 main(void)
 {
 	data_interface_test_summary *summary;
-	struct starpu_conf conf = {
+	struct starpu_conf conf =
+	{
 		.ncpus   = -1,
 		.ncuda   = 2,
 		.nopencl = 1

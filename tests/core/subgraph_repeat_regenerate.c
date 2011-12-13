@@ -72,7 +72,8 @@ static void callback_task_D(void *arg __attribute__((unused)))
 		_STARPU_PTHREAD_COND_SIGNAL(&cond);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
-	else {
+	else
+	{
 		int ret;
 		/* Let's go for another iteration */
 		ret = starpu_task_submit(&taskA);

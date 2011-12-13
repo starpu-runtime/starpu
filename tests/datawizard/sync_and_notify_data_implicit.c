@@ -76,7 +76,8 @@ void cpu_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 /* increment a = v[0] */
-static struct starpu_codelet cl_inc_a = {
+static struct starpu_codelet cl_inc_a =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 	.cpu_funcs = {cpu_codelet_incA, NULL},
 #ifdef STARPU_USE_CUDA
@@ -92,7 +93,8 @@ static struct starpu_codelet cl_inc_a = {
 };
 
 /* increment c = v[2] */
-struct starpu_codelet cl_inc_c = {
+struct starpu_codelet cl_inc_c =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 	.cpu_funcs = {cpu_codelet_incC, NULL},
 #ifdef STARPU_USE_CUDA
@@ -184,7 +186,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(v_handle);
 	starpu_shutdown();
 
-	if ((v[0] != N*K) || (v[1] != K) || (v[2] != N*K)) {
+	if ((v[0] != N*K) || (v[1] != K) || (v[2] != N*K))
+	{
 		FPRINTF(stderr, "Incorrect result\n");
 		return EXIT_FAILURE;
 	}

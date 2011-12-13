@@ -73,7 +73,8 @@ int main(int argc, char **argv)
 					starpu_worker_get_name(w, worker_0_name, 128);
 					found_node_0 = 1;
 				}
-				else {
+				else
+				{
 					memory_node_1 = starpu_worker_get_memory_node(w);
 					starpu_worker_get_name(w, worker_1_name, 128);
 					break;

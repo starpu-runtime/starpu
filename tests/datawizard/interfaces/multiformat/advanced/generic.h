@@ -27,7 +27,8 @@ void opencl_func(void *buffers[], void *args);
 #endif /* !STARPU_USE_OPENCL */
 extern struct starpu_multiformat_data_interface_ops ops;
 /* Counting the calls to the codelets */
-struct stats {
+struct stats
+{
 #ifdef STARPU_USE_CPU
 	unsigned int cpu;
 #endif

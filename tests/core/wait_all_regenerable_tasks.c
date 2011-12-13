@@ -53,7 +53,8 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:")) != -1)
-	switch(c) {
+	switch(c)
+	{
 		case 'i':
 			ntasks = atoi(optarg);
 			break;
@@ -95,7 +96,8 @@ int main(int argc, char **argv)
 
 	gettimeofday(&start, NULL);
 	
-	for (i = 0; i < K; i++) {
+	for (i = 0; i < K; i++)
+	{
 		ret = starpu_task_submit(&task[i]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

@@ -26,7 +26,8 @@
 #define NBUFFERS	16
 #define NITER		128
 
-struct data {
+struct data
+{
 	unsigned index;
 	unsigned val;
 	starpu_data_handle_t handle;

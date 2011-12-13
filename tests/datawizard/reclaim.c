@@ -51,7 +51,8 @@ static void dummy_func(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
-static struct starpu_codelet dummy_cl = {
+static struct starpu_codelet dummy_cl =
+{
         .where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},

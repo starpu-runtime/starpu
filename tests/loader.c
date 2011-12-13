@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (strstr(test_name, "spmv/dw_block_spmv")) {
+	if (strstr(test_name, "spmv/dw_block_spmv"))
+	{
 		test_args = (char *) malloc(150*sizeof(char));
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
@@ -91,7 +92,8 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[error] execl. Mark test as failed\n");
 		exit(EXIT_FAILURE);
 	}
-	if (child_pid == -1) {
+	if (child_pid == -1)
+	{
 		fprintf(stderr, "[error] fork. Mark test as failed\n");
 		exit(EXIT_FAILURE);
 	}

@@ -32,7 +32,8 @@ extern void test_vector_opencl_func(void *buffers[], void *args);
 static starpu_data_handle_t vector_handle;
 static starpu_data_handle_t vector2_handle;
 
-struct test_config vector_config = {
+struct test_config vector_config =
+{
 	.cpu_func      = test_vector_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func     = test_vector_cuda_func,
@@ -84,8 +85,10 @@ static void test_vector_cpu_func(void *buffers[], void *args)
 	int *val = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int factor = *(int*)args;
 	unsigned int i;
-	for (i = 0; i < n; i++) {
-		if (val[i] != i*factor) {
+	for (i = 0; i < n; i++)
+	{
+		if (val[i] != i*factor)
+		{
 			vector_config.copy_failed = 1;
 			return;
 		}
@@ -97,7 +100,8 @@ int
 main(void)
 {
 	data_interface_test_summary *summary;
-	struct starpu_conf conf = {
+	struct starpu_conf conf =
+	{
 		.ncpus   = -1,
 		.ncuda   = 2,
 		.nopencl = 1
