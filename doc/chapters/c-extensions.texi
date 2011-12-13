@@ -12,10 +12,11 @@
 
 When configured with @code{--enable-gcc-extensions}, StarPU builds a
 plug-in for the GNU Compiler Collection (GCC), which defines extensions
-to the C language that make it easier to write StarPU code@footnote{This
-feature is only available for GCC 4.5 and later.}.  Those extensions
-include syntactic sugar for defining tasks and their implementations,
-invoking a task, and manipulating data buffers.
+to languages of the C family (C, C++, Objective-C) that make it easier
+to write StarPU code@footnote{This feature is only available for GCC 4.5
+and later.}.  Those extensions include syntactic sugar for defining
+tasks and their implementations, invoking a task, and manipulating data
+buffers.
 
 This section does not require detailed knowledge of the StarPU library.
 
