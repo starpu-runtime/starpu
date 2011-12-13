@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,14 +104,16 @@ void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag,
 }
 
 /* returns the entry corresponding to the tag and remove it from the htbl */
-void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
+void *_starpu_htbl_remove_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag)
 {
 	/* NB : if the entry is "NULL", we assume this means it is not present XXX */
 	unsigned currentbit;
-	struct _starpu_htbl_node *current_htbl_ptr = htbl;
+	struct _starpu_htbl_node **current_htbl_ptr_parent = htbl;
+	struct _starpu_htbl_node *current_htbl_ptr = *current_htbl_ptr_parent;
 
 	/* remember the path to the tag */
 	struct _starpu_htbl_node *path[(_STARPU_TAG_SIZE + _STARPU_HTBL_NODE_SIZE - 1)/(_STARPU_HTBL_NODE_SIZE)];
+	struct _starpu_htbl_node **path_parent[(_STARPU_TAG_SIZE + _STARPU_HTBL_NODE_SIZE - 1)/(_STARPU_HTBL_NODE_SIZE)];
 
 	/* 000000000001111 with _STARPU_HTBL_NODE_SIZE 1's */
 	starpu_tag_t mask = (1<<_STARPU_HTBL_NODE_SIZE)-1;
@@ -120,6 +122,7 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 
 	for(currentbit = 0, level = 0; currentbit < _STARPU_TAG_SIZE; currentbit+=_STARPU_HTBL_NODE_SIZE, level++)
 	{
+		path_parent[level] = current_htbl_ptr_parent;
 		path[level] = current_htbl_ptr;
 
 		if (STARPU_UNLIKELY(!current_htbl_ptr))
@@ -140,8 +143,9 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 		unsigned current_index =
 			(tag & (offloaded_mask)) >> (last_currentbit);
 
-		current_htbl_ptr =
-			current_htbl_ptr->children[current_index];
+		current_htbl_ptr_parent = 
+			&current_htbl_ptr->children[current_index];
+		current_htbl_ptr = *current_htbl_ptr_parent;
 	}
 
 	maxlevel = level;
@@ -167,6 +171,7 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag)
 
 			/* we remove this node */
 			free(path[level]);
+			*(path_parent[level]) = NULL;
 		}
 	}
 

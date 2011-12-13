@@ -85,7 +85,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
-	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(tag_htbl, id);
+	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(&tag_htbl, id);
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
