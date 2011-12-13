@@ -121,7 +121,39 @@ matmul_cpu (const float *A, const float *B, float *C,
 A @code{matmult} task is defined; it has only one implementation,
 @code{matmult_cpu}, which runs on the CPU.  Variables @var{A} and
 @var{B} are input buffers, whereas @var{C} is considered an input/output
-buffer.  The task can be invoked like a regular C function:
+buffer.
+
+CUDA and OpenCL implementations can be declared in a similar way:
+
+@example
+static void matmul_cuda (const float *A, const float *B, float *C,
+                         size_t nx, size_t ny, size_t nz)
+  __attribute__ ((task_implementation ("cuda", matmul)));
+
+static void matmul_opencl (const float *A, const float *B, float *C,
+                           size_t nx, size_t ny, size_t nz)
+  __attribute__ ((task_implementation ("opencl", matmul)));
+@end example
+
+@noindent
+The CUDA and OpenCL implementations typically either invoke a kernel
+written in CUDA or OpenCL (for similar code, @pxref{CUDA Kernel}, and
+@pxref{OpenCL Kernel}), or call a library function that uses CUDA or
+OpenCL under the hood, such as CUBLAS functions:
+
+@example
+static void
+matmul_cuda (const float *A, const float *B, float *C,
+             size_t nx, size_t ny, size_t nz)
+@{
+  cublasSgemm ('n', 'n', nx, ny, nz,
+               1.0f, A, 0, B, 0,
+               0.0f, C, 0);
+  cudaStreamSynchronize (starpu_cuda_get_local_stream ());
+@}
+@end example
+
+A task can be invoked like a regular C function:
 
 @example
 matmul (&A[i * zdim * bydim + k * bzdim * bydim],
