@@ -19,7 +19,6 @@ bad_0(void)
 	cudaError_t ret;
 	ret = cudaMalloc(&addr, size);
 
-	ret = foo();
 }
 
 static int
@@ -29,6 +28,14 @@ bad_1(void)
 	cures = cudaMemcpy(NULL, NULL, 0);
 
 	return 0;
+}
+
+static void
+bad_2(void)
+{
+	cudaError_t st;
+	st = cudaMemcpy(dst, src, size);
+	st = cudaMemcpy(dst, src, size);
 }
 
 static void
