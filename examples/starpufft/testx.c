@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 	if (argc == 2) {
 		plan = STARPUFFT(plan_dft_1d)(n, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW
-		fftw_plan = _FFTW(plan_dft_1d)(n, NULL, NULL, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_1d)(n, NULL, (void*) 1, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef STARPU_USE_CUDA
 		if (cufftPlan1d(&cuda_plan, n, _CUFFT_C2C, 1) != CUFFT_SUCCESS)
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 	} else if (argc == 3) {
 		plan = STARPUFFT(plan_dft_2d)(n, m, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW
-		fftw_plan = _FFTW(plan_dft_2d)(n, m, NULL, NULL, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_2d)(n, m, NULL, (void*) 1, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef STARPU_USE_CUDA
 		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, _CUFFT_C2C) == CUFFT_SUCCESS);

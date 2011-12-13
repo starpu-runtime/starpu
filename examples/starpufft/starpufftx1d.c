@@ -557,19 +557,19 @@ if (PARALLEL) {
 			/* first fft plan: one fft of size n2.
 			 * FFTW imposes that buffer pointers are known at
 			 * planning time. */
-			plan->plans[workerid].plan1_cpu = _FFTW(plan_dft_1d)(n2, NULL, NULL, sign, _FFTW_FLAGS);
+			plan->plans[workerid].plan1_cpu = _FFTW(plan_dft_1d)(n2, NULL, (void*) 1, sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan1_cpu);
 
 			/* second fft plan: n3 ffts of size n1 */
 			plan->plans[workerid].plan2_cpu = _FFTW(plan_many_dft)(plan->dim,
 					plan->n1, n3,
 					NULL, NULL, 1, plan->totsize1,
-					NULL, NULL, 1, plan->totsize1,
+					(void*) 1, NULL, 1, plan->totsize1,
 					sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan2_cpu);
 } else {
 			/* fft plan: one fft of size n. */
-			plan->plans[workerid].plan_cpu = _FFTW(plan_dft_1d)(n, NULL, NULL, sign, _FFTW_FLAGS);
+			plan->plans[workerid].plan_cpu = _FFTW(plan_dft_1d)(n, NULL, (void*) 1, sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
 }
 #else

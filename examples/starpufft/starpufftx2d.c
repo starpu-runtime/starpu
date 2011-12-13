@@ -559,19 +559,19 @@ if (PARALLEL) {
 #ifdef STARPU_HAVE_FFTW
 if (PARALLEL) {
 			/* first fft plan: one n2*m2 fft */
-			plan->plans[workerid].plan1_cpu = _FFTW(plan_dft_2d)(n2, m2, NULL, NULL, sign, _FFTW_FLAGS);
+			plan->plans[workerid].plan1_cpu = _FFTW(plan_dft_2d)(n2, m2, NULL, (void*) 1, sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan1_cpu);
 
 			/* second fft plan: n3*m3 n1*m1 ffts */
 			plan->plans[workerid].plan2_cpu = _FFTW(plan_many_dft)(plan->dim,
 					plan->n1, n3*m3,
 					NULL, NULL, 1, plan->totsize1,
-					NULL, NULL, 1, plan->totsize1,
+					(void*) 1, NULL, 1, plan->totsize1,
 					sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan2_cpu);
 } else {
 			/* fft plan: one fft of size n, m. */
-			plan->plans[workerid].plan_cpu = _FFTW(plan_dft_2d)(n, m, NULL, NULL, sign, _FFTW_FLAGS);
+			plan->plans[workerid].plan_cpu = _FFTW(plan_dft_2d)(n, m, NULL, (void*) 1, sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
 }
 #else
