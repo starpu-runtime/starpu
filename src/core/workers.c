@@ -46,12 +46,48 @@ struct _starpu_machine_config *_starpu_get_machine_config(void)
 	return &config;
 }
 
+/* Makes sure that at least one of the workers of type <arch> can execute
+ * <task>*/
+static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
+						      enum starpu_archtype arch)
+{
+	int i;
+	int nworkers = starpu_worker_get_count_by_type(arch);
+	int workers[nworkers];
+	STARPU_ASSERT(nworkers != -EINVAL);
+	(void) starpu_worker_get_ids_by_type(arch, workers, nworkers);
+	for (i = 0; i < nworkers; i++)
+		if (task->cl->can_execute(workers[i], task, 0))
+			return 1;
+	return 0;
+}
+
 /* in case a task is submitted, we may check whether there exists a worker
    that may execute the task or not */
-
-uint32_t _starpu_worker_exists(uint32_t task_mask)
+uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
-	return (task_mask & config.worker_mask);
+	if (!(task->cl->where & config.worker_mask))
+		return 0;
+
+	if (!task->cl->can_execute)
+		return 1;
+
+#ifdef STARPU_USE_CPU
+	if ((task->cl->where & STARPU_CPU) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_CPU_WORKER))
+		return 1;
+#endif
+#ifdef STARPU_USE_CUDA
+	if ((task->cl->where & STARPU_CUDA) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_CUDA_WORKER))
+		return 1;
+#endif
+#ifdef STARPU_USE_OPENCL
+	if ((task->cl->where & STARPU_OPENCL) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
+		return 1;
+#endif
+	return 0;
 }
 
 uint32_t _starpu_can_submit_cuda_task(void)

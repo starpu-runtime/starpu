@@ -296,7 +296,7 @@ int starpu_task_submit(struct starpu_task *task)
 		_starpu_codelet_check_deprecated_fields(task->cl);
 
 		/* Check the type of worker(s) required by the task exist */
-		if (!_starpu_worker_exists(where))
+		if (!_starpu_worker_exists(task))
 		{
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;

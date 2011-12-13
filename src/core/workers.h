@@ -162,7 +162,7 @@ struct _starpu_machine_config
 unsigned _starpu_machine_is_running(void);
 
 /* Check if there is a worker that may execute the task. */
-uint32_t _starpu_worker_exists(uint32_t task_mask);
+uint32_t _starpu_worker_exists(struct starpu_task *);
 
 /* Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_can_submit_cuda_task(void);
