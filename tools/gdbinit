@@ -268,6 +268,33 @@ define starpu-print-requests
 end
 
 define starpu-print-prequests
+  set $node = 0
+  while $node < descr.nnodes
+    printf "Node %u:\n", $node
+    set $request = data_requests_pending[$node]._head
+    while $request != 0
+      printf " Request %p: handle %p ", $request, $request->handle
+      starpu-print-mode $request->mode
+      printf "\n"
+      set $request = $request->_next
+    end
+    set $node = $node + 1
+  end
+end
+
+define starpu-print-frequests
+  set $node = 0
+  while $node < descr.nnodes
+    printf "Node %u:\n", $node
+    set $request = prefetch_requests[$node]._head
+    while $request != 0
+      printf " Request %p: handle %p ", $request, $request->handle
+      starpu-print-mode $request->mode
+      printf "\n"
+      set $request = $request->_next
+    end
+    set $node = $node + 1
+  end
 end
 
 document starpu
@@ -282,5 +309,6 @@ starpu-print-datas      prints all StarPU data handles
 starpu-print-request    prints a StarPU data request
 starpu-print-requests   prints all StarPU data requests
 starpu-print-prequests  prints all pending StarPU data requests
+starpu-print-frequests  prints all StarPU prefetch data requests
 starpu-tasks            prints a list of the tasks flowing in StarPU
 end
