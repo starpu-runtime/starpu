@@ -16,7 +16,9 @@ to languages of the C family (C, C++, Objective-C) that make it easier
 to write StarPU code@footnote{This feature is only available for GCC 4.5
 and later.}.  Those extensions include syntactic sugar for defining
 tasks and their implementations, invoking a task, and manipulating data
-buffers.
+buffers.  Use of these extensions can be made conditional on the
+availability of the plug-in, leading to valid C sequential code when the
+plug-in is not used (@pxref{Conditional Extensions}).
 
 This section does not require detailed knowledge of the StarPU library.
 
@@ -26,6 +28,7 @@ development and subject to change.
 @menu
 * Defining Tasks::              Defining StarPU tasks
 * Registered Data Buffers::     Manipulating data buffers
+* Conditional Extensions::      Using C extensions only when available
 @end menu
 
 @node Defining Tasks
@@ -193,7 +196,92 @@ Register @var{ptr} as a @var{size}-element buffer.
 
 FIXME: finish
 
+
+@node Conditional Extensions
+@section Using C Extensions Conditionally
+
+The C extensions described in this chapter are only available when GCC
+and its StarPU plug-in are in use.  Yet, it is possible to make use of
+these extensions when they are available---leading to hybrid CPU/GPU
+code---and discard them when they are not available---leading to valid
+sequential code.
+
+To that end, the GCC plug-in defines a C preprocessor macro when it is
+being used:
+
+@defmac STARPU_GCC_PLUGIN
+Defined for code being compiled with the StarPU GCC plug-in.  When
+defined, this macro expands to an integer denoting the version of the
+supported C extensions.
+@end defmac
+
+The code below illustrates how to define a task and its implementations
+in a way that allows it to be compiled without the GCC plug-in:
+
+@example
+/* The macros below abstract over the attributes specific to
+   StarPU-GCC and the name of the CPU implementation.  */
+#ifdef STARPU_GCC_PLUGIN
+# define __task  __attribute__ ((task))
+# define CPU_TASK_IMPL(task)  task ## _cpu
+#else
+# define __task
+# define CPU_TASK_IMPL(task)  task
+#endif
+
+#include <stdlib.h>
+
+static void matmul (const float *A, const float *B, float *C,
+                    size_t nx, size_t ny, size_t nz) __task;
+
+#ifdef STARPU_GCC_PLUGIN
+
+static void matmul_cpu (const float *A, const float *B, float *C,
+                        size_t nx, size_t ny, size_t nz)
+  __attribute__ ((task_implementation ("cpu", matmul)));
+
+#endif
+
+
+static void
+CPU_TASK_IMPL (matmul) (const float *A, const float *B, float *C,
+                        size_t nx, size_t ny, size_t nz)
+@{
+  /* Code of the CPU kernel here...  */
+@}
+
+int
+main (int argc, char *argv[])
+@{
+  /* The pragmas below are simply ignored when StarPU-GCC
+     is not used.  */
+#pragma starpu initialize
+
+  float A[123][42][7], B[123][42][7], C[123][42][7];
+
+#pragma starpu register A
+#pragma starpu register B
+#pragma starpu register C
+
+  /* When StarPU-GCC is used, the call below is asynchronous;
+     otherwise, it is synchronous.  */
+  matmul (A, B, C, 123, 42, 7);
+
+#pragma starpu wait
+#pragma starpu shutdown
+
+  return EXIT_SUCCESS;
+@}
+@end example
+
+Note that attributes such as @code{task} are simply ignored by GCC when
+the StarPU plug-in is not loaded, so the @code{__task} macro could be
+omitted altogether.  However, @command{gcc -Wall} emits a warning for
+unknown attributes, which can be inconvenient, and other compilers may
+be unable to parse the attribute syntax.  Thus, using macros such as
+@code{__task} above is recommended.
+
 @c Local Variables:
-@c TeX-master: "guile.texi"
+@c TeX-master: "../starpu.texi"
 @c ispell-local-dictionary: "american"
 @c End:
