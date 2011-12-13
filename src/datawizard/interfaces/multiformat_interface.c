@@ -705,5 +705,6 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
                                  void *dst_interface, unsigned dst_node)
 {
 /* TODO */
+	return 0;
 }
 #endif

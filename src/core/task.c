@@ -290,7 +290,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (task->cl)
 	{
-		uint32_t where = task->cl->where;
 		unsigned i;
 
 		_starpu_codelet_check_deprecated_fields(task->cl);
