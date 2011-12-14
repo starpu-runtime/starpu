@@ -633,17 +633,24 @@ static inline int _starpu_get_next_bindid(struct _starpu_machine_config *config,
 void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, unsigned cpuid)
 {
 #ifdef STARPU_HAVE_HWLOC
-	int ret;
+	const struct hwloc_topology_support *support;
+
 	_starpu_init_topology(config);
 
-	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->cpu_depth, cpuid);
-	hwloc_cpuset_t set = obj->cpuset;
-	hwloc_bitmap_singlify(set);
-	ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
-	if (ret)
+	support = hwloc_topology_get_support(config->topology.hwtopology);
+	if (support->cpubind->set_thisthread_cpubind)
 	{
-		perror("binding thread");
-		STARPU_ABORT();
+		hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->cpu_depth, cpuid);
+		hwloc_cpuset_t set = obj->cpuset;
+		int ret;
+
+		hwloc_bitmap_singlify(set);
+		ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
+		if (ret)
+		{
+			perror("binding thread");
+			STARPU_ABORT();
+		}
 	}
 
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
