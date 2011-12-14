@@ -81,6 +81,7 @@ void _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct
 	successors->succ[index] = cg;
 }
 
+/* Note: in case of a tag, it must be already locked */
 void _starpu_notify_cg(struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
@@ -115,9 +116,8 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 
 				tag_successors->ndeps_completed++;
 
-#ifdef STARPU_DEVEL
-#warning FIXME: who locks this?
-#endif
+				/* Note: the tag is already locked by the
+				 * caller. */
 				if ((tag->state == STARPU_BLOCKED) &&
 					(tag_successors->ndeps == tag_successors->ndeps_completed))
 				{
