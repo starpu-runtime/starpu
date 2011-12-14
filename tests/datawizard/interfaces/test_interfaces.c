@@ -94,6 +94,9 @@ struct data_interface_test_summary
 
 	/* Other stuff */
 	int compare;
+#ifdef STARPU_USE_CPU
+	int handle_to_pointer;
+#endif
 };
 
 void data_interface_test_summary_print(FILE *f,
@@ -138,9 +141,11 @@ void data_interface_test_summary_print(FILE *f,
 #ifdef STARPU_USE_CPU
 	(void) fprintf(f, "CPU    -> CPU    : %s\n",
 			enum_to_string(s->cpu_to_cpu));
+	FPRINTF(f, "handle_to_pointer() : %s\n",
+		enum_to_string(s->handle_to_pointer));
+#endif /* !STARPU_USE_CPU */
 	(void) fprintf(f, "compare()        : %s\n",
 			enum_to_string(s->compare));
-#endif /* !STARPU_USE_CPU */
 }
 
 int
@@ -238,6 +243,9 @@ static struct data_interface_test_summary summary =
 	.opencl_to_cpu         = UNTESTED,
 	.cpu_to_opencl_async   = UNTESTED,
 	.opencl_to_cpu_async   = UNTESTED,
+#endif
+#ifdef STARPU_USE_CPU
+	.handle_to_pointer     = UNTESTED,
 #endif
 	.success               = SUCCESS
 };
@@ -627,6 +635,38 @@ compare(void)
 	}
 }
 
+#ifdef STARPU_USE_CPU
+static void
+handle_to_pointer(void)
+{
+	void *ptr;
+	unsigned int node;
+	unsigned int tests = 0;
+	starpu_data_handle_t handle;
+
+	handle = *current_config->handle;
+	if (!handle->ops->handle_to_pointer)
+		return;
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (_starpu_get_node_kind(node) != STARPU_CPU_RAM)
+			continue;
+
+		ptr = handle->ops->handle_to_pointer(handle, node);
+		if (starpu_data_lookup(ptr) != handle)
+		{
+			summary.handle_to_pointer = FAILURE;
+			return;
+		}
+		tests++;
+	}
+
+	if (tests > 0)
+		summary.handle_to_pointer = SUCCESS;
+}
+#endif /* !STARPU_USE_CPU */
+
 static int
 load_conf(struct test_config *config)
 {
@@ -665,6 +705,7 @@ run_tests(struct test_config *conf)
 #ifdef STARPU_USE_CPU
 	ram_to_ram();
 	compare();
+	handle_to_pointer();
 #endif
 
 	return &summary;
