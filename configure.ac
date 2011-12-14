@@ -1162,7 +1162,7 @@ AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
 
 AC_ARG_ENABLE([socl],
   [AS_HELP_STRING([--enable-socl],
-    [build the OpenCL interface (SOCL)])],
+    [build the OpenCL interface (experimental)])],
   [enable_socl="$enableval"],
   [enable_socl="no"])
 
