@@ -223,6 +223,7 @@ static struct data_interface_test_summary summary =
 {
 #ifdef STARPU_USE_CPU
 	.cpu_to_cpu            = UNTESTED,
+	.compare               = UNTESTED,
 #endif
 #ifdef STARPU_USE_CUDA
 	.cpu_to_cuda           = UNTESTED,
