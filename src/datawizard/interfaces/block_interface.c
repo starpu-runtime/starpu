@@ -771,13 +771,15 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 
 	unsigned y, z;
 	for (z = 0; z < nz; z++)
-	for (y = 0; y < ny; y++)
 	{
-		uint32_t src_offset = (y*ldy_src + y*z*ldz_src)*elemsize;
-		uint32_t dst_offset = (y*ldy_dst + y*z*ldz_dst)*elemsize;
+		for (y = 0; y < ny; y++)
+		{
+			uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
+			uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
 
-		memcpy((void *)(ptr_dst + dst_offset),
-			(void *)(ptr_src + src_offset), nx*elemsize);
+			memcpy((void *)(ptr_dst + dst_offset),
+				(void *)(ptr_src + src_offset), nx*elemsize);
+		}
 	}
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
