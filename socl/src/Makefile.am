@@ -23,6 +23,20 @@ SUBDIRS =
 
 lib_LTLIBRARIES = libsocl.la
 
+noinst_HEADERS =				\
+  command.h					\
+  command_list.h				\
+  command_queue.h				\
+  debug.h					\
+  devices.h					\
+  event.h					\
+  gc.h						\
+  getinfo.h					\
+  mem_objects.h					\
+  socl.h					\
+  task.h					\
+  util.h
+
 libsocl_la_SOURCES = 						\
   command.c \
   command_list.c \
