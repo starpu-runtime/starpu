@@ -75,7 +75,7 @@ int submit_codelet(struct starpu_codelet *cl)
 	{
 		FPRINTF(stderr, "success when executing codelet <%s>\n", cl->name);
 	}
-	return (x == y);
+	return (x != y);
 }
 
 int main(int argc, char **argv)
@@ -86,11 +86,11 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ret = submit_codelet(&cl_cpu_func);
-	if (ret)
+	if (!ret)
 	{
 		submit_codelet(&cl_cpu_funcs);
 	}
-	if (ret)
+	if (!ret)
 	{
 		submit_codelet(&cl_cpu_multiple);
 	}
