@@ -224,6 +224,11 @@ int _starpu_submit_job(struct _starpu_job *j)
 void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 {
 	/* Check deprecated and unset fields */
+	if (cl && cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
+	{
+		fprintf(stderr, "[warning] [struct starpu_codelet] both cpu_func and cpu_funcs are set. Ignoring cpu_func.\n");
+		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
+	}
 	if (cl && cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
 	{
 		cl->cpu_funcs[0] = cl->cpu_func;
@@ -234,6 +239,11 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
 
+	if (cl && cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
+	{
+		fprintf(stderr, "[warning] [struct starpu_codelet] both cuda_func and cuda_funcs are set. Ignoring cuda_func.\n");
+		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
+	}
 	if (cl && cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
 	{
 		cl->cuda_funcs[0] = cl->cuda_func;
@@ -244,6 +254,11 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
 
+	if (cl && cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
+	{
+		fprintf(stderr, "[warning] [struct starpu_codelet] both opencl_func and opencl_funcs are set. Ignoring opencl_func.\n");
+		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
+	}
 	if (cl && cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
 	{
 		cl->opencl_funcs[0] = cl->opencl_func;

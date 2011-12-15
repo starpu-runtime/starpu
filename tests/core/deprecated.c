@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,14 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	*valout = *valin;
+}
+
+void cpu2_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+{
+	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	*valout = *valin*2;
 }
 
 struct starpu_codelet cl_cpu_funcs =
@@ -48,6 +56,15 @@ struct starpu_codelet cl_cpu_multiple =
 	.cpu_funcs = {cpu_codelet, NULL},
 	.nbuffers = 2,
 	.name = "cpu_multiple",
+};
+
+struct starpu_codelet cl_cpu_func_funcs =
+{
+	.where = STARPU_CPU,
+	.cpu_func = cpu2_codelet,
+	.cpu_funcs = {cpu_codelet, NULL},
+	.nbuffers = 2,
+	.name = "cpu_func_funcs",
 };
 
 int submit_codelet(struct starpu_codelet *cl)
@@ -88,11 +105,15 @@ int main(int argc, char **argv)
 	ret = submit_codelet(&cl_cpu_func);
 	if (!ret)
 	{
-		submit_codelet(&cl_cpu_funcs);
+		ret = submit_codelet(&cl_cpu_funcs);
 	}
 	if (!ret)
 	{
-		submit_codelet(&cl_cpu_multiple);
+		ret = submit_codelet(&cl_cpu_multiple);
+	}
+	if (!ret)
+	{
+		ret = submit_codelet(&cl_cpu_func_funcs);
 	}
 
 	starpu_shutdown();
