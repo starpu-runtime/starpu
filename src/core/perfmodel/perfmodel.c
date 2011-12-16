@@ -251,7 +251,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
 
-		handle = task->buffers[i].handle;
+		handle = task->handles[i];
 		id = starpu_get_handle_interface_id(handle);
 		if (id != STARPU_MULTIFORMAT_INTERFACE_ID)
 			continue;
@@ -312,8 +312,8 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = task->buffers[buffer].handle;
-		enum starpu_access_mode mode = task->buffers[buffer].mode;
+		starpu_data_handle_t handle = task->handles[buffer];
+		enum starpu_access_mode mode = task->cl->modes[buffer];
 
 		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}

@@ -288,8 +288,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = task->buffers[buffer].handle;
-		enum starpu_access_mode mode = task->buffers[buffer].mode;
+		starpu_data_handle_t handle = task->handles[buffer];
+		enum starpu_access_mode mode = task->cl->modes[buffer];
 
 		/* Scratch memory does not introduce any deps */
 		if (mode & STARPU_SCRATCH)

@@ -56,7 +56,9 @@ int _starpu_task_uses_multiformat_handles(struct starpu_task *task);
 int _starpu_task_submit_conversion_task(struct starpu_task *task,
 					unsigned int workerid);
 
+void _starpu_task_check_deprecated_fields(struct starpu_task *task);
 void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl);
+
 starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);

@@ -44,18 +44,14 @@ static long int ready_task_cnt = 0;
 static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 {
 	int cnt = 0;
-
-	struct starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
-
 	unsigned index;
+
 	for (index = 0; index < nbuffers; index++)
 	{
-		struct starpu_buffer_descr *descr;
 		starpu_data_handle_t handle;
 
-		descr = &descrs[index];
-		handle = descr->handle;
+		handle = task->handles[index];
 
 		int is_valid;
 		starpu_data_query_status(handle, node, NULL, &is_valid, NULL);

@@ -38,7 +38,7 @@ size_t _starpu_job_get_data_size(struct _starpu_job *j)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = task->buffers[buffer].handle;
+		starpu_data_handle_t handle = task->handles[buffer];
 		size += _starpu_data_get_size(handle);
 	}
 

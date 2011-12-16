@@ -307,8 +307,8 @@ double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle 
 			unsigned b;
 			for (b = 0; b < task->cl->nbuffers; b++)
 			{
-				starpu_data_handle_t handle = task->buffers[b].handle;
-				enum starpu_access_mode mode = task->buffers[b].mode;
+				starpu_data_handle_t handle = task->handles[b];
+				enum starpu_access_mode mode = task->cl->modes[b];
 
 				if (!(mode & STARPU_R))
 					continue;

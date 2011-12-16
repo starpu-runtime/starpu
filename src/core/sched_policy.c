@@ -245,13 +245,13 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		unsigned node = starpu_worker_get_memory_node(workerid);
 		if (_starpu_task_uses_multiformat_handles(task))
 		{
-			int i;
+			unsigned i;
 			for (i = 0; i < task->cl->nbuffers; i++)
 			{
 				struct starpu_task *conversion_task;
 				starpu_data_handle_t handle;
 
-				handle = task->buffers[i].handle;
+				handle = task->handles[i];
 				if (!_starpu_handle_needs_conversion_task(handle, node))
 					continue;
 
@@ -264,7 +264,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			}
 
 			for (i = 0; i < task->cl->nbuffers; i++)
-				task->buffers[i].handle->mf_node = node;
+				task->handles[i]->mf_node = node;
 		}
 		return _starpu_push_local_task(worker, task, 0);
 	}
@@ -438,13 +438,13 @@ pick:
 	 * We do have a task that uses multiformat handles. Let's create the 
 	 * required conversion tasks.
 	 */
-	int i;
+	unsigned i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
 		struct starpu_task *conversion_task;
 		starpu_data_handle_t handle;
 
-		handle = task->buffers[i].handle;
+		handle = task->handles[i];
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
 		conversion_task = _starpu_create_conversion_task(handle, node);

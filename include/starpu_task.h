@@ -97,6 +97,8 @@ struct starpu_codelet
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
+	/* which are the access modes for these buffers */
+	enum starpu_access_mode modes[STARPU_NMAXBUFS];
 
 	/* performance model of the codelet */
 	struct starpu_perfmodel *model;
@@ -121,7 +123,8 @@ struct starpu_task
 	struct starpu_codelet *cl;
 
 	/* arguments managed by the DSM */
-	struct starpu_buffer_descr buffers[STARPU_NMAXBUFS];
+	struct starpu_buffer_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
+	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */

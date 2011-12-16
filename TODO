@@ -1,0 +1,25 @@
+
+Moving access modes for data handles from struct starpu_task to struct starpu_codelet
+=====================================================================================
+
+TODO list
+
+- Implement test for checking old functionalities still work (similar to tests/core/deprecated)
+
+- Make struct starpu_buffer_descr private (or not, as it can still be used in tests and examples)
+
+- Update all tests and examples
+
+- Depreciate cost_model field in struct starpu_per_arch_perfmodel
+                                 struct starpu_perfmodel
+
+- Add a field cost_model_new
+  double (*cost_model_new)(starpu_data_handle_t *); /* returns expected duration in µs */
+
+- Update all cost functions in examples
+
+- Set task->buffers to NULL
+
+- When cost_model is provided, but not cost_model_new, need to rebuild a struct starpu_buffer_descr
+
+- Update doc and changelog

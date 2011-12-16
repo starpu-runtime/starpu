@@ -30,7 +30,7 @@ uint32_t _starpu_compute_buffers_footprint(struct _starpu_job *j)
 
 	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = task->buffers[buffer].handle;
+		starpu_data_handle_t handle = task->handles[buffer];
 
 		uint32_t handle_footprint = _starpu_data_get_footprint(handle);
 

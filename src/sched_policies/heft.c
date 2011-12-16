@@ -332,7 +332,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid)
 {
-	int i, ret;
+	unsigned i;
+	int ret;
 	unsigned int node = starpu_worker_get_memory_node(workerid);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
@@ -341,7 +342,7 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 		struct starpu_task *conversion_task;
 		starpu_data_handle_t handle;
 
-		handle = task->buffers[i].handle;
+		handle = task->handles[i];
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
 
@@ -354,7 +355,7 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 	}
 
 	for (i = 0; i < task->cl->nbuffers; i++)
-		task->buffers[i].handle->mf_node = node;
+		task->handles[i]->mf_node = node;
 
 	task->execute_on_a_specific_worker = 1;
 	task->workerid = workerid;

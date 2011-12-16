@@ -575,14 +575,13 @@ static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replic
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 {
-	struct starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
-
 	unsigned index;
+
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = descrs[index].handle;
-		enum starpu_access_mode mode = descrs[index].mode;
+		starpu_data_handle_t handle = task->handles[index];
+		enum starpu_access_mode mode = task->cl->modes[index];
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
@@ -596,10 +595,8 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 	return 0;
 }
 
-static struct _starpu_data_replicate *get_replicate(struct starpu_buffer_descr *descr, int workerid, unsigned local_memory_node) {
-	starpu_data_handle_t handle = descr->handle;
-	enum starpu_access_mode mode = descr->mode;
-
+static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_access_mode mode, int workerid, unsigned local_memory_node)
+{
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		return &handle->per_worker[workerid];
 	else
@@ -638,7 +635,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(&descrs[index], workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
 
 		ret = fetch_data(handle, local_replicate, mode);
 		if (STARPU_UNLIKELY(ret))
@@ -646,16 +643,14 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	}
 
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
-	descrs = task->buffers;
-
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = descrs[index].handle;
-		enum starpu_access_mode mode = descrs[index].mode;
+		starpu_data_handle_t handle = task->handles[index];
+		enum starpu_access_mode mode = task->cl->modes[index];
 
 		struct _starpu_data_replicate *local_replicate;
 
-		local_replicate = get_replicate(&descrs[index], workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
 
 		task->interfaces[index] = local_replicate->data_interface;
 
@@ -702,6 +697,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
+		enum starpu_access_mode mode = descrs[index].mode;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -711,7 +707,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(&descrs[index], workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
 
 		/* In case there was a temporary handle (eg. used for
 		 * reduction), this handle may have requested to be destroyed

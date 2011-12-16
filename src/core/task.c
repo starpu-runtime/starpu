@@ -280,6 +280,30 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 }
 
+void _starpu_task_check_deprecated_fields(struct starpu_task *task)
+{
+	if (task->cl)
+	{
+		unsigned i;
+		for(i=0; i<task->cl->nbuffers ; i++)
+		{
+			if (task->buffers[i].handle && task->handles[i])
+			{
+				fprintf(stderr, "[warning][struct starpu_task] task->buffers[%d] and task->handles[%d] both set. Ignoring task->buffers[%d] ?\n", i, i, i);
+				//task->buffers[i].handle = NULL;
+				STARPU_ASSERT(task->buffers[i].mode == task->cl->modes[i]);
+				STARPU_ABORT();
+			}
+			if (task->buffers[i].handle)
+			{
+				task->handles[i] = task->buffers[i].handle;
+				task->cl->modes[i] = task->buffers[i].mode;
+				//task->buffers[i].handle = NULL;
+			}
+		}
+	}
+}
+
 /* application should submit new tasks to StarPU through this function */
 int starpu_task_submit(struct starpu_task *task)
 {
@@ -302,12 +326,12 @@ int starpu_task_submit(struct starpu_task *task)
 		task->detach = 0;
 	}
 
+	_starpu_task_check_deprecated_fields(task);
+	_starpu_codelet_check_deprecated_fields(task->cl);
 
 	if (task->cl)
 	{
 		unsigned i;
-
-		_starpu_codelet_check_deprecated_fields(task->cl);
 
 		/* Check the type of worker(s) required by the task exist */
 		if (!_starpu_worker_exists(task))
@@ -321,7 +345,7 @@ int starpu_task_submit(struct starpu_task *task)
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
 			/* Make sure handles are not partitioned */
-			STARPU_ASSERT(task->buffers[i].handle->nchildren == 0);
+			STARPU_ASSERT(task->handles[i]->nchildren == 0);
 		}
 
 		/* In case we require that a task should be explicitely
@@ -377,6 +401,9 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 {
 	int ret;
 
+	_starpu_task_check_deprecated_fields(task);
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
 	if (task->cl)
 	{
 		if (task->cl->model)
@@ -396,8 +423,15 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	_starpu_increment_nready_tasks();
 
 	if (task->cl)
+	{
 		/* This would be done by data dependencies checking */
-		memcpy(j->ordered_buffers, j->task->buffers, task->cl->nbuffers*sizeof(struct starpu_buffer_descr));
+		unsigned i;
+		for (i=0 ; i<task->cl->nbuffers ; i++)
+		{
+			j->ordered_buffers[i].handle = j->task->handles[i];
+			j->ordered_buffers[i].mode = j->task->cl->modes[i];
+		}
+	}
 
 	ret = _starpu_push_task(j, 1);
 
@@ -415,6 +449,9 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	STARPU_ASSERT(task->cl);
 	STARPU_ASSERT(task->execute_on_a_specific_worker);
 
+	_starpu_task_check_deprecated_fields(task);
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
 	/* We should factorize that */
 	if (task->cl->model)
 		_starpu_load_perfmodel(task->cl->model);
@@ -428,7 +465,12 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
 
-	memcpy(j->ordered_buffers, j->task->buffers, task->cl->nbuffers*sizeof(struct starpu_buffer_descr));
+	unsigned i;
+	for (i=0 ; i<task->cl->nbuffers ; i++)
+	{
+		j->ordered_buffers[i].handle = j->task->handles[i];
+		j->ordered_buffers[i].mode = j->task->cl->modes[i];
+	}
 
         _STARPU_LOG_IN();
 
@@ -590,7 +632,7 @@ _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
 		unsigned int id;
-		id = starpu_get_handle_interface_id(task->buffers[i].handle);
+		id = starpu_get_handle_interface_id(task->handles[i]);
 		if (id == STARPU_MULTIFORMAT_INTERFACE_ID)
 			return 1;
 	}
