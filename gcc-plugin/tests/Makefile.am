@@ -17,6 +17,8 @@
 gcc_tests =					\
   base.c					\
   pointers.c					\
+  output-pointer.c				\
+  output-pointer-errors.c			\
   register.c					\
   register-errors.c				\
   acquire.c					\

@@ -78,11 +78,14 @@ Scalar arguments to the task are passed by value and copied to the
 target device if need be---technically, they are passed as the
 @code{cl_arg} buffer (@pxref{Codelets and Tasks, @code{cl_arg}}).
 
+@cindex @code{output} type attribute
 Pointer arguments are assumed to be registered data buffers---the
 @code{buffers} argument of a task (@pxref{Codelets and Tasks,
 @code{buffers}}); @code{const}-qualified pointer arguments are viewed as
 read-only buffers (@code{STARPU_R}), and non-@code{const}-qualified
-buffers are assumed to be used read-write (@code{STARPU_RW}).
+buffers are assumed to be used read-write (@code{STARPU_RW}).  In
+addition, the @code{output} type attribute can be as a type qualifier
+for output pointer or array parameters (@code{STARPU_W}).
 
 @item task_implementation (@var{target}, @var{task})
 @cindex @code{task_implementation} attribute
@@ -96,17 +99,21 @@ Declare the given function as an implementation of @var{task} to run on
 Here is an example:
 
 @example
-static void matmul (const float *A, const float *B, float *C,
+#define __output  __attribute__ ((output))
+
+static void matmul (const float *A, const float *B,
+                    __output float *C,
                     size_t nx, size_t ny, size_t nz)
   __attribute__ ((task));
 
-static void matmul_cpu (const float *A, const float *B, float *C,
+static void matmul_cpu (const float *A, const float *B,
+                        __output float *C,
                         size_t nx, size_t ny, size_t nz)
   __attribute__ ((task_implementation ("cpu", matmul)));
 
 
 static void
-matmul_cpu (const float *A, const float *B, float *C,
+matmul_cpu (const float *A, const float *B, __output float *C,
             size_t nx, size_t ny, size_t nz)
 @{
   size_t i, j, k;

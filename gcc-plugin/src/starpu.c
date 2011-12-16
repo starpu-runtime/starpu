@@ -67,6 +67,7 @@ static const char plugin_name[] = "starpu";
 /* Names of public attributes.  */
 static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
+static const char output_attribute_name[] = "output";
 static const char heap_allocated_attribute_name[] = "heap_allocated";
 
 /* Names of attributes used internally.  */
@@ -864,6 +865,26 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
   return NULL_TREE;
 }
 
+/* Handle the `output' attribute on type *NODE, which should be the type of a
+   PARM_DECL of a task or task implementation.  */
+
+static tree
+handle_output_attribute (tree *node, tree name, tree args,
+			 int flags, bool *no_add_attrs)
+{
+  tree type = *node;
+
+  gcc_assert (TYPE_P (type));
+
+  if (!POINTER_TYPE_P (type) && TREE_CODE (type) != ARRAY_TYPE)
+    error ("%<output%> attribute not allowed for non-pointer types");
+  else
+    /* Keep the attribute.  */
+    *no_add_attrs = false;
+
+  return NULL_TREE;
+}
+
 
 /* Return the declaration of the `struct starpu_codelet' variable associated with
    TASK_DECL.  */
@@ -1003,6 +1024,16 @@ task_implementation_wrapper (const_tree task_impl)
   return TREE_VALUE (attr);
 }
 
+/* Return true if DECL is a parameter whose type is `output'-qualified.  */
+
+static bool
+output_parameter_p (const_tree decl)
+{
+  return (TREE_CODE (decl) == PARM_DECL &&
+	  lookup_attribute (output_attribute_name,
+			    TYPE_ATTRIBUTES (TREE_TYPE (decl))) != NULL_TREE);
+}
+
 
 static void
 register_task_attributes (void *gcc_data, void *user_data)
@@ -1025,9 +1056,20 @@ register_task_attributes (void *gcc_data, void *user_data)
       handle_heap_allocated_attribute
     };
 
+  static const struct attribute_spec output_attr =
+    {
+      output_attribute_name, 0, 0, true, true, false,
+      handle_output_attribute,
+#if 0 /* FIXME: Check whether the `affects_type_identity' field is
+	 present.  */
+      true /* affects type identity */
+#endif
+    };
+
   register_attribute (&task_attr);
   register_attribute (&task_implementation_attr);
   register_attribute (&heap_allocated_attr);
+  register_attribute (&output_attr);
 }
 
 
@@ -1601,11 +1643,12 @@ build_task_body (const_tree task_decl)
 	     `STARPU_RW, ptr' or similar.  */
 
 	  /* If TYPE points to a const-qualified type, then mark the data as
-	     read-only; otherwise default to read-write.
-	     FIXME: Add an attribute to specify write-only.  */
+	     read-only; if is has the `output' attribute, then mark it as
+	     write-only; otherwise default to read-write.  */
 	  int mode =
 	    (TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
-	    ? STARPU_R : STARPU_RW;
+	    ? STARPU_R
+	    : (output_parameter_p (p) ? STARPU_W : STARPU_RW);
 
 	  VEC_safe_push (tree, gc, args,
 			 build_int_cst (integer_type_node, mode));

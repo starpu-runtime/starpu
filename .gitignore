@@ -187,3 +187,4 @@ starpu.log
 /gcc-plugin/examples/matrix-mult
 /gcc-plugin/src/c-expr.c
 /gcc-plugin/tests/heap-allocated
+/gcc-plugin/tests/output-pointer
