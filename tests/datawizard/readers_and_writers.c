@@ -25,7 +25,16 @@ static void dummy_kernel(void *descr[], void *arg)
 {
 }
 
-static struct starpu_codelet rw_cl =
+static struct starpu_codelet r_cl =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cuda_funcs = {dummy_kernel, NULL},
+	.cpu_funcs = {dummy_kernel, NULL},
+	.opencl_funcs = {dummy_kernel, NULL},
+	.nbuffers = 1
+};
+
+static struct starpu_codelet w_cl =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cuda_funcs = {dummy_kernel, NULL},
@@ -51,12 +60,15 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &rw_cl;
-
 		/* we randomly select either a reader or a writer (give 10
 		 * times more chances to be a reader) */
 		task->buffers[0].mode = ((rand() % 10)==0)?STARPU_W:STARPU_R;
 		task->buffers[0].handle = book_handle;
+
+		if (task->buffers[0].mode == STARPU_W)
+			task->cl = &w_cl;
+		else
+			task->cl = &r_cl;
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;

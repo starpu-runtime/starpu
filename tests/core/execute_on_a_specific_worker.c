@@ -74,8 +74,7 @@ static enum starpu_access_mode select_random_mode(void)
 	return STARPU_RW;
 }
 
-
-static struct starpu_codelet cl =
+static struct starpu_codelet cl_r =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_null, NULL},
@@ -84,6 +83,23 @@ static struct starpu_codelet cl =
 	.nbuffers = 1
 };
 
+static struct starpu_codelet cl_w =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null, NULL},
+        .opencl_funcs = {codelet_null, NULL},
+	.nbuffers = 1
+};
+
+static struct starpu_codelet cl_rw =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null, NULL},
+        .opencl_funcs = {codelet_null, NULL},
+	.nbuffers = 1
+};
 
 int main(int argc, char **argv)
 {
@@ -108,10 +124,13 @@ int main(int argc, char **argv)
 		{
 			/* execute a task on that worker */
 			struct starpu_task *task = starpu_task_create();
-			task->cl = &cl;
 
 			task->buffers[0].handle = v_handle;
 			task->buffers[0].mode = select_random_mode();
+
+			if (task->buffers[0].mode == STARPU_R) task->cl = &cl_r;
+			else if (task->buffers[0].mode == STARPU_W) task->cl = &cl_w;
+			else if (task->buffers[0].mode == STARPU_RW) task->cl = &cl_rw;
 
 			task->callback_func = callback;
 			task->callback_arg = NULL;

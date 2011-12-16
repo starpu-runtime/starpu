@@ -21,7 +21,71 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static struct starpu_codelet codelet =
+static struct starpu_codelet codelet_R_R =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_R_W =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_R_RW =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_W_R =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_W_W =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_W_RW =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_RW_R =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_RW_W =
+{
+        .where = STARPU_CPU,
+        .cpu_funcs = { dummy_func, NULL },
+        .model = NULL,
+        .nbuffers = 2
+};
+
+static struct starpu_codelet codelet_RW_RW =
 {
         .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
@@ -45,11 +109,28 @@ int main(int argc, char **argv)
 #define SUBMIT(mode1, mode2) \
 	task = starpu_task_create(); \
 \
-	task->cl = &codelet; \
 	task->buffers[0].handle = handle; \
 	task->buffers[0].mode = STARPU_##mode1; \
 	task->buffers[1].handle = handle; \
 	task->buffers[1].mode = STARPU_##mode2; \
+	if      (task->buffers[0].mode == STARPU_R && task->buffers[1].mode == STARPU_R) \
+		task->cl = &codelet_R_R;				\
+	else if (task->buffers[0].mode == STARPU_R && task->buffers[1].mode == STARPU_W) \
+		task->cl = &codelet_R_W;				\
+	else if (task->buffers[0].mode == STARPU_R && task->buffers[1].mode == STARPU_RW) \
+		task->cl = &codelet_R_RW;				\
+	else if (task->buffers[0].mode == STARPU_W && task->buffers[1].mode == STARPU_R) \
+		task->cl = &codelet_W_R;				\
+	else if (task->buffers[0].mode == STARPU_W && task->buffers[1].mode == STARPU_W) \
+		task->cl = &codelet_W_W; \
+	else if (task->buffers[0].mode == STARPU_W && task->buffers[1].mode == STARPU_RW)  \
+		task->cl = &codelet_W_RW;					\
+	else if (task->buffers[0].mode == STARPU_RW && task->buffers[1].mode == STARPU_R) \
+		task->cl = &codelet_RW_R;					\
+	else if (task->buffers[0].mode == STARPU_RW && task->buffers[1].mode == STARPU_W) \
+		task->cl = &codelet_RW_W;					\
+	else if (task->buffers[0].mode == STARPU_RW && task->buffers[1].mode == STARPU_RW) \
+		task->cl = &codelet_RW_RW; \
 \
 	ret = starpu_task_submit(task); \
 	if (ret == -ENODEV) goto enodev; \
