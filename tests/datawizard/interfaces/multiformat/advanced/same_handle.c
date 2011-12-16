@@ -118,8 +118,8 @@ main(void)
 			return EXIT_FAILURE;
 
 	}
-#endif
 	else
+#endif
 	{
 		/* We should not get here */
 		return EXIT_FAILURE;
