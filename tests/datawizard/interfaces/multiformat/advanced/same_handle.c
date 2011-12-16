@@ -97,6 +97,7 @@ main(void)
 	if (err == -ENODEV)
 		goto enodev;
 
+#if defined(STARPU_USE_CUDA)
 	if (global_stats.cuda == 1)
 	{
 		if (global_stats.cpu_to_cuda == 1 &&
@@ -105,7 +106,10 @@ main(void)
 		else
 			return EXIT_FAILURE;
 	}
-	else if (global_stats.opencl == 1)
+	else
+#endif
+#if defined(STARPU_USE_OPENCL)
+	if (global_stats.opencl == 1)
 	{
 		if (global_stats.cpu_to_opencl == 1 &&
 		    global_stats.opencl_to_cpu == 1)
@@ -114,6 +118,7 @@ main(void)
 			return EXIT_FAILURE;
 
 	}
+#endif
 	else
 	{
 		/* We should not get here */
