@@ -139,13 +139,13 @@ void data_interface_test_summary_print(FILE *f,
 		enum_to_string(s->opencl_to_cpu));
 #endif /* !STARPU_USE_OPENCL */
 #ifdef STARPU_USE_CPU
-	(void) fprintf(f, "CPU    -> CPU    : %s\n",
-			enum_to_string(s->cpu_to_cpu));
+	FPRINTF(f, "CPU    -> CPU    : %s\n",
+		enum_to_string(s->cpu_to_cpu));
 	FPRINTF(f, "handle_to_pointer() : %s\n",
 		enum_to_string(s->handle_to_pointer));
 #endif /* !STARPU_USE_CPU */
-	(void) fprintf(f, "compare()        : %s\n",
-			enum_to_string(s->compare));
+	FPRINTF(f, "compare()        : %s\n",
+		enum_to_string(s->compare));
 }
 
 int
@@ -554,9 +554,7 @@ ram_to_ram(void)
 		goto out;
 	}
 
-
-	
-	fprintf(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
 	err = current_config->copy_failed;
 
 out:
