@@ -447,19 +447,16 @@ pick:
 		handle = task->buffers[i].handle;
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
-
 		conversion_task = _starpu_create_conversion_task(handle, node);
 		conversion_task->mf_skip = 1;
 		conversion_task->execute_on_a_specific_worker = 1;
 		conversion_task->workerid = worker_id;
+		/*
+		 * Next tasks will need to know where these handles have gone.
+		 */
+		handle->mf_node = node;
 		_starpu_task_submit_conversion_task(conversion_task, worker_id);
 	}
-
-	/*
-	 * Next tasks will need to know where these handles have gone.
-	 */
-	for (i = 0; i < task->cl->nbuffers; i++)
-		task->buffers[i].handle->mf_node = node;
 
 	task->mf_skip = 1;
 	starpu_task_list_push_front(&worker->local_tasks, task);

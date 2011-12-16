@@ -170,6 +170,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl \
+	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
 	errorcheck/starpu_init_noworker		\
@@ -379,6 +380,11 @@ endif
 datawizard_interfaces_multiformat_advanced_multiformat_cuda_opencl_SOURCES=\
 	datawizard/interfaces/multiformat/advanced/generic.c               \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl.c
+
+datawizard_interfaces_multiformat_advanced_same_handle_SOURCES= \
+	datawizard/interfaces/multiformat/advanced/generic.c               \
+	datawizard/interfaces/multiformat/advanced/same_handle.c
+
 
 datawizard_interfaces_variable_variable_interface_SOURCES=   \
 	datawizard/interfaces/test_interfaces.c              \
