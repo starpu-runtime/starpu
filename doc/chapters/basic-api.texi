@@ -1205,8 +1205,11 @@ constant @code{STARPU_TASK_INITIALIZER}.
 @deftypefun {struct starpu_task *} starpu_task_create (void)
 Allocate a task structure and initialize it with default values. Tasks
 allocated dynamically with @code{starpu_task_create} are automatically freed when the
-task is terminated. If the destroy flag is explicitly unset, the resources used
-by the task are freed by calling
+task is terminated. This means that the task pointer can not be used any more
+once the task is submitted, since it can be executed at any time (unless
+dependencies make it wait) and thus freed at any time.
+If the destroy flag is explicitly unset, the resources used
+by the task have to be freed by calling
 @code{starpu_task_destroy}.
 @end deftypefun
 
@@ -1276,7 +1279,7 @@ This function waits until there is no more ready task.
 Declare task dependencies between a @var{task} and an array of tasks of length
 @var{ndeps}. This function must be called prior to the submission of the task,
 but it may called after the submission or the execution of the tasks in the
-array provided the tasks are still valid (ie. they were not automatically
+array, provided the tasks are still valid (ie. they were not automatically
 destroyed). Calling this function on a task that was already submitted or with
 an entry of @var{task_array} that is not a valid task anymore results in an
 undefined behaviour. If @var{ndeps} is null, no dependency is added. It is
