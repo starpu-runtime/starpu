@@ -57,7 +57,8 @@ static struct starpu_codelet memset_cl =
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.model = &model,
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 static struct starpu_codelet nl_memset_cl =
@@ -68,10 +69,9 @@ static struct starpu_codelet nl_memset_cl =
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.model = &nl_model,
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
-
-
 
 static void test_memset(int nelems, struct starpu_codelet *codelet)
 {
@@ -85,8 +85,7 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = codelet;
-		task->buffers[0].handle = handle;
-		task->buffers[0].mode = STARPU_W;
+		task->handles[0] = handle;
 
 		int ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -147,8 +146,7 @@ int main(int argc, char **argv)
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &memset_cl;
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_W;
+	task->handles[0] = handle;
 
 	show_task_perfs(size, task);
 
