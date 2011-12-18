@@ -224,8 +224,8 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	struct _starpu_tag *tag_child = gettag_struct(id);
 
 	_starpu_spin_lock(&tag_child->lock);
-
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
+	_starpu_spin_unlock(&tag_child->lock);
 
 	STARPU_ASSERT(ndeps != 0);
 
@@ -240,7 +240,9 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
+		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
+		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 
@@ -255,8 +257,8 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	struct _starpu_tag *tag_child = gettag_struct(id);
 
 	_starpu_spin_lock(&tag_child->lock);
-
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
+	_starpu_spin_unlock(&tag_child->lock);
 
 	STARPU_ASSERT(ndeps != 0);
 
@@ -274,7 +276,9 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
+		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
+		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 	va_end(pa);

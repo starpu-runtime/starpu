@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,6 +47,8 @@ struct _starpu_job;
 
 struct _starpu_tag
 {
+	/* Lock for this structure. Locking order is in dependency order: a tag
+	 * must not be locked before locking a tag it depends on */
 	struct _starpu_spinlock lock;
 	starpu_tag_t id; /* an identifier for the task */
 	enum _starpu_tag_state state;
