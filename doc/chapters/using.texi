@@ -40,6 +40,8 @@ accessible with the following commands:
 % pkg-config --libs libstarpu    # options for the linker
 @end example
 
+Also pass the @code{--static} option if the application is to be linked statically.
+
 @node Running a basic StarPU application
 @section Running a basic StarPU application
 

@@ -40,6 +40,8 @@ LDFLAGS         +=      $$(pkg-config --libs libstarpu)
 @end example
 @end cartouche
 
+Also pass the @code{--static} option if the application is to be linked statically.
+
 @node Hello World
 @section Hello World
 

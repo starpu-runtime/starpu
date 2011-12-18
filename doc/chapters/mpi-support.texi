@@ -42,6 +42,8 @@ accessible with the following commands:
 % pkg-config --libs libstarpumpi    # options for the linker
 @end example
 
+Also pass the @code{--static} option if the application is to be linked statically.
+
 @subsection Initialisation
 
 @deftypefun int starpu_mpi_initialize (void)

@@ -55,6 +55,8 @@ with the following commands:
 % pkg-config --libs libstarpufft    # options for the linker
 @end example
 
+Also pass the @code{--static} option if the application is to be linked statically.
+
 @subsection Initialisation
 
 @deftypefun {void *} starpufft_malloc (size_t @var{n})
