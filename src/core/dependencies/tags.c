@@ -245,8 +245,6 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
-
-	_starpu_spin_unlock(&tag_child->lock);
 }
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
@@ -282,8 +280,6 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 	va_end(pa);
-
-	_starpu_spin_unlock(&tag_child->lock);
 }
 
 /* this function may be called by the application (outside callbacks !) */
