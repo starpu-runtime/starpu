@@ -22,7 +22,7 @@ includedir=@includedir@
 Name: starpumpi
 Description: offers MPI support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
-Cflags: -I${includedir}
+Cflags: -I${includedir}/starpu-@STARPU_EFFECTIVE_VERSION@
 Libs: -L${libdir} -lstarpumpi
 Libs.private: @LDFLAGS@ @LIBS@
 Requires: libstarpu
