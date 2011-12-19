@@ -21,6 +21,6 @@ foo(void)
         task->buffers[0].handle = handle1;
         task->buffers[0].mode = STARPU_R;
         task->synchronous = 1;
-        task->buffers[1].handle = handle2;
+        task->buffers[1].handle = handles[1];
         task->buffers[1].mode = STARPU_W;
 }

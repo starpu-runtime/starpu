@@ -20,13 +20,13 @@ t->cl = &c;
 @remove_task_mode depends on find_task@
 identifier find_task.t;
 expression E;
-identifier h;
+expression H;
 expression id; 
 identifier find_cl.c;
 @@
 (
-- t->buffers[id].handle = h;
-++ t->handles[id] = h;
+- t->buffers[id].handle = H;
+++ t->handles[id] = H;
 |
 - t->buffers[id].mode = E;
 )
