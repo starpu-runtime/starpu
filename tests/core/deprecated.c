@@ -80,7 +80,7 @@ int submit_codelet(struct starpu_codelet *cl)
 				 STARPU_R, handles[0],
 				 STARPU_W, handles[1],
 				 0);
-	if (ret == --ENODEV)
+	if (ret == -ENODEV)
 	{
 		starpu_data_unregister(handles[0]);
 		starpu_data_unregister(handles[1]);
