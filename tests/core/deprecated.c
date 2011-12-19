@@ -71,14 +71,22 @@ int submit_codelet(struct starpu_codelet *cl)
 {
 	int x=42, y=14;
 	starpu_data_handle_t handles[2];
+	int ret;
 
 	starpu_variable_data_register(&handles[0], 0, (uintptr_t)&x, sizeof(x));
 	starpu_variable_data_register(&handles[1], 0, (uintptr_t)&y, sizeof(y));
 
-	starpu_insert_task(cl,
-			   STARPU_R, handles[0],
-			   STARPU_W, handles[1],
-			   0);
+	ret = starpu_insert_task(cl,
+				 STARPU_R, handles[0],
+				 STARPU_W, handles[1],
+				 0);
+	if (ret == --ENODEV)
+	{
+		starpu_data_unregister(handles[0]);
+		starpu_data_unregister(handles[1]);
+		return ret;
+	}
+
 	starpu_task_wait_for_all();
 
 	starpu_data_unregister(handles[0]);
@@ -103,6 +111,13 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ret = submit_codelet(&cl_cpu_func);
+	if (ret == -ENODEV)
+	{
+		starpu_shutdown();
+		fprintf(stderr, "WARNING: No one can execute this task\n");
+		return STARPU_TEST_SKIPPED;
+	}
+
 	if (!ret)
 	{
 		ret = submit_codelet(&cl_cpu_funcs);
