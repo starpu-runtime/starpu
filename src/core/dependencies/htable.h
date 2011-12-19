@@ -39,6 +39,7 @@ struct _starpu_htbl_node
 void *_starpu_htbl_search_tag(struct _starpu_htbl_node *htbl, starpu_tag_t tag);
 void *_starpu_htbl_insert_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag, void *entry);
 void *_starpu_htbl_remove_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag);
+void _starpu_htbl_clear_tags(struct _starpu_htbl_node **htbl, unsigned level, void (*free_entry)(void*));
 
 
 #endif

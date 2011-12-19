@@ -79,18 +79,11 @@ static struct _starpu_tag *_starpu_tag_init(starpu_tag_t id)
 	return tag;
 }
 
-void starpu_tag_remove(starpu_tag_t id)
+static void _starpu_tag_free(void *_tag)
 {
-	struct _starpu_tag *tag;
+	struct _starpu_tag *tag = (struct _starpu_tag *) _tag;
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
-
-	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(&tag_htbl, id);
-
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
-
-	if (tag)
-	{
+	if (tag) {
 		_starpu_spin_lock(&tag->lock);
 
 		unsigned nsuccs = tag->tag_successors.nsuccs;
@@ -113,9 +106,31 @@ void starpu_tag_remove(starpu_tag_t id)
 #endif
 
 		_starpu_spin_unlock(&tag->lock);
-	}
 
-	free(tag);
+		free(tag);
+	}
+}
+
+void starpu_tag_remove(starpu_tag_t id)
+{
+	struct _starpu_tag *tag;
+
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+
+	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(&tag_htbl, id);
+
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+
+	_starpu_tag_free(tag);
+}
+
+void _starpu_tag_clear(void)
+{
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+
+	_starpu_htbl_clear_tags(&tag_htbl, 0, _starpu_tag_free);
+
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 }
 
 static struct _starpu_tag *gettag_struct(starpu_tag_t id)

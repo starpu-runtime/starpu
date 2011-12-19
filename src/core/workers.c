@@ -609,6 +609,9 @@ void starpu_shutdown(void)
 
 	_starpu_data_interface_shutdown();
 
+	/* Drop all remaining tags */
+	_starpu_tag_clear();
+
 	_starpu_close_debug_logfile();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);

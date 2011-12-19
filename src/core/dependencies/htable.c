@@ -170,11 +170,28 @@ void *_starpu_htbl_remove_tag(struct _starpu_htbl_node **htbl, starpu_tag_t tag)
 				break;
 
 			/* we remove this node */
-			free(path[level]);
+			//free(path[level]);
 			*(path_parent[level]) = NULL;
 		}
 	}
 
 	/* we return the entry if there was one */
 	return old_entry;
+}
+
+void _starpu_htbl_clear_tags(struct _starpu_htbl_node **htbl, unsigned level, void (*free_entry)(void *))
+{
+	unsigned i;
+	struct _starpu_htbl_node *tbl = *htbl;
+
+	if (!tbl)
+		return;
+
+	if (level * _STARPU_HTBL_NODE_SIZE < _STARPU_TAG_SIZE) {
+		for (i = 0; i < 1<<_STARPU_HTBL_NODE_SIZE; i++)
+			_starpu_htbl_clear_tags(&tbl->children[i], level + 1, free_entry);
+		free(tbl);
+	} else
+		free_entry(tbl);
+	*htbl = NULL;
 }

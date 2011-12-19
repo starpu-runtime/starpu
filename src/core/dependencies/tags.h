@@ -69,4 +69,6 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag);
 
 unsigned _starpu_submit_job_enforce_task_deps(struct _starpu_job *j);
 
+void _starpu_tag_clear(void);
+
 #endif // __TAGS_H__
