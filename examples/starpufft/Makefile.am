@@ -34,7 +34,8 @@ EXTRA_DIST =			\
 	testf_threads.c		\
 	test_threads.c
 
-include_HEADERS =		\
+versincludedir = $(includedir)/starpu-$(STARPU_EFFECTIVE_VERSION)
+versinclude_HEADERS = 				\
 	starpufft.h
 
 pkgconfigdir = $(libdir)/pkgconfig
