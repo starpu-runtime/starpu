@@ -1,42 +1,29 @@
-@find_cl@
-identifier c;
-@@
-struct starpu_codelet c =
-{
-};
-
-@find_task depends on find_cl@
-identifier t;
-identifier find_cl.c;
-@@
-t->cl = &c; 
-
-
 /*
- * Remove task->buffers[id].mode = STARPU_{R,W,RW}
- * Replace task->buffers[id].handle = handle; by  
- *      task->handles[id] = handle;
+ * KNOWN BUGS :
+ *
+ * - Undefined behaviour if a codelet is used by more than one task
+ * - buffers[x].mode must be STARPU_{R,W,RW} : cant be a variable
  */
-@remove_task_mode depends on find_task@
-identifier find_task.t;
-expression E;
+@r@
+identifier c;
+identifier t;
+expression id;
+constant MODE;
 expression H;
-expression id; 
-identifier find_cl.c;
 @@
-(
+ t->cl = &c;
+<...
 - t->buffers[id].handle = H;
-++ t->handles[id] = H;
-|
-- t->buffers[id].mode = E;
-)
++ t->handles[id] = H;
+- t->buffers[id].mode = MODE;
+...>
 
-@has_modes depends on remove_task_mode@
-identifier find_cl.c;
-expression remove_task_mode.id;
-expression remove_task_mode.E;
+@s depends on r@
+identifier r.c;
+expression r.id;
+constant r.MODE;
 @@
-struct starpu_codelet c =
-{
-++	.modes[id] = E,
+struct starpu_codelet c = {
+++	.modes[id] = MODE,
 };
+
