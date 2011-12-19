@@ -30,6 +30,8 @@ static void eat_kernel(void *descr[], void *arg)
 
 static struct starpu_codelet eating_cl =
 {
+	.modes[1] = STARPU_RW,
+	.modes[0] = STARPU_RW,
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cuda_funcs = {eat_kernel, NULL},
 	.cpu_funcs = {eat_kernel, NULL},
@@ -46,10 +48,8 @@ int submit_one_task(unsigned p)
 	unsigned left = p;
 	unsigned right = (p+1)%N;
 
-	task->buffers[0].handle = fork_handles[left];
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = fork_handles[right];
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = fork_handles[left];
+	task->handles[1] = fork_handles[right];
 
 	int ret = starpu_task_submit(task);
 	return ret;

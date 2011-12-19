@@ -36,6 +36,8 @@ static void f(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_f =
 {
+	.modes[1] = STARPU_RW,
+	.modes[0] = STARPU_R,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {f, NULL},
 	.cuda_funcs = {f, NULL},
@@ -50,6 +52,8 @@ static void g(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_g =
 {
+	.modes[1] = STARPU_RW,
+	.modes[0] = STARPU_R,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {g, NULL},
 	.cuda_funcs = {g, NULL},
@@ -64,6 +68,8 @@ static void h(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_h =
 {
+	.modes[1] = STARPU_RW,
+	.modes[0] = STARPU_R,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {h, NULL},
 	.cuda_funcs = {h, NULL},
@@ -100,30 +106,24 @@ int main(int argc, char **argv)
 	 */
 	struct starpu_task *task_f = starpu_task_create();
 	task_f->cl = &cl_f;
-	task_f->buffers[0].handle = A_handle;
-	task_f->buffers[0].mode = STARPU_R;
-	task_f->buffers[1].handle = B_handle;
-	task_f->buffers[1].mode = STARPU_RW;
+	task_f->handles[0] = A_handle;
+	task_f->handles[1] = B_handle;
 	ret = starpu_task_submit(task_f);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	struct starpu_task *task_g = starpu_task_create();
 	task_g->cl = &cl_g;
-	task_g->buffers[0].handle = B_handle;
-	task_g->buffers[0].mode = STARPU_R;
-	task_g->buffers[1].handle = C_handle;
-	task_g->buffers[1].mode = STARPU_RW;
+	task_g->handles[0] = B_handle;
+	task_g->handles[1] = C_handle;
 	ret = starpu_task_submit(task_g);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	struct starpu_task *task_h = starpu_task_create();
 	task_h->cl = &cl_h;
-	task_h->buffers[0].handle = C_handle;
-	task_h->buffers[0].mode = STARPU_R;
-	task_h->buffers[1].handle = D_handle;
-	task_h->buffers[1].mode = STARPU_RW;
+	task_h->handles[0] = C_handle;
+	task_h->handles[1] = D_handle;
 	ret = starpu_task_submit(task_h);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

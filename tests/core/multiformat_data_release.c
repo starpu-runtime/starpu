@@ -152,6 +152,7 @@ create_and_submit(int where)
 {
 	static struct starpu_codelet cl =
 	{
+		.modes[0] = STARPU_RW,
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs   = {cuda_func, NULL},
 #endif
@@ -164,8 +165,7 @@ create_and_submit(int where)
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = handle;
 
 	/* We need to be sure the data has been copied to the GPU at the end 
 	 * of this function */

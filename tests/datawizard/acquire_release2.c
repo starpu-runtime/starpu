@@ -31,6 +31,7 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet increment_cl =
 {
+        .modes[0] = STARPU_RW,
         .where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -47,8 +48,7 @@ int increment_token(int synchronous)
 	struct starpu_task *task = starpu_task_create();
         task->synchronous = synchronous;
 	task->cl = &increment_cl;
-	task->buffers[0].handle = token_handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = token_handle;
 	return starpu_task_submit(task);
 }
 

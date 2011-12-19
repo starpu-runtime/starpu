@@ -31,6 +31,8 @@ void func_cpu(void *descr[], void *_args)
 
 struct starpu_codelet mycodelet =
 {
+	.modes[1] = STARPU_RW,
+	.modes[0] = STARPU_RW,
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
         .nbuffers = 2
@@ -79,10 +81,8 @@ int main(int argc, char **argv)
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &mycodelet;
-	task->buffers[0].handle = data_handles[0];
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = data_handles[1];
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = data_handles[0];
+	task->handles[1] = data_handles[1];
 	char *arg_buffer;
 	size_t arg_buffer_size;
 	starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,

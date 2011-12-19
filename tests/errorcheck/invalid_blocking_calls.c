@@ -40,6 +40,7 @@ static void wrong_func(void *descr[], void *arg)
 
 static struct starpu_codelet wrong_codelet =
 {
+	.modes[0] = STARPU_RW,
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {wrong_func, NULL},
 	.cuda_funcs = {wrong_func, NULL},
@@ -76,8 +77,7 @@ int main(int argc, char **argv)
 
 	task->cl = &wrong_codelet;
 
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = handle;
 
 	task->use_tag = 1;
 	task->tag_id = TAG;

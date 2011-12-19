@@ -57,6 +57,7 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 
 static struct starpu_codelet increment_handle_cl =
 {
+	.modes[0] = STARPU_RW,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
@@ -70,8 +71,7 @@ static void increment_handle(struct thread_data *thread_data)
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &increment_handle_cl;
 
-	task->buffers[0].handle = thread_data->handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = thread_data->handle;
 
 	task->cl_arg = thread_data;
 

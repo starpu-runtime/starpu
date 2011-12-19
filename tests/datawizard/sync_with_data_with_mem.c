@@ -36,6 +36,7 @@ static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl =
 {
+	.modes[0] = STARPU_RW,
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_codelet, NULL},
 #ifdef STARPU_USE_CUDA
@@ -54,8 +55,7 @@ int use_handle(starpu_data_handle_t handle)
 
 	task = starpu_task_create();
 		task->cl = &cl;
-		task->buffers[0].handle = handle;
-		task->buffers[0].mode = STARPU_RW;
+		task->handles[0] = handle;
 		task->detach = 0;
 
 	ret = starpu_task_submit(task);

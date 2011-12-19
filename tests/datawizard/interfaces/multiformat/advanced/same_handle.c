@@ -27,6 +27,8 @@ static int vector[NX]; static starpu_data_handle_t handle;
 
 static struct starpu_codelet cl =
 {
+.modes[1] = STARPU_RW,
+.modes[0] = STARPU_RW,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { cuda_func, NULL },
 #endif
@@ -67,10 +69,8 @@ create_and_submit_tasks(void)
 
 	task = starpu_task_create();
 	task->cl = &cl;
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = handle;
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = handle;
+	task->handles[1] = handle;
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
