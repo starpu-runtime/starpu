@@ -22,6 +22,6 @@ includedir=@includedir@
 Name: starpufft
 Description: offers support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
-Cflags: -I${includedir} @STARPU_CUDA_CPPFLAGS@
+Cflags: -I${includedir}/starpu-@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@
 Libs: -L${libdir} -lstarpufft
 Libs.private: @LDFLAGS@ @LIBS@ @STARPU_CUFFT_LDFLAGS@ @FFTW_LIBS@ @FFTWF_LIBS@
