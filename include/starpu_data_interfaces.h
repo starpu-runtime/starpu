@@ -327,6 +327,10 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handle, uint32_t home_node,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 
 
+#define STARPU_BCSR_GET_NNZ(interface)        (((struct starpu_bcsr_interface *)(interface))->nnz)
+#define STARPU_BCSR_GET_NZVAL(interface)      (((struct starpu_bcsr_interface *)(interface))->nzval)
+#define STARPU_BCSR_GET_COLIND(interface)     (((struct starpu_bcsr_interface *)(interface))->colind)
+#define STARPU_BCSR_GET_ROWPTR(interface)     (((struct starpu_bcsr_interface *)(interface))->rowptr)
 uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle);
 uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle);
 uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle);

@@ -27,6 +27,7 @@ EXTRA_DIST =					\
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
 	datawizard/interfaces/test_interfaces.h	\
+	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl \
 	datawizard/interfaces/variable/variable_opencl_kernel.cl \
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
@@ -166,6 +167,7 @@ noinst_PROGRAMS =				\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
 	datawizard/interfaces/block/block_interface \
+	datawizard/interfaces/bcsr/bcsr_interface \
 	datawizard/interfaces/csr/csr_interface \
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
@@ -296,6 +298,25 @@ datawizard_interfaces_block_block_interface_SOURCES+= \
 	datawizard/interfaces/block/block_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/block/block_opencl_kernel.cl
+endif
+
+##################
+# BSCR interface #
+##################
+datawizard_interfaces_bcsr_bcsr_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c \
+	datawizard/interfaces/bcsr/bcsr_interface.c 
+
+if STARPU_USE_CUDA
+datawizard_interfaces_bcsr_bcsr_interface_SOURCES+= \
+	datawizard/interfaces/bcsr/bcsr_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_bcsr_bcsr_interface_SOURCES+= \
+	datawizard/interfaces/bcsr/bcsr_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl
 endif
 
 #################
