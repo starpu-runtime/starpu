@@ -666,6 +666,7 @@ be given the CUDA pointer at registration, for instance:
 
 	starpu_data_unregister(handle);
 
+	cudaSetDevice(starpu_worker_get_devid(workerid));
 	cudaGraphicsUnmapResources(1, &resource, 0);
 
 	/* Now display it */
