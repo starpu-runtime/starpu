@@ -19,6 +19,7 @@
 
 #include <starpu.h>
 #include <stdlib.h>
+#include "../helper.h"
 
 static void cpu_task(void **buffers, void *args)
 {
@@ -99,10 +100,12 @@ int main(int argc, char *argv[])
 	STARPU_ASSERT(starpu_handle_to_pointer(handle, 0) == NULL);
 
 	/* Pass the handle to a task.  */
-	starpu_insert_task(&cl,
+	err = starpu_insert_task(&cl,
 			   STARPU_W, handle,
 			   STARPU_VALUE, &count, sizeof(count),
 			   0);
+	if (err == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 
 	/* Acquire the handle, forcing a local allocation.  */
 	starpu_data_acquire(handle, STARPU_R);

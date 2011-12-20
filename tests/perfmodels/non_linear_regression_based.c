@@ -70,6 +70,8 @@ static void test_memset(int nelems)
 		task->buffers[0].mode = STARPU_W;
 
 		int ret = starpu_task_submit(task);
+		if (ret == -ENODEV)
+			exit(STARPU_TEST_SKIPPED);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
