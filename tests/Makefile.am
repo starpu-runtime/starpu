@@ -176,6 +176,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
 	datawizard/in_place_partition   \
+	datawizard/gpu_register   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -274,6 +275,17 @@ datawizard_in_place_partition_SOURCES +=	\
 endif
 if STARPU_USE_OPENCL
 datawizard_in_place_partition_SOURCES +=	\
+	datawizard/scal_opencl.cl
+endif
+
+datawizard_gpu_register_SOURCES =	\
+	datawizard/gpu_register.c
+if STARPU_USE_CUDA
+datawizard_gpu_register_SOURCES +=	\
+	datawizard/scal_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_gpu_register_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
 
