@@ -391,13 +391,13 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, cu
 			errormsg = "unknown error";
 			break;
 	}
-	printf("oops in %s (%s:%u)... %s \n", func, file, line, errormsg);
+	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s (%s:%u)... %s \n", func, file, line, errormsg);
+	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
