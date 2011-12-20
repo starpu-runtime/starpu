@@ -22,6 +22,7 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
+	datawizard/scal.h			\
 	microbenchs/null_kernel_gordon.c	\
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
@@ -268,7 +269,8 @@ datawizard_sync_and_notify_data_implicit_SOURCES +=	\
 endif
 
 datawizard_in_place_partition_SOURCES =	\
-	datawizard/in_place_partition.c
+	datawizard/in_place_partition.c	\
+	datawizard/scal.c
 if STARPU_USE_CUDA
 datawizard_in_place_partition_SOURCES +=	\
 	datawizard/scal_cuda.cu
@@ -279,7 +281,8 @@ datawizard_in_place_partition_SOURCES +=	\
 endif
 
 datawizard_gpu_register_SOURCES =	\
-	datawizard/gpu_register.c
+	datawizard/gpu_register.c	\
+	datawizard/scal.c
 if STARPU_USE_CUDA
 datawizard_gpu_register_SOURCES +=	\
 	datawizard/scal_cuda.cu
