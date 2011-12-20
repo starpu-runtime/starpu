@@ -313,18 +313,18 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 		case STARPU_OPENCL_RAM:
 		{
 			int ret;
-			void *ptr;
+			cl_mem ptr;
 
 			ret = _starpu_opencl_allocate_memory(&ptr, nnz*r*c*elemsize, CL_MEM_READ_WRITE);
 			addr_nzval = (uintptr_t)ptr;
 			if (ret) goto fail_nzval;
 
 			ret = _starpu_opencl_allocate_memory(&ptr, nnz*sizeof(uint32_t), CL_MEM_READ_WRITE);
-			addr_colind = ptr;
+			addr_colind = (void*) ptr;
 			if (ret) goto fail_colind;
 
 			ret = _starpu_opencl_allocate_memory(&ptr, (nrow+1)*sizeof(uint32_t), CL_MEM_READ_WRITE);
-			addr_rowptr = ptr;
+			addr_rowptr = (void*) ptr;
 			if (ret) goto fail_rowptr;
 
 			break;

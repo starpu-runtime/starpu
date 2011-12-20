@@ -328,7 +328,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 		case STARPU_OPENCL_RAM:
 			{
                                 int ret;
-                                void *ptr;
+				cl_mem ptr;
 				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
                                 ret = _starpu_opencl_allocate_memory(&ptr, allocated_memory, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
@@ -342,9 +342,17 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 
 				}
 
-				_starpu_opencl_allocate_memory(&multiformat_interface->cpu_ptr,
+				ret = _starpu_opencl_allocate_memory(&ptr,
 							multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize,
 							CL_MEM_READ_WRITE);
+				if (ret)
+				{
+					fail = 1;
+				}
+				else
+				{
+					multiformat_interface->cpu_ptr = (void *) addr;
+				}
 				
 				break;
 			}
