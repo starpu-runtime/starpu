@@ -225,14 +225,14 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double *best_exp_endp,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
-					int *forced_worker, unsigned int *forced_impl,
+					int *forced_worker, int *forced_impl,
 					struct starpu_task_bundle *bundle)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
 	double best_exp_end = DBL_MAX;
 	int ntasks_best = -1;
-	unsigned int nimpl_best = 0;
+	int nimpl_best = 0;
 	double ntasks_best_end = 0.0;
 
 	/* A priori, we know all estimations */
@@ -374,7 +374,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	/* this flag is set if the corresponding worker is selected because
 	   there is no performance prediction available yet */
 	int forced_worker;
-	unsigned int forced_impl;
+	int forced_impl;
 
 	double local_task_length[nworkers][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS];
