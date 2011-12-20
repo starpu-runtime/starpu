@@ -18,6 +18,7 @@
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
 * The multiformat interface::
+* On-GPU rendering::
 * More examples::               More examples shipped with StarPU
 * Debugging::                   When things go wrong.
 @end menu
@@ -639,6 +640,37 @@ extern "C" void multiformat_scal_cuda_func(void *buffers[], void *_args)
 @end example
 
 A full example may be found in @code{examples/basic_examples/multiformat.c}.
+
+@node On-GPU rendering
+@section On-GPU rendering
+
+Graphical-oriented applications need to draw the result of their computations,
+typically on the very GPU where these happened. Technologies such as OpenGL/CUDA
+interoperability permit to let CUDA directly work on the OpenGL buffers, making
+them thus immediately ready for drawing, by mapping OpenGL buffer, textures or
+renderbuffer objects into CUDA. To achieve this with StarPU, it simply needs to
+be given the CUDA pointer at registration, for instance:
+
+@cartouche
+@example
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+		if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
+			break;
+
+	cudaSetDevice(starpu_worker_get_devid(workerid));
+	cudaGraphicsResourceGetMappedPointer((void**)&output,
+                                     &num_bytes, resource);
+	starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
+
+	starpu_insert_task(&cl, STARPU_RW, handle, 0);
+
+	starpu_data_unregister(handle);
+
+	cudaGraphicsUnmapResources(1, &resource, 0);
+
+	/* Now display it */
+@end example
+@end cartouche
 
 @node More examples
 @section More examples
