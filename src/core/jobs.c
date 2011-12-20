@@ -337,8 +337,6 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_i
 		return 0;
         }
 
-	_starpu_increment_nready_tasks();
-
 	ret = _starpu_push_task(j, job_is_already_locked);
 
         _STARPU_LOG_OUT();

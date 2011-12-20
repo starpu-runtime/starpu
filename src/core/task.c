@@ -420,8 +420,6 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 
 	j->submitted = 1;
 
-	_starpu_increment_nready_tasks();
-
 	if (task->cl)
 	{
 		/* This would be done by data dependencies checking */

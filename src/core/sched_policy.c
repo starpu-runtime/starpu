@@ -303,6 +303,7 @@ int _starpu_push_task(struct _starpu_job *j, unsigned job_is_already_locked)
 	struct starpu_task *task = j->task;
         _STARPU_LOG_IN();
 
+	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
 	_starpu_profiling_set_task_push_start_time(task);
 
