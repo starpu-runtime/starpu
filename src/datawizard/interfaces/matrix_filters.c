@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -46,9 +46,10 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 	matrix_child->elemsize = elemsize;
 
 	/* is the information on this node valid ? */
-	if (matrix_father->ptr)
+	if (matrix_father->dev_handle)
 	{
-		matrix_child->ptr = matrix_father->ptr + offset;
+		if (matrix_father->ptr)
+			matrix_child->ptr = matrix_father->ptr + offset;
 		matrix_child->ld = matrix_father->ld;
 		matrix_child->dev_handle = matrix_father->dev_handle;
 		matrix_child->offset = matrix_father->offset + offset;
@@ -75,10 +76,11 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	matrix_child->elemsize = elemsize;
 
 	/* is the information on this node valid ? */
-	if (matrix_father->ptr)
+	if (matrix_father->dev_handle)
 	{
 		size_t offset = (size_t)id*chunk_size*matrix_father->ld*elemsize;
-		matrix_child->ptr = matrix_father->ptr + offset;
+		if (matrix_father->ptr)
+			matrix_child->ptr = matrix_father->ptr + offset;
 		matrix_child->ld = matrix_father->ld;
 		matrix_child->dev_handle = matrix_father->dev_handle;
 		matrix_child->offset = matrix_father->offset + offset;

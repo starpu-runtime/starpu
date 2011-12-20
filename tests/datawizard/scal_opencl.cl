@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Université Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,16 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void fblock_opencl(__global int* block, unsigned offset, int nx, int ny, int nz, unsigned ldy, unsigned ldz, int factor)
+__kernel void vector_mult_opencl(__global float* val, unsigned offset, unsigned nx)
 {
-        int i, j, k;
-        block = (__global void *)block + offset;
-        for(k=0; k<nz ; k++)
+        const int i = get_global_id(0);
+	val = (__global void*) val + offset;
+        if (i < nx)
 	{
-                for(j=0; j<ny ; j++)
-		{
-                        for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] = factor;
-                }
+                val[i] *= 2;
         }
 }

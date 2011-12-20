@@ -39,7 +39,7 @@ test_block_opencl_func(void *buffers[], void *args)
 	int nz = STARPU_BLOCK_GET_NZ(buffers[0]);
         unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
         unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
-	cl_mem block = (cl_mem) STARPU_BLOCK_GET_PTR(buffers[0]);
+	cl_mem block = (cl_mem) STARPU_BLOCK_GET_DEV_HANDLE(buffers[0]);
 
 	cl_context context;
 	id = starpu_worker_get_id();

@@ -22,7 +22,7 @@ extern struct starpu_opencl_program opencl_code;
 
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	cl_mem val = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
+	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	cl_event event;
@@ -52,7 +52,7 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	cl_mem val = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
+	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	cl_event event;

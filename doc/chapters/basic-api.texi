@@ -608,6 +608,14 @@ todo
 todo
 @end deftypefun
 
+@deftypefun uintptr_t STARPU_VECTOR_GET_DEV_HANDLE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_VECTOR_GET_OFFSET ({void *}@var{interface})
+todo
+@end deftypefun
+
 @deftypefun uint32_t STARPU_VECTOR_GET_NX ({void *}@var{interface})
 todo
 @end deftypefun
@@ -640,6 +648,14 @@ todo
 @end deftypefun
 
 @deftypefun uintptr_t STARPU_MATRIX_GET_PTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_MATRIX_GET_DEV_HANDLE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_MATRIX_GET_OFFSET ({void *}@var{interface})
 todo
 @end deftypefun
 
@@ -691,6 +707,14 @@ todo
 @end deftypefun
 
 @deftypefun uintptr_t STARPU_BLOCK_GET_PTR ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_BLOCK_GET_DEV_HANDLE ({void *}@var{interface})
+todo
+@end deftypefun
+
+@deftypefun uintptr_t STARPU_BLOCK_GET_OFFSET ({void *}@var{interface})
 todo
 @end deftypefun
 

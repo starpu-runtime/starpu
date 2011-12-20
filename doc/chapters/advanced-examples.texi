@@ -232,6 +232,9 @@ starpu_data_partition(handle, &f);
 @end smallexample
 @end cartouche
 
+The task submission then uses @code{starpu_data_get_sub_data} to retrive the
+sub-handles to be passed as tasks parameters.
+
 @cartouche
 @smallexample
 /* Submit a task on each sub-vector */
@@ -254,6 +257,39 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
 
 Partitioning can be applied several times, see
 @code{examples/basic_examples/mult.c} and @code{examples/filters/}.
+
+Wherever the whole piece of data is already available, the partitioning will
+be done in-place, i.e. without allocating new buffers but just using pointers
+inside the existing copy. This is particularly important to be aware of when
+using OpenCL, where the kernel parameters are not pointers, but handles. The
+kernel thus needs to be also passed the offset within the OpenCL buffer:
+
+@cartouche
+@smallexample
+void opencl_func(void *buffers[], void *cl_arg)
+@{
+    cl_mem vector = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
+    unsigned offset = STARPU_BLOCK_GET_OFFSET(buffers[0]);
+
+    ...
+    clSetKernelArg(kernel, 0, sizeof(vector), &vector);
+    clSetKernelArg(kernel, 1, sizeof(offset), &offset);
+    ...
+@}
+@end smallexample
+@end cartouche
+
+And the kernel has to shift from the pointer passed by the OpenCL driver:
+
+@cartouche
+@smallexample
+__kernel void opencl_kernel(__global int *vector, unsigned offset)
+@{
+    block = (__global void *)block + offset;
+    ...
+@}
+@end smallexample
+@end cartouche
 
 @node Performance model example
 @section Performance model example

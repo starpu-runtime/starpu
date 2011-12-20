@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -39,9 +39,10 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
 
-	if (vector_father->ptr)
+	if (vector_father->dev_handle)
 	{
-		vector_child->ptr = vector_father->ptr + offset;
+		if (vector_father->ptr)
+			vector_child->ptr = vector_father->ptr + offset;
 		vector_child->dev_handle = vector_father->dev_handle;
 		vector_child->offset = vector_father->offset + offset;
 	}
@@ -69,9 +70,10 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 		vector_child->nx = length_first;
 		vector_child->elemsize = elemsize;
 
-		if (vector_father->ptr)
+		if (vector_father->dev_handle)
 		{
-			vector_child->ptr = vector_father->ptr;
+			if (vector_father->ptr)
+				vector_child->ptr = vector_father->ptr;
 			vector_child->offset = vector_father->offset;
 			vector_child->dev_handle = vector_father->dev_handle;
 		}
@@ -81,9 +83,10 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 		vector_child->nx = nx - length_first;
 		vector_child->elemsize = elemsize;
 
-		if (vector_father->ptr)
+		if (vector_father->dev_handle)
 		{
-			vector_child->ptr = vector_father->ptr + length_first*elemsize;
+			if (vector_father->ptr)
+				vector_child->ptr = vector_father->ptr + length_first*elemsize;
 			vector_child->offset = vector_father->offset + length_first*elemsize;
 			vector_child->dev_handle = vector_father->dev_handle;
 		}
@@ -107,14 +110,15 @@ void starpu_vector_list_filter_func(void *father_interface, void *child_interfac
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
 
-	if (vector_father->ptr)
+	if (vector_father->dev_handle)
 	{
 		/* compute the current position */
 		unsigned i;
 		for (i = 0; i < id; i++)
 			current_pos += length_tab[i];
 
-		vector_child->ptr = vector_father->ptr + current_pos*elemsize;
+		if (vector_father->ptr)
+			vector_child->ptr = vector_father->ptr + current_pos*elemsize;
 		vector_child->offset = vector_father->offset + current_pos*elemsize;
 		vector_child->dev_handle = vector_father->dev_handle;
 	}

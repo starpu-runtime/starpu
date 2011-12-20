@@ -236,7 +236,7 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface_;
 
 	unsigned fail = 0;
-	uintptr_t addr = 0;
+	uintptr_t addr = 0, handle = 0;
 	ssize_t allocated_memory;
 
 	uint32_t nx = vector_interface->nx;
@@ -251,7 +251,7 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			addr = (uintptr_t)malloc(nx*elemsize);
+			addr = handle = (uintptr_t)malloc(nx*elemsize);
 			if (!addr)
 				fail = 1;
 			break;
@@ -265,15 +265,16 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 
 				fail = 1;
 			}
+			handle = addr;
 			break;
 #endif
 #ifdef STARPU_USE_OPENCL
 	        case STARPU_OPENCL_RAM:
 			{
                                 int ret;
-                                void *ptr;
-                                ret = _starpu_opencl_allocate_memory(&ptr, nx*elemsize, CL_MEM_READ_WRITE);
-                                addr = (uintptr_t)ptr;
+				cl_mem mem;
+                                ret = _starpu_opencl_allocate_memory(&mem, nx*elemsize, CL_MEM_READ_WRITE);
+				handle = (uintptr_t)mem;
 				if (ret)
 				{
 					fail = 1;
@@ -293,7 +294,7 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 
 	/* update the data properly in consequence */
 	vector_interface->ptr = addr;
-        vector_interface->dev_handle = addr;
+	vector_interface->dev_handle = handle;
         vector_interface->offset = 0;
 
 	return allocated_memory;
@@ -321,7 +322,7 @@ static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:
-                        clReleaseMemObject((void *)vector_interface->ptr);
+			clReleaseMemObject((cl_mem)vector_interface->dev_handle);
                         break;
 #endif
 		default:

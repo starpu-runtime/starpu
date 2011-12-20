@@ -421,8 +421,10 @@ __kernel void vector_mult_opencl(__global float* val, int nx, float factor)
 @end smallexample
 @end cartouche
 
-Similarly to CUDA, the pointer returned by @code{STARPU_VECTOR_GET_PTR} is here
-a device pointer, so that it is passed as such to the OpenCL kernel.
+Contrary to CUDA and CPU, @code{STARPU_VECTOR_GET_DEV_HANDLE} has to be used,
+which returns a @code{cl_mem} (which is not a device pointer, but an OpenCL
+handle), which can be passed as such to the OpenCL kernel. The difference is
+important when using partitioning, see @ref{Partitioning Data}.
 
 @cartouche
 @smallexample
@@ -442,7 +444,7 @@ void scal_opencl_func(void *buffers[], void *_args)
     /* length of the vector */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* OpenCL copy of the vector pointer */
-    cl_mem val = (cl_mem) STARPU_VECTOR_GET_PTR(buffers[0]);
+    cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
 @i{    id = starpu_worker_get_id();}
 @i{    devid = starpu_worker_get_devid(id);}

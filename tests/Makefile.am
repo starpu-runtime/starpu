@@ -175,6 +175,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
+	datawizard/in_place_partition   \
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -263,6 +264,17 @@ endif
 if STARPU_USE_OPENCL
 datawizard_sync_and_notify_data_implicit_SOURCES +=	\
 	datawizard/sync_and_notify_data_opencl.c
+endif
+
+datawizard_in_place_partition_SOURCES =	\
+	datawizard/in_place_partition.c
+if STARPU_USE_CUDA
+datawizard_in_place_partition_SOURCES +=	\
+	datawizard/scal_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_in_place_partition_SOURCES +=	\
+	datawizard/scal_opencl.cl
 endif
 
 if STARPU_USE_GORDON

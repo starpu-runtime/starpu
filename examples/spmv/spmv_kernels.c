@@ -35,10 +35,10 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
 	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	cl_mem vecin = (cl_mem)STARPU_VECTOR_GET_PTR(descr[1]);
+	cl_mem vecin = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[1]);
 	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
 
-	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_PTR(descr[2]);
+	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
 
         id = starpu_worker_get_id();

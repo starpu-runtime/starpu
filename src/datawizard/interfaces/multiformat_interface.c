@@ -141,8 +141,6 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 #ifdef STARPU_USE_OPENCL
 			local_interface->opencl_ptr = multiformat_interface->opencl_ptr;
 #endif
-			local_interface->dev_handle = multiformat_interface->dev_handle;
-			local_interface->offset     = multiformat_interface->offset;
 		}
 		else
 		{
@@ -153,8 +151,6 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 #ifdef STARPU_USE_OPENCL
 			local_interface->opencl_ptr = NULL;
 #endif
-			local_interface->dev_handle = 0;
-			local_interface->offset     = 0;
 		}
 		local_interface->nx = multiformat_interface->nx;
 		local_interface->ops = multiformat_interface->ops;
@@ -186,8 +182,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 		.opencl_ptr = NULL,
 #endif
 		.nx         = nobjects,
-		.dev_handle = (uintptr_t) ptr,
-		.offset     = 0,
 		.ops        = format_ops
 	};
 	starpu_data_register(handleptr, home_node, &multiformat, &interface_multiformat_ops);
@@ -298,7 +292,6 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 			else
 			{
 				multiformat_interface->cpu_ptr = (void *) addr;
-				multiformat_interface->dev_handle = addr;
 			}
 
 #ifdef STARPU_USE_CUDA
@@ -322,7 +315,6 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 				else
 				{
 					multiformat_interface->cuda_ptr = (void *)addr;
-					multiformat_interface->dev_handle = addr;
 				}
 
 				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
@@ -347,7 +339,6 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 				else
 				{
 					multiformat_interface->opencl_ptr = (void *)addr;
-					multiformat_interface->dev_handle = addr;
 
 				}
 
@@ -365,7 +356,6 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 	if (fail)
 		return -ENOMEM;
 
-	multiformat_interface->offset = 0;
 	return allocated_memory;
 }
 
@@ -639,7 +629,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 							   (cl_mem) dst_multiformat->cpu_ptr,
 							   dst_node,
 							   size,
-							   dst_multiformat->offset,
+							   0,
 							   (cl_event *) _event,
 							   &ret);
         if (STARPU_UNLIKELY(err))
@@ -677,7 +667,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 							   dst_multiformat->opencl_ptr,
 							   dst_node,
 							   size,
-                                                           src_multiformat->offset,
+                                                           0,
 							   (cl_event *)_event,
 							   &ret);
         if (STARPU_UNLIKELY(err))

@@ -17,8 +17,8 @@
 __kernel void spmv(unsigned nnz, unsigned nrow,
                    __global float* nzval, __global unsigned* colind,
                    __global unsigned* rowptr, unsigned firstentry,
-                   __global float *vecin, unsigned nx_in,
-                   __global float *vecout, unsigned nx_out)
+                   __global float *vecin, unsigned vecin_offset, unsigned nx_in,
+                   __global float *vecout, unsigned vecout_offset, unsigned nx_out)
 {
 	unsigned row;
 	// for (row = 0; row < nrow; row++)

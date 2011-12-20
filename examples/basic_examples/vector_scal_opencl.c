@@ -37,7 +37,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 	/* length of the vector */
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
-	cl_mem val = (cl_mem)STARPU_VECTOR_GET_PTR(buffers[0]);
+	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);

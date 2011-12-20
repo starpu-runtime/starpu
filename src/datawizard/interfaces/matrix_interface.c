@@ -272,7 +272,7 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	uintptr_t addr = 0;
+	uintptr_t addr = 0, handle = 0;
 	unsigned fail = 0;
 	ssize_t allocated_memory;
 
@@ -292,7 +292,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
+			handle = addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
 			if (!addr)
 				fail = 1;
 
@@ -307,6 +307,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 
 				fail = 1;
 			}
+			handle = addr;
 
 			ld = nx;
 
@@ -316,9 +317,9 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 	        case STARPU_OPENCL_RAM:
 			{
                                 int ret;
-                                void *ptr;
-                                ret = _starpu_opencl_allocate_memory(&ptr, nx*ny*elemsize, CL_MEM_READ_WRITE);
-                                addr = (uintptr_t)ptr;
+				cl_mem mem;
+                                ret = _starpu_opencl_allocate_memory(&mem, nx*ny*elemsize, CL_MEM_READ_WRITE);
+				handle = (uintptr_t)mem;
 				if (ret)
 				{
 					fail = 1;
@@ -337,7 +338,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 
 		/* update the data properly in consequence */
 		matrix_interface->ptr = addr;
-                matrix_interface->dev_handle = addr;
+		matrix_interface->dev_handle = handle;
                 matrix_interface->offset = 0;
 		matrix_interface->ld = ld;
 	}
@@ -374,7 +375,7 @@ static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:
-                        clReleaseMemObject((void *)matrix_interface->ptr);
+			clReleaseMemObject((void *)matrix_interface->dev_handle);
                         break;
 #endif
 		default:

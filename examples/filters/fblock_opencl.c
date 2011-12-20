@@ -37,7 +37,8 @@ void opencl_func(void *buffers[], void *cl_arg)
 	cl_event event;
 
         int *factor = cl_arg;
-	cl_mem block = (cl_mem)STARPU_BLOCK_GET_PTR(buffers[0]);
+	cl_mem block = (cl_mem)STARPU_BLOCK_GET_DEV_HANDLE(buffers[0]);
+	unsigned offset = STARPU_BLOCK_GET_OFFSET(buffers[0]);
 	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
@@ -51,12 +52,13 @@ void opencl_func(void *buffers[], void *cl_arg)
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	CHECK_CL_SET_KERNEL_ARG(kernel, 0, sizeof(block), &block);
-	CHECK_CL_SET_KERNEL_ARG(kernel, 1, sizeof(nx), &nx);
-	CHECK_CL_SET_KERNEL_ARG(kernel, 2, sizeof(ny), &ny);
-	CHECK_CL_SET_KERNEL_ARG(kernel, 3, sizeof(nz), &nz);
-	CHECK_CL_SET_KERNEL_ARG(kernel, 4, sizeof(ldy), &ldy);
-	CHECK_CL_SET_KERNEL_ARG(kernel, 5, sizeof(ldz), &ldz);
-	CHECK_CL_SET_KERNEL_ARG(kernel, 6, sizeof(*factor), factor);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 1, sizeof(offset), &offset);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 2, sizeof(nx), &nx);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 3, sizeof(ny), &ny);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 4, sizeof(nz), &nz);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 5, sizeof(ldy), &ldy);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 6, sizeof(ldz), &ldz);
+	CHECK_CL_SET_KERNEL_ARG(kernel, 7, sizeof(*factor), factor);
 
 	{
 		size_t global=nx*ny*nz;

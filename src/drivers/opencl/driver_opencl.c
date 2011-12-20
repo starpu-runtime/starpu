@@ -175,17 +175,17 @@ cl_int _starpu_opencl_deinit_context(int devid)
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags flags)
+cl_int _starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flags)
 {
 	cl_int err;
-        cl_mem address;
+        cl_mem memory;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	address = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
+	memory = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-        *addr = address;
+        *mem = memory;
         return CL_SUCCESS;
 }
 

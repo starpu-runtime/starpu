@@ -181,6 +181,8 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_MATRIX_GET_PTR(interface)	(((struct starpu_matrix_interface *)(interface))->ptr)
+#define STARPU_MATRIX_GET_DEV_HANDLE(interface)	(((struct starpu_matrix_interface *)(interface))->dev_handle)
+#define STARPU_MATRIX_GET_OFFSET(interface)	(((struct starpu_matrix_interface *)(interface))->offset)
 #define STARPU_MATRIX_GET_NX(interface)	(((struct starpu_matrix_interface *)(interface))->nx)
 #define STARPU_MATRIX_GET_NY(interface)	(((struct starpu_matrix_interface *)(interface))->ny)
 #define STARPU_MATRIX_GET_LD(interface)	(((struct starpu_matrix_interface *)(interface))->ld)
@@ -215,6 +217,8 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_BLOCK_GET_PTR(interface)	(((struct starpu_block_interface *)(interface))->ptr)
+#define STARPU_BLOCK_GET_DEV_HANDLE(interface)	(((struct starpu_block_interface *)(interface))->dev_handle)
+#define STARPU_BLOCK_GET_OFFSET(interface)	(((struct starpu_block_interface *)(interface))->offset)
 #define STARPU_BLOCK_GET_NX(interface)	(((struct starpu_block_interface *)(interface))->nx)
 #define STARPU_BLOCK_GET_NY(interface)	(((struct starpu_block_interface *)(interface))->ny)
 #define STARPU_BLOCK_GET_NZ(interface)	(((struct starpu_block_interface *)(interface))->nz)
@@ -240,6 +244,8 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 
 /* helper methods */
 #define STARPU_VECTOR_GET_PTR(interface)	(((struct starpu_vector_interface *)(interface))->ptr)
+#define STARPU_VECTOR_GET_DEV_HANDLE(interface)	(((struct starpu_vector_interface *)(interface))->dev_handle)
+#define STARPU_VECTOR_GET_OFFSET(interface)	(((struct starpu_vector_interface *)(interface))->offset)
 #define STARPU_VECTOR_GET_NX(interface)	(((struct starpu_vector_interface *)(interface))->nx)
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
 
@@ -248,6 +254,7 @@ struct starpu_variable_interface
 {
 	uintptr_t ptr;
 	size_t elemsize;
+	/* No dev_handle, since it can not be filtered, offset will always be zero */
 };
 
 void starpu_variable_data_register(starpu_data_handle_t *handle, uint32_t home_node,
@@ -368,8 +375,6 @@ struct starpu_multiformat_interface
 #ifdef STARPU_USE_OPENCL
 	void *opencl_ptr;
 #endif
-	uintptr_t dev_handle;
-	size_t offset;
 	uint32_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
 };

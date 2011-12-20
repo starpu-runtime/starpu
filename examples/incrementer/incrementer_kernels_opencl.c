@@ -21,7 +21,7 @@
 extern struct starpu_opencl_program opencl_program;
 void opencl_codelet(void *descr[], void *_args)
 {
-	cl_mem val = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
+	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	cl_event event;

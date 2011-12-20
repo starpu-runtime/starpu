@@ -40,7 +40,7 @@ void test_matrix_opencl_func(void *buffers[], void *args)
 	factor = *(int *)args;
 	n = STARPU_MATRIX_GET_NX(buffers[0]);
 	n*= STARPU_MATRIX_GET_NY(buffers[0]);
-	val = (cl_mem)STARPU_MATRIX_GET_PTR(buffers[0]);
+	val = (cl_mem)STARPU_MATRIX_GET_DEV_HANDLE(buffers[0]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
