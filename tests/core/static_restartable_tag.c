@@ -88,8 +88,9 @@ int main(int argc, char **argv)
 
 		ret = starpu_tag_wait(tag);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
-		starpu_task_deinit(&task);
 	}
+
+	starpu_task_deinit(&task);
 
 	gettimeofday(&end, NULL);
 
