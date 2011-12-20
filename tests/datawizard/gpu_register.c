@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <starpu_opencl.h>
+#include <starpu_cuda.h>
 #include "../helper.h"
 #include "scal.h"
 
@@ -29,6 +30,7 @@ int main(int argc, char **argv)
 	unsigned workerid;
 	int chosen = -1;
 	int devid;
+	cudaError_t cures;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -59,7 +61,9 @@ int main(int argc, char **argv)
 	for (i = 0; i < size; i++)
 		foo[i] = i;
 
-	cudaMemcpy(foo_gpu, foo, size * sizeof(*foo_gpu), cudaMemcpyHostToDevice);
+	cures = cudaMemcpy(foo_gpu, foo, size * sizeof(*foo_gpu), cudaMemcpyHostToDevice);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	starpu_vector_data_register(&handle, starpu_worker_get_memory_node(chosen), (uintptr_t)foo_gpu, size, sizeof(*foo_gpu));
 
@@ -91,10 +95,9 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unpartition(handle, 0);
-	starpu_data_unregister(handle);
-
-	cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
+	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	starpu_shutdown();
 
