@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include "core/workers.h"
 
 static int can_always_execute(unsigned workerid,
 			      struct starpu_task *task,
