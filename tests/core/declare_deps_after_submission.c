@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,11 +72,15 @@ int main(int argc, char **argv)
 		taskB->detach = 0;
 
 		ret = starpu_task_submit(taskA);
+		if (ret == -ENODEV)
+			return STARPU_TEST_SKIPPED;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		starpu_task_declare_deps_array(taskB, 1, &taskA);
 
 		ret = starpu_task_submit(taskB);
+		if (ret == -ENODEV)
+			return STARPU_TEST_SKIPPED;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_wait(taskB);
