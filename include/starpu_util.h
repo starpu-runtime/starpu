@@ -58,7 +58,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_INTERNAL
 #endif
 
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)) && !defined(__STARPU_KERNEL__)
 #define STARPU_DEPRECATED  __attribute__((__deprecated__))
 #else
 #define STARPU_DEPRECATED
