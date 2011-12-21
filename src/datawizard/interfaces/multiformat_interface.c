@@ -345,6 +345,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 				ret = _starpu_opencl_allocate_memory(&ptr,
 							multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize,
 							CL_MEM_READ_WRITE);
+				addr = (uintptr_t)ptr;
 				if (ret)
 				{
 					fail = 1;
