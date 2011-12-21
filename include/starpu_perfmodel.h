@@ -137,7 +137,6 @@ struct starpu_per_arch_perfmodel
 	double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
 
 	/* internal variables */
-	double alpha;
 	struct starpu_htbl32_node *history;
 	struct starpu_history_list *list;
 	struct starpu_regression_model regression;
