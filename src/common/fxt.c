@@ -23,6 +23,7 @@
 
 #ifdef STARPU_USE_FXT
 #include <common/fxt.h>
+#include <starpu_fxt.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>

@@ -19,6 +19,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_fxt.h>
 
 static struct starpu_fxt_options options;
 

@@ -23,7 +23,6 @@
 #include <string.h>
 #include <assert.h>
 #include <starpu.h>
-#include <starpu_perfmodel.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -173,52 +172,6 @@ static __inline int starpu_get_env_number(const char *str)
 
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
-
-#define STARPU_FXT_MAX_FILES	64
-
-struct starpu_fxt_codelet_event
-{
-	char symbol[256]; /* name of the codelet */
-	int workerid;
-	enum starpu_perf_archtype archtype;
-	uint32_t hash;
-	size_t size;
-	float time;
-};
-
-struct starpu_fxt_options
-{
-	unsigned per_task_colour;
-	unsigned no_counter;
-	unsigned no_bus;
-	unsigned ninputfiles;
-	char *filenames[STARPU_FXT_MAX_FILES];
-	char *out_paje_path;
-	char *distrib_time_path;
-	char *activity_path;
-	char *dag_path;
-
-	/* In case we are going to gather multiple traces (eg in the case of
-	 * MPI processes), we may need to prefix the name of the containers. */
-	char *file_prefix;
-	uint64_t file_offset;
-	int file_rank;
-
-	/*
-	 *	Output parameters
-	 */
-
-	char worker_names[STARPU_NMAXWORKERS][256]; 
-	enum starpu_perf_archtype worker_archtypes[STARPU_NMAXWORKERS];
-	int nworkers;
-
-	/* In case we want to dump the list of codelets to an external tool */
-	struct starpu_fxt_codelet_event **dumped_codelets;
-	long dumped_codelets_count;
-};
-
-void starpu_fxt_options_init(struct starpu_fxt_options *options);
-void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 
 /* Some helper functions for application using CUBLAS kernels */
 void starpu_helper_cublas_init(void);
