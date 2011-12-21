@@ -36,7 +36,7 @@ static struct starpu_perfmodel starpu_sgemm_model =
 
 static struct starpu_perfmodel starpu_sgemm_model_common =
 {
-	.cost_model = gemm_cost,
+	.cost_function = gemm_cost,
 	.type = STARPU_COMMON,
 };
 
@@ -54,7 +54,7 @@ static struct starpu_perfmodel starpu_dgemm_model =
 
 static struct starpu_perfmodel starpu_dgemm_model_common =
 {
-	.cost_model = gemm_cost,
+	.cost_function = gemm_cost,
 	.type = STARPU_COMMON,
 };
 

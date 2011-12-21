@@ -12,12 +12,6 @@ TODO list
 
 - Update all tests and examples
 
-- Depreciate cost_model field in struct starpu_per_arch_perfmodel
-                                 struct starpu_perfmodel
-
-- Add a field cost_function
-  double (*cost_function)(starpu_data_handle_t *, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
-
 - Update all cost functions in examples
 
 - When cost_model is provided, but not cost_function, need to rebuild a struct starpu_buffer_descr

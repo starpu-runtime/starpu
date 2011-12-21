@@ -27,15 +27,15 @@
  *	Number of flops of Gemm 
  */
 
-double gemm_cost(struct starpu_buffer_descr *descr)
+double gemm_cost(struct starpu_task *task)
 {
 	/* C = A * B */
 	uint32_t nxC, nyC, nxA;
 
 
-	nxC = starpu_matrix_get_nx(descr[2].handle);
-	nyC = starpu_matrix_get_ny(descr[2].handle);
-	nxA = starpu_matrix_get_nx(descr[0].handle);
+	nxC = starpu_matrix_get_nx(task->descr[2].handle);
+	nyC = starpu_matrix_get_ny(task->descr[2].handle);
+	nxA = starpu_matrix_get_nx(task->descr[0].handle);
 
 /*	printf("nxC %d nxC %d nxA %d\n", nxC, nyC, nxA); */
 

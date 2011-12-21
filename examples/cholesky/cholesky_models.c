@@ -17,8 +17,8 @@
  */
 
 /*
- * As a convention, in that file, descr[0] is represented by A,
- * 				  descr[1] is B ...
+ * As a convention, in that file, buffers[0] is represented by A,
+ * 				  buffers[1] is B ...
  */
 
 /*
@@ -36,11 +36,11 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-static double cpu_chol_task_11_cost(struct starpu_buffer_descr *descr)
+static double cpu_chol_task_11_cost(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = (((double)(n)*n*n)/1000.0f*0.894/0.79176);
 
@@ -51,11 +51,11 @@ static double cpu_chol_task_11_cost(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_11_cost(struct starpu_buffer_descr *descr)
+static double cuda_chol_task_11_cost(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633/0.9883);
 
@@ -66,11 +66,11 @@ static double cuda_chol_task_11_cost(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_21_cost(struct starpu_buffer_descr *descr)
+static double cpu_chol_task_21_cost(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = (((double)(n)*n*n)/7706.674/0.95/0.9965);
 
@@ -81,11 +81,11 @@ static double cpu_chol_task_21_cost(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_21_cost(struct starpu_buffer_descr *descr)
+static double cuda_chol_task_21_cost(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/87.29520);
 
@@ -96,11 +96,11 @@ static double cuda_chol_task_21_cost(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_22_cost(struct starpu_buffer_descr *descr)
+static double cpu_chol_task_22_cost(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/8.0760);
 
@@ -111,11 +111,11 @@ static double cpu_chol_task_22_cost(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_22_cost(struct starpu_buffer_descr *descr)
+static double cuda_chol_task_22_cost(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/76.30666);
 
@@ -130,8 +130,8 @@ struct starpu_perfmodel chol_model_11 =
 {
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_11_cost },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_11_cost }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = cpu_chol_task_11_cost },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = cuda_chol_task_11_cost }
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_11"
@@ -141,8 +141,8 @@ struct starpu_perfmodel chol_model_21 =
 {
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_21_cost },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_21_cost }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = cpu_chol_task_21_cost },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = cuda_chol_task_21_cost }
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_21"
@@ -152,8 +152,8 @@ struct starpu_perfmodel chol_model_22 =
 {
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_22_cost },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_22_cost }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = cpu_chol_task_22_cost },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = cuda_chol_task_22_cost }
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_22"

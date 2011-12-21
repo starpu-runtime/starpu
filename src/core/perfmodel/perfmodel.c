@@ -71,11 +71,15 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
 static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp = -1.0;
+	double (*per_arch_cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 	double (*per_arch_cost_model)(struct starpu_buffer_descr *);
 
+	per_arch_cost_function = model->per_arch[arch][nimpl].cost_function;
 	per_arch_cost_model = model->per_arch[arch][nimpl].cost_model;
 
-	if (per_arch_cost_model)
+	if (per_arch_cost_function)
+		exp = per_arch_cost_function(task, arch, nimpl);
+	else if (per_arch_cost_model)
 		exp = per_arch_cost_model(task->buffers);
 
 	return exp;
@@ -111,12 +115,21 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	return -1.0;
 }
 
-static double common_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task)
+static double common_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp;
 	double alpha;
 
-	if (model->cost_model)
+	if (model->cost_function)
+	{
+		exp = model->cost_function(task, nimpl);
+		alpha = starpu_worker_get_relative_speedup(arch);
+
+		STARPU_ASSERT(alpha != 0.0f);
+
+		return (exp/alpha);
+	}
+	else if (model->cost_model)
 	{
 		exp = model->cost_model(task->buffers);
 		alpha = starpu_worker_get_relative_speedup(arch);
@@ -172,7 +185,7 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 
 				return per_arch_task_expected_perf(model, arch, task, nimpl);
 			case STARPU_COMMON:
-				return common_task_expected_perf(model, arch, task);
+				return common_task_expected_perf(model, arch, task, nimpl);
 
 			case STARPU_HISTORY_BASED:
 

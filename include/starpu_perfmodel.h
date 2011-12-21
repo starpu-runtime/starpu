@@ -22,6 +22,8 @@
 #include <starpu.h>
 #include <stdio.h>
 
+#include <starpu_util.h>
+
 #if ! defined(_MSC_VER)
 #  include <pthread.h>
 #endif
@@ -131,7 +133,8 @@ struct starpu_regression_model
 
 struct starpu_per_arch_perfmodel
 {
-	double (*cost_model)(struct starpu_buffer_descr *t); /* returns expected duration in µs */
+	double (*cost_model)(struct starpu_buffer_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
+	double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
 
 	/* internal variables */
 	double alpha;
@@ -158,7 +161,8 @@ struct starpu_perfmodel
 	enum starpu_perfmodel_type type;
 
 	/* single cost model (STARPU_COMMON), returns expected duration in µs */
-	double (*cost_model)(struct starpu_buffer_descr *);
+	double (*cost_model)(struct starpu_buffer_descr *) STARPU_DEPRECATED;
+	double (*cost_function)(struct starpu_task *, unsigned nimpl);
 
 	/* per-architecture model */
 	struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];

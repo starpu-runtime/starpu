@@ -19,8 +19,8 @@
 #include "lu_kernels_model.h"
 
 /*
- * As a convention, in that file, descr[0] is represented by A,
- * 				  descr[1] is B ...
+ * As a convention, in that file, buffers[0] is represented by A,
+ * 				  buffers[1] is B ...
  */
 
 /*
@@ -42,22 +42,22 @@
  *
  */
 
-double task_11_cost(struct starpu_buffer_descr *descr)
+double task_11_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/537.5);
 
 	return PERTURBATE(cost);
 }
 
-double task_12_cost(struct starpu_buffer_descr *descr)
+double task_12_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 /*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3210.80);
@@ -67,11 +67,11 @@ double task_12_cost(struct starpu_buffer_descr *descr)
 }
 
 
-double task_21_cost(struct starpu_buffer_descr *descr)
+double task_21_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 /*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3691.53);
@@ -82,13 +82,13 @@ double task_21_cost(struct starpu_buffer_descr *descr)
 
 
 
-double task_22_cost(struct starpu_buffer_descr *descr)
+double task_22_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_matrix_get_nx(descr[2].handle);
-	ny = starpu_matrix_get_ny(descr[2].handle);
-	nz = starpu_matrix_get_ny(descr[0].handle);
+	nx = starpu_matrix_get_nx(task->buffers[2].handle);
+	ny = starpu_matrix_get_ny(task->buffers[2].handle);
+	nz = starpu_matrix_get_ny(task->buffers[0].handle);
 
 	double cost = ((nx*ny*nz)/4110.0);
 
@@ -102,11 +102,11 @@ double task_22_cost(struct starpu_buffer_descr *descr)
  */
 
 
-double task_11_cost_cuda(struct starpu_buffer_descr *descr)
+double task_11_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/1853.7806);
 
@@ -114,11 +114,11 @@ double task_11_cost_cuda(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cuda(struct starpu_buffer_descr *descr)
+double task_12_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/42838.5718);
 
@@ -127,11 +127,11 @@ double task_12_cost_cuda(struct starpu_buffer_descr *descr)
 }
 
 
-double task_21_cost_cuda(struct starpu_buffer_descr *descr)
+double task_21_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/49208.667);
 
@@ -141,13 +141,13 @@ double task_21_cost_cuda(struct starpu_buffer_descr *descr)
 
 
 
-double task_22_cost_cuda(struct starpu_buffer_descr *descr)
+double task_22_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_matrix_get_nx(descr[2].handle);
-	ny = starpu_matrix_get_ny(descr[2].handle);
-	nz = starpu_matrix_get_ny(descr[0].handle);
+	nx = starpu_matrix_get_nx(task->buffers[2].handle);
+	ny = starpu_matrix_get_ny(task->buffers[2].handle);
+	nz = starpu_matrix_get_ny(task->buffers[0].handle);
 
 	double cost = ((nx*ny*nz)/57523.560);
 
@@ -161,11 +161,11 @@ double task_22_cost_cuda(struct starpu_buffer_descr *descr)
  *
  */
 
-double task_11_cost_cpu(struct starpu_buffer_descr *descr)
+double task_11_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -173,11 +173,11 @@ double task_11_cost_cpu(struct starpu_buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cpu(struct starpu_buffer_descr *descr)
+double task_12_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/6668.224);
 
@@ -186,11 +186,11 @@ double task_12_cost_cpu(struct starpu_buffer_descr *descr)
 }
 
 
-double task_21_cost_cpu(struct starpu_buffer_descr *descr)
+double task_21_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(descr[0].handle);
+	n = starpu_matrix_get_nx(task->buffers[0].handle);
 
 	double cost = ((n*n*n)/6793.8423);
 
@@ -200,13 +200,13 @@ double task_21_cost_cpu(struct starpu_buffer_descr *descr)
 
 
 
-double task_22_cost_cpu(struct starpu_buffer_descr *descr)
+double task_22_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_matrix_get_nx(descr[2].handle);
-	ny = starpu_matrix_get_ny(descr[2].handle);
-	nz = starpu_matrix_get_ny(descr[0].handle);
+	nx = starpu_matrix_get_nx(task->buffers[2].handle);
+	ny = starpu_matrix_get_ny(task->buffers[2].handle);
+	nz = starpu_matrix_get_ny(task->buffers[0].handle);
 
 	double cost = ((nx*ny*nz)/4203.0175);
 
@@ -216,11 +216,11 @@ double task_22_cost_cpu(struct starpu_buffer_descr *descr)
 
 struct starpu_perfmodel model_11 =
 {
-	.cost_model = task_11_cost,
+	.cost_function = task_11_cost,
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_11_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_11_cost_cuda }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_11_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_11_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -234,11 +234,11 @@ struct starpu_perfmodel model_11 =
 
 struct starpu_perfmodel model_12 =
 {
-	.cost_model = task_12_cost,
+	.cost_function = task_12_cost,
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_12_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_12_cost_cuda }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_12_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_12_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -252,11 +252,11 @@ struct starpu_perfmodel model_12 =
 
 struct starpu_perfmodel model_21 =
 {
-	.cost_model = task_21_cost,
+	.cost_function = task_21_cost,
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_21_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_21_cost_cuda }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_21_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_21_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -270,11 +270,11 @@ struct starpu_perfmodel model_21 =
 
 struct starpu_perfmodel model_22 =
 {
-	.cost_model = task_22_cost,
+	.cost_function = task_22_cost,
 	.per_arch =
 	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_22_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_22_cost_cuda }
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_22_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_22_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
