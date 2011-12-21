@@ -1459,10 +1459,26 @@ used as file name to store the model.
 @item @code{cost_function}: Used by @code{STARPU_COMMON}: takes a task and
 implementation number, and must return a task duration estimation in micro-seconds.
 @item @code{per_arch}: Used by @code{STARPU_PER_ARCH}: array of @code{struct
-starpu_per_arch_perfmodel} structures, whose @code{cost_function} fields must
-point to functions which take a task, the target arch and implementation number
-(as mere conveniency, since the array is already indexed by these), and must
-return a task duration estimation in micro-seconds.
+starpu_per_arch_perfmodel} structures.
+@end table
+@end deftp
+
+@deftp {Data Type} {struct starpu_per_arch_perfmodel}
+contains information about the performance model of a given arch.
+
+@table @asis
+@item @code{cost_function}
+Used by @code{STARPU_PER_ARCH}, must point to functions which take a task, the
+target arch and implementation number (as mere conveniency, since the array
+is already indexed by these), and must return a task duration estimation in
+micro-seconds.
+@item @code{list}
+Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
+records all execution history measures.
+@item @code{regression}
+Used by @code{STARPU_HISTORY_REGRESION_BASED} and
+@code{STARPU_NL_REGRESSION_BASED}, contains the estimated factors of the
+regression.
 @end table
 @end deftp
 
