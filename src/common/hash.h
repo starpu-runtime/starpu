@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,12 @@
 #define __HASH_H__
 
 #include <stdint.h>
+#include <stddef.h>
+
+/* Compute the CRC of a byte buffer seeded by the inputcrc "current state".
+ * The return value should be considered as the new "current state" for future
+ * CRC computation. */
+uint32_t _starpu_crc32_be_n(void *input, size_t n, uint32_t inputcrc);
 
 /* Compute the CRC of a 32bit number seeded by the inputcrc "current state".
  * The return value should be considered as the new "current state" for future
