@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_CUDA
+#if CUDART_VERSION >= 4000 /* We need thread-safety of CUDA */
 	/* TODO OpenCL, too */
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
 		if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER) {
@@ -119,6 +120,7 @@ int main(int argc, char **argv)
 
 enodev:
 	starpu_data_unregister(handle);
+#endif
 #endif
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
