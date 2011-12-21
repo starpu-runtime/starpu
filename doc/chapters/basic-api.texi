@@ -1460,6 +1460,9 @@ used as file name to store the model.
 implementation number, and must return a task duration estimation in micro-seconds.
 @item @code{per_arch}: Used by @code{STARPU_PER_ARCH}: array of @code{struct
 starpu_per_arch_perfmodel} structures.
+@item @code{size_base}: Used by @code{STARPU_HISTORY_BASED} and
+@code{STARPU_*REGRESSION_BASED}. If not NULL, takes a task and implementation
+number, and returns the size to be used as index for history and regression.
 @end table
 @end deftp
 
@@ -1479,6 +1482,8 @@ records all execution history measures.
 Used by @code{STARPU_HISTORY_REGRESION_BASED} and
 @code{STARPU_NL_REGRESSION_BASED}, contains the estimated factors of the
 regression.
+@item @code{size_base}: Same as in @code{struct perfmodel}, but per-arch, in
+case it depends on the architecture-specific implementation.
 @end table
 @end deftp
 

@@ -597,7 +597,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	STARPU_ASSERT(func);
 	func(task->interfaces, task->cl_arg);
 
-	_starpu_driver_end_job(args, j, &codelet_end, 0);
+	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0);
 
 	_starpu_driver_update_job_feedback(j, args, args->perf_arch,
 							&codelet_start, &codelet_end);

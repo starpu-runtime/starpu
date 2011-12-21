@@ -60,7 +60,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 		func(task->interfaces, task->cl_arg);
 	}
 
-	_starpu_driver_end_job(cpu_args, j, &codelet_end, rank);
+	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank);
 
 	if (is_parallel_task)
 		_STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);

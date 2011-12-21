@@ -199,11 +199,11 @@ do {									\
 	}								\
 } while(0);
 
-#define _STARPU_TRACE_END_CODELET_BODY(job, archtype)			\
+#define _STARPU_TRACE_END_CODELET_BODY(job, perf_arch, nimpl, archtype)			\
 do {									\
-	const size_t job_size = _starpu_job_get_data_size((job));	\
-	const uint32_t job_hash = _starpu_compute_buffers_footprint(job);\
-	FUT_DO_PROBE5(_STARPU_FUT_END_CODELET_BODY, job, (job_size), (job_hash), (archtype), syscall(SYS_gettid));	\
+	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
+	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
+	FUT_DO_PROBE5(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), (archtype), syscall(SYS_gettid));	\
 } while(0);
 
 #define _STARPU_TRACE_START_CALLBACK(job)	\

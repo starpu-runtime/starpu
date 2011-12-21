@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -151,7 +151,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j, unsigned
 void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_already_locked);
 
 /* Get the sum of the size of the data accessed by the job. */
-size_t _starpu_job_get_data_size(struct _starpu_job *j);
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j);
 
 /* Get a task from the local pool of tasks that were explicitly attributed to
  * that worker. */

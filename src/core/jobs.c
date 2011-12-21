@@ -27,22 +27,26 @@
 #include <profiling/bound.h>
 #include <starpu_top.h>
 
-size_t _starpu_job_get_data_size(struct _starpu_job *j)
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)
 {
-	size_t size = 0;
-
 	struct starpu_task *task = j->task;
 
-	unsigned nbuffers = task->cl->nbuffers;
+	if (model && model->per_arch[arch][nimpl].size_base) {
+		return model->per_arch[arch][nimpl].size_base(task, arch, nimpl);
+	} else if (model && model->size_base) {
+		return model->size_base(task, nimpl);
+	} else {
+		unsigned nbuffers = task->cl->nbuffers;
+		size_t size = 0;
 
-	unsigned buffer;
-	for (buffer = 0; buffer < nbuffers; buffer++)
-	{
-		starpu_data_handle_t handle = task->handles[buffer];
-		size += _starpu_data_get_size(handle);
+		unsigned buffer;
+		for (buffer = 0; buffer < nbuffers; buffer++)
+		{
+			starpu_data_handle_t handle = task->handles[buffer];
+			size += _starpu_data_get_size(handle);
+		}
+		return size;
 	}
-
-	return size;
 }
 
 /* we need to identify each task to generate the DAG. */

@@ -346,7 +346,7 @@ struct starpu_codelet cl = @{
 @end cartouche
 
 @item
-Measured at runtime and refined by regression (@code{STARPU_REGRESSION_*_BASED}
+Measured at runtime and refined by regression (@code{STARPU_*REGRESSION_BASED}
 model type). This still assumes performance regularity, but can work
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
@@ -373,6 +373,14 @@ functions which return the expected duration of the task in micro-seconds, one
 per architecture.
 
 @end itemize
+
+For the @code{STARPU_HISTORY_BASED} and @code{STARPU_*REGRESSION_BASE},
+the total size of task data (both input and output) is used as an index by
+default. The @code{size_base} field of @code{struct starpu_perfmodel} however
+permits the application to override that, when for instance some of the data
+do not matter for task cost (e.g. mere reference table), or when using sparse
+structures (in which case it is the number of non-zeros which matter), or when
+there is some hidden parameter such as the number of iterations, etc.
 
 How to use schedulers which can benefit from such performance model is explained
 in @ref{Task scheduling policy}.

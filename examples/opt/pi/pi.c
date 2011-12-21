@@ -61,6 +61,12 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 	free(random_numbers);
 }
 
+/* The amount of work does not depend on the data size at all :) */
+static size_t size_base(struct starpu_task *task, unsigned nimpl)
+{
+	return NSHOT_PER_TASK;
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -114,6 +120,7 @@ int main(int argc, char **argv)
 	static struct starpu_perfmodel model =
 	{
 		.type = STARPU_HISTORY_BASED,
+		.size_base = size_base,
 		.symbol = "monte_carlo_pi"
 	};
 

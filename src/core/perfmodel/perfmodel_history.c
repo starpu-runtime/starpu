@@ -893,7 +893,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl)
 {
 	double exp = -1.0;
-	size_t size = _starpu_job_get_data_size(j);
+	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	struct starpu_regression_model *regmodel;
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
@@ -907,7 +907,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
 	double exp = -1.0;
-	size_t size = _starpu_job_get_data_size(j);
+	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	struct starpu_regression_model *regmodel;
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
@@ -916,7 +916,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
 	else
 	{
-		uint32_t key = _starpu_compute_buffers_footprint(j);
+		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
 		struct starpu_htbl32_node *history = per_arch_model->history;
 		struct starpu_history_entry *entry;
@@ -945,7 +945,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	struct starpu_history_entry *entry;
 	struct starpu_htbl32_node *history;
 
-	uint32_t key = _starpu_compute_buffers_footprint(j);
+	uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 
@@ -989,7 +989,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			struct starpu_htbl32_node *history;
 			struct starpu_htbl32_node **history_ptr;
 			struct starpu_history_list **list;
-			uint32_t key = _starpu_compute_buffers_footprint(j);
+			uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 			history = per_arch_model->history;
 			history_ptr = &per_arch_model->history;
@@ -1008,7 +1008,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					entry->deviation = 0.0;
 					entry->sum2 = measured*measured;
 
-					entry->size = _starpu_job_get_data_size(j);
+					entry->size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
 					entry->footprint = key;
 					entry->nsample = 1;
@@ -1037,7 +1037,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			reg_model = &per_arch_model->regression;
 
 			/* update the regression model */
-			size_t job_size = _starpu_job_get_data_size(j);
+			size_t job_size = _starpu_job_get_data_size(model, arch, nimpl, j);
 			double logy, logx;
 			logx = log((double)job_size);
 			logy = log(measured);
@@ -1069,11 +1069,11 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		FILE * debug_file = per_arch_model->debug_file;
 
 		if (!j->footprint_is_computed)
-			(void) _starpu_compute_buffers_footprint(j);
+			(void) _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(j), measured, task->predicted, task->predicted_transfer, cpuid);
+		fprintf(debug_file, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, nimpl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
 
 		for (i = 0; i < task->cl->nbuffers; i++)

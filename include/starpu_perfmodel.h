@@ -135,6 +135,7 @@ struct starpu_per_arch_perfmodel
 {
 	double (*cost_model)(struct starpu_buffer_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
 	double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
+	size_t (*size_base)(struct starpu_task *, enum starpu_perf_archtype arch, unsigned nimpl);
 
 	/* internal variables */
 	struct starpu_htbl32_node *history;
@@ -162,6 +163,8 @@ struct starpu_perfmodel
 	/* single cost model (STARPU_COMMON), returns expected duration in µs */
 	double (*cost_model)(struct starpu_buffer_descr *) STARPU_DEPRECATED;
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
+
+	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 
 	/* per-architecture model */
 	struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
