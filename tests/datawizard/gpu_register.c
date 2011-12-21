@@ -30,11 +30,14 @@ int main(int argc, char **argv)
 	unsigned workerid;
 	int chosen = -1;
 	int devid;
+#ifdef STARPU_USE_CUDA
 	cudaError_t cures;
+#endif
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_USE_CUDA
 	/* TODO OpenCL, too */
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
 		if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER) {
@@ -116,6 +119,7 @@ int main(int argc, char **argv)
 
 enodev:
 	starpu_data_unregister(handle);
+#endif
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
