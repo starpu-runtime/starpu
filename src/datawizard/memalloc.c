@@ -185,6 +185,7 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 					last = i;
 				}
 			}
+			STARPU_ASSERT(cnt > 0);
 
 			if (cnt == 1)
 				handle->per_node[last].state = STARPU_OWNER;
