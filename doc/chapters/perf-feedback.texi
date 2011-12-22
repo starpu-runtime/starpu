@@ -340,7 +340,7 @@ file: <starpu_slu_lu_model_12.hannibal>
 @end example
 
 Here, the codelets of the lu example are available. We can examine the
-performance of the 22 kernel:
+performance of the 22 kernel (in ms):
 
 @example
 $ starpu_perfmodel_display -s starpu_slu_lu_model_22
