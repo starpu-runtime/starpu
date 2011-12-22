@@ -305,7 +305,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", symbol);
 	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
 	fprintf(gnuplot_file, "set xlabel \"Size\"\n");
-	fprintf(gnuplot_file, "set ylabel \"Time\"\n");
+	fprintf(gnuplot_file, "set ylabel \"Time (ms)\"\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set key top left\n");
 	fprintf(gnuplot_file, "set logscale x\n");
