@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	unsigned *foo;
 	starpu_data_handle_t handle;
 	int ret;
-	int n, i, size;
+	int n, i, size, pieces;
 	unsigned workerid;
 	int chosen = -1;
 	int devid;
@@ -75,21 +75,27 @@ int main(int argc, char **argv)
 	for (i = 0; i < n; i++)
 		starpu_data_prefetch_on_node(handle, starpu_worker_get_memory_node(i), 0);
 
+	/* Even with just one worker, split in at least two */
+	if (n == 1)
+		pieces = 2;
+	else
+		pieces = n;
+
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
-		.nchildren = n > 1 ? n : 2,
+		.nchildren = pieces,
 	};
 
 	starpu_data_partition(handle, &f);
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < pieces; i++) {
 		struct starpu_task *task = starpu_task_create();
 
 		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
 		task->cl = &scal_codelet;
 		task->execute_on_a_specific_worker = 1;
-		task->workerid = i;
+		task->workerid = i%n;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
@@ -99,7 +105,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, starpu_worker_get_memory_node(chosen));
 	starpu_data_unregister(handle);
 
 	cudaSetDevice(devid);
