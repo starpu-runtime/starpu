@@ -303,9 +303,15 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	handle = mc->data;
 	STARPU_ASSERT(handle);
 
-	/* Either it's a "relaxed coherency" memchunk, or it's a memchunk that
-	 * could be used with filters. */
-	if (mc->relaxed_coherency)
+	/* REDUX memchunk */
+	if (mc->relaxed_coherency == 2)
+	{
+		/* TODO: reduce it back to e.g. main memory */
+	}
+	else
+	/* Either it's a "relaxed coherency" memchunk (SCRATCH), or it's a
+	 * memchunk that could be used with filters. */
+	if (mc->relaxed_coherency == 1)
 	{
 		STARPU_ASSERT(mc->replicate);
 

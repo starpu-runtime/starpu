@@ -202,6 +202,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 			replicate->request[node] = NULL;
 		}
 
+		/* Assuming being used for SCRATCH for now, patched when entering REDUX mode */
 		replicate->relaxed_coherency = 1;
 		replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
