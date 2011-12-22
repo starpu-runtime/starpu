@@ -158,7 +158,7 @@ b50b6605  393216   1.469926e+03  1.088828e+02  1240
 @end example
 
 Which shows that for the LU 22 kernel with a 1.5MiB matrix, the average
-execution time on CPUs was about 12ms, with a 2ms standard deviation, over
+execution time on CPUs was about 11ms, with a 3ms standard deviation, over
 1240 samples. It is a good idea to check this before doing actual performance
 measurements.
 
