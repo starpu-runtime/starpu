@@ -69,9 +69,8 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	int starpu_top=starpu_top_status_get();
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
-	enum starpu_perf_archtype archtype STARPU_ATTRIBUTE_UNUSED = args->perf_arch;
 
-	_STARPU_TRACE_END_CODELET_BODY(j, perf_arch, j->nimpl, archtype);
+	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch);
 
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;

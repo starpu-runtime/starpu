@@ -199,10 +199,10 @@ do {									\
 	}								\
 } while(0);
 
-#define _STARPU_TRACE_END_CODELET_BODY(job, perf_arch, nimpl, archtype)			\
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, archtype)			\
 do {									\
-	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
-	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
+	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));	\
+	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));\
 	FUT_DO_PROBE5(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), (archtype), syscall(SYS_gettid));	\
 } while(0);
 
@@ -351,7 +351,7 @@ do {										\
 #define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0);
 #define _STARPU_TRACE_WORKER_INIT_END		do {} while(0);
 #define _STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0);
-#define _STARPU_TRACE_END_CODELET_BODY(job, a)	do {} while(0);
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a)	do {} while(0);
 #define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0);
 #define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0);
 #define _STARPU_TRACE_JOB_PUSH(task, prio)	do {} while(0);
