@@ -60,7 +60,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	_STARPU_TRACE_START_CODELET_BODY(j);
 }
 
-void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perf_archtype perf_arch, struct timespec *codelet_end, int rank)
+void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perf_archtype perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
