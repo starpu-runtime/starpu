@@ -94,6 +94,8 @@ void _starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 		replicate = &handle->per_worker[worker];
 		replicate->initialized = 0;
 		replicate->relaxed_coherency = 2;
+		if (replicate->mc)
+			replicate->mc->relaxed_coherency = 2;
 	}
 }
 
@@ -259,6 +261,8 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_worker[worker];
 		replicate->relaxed_coherency = 1;
+		if (replicate->mc)
+			replicate->mc->relaxed_coherency = 1;
 	}
 }
 
