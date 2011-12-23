@@ -195,6 +195,9 @@ main(void)
 #ifdef STARPU_USE_CPU
 	starpu_init(NULL);
 
+	if (starpu_cuda_worker_get_count() == 0)
+		return 77;
+
 #ifdef STARPU_USE_OPENCL
 	starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_opencl_kernel.cl",
 					    &opencl_program, NULL);
