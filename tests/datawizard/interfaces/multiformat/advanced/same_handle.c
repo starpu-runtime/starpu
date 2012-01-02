@@ -27,8 +27,7 @@ static int vector[NX]; static starpu_data_handle_t handle;
 
 static struct starpu_codelet cl =
 {
-.modes[1] = STARPU_RW,
-.modes[0] = STARPU_RW,
+	.modes = { STARPU_RW, STARPU_RW },
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { cuda_func, NULL },
 #endif

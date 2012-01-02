@@ -150,7 +150,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** Starting Task 1\n");
 	static struct starpu_codelet cl =
 	{
-		.modes[0] = STARPU_RW,
+		.modes = { STARPU_RW },
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs  = {cuda_func, NULL},
 #endif
@@ -170,7 +170,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** Starting Task 2\n");
 	static struct starpu_codelet cl2 =
 	{
-		.modes[0] = STARPU_RW,
+		.modes = { STARPU_RW },
 		.where = STARPU_CPU,
 		.cpu_funcs = {cpu_func, NULL},
 		.nbuffers = 1
@@ -186,8 +186,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** Starting Task 3\n");
 	static struct starpu_codelet cl3 =
 	{
-		.modes[1] = STARPU_RW,
-		.modes[0] = STARPU_RW,
+		.modes = { STARPU_RW, STARPU_RW },
 		.cpu_funcs   = {cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs   = {cuda_func, NULL},

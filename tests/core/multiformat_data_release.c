@@ -152,7 +152,7 @@ create_and_submit(int where)
 {
 	static struct starpu_codelet cl =
 	{
-		.modes[0] = STARPU_RW,
+		.modes = { STARPU_RW },
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs   = {cuda_func, NULL},
 #endif

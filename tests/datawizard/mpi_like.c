@@ -57,7 +57,7 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 
 static struct starpu_codelet increment_handle_cl =
 {
-	.modes[0] = STARPU_RW,
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA

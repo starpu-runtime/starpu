@@ -32,7 +32,7 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet increment_cl =
 {
-        .modes[0] = STARPU_RW,
+	.modes = { STARPU_RW },
         .where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_cpu, NULL},
 #ifdef STARPU_USE_CUDA
