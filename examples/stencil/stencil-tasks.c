@@ -225,6 +225,7 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 static void null_func(void *descr[] __attribute__((unused)), void *arg __attribute__((unused))) { }
 static struct starpu_codelet null =
 {
+	.modes = { STARPU_W, STARPU_W },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {null_func, NULL},
 	.cuda_funcs = {null_func, NULL},
@@ -243,10 +244,8 @@ void create_start_task(int z, int dir)
 	wait_init->cl = &null;
 	wait_init->use_tag = 1;
 	wait_init->tag_id = TAG_START(z, dir);
-	wait_init->buffers[0].handle = descr->boundaries_handle[(1+dir)/2][0];
-	wait_init->buffers[0].mode = STARPU_W;
-	wait_init->buffers[1].handle = descr->boundaries_handle[(1+dir)/2][1];
-	wait_init->buffers[1].mode = STARPU_W;
+	wait_init->handles[0] = descr->boundaries_handle[(1 + dir) / 2][0];
+	wait_init->handles[1] = descr->boundaries_handle[(1 + dir) / 2][1];
 	starpu_tag_declare_deps_array(wait_init->tag_id, 1, &tag_init);
 
 	int ret = starpu_task_submit(wait_init);

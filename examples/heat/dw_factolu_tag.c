@@ -46,6 +46,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static struct starpu_codelet cl11 =
 {
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
@@ -64,8 +65,7 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
 	/* this is an important task */
 	if (!no_prio)
@@ -82,6 +82,7 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 
 static struct starpu_codelet cl12 =
 {
+	.modes = { STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
@@ -100,10 +101,8 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i)
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, i, k);
 
 	if (!no_prio && (i == k+1))
 	{
@@ -125,6 +124,7 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i)
 
 static struct starpu_codelet cl21 =
 {
+	.modes = { STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
@@ -141,10 +141,8 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
 
 	if (!no_prio && (j == k+1))
 	{
@@ -166,6 +164,7 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 
 static struct starpu_codelet cl22 =
 {
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
@@ -184,12 +183,9 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, i, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
+	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 	{

@@ -279,6 +279,7 @@ struct starpu_perfmodel band_filter_model =
 
 static struct starpu_codelet band_filter_cl =
 {
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {band_filter_kernel_gpu, NULL},
@@ -301,8 +302,7 @@ void create_starpu_task(unsigned iter)
 
 	task->cl = &band_filter_cl;
 
-	task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, iter);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(A_handle, 1, iter);
 
 	task->callback_func = callback;
 	task->callback_arg = NULL;

@@ -41,12 +41,13 @@ static struct starpu_perfmodel vector_scal_model =
 
 static struct starpu_codelet cl =
 {
-  .where = STARPU_CPU | STARPU_CUDA,
-  /* CPU implementation of the codelet */
-  .cpu_funcs = {scal_cpu_func, NULL},
+	.modes = { STARPU_RW },
+	.where = STARPU_CPU | STARPU_CUDA,
+	/* CPU implementation of the codelet */
+	.cpu_funcs = {scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-  /* CUDA implementation of the codelet */
-  .cuda_funcs = {scal_cuda_func, NULL},
+	/* CUDA implementation of the codelet */
+	.cuda_funcs = {scal_cuda_func, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &vector_scal_model
@@ -85,8 +86,7 @@ void compute_(int *F_NX, float *vector)
 	task->cl = &cl;
 
 	/* the codelet manipulates one buffer in RW mode */
-	task->buffers[0].handle = vector_handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = vector_handle;
 
 	/* an argument is passed to the codelet, beware that this is a
 	 * READ-ONLY buffer and that the codelet may be given a pointer to a

@@ -32,6 +32,7 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 struct starpu_codelet cl =
 {
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU,
 	.cpu_funcs = {cpu_codelet, NULL},
 	.nbuffers = 1
@@ -41,8 +42,7 @@ void callback_func(void *callback_arg)
 {
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = handle;
 	starpu_task_submit(task);
 }
 
@@ -57,8 +57,7 @@ int main(int argc, char **argv)
 	task->cl = &cl;
 	task->callback_func = callback_func;
 	task->callback_arg = NULL;
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = handle;
 
 	starpu_task_submit(task);
 

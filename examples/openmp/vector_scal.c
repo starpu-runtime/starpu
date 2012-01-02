@@ -51,6 +51,7 @@ static struct starpu_perfmodel vector_scal_model =
 
 static struct starpu_codelet cl =
 {
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
@@ -88,8 +89,7 @@ int main(int argc, char **argv)
 
 	task->cl = &cl;
 
-	task->buffers[0].handle = vector_handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = vector_handle;
 	task->cl_arg = &factor;
 	task->cl_arg_size = sizeof(factor);
 
