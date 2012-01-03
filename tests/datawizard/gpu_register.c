@@ -22,18 +22,19 @@
 
 int main(int argc, char **argv)
 {
+	int ret;
+#ifdef STARPU_USE_CUDA
+#if CUDART_VERSION >= 4000
 	unsigned *foo_gpu;
 	unsigned *foo;
 	starpu_data_handle_t handle;
-	int ret;
 	int n, i, size, pieces;
+	int devid;
 	unsigned workerid;
 	int chosen = -1;
-	int devid;
-#ifdef STARPU_USE_CUDA
 	cudaError_t cures;
 #endif
-
+#endif
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
