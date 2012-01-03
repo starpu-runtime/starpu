@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,14 +78,16 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet_null, NULL},
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 static struct starpu_codelet display_cl =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {display_var, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
 
@@ -100,10 +102,9 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
 	struct starpu_task *task = starpu_task_create();
-		task->cl = &cl;
-		task->buffers[0].handle = v_handle;
-		task->buffers[0].mode = STARPU_W;
-		task->detach = 0;
+	task->cl = &cl;
+	task->handles[0] = v_handle;
+	task->detach = 0;
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;
@@ -113,10 +114,9 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	task = starpu_task_create();
-		task->cl = &display_cl;
-		task->buffers[0].handle = v_handle;
-		task->buffers[0].mode = STARPU_R;
-		task->detach = 0;
+	task->cl = &display_cl;
+	task->handles[0] = v_handle;
+	task->detach = 0;
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;

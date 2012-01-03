@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,8 @@ static struct starpu_codelet dummy_codelet =
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
 	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
 };
 
 int inject_one_task(void)
@@ -106,11 +107,12 @@ int main(int argc, char **argv)
 	fprintf(stderr, "#tasks : %u\n#buffers : %u\n", ntasks, nbuffers);
 
 	/* submit tasks (but don't execute them yet !) */
-	tasks = (struct starpu_task *) malloc(ntasks*sizeof(struct starpu_task));
+	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
 
 	gettimeofday(&start_submit, NULL);
 	for (i = 0; i < ntasks; i++)
 	{
+		starpu_task_init(&tasks[i]);
 		tasks[i].callback_func = NULL;
 		tasks[i].cl = &dummy_codelet;
 		tasks[i].cl_arg = NULL;
@@ -121,8 +123,7 @@ int main(int argc, char **argv)
 		/* we have 8 buffers at most */
 		for (buffer = 0; buffer < nbuffers; buffer++)
 		{
-			tasks[i].buffers[buffer].handle = data_handles[buffer];
-			tasks[i].buffers[buffer].mode = STARPU_RW;
+			tasks[i].handles[buffer] = data_handles[buffer];
 		}
 	}
 

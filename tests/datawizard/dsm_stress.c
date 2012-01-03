@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,14 +81,14 @@ static enum starpu_access_mode select_random_mode(void)
 	return STARPU_RW;
 }
 
-
 static struct starpu_codelet cl_r_r =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_R}
 };
 
 static struct starpu_codelet cl_r_w =
@@ -97,7 +97,8 @@ static struct starpu_codelet cl_r_w =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_W}
 };
 
 static struct starpu_codelet cl_r_rw =
@@ -106,7 +107,8 @@ static struct starpu_codelet cl_r_rw =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW}
 };
 
 static struct starpu_codelet cl_w_r =
@@ -115,7 +117,8 @@ static struct starpu_codelet cl_w_r =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_W, STARPU_R}
 };
 
 static struct starpu_codelet cl_w_w =
@@ -124,7 +127,8 @@ static struct starpu_codelet cl_w_w =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_W, STARPU_W}
 };
 
 static struct starpu_codelet cl_w_rw =
@@ -133,7 +137,8 @@ static struct starpu_codelet cl_w_rw =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_W, STARPU_RW}
 };
 
 static struct starpu_codelet cl_rw_r =
@@ -142,7 +147,8 @@ static struct starpu_codelet cl_rw_r =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_R}
 };
 
 static struct starpu_codelet cl_rw_w =
@@ -151,7 +157,8 @@ static struct starpu_codelet cl_rw_w =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_W}
 };
 
 static struct starpu_codelet cl_rw_rw =
@@ -160,7 +167,8 @@ static struct starpu_codelet cl_rw_rw =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW}
 };
 
 
@@ -184,29 +192,29 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->buffers[0].handle = v_handle;
-		task->buffers[0].mode = select_random_mode();
+		task->handles[0] = v_handle;
+		task->handles[1] = v_handle2;
 
-		task->buffers[1].handle = v_handle2;
-		task->buffers[1].mode = select_random_mode();
+		enum starpu_access_mode mode0 = select_random_mode();
+		enum starpu_access_mode mode1 = select_random_mode();
 
-		if      (task->buffers[0].mode == STARPU_R && task->buffers[1].mode == STARPU_R)
+		if (mode0 == STARPU_R && mode1 == STARPU_R)
 			task->cl = &cl_r_r;
-		else if (task->buffers[0].mode == STARPU_R && task->buffers[1].mode == STARPU_W)
+		else if (mode0 == STARPU_R && mode1 == STARPU_W)
 			task->cl = &cl_r_w;
-		else if (task->buffers[0].mode == STARPU_R && task->buffers[1].mode == STARPU_RW)
+		else if (mode0 == STARPU_R && mode1 == STARPU_RW)
 			task->cl = &cl_r_rw;
-		else if (task->buffers[0].mode == STARPU_W && task->buffers[1].mode == STARPU_R)
+		else if (mode0 == STARPU_W && mode1 == STARPU_R)
 			task->cl = &cl_w_r;
-		else if (task->buffers[0].mode == STARPU_W && task->buffers[1].mode == STARPU_W)
+		else if (mode0 == STARPU_W && mode1 == STARPU_W)
 			task->cl = &cl_w_w;
-		else if (task->buffers[0].mode == STARPU_W && task->buffers[1].mode == STARPU_RW)
+		else if (mode0 == STARPU_W && mode1 == STARPU_RW)
 			task->cl = &cl_w_rw;
-		else if (task->buffers[0].mode == STARPU_RW && task->buffers[1].mode == STARPU_R)
+		else if (mode0 == STARPU_RW && mode1 == STARPU_R)
 			task->cl = &cl_rw_r;
-		else if (task->buffers[0].mode == STARPU_RW && task->buffers[1].mode == STARPU_W)
+		else if (mode0 == STARPU_RW && mode1 == STARPU_W)
 			task->cl = &cl_rw_w;
-		else if (task->buffers[0].mode == STARPU_RW && task->buffers[1].mode == STARPU_RW)
+		else if (mode0 == STARPU_RW && mode1 == STARPU_RW)
 			task->cl = &cl_rw_rw;
 
 		task->callback_func = callback;

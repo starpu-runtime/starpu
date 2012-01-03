@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,8 @@ static struct starpu_codelet r_cl =
 	.cuda_funcs = {dummy_kernel, NULL},
 	.cpu_funcs = {dummy_kernel, NULL},
 	.opencl_funcs = {dummy_kernel, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
 static struct starpu_codelet w_cl =
@@ -40,7 +41,8 @@ static struct starpu_codelet w_cl =
 	.cuda_funcs = {dummy_kernel, NULL},
 	.cpu_funcs = {dummy_kernel, NULL},
 	.opencl_funcs = {dummy_kernel, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 int main(int argc, char **argv)
@@ -60,12 +62,12 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
+		task->handles[0] = book_handle;
+
 		/* we randomly select either a reader or a writer (give 10
 		 * times more chances to be a reader) */
-		task->buffers[0].mode = ((rand() % 10)==0)?STARPU_W:STARPU_R;
-		task->buffers[0].handle = book_handle;
-
-		if (task->buffers[0].mode == STARPU_W)
+		enum starpu_access_mode mode = ((rand() % 10)==0)?STARPU_W:STARPU_R;
+		if (mode == STARPU_W)
 			task->cl = &w_cl;
 		else
 			task->cl = &r_cl;

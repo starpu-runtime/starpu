@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,6 +96,7 @@ static struct starpu_codelet reduction_codelet =
 	.cpu_funcs = {cpu_redux_func, NULL},
 	.cuda_funcs = {NULL},
 	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_R},
 	.model = NULL
 };
 
@@ -148,6 +150,7 @@ static struct starpu_codelet use_data_on_worker_codelet =
 	.opencl_funcs = {opencl_func_incr, NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = NULL
 };
 
@@ -186,8 +189,7 @@ int main(int argc, char **argv)
 		task->cl = &use_data_on_worker_codelet;
 
 		int workerid = (i % nworkers);
-		task->buffers[0].handle = per_worker_handle[workerid];
-		task->buffers[0].mode = STARPU_RW;
+		task->handles[0] = per_worker_handle[workerid];
 
 		task->execute_on_a_specific_worker = 1;
 		task->workerid = (unsigned)workerid;
@@ -204,11 +206,8 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &reduction_codelet;
 
-		task->buffers[0].handle = variable_handle;
-		task->buffers[0].mode = STARPU_RW;
-
-		task->buffers[1].handle = per_worker_handle[worker];
-		task->buffers[1].mode = STARPU_R;
+		task->handles[0] = variable_handle;
+		task->handles[1] = per_worker_handle[worker];
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,6 +67,7 @@ static struct starpu_codelet cl =
 	.cuda_funcs = {codelet_sleep, NULL},
         .opencl_funcs = {codelet_sleep, NULL},
 	.nbuffers = 1,
+	.modes = {STARPU_R},
 	.model =  &model
 };
 
@@ -106,8 +107,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &cl;
 
-		task->buffers[0].handle = starpu_data_get_sub_data(handle, 1, iter);
-		task->buffers[0].mode = STARPU_R;
+		task->handles[0] = starpu_data_get_sub_data(handle, 1, iter);
 
 		task->callback_func = callback;
 		task->callback_arg = NULL;

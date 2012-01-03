@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,8 @@ static struct starpu_codelet cpu_codelet =
         .where = STARPU_CPU,
         .cpu_funcs = {dummy_func, NULL},
         .model = NULL,
-        .nbuffers = 1
+        .nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 static struct starpu_codelet gpu_codelet =
@@ -38,7 +39,8 @@ static struct starpu_codelet gpu_codelet =
         .cuda_funcs = {dummy_func, NULL},
         .opencl_funcs = {dummy_func, NULL},
         .model = NULL,
-        .nbuffers = 1
+        .nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 
@@ -71,13 +73,11 @@ int main(int argc, char **argv)
 
 		task_cpu->cl = &cpu_codelet;
 		task_cpu->callback_func = NULL;
-		task_cpu->buffers[0].handle = float_array_handle;
-		task_cpu->buffers[0].mode = STARPU_RW;
+		task_cpu->handles[0] = float_array_handle;
 
 		task_gpu->cl = &gpu_codelet;
 		task_gpu->callback_func = NULL;
-		task_gpu->buffers[0].handle = float_array_handle;
-		task_gpu->buffers[0].mode = STARPU_RW;
+		task_gpu->handles[0] = float_array_handle;
 
 		ret = starpu_task_submit(task_cpu);
 		if (ret == -ENODEV) goto enodev;

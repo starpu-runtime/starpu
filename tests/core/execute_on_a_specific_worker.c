@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,29 +58,14 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 //	fprintf(stderr, "worker #%d\n", id);
 }
 
-static enum starpu_access_mode select_random_mode(void)
-{
-	int r = rand();
-
-	switch (r % 3)
-	{
-		case 0:
-			return STARPU_R;
-		case 1:
-			return STARPU_W;
-		case 2:
-			return STARPU_RW;
-	};
-	return STARPU_RW;
-}
-
 static struct starpu_codelet cl_r =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
 static struct starpu_codelet cl_w =
@@ -89,7 +74,8 @@ static struct starpu_codelet cl_w =
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 static struct starpu_codelet cl_rw =
@@ -98,8 +84,25 @@ static struct starpu_codelet cl_rw =
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
 };
+
+static struct starpu_codelet *select_codelet_with_random_mode(void)
+{
+	int r = rand();
+
+	switch (r % 3)
+	{
+		case 0:
+			return &cl_r;
+		case 1:
+			return &cl_w;
+		case 2:
+			return &cl_rw;
+	};
+	return &cl_rw;
+}
 
 int main(int argc, char **argv)
 {
@@ -125,12 +128,8 @@ int main(int argc, char **argv)
 			/* execute a task on that worker */
 			struct starpu_task *task = starpu_task_create();
 
-			task->buffers[0].handle = v_handle;
-			task->buffers[0].mode = select_random_mode();
-
-			if (task->buffers[0].mode == STARPU_R) task->cl = &cl_r;
-			else if (task->buffers[0].mode == STARPU_W) task->cl = &cl_w;
-			else if (task->buffers[0].mode == STARPU_RW) task->cl = &cl_rw;
+			task->handles[0] = v_handle;
+			task->cl = select_codelet_with_random_mode();
 
 			task->callback_func = callback;
 			task->callback_arg = NULL;

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +51,8 @@ static struct starpu_codelet memset_cl =
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.model = &model,
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 static void test_memset(int nelems)
@@ -66,8 +68,7 @@ static void test_memset(int nelems)
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &memset_cl;
-		task->buffers[0].handle = handle;
-		task->buffers[0].mode = STARPU_W;
+		task->handles[0] = handle;
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV)
