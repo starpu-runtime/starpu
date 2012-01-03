@@ -466,7 +466,7 @@ pick:
 profiling:
 	/* Note that we may get a NULL task in case the scheduler was unlocked
 	 * for some reason. */
-	if (profiling && task)
+	if (profiling)
 	{
 		struct starpu_task_profiling_info *profiling_info;
 		profiling_info = task->profiling_info;
