@@ -173,6 +173,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl \
+	datawizard/interfaces/multiformat/advanced/multiformat_execute_on_a_specific_worker \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
@@ -428,6 +429,10 @@ endif
 datawizard_interfaces_multiformat_advanced_multiformat_cuda_opencl_SOURCES=\
 	datawizard/interfaces/multiformat/advanced/generic.c               \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl.c
+
+datawizard_interfaces_multiformat_advanced_multiformat_execute_on_a_specific_worker_SOURCES=\
+	datawizard/interfaces/multiformat/advanced/generic.c               \
+	datawizard/interfaces/multiformat/advanced/multiformat_execute_on_a_specific_worker.c
 
 datawizard_interfaces_multiformat_advanced_same_handle_SOURCES= \
 	datawizard/interfaces/multiformat/advanced/generic.c               \
