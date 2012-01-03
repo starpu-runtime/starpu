@@ -156,7 +156,7 @@ create_and_submit(int where)
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs   = {cuda_func, NULL},
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 		.opencl_funcs = {opencl_func, NULL},
 #endif
 		.nbuffers    = 1

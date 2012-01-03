@@ -504,7 +504,7 @@ run_cuda(int async)
 }
 #endif /* !STARPU_USE_CUDA */
 
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 static void
 run_opencl(int async)
 {
@@ -516,7 +516,7 @@ run_opencl(int async)
 	if (err != SUCCESS)
 		return;
 
-#if STARPU_USE_CPU
+#ifdef STARPU_USE_CPU
 	err = opencl_to_ram();
 	set_field(&summary, async, OPENCL_TO_CPU, err);
 #endif /*!STARPU_USE_CPU */

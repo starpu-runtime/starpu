@@ -222,11 +222,11 @@ check_it(void)
 	for (i = 0; i < N_ELEMENTS; i++)
 	{
 		float expected_value = i + 1.0;
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 		if (ncuda > 0)
 			expected_value *= array_of_structs[i].y;
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 		if (nopencl > 0)
 			expected_value *= array_of_structs[i].y;
 #endif

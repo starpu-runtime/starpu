@@ -379,12 +379,12 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 			STARPU_ASSERT(0);
 		}
 		break;
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_RAM:
 		conversion_task->cl = format_interface->ops->cpu_to_cuda_cl;
 		break;
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_RAM:
 		conversion_task->cl = format_interface->ops->cpu_to_opencl_cl;
 		break;

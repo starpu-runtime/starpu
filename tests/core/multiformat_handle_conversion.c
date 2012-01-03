@@ -154,7 +154,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs  = {cuda_func, NULL},
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 		.opencl_funcs = {opencl_func, NULL},
 #endif
 		.nbuffers    = 1

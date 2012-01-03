@@ -202,7 +202,7 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 #ifdef STARPU_USE_CUDA
 			&& (multiformat_a->ops->cuda_elemsize == multiformat_b->ops->cuda_elemsize)
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 			&& (multiformat_a->ops->opencl_elemsize == multiformat_b->ops->opencl_elemsize)
 #endif
 		);
