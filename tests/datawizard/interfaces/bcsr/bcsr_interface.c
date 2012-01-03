@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -84,7 +84,7 @@ struct test_config bcsr_config =
 static void
 register_data(void)
 {
-	int i, j;
+	int i;
 
 	for (i = 0; i < SIZE; i++)
 		nzval[i] = i;
