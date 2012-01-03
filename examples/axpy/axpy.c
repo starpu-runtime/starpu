@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -82,7 +82,8 @@ static struct starpu_codelet axpy_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {axpy_gpu, NULL},
 #endif
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW}
 };
 
 int main(int argc, char **argv)
@@ -92,7 +93,7 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_init();
 
-	/* This is equivalent to 
+	/* This is equivalent to
 		vec_a = malloc(N*sizeof(TYPE));
 		vec_b = malloc(N*sizeof(TYPE));
 	*/
@@ -130,7 +131,7 @@ int main(int argc, char **argv)
 
 	struct timeval start;
 	struct timeval end;
-	
+
 	gettimeofday(&start, NULL);
 
 	unsigned b;
@@ -142,12 +143,9 @@ int main(int argc, char **argv)
 
 		task->cl_arg = &alpha;
 
-		task->buffers[0].handle = starpu_data_get_sub_data(handle_x, 1, b);
-		task->buffers[0].mode = STARPU_R;
-		
-		task->buffers[1].handle = starpu_data_get_sub_data(handle_y, 1, b);
-		task->buffers[1].mode = STARPU_RW;
-		
+		task->handles[0] = starpu_data_get_sub_data(handle_x, 1, b);
+		task->handles[1] = starpu_data_get_sub_data(handle_y, 1, b);
+
 		starpu_task_submit(task);
 	}
 

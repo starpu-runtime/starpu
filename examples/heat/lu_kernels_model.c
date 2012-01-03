@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ double task_11_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -57,7 +57,7 @@ double task_12_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 /*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3210.80);
@@ -71,7 +71,7 @@ double task_21_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 /*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3691.53);
@@ -86,9 +86,9 @@ double task_22_cost(struct starpu_task *task, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_matrix_get_nx(task->buffers[2].handle);
-	ny = starpu_matrix_get_ny(task->buffers[2].handle);
-	nz = starpu_matrix_get_ny(task->buffers[0].handle);
+	nx = starpu_matrix_get_nx(task->handles[2]);
+	ny = starpu_matrix_get_ny(task->handles[2]);
+	nz = starpu_matrix_get_ny(task->handles[0]);
 
 	double cost = ((nx*ny*nz)/4110.0);
 
@@ -106,7 +106,7 @@ double task_11_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/1853.7806);
 
@@ -118,7 +118,7 @@ double task_12_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/42838.5718);
 
@@ -131,7 +131,7 @@ double task_21_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/49208.667);
 
@@ -145,9 +145,9 @@ double task_22_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_matrix_get_nx(task->buffers[2].handle);
-	ny = starpu_matrix_get_ny(task->buffers[2].handle);
-	nz = starpu_matrix_get_ny(task->buffers[0].handle);
+	nx = starpu_matrix_get_nx(task->handles[2]);
+	ny = starpu_matrix_get_ny(task->handles[2]);
+	nz = starpu_matrix_get_ny(task->handles[0]);
 
 	double cost = ((nx*ny*nz)/57523.560);
 
@@ -165,7 +165,7 @@ double task_11_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -177,7 +177,7 @@ double task_12_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/6668.224);
 
@@ -190,7 +190,7 @@ double task_21_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 {
 	uint32_t n;
 
-	n = starpu_matrix_get_nx(task->buffers[0].handle);
+	n = starpu_matrix_get_nx(task->handles[0]);
 
 	double cost = ((n*n*n)/6793.8423);
 
@@ -204,9 +204,9 @@ double task_22_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_matrix_get_nx(task->buffers[2].handle);
-	ny = starpu_matrix_get_ny(task->buffers[2].handle);
-	nz = starpu_matrix_get_ny(task->buffers[0].handle);
+	nx = starpu_matrix_get_nx(task->handles[2]);
+	ny = starpu_matrix_get_ny(task->handles[2]);
+	nz = starpu_matrix_get_ny(task->handles[0]);
 
 	double cost = ((nx*ny*nz)/4203.0175);
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,6 +104,7 @@ static struct starpu_codelet spmv_cl =
         .opencl_funcs = {spmv_kernel_opencl, NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.model = NULL
 };
 
@@ -217,12 +218,9 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &spmv_cl;
 	
-		task->buffers[0].handle = starpu_data_get_sub_data(sparse_matrix, 1, part);
-		task->buffers[0].mode  = STARPU_R;
-		task->buffers[1].handle = vector_in;
-		task->buffers[1].mode = STARPU_R;
-		task->buffers[2].handle = starpu_data_get_sub_data(vector_out, 1, part);
-		task->buffers[2].mode = STARPU_W;
+		task->handles[0] = starpu_data_get_sub_data(sparse_matrix, 1, part);
+		task->handles[1] = vector_in;
+		task->handles[2] = starpu_data_get_sub_data(vector_out, 1, part);
 	
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))

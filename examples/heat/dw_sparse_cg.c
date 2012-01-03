@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -139,25 +139,27 @@ void init_cg(struct cg_problem *problem)
 	task1->cl->where = STARPU_CPU;
 	task1->cl->cpu_funcs[0] = cpu_codelet_func_1;
 	task1->cl->nbuffers = 4;
-		task1->buffers[0].handle = problem->ds_matrixA;
-		task1->buffers[0].mode = STARPU_R;
-		task1->buffers[1].handle = problem->ds_vecx;
-		task1->buffers[1].mode = STARPU_R;
-		task1->buffers[2].handle = problem->ds_vecr;
-		task1->buffers[2].mode = STARPU_W;
-		task1->buffers[3].handle = problem->ds_vecb;
-		task1->buffers[3].mode = STARPU_R;
+	task1->cl->modes[0] = STARPU_R;
+	task1->cl->modes[1] = STARPU_R;
+	task1->cl->modes[2] = STARPU_W;
+	task1->cl->modes[3] = STARPU_R;
+
+	task1->handles[0] = problem->ds_matrixA;
+	task1->handles[1] = problem->ds_vecx;
+	task1->handles[2] = problem->ds_vecr;
+	task1->handles[3] = problem->ds_vecb;
 
 	/* d = r */
 	struct starpu_task *task2 = create_task(2UL);
 	task2->cl->where = STARPU_CPU;
 	task2->cl->cpu_funcs[0] = cpu_codelet_func_2;
 	task2->cl->nbuffers = 2;
-		task2->buffers[0].handle = problem->ds_vecd;
-		task2->buffers[0].mode = STARPU_W;
-		task2->buffers[1].handle = problem->ds_vecr;
-		task2->buffers[1].mode = STARPU_R;
-	
+	task2->cl->modes[0] = STARPU_W;
+	task2->cl->modes[1] = STARPU_R;
+
+	task2->handles[0] = problem->ds_vecd;
+	task2->handles[1] = problem->ds_vecr;
+
 	starpu_tag_declare_deps((starpu_tag_t)2UL, 1, (starpu_tag_t)1UL);
 
 	/* delta_new = trans(r) r */
@@ -169,8 +171,8 @@ void init_cg(struct cg_problem *problem)
 	task3->cl->cpu_funcs[0] = cpu_codelet_func_3;
 	task3->cl_arg = problem;
 	task3->cl->nbuffers = 1;
-		task3->buffers[0].handle = problem->ds_vecr;
-		task3->buffers[0].mode = STARPU_R;
+	task3->cl->modes[0] = STARPU_R;
+	task3->handles[0] = problem->ds_vecr;
 
 	task3->callback_func = iteration_cg;
 	task3->callback_arg = problem;
@@ -200,12 +202,13 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task4->cl->where = STARPU_CPU;
 	task4->cl->cpu_funcs[0] = cpu_codelet_func_4;
 	task4->cl->nbuffers = 3;
-		task4->buffers[0].handle = problem->ds_matrixA;
-		task4->buffers[0].mode = STARPU_R;
-		task4->buffers[1].handle = problem->ds_vecd;
-		task4->buffers[1].mode = STARPU_R;
-		task4->buffers[2].handle = problem->ds_vecq;
-		task4->buffers[2].mode = STARPU_W;
+	task4->cl->modes[0] = STARPU_R;
+	task4->cl->modes[1] = STARPU_R;
+	task4->cl->modes[2] = STARPU_W;
+
+	task4->handles[0] = problem->ds_matrixA;
+	task4->handles[1] = problem->ds_vecd;
+	task4->handles[2] = problem->ds_vecq;
 
 	/* alpha = delta_new / ( trans(d) q )*/
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
@@ -216,10 +219,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task5->cl->cpu_funcs[0] = cpu_codelet_func_5;
 	task5->cl_arg = problem;
 	task5->cl->nbuffers = 2;
-		task5->buffers[0].handle = problem->ds_vecd;
-		task5->buffers[0].mode = STARPU_R;
-		task5->buffers[1].handle = problem->ds_vecq;
-		task5->buffers[1].mode = STARPU_R;
+	task5->cl->modes[0] = STARPU_R;
+	task5->cl->modes[1] = STARPU_R;
+
+	task5->handles[0] = problem->ds_vecd;
+	task5->handles[1] = problem->ds_vecq;
 
 	starpu_tag_declare_deps((starpu_tag_t)(maskiter | 5UL), 1, (starpu_tag_t)(maskiter | 4UL));
 
@@ -232,10 +236,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task6->cl->cpu_funcs[0] = cpu_codelet_func_6;
 	task6->cl_arg = problem;
 	task6->cl->nbuffers = 2;
-		task6->buffers[0].handle = problem->ds_vecx;
-		task6->buffers[0].mode = STARPU_RW;
-		task6->buffers[1].handle = problem->ds_vecd;
-		task6->buffers[1].mode = STARPU_R;
+	task6->cl->modes[0] = STARPU_RW;
+	task6->cl->modes[1] = STARPU_R;
+
+	task6->handles[0] = problem->ds_vecx;
+	task6->handles[1] = problem->ds_vecd;
 
 	starpu_tag_declare_deps((starpu_tag_t)(maskiter | 6UL), 1, (starpu_tag_t)(maskiter | 5UL));
 
@@ -248,10 +253,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task7->cl->cpu_funcs[0] = cpu_codelet_func_7;
 	task7->cl_arg = problem;
 	task7->cl->nbuffers = 2;
-		task7->buffers[0].handle = problem->ds_vecr;
-		task7->buffers[0].mode = STARPU_RW;
-		task7->buffers[1].handle = problem->ds_vecq;
-		task7->buffers[1].mode = STARPU_R;
+	task7->cl->modes[0] = STARPU_RW;
+	task7->cl->modes[1] = STARPU_R;
+
+	task7->handles[0] = problem->ds_vecr;
+	task7->handles[1] = problem->ds_vecq;
 
 	starpu_tag_declare_deps((starpu_tag_t)(maskiter | 7UL), 1, (starpu_tag_t)(maskiter | 6UL));
 
@@ -264,8 +270,8 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task8->cl->cpu_funcs[0] = cpu_codelet_func_8;
 	task8->cl_arg = problem;
 	task8->cl->nbuffers = 1;
-		task8->buffers[0].handle = problem->ds_vecr;
-		task8->buffers[0].mode = STARPU_R;
+	task8->cl->modes[0] = STARPU_R;
+	task8->handles[0] = problem->ds_vecr;
 
 	starpu_tag_declare_deps((starpu_tag_t)(maskiter | 8UL), 1, (starpu_tag_t)(maskiter | 7UL));
 
@@ -278,10 +284,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task9->cl->cpu_funcs[0] = cpu_codelet_func_9;
 	task9->cl_arg = problem;
 	task9->cl->nbuffers = 2;
-		task9->buffers[0].handle = problem->ds_vecd;
-		task9->buffers[0].mode = STARPU_RW;
-		task9->buffers[1].handle = problem->ds_vecr;
-		task9->buffers[1].mode = STARPU_R;
+	task9->cl->modes[0] = STARPU_RW;
+	task9->cl->modes[1] = STARPU_R;
+
+	task9->handles[0] = problem->ds_vecd;
+	task9->handles[1] = problem->ds_vecr;
 
 	starpu_tag_declare_deps((starpu_tag_t)(maskiter | 9UL), 1, (starpu_tag_t)(maskiter | 8UL));
 

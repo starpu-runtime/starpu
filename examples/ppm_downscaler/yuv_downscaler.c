@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -89,6 +89,7 @@ static struct starpu_codelet ds_codelet =
 	.where = STARPU_CPU,
 	.cpu_funcs = {ds_kernel_cpu, NULL},
 	.nbuffers = 2, /* input -> output */
+	.modes = {STARPU_R, STARPU_W},
 	.model = NULL
 };
 
@@ -212,15 +213,13 @@ int main(int argc, char **argv)
 		for (blocky = 0; blocky < nblocks_y; blocky++)
 		{
 			struct starpu_task *task = starpu_task_create();
-				task->cl = &ds_codelet;
+			task->cl = &ds_codelet;
 
-				/* input */
-				task->buffers[0].handle = starpu_data_get_sub_data(frame_y_handle[frame], 1, blocky);
-				task->buffers[0].mode = STARPU_R;
+			/* input */
+			task->handles[0] = starpu_data_get_sub_data(frame_y_handle[frame], 1, blocky);
 
-				/* output */
-				task->buffers[1].handle = starpu_data_get_sub_data(new_frame_y_handle[frame], 1, blocky);
-				task->buffers[1].mode = STARPU_W;
+			/* output */
+			task->handles[1] = starpu_data_get_sub_data(new_frame_y_handle[frame], 1, blocky);
 
 			starpu_task_submit(task);
 		}
@@ -229,15 +228,13 @@ int main(int argc, char **argv)
 		for (blocku = 0; blocku < nblocks_uv; blocku++)
 		{
 			struct starpu_task *task = starpu_task_create();
-				task->cl = &ds_codelet;
+			task->cl = &ds_codelet;
 
-				/* input */
-				task->buffers[0].handle = starpu_data_get_sub_data(frame_u_handle[frame], 1, blocku);
-				task->buffers[0].mode = STARPU_R;
+			/* input */
+			task->handles[0] = starpu_data_get_sub_data(frame_u_handle[frame], 1, blocku);
 
-				/* output */
-				task->buffers[1].handle = starpu_data_get_sub_data(new_frame_u_handle[frame], 1, blocku);
-				task->buffers[1].mode = STARPU_W;
+			/* output */
+			task->handles[1] = starpu_data_get_sub_data(new_frame_u_handle[frame], 1, blocku);
 
 			starpu_task_submit(task);
 		}
@@ -246,15 +243,13 @@ int main(int argc, char **argv)
 		for (blockv = 0; blockv < nblocks_uv; blockv++)
 		{
 			struct starpu_task *task = starpu_task_create();
-				task->cl = &ds_codelet;
+			task->cl = &ds_codelet;
 
-				/* input */
-				task->buffers[0].handle = starpu_data_get_sub_data(frame_v_handle[frame], 1, blockv);
-				task->buffers[0].mode = STARPU_R;
+			/* input */
+			task->handles[0] = starpu_data_get_sub_data(frame_v_handle[frame], 1, blockv);
 
-				/* output */
-				task->buffers[1].handle = starpu_data_get_sub_data(new_frame_v_handle[frame], 1, blockv);
-				task->buffers[1].mode = STARPU_W;
+			/* output */
+			task->handles[1] = starpu_data_get_sub_data(new_frame_v_handle[frame], 1, blockv);
 
 			starpu_task_submit(task);
 		}

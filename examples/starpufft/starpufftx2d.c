@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -315,7 +315,8 @@ static struct starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 #endif
 	.cpu_funcs = {STARPUFFT(twist1_2d_kernel_cpu), NULL},
 	.model = &STARPUFFT(twist1_2d_model),
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_W}
 };
 
 static struct starpu_codelet STARPUFFT(fft1_2d_codelet) = {
@@ -334,14 +335,16 @@ static struct starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 	.cpu_funcs = {STARPUFFT(fft1_2d_kernel_cpu), NULL},
 #endif
 	.model = &STARPUFFT(fft1_2d_model),
-	.nbuffers = 4
+	.nbuffers = 4,
+	.modes = {STARPU_R, STARPU_W, STARPU_R, STARPU_R}
 };
 
 static struct starpu_codelet STARPUFFT(twist2_2d_codelet) = {
 	.where = STARPU_CPU,
 	.cpu_funcs = {STARPUFFT(twist2_2d_kernel_cpu), NULL},
 	.model = &STARPUFFT(twist2_2d_model),
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 static struct starpu_codelet STARPUFFT(fft2_2d_codelet) = {
@@ -360,14 +363,16 @@ static struct starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 	.cpu_funcs = {STARPUFFT(fft2_2d_kernel_cpu), NULL},
 #endif
 	.model = &STARPUFFT(fft2_2d_model),
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_W}
 };
 
 static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
 	.where = STARPU_CPU,
 	.cpu_funcs = {STARPUFFT(twist3_2d_kernel_cpu), NULL},
 	.model = &STARPUFFT(twist3_2d_model),
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
 /*
@@ -451,7 +456,8 @@ static struct starpu_codelet STARPUFFT(fft_2d_codelet) = {
 	.cpu_funcs = {STARPUFFT(fft_2d_kernel_cpu), NULL},
 #endif
 	.model = &STARPUFFT(fft_2d_model),
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_W}
 };
 
 STARPUFFT(plan)
@@ -643,10 +649,8 @@ if (PARALLEL) {
 		/* Create twist1 task */
 		plan->twist1_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(twist1_2d_codelet);
-		/* task->buffers[0].handle = to be filled at execution */
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = plan->twisted1_handle[z];
-		task->buffers[1].mode = STARPU_W;
+		/* task->handles[0] = to be filled at execution */
+		task->handles[1] = plan->twisted1_handle[z];
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(TWIST1);
 		task->use_tag = 1;
@@ -659,14 +663,10 @@ if (PARALLEL) {
 		/* Create FFT1 task */
 		plan->fft1_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(fft1_2d_codelet);
-		task->buffers[0].handle = plan->twisted1_handle[z];
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = plan->fft1_handle[z];
-		task->buffers[1].mode = STARPU_W;
-		task->buffers[2].handle = plan->roots_handle[0];
-		task->buffers[2].mode = STARPU_R;
-		task->buffers[3].handle = plan->roots_handle[1];
-		task->buffers[3].mode = STARPU_R;
+		task->handles[0] = plan->twisted1_handle[z];
+		task->handles[1] = plan->fft1_handle[z];
+		task->handles[2] = plan->roots_handle[0];
+		task->handles[3] = plan->roots_handle[1];
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(FFT1);
 		task->use_tag = 1;
@@ -710,8 +710,7 @@ if (PARALLEL) {
 		/* Create twist2 task */
 		plan->twist2_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(twist2_2d_codelet);
-		task->buffers[0].handle = plan->twisted2_handle[z];
-		task->buffers[0].mode = STARPU_W;
+		task->handles[0] = plan->twisted2_handle[z];
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(TWIST2);
 		task->use_tag = 1;
@@ -724,10 +723,8 @@ if (PARALLEL) {
 		/* Create FFT2 task */
 		plan->fft2_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(fft2_2d_codelet);
-		task->buffers[0].handle = plan->twisted2_handle[z];
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = plan->fft2_handle[z];
-		task->buffers[1].mode = STARPU_W;
+		task->handles[0] = plan->twisted2_handle[z];
+		task->handles[1] = plan->fft2_handle[z];
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(FFT2);
 		task->use_tag = 1;
@@ -742,8 +739,7 @@ if (PARALLEL) {
 		 * application output buffer. */
 		plan->twist3_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(twist3_2d_codelet);
-		task->buffers[0].handle = plan->fft2_handle[z];
-		task->buffers[0].mode = STARPU_R;
+		task->handles[0] = plan->fft2_handle[z];
 		task->cl_arg = &plan->fft2_args[z];
 		task->tag_id = STEP_TAG(TWIST3);
 		task->use_tag = 1;
@@ -797,10 +793,8 @@ if (PARALLEL) {
 	/* Create FFT task */
 	task = starpu_task_create();
 	task->cl = &STARPUFFT(fft_2d_codelet);
-	task->buffers[0].handle = in;
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = out;
-	task->buffers[1].mode = STARPU_W;
+	task->handles[0] = in;
+	task->handles[1] = out;
 	task->cl_arg = plan;
 
 	starpu_task_submit(task);

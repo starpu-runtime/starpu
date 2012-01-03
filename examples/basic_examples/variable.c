@@ -65,6 +65,7 @@ int main(int argc, char **argv)
         cl.opencl_funcs[0] = opencl_codelet;
 #endif
         cl.nbuffers = 1;
+	cl.modes[0] = STARPU_RW;
         cl.model = NULL;
 
 	for (i = 0; i < niter; i++)
@@ -76,8 +77,7 @@ int main(int argc, char **argv)
 
 		task->callback_func = NULL;
 
-		task->buffers[0].handle = float_array_handle;
-		task->buffers[0].mode = STARPU_RW;
+		task->handles[0] = float_array_handle;
 
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))

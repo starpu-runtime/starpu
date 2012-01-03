@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -191,7 +191,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 				if (PARALLEL)
 				{
 					for (z = 0; z < plan->totsize1; z++)
-						plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+						plan->twist1_tasks[z]->handles[0] = plan->in_handle;
 				}
 				task = STARPUFFT(start1dC2C)(plan, plan->in_handle, plan->out_handle);
 				break;
@@ -208,7 +208,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			if (PARALLEL)
 			{
 				for (z = 0; z < plan->totsize1; z++)
-					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+					plan->twist1_tasks[z]->handles[0] = plan->in_handle;
 			}
 			task = STARPUFFT(start2dC2C)(plan, plan->in_handle, plan->out_handle);
 			break;

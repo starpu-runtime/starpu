@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,8 +35,7 @@ static void create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	task->cl = &cl_pivot;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, i);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, i);
 
 	task->cl_arg = &piv_description[k];
 
@@ -58,8 +57,7 @@ static void create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	task->cl_arg = &piv_description[k];
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, k);
 
 	/* this is an important task */
 	if (!no_prio)
@@ -76,10 +74,8 @@ static void create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, k);
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_block(dataAp, nblocks, j, k);
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, k);
+	task->handles[1] = get_block(dataAp, nblocks, j, k);
 
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -95,10 +91,8 @@ static void create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_block(dataAp, nblocks, k, i); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, k); 
+	task->handles[1] = get_block(dataAp, nblocks, k, i); 
 
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -114,12 +108,9 @@ static void create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, i);
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_block(dataAp, nblocks, j, k);
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = get_block(dataAp, nblocks, j, i);
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, i);
+	task->handles[1] = get_block(dataAp, nblocks, j, k);
+	task->handles[2] = get_block(dataAp, nblocks, j, i);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,17 +49,13 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, unsigned 
 	save_task->cl_arg = descr;
 
 	/* Saving our border... */
-	save_task->buffers[0].handle = descr->layers_handle[0];
-	save_task->buffers[0].mode = STARPU_R;
-	save_task->buffers[1].handle = descr->layers_handle[1];
-	save_task->buffers[1].mode = STARPU_R;
+	save_task->handles[0] = descr->layers_handle[0];
+	save_task->handles[1] = descr->layers_handle[1];
 
 	/* ... to the neighbour's copy */
 	struct block_description *neighbour = descr->boundary_blocks[(1+dir)/2];
-	save_task->buffers[2].handle = neighbour->boundaries_handle[(1-dir)/2][0];
-	save_task->buffers[2].mode = STARPU_W;
-	save_task->buffers[3].handle = neighbour->boundaries_handle[(1-dir)/2][1];
-	save_task->buffers[3].mode = STARPU_W;
+	save_task->handles[2] = neighbour->boundaries_handle[(1-dir)/2][0];
+	save_task->handles[3] = neighbour->boundaries_handle[(1-dir)/2][1];
 
 	/* Bind */
 	if (iter <= BIND_LAST)
@@ -191,20 +188,14 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 	unsigned new_layer = (old_layer + 1) % 2;
 
 	struct block_description *descr = get_block_description(z);
-	task->buffers[0].handle = descr->layers_handle[new_layer];
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = descr->layers_handle[old_layer];
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = descr->layers_handle[new_layer];
+	task->handles[1] = descr->layers_handle[old_layer];
 
-	task->buffers[2].handle = descr->boundaries_handle[T][new_layer];
-	task->buffers[2].mode = STARPU_R;
-	task->buffers[3].handle = descr->boundaries_handle[T][old_layer];
-	task->buffers[3].mode = STARPU_R;
+	task->handles[2] = descr->boundaries_handle[T][new_layer];
+	task->handles[3] = descr->boundaries_handle[T][old_layer];
 
-	task->buffers[4].handle = descr->boundaries_handle[B][new_layer];
-	task->buffers[4].mode = STARPU_R;
-	task->buffers[5].handle = descr->boundaries_handle[B][old_layer];
-	task->buffers[5].mode = STARPU_R;
+	task->handles[4] = descr->boundaries_handle[B][new_layer];
+	task->handles[5] = descr->boundaries_handle[B][old_layer];
 
 	task->cl = &cl_update;
 	task->cl_arg = descr;

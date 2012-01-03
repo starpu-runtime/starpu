@@ -171,7 +171,8 @@ static struct starpu_codelet dot_codelet =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dot_cuda_func, NULL},
 #endif
-	.nbuffers = 3
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_REDUX}
 };
 
 /*
@@ -231,12 +232,9 @@ int main(int argc, char **argv)
 		task->cl = &dot_codelet;
 		task->destroy = 1;
 
-		task->buffers[0].handle = x_handles[block];
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = y_handles[block];
-		task->buffers[1].mode = STARPU_R;
-		task->buffers[2].handle = dot_handle;
-		task->buffers[2].mode = STARPU_REDUX;
+		task->handles[0] = x_handles[block];
+		task->handles[1] = y_handles[block];
+		task->handles[2] = dot_handle;
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;

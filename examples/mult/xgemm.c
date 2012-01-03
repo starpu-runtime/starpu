@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ static void check_output(void)
 {
 	/* compute C = C - AB */
 	CPU_GEMM("N", "N", ydim, xdim, zdim, (TYPE)-1.0f, A, ydim, B, zdim, (TYPE)1.0f, C, ydim);
-		
+
 	/* make sure C = 0 */
 	TYPE err;
 	err = CPU_ASUM(xdim*ydim, C, 1);
@@ -103,23 +103,23 @@ static void init_problem_data(void)
 
 static void partition_mult_data(void)
 {
-	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, 
+	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(TYPE));
-	starpu_matrix_data_register(&B_handle, 0, (uintptr_t)B, 
+	starpu_matrix_data_register(&B_handle, 0, (uintptr_t)B,
 		zdim, zdim, xdim, sizeof(TYPE));
-	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C, 
+	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(TYPE));
 
 	struct starpu_data_filter vert;
 	memset(&vert, 0, sizeof(vert));
 	vert.filter_func = starpu_vertical_block_filter_func;
 	vert.nchildren = nslicesx;
-		
+
 	struct starpu_data_filter horiz;
 	memset(&horiz, 0, sizeof(horiz));
 	horiz.filter_func = starpu_block_filter_func;
 	horiz.nchildren = nslicesy;
-		
+
 	starpu_data_partition(B_handle, &vert);
 	starpu_data_partition(A_handle, &horiz);
 
@@ -153,7 +153,7 @@ static void mult_kernel_common(void *descr[], int type)
 		{
 			/* Parallel CPU task */
 			int rank = starpu_combined_worker_get_rank();
-		
+
 			int block_size = (nyC + worker_size - 1)/worker_size;
 			int new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
 
@@ -203,6 +203,7 @@ static struct starpu_codelet cl =
 	.cuda_funcs = {cublas_mult, NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &starpu_gemm_model
 };
 
@@ -284,20 +285,17 @@ int main(int argc, char **argv)
 	unsigned x, y, iter;
 	for (iter = 0; iter < niter; iter++)
 	{
-		for (x = 0; x < nslicesx; x++) 
+		for (x = 0; x < nslicesx; x++)
 		for (y = 0; y < nslicesy; y++)
 		{
 			struct starpu_task *task = starpu_task_create();
-	
+
 			task->cl = &cl;
-	
-			task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, y);
-			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = starpu_data_get_sub_data(B_handle, 1, x);
-			task->buffers[1].mode = STARPU_R;
-			task->buffers[2].handle = starpu_data_get_sub_data(C_handle, 2, x, y);
-			task->buffers[2].mode = STARPU_RW;
-	
+
+			task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
+			task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
+			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
+
 			int ret = starpu_task_submit(task);
 			STARPU_ASSERT(!ret);
 		}
@@ -320,10 +318,10 @@ int main(int argc, char **argv)
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
-	
+
 	if (check)
 		check_output();
-	
+
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 

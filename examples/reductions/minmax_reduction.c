@@ -116,7 +116,8 @@ static struct starpu_codelet minmax_codelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {minmax_cpu_func, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_REDUX}
 };
 
 /*
@@ -167,10 +168,8 @@ int main(int argc, char **argv)
 
 		task->cl = &minmax_codelet;
 
-		task->buffers[0].handle = x_handles[block];
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = minmax_handle;
-		task->buffers[1].mode = STARPU_REDUX;
+		task->handles[0] = x_handles[block];
+		task->handles[1] = minmax_handle;
 
 		int ret = starpu_task_submit(task);
 		if (ret)

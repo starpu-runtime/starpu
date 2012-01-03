@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -74,6 +74,7 @@ static struct starpu_codelet cl =
 	.opencl_funcs = {scal_opencl_func, NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &vector_scal_model,
 	.power_model = &vector_scal_power_model
 };
@@ -129,8 +130,7 @@ int main(int argc, char **argv)
 	task->cl = &cl;
 
 	/* the codelet manipulates one buffer in RW mode */
-	task->buffers[0].handle = vector_handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = vector_handle;
 
 	/* an argument is passed to the codelet, beware that this is a
 	 * READ-ONLY buffer and that the codelet may be given a pointer to a
