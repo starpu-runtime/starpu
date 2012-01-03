@@ -45,7 +45,7 @@ if USE_MPI
 pkgconfig_DATA += libstarpumpi.pc
 endif
 
-versincludedir = $(includedir)/starpu-$(STARPU_EFFECTIVE_VERSION)
+versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	include/starpu.h			\
 	include/starpu_data_filters.h		\

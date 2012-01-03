@@ -71,7 +71,7 @@ noinst_HEADERS =					\
 	starpu_mpi_private.h				\
 	starpu_mpi_fxt.h
 
-versincludedir = $(includedir)/starpu-$(STARPU_EFFECTIVE_VERSION)
+versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	starpu_mpi.h					\
 	starpu_mpi_datatype.h

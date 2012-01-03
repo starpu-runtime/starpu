@@ -34,7 +34,7 @@ EXTRA_DIST =			\
 	testf_threads.c		\
 	test_threads.c
 
-versincludedir = $(includedir)/starpu-$(STARPU_EFFECTIVE_VERSION)
+versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	starpufft.h
 
