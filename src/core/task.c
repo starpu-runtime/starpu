@@ -223,74 +223,83 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 {
-	/* Check deprecated and unset fields */
-	if (cl && cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
+	if (!cl)
+		return;
+
+	/* Check deprecated and unset fields (where, <device>_func,
+ 	 * <device>_funcs) */
+
+	/* CPU */
+	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
 	{
 		fprintf(stderr, "[warning] [struct starpu_codelet] both cpu_func and cpu_funcs are set. Ignoring cpu_func.\n");
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
-	if (cl && cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
+	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
 	{
 		cl->cpu_funcs[0] = cl->cpu_func;
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
-	if (cl && cl->cpu_funcs[0] && cl->cpu_func == 0)
+	if (cl->cpu_funcs[0] && cl->cpu_func == 0)
 	{
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
-	if (cl && cl->cpu_funcs[0])
+	if (cl->cpu_funcs[0])
 	{
 		cl->where |= STARPU_CPU;
 	}
 
-	if (cl && cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
+	/* CUDA */
+	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
 	{
 		fprintf(stderr, "[warning] [struct starpu_codelet] both cuda_func and cuda_funcs are set. Ignoring cuda_func.\n");
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
-	if (cl && cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
+	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
 	{
 		cl->cuda_funcs[0] = cl->cuda_func;
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
-	if (cl && cl->cuda_funcs[0] && cl->cuda_func == 0)
+	if (cl->cuda_funcs[0] && cl->cuda_func == 0)
 	{
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
-	if (cl && cl->cuda_funcs[0])
+	if (cl->cuda_funcs[0])
 	{
 		cl->where |= STARPU_CUDA;
 	}
 
-	if (cl && cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
+	/* OpenCL */
+	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
 	{
 		fprintf(stderr, "[warning] [struct starpu_codelet] both opencl_func and opencl_funcs are set. Ignoring opencl_func.\n");
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
-	if (cl && cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
+	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
 	{
 		cl->opencl_funcs[0] = cl->opencl_func;
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
-	if (cl && cl->opencl_funcs[0] && cl->opencl_func == 0)
+	if (cl->opencl_funcs[0] && cl->opencl_func == 0)
 	{
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
-	if (cl && cl->opencl_funcs[0])
+	if (cl->opencl_funcs[0])
 	{
 		cl->where |= STARPU_OPENCL;
 	}
 
-	if (cl && cl->gordon_func && cl->gordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
+	/* Gordon */
+	if (cl->gordon_func && cl->gordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
 	{
 		cl->gordon_funcs[0] = cl->gordon_func;
 		cl->gordon_func = STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS;
 	}
-	if (cl && cl->gordon_funcs[0] && cl->gordon_func == 0)
+	if (cl->gordon_funcs[0] && cl->gordon_func == 0)
 	{
 		cl->gordon_func = STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS;
 	}
-	if (cl && cl->gordon_funcs[0])
+	if (cl->gordon_funcs[0])
 	{
 		cl->where = STARPU_GORDON;
 	}
