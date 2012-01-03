@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010-2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -347,8 +347,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 
 	conversion_task = starpu_task_create();
 	conversion_task->synchronous = 0;
-	conversion_task->buffers[0].handle = handle;
-	conversion_task->buffers[0].mode = STARPU_RW;
+	conversion_task->handles[0] = handle;
 
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
@@ -394,6 +393,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 		STARPU_ASSERT(0);
 	}
 
+	conversion_task->cl->modes[0] = STARPU_RW;
 	return conversion_task;
 }
 

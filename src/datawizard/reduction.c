@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -168,11 +168,11 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					redux_task->cl = handle->redux_cl;
 					STARPU_ASSERT(redux_task->cl);
 
-					redux_task->buffers[0].handle = replicate_array[i];
-					redux_task->buffers[0].mode = STARPU_RW;
+					redux_task->handles[0] = replicate_array[i];
+					redux_task->cl->modes[0] = STARPU_RW;
 
-					redux_task->buffers[1].handle = replicate_array[i+step];
-					redux_task->buffers[1].mode = STARPU_R;
+					redux_task->handles[1] = replicate_array[i+step];
+					redux_task->cl->modes[1] = STARPU_R;
 
 					redux_task->detach = 0;
 
@@ -212,11 +212,11 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		redux_task->cl = handle->redux_cl;
 		STARPU_ASSERT(redux_task->cl);
 
-		redux_task->buffers[0].handle = handle;
-		redux_task->buffers[0].mode = STARPU_RW;
+		redux_task->handles[0] = handle;
+		redux_task->cl->modes[0] = STARPU_RW;
 
-		redux_task->buffers[1].handle = replicate_array[0];
-		redux_task->buffers[1].mode = STARPU_R;
+		redux_task->handles[1] = replicate_array[0];
+		redux_task->cl->modes[1] = STARPU_R;
 
 		if (last_replicate_deps[0])
 			starpu_task_declare_deps_array(redux_task, 1, &last_replicate_deps[0]);
