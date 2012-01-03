@@ -241,11 +241,14 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
 
-			redux_task->buffers[0].handle = handle;
-			redux_task->buffers[0].mode = STARPU_RW;
+#ifdef STARPU_DEVEL
+#  warning the modes should already be set in the codelet. Only check they are valid?
+#endif
+			redux_task->cl->modes[0] = STARPU_RW;
+			redux_task->cl->modes[1] = STARPU_R;
 
-			redux_task->buffers[1].handle = replicate_array[replicate];
-			redux_task->buffers[1].mode = STARPU_R;
+			redux_task->handles[0] = handle;
+			redux_task->handles[1] = replicate_array[replicate];
 
 			int ret = starpu_task_submit(redux_task);
 			STARPU_ASSERT(!ret);
