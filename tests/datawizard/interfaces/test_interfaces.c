@@ -301,6 +301,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	int workerid;
 	static struct starpu_codelet cl;
 	cl.nbuffers = 1;
+	cl.modes[0] = STARPU_RW;
 
 	switch (type)
 	{
@@ -356,8 +357,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
 	task->cl = &cl;
-	task->buffers[0].handle = *current_config->handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = *current_config->handle;
 	if (id != -1)
 	{
 		task->execute_on_a_specific_worker = 1;
@@ -546,7 +546,7 @@ ram_to_ram(void)
 	if (err != 0)
 		goto out;
 
-	task->buffers[0].handle = dst;
+	task->handles[0] = dst;
 	err = starpu_task_submit(task);
 	if (err != 0)
 	{

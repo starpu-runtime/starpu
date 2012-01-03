@@ -160,14 +160,15 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_GORDON
 				.gordon_func = kernel_incC_id,
 #endif
-				.nbuffers = 1
+				.nbuffers = 1,
+				.modes = {STARPU_RW}
+
 			};
 
 			struct starpu_task *task = starpu_task_create();
 			task->cl = &cl_inc_c;
 
-			task->buffers[0].handle = v_handle;
-			task->buffers[0].mode = STARPU_RW;
+			task->handles[0] = v_handle;
 
 			task->synchronous = 1;
 

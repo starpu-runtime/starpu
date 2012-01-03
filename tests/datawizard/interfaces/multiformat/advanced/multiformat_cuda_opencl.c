@@ -47,13 +47,13 @@ test(void)
 	{
 		.where     = STARPU_CUDA,
 		.cuda_funcs = {cuda_func, NULL},
-		.nbuffers  = 1
+		.nbuffers  = 1,
+		.modes = {STARPU_RW}
 	};
 
 	task_cuda = starpu_task_create();
 	task_cuda->cl = &cl_cuda;
-	task_cuda->buffers[0].handle = handle;
-	task_cuda->buffers[0].mode = STARPU_RW;
+	task_cuda->handles[0] = handle;
 	ret = starpu_task_submit(task_cuda);
 	if (ret != 0)
 		return 1; 
@@ -62,21 +62,20 @@ test(void)
 	{
 		.where       = STARPU_OPENCL,
 		.opencl_funcs = {opencl_func, NULL},
-		.nbuffers    = 1
+		.nbuffers    = 1,
+		.modes = {STARPU_RW}
 	};
 
 	task_opencl = starpu_task_create();
 	task_opencl->cl = &cl_opencl;
-	task_opencl->buffers[0].handle = handle;
-	task_opencl->buffers[0].mode = STARPU_RW;
+	task_opencl->handles[0] = handle;
 	ret = starpu_task_submit(task_opencl);
 	if (ret != 0)
 		return 1;
 
 	task_cuda2 = starpu_task_create();
 	task_cuda2->cl = &cl_cuda;
-	task_cuda2->buffers[0].handle = handle;
-	task_cuda2->buffers[0].mode = STARPU_RW;
+	task_cuda2->handles[0] = handle;
 	ret = starpu_task_submit(task_cuda2);
 	if (ret != 0)
 		return 1;

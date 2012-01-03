@@ -189,7 +189,8 @@ static struct starpu_codelet increment_cl =
 	.opencl_funcs = {increment_opencl_kernel, NULL},
 #endif
 	.cpu_funcs = {increment_cpu_kernel, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 static struct starpu_codelet increment_cl_redux =
@@ -202,7 +203,8 @@ static struct starpu_codelet increment_cl_redux =
 	.opencl_funcs = {increment_opencl_kernel, NULL},
 #endif
 	.cpu_funcs = {increment_cpu_kernel, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_REDUX}
 };
 
 int main(int argc, char **argv)
@@ -231,14 +233,12 @@ int main(int argc, char **argv)
 			if (t % 10 == 0)
 			{
 				task->cl = &increment_cl;
-				task->buffers[0].mode = STARPU_RW;
 			}
 			else
 			{
 				task->cl = &increment_cl_redux;
-				task->buffers[0].mode = STARPU_REDUX;
 			}
-			task->buffers[0].handle = handle;
+			task->handles[0] = handle;
 
 			int ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
