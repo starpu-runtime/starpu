@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,28 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         *y = *y + 1;
 }
 
-struct starpu_codelet mycodelet =
+struct starpu_codelet mycodelet_r_w =
+{
+	.where = STARPU_CPU,
+	.cpu_func = func_cpu,
+        .nbuffers = 2
+};
+
+struct starpu_codelet mycodelet_rw_r =
+{
+	.where = STARPU_CPU,
+	.cpu_func = func_cpu,
+        .nbuffers = 2
+};
+
+struct starpu_codelet mycodelet_rw_rw =
+{
+	.where = STARPU_CPU,
+	.cpu_func = func_cpu,
+        .nbuffers = 2
+};
+
+struct starpu_codelet mycodelet_w_r =
 {
 	.where = STARPU_CPU,
 	.cpu_func = func_cpu,
@@ -86,34 +107,34 @@ int main(int argc, char **argv)
 		starpu_data_set_tag(data_handlesx0, 0);
         }
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, 0);
         assert(err == 0);
         ACQUIRE_DATA;
         vx1[1]++;
         CHECK_RESULT;
         RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_r, STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1, 0);
         assert(err == 0);
         ACQUIRE_DATA;
         vx0[0] ++;
         CHECK_RESULT;
         RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, 0);
         assert(err == -EINVAL);
         ACQUIRE_DATA;
         CHECK_RESULT;
         RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, 1, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, 1, 0);
         assert(err == 0);
         ACQUIRE_DATA;
         vx0[0] ++ ; vx1[1] ++;
         CHECK_RESULT;
         RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, 0, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, 0, 0);
         assert(err == 0);
         ACQUIRE_DATA;
         vx0[0] ++ ; vx1[1] ++;
@@ -123,7 +144,7 @@ int main(int argc, char **argv)
         /* Here the value specified by the property STARPU_EXECUTE_ON_NODE is
            going to be ignored as the data model clearly specifies
            which task is going to execute the codelet */
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE_ON_NODE, 12, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE_ON_NODE, 12, 0);
         assert(err == 0);
         ACQUIRE_DATA;
         vx1[1] ++;
@@ -133,7 +154,7 @@ int main(int argc, char **argv)
         /* Here the value specified by the property STARPU_EXECUTE_ON_NODE is
            going to be ignored as the data model clearly specifies
            which task is going to execute the codelet */
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, 11, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_w_r, STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, 11, 0);
         assert(err == 0);
         ACQUIRE_DATA;
         vx0[0] ++;
