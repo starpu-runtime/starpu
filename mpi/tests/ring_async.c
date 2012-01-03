@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,8 @@ static struct starpu_codelet increment_cl =
 	.cuda_func = increment_cuda,
 #endif
 	.cpu_func = increment_cpu,
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 void increment_token(void)
@@ -48,10 +49,7 @@ void increment_token(void)
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &increment_cl;
-
-	task->buffers[0].handle = token_handle;
-	task->buffers[0].mode = STARPU_RW;
-
+	task->handles[0] = token_handle;
 	task->synchronous = 1;
 
 	starpu_task_submit(task);

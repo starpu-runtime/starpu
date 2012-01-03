@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -267,8 +267,7 @@ static void create_task_11_real(unsigned k)
 	task->cl_arg = create_debug_info(k, k, k);
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = STARPU_PLU(get_block_handle)(k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = STARPU_PLU(get_block_handle)(k, k);
 
 	struct callback_arg *arg = malloc(sizeof(struct callback_arg));
 		arg->k = k;
@@ -433,15 +432,13 @@ static void create_task_12_real(unsigned k, unsigned j)
 		tag_11_dep = TAG11_SAVE(k);
 	}
 
-	task->buffers[0].handle = diag_block; 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = STARPU_PLU(get_block_handle)(k, j); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = diag_block; 
+	task->handles[1] = STARPU_PLU(get_block_handle)(k, j); 
 
 	STARPU_ASSERT(get_block_rank(k, j) == rank);
 
-	STARPU_ASSERT(task->buffers[0].handle != STARPU_POISON_PTR);
-	STARPU_ASSERT(task->buffers[1].handle != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[0] != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
 
 	struct callback_arg *arg = malloc(sizeof(struct callback_arg));
 		arg->j = j;
@@ -606,13 +603,11 @@ static void create_task_21_real(unsigned k, unsigned i)
 		tag_11_dep = TAG11_SAVE(k);
 	}
 
-	task->buffers[0].handle = diag_block; 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = STARPU_PLU(get_block_handle)(i, k);
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = diag_block; 
+	task->handles[1] = STARPU_PLU(get_block_handle)(i, k);
 
-	STARPU_ASSERT(task->buffers[0].handle != STARPU_POISON_PTR);
-	STARPU_ASSERT(task->buffers[1].handle != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[0] != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
 
 	struct callback_arg *arg = malloc(sizeof(struct callback_arg));
 		arg->i = i;
@@ -725,21 +720,18 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 
 #warning temporary fix :/
-	//task->buffers[0].handle = block21;
-	task->buffers[0].handle = block12;
-	task->buffers[0].mode = STARPU_R;
+	//task->handles[0] = block21;
+	task->handles[0] = block12;
 
-	//task->buffers[1].handle = block12;
-	task->buffers[1].handle = block21;
-	task->buffers[1].mode = STARPU_R;
+	//task->handles[1] = block12;
+	task->handles[1] = block21;
 
 	/* produced by TAG22(k-1, i, j) */
-	task->buffers[2].handle = STARPU_PLU(get_block_handle)(i, j);
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[2] = STARPU_PLU(get_block_handle)(i, j);
 
-	STARPU_ASSERT(task->buffers[0].handle != STARPU_POISON_PTR);
-	STARPU_ASSERT(task->buffers[1].handle != STARPU_POISON_PTR);
-	STARPU_ASSERT(task->buffers[2].handle != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[0] != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
+	STARPU_ASSERT(task->handles[2] != STARPU_POISON_PTR);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
 		task->priority = STARPU_MAX_PRIO;
