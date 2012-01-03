@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010-2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -464,8 +464,6 @@ pick:
 	goto pick;
 
 profiling:
-	/* Note that we may get a NULL task in case the scheduler was unlocked
-	 * for some reason. */
 	if (profiling)
 	{
 		struct starpu_task_profiling_info *profiling_info;
