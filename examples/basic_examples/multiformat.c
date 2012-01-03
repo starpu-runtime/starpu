@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011-2012 Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,10 @@
 #include <starpu_opencl.h>
 #endif
 #include "multiformat_types.h"
+
+static int ncpu = 0;
+static int ncuda = 0;
+static int nopencl = 0;
 
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
@@ -71,19 +75,38 @@ extern void multiformat_scal_cuda_func(void *buffers[], void *arg);
 extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 #endif
 
-static struct starpu_codelet  cl =
+#ifdef STARPU_USE_CPU
+static struct starpu_codelet cpu_cl =
 {
-	.where = STARPU_CUDA | STARPU_OPENCL,
+	.where = STARPU_CPU,
 	.cpu_funcs = {multiformat_scal_cpu_func, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {multiformat_scal_cuda_func, NULL},
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {multiformat_scal_opencl_func, NULL},
-#endif
 	.nbuffers = 1,
+	.modes = { STARPU_RW },
 	.name = "codelet_real"
 };
+#endif /* !STARPU_USE_CPU */
+
+#ifdef STARPU_USE_CUDA
+static struct starpu_codelet cuda_cl =
+{
+	.where = STARPU_CUDA,
+	.cuda_funcs = { multiformat_scal_cuda_func, NULL },
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.name = "cuda_codelet"
+};
+#endif /* !STARPU_USE_CUDA */
+
+#ifdef STARPU_USE_OPENCL
+static struct starpu_codelet opencl_cl =
+{
+	.where = STARPU_OPENCL,
+	.opencl_funcs = { multiformat_scal_opencl_func, NULL },
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.name = "opencl_codelet"
+};
+#endif /* !STARPU_USE_OPENCL */
 
 /*
  * Main functions 
@@ -109,43 +132,71 @@ register_data(void)
 					 &format_ops);
 }
 
+static int
+create_and_submit_task(unsigned int dev)
+{
+	struct starpu_task *task = starpu_task_create();
+	switch (dev)
+	{
+		case STARPU_CPU:
+			task->cl = &cpu_cl;
+			break;
+		case STARPU_CUDA:
+			task->cl = &cuda_cl;
+			break;
+		case STARPU_OPENCL:
+			task->cl = &opencl_cl;
+			break;
+		default:
+			assert(0);
+	}
+	task->synchronous = 1;
+	task->handles[0] = array_of_structs_handle;
+	task->cl_arg = NULL;
+	task->cl_arg_size = 0;
+	return starpu_task_submit(task);
+}
+
 static void
 create_and_submit_tasks(void)
 {
 	int err;
 
 #ifdef STARPU_USE_CUDA
-	struct starpu_task *task = starpu_task_create();
-	cl.where = STARPU_CUDA;
-	task->cl = &cl;
-	task->synchronous = 1;
-	task->buffers[0].handle = array_of_structs_handle;
-	task->buffers[0].mode = STARPU_RW;
-	task->cl_arg = NULL;
-	task->cl_arg_size = 0;
-	err = starpu_task_submit(task);
-	if (err != 0)
+	if (ncuda > 0)
 	{
-		FPRINTF(stderr, "Err : %s\n", strerror(-err));
-		return;
+		err = create_and_submit_task(STARPU_CUDA);
+		if (err != 0)
+		{
+			FPRINTF(stderr, "Cuda : %s\n", strerror(-err));
+			return;
+		}
 	}
 #endif
 
-	struct starpu_task *task2 = starpu_task_create();
-	cl.where = STARPU_CPU;
-	task2->cl = &cl;
-	task2->synchronous = 1;
-	task2->buffers[0].handle = array_of_structs_handle;
-	task2->buffers[0].mode = STARPU_RW;
-	task2->cl_arg = NULL;
-	cl.where = STARPU_CPU;
-	task2->cl_arg_size = 0;
-	err = starpu_task_submit(task2);
-	if (err != 0)
+#ifdef STARPU_USE_CPU
+	if (ncpu > 0)
 	{
-		FPRINTF(stderr, "Err : %s\n", strerror(-err));
-		return;
+		err = create_and_submit_task(STARPU_CPU);
+		if (err != 0)
+		{
+			FPRINTF(stderr, "CPU : %s\n", strerror(-err));
+			return;
+		}
 	}
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	if (nopencl > 0)
+	{
+		err = create_and_submit_task(STARPU_OPENCL);
+		if (err != 0)
+		{
+			FPRINTF(stderr, "OpenCL : %s\n", strerror(-err));
+			return;
+		}
+	}
+#endif /* !STARPU_USE_OPENCL */
 }
 
 static void
@@ -175,7 +226,12 @@ check_it(void)
 	{
 		float expected_value = i + 1.0;
 #if STARPU_USE_CUDA
-		expected_value *= array_of_structs[i].y;
+		if (ncuda > 0)
+			expected_value *= array_of_structs[i].y;
+#endif
+#if STARPU_USE_OPENCL
+		if (nopencl > 0)
+			expected_value *= array_of_structs[i].y;
 #endif
 		expected_value *= array_of_structs[i].y;
 		if (array_of_structs[i].x != expected_value)
@@ -189,13 +245,36 @@ struct starpu_opencl_program opencl_program;
 struct starpu_opencl_program opencl_conversion_program;
 #endif
 
+static int
+gpus_available()
+{
+#ifdef STARPU_USE_CUDA
+	if (ncuda > 0)
+		return 1;
+#endif
+#ifdef STARPU_USE_OPENCL
+	if (nopencl > 0)
+		return 1;
+#endif
+
+	return 0;
+}
+
 int
 main(void)
 {
 #ifdef STARPU_USE_CPU
 	starpu_init(NULL);
 
-	if (starpu_cuda_worker_get_count() == 0)
+	ncpu = starpu_cpu_worker_get_count();
+#ifdef STARPU_USE_CUDA
+	ncuda = starpu_cuda_worker_get_count();
+#endif
+#ifdef STARPU_USE_OPENCL
+	nopencl = starpu_opencl_worker_get_count();
+#endif
+
+	if (ncpu == 0 || !gpus_available())
 		return 77;
 
 #ifdef STARPU_USE_OPENCL
