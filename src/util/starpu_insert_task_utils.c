@@ -187,6 +187,9 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codele
 			if (cl->modes[current_buffer])
 				STARPU_ASSERT(cl->modes[current_buffer] == mode);
 			else
+#ifdef STARPU_DEVEL
+#  warning shall we print a warning to the user
+#endif
 				cl->modes[current_buffer] = mode;
 
 			current_buffer++;
