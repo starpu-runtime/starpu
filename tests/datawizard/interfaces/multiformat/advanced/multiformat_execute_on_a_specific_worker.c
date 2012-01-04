@@ -67,15 +67,20 @@ create_and_submit_tasks(void)
 	task->handles[0] = handle;
 	task->execute_on_a_specific_worker = 1;
 
+#ifdef STARPU_USE_CUDA
 	if (ncuda > 0)
 	{
 		task->workerid = cuda_worker;
 	}
-	else if (nopencl > 0)
+	else
+#endif
+#ifdef STARPU_USE_OPENCL
+	if (nopencl > 0)
 	{
 		task->workerid = opencl_worker;
 	}
 	else
+#endif
 	{
 		assert(0);
 	}
