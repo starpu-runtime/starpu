@@ -110,6 +110,7 @@ starpu_machine_display_SOURCES	=	../tools/starpu_machine_display.c
 noinst_PROGRAMS =				\
 	starpu_machine_display			\
 	core/deprecated_func			\
+	core/deprecated_buffer			\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
