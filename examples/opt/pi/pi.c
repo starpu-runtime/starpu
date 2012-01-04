@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,6 +132,7 @@ int main(int argc, char **argv)
 		.cuda_funcs = {cuda_kernel, NULL},
 #endif
 		.nbuffers = 2,
+		.modes = {STARPU_R, STARPU_W},
 		.model = &model
 	};
 
@@ -148,10 +149,8 @@ int main(int argc, char **argv)
 
 		STARPU_ASSERT(starpu_data_get_sub_data(cnt_array_handle, 1, i));
 
-		task->buffers[0].handle = sobol_qrng_direction_handle;
-		task->buffers[0].mode   = STARPU_R;
-		task->buffers[1].handle = starpu_data_get_sub_data(cnt_array_handle, 1, i);
-		task->buffers[1].mode   = STARPU_W;
+		task->handles[0] = sobol_qrng_direction_handle;
+		task->handles[1] = starpu_data_get_sub_data(cnt_array_handle, 1, i);
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);

@@ -19,7 +19,7 @@
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
  *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
- *  2- how to describe which data are accessed by a task (task->buffers[0])
+ *  2- how to describe which data are accessed by a task (task->handles[0])
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 

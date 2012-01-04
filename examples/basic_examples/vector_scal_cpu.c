@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,23 +24,23 @@
 #endif
 
 /* This kernel takes a buffer and scales it by a constant factor */
-void scal_cpu_func(void *buffers[], void *cl_arg)
+void scal_cpu_func(void *handles[], void *cl_arg)
 {
 	unsigned i;
 	float *factor = (float *) cl_arg;
 
 	/*
-	 * The "buffers" array matches the task->buffers array: for instance
-	 * task->buffers[0].handle is a handle that corresponds to a data with
+	 * The "handles" array matches the task->handles array: for instance
+	 * task->handles[0].handle is a handle that corresponds to a data with
 	 * vector "interface", so that the first entry of the array in the
 	 * codelet  is a pointer to a structure describing such a vector (ie.
 	 * struct starpu_vector_interface *). Here, we therefore manipulate
-	 * the buffers[0] element as a vector: nx gives the number of elements
+	 * the handles[0] element as a vector: nx gives the number of elements
 	 * in the array, ptr gives the location of the array (that was possibly
 	 * migrated/replicated), and elemsize gives the size of each elements.
 	 */
 
-	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
+	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) handles[0];
 
 	/* length of the vector */
 	unsigned n = STARPU_VECTOR_GET_NX(vector);
@@ -56,10 +56,10 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 }
 
 #ifdef __SSE__
-void scal_sse_func(void *buffers[], void *cl_arg)
+void scal_sse_func(void *handles[], void *cl_arg)
 {
-	float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+	float *vector = (float *) STARPU_VECTOR_GET_PTR(handles[0]);
+	unsigned int n = STARPU_VECTOR_GET_NX(handles[0]);
 	unsigned int n_iterations = n/4;
 
 	__m128 *VECTOR = (__m128*) vector;

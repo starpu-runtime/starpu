@@ -214,6 +214,23 @@ static struct starpu_codelet pi_cl =
 	.cuda_funcs = {pi_func_cuda, NULL},
 #endif
 	.nbuffers = 2,
+	.modes    = {STARPU_SCRATCH, STARPU_RW},
+	.model = NULL
+};
+
+static struct starpu_codelet pi_cl_redux =
+{
+	.where =
+#ifdef STARPU_HAVE_CURAND
+		STARPU_CUDA|
+#endif
+		STARPU_CPU,
+	.cpu_funcs = {pi_func_cpu, NULL},
+#ifdef STARPU_HAVE_CURAND
+	.cuda_funcs = {pi_func_cuda, NULL},
+#endif
+	.nbuffers = 2,
+	.modes    = {STARPU_SCRATCH, STARPU_REDUX}
 	.model = NULL
 };
 
@@ -328,12 +345,10 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &pi_cl;
+		task->cl = use_redux?&pi_cl_redux:&pi_cl;
 
-		task->buffers[0].handle = xy_scratchpad_handle;
-		task->buffers[0].mode   = STARPU_SCRATCH;
-		task->buffers[1].handle = shot_cnt_handle;
-		task->buffers[1].mode   = use_redux?STARPU_REDUX:STARPU_RW;
+		task->handles[0] = xy_scratchpad_handle;
+		task->handles[1] = shot_cnt_handle;
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
@@ -346,12 +361,10 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &pi_cl;
+		task->cl = use_redux?&pi_cl_redux:&pi_cl;
 
-		task->buffers[0].handle = xy_scratchpad_handle;
-		task->buffers[0].mode   = STARPU_SCRATCH;
-		task->buffers[1].handle = shot_cnt_handle;
-		task->buffers[1].mode   = use_redux?STARPU_REDUX:STARPU_RW;
+		task->handles[0] = xy_scratchpad_handle;
+		task->handles[1] = shot_cnt_handle;
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);

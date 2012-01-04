@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
  *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
- *  2- how to describe which data are accessed by a task (task->buffers[0])
+ *  2- how to describe which data are accessed by a task (task->handles[0])
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  *
  * This is a variant of vector_scal.c which shows it can be integrated with fortran.
