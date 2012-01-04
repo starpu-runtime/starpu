@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011-2012  INRIA
  * Copyright (C) 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -148,30 +148,31 @@ static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 {
 	FPRINTF(stderr, "***** Starting Task 1\n");
-	static struct starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
-		.modes = { STARPU_RW },
+		.modes        = { STARPU_RW },
+		.nbuffers     = 1
+	};
+
 #ifdef STARPU_USE_CUDA
-		.cuda_funcs  = {cuda_func, NULL},
+	if (where & STARPU_CUDA)
+		cl.cuda_funcs[0] = cuda_func;
 #endif
 #ifdef STARPU_USE_OPENCL
-		.opencl_funcs = {opencl_func, NULL},
+	if (where & STARPU_OPENCL)
+		cl.opencl_funcs[0] = opencl_func;
 #endif
-		.nbuffers    = 1
-	};
-	cl.where = where;
 
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = SYNCHRONOUS;
 	task->cl = &cl;
 	task->handles[0] = handles[0];
-	starpu_task_submit(task);
+	assert(starpu_task_submit(task) == 0);
 
 	FPRINTF(stderr, "***** Starting Task 2\n");
-	static struct starpu_codelet cl2 =
+	struct starpu_codelet cl2 =
 	{
 		.modes = { STARPU_RW },
-		.where = STARPU_CPU,
 		.cpu_funcs = {cpu_func, NULL},
 		.nbuffers = 1
 	};
@@ -180,32 +181,33 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task2->synchronous = SYNCHRONOUS;
 	task2->cl = &cl2;
 	task2->handles[0] = handles[1];
-	starpu_task_submit(task2);
-
+	assert(starpu_task_submit(task2) == 0);
 
 	FPRINTF(stderr, "***** Starting Task 3\n");
-	static struct starpu_codelet cl3 =
+	struct starpu_codelet cl3 =
 	{
 		.modes = { STARPU_RW, STARPU_RW },
-		.cpu_funcs   = {cpu_func, NULL},
-#ifdef STARPU_USE_CUDA
-		.cuda_funcs   = {cuda_func, NULL},
-#endif
-#ifdef STARPU_USE_OPENCL
-		.opencl_funcs = {opencl_func, NULL},
-#endif
 		.nbuffers    = 2
 	};
-	cl3.where = where;
+
+#ifdef STARPU_USE_CUDA
+	if (where & STARPU_CUDA)
+		cl3.cuda_funcs[0] = cuda_func;
+#endif
+#ifdef STARPU_USE_OPENCL
+	if (where & STARPU_OPENCL)
+		cl3.opencl_funcs[0] = opencl_func;
+#endif
 
 	struct starpu_task *task3 = starpu_task_create();
 	task3->synchronous = SYNCHRONOUS;
 	task3->cl = &cl3;
 	task3->handles[0] = handles[0];
 	task3->handles[1] = handles[1];
-	starpu_task_submit(task3);
+	assert(starpu_task_submit(task3) == 0);
 
-	starpu_task_wait_for_all();
+	assert(starpu_task_wait_for_all() == 0);
+
 	FPRINTF(stderr, "***** End of all tasks\n");
 	return;
 }
@@ -352,4 +354,3 @@ main(void)
 	return STARPU_TEST_SKIPPED;
 #endif
 }
-
