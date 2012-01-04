@@ -138,12 +138,16 @@ create_and_submit_task(unsigned int dev)
 		case STARPU_CPU:
 			task->cl = &cpu_cl;
 			break;
+#ifdef STARPU_USE_CUDA
 		case STARPU_CUDA:
 			task->cl = &cuda_cl;
 			break;
+#endif
+#ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL:
 			task->cl = &opencl_cl;
 			break;
+#endif
 		default:
 			assert(0);
 	}
