@@ -230,7 +230,7 @@ static struct starpu_codelet pi_cl_redux =
 	.cuda_funcs = {pi_func_cuda, NULL},
 #endif
 	.nbuffers = 2,
-	.modes    = {STARPU_SCRATCH, STARPU_REDUX}
+	.modes    = {STARPU_SCRATCH, STARPU_REDUX},
 	.model = NULL
 };
 
