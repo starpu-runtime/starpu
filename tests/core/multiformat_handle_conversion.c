@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  INRIA
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -151,7 +151,8 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	struct starpu_codelet cl =
 	{
 		.modes        = { STARPU_RW },
-		.nbuffers     = 1
+		.nbuffers     = 1,
+		.where        = where
 	};
 
 #ifdef STARPU_USE_CUDA
@@ -174,7 +175,8 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	{
 		.modes = { STARPU_RW },
 		.cpu_funcs = {cpu_func, NULL},
-		.nbuffers = 1
+		.nbuffers = 1,
+		.where = where
 	};
 
 	struct starpu_task *task2 = starpu_task_create();
@@ -187,7 +189,8 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	struct starpu_codelet cl3 =
 	{
 		.modes = { STARPU_RW, STARPU_RW },
-		.nbuffers    = 2
+		.nbuffers    = 2,
+		.where       = where
 	};
 
 #ifdef STARPU_USE_CUDA
