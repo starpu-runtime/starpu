@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -109,7 +109,7 @@ starpu_machine_display_SOURCES	=	../tools/starpu_machine_display.c
 
 noinst_PROGRAMS =				\
 	starpu_machine_display			\
-	core/deprecated				\
+	core/deprecated_func			\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
