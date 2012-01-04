@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
-# Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -114,7 +114,6 @@ noinst_PROGRAMS =				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
-	core/multiformat_data_release           \
 	core/multiformat_handle_conversion      \
 	core/multithreaded			\
 	core/multithreaded_init			\
@@ -174,6 +173,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl \
+	datawizard/interfaces/multiformat/advanced/multiformat_data_release \
 	datawizard/interfaces/multiformat/advanced/multiformat_execute_on_a_specific_worker \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
@@ -307,9 +307,6 @@ endif
 core_multiformat_handle_conversion_SOURCES = \
 	core/multiformat_handle_conversion.c
 
-core_multiformat_data_release_SOURCES = \
-	core/multiformat_data_release.c
-
 ###################
 # Block interface #
 ###################
@@ -430,6 +427,10 @@ endif
 datawizard_interfaces_multiformat_advanced_multiformat_cuda_opencl_SOURCES=\
 	datawizard/interfaces/multiformat/advanced/generic.c               \
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl.c
+
+datawizard_interfaces_multiformat_advanced_multiformat_data_release_SOURCES = \
+	datawizard/interfaces/multiformat/advanced/generic.c                  \
+	datawizard/interfaces/multiformat/advanced/multiformat_data_release.c
 
 datawizard_interfaces_multiformat_advanced_multiformat_execute_on_a_specific_worker_SOURCES=\
 	datawizard/interfaces/multiformat/advanced/generic.c               \
