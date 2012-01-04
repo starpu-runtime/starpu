@@ -58,6 +58,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task->handles[0] = handles[0];
 	assert(starpu_task_submit(task) == 0);
 
+#ifdef STARPU_USE_CPU
 	FPRINTF(stderr, "***** Starting Task 2\n");
 	struct starpu_codelet cl2 =
 	{
@@ -72,6 +73,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task2->cl = &cl2;
 	task2->handles[0] = handles[1];
 	assert(starpu_task_submit(task2) == 0);
+#endif /* !STARPU_USE_CPU */
 
 	FPRINTF(stderr, "***** Starting Task 3\n");
 	struct starpu_codelet cl3 =
@@ -132,10 +134,17 @@ test_cuda(void)
 	print_stats(&global_stats);
 #endif
 
-	return !(global_stats.cpu == 1 &&
-		 global_stats.cpu_to_cuda == 2 &&
-		 global_stats.cuda_to_cpu == 2 &&
-		 global_stats.cuda == 2);
+	struct stats expected_stats;
+#ifdef STARPU_USE_CPU
+	expected_stats.cpu = 1;
+#endif /* !STARPU_USE_CPU */
+#ifdef STARPU_USE_CUDA
+	expected_stats.cpu_to_cuda = 2;
+	expected_stats.cuda_to_cpu = 2;
+	expected_stats.cpu_to_cuda = 2;
+#endif /* !STARPU_USE_CUDA */
+
+	return compare_stats(&expected_stats, &global_stats);
 }
 #endif /* !STARPU_USE_CUDA */
 
@@ -167,11 +176,17 @@ test_opencl(void)
 	print_stats(&global_stats);
 #endif
 
-	return !(global_stats.cpu == 1 &&
-		 global_stats.cpu_to_opencl == 2 &&
-		 global_stats.opencl_to_cpu == 2 &&
-		 global_stats.opencl == 2);
+	struct stats expected_stats;
+#ifdef STARPU_USE_CPU
+	expected_stats.cpu = 1;
+#endif /* !STARPU_USE_CPU */
+#ifdef STARPU_USE_OPENCl
+	expected_stats.cpu_to_opencl = 2;
+	expected_stats.opencl_to_cpu = 2;
+	expected_stats.cpu_to_opencl = 2;
+#endif /* !STARPU_USE_OPENCL */
 
+	return compare_stats(&expected_stats, &global_stats);
 }
 #endif /* !STARPU_USE_OPENCL */
 
@@ -190,6 +205,12 @@ main(void)
 	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	unsigned int ncpu  = starpu_cpu_worker_get_count();
+	if (ncpu == 0)
+	{
+		FPRINTF(stderr, "No CPUS, cannot run this test.\n");
+		return STARPU_TEST_SKIPPED;
+	}
 	unsigned int ncuda = starpu_cuda_worker_get_count();
 	unsigned int nopencl = starpu_opencl_worker_get_count();
 
