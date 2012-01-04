@@ -114,7 +114,6 @@ noinst_PROGRAMS =				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
-	core/multiformat_handle_conversion      \
 	core/multithreaded			\
 	core/multithreaded_init			\
 	core/starpu_task_wait_for_all		\
@@ -175,6 +174,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/multiformat/advanced/multiformat_cuda_opencl \
 	datawizard/interfaces/multiformat/advanced/multiformat_data_release \
 	datawizard/interfaces/multiformat/advanced/multiformat_execute_on_a_specific_worker \
+	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
@@ -304,9 +304,6 @@ BUILT_SOURCES += 						\
 	microbenchs/null_kernel_gordon.spuelf
 endif
 
-core_multiformat_handle_conversion_SOURCES = \
-	core/multiformat_handle_conversion.c
-
 ###################
 # Block interface #
 ###################
@@ -435,6 +432,10 @@ datawizard_interfaces_multiformat_advanced_multiformat_data_release_SOURCES = \
 datawizard_interfaces_multiformat_advanced_multiformat_execute_on_a_specific_worker_SOURCES=\
 	datawizard/interfaces/multiformat/advanced/generic.c               \
 	datawizard/interfaces/multiformat/advanced/multiformat_execute_on_a_specific_worker.c
+
+datawizard_interfaces_multiformat_advanced_multiformat_handle_conversion_SOURCES = \
+	datawizard/interfaces/multiformat/advanced/generic.c \
+	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion.c
 
 datawizard_interfaces_multiformat_advanced_same_handle_SOURCES= \
 	datawizard/interfaces/multiformat/advanced/generic.c               \

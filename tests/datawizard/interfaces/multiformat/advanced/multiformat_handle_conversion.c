@@ -16,9 +16,9 @@
  */
 
 #include <starpu.h>
-#include "../helper.h"
 
-#define NX 4
+#include "generic.h"
+#include "../../../../helper.h"
 
 #define DEBUG 0
 
@@ -30,119 +30,7 @@
 #define ENTER()
 #endif
 
-
-/* Counting the calls to the codelets */
-struct stats
-{
-	unsigned int cpu;
-#ifdef STARPU_USE_CUDA
-	unsigned int cuda;
-	unsigned int cpu_to_cuda;
-	unsigned int cuda_to_cpu;
-#endif
-#ifdef STARPU_USE_OPENCL
-	unsigned int opencl;
-	unsigned int cpu_to_opencl;
-	unsigned int opencl_to_cpu;
-#endif
-};
-
-struct stats global_stats;
-
-/* "Fake" conversion codelets */
-#ifdef STARPU_USE_CUDA
-static void cpu_to_cuda_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.cpu_to_cuda++;
-}
-
-static void cuda_to_cpu_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.cuda_to_cpu++;
-}
-
-struct starpu_codelet cpu_to_cuda_cl =
-{
-	.where = STARPU_CUDA,
-	.cuda_funcs = {cpu_to_cuda_func, NULL},
-	.nbuffers = 1
-};
-
-struct starpu_codelet cuda_to_cpu_cl =
-{
-	.where = STARPU_CPU,
-	.cpu_funcs = {cuda_to_cpu_func, NULL},
-	.nbuffers = 1
-};
-#endif /* !STARPU_USE_CUDA */
-
-#ifdef STARPU_USE_OPENCL
-static void cpu_to_opencl_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.cpu_to_opencl++;
-}
-
-static void opencl_to_cpu_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.opencl_to_cpu++;
-}
-
-struct starpu_codelet cpu_to_opencl_cl =
-{
-	.where = STARPU_OPENCL,
-	.opencl_funcs = {cpu_to_opencl_func, NULL},
-	.nbuffers = 1
-};
-
-struct starpu_codelet opencl_to_cpu_cl =
-{
-	.where = STARPU_CPU,
-	.cpu_funcs = {opencl_to_cpu_func, NULL},
-	.nbuffers = 1
-};
-#endif /* !STARPU_USE_OPENCL */
-
-static struct starpu_multiformat_data_interface_ops ops =
-{
-#ifdef STARPU_USE_CUDA
-	.cuda_elemsize = sizeof(int),
-	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
-	.cuda_to_cpu_cl = &cuda_to_cpu_cl,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_elemsize = sizeof(int),
-	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
-	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
-#endif
-	.cpu_elemsize = sizeof(int)
-};
-
-static void cpu_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.cpu++;
-}
-
-#ifdef STARPU_USE_CUDA
-static void cuda_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.cuda++;
-}
-#endif /* !STARPU_USE_CUDA */
-
-#ifdef STARPU_USE_OPENCL
-static void opencl_func(void *buffers[], void *args)
-{
-	ENTER();
-	global_stats.opencl++;
-}
-#endif /* !STARPU_USE_OPENCL */
-
+extern struct stats global_stats;
 
 static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
@@ -214,30 +102,6 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** End of all tasks\n");
 	return;
 }
-
-#if DEBUG
-static void
-print_stats(struct stats *s)
-{
-	FPRINTF(stderr, "cpu         : %d\n", s->cpu);
-#ifdef STARPU_USE_CUDA
-	FPRINTF(stderr, "cuda        : %d\n"
-			"cpu->cuda   : %d\n"
-			"cuda->cpu   : %d\n",
-			s->cuda,
-			s->cpu_to_cuda,
-			s->cuda_to_cpu);
-#endif
-#ifdef STARPU_USE_OPENCL
-	FPRINTF(stderr, "opencl      : %d\n"
-			"cpu->opencl : %d\n"
-			"opencl->cpu : %d\n",
-			s->opencl,
-			s->cpu_to_opencl,
-			s->opencl_to_cpu);
-#endif
-}
-#endif /* !DEBUG */
 
 /* XXX Just a little bit of copy/pasta here... */
 #ifdef STARPU_USE_CUDA

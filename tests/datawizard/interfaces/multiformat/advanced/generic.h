@@ -18,6 +18,10 @@
 
 #define NX 16
 
+#ifdef STARPU_USE_CPU
+void cpu_func(void *buffers[], void *args);
+#endif /* !STARPU_USE_CPU */
+
 #ifdef STARPU_USE_CUDA
 void cuda_func(void *buffers[], void *args);
 #endif /* !STARPU_USE_CUDA */

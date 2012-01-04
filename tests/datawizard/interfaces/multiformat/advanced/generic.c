@@ -19,6 +19,13 @@
 
 struct stats global_stats;
 
+#ifdef STARPU_USE_CPU
+void cpu_func(void *buffers[], void *args)
+{
+	global_stats.cpu++;
+}
+#endif /* !STARPU_USE_CPU */
+
 #ifdef STARPU_USE_CUDA
 void cuda_func(void *buffers[], void *args)
 {
