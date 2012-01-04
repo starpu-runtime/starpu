@@ -18,33 +18,43 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Define access modes for data handles into starpu_codelet and no longer
+	in starpu_task. Hence mark (struct starpu_task).buffers as
+	deprecated, and add (struct starpu_task).handles and (struct
+	starpu_codelet).modes
+  * Install headers under $includedir/starpu/1.0.
+  * Deprecate cost_model, and introduce cost_function, which is provided
+	with the whole task structure, the target arch and implementation
+	number
+  * Permit the application to provide its own size base for performance
+	models
   * Fields xxx_func of struct starpu_codelet are made deprecated. One
 	should use instead fields xxx_funcs.
-  * Applications can provide several implementations of a codelet for
-    the same architecture.
-  * A new multi-format interface permits to use different binary
-    formats on CPUs & GPUs, the conversion functions being provided by
-    the application and called by StarPU as needed (and as less as
-    possible).
-  * Add a gcc plugin to extend the C interface with pragmas which
-    allow to easily define codelets and issue tasks.
+  * Applications can provide several implementations of a codelet for the
+	same architecture.
+  * A new multi-format interface permits to use different binary formats
+	on CPUs & GPUs, the conversion functions being provided by the
+	application and called by StarPU as needed (and as less as
+	possible).
+  * Add a gcc plugin to extend the C interface with pragmas which allows to
+	easily define codelets and issue tasks.
   * Add codelet execution time statistics plot.
   * Add bus speed in starpu_machine_display.
   * Add a StarPU-Top feedback and steering interface.
   * Documentation improvement.
-  * Add a STARPU_DATA_ACQUIRE_CB which permits to inline the code to
-    be done.
+  * Add a STARPU_DATA_ACQUIRE_CB which permits to inline the code to be
+	done.
   * Permit to specify MPI tags for more efficient starpu_mpi_insert_task
   * Add SOCL, an OpenCL interface on top of StarPU.
   * Add gdb functions.
   * Add complex support to LU example.
   * Add an OpenMP fork-join example.
-  * Permit to use the same data several times in write mode in the parameters of
-    the same task.
+  * Permit to use the same data several times in write mode in the
+	parameters of the same task.
   * Some types were renamed for consistency. The tools/dev/rename.sh
-    script can be used to port code using former names. You can also
-    choose to include starpu_deprecated_api.h (after starpu.h) to keep
-    using the old types.
+	script can be used to port code using former names. You can also
+	choose to include starpu_deprecated_api.h (after starpu.h) to keep
+	using the old types.
 
 StarPU 0.9 (svn revision 3721)
 ==============================================
