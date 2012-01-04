@@ -1460,22 +1460,35 @@ contains all information about a performance model. At least the
 performance model for a codelet. If not provided, other fields have to be zero.
 
 @table @asis
-@item @code{type} is the type of performance model. @code{STARPU_HISTORY_BASED},
+@item @code{type}
+is the type of performance model. @code{STARPU_HISTORY_BASED},
 @code{STARPU_REGRESSION_BASED}, @code{STARPU_NL_REGRESSION_BASED}: No
 other fields needs to be provided, this is purely history-based. @code{STARPU_PER_ARCH}:
 @code{per_arch} has to be filled with functions which return the cost in
 micro-seconds. @code{STARPU_COMMON}: @code{cost_function} has to be filled with
 a function that returns the cost in micro-seconds on a CPU, timing on other
 archs will be determined by multiplying by an arch-specific factor.
-@item @code{symbol} is the symbol name for the performance model, which will be
-used as file name to store the model.
-@item @code{cost_function}: Used by @code{STARPU_COMMON}: takes a task and
+
+@item @code{symbol}
+is the symbol name for the performance model, which will be used as
+file name to store the model.
+
+@item @code{cost_model}
+This field is deprecated. Use instead the @code{cost_function} field.
+
+@item @code{cost_function}
+Used by @code{STARPU_COMMON}: takes a task and
 implementation number, and must return a task duration estimation in micro-seconds.
-@item @code{per_arch}: Used by @code{STARPU_PER_ARCH}: array of @code{struct
+
+@item @code{per_arch}
+Used by @code{STARPU_PER_ARCH}: array of @code{struct
 starpu_per_arch_perfmodel} structures.
-@item @code{size_base}: Used by @code{STARPU_HISTORY_BASED} and
-@code{STARPU_*REGRESSION_BASED}. If not NULL, takes a task and implementation
-number, and returns the size to be used as index for history and regression.
+
+@item @code{size_base}
+Used by @code{STARPU_HISTORY_BASED} and
+@code{STARPU_*REGRESSION_BASED}. If not NULL, takes a task and
+implementation number, and returns the size to be used as index for
+history and regression.
 @end table
 @end deftp
 
@@ -1483,6 +1496,9 @@ number, and returns the size to be used as index for history and regression.
 contains information about the performance model of a given arch.
 
 @table @asis
+@item @code{cost_model}
+This field is deprecated. Use instead the @code{cost_function} field.
+
 @item @code{cost_function}
 Used by @code{STARPU_PER_ARCH}, must point to functions which take a task, the
 target arch and implementation number (as mere conveniency, since the array
