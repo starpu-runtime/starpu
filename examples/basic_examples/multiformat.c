@@ -135,9 +135,11 @@ create_and_submit_task(unsigned int dev)
 	struct starpu_task *task = starpu_task_create();
 	switch (dev)
 	{
+#ifdef STARPU_USE_CPU
 		case STARPU_CPU:
 			task->cl = &cpu_cl;
 			break;
+#endif
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA:
 			task->cl = &cuda_cl;
