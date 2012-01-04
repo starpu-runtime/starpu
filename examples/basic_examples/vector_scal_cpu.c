@@ -30,8 +30,8 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 	float *factor = (float *) cl_arg;
 
 	/*
-	 * The "buffers" array matches the task->buffers array: for instance
-	 * task->buffers[0].handle is a handle that corresponds to a data with
+	 * The "buffers" array matches the task->handles array: for instance
+	 * task->handles[0] is a handle that corresponds to a data with
 	 * vector "interface", so that the first entry of the array in the
 	 * codelet  is a pointer to a structure describing such a vector (ie.
 	 * struct starpu_vector_interface *). Here, we therefore manipulate
