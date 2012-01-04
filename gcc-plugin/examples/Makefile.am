@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 noinst_PROGRAMS =				\
-  matrix-mult stencil5
+  matrix-mult stencil5 vector_scal/vector_scal
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
