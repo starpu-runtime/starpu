@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -244,10 +244,12 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
+#if 0
 	if (cl->cpu_funcs[0])
 	{
 		cl->where |= STARPU_CPU;
 	}
+#endif
 
 	/* CUDA */
 	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
@@ -264,10 +266,12 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
+#if 0
 	if (cl->cuda_funcs[0])
 	{
 		cl->where |= STARPU_CUDA;
 	}
+#endif
 
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
@@ -284,10 +288,12 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
+#if 0
 	if (cl->opencl_funcs[0])
 	{
 		cl->where |= STARPU_OPENCL;
 	}
+#endif
 
 	/* Gordon */
 	if (cl->gordon_func && cl->gordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
@@ -299,10 +305,12 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->gordon_func = STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS;
 	}
+#if 0
 	if (cl->gordon_funcs[0])
 	{
 		cl->where = STARPU_GORDON;
 	}
+#endif
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task)
