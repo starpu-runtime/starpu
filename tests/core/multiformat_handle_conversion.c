@@ -176,7 +176,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 		.modes = { STARPU_RW },
 		.cpu_funcs = {cpu_func, NULL},
 		.nbuffers = 1,
-		.where = where
+		.where = STARPU_CPU,
 	};
 
 	struct starpu_task *task2 = starpu_task_create();
