@@ -10,8 +10,4 @@ TODO list
 
 - Set task->buffers to NULL
 
-- Update all tests and examples
-
 - When cost_model is provided, but not cost_function, need to rebuild a struct starpu_buffer_descr
-
-- Update doc and changelog
