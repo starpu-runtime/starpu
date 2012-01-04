@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -190,7 +190,7 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t h
 
 static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, unsigned buffer_index)
 {
-	/* Note that we do not access j->task->buffers, but j->ordered_buffers
+	/* Note that we do not access j->task->handles, but j->ordered_buffers
 	 * which is a sorted copy of it. */
 	starpu_data_handle_t handle = j->ordered_buffers[buffer_index].handle;
 	enum starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
