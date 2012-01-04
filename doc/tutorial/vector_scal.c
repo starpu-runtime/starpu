@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * Redistribution  and  use  in  source and binary forms, with or without
@@ -32,7 +32,7 @@
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
  *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
- *  2- how to describe which data are accessed by a task (task->buffers[0])
+ *  2- how to describe which data are accessed by a task (task->handle[0])
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 #include <starpu.h>
@@ -56,7 +56,8 @@ static struct starpu_codelet cl = {
     /* OpenCL implementation of the codelet */
     .opencl_funcs = {scal_opencl_func, NULL},
 #endif
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = {STARPU_RW}
 };
 
 #ifdef STARPU_USE_OPENCL
@@ -108,8 +109,7 @@ int main(int argc, char **argv)
     task->cl = &cl;
 
     /* the codelet manipulates one buffer in RW mode */
-    task->buffers[0].handle = vector_handle;
-    task->buffers[0].mode = STARPU_RW;
+    task->handles[0] = vector_handle;
 
     /* an argument is passed to the codelet, beware that this is a
      * READ-ONLY buffer and that the codelet may be given a pointer to a

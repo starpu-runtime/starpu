@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -280,9 +280,8 @@ vector and a constant factor.
 float factor = 3.14;
 struct starpu_task *task = starpu_task_create();
 
-task->cl = &cl;                          /* @b{Pointer to the codelet defined below} */
-task->buffers[0].handle = vector_handle; /* @b{First parameter of the codelet} */
-task->buffers[0].mode = STARPU_RW;
+task->cl = &cl;                      /* @b{Pointer to the codelet defined below} */
+task->handles[0] = vector_handle;    /* @b{First parameter of the codelet} */
 task->cl_arg = &factor;
 task->cl_arg_size = sizeof(factor);
 task->synchronous = 1;
@@ -321,13 +320,14 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 struct starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_funcs = @{ scal_cpu_func, NULL @},
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @};
 @end smallexample
 @end cartouche
 
 The first argument is an array that gives
-a description of all the buffers passed in the @code{task->buffers}@ array. The
+a description of all the buffers passed in the @code{task->handles}@ array. The
 size of this array is given by the @code{nbuffers} field of the codelet
 structure. For the sake of genericity, this array contains pointers to the
 different interfaces describing each buffer.  In the case of the @b{vector
@@ -502,7 +502,8 @@ static struct starpu_codelet cl = @{
     .cuda_funcs = @{ scal_cuda_func, NULL @},
     .cpu_funcs = @{ scal_cpu_func, NULL @},
     .opencl_funcs = @{ scal_opencl_func, NULL @},
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @}
 
 #ifdef STARPU_USE_OPENCL
@@ -541,8 +542,7 @@ int main(int argc, char **argv)
     /* @b{Definition of the task} */
     task = starpu_task_create();
     task->cl = &cl;
-    task->buffers[0].handle = vector_handle;
-    task->buffers[0].mode = STARPU_RW;
+    task->handles[0] = vector_handle;
     task->cl_arg = &factor;
     task->cl_arg_size = sizeof(factor);
 @end smallexample

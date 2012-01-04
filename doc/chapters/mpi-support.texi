@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -123,8 +123,7 @@ void increment_token(void)
     struct starpu_task *task = starpu_task_create();
 
     task->cl = &increment_cl;
-    task->buffers[0].handle = token_handle;
-    task->buffers[0].mode = STARPU_RW;
+    task->handles[0] = token_handle;
 
     starpu_task_submit(task);
 @}

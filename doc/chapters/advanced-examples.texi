@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -96,7 +96,8 @@ struct starpu_codelet cl = @{
     .can_execute = can_execute,
     .cpu_funcs = @{ cpu_func, NULL @},
     .cuda_funcs = @{ gpu_func, NULL @}
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @};
 @end smallexample
 @end cartouche
@@ -244,8 +245,7 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
     starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
     struct starpu_task *task = starpu_task_create();
 
-    task->buffers[0].handle = sub_handle;
-    task->buffers[0].mode = STARPU_RW;
+    task->handles[0] = sub_handle;
     task->cl = &cl;
     task->synchronous = 1;
     task->cl_arg = &factor;
@@ -499,7 +499,8 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet mycodelet = @{
         .where = STARPU_CPU,
         .cpu_funcs = @{ func_cpu, NULL @},
-        .nbuffers = 2
+        .nbuffers = 2,
+        .modes = @{ STARPU_RW, STARPU_RW @}
 @};
 @end smallexample
 
@@ -519,10 +520,8 @@ code:
 @smallexample
 struct starpu_task *task = starpu_task_create();
 task->cl = &mycodelet;
-task->buffers[0].handle = data_handles[0];
-task->buffers[0].mode = STARPU_RW;
-task->buffers[1].handle = data_handles[1];
-task->buffers[1].mode = STARPU_RW;
+task->handles[0] = data_handles[0];
+task->handles[1] = data_handles[1];
 char *arg_buffer;
 size_t arg_buffer_size;
 starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,
