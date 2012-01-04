@@ -82,8 +82,7 @@ static struct starpu_codelet *select_codelet_with_random_mode(void)
 		case 0:
 			return &cl_r;
 		case 1:
-			return &cl_rw;
-			//return &cl_w;
+			return &cl_w;
 		case 2:
 			return &cl_rw;
 	};
