@@ -703,6 +703,10 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTR
 static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
                                  void *dst_interface, unsigned dst_node)
 {
+	(void) src_interface;
+	(void) dst_interface;
+	(void) src_node;
+	(void) dst_node;
 /* TODO */
 	return 0;
 }
