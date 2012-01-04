@@ -323,7 +323,6 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 			if (task->buffers[i].handle && task->handles[i])
 			{
 				fprintf(stderr, "[warning][struct starpu_task] task->buffers[%d] and task->handles[%d] both set. Ignoring task->buffers[%d] ?\n", i, i, i);
-				//task->buffers[i].handle = NULL;
 				STARPU_ASSERT(task->buffers[i].mode == task->cl->modes[i]);
 				STARPU_ABORT();
 			}
@@ -331,8 +330,9 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 			{
 				task->handles[i] = task->buffers[i].handle;
 				task->cl->modes[i] = task->buffers[i].mode;
-				//task->buffers[i].handle = NULL;
 			}
+			task->buffers[i].handle = NULL;
+			task->buffers[i].mode = 0;
 		}
 	}
 }

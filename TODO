@@ -8,6 +8,4 @@ TODO list
 
 - Make struct starpu_buffer_descr private (or not, as it can still be used in tests and examples)
 
-- Set task->buffers to NULL
-
 - When cost_model is provided, but not cost_function, need to rebuild a struct starpu_buffer_descr
