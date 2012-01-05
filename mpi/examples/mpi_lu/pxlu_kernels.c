@@ -109,9 +109,9 @@ static struct starpu_perfmodel STARPU_PLU(model_22) = {
 
 struct starpu_codelet STARPU_PLU(cl22) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u22),
+	.cpu_funcs = {STARPU_PLU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u22),
+	.cuda_funcs = {STARPU_PLU(cublas_u22), NULL},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
@@ -217,9 +217,9 @@ static struct starpu_perfmodel STARPU_PLU(model_12) = {
 
 struct starpu_codelet STARPU_PLU(cl12) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u12),
+	.cpu_funcs = {STARPU_PLU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u12),
+	.cuda_funcs = {STARPU_PLU(cublas_u12), NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -326,9 +326,9 @@ static struct starpu_perfmodel STARPU_PLU(model_21) = {
 
 struct starpu_codelet STARPU_PLU(cl21) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u21),
+	.cpu_funcs = {STARPU_PLU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u21),
+	.cuda_funcs = {STARPU_PLU(cublas_u21), NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -432,9 +432,9 @@ static struct starpu_perfmodel STARPU_PLU(model_11) = {
 
 struct starpu_codelet STARPU_PLU(cl11) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u11),
+	.cpu_funcs = {STARPU_PLU(cpu_u11), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u11),
+	.cuda_funcs = {STARPU_PLU(cublas_u11), NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

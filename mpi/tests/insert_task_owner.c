@@ -30,28 +30,28 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 struct starpu_codelet mycodelet_r_w =
 {
 	.where = STARPU_CPU,
-	.cpu_func = func_cpu,
+	.cpu_funcs = {func_cpu, NULL},
         .nbuffers = 2
 };
 
 struct starpu_codelet mycodelet_rw_r =
 {
 	.where = STARPU_CPU,
-	.cpu_func = func_cpu,
+	.cpu_funcs = {func_cpu, NULL},
         .nbuffers = 2
 };
 
 struct starpu_codelet mycodelet_rw_rw =
 {
 	.where = STARPU_CPU,
-	.cpu_func = func_cpu,
+	.cpu_funcs = {func_cpu, NULL},
         .nbuffers = 2
 };
 
 struct starpu_codelet mycodelet_w_r =
 {
 	.where = STARPU_CPU,
-	.cpu_func = func_cpu,
+	.cpu_funcs = {func_cpu, NULL},
         .nbuffers = 2
 };
 
