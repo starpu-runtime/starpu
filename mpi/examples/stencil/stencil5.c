@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,8 +32,9 @@ void stencil5_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 struct starpu_codelet stencil5_cl =
 {
 	.where = STARPU_CPU,
-	.cpu_func = stencil5_cpu,
-        .nbuffers = 5
+	.cpu_funcs = {stencil5_cpu, NULL},
+        .nbuffers = 5,
+	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
 };
 
 #define NITER_DEF 500
