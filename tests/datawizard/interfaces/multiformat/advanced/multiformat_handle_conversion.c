@@ -138,11 +138,14 @@ test_cuda(void)
 #ifdef STARPU_USE_CPU
 	expected_stats.cpu = 1;
 #endif /* !STARPU_USE_CPU */
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_USE_OPENCL
+	expected_stats.opencl = 0;
+	expected_stats.cpu_to_opencl = 0;
+	expected_stats.opencl_to_cpu = 0;
+#endif /* !STARPU_USE_OPENCL */
+	expected_stats.cuda = 2;
 	expected_stats.cpu_to_cuda = 2;
 	expected_stats.cuda_to_cpu = 2;
-	expected_stats.cpu_to_cuda = 2;
-#endif /* !STARPU_USE_CUDA */
 
 	return compare_stats(&expected_stats, &global_stats);
 }
@@ -180,11 +183,14 @@ test_opencl(void)
 #ifdef STARPU_USE_CPU
 	expected_stats.cpu = 1;
 #endif /* !STARPU_USE_CPU */
-#ifdef STARPU_USE_OPENCl
+#ifdef STARPU_USE_CUDA
+	expected_stats.cuda = 0;
+	expected_stats.cpu_to_cuda = 0;
+	expected_stats.cuda_to_cpu = 0;
+#endif /* !STARPU_USE_CUDA */
+	expected_stats.opencl = 2;
 	expected_stats.cpu_to_opencl = 2;
 	expected_stats.opencl_to_cpu = 2;
-	expected_stats.cpu_to_opencl = 2;
-#endif /* !STARPU_USE_OPENCL */
 
 	return compare_stats(&expected_stats, &global_stats);
 }
