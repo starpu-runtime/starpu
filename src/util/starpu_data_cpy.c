@@ -60,9 +60,7 @@ static struct starpu_codelet copy_cl =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {data_cpy_func, NULL},
-	.cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS,
 	.cuda_funcs = {data_cpy_func, NULL},
-	.opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS,
 	.opencl_funcs = {data_cpy_func, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R},

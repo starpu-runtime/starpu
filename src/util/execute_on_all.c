@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,10 +44,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 	struct starpu_codelet wrapper_cl =
 	{
 		.where = where,
-		.cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS,
 		.cuda_funcs = {wrapper_func, NULL},
 		.cpu_funcs = {wrapper_func, NULL},
-		.opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS,
 		.opencl_funcs = {wrapper_func, NULL},
 		/* XXX we do not handle Cell .. */
 		.nbuffers = 0

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,10 +61,8 @@ static struct starpu_perfmodel malloc_pinned_model =
 
 static struct starpu_codelet malloc_pinned_cl =
 {
-	.cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS,
 	.cuda_funcs = {malloc_pinned_cuda_codelet, NULL},
 //#ifdef STARPU_USE_OPENCL
-//	.opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS,
 //	.opencl_funcs = {malloc_pinned_opencl_codelet, NULL},
 //#endif
 	.nbuffers = 0,
@@ -167,10 +165,8 @@ static struct starpu_perfmodel free_pinned_model =
 
 static struct starpu_codelet free_pinned_cl =
 {
-	.cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS,
 	.cuda_funcs = {free_pinned_cuda_codelet, NULL},
 //#ifdef STARPU_USE_OPENCL
-//	.opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS,
 //	.opencl_funcs = {free_pinned_opencl_codelet, NULL},
 //#endif
 	.nbuffers = 0,
