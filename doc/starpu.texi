@@ -11,7 +11,7 @@
 Copyright @copyright{} 2009--2011  Universit@'e de Bordeaux 1
 
 @noindent
-Copyright @copyright{} 2010, 2011  Centre National de la Recherche Scientifique
+Copyright @copyright{} 2010, 2011, 2012  Centre National de la Recherche Scientifique
 
 @noindent
 Copyright @copyright{} 2011 Institut National de Recherche en Informatique et Automatique
@@ -68,15 +68,15 @@ was last updated on @value{UPDATED}.
 * Using StarPU::                How to run StarPU application
 * Basic Examples::              Basic examples of the use of StarPU
 * Advanced Examples::           Advanced examples of the use of StarPU
-* StarPU Basic API::            The Basic API to use StarPU
-* StarPU Advanced API::         Advanced use of StarPU
 * Performance optimization::    How to optimize performance with StarPU
 * Performance feedback::        Performance debugging tools
 * Tips and Tricks::             Tips and tricks to know about
-* Configuring StarPU::          How to configure StarPU
 * StarPU MPI support::          How to combine StarPU with MPI
 * StarPU FFT support::          How to perform FFT computations with StarPU
 * C Extensions::                Easier StarPU programming with GCC
+* StarPU Basic API::            The Basic API to use StarPU
+* StarPU Advanced API::         Advanced use of StarPU
+* Configuring StarPU::          How to configure StarPU
 * Full source code for the 'Scaling a Vector' example::
 * GNU Free Documentation License::    How you can copy and share this manual.
 * Function Index::              Index of C functions.
@@ -132,24 +132,6 @@ was last updated on @value{UPDATED}.
 @include chapters/tips-tricks.texi
 
 @c ---------------------------------------------------------------------
-@c StarPU API
-@c ---------------------------------------------------------------------
-
-@include chapters/basic-api.texi
-
-@c ---------------------------------------------------------------------
-@c Advanced Topics
-@c ---------------------------------------------------------------------
-
-@include chapters/advanced-api.texi
-
-@c ---------------------------------------------------------------------
-@c Configuration options
-@c ---------------------------------------------------------------------
-
-@include chapters/configuration.texi
-
-@c ---------------------------------------------------------------------
 @c MPI support
 @c ---------------------------------------------------------------------
 
@@ -166,6 +148,24 @@ was last updated on @value{UPDATED}.
 @c ---------------------------------------------------------------------
 
 @include chapters/c-extensions.texi
+
+@c ---------------------------------------------------------------------
+@c StarPU API
+@c ---------------------------------------------------------------------
+
+@include chapters/basic-api.texi
+
+@c ---------------------------------------------------------------------
+@c Advanced Topics
+@c ---------------------------------------------------------------------
+
+@include chapters/advanced-api.texi
+
+@c ---------------------------------------------------------------------
+@c Configuration options
+@c ---------------------------------------------------------------------
+
+@include chapters/configuration.texi
 
 @c ---------------------------------------------------------------------
 @c Appendices
