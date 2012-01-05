@@ -56,7 +56,8 @@ static struct starpu_codelet memset_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_memset_codelet, NULL},
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 /*
@@ -106,7 +107,8 @@ static struct starpu_codelet check_content_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_check_content_codelet, NULL},
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
 

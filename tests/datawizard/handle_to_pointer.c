@@ -60,7 +60,8 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_task, NULL},
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 int main(int argc, char *argv[])
