@@ -74,14 +74,15 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle);
 	starpu_shutdown();
 
+	ret = EXIT_SUCCESS;
 	for (i = 0; i < size; i++) {
 		if (foo[i] != i*2) {
-			fprintf(stderr,"value %d is %d instead of %d\n", i, foo[i], 2*i);
-			return EXIT_FAILURE;
+			FPRINTF(stderr,"value %d is %d instead of %d\n", i, foo[i], 2*i);
+			ret = EXIT_FAILURE;
 		}
 	}
 
-        return EXIT_SUCCESS;
+        return ret;
 
 enodev:
 	starpu_data_unregister(handle);
