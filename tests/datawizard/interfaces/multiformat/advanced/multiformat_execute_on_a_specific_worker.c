@@ -83,7 +83,7 @@ create_and_submit_tasks(void)
 	else
 #endif
 	{
-		assert(0);
+		return -ENODEV;
 	}
 
 	return starpu_task_submit(task);
