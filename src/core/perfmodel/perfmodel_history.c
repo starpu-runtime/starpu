@@ -592,10 +592,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 	{
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			char debugpath[256];
-			starpu_perfmodel_debugfilepath(model, arch, debugpath, 256, nimpl);
-			model->per_arch[arch][nimpl].debug_file = fopen(debugpath, "a+");
-			STARPU_ASSERT(model->per_arch[arch][nimpl].debug_file);
+			starpu_perfmodel_debugfilepath(model, arch, model->per_arch[arch][nimpl].debug_path, 256, nimpl);
 		}
 	}
 #endif
@@ -1066,14 +1063,19 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 #ifdef STARPU_MODEL_DEBUG
 		struct starpu_task *task = j->task;
-		FILE * debug_file = per_arch_model->debug_file;
+		FILE *f = fopen(per_arch_model->debug_path, "a+");
+		if (f == NULL)
+		{
+			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
+			STARPU_ASSERT(0);
+		}
 
 		if (!j->footprint_is_computed)
 			(void) _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, nimpl, j), measured, task->predicted, task->predicted_transfer, cpuid);
+		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, nimpl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
 
 		for (i = 0; i < task->cl->nbuffers; i++)
@@ -1082,10 +1084,10 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 			STARPU_ASSERT(handle->ops);
 			STARPU_ASSERT(handle->ops->display);
-			handle->ops->display(handle, debug_file);
+			handle->ops->display(handle, f);
 		}
-		fprintf(debug_file, "\n");
-
+		fprintf(f, "\n");
+		fclose(f);
 #endif
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 	}
