@@ -98,7 +98,8 @@ Declare the given function as an implementation of @var{task} to run on
 
 Here is an example:
 
-@example
+@cartouche
+@smallexample
 #define __output  __attribute__ ((output))
 
 static void matmul (const float *A, const float *B,
@@ -125,7 +126,8 @@ matmul_cpu (const float *A, const float *B, __output float *C,
           C[j * nx + i] += A[j * nz + k] * B[k * nx + i];
       @}
 @}
-@end example
+@end smallexample
+@end cartouche
 
 @noindent
 A @code{matmult} task is defined; it has only one implementation,
@@ -135,7 +137,8 @@ buffer.
 
 CUDA and OpenCL implementations can be declared in a similar way:
 
-@example
+@cartouche
+@smallexample
 static void matmul_cuda (const float *A, const float *B, float *C,
                          size_t nx, size_t ny, size_t nz)
   __attribute__ ((task_implementation ("cuda", matmul)));
@@ -143,7 +146,8 @@ static void matmul_cuda (const float *A, const float *B, float *C,
 static void matmul_opencl (const float *A, const float *B, float *C,
                            size_t nx, size_t ny, size_t nz)
   __attribute__ ((task_implementation ("opencl", matmul)));
-@end example
+@end smallexample
+@end cartouche
 
 @noindent
 The CUDA and OpenCL implementations typically either invoke a kernel
@@ -151,7 +155,8 @@ written in CUDA or OpenCL (for similar code, @pxref{CUDA Kernel}, and
 @pxref{OpenCL Kernel}), or call a library function that uses CUDA or
 OpenCL under the hood, such as CUBLAS functions:
 
-@example
+@cartouche
+@smallexample
 static void
 matmul_cuda (const float *A, const float *B, float *C,
              size_t nx, size_t ny, size_t nz)
@@ -161,16 +166,19 @@ matmul_cuda (const float *A, const float *B, float *C,
                0.0f, C, 0);
   cudaStreamSynchronize (starpu_cuda_get_local_stream ());
 @}
-@end example
+@end smallexample
+@end cartouche
 
 A task can be invoked like a regular C function:
 
-@example
+@cartouche
+@smallexample
 matmul (&A[i * zdim * bydim + k * bzdim * bydim],
         &B[k * xdim * bzdim + j * bxdim * bzdim],
         &C[i * xdim * bydim + j * bxdim * bydim],
         bxdim, bydim, bzdim);
-@end example
+@end smallexample
+@end cartouche
 
 @noindent
 This leads to an @dfn{asynchronous invocation}, whereby @code{matmult}'s
@@ -225,7 +233,8 @@ supported C extensions.
 The code below illustrates how to define a task and its implementations
 in a way that allows it to be compiled without the GCC plug-in:
 
-@example
+@cartouche
+@smallexample
 /* The macros below abstract over the attributes specific to
    StarPU-GCC and the name of the CPU implementation.  */
 #ifdef STARPU_GCC_PLUGIN
@@ -279,7 +288,8 @@ main (int argc, char *argv[])
 
   return EXIT_SUCCESS;
 @}
-@end example
+@end smallexample
+@end cartouche
 
 Note that attributes such as @code{task} are simply ignored by GCC when
 the StarPU plug-in is not loaded, so the @code{__task} macro could be

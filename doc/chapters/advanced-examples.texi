@@ -57,7 +57,8 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 struct starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_funcs = @{ scal_cpu_func, scal_sse_func, NULL @},
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @};
 @end smallexample
 @end cartouche
@@ -142,7 +143,8 @@ struct starpu_codelet cl = @{
     .can_execute = can_execute,
     .cpu_funcs = @{ cpu_func, NULL @},
     .cuda_funcs = @{ scal_gpu_13, scal_gpu_20, NULL @},
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @};
 @end smallexample
 @end cartouche
@@ -339,6 +341,7 @@ struct starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_funcs = @{ cpu_mult, NULL @},
     .nbuffers = 3,
+    .modes = @{ STARPU_R, STARPU_R, STARPU_W @},
     /* for the scheduling policy to be able to use performance models */
     .model = &mult_perf_model
 @};
@@ -576,7 +579,8 @@ will be able to convert data from one data structure to the other when needed.
 Note that the heft scheduler is the only one optimized for this interface. The
 user must provide StarPU with conversion codelets :
 
-@example
+@cartouche
+@smallexample
 #define NX 1024
 struct point array_of_structs[NX];
 starpu_data_handle_t handle;
@@ -615,14 +619,16 @@ struct starpu_multiformat_data_interface_ops format_ops = @{
     ...
 @};
 starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
-@end example
+@end smallexample
+@end cartouche
 
 Kernels can be written almost as for any other interface. Note that
 STARPU_MULTIFORMAT_GET_PTR shall only be used for CPU kernels. CUDA kernels
 must use STARPU_MULTIFORMAT_GET_CUDA_PTR, and OpenCL kernels must use
 STARPU_MULTIFORMAT_GET_OPENCL_PTR. STARPU_MULTIFORMAT_GET_NX may be used in any
 kind of kernel.
-@example
+@cartouche
+@smallexample
 static void
 multiformat_scal_cpu_func(void *buffers[], void *args)
 @{
@@ -644,7 +650,8 @@ extern "C" void multiformat_scal_cuda_func(void *buffers[], void *_args)
 
 	...
 @}
-@end example
+@end smallexample
+@end cartouche
 
 A full example may be found in @code{examples/basic_examples/multiformat.c}.
 
@@ -659,7 +666,7 @@ renderbuffer objects into CUDA. To achieve this with StarPU, it simply needs to
 be given the CUDA pointer at registration, for instance:
 
 @cartouche
-@example
+@smallexample
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 		if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
 			break;
@@ -677,7 +684,7 @@ be given the CUDA pointer at registration, for instance:
 	cudaGraphicsUnmapResources(1, &resource, 0);
 
 	/* Now display it */
-@end example
+@end smallexample
 @end cartouche
 
 @node More examples

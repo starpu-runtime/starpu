@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -47,16 +47,20 @@ that this data will not be re-used by further tasks, it should advise StarPU to
 immediately replicate it to a desired list of memory nodes (given through a
 bitmask). This can be understood like the write-through mode of CPU caches.
 
-@example
+@cartouche
+@smallexample
 starpu_data_set_wt_mask(img_handle, 1<<0);
-@end example
+@end smallexample
+@end cartouche
 
 will for instance request to always automatically transfer a replicate into the
 main memory (node 0), as bit 0 of the write-through bitmask is being set.
 
-@example
+@cartouche
+@smallexample
 starpu_data_set_wt_mask(img_handle, ~0U);
-@end example
+@end smallexample
+@end cartouche
 
 will request to always automatically broadcast the updated data to all memory
 nodes.
@@ -265,10 +269,12 @@ dedicated CUDA stream for its computations. StarPU provides one by the use of
 @code{starpu_cuda_get_local_stream()} which should be used by all CUDA codelet
 operations. For instance:
 
-@example
+@cartouche
+@smallexample
 func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
-@end example
+@end smallexample
+@end cartouche
 
 StarPU already does appropriate calls for the CUBLAS library.
 

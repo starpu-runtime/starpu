@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -135,47 +135,59 @@ Variables to be monitored can be registered by calling the
 @code{starpu_top_add_data_boolean}, @code{starpu_top_add_data_integer},
 @code{starpu_top_add_data_float} functions, e.g.:
 
-@example
+@cartouche
+@smallexample
 starpu_top_data *data = starpu_top_add_data_integer("mynum", 0, 100, 1);
-@end example
+@end smallexample
+@end cartouche
 
 The application should then call @code{starpu_top_init_and_wait} to give its name
 and wait for StarPU-Top to get a start request from the user. The name is used
 by StarPU-Top to quickly reload a previously-saved layout of parameter display.
 
-@example
+@cartouche
+@smallexample
 starpu_top_init_and_wait("the application");
-@end example
+@end smallexample
+@end cartouche
 
 The new values can then be provided thanks to
 @code{starpu_top_update_data_boolean}, @code{starpu_top_update_data_integer},
 @code{starpu_top_update_data_float}, e.g.:
 
-@example
+@cartouche
+@smallexample
 starpu_top_update_data_integer(data, mynum);
-@end example
+@end smallexample
+@end cartouche
 
 Updateable parameters can be registered thanks to @code{starpu_top_register_parameter_boolean}, @code{starpu_top_register_parameter_integer}, @code{starpu_top_register_parameter_float}, e.g.:
 
-@example
+@cartouche
+@smallexample
 float alpha;
 starpu_top_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
-@end example
+@end smallexample
+@end cartouche
 
 @code{modif_hook} is a function which will be called when the parameter is being modified, it can for instance print the new value:
 
-@example
+@cartouche
+@smallexample
 void modif_hook(struct starpu_top_param *d) @{
     fprintf(stderr,"%s has been modified: %f\n", d->name, alpha);
 @}
-@end example
+@end smallexample
+@end cartouche
 
 Task schedulers should notify StarPU-Top when it has decided when a task will be
 scheduled, so that it can show it in its Gantt chart, for instance:
 
-@example
+@cartouche
+@smallexample
 starpu_top_task_prevision(task, workerid, begin, end);
-@end example
+@end smallexample
+@end cartouche
 
 Starting StarPU-Top and the application can be done two ways:
 
