@@ -412,13 +412,13 @@ be called from task callbacks. Upon successful completion, this function
 returns 0.
 @end deftypefun
 
-@deftypefun void STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
+@defmac STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
 @code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
 except that the code to be executed in a callback is directly provided as a
 macro parameter, and the data handle is automatically released after it. This
 permits to easily execute code which depends on the value of some registered
 data. This is non-blocking too and may be called from task callbacks.
-@end deftypefun
+@end defmac
 
 @deftypefun void starpu_data_release (starpu_data_handle_t @var{handle})
 This function releases the piece of data acquired by the application either by
@@ -589,13 +589,13 @@ todo
 todo
 @end deftypefun
 
-@deftypefun uintptr_t STARPU_VARIABLE_GET_PTR ({void *}@var{interface})
+@defmac STARPU_VARIABLE_GET_PTR ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun size_t STARPU_VARIABLE_GET_ELEMSIZE ({void *}@var{interface})
+@defmac STARPU_VARIABLE_GET_ELEMSIZE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
 @node Accessing Vector Data Interfaces
 @subsubsection Vector Data Interfaces
@@ -612,25 +612,25 @@ todo
 todo
 @end deftypefun
 
-@deftypefun uintptr_t STARPU_VECTOR_GET_PTR ({void *}@var{interface})
+@defmac STARPU_VECTOR_GET_PTR ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_VECTOR_GET_DEV_HANDLE ({void *}@var{interface})
+@defmac STARPU_VECTOR_GET_DEV_HANDLE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_VECTOR_GET_OFFSET ({void *}@var{interface})
+@defmac STARPU_VECTOR_GET_OFFSET ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_VECTOR_GET_NX ({void *}@var{interface})
+@defmac STARPU_VECTOR_GET_NX ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun size_t STARPU_VECTOR_GET_ELEMSIZE ({void *}@var{interface})
+@defmac STARPU_VECTOR_GET_ELEMSIZE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
 @node Accessing Matrix Data Interfaces
 @subsubsection Matrix Data Interfaces
@@ -655,33 +655,33 @@ todo
 todo
 @end deftypefun
 
-@deftypefun uintptr_t STARPU_MATRIX_GET_PTR ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_PTR ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_MATRIX_GET_DEV_HANDLE ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_DEV_HANDLE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_MATRIX_GET_OFFSET ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_OFFSET ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_MATRIX_GET_NX ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_NX ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_MATRIX_GET_NY ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_NY ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_MATRIX_GET_LD ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_LD ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun size_t STARPU_MATRIX_GET_ELEMSIZE ({void *}@var{interface})
+@defmac STARPU_MATRIX_GET_ELEMSIZE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
 @node Accessing Block Data Interfaces
 @subsubsection Block Data Interfaces
@@ -714,41 +714,41 @@ todo
 todo
 @end deftypefun
 
-@deftypefun uintptr_t STARPU_BLOCK_GET_PTR ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_PTR ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_BLOCK_GET_DEV_HANDLE ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_DEV_HANDLE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_BLOCK_GET_OFFSET ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_OFFSET ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_BLOCK_GET_NX ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_NX ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_BLOCK_GET_NY ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_NY ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_BLOCK_GET_NZ ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_NZ ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_BLOCK_GET_LDY ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_LDY ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_BLOCK_GET_LDZ ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_LDZ ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun size_t STARPU_BLOCK_GET_ELEMSIZE ({void *}@var{interface})
+@defmac STARPU_BLOCK_GET_ELEMSIZE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
 @node Accessing BCSR Data Interfaces
 @subsubsection BCSR Data Interfaces
@@ -821,33 +821,33 @@ todo
 todo
 @end deftypefun
 
-@deftypefun uint32_t STARPU_CSR_GET_NNZ ({void *}@var{interface})
+@defmac STARPU_CSR_GET_NNZ ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_CSR_GET_NROW ({void *}@var{interface})
+@defmac STARPU_CSR_GET_NROW ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uintptr_t STARPU_CSR_GET_NZVAL ({void *}@var{interface})
+@defmac STARPU_CSR_GET_NZVAL ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun {uint32_t *} STARPU_CSR_GET_COLIND ({void *}@var{interface})
+@defmac STARPU_CSR_GET_COLIND ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun {uint32_t *} STARPU_CSR_GET_ROWPTR ({void *}@var{interface})
+@defmac STARPU_CSR_GET_ROWPTR ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun uint32_t STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
+@defmac STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
-@deftypefun size_t STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
+@defmac STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
 todo
-@end deftypefun
+@end defmac
 
 @node Data Partition
 @section Data Partition
@@ -1045,7 +1045,7 @@ indicates that it is only available on Cell SPUs.
 This field has been made deprecated. One should use instead the
 @code{cpu_funcs} field.
 
-@item @code{cpu_funcs}
+@item @code{cpu_funcs} (optional)
 Is an array of function pointers to the CPU implementations of the codelet.
 It must be terminated by a NULL value.
 The functions prototype must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
@@ -1059,7 +1059,7 @@ the @code{where} field, it must be non-null otherwise.
 This field has been made deprecated. One should use instead the
 @code{cuda_funcs} field.
 
-@item @code{cuda_funcs}
+@item @code{cuda_funcs} (optional)
 Is an array of function pointers to the CUDA implementations of the codelet.
 It must be terminated by a NULL value.
 @emph{The functions must be host-functions written in the CUDA runtime
@@ -1072,7 +1072,7 @@ field, it must be non-null otherwise.
 This field has been made deprecated. One should use instead the
 @code{opencl_funcs} field.
 
-@item @code{opencl_funcs}
+@item @code{opencl_funcs} (optional)
 Is an array of function pointers to the OpenCL implementations of the codelet.
 It must be terminated by a NULL value.
 The functions prototype must be:
@@ -1084,7 +1084,7 @@ This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
 This field has been made deprecated. One should use instead the
 @code{gordon_funcs} field.
 
-@item @code{gordon_funcs}
+@item @code{gordon_funcs} (optional)
 Is an array of index of the Cell SPU implementations of the codelet within the
 Gordon library.
 It must be terminated by a NULL value.

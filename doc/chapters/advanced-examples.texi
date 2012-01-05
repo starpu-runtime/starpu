@@ -598,14 +598,16 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_opencl_cl = @{
     .where = STARPU_OPENCL,
     .opencl_funcs = @{ cpu_to_opencl_opencl_func, NULL @},
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @};
 
 void opencl_to_cpu_func(void *buffers[], void *args);
 struct starpu_codelet opencl_to_cpu_cl = @{
     .where = STARPU_CPU,
     .cpu_funcs = @{ opencl_to_cpu_func, NULL @},
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = @{ STARPU_RW @}
 @};
 #endif
 
@@ -667,23 +669,22 @@ be given the CUDA pointer at registration, for instance:
 
 @cartouche
 @smallexample
-	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
-		if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
-			break;
+for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+	if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
+		break;
 
-	cudaSetDevice(starpu_worker_get_devid(workerid));
-	cudaGraphicsResourceGetMappedPointer((void**)&output,
-                                     &num_bytes, resource);
-	starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
+cudaSetDevice(starpu_worker_get_devid(workerid));
+cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
+starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
 
-	starpu_insert_task(&cl, STARPU_RW, handle, 0);
+starpu_insert_task(&cl, STARPU_RW, handle, 0);
 
-	starpu_data_unregister(handle);
+starpu_data_unregister(handle);
 
-	cudaSetDevice(starpu_worker_get_devid(workerid));
-	cudaGraphicsUnmapResources(1, &resource, 0);
+cudaSetDevice(starpu_worker_get_devid(workerid));
+cudaGraphicsUnmapResources(1, &resource, 0);
 
-	/* Now display it */
+/* Now display it */
 @end smallexample
 @end cartouche
 

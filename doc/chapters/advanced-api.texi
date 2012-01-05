@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -50,13 +50,20 @@ See @code{src/datawizard/interfaces/vector_interface.c} for now.
 @deftp {Data Type} {struct starpu_multiformat_data_interface_ops}
 todo. The different fields are:
 @table @asis
-@item @code{cpu_elemsize} the size of each element on CPUs,
-@item @code{opencl_elemsize} the size of each element on OpenCL devices,
-@item @code{cuda_elemsize} the size of each element on CUDA devices,
-@item @code{cpu_to_opencl_cl} pointer to a codelet which converts from CPU to OpenCL
-@item @code{opencl_to_cpu_cl} pointer to a codelet which converts from OpenCL to CPU
-@item @code{cpu_to_cuda_cl} pointer to a codelet which converts from CPU to CUDA
-@item @code{cuda_to_cpu_cl} pointer to a codelet which converts from CUDA to CPU
+@item @code{cpu_elemsize}
+the size of each element on CPUs,
+@item @code{opencl_elemsize}
+the size of each element on OpenCL devices,
+@item @code{cuda_elemsize}
+the size of each element on CUDA devices,
+@item @code{cpu_to_opencl_cl}
+pointer to a codelet which converts from CPU to OpenCL
+@item @code{opencl_to_cpu_cl}
+pointer to a codelet which converts from OpenCL to CPU
+@item @code{cpu_to_cuda_cl}
+pointer to a codelet which converts from CPU to CUDA
+@item @code{cuda_to_cpu_cl}
+pointer to a codelet which converts from CUDA to CPU
 @end table
 @end deftp
 
@@ -78,11 +85,16 @@ the format.
 The task bundle structure describes a list of tasks that should be
 scheduled together whenever possible. The different fields are:
 @table @asis
-@item @code{mutex} Mutex protecting the bundle
-@item @code{int previous_workerid} last worker previously assigned a task from the bundle (-1 if none)
-@item @code{struct starpu_task_bundle_entry *list} list of tasks
-@item @code{int destroy} If this flag is set, the bundle structure is automatically free'd when the bundle is deinitialized.
-@item @code{int closed} Is the bundle closed ?
+@item @code{mutex}
+Mutex protecting the bundle
+@item @code{int previous_workerid}
+last worker previously assigned a task from the bundle (-1 if none)
+@item @code{struct starpu_task_bundle_entry *list}
+list of tasks
+@item @code{int destroy}
+If this flag is set, the bundle structure is automatically free'd when the bundle is deinitialized.
+@item @code{int closed}
+Is the bundle closed ?
 @end table
 @end deftp
 

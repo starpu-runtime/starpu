@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -25,12 +25,15 @@ be able to use FFTW.
 
 Some global array stores the instanciated objects:
 
+@cartouche
 @smallexample
 fftw_plan plan_cpu[STARPU_NMAXWORKERS];
 @end smallexample
+@end cartouche
 
 At initialisation time of libstarpu, the objects are initialized:
 
+@cartouche
 @smallexample
 int workerid;
 for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) @{
@@ -41,9 +44,11 @@ for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) @{
     @}
 @}
 @end smallexample
+@end cartouche
 
 And in the codelet body, they are used:
 
+@cartouche
 @smallexample
 static void fft(void *descr[], void *_args)
 @{
@@ -54,6 +59,7 @@ static void fft(void *descr[], void *_args)
     fftw_execute(plan, ...);
 @}
 @end smallexample
+@end cartouche
 
 Another way to go which may be needed is to execute some code from the workers
 themselves thanks to @code{starpu_execute_on_each_worker}. This may be required
@@ -61,6 +67,7 @@ by CUDA to behave properly due to threading issues. For instance, StarPU's
 @code{starpu_helper_cublas_init} looks like the following to call
 @code{cublasInit} from the workers themselves:
 
+@cartouche
 @smallexample
 static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 @{
@@ -72,3 +79,4 @@ void starpu_helper_cublas_init(void)
     starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 @}
 @end smallexample
+@end cartouche
