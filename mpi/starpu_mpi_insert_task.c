@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 /* Whether we are allowed to keep copies of remote data. Does not work
  * yet: the sender has to know whether the receiver has it, keeping it
  * in an array indexed by node numbers. */
-#define MPI_CACHE
+//#define MPI_CACHE
 
 #ifdef MPI_CACHE
 static struct starpu_htbl32_node **sent_data = NULL;
@@ -74,13 +74,41 @@ void _starpu_mpi_clear_cache_callback(void *callback_arg)
         free(clear_cache);
 }
 
+double _starpu_mpi_clear_cache_cost_function(struct starpu_task *task, unsigned nimpl)
+{
+	return 0;
+}
+
+static struct starpu_perfmodel _starpu_mpi_clear_cache_model =
+{
+	.cost_function = _starpu_mpi_clear_cache_cost_function,
+	.type = STARPU_COMMON,
+};
+
+static void _starpu_mpi_clear_cache_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+{
+}
+
+static struct starpu_codelet _starpu_mpi_clear_cache_codelet =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {_starpu_mpi_clear_cache_func, NULL},
+	.cuda_funcs = {_starpu_mpi_clear_cache_func, NULL},
+	.opencl_funcs = {_starpu_mpi_clear_cache_func, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
+	.model = &_starpu_mpi_clear_cache_model
+	// The model has a cost function which returns 0 so as to allow the codelet to be scheduled anywhere
+};
+
 void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank, int mode)
 {
         struct starpu_task *task = starpu_task_create();
-        task->cl = NULL;
 
-        task->buffers[0].handle = data_handle;
-        task->buffers[0].mode = STARPU_RW;
+	// We have a codelet with a empty function just to force the
+	// task being created to have a dependency on data_handle
+        task->cl = &_starpu_mpi_clear_cache_codelet;
+        task->handles[0] = data_handle;
 
         _starpu_mpi_clear_cache_t *clear_cache = malloc(sizeof(_starpu_mpi_clear_cache_t));
         clear_cache->data = data_handle;
