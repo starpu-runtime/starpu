@@ -46,6 +46,12 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workers, int nworkers, int task_tag);
 
+int* sched_ctx_hypervisor_get_sched_ctxs();
+
+int sched_ctx_hypervisor_get_nsched_ctxs();
+
+double sched_ctx_hypervisor_get_debit(unsigned sched_ctx);
+
 /* hypervisor policies */
 #define SIMPLE_POLICY 1
 
@@ -55,7 +61,8 @@ struct hypervisor_policy {
 	void (*add_sched_ctx)(unsigned sched_ctx);
 	void(*remove_sched_ctx)(unsigned sched_ctx);
 	void* (*ioctl)(unsigned sched_ctx, va_list varg_list, unsigned later);
-	void (*manage_idle_time)(unsigned req_sched_ctx, int *sched_ctxs, unsigned nsched_ctxs, int worker, double idle_time);
+	void (*manage_idle_time)(unsigned req_sched_ctx, int worker, double idle_time);
+	void (*manage_task_flux)(unsigned sched_ctx);
 	unsigned (*resize)(unsigned sched_ctx, int *sched_ctxs, unsigned nsched_ctxs);
 	void (*update_config)(void* old_config, void* new_config);
 };

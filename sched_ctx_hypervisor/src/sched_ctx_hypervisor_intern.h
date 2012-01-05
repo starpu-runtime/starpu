@@ -4,8 +4,11 @@ struct sched_ctx_wrapper {
 	unsigned sched_ctx;
 	void *config;
 	double current_idle_time[STARPU_NMAXWORKERS];
-	int tasks[STARPU_NMAXWORKERS];
+	int pushed_tasks[STARPU_NMAXWORKERS];
 	int poped_tasks[STARPU_NMAXWORKERS];
+	int temp_npushed_tasks;
+	int temp_npoped_tasks;
+
 };
 
 struct sched_ctx_hypervisor {

@@ -640,32 +640,23 @@ unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx_id)
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-void starpu_call_poped_task_cb(int workerid)
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id)
 {
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
-	unsigned i;
-	struct starpu_sched_ctx *sched_ctx = NULL;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		sched_ctx = worker->sched_ctx[i];
-		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->id != STARPU_NMAX_SCHED_CTXS
-		   && sched_ctx->criteria != NULL)
-			sched_ctx->criteria->poped_task_cb(sched_ctx->id, worker->workerid);
-	}
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	
+	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
+		   && sched_ctx->criteria != NULL)
+		sched_ctx->criteria->poped_task_cb(sched_ctx_id, worker->workerid);
 }
 
-void starpu_call_pushed_task_cb(int workerid)
+void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 {
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
-	unsigned i;
-	struct starpu_sched_ctx *sched_ctx = NULL;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		sched_ctx = worker->sched_ctx[i];
-		if(sched_ctx != NULL && sched_ctx->id != 0  && sched_ctx->criteria != NULL)
-			sched_ctx->criteria->pushed_task_cb(sched_ctx->id, workerid);
-	}
+	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	if(sched_ctx != NULL && sched_ctx_id != 0  && sched_ctx->criteria != NULL)
+			sched_ctx->criteria->pushed_task_cb(sched_ctx_id, workerid);
 
 }
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR

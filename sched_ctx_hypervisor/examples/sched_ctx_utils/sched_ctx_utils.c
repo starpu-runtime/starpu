@@ -86,6 +86,17 @@ void* start_bench(void *val){
 	for(i = 0; i < NSAMPLES; i++)
 		p->bench(p->mat[i], p->size, p->nblocks);
 	
+	/* if(p->ctx != 0) */
+	/* { */
+	/* 	pthread_mutex_lock(&mut); */
+	/* 	if(first){ */
+	/* 		sched_ctx_hypervisor_ignore_ctx(p->ctx); */
+	/* 		starpu_delete_sched_ctx(p->ctx, p->the_other_ctx); */
+	/* 	} */
+		
+	/* 	first = 0; */
+	/* 	pthread_mutex_unlock(&mut); */
+	/* } */
 	sched_ctx_hypervisor_stop_resize(p->the_other_ctx);
 	rv[p->id].flops /= NSAMPLES;
 	rv[p->id].avg_timing /= NSAMPLES;
@@ -255,7 +266,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	sched_ctx_hypervisor_ioctl(p1.ctx,
 				   HYPERVISOR_GRANULARITY, 2,
 				   HYPERVISOR_MIN_TASKS, 1000,
-				   HYPERVISOR_MIN_WORKERS, 12,
+				   HYPERVISOR_MIN_WORKERS, 6,
 				   HYPERVISOR_MAX_WORKERS, 12,
 				   NULL);
 
@@ -291,7 +302,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 				   HYPERVISOR_GRANULARITY, 2,
 				   HYPERVISOR_MIN_TASKS, 500,
 				   HYPERVISOR_MIN_WORKERS, 0,
-				   HYPERVISOR_MAX_WORKERS, 0,
+				   HYPERVISOR_MAX_WORKERS, 6,
 				   NULL);
 
 }
@@ -311,26 +322,29 @@ void set_hypervisor_conf(int event, int task_tag)
 							   HYPERVISOR_TIME_TO_APPLY, task_tag,
 							   NULL);
 
+				printf("%d: set max %d for tag %d\n", p2.ctx, 4, task_tag);
 				sched_ctx_hypervisor_ioctl(p1.ctx,
 							   HYPERVISOR_MIN_WORKERS, 6,
 							   HYPERVISOR_MAX_WORKERS, 8,
 							   HYPERVISOR_TIME_TO_APPLY, task_tag,
 							   NULL);
+				printf("%d: set max %d for tag %d\n", p1.ctx, 8, task_tag);
 				sched_ctx_hypervisor_resize(p1.ctx, task_tag);
 			}
 			if(it == 2)
 			{
 				sched_ctx_hypervisor_ioctl(p2.ctx,
-							   HYPERVISOR_MIN_WORKERS, 10,
+							   HYPERVISOR_MIN_WORKERS, 12,
 							   HYPERVISOR_MAX_WORKERS, 12,
 							   HYPERVISOR_TIME_TO_APPLY, task_tag,
 							   NULL);
-
+				printf("%d: set max %d for tag %d\n", p2.ctx, 12, task_tag);
 				sched_ctx_hypervisor_ioctl(p1.ctx,
 							   HYPERVISOR_MIN_WORKERS, 0,
 							   HYPERVISOR_MAX_WORKERS, 0,
 							   HYPERVISOR_TIME_TO_APPLY, task_tag,
 							   NULL);
+				printf("%d: set max %d for tag %d\n", p1.ctx, 0, task_tag);
 				sched_ctx_hypervisor_resize(p1.ctx, task_tag);
 			}
 			it++;
@@ -341,18 +355,23 @@ void set_hypervisor_conf(int event, int task_tag)
 	{
 		if(event == END_BENCH)
 		{
-			sched_ctx_hypervisor_ioctl(p1.ctx,
-						   HYPERVISOR_MIN_WORKERS, 10,
-						   HYPERVISOR_MAX_WORKERS, 12,
-						   HYPERVISOR_TIME_TO_APPLY, task_tag,
-						   NULL);
-			
-			sched_ctx_hypervisor_ioctl(p2.ctx,
-						   HYPERVISOR_MIN_WORKERS, 0,
-						   HYPERVISOR_MAX_WORKERS, 0,
-						   HYPERVISOR_TIME_TO_APPLY, task_tag,
-						   NULL);
-			sched_ctx_hypervisor_resize(p2.ctx, task_tag);
+			if(it2 < 3)
+			{
+				sched_ctx_hypervisor_ioctl(p1.ctx,
+							   HYPERVISOR_MIN_WORKERS, 6,
+							   HYPERVISOR_MAX_WORKERS, 12,
+							   HYPERVISOR_TIME_TO_APPLY, task_tag,
+							   NULL);
+				printf("%d: set max %d for tag %d\n", p1.ctx, 12, task_tag);
+				sched_ctx_hypervisor_ioctl(p2.ctx,
+							   HYPERVISOR_MIN_WORKERS, 0,
+							   HYPERVISOR_MAX_WORKERS, 0,
+							   HYPERVISOR_TIME_TO_APPLY, task_tag,
+							   NULL);
+				printf("%d: set max %d for tag %d\n", p2.ctx, 0, task_tag);
+				sched_ctx_hypervisor_resize(p2.ctx, task_tag);
+			}
+			it2++;
 		}
 	}
 
