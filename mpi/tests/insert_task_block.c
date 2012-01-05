@@ -48,7 +48,8 @@ struct starpu_codelet mycodelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
-        .nbuffers = 1
+        .nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 #define SIZE       6

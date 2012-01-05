@@ -31,7 +31,8 @@ struct starpu_codelet mycodelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
-        .nbuffers = 2
+        .nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_R}
 };
 
 #define X     4

@@ -43,7 +43,8 @@ struct starpu_codelet mycodelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
-        .nbuffers = 4
+        .nbuffers = 4,
+	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_W}
 };
 
 int main(int argc, char **argv)

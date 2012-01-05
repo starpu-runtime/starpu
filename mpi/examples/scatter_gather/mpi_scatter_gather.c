@@ -50,7 +50,8 @@ static struct starpu_codelet cl =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {cpu_codelet, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
 };
 
 int main(int argc, char **argv)
