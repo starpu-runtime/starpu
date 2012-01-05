@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@ static struct starpu_codelet cl11 =
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &chol_model_11
 };
 
@@ -43,6 +44,7 @@ static struct starpu_codelet cl21 =
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &chol_model_21
 };
 
@@ -56,6 +58,7 @@ static struct starpu_codelet cl22 =
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &chol_model_22
 };
 
