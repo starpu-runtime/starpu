@@ -56,9 +56,11 @@ static struct starpu_codelet cl =
 void compute_(int *F_NX, float *vector)
 {
         int NX = *F_NX;
-	
+	int ret;
+
 	/* Initialize StarPU with default configuration */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
 	 * identifier. When a task needs to access a piece of data, it should

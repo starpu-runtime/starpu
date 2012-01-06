@@ -86,7 +86,8 @@ int main(int argc, char **argv)
         int nz=4;
         float multiplier=1.0;
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
         block = (float*)malloc(nx*ny*nz*sizeof(float));
         assert(block);
@@ -104,7 +105,8 @@ int main(int argc, char **argv)
         ret = execute_on(STARPU_CPU, cpu_codelet, block, nx, ny, nz, 1.0);
         if (!ret) multiplier *= 1.0;
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/basic_examples/block_opencl_kernel.cl", &opencl_code, NULL);
+        ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/block_opencl_kernel.cl", &opencl_code, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
         ret = execute_on(STARPU_OPENCL, opencl_codelet, block, nx, ny, nz, 2.0);
         if (!ret) multiplier *= 2.0;
 #endif

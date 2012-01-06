@@ -100,8 +100,9 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
 
 #ifdef STARPU_USE_OPENCL
-	starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
-					    &opencl_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"

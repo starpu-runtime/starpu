@@ -270,7 +270,10 @@ int
 main(void)
 {
 #ifdef STARPU_USE_CPU
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ncpu = starpu_cpu_worker_get_count();
 #ifdef STARPU_USE_CUDA
@@ -284,10 +287,12 @@ main(void)
 		return 77;
 
 #ifdef STARPU_USE_OPENCL
-	starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_opencl_kernel.cl",
-					    &opencl_program, NULL);
-	starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_conversion_codelets_opencl_kernel.cl", 
-		&opencl_conversion_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_opencl_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_conversion_codelets_opencl_kernel.cl", 
+						  &opencl_conversion_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 	init_problem_data();
 
@@ -312,6 +317,6 @@ main(void)
 #else
 	/* Without the CPU, there is no point in using the multiformat
 	 * interface, so this test is pointless. */
-	return EXIT_SUCCESS;
+	return 77;
 #endif
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,11 +65,13 @@ int main(int argc, char **argv)
 {
 	struct starpu_task *task;
 	struct params params = {1, 2.0f};
+	int ret;
 
 	/* initialize StarPU : passing a NULL argument means that we use
  	* default configuration for the scheduling policies and the number of
 	* processors/accelerators */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* create a new task that is non-blocking by default : the task is not
 	 * submitted to the scheduler until the starpu_task_submit function is
@@ -97,7 +99,7 @@ int main(int argc, char **argv)
 	 * argument (cl_arg) is NOT a valid synchronization medium! */
 	task->cl_arg = &params;
 	task->cl_arg_size = sizeof(params);
-		
+
 	/* once the task has been executed, callback_func(0x42)
 	 * will be called on a CPU */
 	task->callback_func = callback_func;
@@ -105,13 +107,13 @@ int main(int argc, char **argv)
 
 	/* starpu_task_submit will be a blocking call */
 	task->synchronous = 1;
-	
+
 	/* submit the task to StarPU */
 	starpu_task_submit(task);
 
 	/* destroy the task */
 	starpu_task_destroy(task);
-	
+
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it
 	 * is called, it is not possible to submit tasks anymore, and the user
