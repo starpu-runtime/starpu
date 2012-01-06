@@ -135,7 +135,8 @@ int main(int argc, char **argv)
 	/*
 	 *	Launch StarPU
 	 */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/*
 	 *	Create a 3-band sparse matrix as input example

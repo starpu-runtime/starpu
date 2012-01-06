@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,12 +110,14 @@ struct starpu_codelet cl =
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	srand ( time(NULL) );
 	/* initialize StarPU : passing a NULL argument means that we use
  	* default configuration for the scheduling policies and the number of
 	* processors/accelerators */
-	starpu_init(NULL);
-
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/*init starpu_top*/
 	struct starpu_top_data * loop_count =

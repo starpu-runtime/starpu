@@ -271,10 +271,13 @@ int main(int argc, char **argv)
 {
 	struct timeval start;
 	struct timeval end;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_helper_cublas_init();
 
 	init_problem_data();

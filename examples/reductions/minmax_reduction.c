@@ -127,8 +127,10 @@ static struct starpu_codelet minmax_codelet =
 int main(int argc, char **argv)
 {
 	unsigned long i;
+	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned long nelems = nblocks*entries_per_bock;
 	size_t size = nelems*sizeof(TYPE);

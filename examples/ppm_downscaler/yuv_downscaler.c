@@ -108,6 +108,8 @@ static struct starpu_data_filter filter_uv =
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	assert(HEIGHT % (2*BLOCK_HEIGHT) == 0);
 	assert(HEIGHT % FACTOR == 0);
 	
@@ -150,7 +152,8 @@ int main(int argc, char **argv)
 	starpu_data_handle_t *new_frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
 	starpu_data_handle_t *new_frame_v_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* register and partition all layers */
 	unsigned frame;

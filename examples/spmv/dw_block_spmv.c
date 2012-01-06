@@ -274,6 +274,8 @@ void print_results(void)
 int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
 {
+	int ret;
+
 	if (argc < 2)
 	{
 		FPRINTF(stderr, "usage : %s filename [tile size]\n", argv[0]);
@@ -291,7 +293,8 @@ int main(__attribute__ ((unused)) int argc,
 	inputfile = argv[1];
 
 	/* start the runtime */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	sem_init(&sem, 0, 0U);
 

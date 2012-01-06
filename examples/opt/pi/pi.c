@@ -83,10 +83,12 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	unsigned i;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Initialize the random number generator */
 	unsigned *sobol_qrng_directions = malloc(n_dimensions*n_directions*sizeof(unsigned));

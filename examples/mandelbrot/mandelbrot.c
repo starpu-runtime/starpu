@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -470,6 +470,8 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	parse_args(argc, argv);
 
 	/* We don't use CUDA in that example */
@@ -480,7 +482,8 @@ int main(int argc, char **argv)
 	if (use_spmd)
 		conf.sched_policy_name = "pgreedy";
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned *buffer;
 	starpu_malloc((void **)&buffer, height*width*sizeof(unsigned));

@@ -74,6 +74,7 @@ int main(int argc, char **argv)
 {
         int *block,n=0;
         int i, j, k;
+	int ret;
 
         block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
         assert(block);
@@ -102,10 +103,13 @@ int main(int argc, char **argv)
 		.nbuffers = 1,
                 .modes = {STARPU_RW}
 	};
-        starpu_init(NULL);
+
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_kernel.cl", &opencl_program, NULL);
+        ret = starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_kernel.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
         /* Declare data to StarPU */

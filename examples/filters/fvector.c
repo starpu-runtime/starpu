@@ -41,6 +41,7 @@ int main(int argc, char **argv)
         int vector[NX];
         starpu_data_handle_t handle;
         int factor=1;
+	int ret;
 
         struct starpu_codelet cl =
 	{
@@ -55,7 +56,8 @@ int main(int argc, char **argv)
         for(i=0 ; i<NX ; i++) FPRINTF(stderr, "%5d ", vector[i]);
         FPRINTF(stderr,"\n");
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
 	starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));

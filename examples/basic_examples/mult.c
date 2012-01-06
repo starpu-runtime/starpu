@@ -335,8 +335,11 @@ static void launch_tasks(void)
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
 {
+	int ret;
+
 	/* start the runtime */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize matrices A, B and C and register them to StarPU */
 	init_problem_data();

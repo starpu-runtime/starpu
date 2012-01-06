@@ -88,8 +88,11 @@ static struct starpu_codelet axpy_cl =
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	/* Initialize StarPU */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
 

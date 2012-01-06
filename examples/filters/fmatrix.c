@@ -45,6 +45,7 @@ int main(int argc, char **argv)
 {
 	unsigned i, j, n=1;
         int matrix[NX*NY];
+	int ret;
 
         FPRINTF(stderr,"IN  Matrix: \n");
         for(j=0 ; j<NY ; j++)
@@ -66,7 +67,9 @@ int main(int argc, char **argv)
                 .nbuffers = 1,
 		.modes = {STARPU_RW}
         };
-        starpu_init(NULL);
+
+        ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));

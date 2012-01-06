@@ -314,10 +314,12 @@ static struct starpu_codelet redux_codelet =
 int main(int argc, char **argv)
 {
 	unsigned i;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Launch a Random Number Generator (RNG) on each worker */
 	starpu_execute_on_each_worker(init_rng, NULL, STARPU_CPU|STARPU_CUDA);
