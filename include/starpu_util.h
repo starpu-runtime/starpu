@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,6 +45,13 @@ extern "C"
 #endif
 
 #define STARPU_ABORT()		abort()
+
+#define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%s>\n", message, strerror(err)); \
+			STARPU_ASSERT(0); }}
+#define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%s>\n", message, strerror(err)); \
+			STARPU_ASSERT(0); }}
 
 #ifdef __GNUC__
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
