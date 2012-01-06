@@ -24,7 +24,7 @@ static struct starpu_opencl_program opencl_program;
 void
 test_csr_opencl_func(void *buffers[], void *args)
 {
-	int id, devid;
+	int id, devid, ret;
 	int factor = *(int *) args;
 
         cl_int             err;
@@ -32,7 +32,8 @@ test_csr_opencl_func(void *buffers[], void *args)
 	cl_command_queue   queue;
 	cl_event           event;
 
-	starpu_opencl_load_opencl_from_file(KERNEL_LOCATION, &opencl_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION, &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
 	uint32_t nnz = STARPU_CSR_GET_NNZ(buffers[0]);
 	cl_mem nzval = (cl_mem)STARPU_CSR_GET_NZVAL(buffers[0]);

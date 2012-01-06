@@ -16,6 +16,8 @@
 #ifndef TEST_INTERFACES_H
 #define TEST_INTERFACES_H
 
+#include "../../helper.h"
+
 struct test_config
 {
 	/* A pointer to a registered handle */

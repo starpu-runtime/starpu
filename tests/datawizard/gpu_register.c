@@ -52,7 +52,8 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 
 #ifdef STARPU_USE_OPENCL
-	starpu_opencl_load_opencl_from_file("tests/datawizard/scal_opencl.cl", &opencl_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/scal_opencl.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
 	n = starpu_worker_get_count();

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +14,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
 #include <starpu_opencl.h>
+#include "../../../helper.h"
 
 #define KERNEL_LOCATION "tests/datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl"
 static struct starpu_opencl_program opencl_conversion_program;
@@ -22,7 +25,7 @@ static struct starpu_opencl_program opencl_conversion_program;
 void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 {
 	(void) args;
-	int id, devid;
+	int id, devid, ret;
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
@@ -35,9 +38,10 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	starpu_opencl_load_opencl_from_file(KERNEL_LOCATION,
-					    &opencl_conversion_program,
-					    NULL);
+	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION,
+						  &opencl_conversion_program,
+						  NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
 	err = starpu_opencl_load_kernel(&kernel,
 					&queue,

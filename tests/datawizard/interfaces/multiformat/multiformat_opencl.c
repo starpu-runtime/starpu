@@ -23,7 +23,7 @@ static struct starpu_opencl_program multiformat_program;
 
 void test_multiformat_opencl_func(void *buffers[], void *args)
 {
-	int id, devid, factor;
+	int id, devid, factor, ret;
 	unsigned int n;
 
         cl_int             err;
@@ -33,9 +33,10 @@ void test_multiformat_opencl_func(void *buffers[], void *args)
 	cl_context         context;
 	cl_mem             val, fail;
 
-	starpu_opencl_load_opencl_from_file(KERNEL_LOCATION,
-					    &multiformat_program,
-					    NULL);
+	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION,
+						  &multiformat_program,
+						  NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
 	factor = *(int *)args;
 	n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
