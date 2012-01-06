@@ -276,6 +276,7 @@ static struct starpu_codelet cl =
 
 static void launch_tasks(void)
 {
+	int ret;
 	/* partition the work into slices */
 	unsigned taskx, tasky;
 
@@ -327,7 +328,8 @@ static void launch_tasks(void)
 			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, taskx, tasky);
 
 			/* this is not a blocking call since task->synchronous = 0 */
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 }

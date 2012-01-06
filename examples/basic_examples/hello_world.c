@@ -109,7 +109,8 @@ int main(int argc, char **argv)
 	task->synchronous = 1;
 
 	/* submit the task to StarPU */
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* destroy the task */
 	starpu_task_destroy(task);

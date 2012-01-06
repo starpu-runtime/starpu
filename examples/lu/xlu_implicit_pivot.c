@@ -30,6 +30,8 @@ static void create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 					unsigned k, unsigned i,
 					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl_pivot;
@@ -43,13 +45,16 @@ static void create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 					unsigned k, struct piv_s *piv_description,
 					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl11_pivot;
@@ -63,14 +68,16 @@ static void create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	if (!no_prio)
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
 		starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
-	
+
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
@@ -80,12 +87,14 @@ static void create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
 				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl21;
@@ -97,12 +106,14 @@ static void create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
 				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl22;
@@ -115,7 +126,8 @@ static void create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 /*

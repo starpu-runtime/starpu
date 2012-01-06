@@ -98,11 +98,14 @@ static void create_task_grid(unsigned iter)
 static void start_task_grid(unsigned iter)
 {
 	unsigned i;
+	int ret;
 
 	/* FPRINTF(stderr, "start grid %d ni %d...\n", iter, ni); */
 
-	for (i = 0; i < ni; i++)
-		starpu_task_submit(tasks[iter][i]);
+	for (i = 0; i < ni; i++) {
+		ret = starpu_task_submit(tasks[iter][i]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
 }
 
 void cpu_codelet(void *descr[], void *_args __attribute__((unused)))

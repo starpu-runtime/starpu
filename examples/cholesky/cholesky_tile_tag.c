@@ -102,6 +102,8 @@ static struct starpu_codelet cl21 =
 
 static void create_task_21(unsigned k, unsigned j)
 {
+	int ret;
+
 	struct starpu_task *task = create_task(TAG21(k, j));
 
 	task->cl = &cl21;	
@@ -125,7 +127,8 @@ static void create_task_21(unsigned k, unsigned j)
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static struct starpu_codelet cl22 =
@@ -149,6 +152,8 @@ static struct starpu_codelet cl22 =
 
 static void create_task_22(unsigned k, unsigned i, unsigned j)
 {
+	int ret;
+
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
@@ -175,7 +180,8 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 
@@ -187,6 +193,8 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 static void cholesky_no_stride(void)
 {
+	int ret;
+
 	struct timeval start;
 	struct timeval end;
 
@@ -205,7 +213,8 @@ static void cholesky_no_stride(void)
 		}
 		else
 		{
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 		
 		for (j = k+1; j<nblocks; j++)
@@ -222,7 +231,8 @@ static void cholesky_no_stride(void)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));

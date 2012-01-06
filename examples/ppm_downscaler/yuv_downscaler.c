@@ -224,7 +224,8 @@ int main(int argc, char **argv)
 			/* output */
 			task->handles[1] = starpu_data_get_sub_data(new_frame_y_handle[frame], 1, blocky);
 
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		unsigned blocku;
@@ -239,7 +240,8 @@ int main(int argc, char **argv)
 			/* output */
 			task->handles[1] = starpu_data_get_sub_data(new_frame_u_handle[frame], 1, blocku);
 
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		unsigned blockv;
@@ -254,7 +256,8 @@ int main(int argc, char **argv)
 			/* output */
 			task->handles[1] = starpu_data_get_sub_data(new_frame_v_handle[frame], 1, blockv);
 
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 

@@ -89,6 +89,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned nj, unsigned iter)
 static void create_task_grid(unsigned iter)
 {
 	unsigned i, j;
+	int ret;
 
 /*	FPRINTF(stderr, "start iter %d...\n", iter); */
 	callback_cnt = (ni*nj);
@@ -110,7 +111,8 @@ static void create_task_grid(unsigned iter)
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */
 		express_deps(i, j, iter);
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	/* create entry tasks */
@@ -126,7 +128,8 @@ static void create_task_grid(unsigned iter)
 		/* this is an entry task */
 		task->tag_id = TAG(0, j, iter);
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 }

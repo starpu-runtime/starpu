@@ -156,6 +156,7 @@ void launch_spmv_codelets(void)
 {
 	struct starpu_task *task_tab;
 	uint8_t *is_entry_tab;
+	int ret;
 
 	/* we call one codelet per block */
 	unsigned nblocks = starpu_bcsr_get_nnz(sparse_matrix); 
@@ -246,7 +247,8 @@ void launch_spmv_codelets(void)
 			nchains++;
 		}
 
-		starpu_task_submit(&task_tab[task]);
+		ret = starpu_task_submit(&task_tab[task]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);

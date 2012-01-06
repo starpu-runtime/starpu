@@ -212,7 +212,8 @@ int main(int argc, char **argv)
 		if(number_of_addition==42)
 			starpu_top_debug_lock("debug stop point because of 42 !");
 
-		starpu_task_submit(task[i]);
+		ret = starpu_task_submit(task[i]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it

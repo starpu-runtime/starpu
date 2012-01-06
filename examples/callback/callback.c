@@ -40,10 +40,14 @@ struct starpu_codelet cl =
 
 void callback_func(void *callback_arg)
 {
+	int ret;
+
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
 	task->handles[0] = handle;
-	starpu_task_submit(task);
+
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 int main(int argc, char **argv)
@@ -62,7 +66,8 @@ int main(int argc, char **argv)
 	task->callback_arg = NULL;
 	task->handles[0] = handle;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_task_wait_for_all();
 	starpu_data_unregister(handle);

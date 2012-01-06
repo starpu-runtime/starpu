@@ -298,6 +298,7 @@ void callback(void *arg)
 
 void create_starpu_task(unsigned iter)
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &band_filter_cl;
@@ -307,7 +308,8 @@ void create_starpu_task(unsigned iter)
 	task->callback_func = callback;
 	task->callback_arg = NULL;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void init_problem(void)

@@ -74,6 +74,7 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 
 static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
+	int ret;
 	struct timeval start;
 	struct timeval end;
 
@@ -90,21 +91,23 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	{
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
-                starpu_insert_task(&cl11,
-                                   STARPU_PRIORITY, prio_level,
-                                   STARPU_RW, sdatakk,
-				   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
-                                   0);
+                ret = starpu_insert_task(&cl11,
+					 STARPU_PRIORITY, prio_level,
+					 STARPU_RW, sdatakk,
+					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 		for (j = k+1; j<nblocks; j++)
 		{
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
-                        starpu_insert_task(&cl21,
-                                           STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
-                                           STARPU_R, sdatakk,
-                                           STARPU_RW, sdatakj,
-                                           0);
+                        ret = starpu_insert_task(&cl21,
+						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
+						 STARPU_R, sdatakk,
+						 STARPU_RW, sdatakj,
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 			for (i = k+1; i<nblocks; i++)
 			{
@@ -112,13 +115,14 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                                 {
 					starpu_data_handle_t sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
 					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
-					
-					starpu_insert_task(&cl22,
-                                                           STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
-                                                           STARPU_R, sdataki,
-                                                           STARPU_R, sdatakj,
-                                                           STARPU_RW, sdataij,
-                                                           0);
+
+					ret = starpu_insert_task(&cl22,
+								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+								 STARPU_R, sdataki,
+								 STARPU_R, sdatakj,
+								 STARPU_RW, sdataij,
+								 0);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
                                 }
 			}
 		}

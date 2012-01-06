@@ -519,6 +519,7 @@ int main(int argc, char **argv)
 
 	while (niter-- != 0)
 	{
+		int ret;
 		double stepX = (rightX - leftX)/width;
 		double stepY = (topY - bottomY)/height;
 
@@ -533,14 +534,15 @@ int main(int argc, char **argv)
 			per_block_cnt[iby] = 0;
 			int *pcnt = &per_block_cnt[iby];
 
-			starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
-				STARPU_VALUE, &iby, sizeof(iby),
-				STARPU_VALUE, &block_size, sizeof(block_size),
-				STARPU_VALUE, &stepX, sizeof(stepX),
-				STARPU_VALUE, &stepY, sizeof(stepY),
-				STARPU_W, block_handles[iby],
-				STARPU_VALUE, &pcnt, sizeof(int *),
-				0);
+			ret = starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
+						 STARPU_VALUE, &iby, sizeof(iby),
+						 STARPU_VALUE, &block_size, sizeof(block_size),
+						 STARPU_VALUE, &stepX, sizeof(stepX),
+						 STARPU_VALUE, &stepY, sizeof(stepY),
+						 STARPU_W, block_handles[iby],
+						 STARPU_VALUE, &pcnt, sizeof(int *),
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 		}
 
 		for (iby = 0; iby < nblocks; iby++)

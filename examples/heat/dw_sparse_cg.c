@@ -132,6 +132,8 @@ void init_problem(void)
 
 void init_cg(struct cg_problem *problem) 
 {
+	int ret;
+
 	problem->i = 0;
 
 	/* r = b  - A x */
@@ -181,9 +183,12 @@ void init_cg(struct cg_problem *problem)
 	starpu_tag_declare_deps((starpu_tag_t)3UL, 1, (starpu_tag_t)2UL);
 
 	/* launch the computation now */
-	starpu_task_submit(task1);
-	starpu_task_submit(task2);
-	starpu_task_submit(task3);
+	ret = starpu_task_submit(task1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task2);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task3);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 /*
@@ -193,6 +198,8 @@ void init_cg(struct cg_problem *problem)
 
 void launch_new_cg_iteration(struct cg_problem *problem)
 {
+	int ret;
+
 	unsigned iter = problem->i;
 
 	unsigned long long maskiter = (iter*1024);
@@ -296,12 +303,18 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task9->callback_arg = problem;
 	
 	/* launch the computation now */
-	starpu_task_submit(task4);
-	starpu_task_submit(task5);
-	starpu_task_submit(task6);
-	starpu_task_submit(task7);
-	starpu_task_submit(task8);
-	starpu_task_submit(task9);
+	ret = starpu_task_submit(task4);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task5);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task6);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task7);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task8);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	ret = starpu_task_submit(task9);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 void iteration_cg(void *problem)

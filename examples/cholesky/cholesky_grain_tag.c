@@ -85,6 +85,8 @@ static struct starpu_codelet cl21 =
 
 static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
 {
+	int ret;
+
 	struct starpu_task *task = create_task(TAG21_AUX(k, j, reclevel));
 
 	task->cl = &cl21;
@@ -108,7 +110,8 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 1, TAG11_AUX(k, reclevel));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static struct starpu_codelet cl22 =
@@ -125,6 +128,8 @@ static struct starpu_codelet cl22 =
 
 static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {
+	int ret;
+
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22_AUX(k, i, j, reclevel));
@@ -151,7 +156,8 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 2, TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 
@@ -163,6 +169,8 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 
 static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned reclevel)
 {
+	int ret;
+
 	/* create a new codelet */
 	struct starpu_task *entry_task = NULL;
 
@@ -201,7 +209,8 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		}
 		else
 		{
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		for (j = k+1; j<nblocks; j++)
@@ -217,7 +226,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 	}
 
 	/* schedule the codelet */
-	int ret = starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		FPRINTF(stderr, "No worker may execute this task\n");

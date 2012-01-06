@@ -140,7 +140,8 @@ int main(int argc, char **argv)
 	task->cl_arg_size = sizeof(factor);
 
 	/* execute the task on any eligible computational ressource */
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */

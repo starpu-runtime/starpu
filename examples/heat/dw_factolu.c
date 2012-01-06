@@ -91,6 +91,7 @@ static struct starpu_codelet cl22 =
 
 void dw_callback_v2_codelet_update_u22(void *argcb)
 {
+	int ret;
 	cl_args *args = argcb;	
 
 	unsigned k = args->k;
@@ -122,7 +123,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		if (!no_prio)
 			task->priority = STARPU_MAX_PRIO;
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
@@ -154,7 +156,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task21->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->i);
 					task21->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 
-					starpu_task_submit(task21);
+					ret = starpu_task_submit(task21);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 		}
 	}
@@ -188,7 +191,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task12->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u12a->i, u12a->i);
 					task12->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u12a->k, u12a->i);
 
-					starpu_task_submit(task12);
+					ret = starpu_task_submit(task12);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 		}
 	}
@@ -198,6 +202,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 void dw_callback_v2_codelet_update_u12(void *argcb)
 {
+	int ret;
 	cl_args *args = argcb;	
 
 	/* now launch the update of LU22 */
@@ -244,7 +249,8 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				if (!no_prio && (slicey == i+1))
 					task22->priority = STARPU_MAX_PRIO;
 
-				starpu_task_submit(task22);
+				ret = starpu_task_submit(task22);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
 	}
@@ -252,6 +258,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 
 void dw_callback_v2_codelet_update_u21(void *argcb)
 {
+	int ret;
 	cl_args *args = argcb;	
 
 	/* now launch the update of LU22 */
@@ -299,7 +306,8 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				if (!no_prio && (slicex == i+1))
 					task22->priority = STARPU_MAX_PRIO;
 
-				starpu_task_submit(task22);
+				ret = starpu_task_submit(task22);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
 	}
@@ -307,6 +315,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 
 void dw_callback_v2_codelet_update_u11(void *argcb)
 {
+	int ret;
 	/* in case there remains work, go on */
 	cl_args *args = argcb;
 
@@ -368,7 +377,8 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task12->priority = STARPU_MAX_PRIO;
 
-					starpu_task_submit(task12);
+					ret = starpu_task_submit(task12);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 			}
 
@@ -407,7 +417,8 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task21->priority = STARPU_MAX_PRIO;
 
-					starpu_task_submit(task21);
+					ret = starpu_task_submit(task21);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 			}
 		}
@@ -423,6 +434,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 
 void dw_callback_codelet_update_u11(void *argcb)
 {
+	int ret;
 	/* in case there remains work, go on */
 	cl_args *args = argcb;
 
@@ -484,8 +496,10 @@ void dw_callback_codelet_update_u11(void *argcb)
 			task21->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->i);
 			task21->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 
-			starpu_task_submit(task12);
-			starpu_task_submit(task21);
+			ret = starpu_task_submit(task12);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+			ret = starpu_task_submit(task21);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 }
@@ -493,6 +507,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 
 void dw_callback_codelet_update_u22(void *argcb)
 {
+	int ret;
 	cl_args *args = argcb;	
 
 	if (STARPU_ATOMIC_ADD(args->remaining, (-1)) == 0)
@@ -516,7 +531,8 @@ void dw_callback_codelet_update_u22(void *argcb)
 		u11arg->nblocks = args->nblocks;
 
 		/* schedule the codelet */
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	free(args);
@@ -524,6 +540,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 
 void dw_callback_codelet_update_u12_21(void *argcb)
 {
+	int ret;
 	cl_args *args = argcb;	
 
 	if (STARPU_ATOMIC_ADD(args->remaining, -1) == 0)
@@ -562,7 +579,8 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				task22->handles[2] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->j);
 
 				/* schedule that codelet */
-				starpu_task_submit(task22);
+				ret = starpu_task_submit(task22);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
 	}
@@ -576,6 +594,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 
 void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 {
+	int ret;
 	cl_args *args = malloc(sizeof(cl_args));
 
 	args->i = 0;
@@ -594,7 +613,8 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, 0, 0);
 
 	/* schedule the codelet */
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
 	pthread_mutex_lock(&mutex);

@@ -78,6 +78,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned iter)
 static void create_task_grid(unsigned iter)
 {
 	int i;
+	int ret;
 
 /*	FPRINTF(stderr, "start iter %d ni %d...\n", iter, ni); */
 
@@ -95,7 +96,8 @@ static void create_task_grid(unsigned iter)
 		if (i != 1)
 			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 }

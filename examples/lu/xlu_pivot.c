@@ -51,6 +51,8 @@ static void create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 					unsigned k, unsigned i,
 					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct starpu_task *task = create_task(PIVOT(k, i));
 
 	task->cl = &cl_pivot;
@@ -91,7 +93,8 @@ static void create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 		}
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
@@ -123,6 +126,8 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, un
 static void create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
 		starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 /*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
 	struct starpu_task *task = create_task(TAG12(k, j));
@@ -153,12 +158,15 @@ static void create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
 				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct starpu_task *task = create_task(TAG21(k, i));
 
 	task->cl = &cl21;
@@ -177,12 +185,15 @@ static void create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 	/* enforce dependencies ... */
 	starpu_tag_declare_deps(TAG21(k, i), 1, PIVOT(k, i));
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
 				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 /*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
@@ -211,7 +222,8 @@ static void create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsig
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 /*
@@ -223,6 +235,8 @@ static double dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 					unsigned nblocks,
 					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct timeval start;
 	struct timeval end;
 
@@ -242,7 +256,8 @@ static double dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		}
 		else
 		{
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		for (i = 0; i < nblocks; i++)
@@ -282,7 +297,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	int ret = starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		FPRINTF(stderr, "No worker may execute this task\n");

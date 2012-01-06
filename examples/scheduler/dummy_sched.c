@@ -138,7 +138,8 @@ int main(int argc, char **argv)
 		task->cl = &dummy_codelet;
 		task->cl_arg = NULL;
 	
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_task_wait_for_all();

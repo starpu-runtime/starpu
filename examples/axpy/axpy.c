@@ -149,7 +149,8 @@ int main(int argc, char **argv)
 		task->handles[0] = starpu_data_get_sub_data(handle_x, 1, b);
 		task->handles[1] = starpu_data_get_sub_data(handle_y, 1, b);
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_task_wait_for_all();

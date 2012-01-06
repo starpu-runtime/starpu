@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -91,6 +91,8 @@ static struct starpu_codelet cl12 =
 
 static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned tag_prefix)
 {
+	int ret;
+
 /*	FPRINTF(stdout, "task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
 	struct starpu_task *task = create_task(TAG12(k, i, tag_prefix));
@@ -116,7 +118,8 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static struct starpu_codelet cl21 =
@@ -133,6 +136,7 @@ static struct starpu_codelet cl21 =
 
 static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned tag_prefix)
 {
+	int ret;
 	struct starpu_task *task = create_task(TAG21(k, j, tag_prefix));
 
 	task->cl = &cl21;
@@ -156,7 +160,8 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static struct starpu_codelet cl22 =
@@ -173,6 +178,7 @@ static struct starpu_codelet cl22 =
 
 static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
 {
+	int ret;
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j, tag_prefix));
@@ -199,12 +205,14 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_size,
 				unsigned ld, unsigned blocksize, unsigned tag_prefix)
 {
+	int ret;
 	/*
 	 * (re)partition data
 	 */
@@ -253,7 +261,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		}
 		else
 		{
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 		
 		for (i = k+1; i<nblocks; i++)
@@ -271,7 +280,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		}
 	}
 
-	int ret = starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		FPRINTF(stderr, "No worker may execute this task\n");
