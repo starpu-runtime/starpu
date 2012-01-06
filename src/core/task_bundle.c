@@ -262,7 +262,7 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 	/* Look for the element or a place to insert it. */
 	struct handle_list *prev = list;
 
-	while (list && (handle > list->handle))
+	while (list && (handle >= list->handle))
 	{
 		prev = list;
 		list = list->next;
