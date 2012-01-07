@@ -244,24 +244,29 @@ static void display_matrix(void)
  *	Main loop
  */
 
-static void cg(void)
+static int cg(void)
 {
 	double delta_new, delta_old, delta_0;
 	double alpha, beta;
 
 	int i = 0;
+	int ret;
 
 	/* r <- b */
-	copy_handle(r_handle, b_handle, nblocks);
+	ret = copy_handle(r_handle, b_handle, nblocks);
+	if (ret == -ENODEV) return ret;
 
 	/* r <- r - A x */
-	gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
+	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
+	if (ret == -ENODEV) return ret;
 
 	/* d <- r */
-	copy_handle(d_handle, r_handle, nblocks);
+	ret = copy_handle(d_handle, r_handle, nblocks);
+	if (ret == -ENODEV) return ret;
 
 	/* delta_new = dot(r,r) */
-	dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+	ret = dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+	if (ret == -ENODEV) return ret;
 
 	starpu_data_acquire(rtr_handle, STARPU_R);
 	delta_new = rtr;
@@ -393,7 +398,8 @@ int main(int argc, char **argv)
 	register_data();
 	partition_data();
 
-	cg();
+	ret = cg();
+	if (ret == -ENODEV) goto enodev;
 
 	ret = check();
 
@@ -403,4 +409,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return ret;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }
