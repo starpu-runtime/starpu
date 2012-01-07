@@ -110,6 +110,7 @@ int main(int argc, char **argv)
 
 	/* submit the task to StarPU */
 	ret = starpu_task_submit(task);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* destroy the task */
@@ -124,4 +125,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }

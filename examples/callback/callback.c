@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 	task->handles[0] = handle;
 
 	ret = starpu_task_submit(task);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_task_wait_for_all();
@@ -77,4 +78,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }

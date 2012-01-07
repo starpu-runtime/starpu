@@ -274,7 +274,7 @@ static struct starpu_codelet cl =
         .model = &mult_perf_model
 };
 
-static void launch_tasks(void)
+static int launch_tasks(void)
 {
 	int ret;
 	/* partition the work into slices */
@@ -329,9 +329,11 @@ static void launch_tasks(void)
 
 			/* this is not a blocking call since task->synchronous = 0 */
 			ret = starpu_task_submit(task);
+			if (ret == -ENODEV) return ret;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
+	return 0;
 }
 
 int main(__attribute__ ((unused)) int argc, 
@@ -351,7 +353,8 @@ int main(__attribute__ ((unused)) int argc,
 	partition_mult_data();
 
 	/* submit all tasks in an asynchronous fashion */
-	launch_tasks();
+	ret = launch_tasks();
+	if (ret == -ENODEV) goto enodev;
 
 	/* wait for termination */
         starpu_task_wait_for_all();
@@ -380,4 +383,9 @@ int main(__attribute__ ((unused)) int argc,
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }
+
