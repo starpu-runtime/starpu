@@ -47,11 +47,13 @@ extern "C"
 #define STARPU_ABORT()		abort()
 
 #define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
-			STARPU_ASSERT(0); }}
+	char xmessage[256]; strerror_r(err, xmessage, 256); \
+	fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+	STARPU_ASSERT(0); }}
 #define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
-			STARPU_ASSERT(0); }}
+	char xmessage[256]; strerror_r(err, xmessage, 256); \
+	fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+	STARPU_ASSERT(0); }}
 
 #ifdef __GNUC__
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
