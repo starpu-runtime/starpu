@@ -43,6 +43,7 @@ int main(int argc, char **argv)
 	int ret;
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_SLOW_MACHINE
@@ -100,4 +101,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }
