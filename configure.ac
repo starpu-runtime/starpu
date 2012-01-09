@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
 #
@@ -138,6 +138,9 @@ else
   AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand((unsigned int)seed)],[srand48_r equivalent function])
   AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[do {*(result) = ((double)(rand()) / RAND_MAX);} while (0);],[erand48_r equivalent function])
 fi
+
+# Some systems do not define strerror_r
+AC_CHECK_FUNC([strerror_r], [AC_DEFINE([STARPU_HAVE_STRERROR_R], [1], [Define to 1 if the function strerro_r is available.])])
 
 # Define slow machine
 AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--enable-slow-machine],
