@@ -353,6 +353,7 @@ int main(int argc, char **argv)
 
 	if (profile)
 	{
+		FPRINTF(stderr, "Setting profile\n");
 		starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
 		starpu_bus_profiling_helper_display_summary();
 	}
@@ -360,6 +361,7 @@ int main(int argc, char **argv)
 	if (bound)
 	{
 		double min;
+		FPRINTF(stderr, "Setting bound\n");
 		starpu_bound_stop();
 		if (bounddeps)
 		{
@@ -377,12 +379,14 @@ int main(int argc, char **argv)
 
 	if (check)
 	{
+		FPRINTF(stderr, "Checking result\n");
 		if (pivot)
 			pivot_saved_matrix(ipiv);
 
 		check_result();
 	}
 
+	FPRINTF(stderr, "Shutting down\n");
 	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
