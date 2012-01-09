@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,18 +33,16 @@ typedef struct starpu_variable_interface starpu_variable_interface_t;
 typedef struct starpu_csr_interface starpu_csr_interface_t;
 typedef struct starpu_bcsr_interface starpu_bcsr_interface_t;
 typedef struct starpu_multiformat_interface starpu_multiformat_interface_t;
-typedef starpu_machine_topology starpu_machine_topology_s;
-typedef starpu_htbl32_node starpu_htbl32_node_s;
-typedef starpu_history_list starpu_history_list_t;
-typedef starpu_buffer_descr starpu_buffer_descr_t;
-typedef starpu_history_entry starpu_history_entry_t;
-typedef starpu_history_list starpu_history_list_t;
-typedef starpu_model_list starpu_model_list_t;
-typedef starpu_regression_model starpu_regression_model_t;
-typedef starpu_per_arch_perfmodel starpu_per_arch_perfmodel_t;
-typedef starpu_perfmodel starpu_perfmodel_t;
-typedef starpu_sched_policy starpu_sched_policy_s;
-typedef starpu_data_interface_ops starpu_data_interface_ops_t;
+#define starpu_machine_topology_s starpu_machine_topology
+#define starpu_htbl32_node_s starpu_htbl32_node
+#define starpu_history_list_t starpu_history_list
+#define starpu_buffer_descr_t starpu_buffer_descr
+#define starpu_history_list_t starpu_history_list
+#define starpu_regression_model_t starpu_regression_model
+#define starpu_per_arch_perfmodel_t starpu_per_arch_perfmodel
+#define starpu_perfmodel_t starpu_perfmodel
+#define starpu_sched_policy_s starpu_sched_policy
+#define starpu_data_interface_ops_t starpu_data_interface_ops
 
 typedef struct starpu_buffer_descr starpu_buffer_descr;
 typedef struct starpu_codelet starpu_codelet;
