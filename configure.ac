@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
@@ -24,7 +24,6 @@ dnl Versioning.
 
 STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
 STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
-STARPU_EFFECTIVE_VERSION="$STARPU_MAJOR_VERSION.$STARPU_MINOR_VERSION"
 AC_SUBST([STARPU_MAJOR_VERSION])
 AC_SUBST([STARPU_MINOR_VERSION])
 AC_SUBST([STARPU_EFFECTIVE_VERSION])
