@@ -1169,7 +1169,7 @@ AC_ARG_ENABLE([socl],
   [enable_socl="no"])
 
 if test "x$enable_socl" = "xyes"; then
-   STARPU_SOCL_SUPPORT
+   #STARPU_SOCL_SUPPORT
    build_socl="yes"
 else
    build_socl="no"
