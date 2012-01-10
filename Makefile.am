@@ -42,7 +42,7 @@ endif
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc libstarpu1.0.pc
 if USE_MPI
-pkgconfig_DATA += libstarpumpi.pc
+pkgconfig_DATA += libstarpumpi.pc libstarpumpi1.0.pc
 endif
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
