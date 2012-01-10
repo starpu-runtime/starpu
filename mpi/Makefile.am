@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -63,9 +63,9 @@ LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la @LIBS@ $(FXT_
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
-lib_LTLIBRARIES = libstarpumpi.la
+lib_LTLIBRARIES = libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpumpi_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
 noinst_HEADERS =					\
 	starpu_mpi_private.h				\
@@ -76,7 +76,7 @@ versinclude_HEADERS = 				\
 	starpu_mpi.h					\
 	starpu_mpi_datatype.h
 
-libstarpumpi_la_SOURCES =				\
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
@@ -91,7 +91,7 @@ examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
 examples_stencil_stencil5_LDADD =		\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 check_PROGRAMS	+=	\
 	examples/stencil/stencil5
@@ -107,7 +107,7 @@ examplebin_PROGRAMS += 				\
 	examples/mpi_lu/plu_example_double
 
 examples_mpi_lu_plu_example_float_LDADD =	\
-	libstarpumpi.la				\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la				\
 	$(STARPU_LIBNUMA_LDFLAGS)		\
 	$(STARPU_BLAS_LDFLAGS)
 
@@ -119,7 +119,7 @@ examples_mpi_lu_plu_example_float_SOURCES =	\
 	$(top_srcdir)/examples/common/blas.c
 
 examples_mpi_lu_plu_example_double_LDADD =	\
-	libstarpumpi.la				\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la				\
 	$(STARPU_LIBNUMA_LDFLAGS)		\
 	$(STARPU_BLAS_LDFLAGS)
 
@@ -147,7 +147,7 @@ examples_cholesky_mpi_cholesky_SOURCES	=		\
 	$(top_srcdir)/examples/common/blas.c
 
 examples_cholesky_mpi_cholesky_LDADD =			\
-	libstarpumpi.la					\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la					\
 	$(STARPU_BLAS_LDFLAGS)
 
 examples_cholesky_mpi_cholesky_distributed_SOURCES =	\
@@ -157,7 +157,7 @@ examples_cholesky_mpi_cholesky_distributed_SOURCES =	\
 	$(top_srcdir)/examples/common/blas.c
 
 examples_cholesky_mpi_cholesky_distributed_LDADD =	\
-	libstarpumpi.la					\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la					\
 	$(STARPU_BLAS_LDFLAGS)
 
 check_PROGRAMS +=					\
@@ -173,7 +173,7 @@ examplebin_PROGRAMS +=		\
 	examples/scatter_gather/mpi_scatter_gather
 
 examples_scatter_gather_mpi_scatter_gather_LDADD =	\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 check_PROGRAMS +=		\
 	examples/scatter_gather/mpi_scatter_gather
@@ -225,43 +225,43 @@ noinst_PROGRAMS =					\
 	tests/multiple_send
 
 tests_mpi_isend_LDADD =					\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_mpi_irecv_LDADD =					\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_mpi_isend_detached_LDADD =			\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_mpi_irecv_detached_LDADD =			\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_mpi_detached_tag_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_pingpong_LDADD =					\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_mpi_test_LDADD =					\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_ring_LDADD =					\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_ring_async_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_ring_async_implicit_LDADD =			\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_block_interface_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_block_interface_pinned_LDADD =			\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_insert_task_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_insert_task_cache_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_insert_task_block_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_insert_task_owner_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_insert_task_owner2_LDADD =			\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_insert_task_owner_data_LDADD =			\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tests_multiple_send_LDADD =				\
-	libstarpumpi.la
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 tests_ring_SOURCES = tests/ring.c
 tests_ring_async_SOURCES = tests/ring_async.c

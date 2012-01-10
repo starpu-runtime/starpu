@@ -19,7 +19,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddi
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 if USE_MPI
-LIBS += $(top_builddir)/mpi/libstarpumpi.la
+LIBS += $(top_builddir)/mpi/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/
 endif
 
