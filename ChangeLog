@@ -18,6 +18,9 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Make where field for struct starpu_codelet optional. When unset, its
+	value will be automatically set based on the availability of the
+	different XXX_funcs fields of the codelet.
   * Add a hook function pre_exec_hook in struct starpu_sched_policy.
         The function is meant to be called in drivers. Schedulers
         can use it to be notified when a task is about being computed.

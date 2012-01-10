@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,7 +67,7 @@ struct starpu_codelet cl_cpu_func_funcs =
 	.name = "cpu_func_funcs",
 };
 
-int submit_codelet(struct starpu_codelet *cl)
+int submit_codelet(struct starpu_codelet *cl, int where)
 {
 	int x=42, y=14;
 	starpu_data_handle_t handles[2];
@@ -76,6 +76,7 @@ int submit_codelet(struct starpu_codelet *cl)
 	starpu_variable_data_register(&handles[0], 0, (uintptr_t)&x, sizeof(x));
 	starpu_variable_data_register(&handles[1], 0, (uintptr_t)&y, sizeof(y));
 
+	cl->where = where;
 	ret = starpu_insert_task(cl,
 				 STARPU_R, handles[0],
 				 STARPU_W, handles[1],
@@ -94,41 +95,44 @@ int submit_codelet(struct starpu_codelet *cl)
 
 	if (x != y)
 	{
-		FPRINTF(stderr, "error when executing codelet <%s>\n", cl->name);
+		FPRINTF(stderr, "error when executing codelet <%s> with where=%d\n", cl->name, where);
 	}
 	else
 	{
-		FPRINTF(stderr, "success when executing codelet <%s>\n", cl->name);
+		FPRINTF(stderr, "success when executing codelet <%s> with where=%d\n", cl->name, where);
 	}
 	return (x != y);
 }
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret, where;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	ret = submit_codelet(&cl_cpu_func);
-	if (ret == -ENODEV)
+	for(where=0 ; where<=STARPU_CPU ; where+=STARPU_CPU)
 	{
-		starpu_shutdown();
-		fprintf(stderr, "WARNING: No one can execute this task\n");
-		return STARPU_TEST_SKIPPED;
-	}
+		ret = submit_codelet(&cl_cpu_func, where);
+		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
+			fprintf(stderr, "WARNING: No one can execute this task\n");
+			return STARPU_TEST_SKIPPED;
+		}
 
-	if (!ret)
-	{
-		ret = submit_codelet(&cl_cpu_funcs);
-	}
-	if (!ret)
-	{
-		ret = submit_codelet(&cl_cpu_multiple);
-	}
-	if (!ret)
-	{
-		ret = submit_codelet(&cl_cpu_func_funcs);
+		if (!ret)
+		{
+			ret = submit_codelet(&cl_cpu_funcs, where);
+		}
+		if (!ret)
+		{
+			ret = submit_codelet(&cl_cpu_multiple, where);
+		}
+		if (!ret)
+		{
+			ret = submit_codelet(&cl_cpu_func_funcs, where);
+		}
 	}
 
 	starpu_shutdown();

@@ -106,7 +106,10 @@ management library, but just contain trivial parameters.
 We create a codelet which may only be executed on the CPUs. The @code{where}
 field is a bitmask that defines where the codelet may be executed. Here, the
 @code{STARPU_CPU} value means that only CPUs can execute this codelet
-(@pxref{Codelets and Tasks} for more details on this field).
+(@pxref{Codelets and Tasks} for more details on this field). Note that
+the @code{where} field is optional, when unset its value is
+automatically set based on the availability of the different
+@code{XXX_funcs} fields.
 When a CPU core executes a codelet, it calls the @code{cpu_func} function,
 which @emph{must} have the following prototype:
 

@@ -1035,11 +1035,13 @@ The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
 
 @table @asis
-@item @code{where}
+@item @code{where} (optional)
 Indicates which types of processing units are able to execute the codelet.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
 implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
-indicates that it is only available on Cell SPUs.
+indicates that it is only available on Cell SPUs. If the field is
+unset, its value will be automatically set based on the availability
+of the @code{XXX_funcs} fields defined below.
 
 @item @code{cpu_func} (optional)
 This field has been made deprecated. One should use instead the
@@ -1052,8 +1054,9 @@ The functions prototype must be: @code{void cpu_func(void *buffers[], void *cl_a
 argument being the array of data managed by the data management library, and
 the second argument is a pointer to the argument passed from the @code{cl_arg}
 field of the @code{starpu_task} structure.
-The @code{cpu_funcs} field is ignored if @code{STARPU_CPU} does not appear in
-the @code{where} field, it must be non-null otherwise.
+If the @code{where} field is set, then the @code{cpu_funcs} field is
+ignored if @code{STARPU_CPU} does not appear in the @code{where}
+field, it must be non-null otherwise.
 
 @item @code{cuda_func} (optional)
 This field has been made deprecated. One should use instead the
@@ -1064,7 +1067,8 @@ Is an array of function pointers to the CUDA implementations of the codelet.
 It must be terminated by a NULL value.
 @emph{The functions must be host-functions written in the CUDA runtime
 API}. Their prototype must
-be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_funcs}
+be: @code{void cuda_func(void *buffers[], void *cl_arg);}.
+If the @code{where} field is set, then the @code{cuda_funcs}
 field is ignored if @code{STARPU_CUDA} does not appear in the @code{where}
 field, it must be non-null otherwise.
 
@@ -1077,8 +1081,9 @@ Is an array of function pointers to the OpenCL implementations of the codelet.
 It must be terminated by a NULL value.
 The functions prototype must be:
 @code{void opencl_func(void *buffers[], void *cl_arg);}.
-This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
-@code{where} field, it must be non-null otherwise.
+If the @code{where} field is set, then the @code{opencl_funcs} field
+is ignored if @code{STARPU_OPENCL} does not appear in the @code{where}
+field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optional)
 This field has been made deprecated. One should use instead the
