@@ -29,23 +29,24 @@ examplebindir = $(libdir)/starpu/examples/socl/
 examplebin_PROGRAMS =
 
 
-examplebin_PROGRAMS +=				\
+examplebin_PROGRAMS +=		\
 	basic/basic		\
-	mandelbrot/mandelbrot		\
 	clinfo/clinfo
 
+#	mandelbrot/mandelbrot
 
-SOCL_EXAMPLES +=				\
+SOCL_EXAMPLES +=		\
 	basic/basic		\
-	mandelbrot/mandelbrot		\
 	clinfo/clinfo
+
+#	mandelbrot/mandelbrot
 
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
-mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
+#mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
 
-mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
-if HAVE_X11
-mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
-mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
-endif
+#mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
+#if HAVE_X11
+#mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
+#mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+#endif
