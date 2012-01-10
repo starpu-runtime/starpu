@@ -181,7 +181,7 @@ static void new_task(struct _starpu_job *j)
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;
 	t->cl = j->task->cl;
-	t->footprint = _starpu_compute_buffers_footprint(NULL, 0, 0, j);
+	t->footprint = _starpu_compute_buffers_footprint(NULL, STARPU_CPU_DEFAULT, 0, j);
 	t->priority = j->task->priority;
 	t->deps = NULL;
 	t->depsn = 0;
@@ -214,7 +214,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 	{
 		struct bound_task_pool *tp;
 
-		_starpu_compute_buffers_footprint(NULL, 0, 0, j);
+		_starpu_compute_buffers_footprint(NULL, STARPU_CPU_DEFAULT, 0, j);
 
 		if (last && last->cl == j->task->cl && last->footprint == j->footprint)
 			tp = last;

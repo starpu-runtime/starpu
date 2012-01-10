@@ -50,7 +50,7 @@ enum exit_code
 };
 
 static char *
-enum_to_string(exit_code)
+enum_to_string(int exit_code)
 {
 	switch (exit_code)
 	{
@@ -580,7 +580,7 @@ run_sync(void)
 	struct starpu_data_copy_methods new_copy_methods;
 	struct starpu_data_copy_methods *old_copy_methods;
 
-	old_copy_methods = handle->ops->copy_methods;
+	old_copy_methods = (struct starpu_data_copy_methods *) handle->ops->copy_methods;
 
 	memcpy(&new_copy_methods,
 		old_copy_methods,

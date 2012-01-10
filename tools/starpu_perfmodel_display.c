@@ -270,7 +270,7 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				display_perf_model(model, (enum starpu_perf_archtype) STARPU_CPU_DEFAULT + k - 1, implid);
+				display_perf_model(model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1), implid);
 			return;
 		}
 

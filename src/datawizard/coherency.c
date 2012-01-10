@@ -297,11 +297,11 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 				replicate->handle->busy_count++;
 			}
 
-			r->mode |= STARPU_R;
+			r->mode = (enum starpu_access_mode) ((int) r->mode | (int) STARPU_R);
 		}
 
 		if (mode & STARPU_W)
-			r->mode |= STARPU_W;
+			r->mode = (enum starpu_access_mode) ((int) r->mode | (int)  STARPU_W);
 	}
 
 	return r;

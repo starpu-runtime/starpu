@@ -273,7 +273,7 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 	if (prev->handle == handle)
 	{
 		/* The handle is already in the list */
-		prev->mode |= mode;
+		prev->mode = (enum starpu_access_mode) ((int) prev->mode | (int) mode);
 	}
 	else
 	{

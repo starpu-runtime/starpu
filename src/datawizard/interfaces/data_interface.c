@@ -461,7 +461,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
-			format_interface = starpu_data_get_interface_on_node(handle, 0);
+			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 			struct starpu_codelet *cl;
 			enum _starpu_node_kind node_kind = _starpu_get_node_kind(handle->mf_node);
 
@@ -566,7 +566,7 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 	starpu_data_release(handle);
 }
 
-unsigned starpu_get_handle_interface_id(starpu_data_handle_t handle)
+enum starpu_data_interface_id starpu_get_handle_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
 }

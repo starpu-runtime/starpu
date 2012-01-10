@@ -54,7 +54,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 	unsigned int n, i;
 	int factor;
 
-	aos = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	aos = (struct point *) STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
 	n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	factor = *(int *) args;
 

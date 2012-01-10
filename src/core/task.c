@@ -326,7 +326,7 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 				task->cl->modes[i] = task->buffers[i].mode;
 			}
 			task->buffers[i].handle = NULL;
-			task->buffers[i].mode = 0;
+			task->buffers[i].mode = STARPU_NONE;
 		}
 	}
 }

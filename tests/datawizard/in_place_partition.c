@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	n = starpu_worker_get_count();
 	size = 10 * n;
 
-	foo = calloc(size, sizeof(*foo));
+	foo = (unsigned *) calloc(size, sizeof(*foo));
 	for (i = 0; i < size; i++)
 		foo[i] = i;
 

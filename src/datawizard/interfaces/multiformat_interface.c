@@ -102,7 +102,7 @@ static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 	struct starpu_multiformat_interface *multiformat_interface =
-		starpu_data_get_interface_on_node(handle, node);
+		(struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, node);
 
 	switch(_starpu_get_node_kind(node))
 	{
@@ -130,7 +130,7 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_multiformat_interface *local_interface =
-			starpu_data_get_interface_on_node(handle, node);
+			(struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node)
 		{
@@ -194,8 +194,8 @@ static uint32_t footprint_multiformat_interface_crc32(starpu_data_handle_t handl
 
 static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 {
-	struct starpu_multiformat_interface *multiformat_a = data_interface_a;
-	struct starpu_multiformat_interface *multiformat_b = data_interface_b;
+	struct starpu_multiformat_interface *multiformat_a = (struct starpu_multiformat_interface *) data_interface_a;
+	struct starpu_multiformat_interface *multiformat_b = (struct starpu_multiformat_interface *) data_interface_b;
 
 	return ((multiformat_a->nx == multiformat_b->nx)
 			&& (multiformat_a->ops->cpu_elemsize == multiformat_b->ops->cpu_elemsize)
@@ -223,7 +223,7 @@ static size_t multiformat_interface_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
 	struct starpu_multiformat_interface *multiformat_interface;
-	multiformat_interface = starpu_data_get_interface_on_node(handle, 0);
+	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 	size = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
 	return size;
 }
@@ -231,7 +231,7 @@ static size_t multiformat_interface_get_size(starpu_data_handle_t handle)
 uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
-	multiformat_interface = starpu_data_get_interface_on_node(handle, 0);
+	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 	return multiformat_interface->nx;
 }
 

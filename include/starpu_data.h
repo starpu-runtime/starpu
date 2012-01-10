@@ -30,6 +30,7 @@ typedef struct _starpu_data_state* starpu_data_handle_t;
 
 enum starpu_access_mode
 {
+	STARPU_NONE=0,
 	STARPU_R=(1<<0),
 	STARPU_W=(1<<1),
 	STARPU_RW=(STARPU_R|STARPU_W),
