@@ -178,6 +178,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/test_vector_interface   \
+	datawizard/interfaces/void/void_interface \
 	datawizard/in_place_partition   \
 	datawizard/gpu_register   \
 	errorcheck/starpu_init_noworker		\
@@ -457,3 +458,10 @@ datawizard_interfaces_variable_variable_interface_SOURCES+= \
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/variable/variable_opencl_kernel.cl
 endif
+
+##################
+# Void interface #
+##################
+datawizard_interfaces_void_void_interface_SOURCES=\
+	datawizard/interfaces/test_interfaces.c        \
+	datawizard/interfaces/void/void_interface.c
