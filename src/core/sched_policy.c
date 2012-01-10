@@ -293,9 +293,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	unsigned no_workers = 0;
 	unsigned nworkers; 
        
-//	PTHREAD_MUTEX_LOCK(&sched_ctx->changing_ctx_mutex);
 	nworkers = sched_ctx->workers->nworkers;
-//	PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
 
 	if(nworkers == 0)
 	{

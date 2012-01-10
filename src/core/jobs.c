@@ -192,7 +192,7 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 
 	/* control task should not execute post_exec_hook */
 	if(task->cl != NULL && !task->control_task)
-		_starpu_sched_post_exec_hook(task);
+	  _starpu_sched_post_exec_hook(task);
 
 	STARPU_TRACE_TASK_DONE(j);
 
@@ -238,11 +238,10 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		_starpu_decrement_nsubmitted_tasks();
 	}
 
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
+
 	if(workerid >= 0)
-	{
 		_starpu_decrement_nsubmitted_tasks_of_worker(workerid);
-		_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
-	}			
 }
 
 /* This function is called when a new task is submitted to StarPU 

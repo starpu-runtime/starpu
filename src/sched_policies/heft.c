@@ -203,7 +203,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 }
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, int prio, unsigned sched_ctx_id)
-{
+ {
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
@@ -303,6 +303,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_data_penalty[worker_ctx] = starpu_task_expected_data_transfer_time(memory_node, task);
 				local_power[worker_ctx] = starpu_task_expected_power(task, perf_arch, nimpl);
 				//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker_ctx],local_power[worker_ctx],worker,nimpl);
+				//				printf("%d/%d: task length (%lf) exp_end (%lf) local_data_penalty (%lf)\n", worker, worker_ctx, local_task_length[worker_ctx], (exp_start[worker] + exp_len[worker] + local_task_length[worker_ctx]), local_data_penalty[worker_ctx]);
 			}
 			
 			double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
@@ -390,7 +391,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 					    &max_exp_end, &best_exp_end,
 					    local_data_penalty,
 					    local_power, &forced_best, bundle, sched_ctx_id);
-	
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
 	if (forced_best != -1){
@@ -409,9 +409,9 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
-
 		if (!starpu_worker_may_execute_task(worker, task, 0))
 		{
+		        worker_ctx++;
 			/* no one on that queue may execute this task */
 			continue;
 		}

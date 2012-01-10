@@ -353,17 +353,17 @@ int starpu_task_wait_for_all(void)
 	unsigned sched_ctx = nsched_ctxs == 1 ? 0 : starpu_get_sched_ctx();
 	starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 
-	/* if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) */
-	/* 	return -EDEADLK; */
+/* 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) */
+/* 		return -EDEADLK; */
 
-	/* PTHREAD_MUTEX_LOCK(&submitted_mutex); */
+/* 	PTHREAD_MUTEX_LOCK(&submitted_mutex); */
 
-	/* STARPU_TRACE_TASK_WAIT_FOR_ALL; */
+/* 	STARPU_TRACE_TASK_WAIT_FOR_ALL; */
 
-	/* while (nsubmitted > 0) */
-	/* 	PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex); */
+/* 	while (nsubmitted > 0) */
+/* 		PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex); */
 	
-	/* PTHREAD_MUTEX_UNLOCK(&submitted_mutex); */
+/* 	PTHREAD_MUTEX_UNLOCK(&submitted_mutex); */
 	return 0;
 }
 
