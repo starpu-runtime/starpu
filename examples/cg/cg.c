@@ -338,6 +338,7 @@ static int cg(void)
 	double timing = (double)(((double)end.tv_sec - (double)start.tv_sec)*10e6 + ((double)end.tv_usec - (double)start.tv_usec));
 	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
 	FPRINTF(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
+	return 0;
 }
 
 static int check(void)

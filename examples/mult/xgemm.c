@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	ret = ret = starpu_init(NULL);
+	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
