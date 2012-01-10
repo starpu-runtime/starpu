@@ -91,6 +91,7 @@ struct starpu_sched_policy _starpu_sched_random_policy =
 	.deinit_sched = NULL,
 	.push_task = random_push_task,
 	.pop_task = NULL,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "random",

@@ -227,6 +227,7 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
 	.deinit_sched = NULL,
 	.push_task = ws_push_task,
 	.pop_task = ws_pop_task,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "ws",

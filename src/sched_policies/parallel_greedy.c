@@ -241,6 +241,7 @@ struct starpu_sched_policy _starpu_sched_pgreedy_policy =
 	.deinit_sched = deinitialize_pgreedy_policy,
 	.push_task = push_task_pgreedy_policy,
 	.pop_task = pop_task_pgreedy_policy,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "pgreedy",

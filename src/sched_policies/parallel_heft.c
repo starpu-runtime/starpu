@@ -448,6 +448,7 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.deinit_sched = NULL,
 	.push_task = parallel_heft_push_task,
 	.pop_task = NULL,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = parallel_heft_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "pheft",

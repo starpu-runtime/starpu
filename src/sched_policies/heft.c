@@ -531,6 +531,7 @@ struct starpu_sched_policy heft_policy =
 	.push_task_notify = heft_push_task_notify,
 	.pop_task = NULL,
 	.pop_every_task = NULL,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = heft_post_exec_hook,
 	.policy_name = "heft",
 	.policy_description = "Heterogeneous Earliest Finish Task"

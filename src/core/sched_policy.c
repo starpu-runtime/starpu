@@ -491,6 +491,12 @@ struct starpu_task *_starpu_pop_every_task(void)
 	return policy.pop_every_task();
 }
 
+void _starpu_sched_pre_exec_hook(struct starpu_task *task)
+{
+	if (policy.pre_exec_hook)
+		policy.pre_exec_hook(task);
+}
+
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	if (policy.post_exec_hook)

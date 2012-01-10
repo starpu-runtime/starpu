@@ -261,6 +261,8 @@ int inject_task(struct _starpu_job *j, struct _starpu_worker *worker)
 		return STARPU_TRYAGAIN;
 	}
 
+	_starpu_sched_pre_exec_hook(task);
+
 	struct gordon_task_wrapper_s *task_wrapper = starpu_to_gordon_job(j);
 
 	task_wrapper->worker = worker;
@@ -315,6 +317,8 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 		struct starpu_task *task = j->task;
 		ret = _starpu_fetch_task_input(j, 0);
 		STARPU_ASSERT(!ret);
+
+		_starpu_sched_pre_exec_hook(task);
 
 		gordon_jobs[index].index = _starpu_task_get_gordon_nth_implementation(task->cl, j->nimpl);
 
