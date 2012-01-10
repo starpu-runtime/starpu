@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,9 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Add a hook function pre_exec_hook in struct starpu_sched_policy.
+        The function is meant to be called in drivers. Schedulers
+        can use it to be notified when a task is about being computed.
   * Define access modes for data handles into starpu_codelet and no longer
 	in starpu_task. Hence mark (struct starpu_task).buffers as
 	deprecated, and add (struct starpu_task).handles and (struct
