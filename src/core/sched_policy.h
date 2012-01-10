@@ -40,4 +40,6 @@ void _starpu_wait_on_sched_event(void);
 struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 						   unsigned int node);
 
+void _starpu_sched_pre_exec_hook(struct starpu_task *task);
+
 #endif // __SCHED_POLICY_H__
