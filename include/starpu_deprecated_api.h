@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@ extern "C"
 {
 #endif
 
-#warning deprecated types. Please update your code to use the latest API, e.g. using tools/dev/rename.sh
+#warning Your application is still using deprecated types. Please update to use the latest API, e.g. using tools/dev/rename.sh
 
 typedef starpu_data_handle_t starpu_data_handle;
 typedef struct starpu_block_interface starpu_block_interface_t;
