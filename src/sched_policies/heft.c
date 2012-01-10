@@ -99,17 +99,20 @@ static void heft_init(struct starpu_machine_topology *topology,
 	}
 }
 
-static void heft_post_exec_hook(struct starpu_task *task)
+/* heft_pre_exec_hook is called right after the data transfer is done and right before
+ * the computation to begin, it is useful to update more precisely the value
+ * of the expected start, end, length, etc... */
+static void heft_pre_exec_hook(struct starpu_task *task)
 {
 	int workerid = starpu_worker_get_id();
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 
-	/* Once we have executed the task, we can update the predicted amount
+	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 	exp_len[workerid] -= model + transfer_model;
-	exp_start[workerid] = starpu_timing_now();
+	exp_start[workerid] = starpu_timing_now() + model;
 	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
 	ntasks[workerid]--;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
@@ -144,18 +147,6 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	/* If there is no prediction available, we consider the task has a null length */
 	if (predicted_transfer != -1.0)
 	{
-		if (starpu_timing_now() + predicted_transfer < exp_end[workerid])
-		{
-			/* We may hope that the transfer will be finished by
-			 * the start of the task. */
-			predicted_transfer = 0;
-		}
-		else
-		{
-			/* The transfer will not be finished by then, take the
-			 * remainder into account */
-			predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[workerid];
-		}
 		task->predicted_transfer = predicted_transfer;
 		exp_end[workerid] += predicted_transfer;
 		exp_len[workerid] += predicted_transfer;
@@ -180,18 +171,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	exp_end[best_workerid] += predicted;
 	exp_len[best_workerid] += predicted;
 
-	if (starpu_timing_now() + predicted_transfer < exp_end[best_workerid])
-	{
-		/* We may hope that the transfer will be finished by
-		 * the start of the task. */
-		predicted_transfer = 0;
-	}
-	else
-	{
-		/* The transfer will not be finished by then, take the
-		 * remainder into account */
-		predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[best_workerid];
-	}
 	exp_end[best_workerid] += predicted_transfer;
 	exp_len[best_workerid] += predicted_transfer;
 
@@ -531,8 +510,8 @@ struct starpu_sched_policy heft_policy =
 	.push_task_notify = heft_push_task_notify,
 	.pop_task = NULL,
 	.pop_every_task = NULL,
-	.pre_exec_hook = NULL,
-	.post_exec_hook = heft_post_exec_hook,
+	.pre_exec_hook = heft_pre_exec_hook,
+	.post_exec_hook = NULL,
 	.policy_name = "heft",
 	.policy_description = "Heterogeneous Earliest Finish Task"
 };
