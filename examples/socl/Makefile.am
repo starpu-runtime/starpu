@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@ basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
 mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
 
-mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
+mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
 if HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
