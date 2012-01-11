@@ -454,7 +454,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		 * this piece of data back into the CPU format.
 		 * XXX : This is quite hacky, could we submit a task instead ?
 		 */
-		unsigned int id = starpu_get_handle_interface_id(handle);
+		enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
 		if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
 			_starpu_get_node_kind(handle->mf_node) != STARPU_CPU_RAM)
 		{

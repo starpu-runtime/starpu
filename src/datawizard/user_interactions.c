@@ -207,7 +207,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		return -EDEADLK;
         }
 
-	unsigned int id = starpu_get_handle_interface_id(handle);
+	enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
 	if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
 	    _starpu_handle_needs_conversion_task(handle, 0))
 	{

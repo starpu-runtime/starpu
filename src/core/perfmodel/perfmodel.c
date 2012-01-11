@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -260,7 +260,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
-		unsigned int id;
+		enum starpu_data_interface_id id;
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
 
