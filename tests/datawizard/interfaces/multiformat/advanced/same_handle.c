@@ -58,7 +58,7 @@ create_and_submit_tasks(void)
 	int ret;
 	struct starpu_task *task;
 
-	cl.where = STARPU_NONE;
+	cl.where = 0;
 #ifdef STARPU_USE_CUDA
 	cl.where |= STARPU_CUDA;
 #endif
