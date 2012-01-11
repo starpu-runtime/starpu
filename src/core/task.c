@@ -226,7 +226,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	if (!cl)
 		return;
 
-	int is_where_unset = cl->where == 0;
+	int is_where_unset = cl->where == STARPU_NONE;
 
 	/* Check deprecated and unset fields (where, <device>_func,
  	 * <device>_funcs) */

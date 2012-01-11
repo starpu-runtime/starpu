@@ -787,7 +787,7 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
       TREE_USED (fn) = TREE_USED (task_decl);
 
       /* Check the `where' argument to raise a warning if needed.  */
-      if (task_implementation_target_to_int (where) == 0)
+      if (task_implementation_target_to_int (where) == STARPU_NONE)
 	warning_at (loc, 0,
 		    "unsupported target %E; task implementation won't be used",
 		    where);
@@ -965,7 +965,7 @@ task_implementation_target_to_int (const_tree target)
 		     TREE_STRING_LENGTH (target)))
     where_int = STARPU_CUDA;
   else
-    where_int = 0;
+    where_int = STARPU_NONE;
 
   return where_int;
 }
@@ -1418,7 +1418,7 @@ build_codelet_initializer (tree task_decl)
   tree where_init (tree impls)
   {
     tree impl;
-    int where_int = 0;
+    int where_int = STARPU_NONE;
 
     for (impl = impls;
 	 impl != NULL_TREE;

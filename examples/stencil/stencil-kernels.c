@@ -454,7 +454,7 @@ static struct starpu_perfmodel cl_update_model =
 
 struct starpu_codelet cl_update =
 {
-	.where = 0 |
+	.where = STARPU_NONE |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
@@ -658,7 +658,7 @@ static struct starpu_perfmodel save_cl_top_model =
 
 struct starpu_codelet save_cl_bottom =
 {
-	.where = 0 |
+	.where = STARPU_NONE |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
@@ -680,7 +680,7 @@ struct starpu_codelet save_cl_bottom =
 
 struct starpu_codelet save_cl_top =
 {
-	.where = 0|
+	.where = STARPU_NONE|
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif

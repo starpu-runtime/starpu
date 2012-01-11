@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	for(where=0 ; where<=STARPU_CPU ; where+=STARPU_CPU)
+	for(where=STARPU_NONE ; where<=STARPU_CPU ; where+=STARPU_CPU)
 	{
 		ret = submit_codelet(&cl_cpu_func, where);
 		if (ret == -ENODEV)
