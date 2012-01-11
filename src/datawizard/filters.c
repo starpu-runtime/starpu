@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -270,6 +270,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */
 		STARPU_ASSERT(ret == 0);
+
+		_starpu_spin_lock(&child_handle->header_lock);
 
 		_starpu_data_free_interfaces(&root_handle->children[child]);
 		_starpu_data_requester_list_delete(child_handle->req_list);
