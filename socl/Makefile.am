@@ -13,7 +13,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SUBDIRS = src
+SUBDIRS = src examples
 
 EXTRA_DIST = README
 

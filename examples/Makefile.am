@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -21,10 +21,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddi
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 SUBDIRS = stencil
-
-if STARPU_USE_SOCL
-SUBDIRS += socl
-endif
 
 if STARPU_HAVE_FFTW
 if STARPU_HAVE_FFTWF

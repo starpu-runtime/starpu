@@ -1460,6 +1460,7 @@ AC_OUTPUT([
 	tools/Makefile
 	socl/Makefile
 	socl/src/Makefile
+	socl/examples/Makefile
 	libstarpu.pc
 	libstarpu1.0.pc
 	libstarpumpi.pc
@@ -1468,7 +1469,6 @@ AC_OUTPUT([
         examples/opt/Makefile
 	examples/starpufft/Makefile
 	examples/stencil/Makefile
-	examples/socl/Makefile
 	examples/starpufft/libstarpufft.pc
 	examples/starpufft/libstarpufft1.0.pc
 	tests/Makefile
