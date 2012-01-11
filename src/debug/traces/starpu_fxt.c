@@ -336,6 +336,8 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	if (out_paje_file)
 	{
 		fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
+		fprintf(out_paje_file, "6       %s       Ctx1       %s \"255.0 255.0 0.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx2       %s \".0 255.0 .0\" \n", name, name);
 
 	}
 		
@@ -364,11 +366,12 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	if (out_paje_file)
 	{
-		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+	  	  fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+
 		if(sched_ctx == 1)
-		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      Ctx1\n", start_codelet_time, prefix, ev->param[2]);
+		  fprintf(out_paje_file, "10       %f	Ctx1      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
 		else if(sched_ctx == 2)
-		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      Ctx2\n", start_codelet_time, prefix, ev->param[2]);
+		  fprintf(out_paje_file, "10       %f	Ctx2      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
 	}
 	
 }

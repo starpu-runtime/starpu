@@ -125,7 +125,6 @@ void starpu_fxt_write_paje_header(FILE *file)
 	fprintf(file, "%%EndEventDef\n");
 
 
-
 	fprintf(file, "                                        \n \
 	1       MPIP      0       \"MPI Program\"                      	\n \
 	1       P      MPIP       \"Program\"                      	\n \
@@ -134,6 +133,8 @@ void starpu_fxt_write_paje_header(FILE *file)
 	1       Sc       P       \"Scheduler State\"                        \n \
 	2       event   T       \"event type\"				\n \
 	3       S       T       \"Thread State\"                        \n \
+	3       Ctx1      T     \"InCtx1\"         		\n \
+	3       Ctx2      T     \"InCtx2\"         		\n \
 	3       MS       Mn       \"Memory Node State\"                        \n \
 	4       ntask    Sc       \"Number of tasks\"                        \n \
 	4       bw      Mn       \"Bandwidth\"                        \n \
@@ -145,13 +146,27 @@ void starpu_fxt_write_paje_header(FILE *file)
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
 	6       Sl       S      Sleeping         \".9 .1 .0\"		\n \
 	6       P       S       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx1      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx1      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx1      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx1      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx1       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx1       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx1      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx1       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx2      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx2      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx2      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx2      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx2       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx2       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx2      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx2       Progressing         \".4 .1 .6\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
 	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
-	6       Ctx1       S     InCtx1         \"255.0 255.0 0.0\"		\n \
-	6       Ctx2       S     InCtx2         \".0 255.0 .0\"		\n \
 	5       MPIL     MPIP	P	P      MPIL\n \
 	5       L       P	Mn	Mn      L\n");
 
