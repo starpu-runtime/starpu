@@ -197,7 +197,7 @@ accurate), and @code{T_data_transfer} is the estimated data transfer time. The
 latter is estimated based on bus calibration before execution start,
 i.e. with an idle machine, thus without contention. You can force bus re-calibration by running
 @code{starpu_calibrate_bus}. The beta parameter defaults to 1, but it can be
-worth trying to tweak it by using @code{export STARPU_BETA=2} for instance,
+worth trying to tweak it by using @code{export STARPU_SCHED_BETA=2} for instance,
 since during real application execution, contention makes transfer times bigger.
 This is of course imprecise, but in practice, a rough estimation already gives
 the good results that a precise estimation would give.
@@ -229,7 +229,7 @@ take it into account when distributing tasks. The target function that
 the @code{dmda} scheduler minimizes becomes @code{alpha * T_execution +
 beta * T_data_transfer + gamma * Consumption} , where @code{Consumption}
 is the estimated task consumption in Joules. To tune this parameter, use
-@code{export STARPU_GAMMA=3000} for instance, to express that each Joule
+@code{export STARPU_SCHED_GAMMA=3000} for instance, to express that each Joule
 (i.e kW during 1000us) is worth 3000us execution time penalty. Setting
 @code{alpha} and @code{beta} to zero permits to only take into account power consumption.
 
