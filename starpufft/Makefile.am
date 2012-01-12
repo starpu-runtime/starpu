@@ -29,10 +29,10 @@ EXTRA_DIST =			\
 	cuda_kernels.cu		\
 	cudaf_kernels.cu	\
 	cudax_kernels.cu	\
-	testx.c			\
-	testx_threads.c		\
-	testf_threads.c		\
-	test_threads.c
+	examples/testx.c	\
+	examples/testx_threads.c\
+	examples/testf_threads.c\
+	examples/test_threads.c
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
@@ -69,27 +69,27 @@ endif
 
 examplebindir = $(libdir)/starpu/examples/starpufft
 examplebin_PROGRAMS =				\
-	testf
+	examples/testf
 
-check_PROGRAMS = testf
-testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
+check_PROGRAMS = examples/testf
+examples_testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 
 # If we don't have CUDA, we assume that we have fftw available in double
 # precision anyway, we just want to make sure that if CUFFT is used, it also
 # supports double precision.
 if !STARPU_USE_CUDA
-check_PROGRAMS += test
-test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
+check_PROGRAMS += examples/test
+examples_test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
 else
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
-check_PROGRAMS += test
-test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
+check_PROGRAMS += examples/test
+examples_test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
 endif
 endif
 
 TESTS = $(check_PROGRAMS)
 
 
-#check_PROGRAMS += test_threads testf_threads
-#test_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
-#testf_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
+#check_PROGRAMS += examples/test_threads examples/testf_threads
+#examples_test_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
+#examples_testf_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
