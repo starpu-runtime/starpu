@@ -63,10 +63,15 @@ static void check_fftw(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, in
 	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
 	double relavgdiff = (tot / size) / sqrt(norm);
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
+	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8)) {
+		fprintf(stderr, "Failure: Difference too big (TYPE f)\n");
 		exit(EXIT_FAILURE);
+	}
 	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
+	{
+		fprintf(stderr, "Failure: Difference too big\n");
 		exit(EXIT_FAILURE);
+	}
 }
 #endif
 
@@ -119,16 +124,16 @@ int main(int argc, char *argv[])
 #endif
 	double timing;
 
-	if (argc < 2 || argc > 3)
-	{
-		fprintf(stderr,"need one or two size of vector\n");
-		exit(EXIT_FAILURE);
-	}
-
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (argc == 2)
+	if (argc == 1)
+	{
+		n = 42;
+		/* 1D */
+		size = n;
+	}
+	else if (argc == 2)
 	{
 		n = atoi(argv[1]);
 
@@ -165,7 +170,7 @@ int main(int argc, char *argv[])
 	STARPUFFT(complex) *out_cuda = STARPUFFT(malloc)(size * sizeof(*out_cuda));
 #endif
 
-	if (argc == 2)
+	if (argc <= 2)
 	{
 		plan = STARPUFFT(plan_dft_1d)(n, SIGN, 0);
 #ifdef STARPU_HAVE_FFTW

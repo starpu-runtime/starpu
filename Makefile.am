@@ -34,9 +34,14 @@ if COND_OPT
 SUBDIRS += tests/opt examples/opt
 endif
 
-
 if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
+endif
+
+if STARPU_HAVE_FFTW
+if STARPU_HAVE_FFTWF
+SUBDIRS += starpufft
+endif
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig

@@ -87,6 +87,7 @@ test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libs
 endif
 endif
 
+TESTS = $(check_PROGRAMS)
 
 
 #check_PROGRAMS += test_threads testf_threads
