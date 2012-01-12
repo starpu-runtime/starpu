@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -184,6 +184,9 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 		.nx         = nobjects,
 		.ops        = format_ops
 	};
+
+	if (format_ops->copy)
+		interface_multiformat_ops.copy_methods = format_ops->copy;
 	starpu_data_register(handleptr, home_node, &multiformat, &interface_multiformat_ops);
 }
 

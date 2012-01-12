@@ -3,6 +3,7 @@
 # Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
+# Copyright (C) 2012 INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -156,6 +157,7 @@ examplebin_PROGRAMS +=				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
+	filters/multiformat/multiformat_filter  \
 	tag_example/tag_example			\
 	tag_example/tag_example3		\
 	tag_example/tag_example2		\
@@ -385,6 +387,26 @@ filters_fblock_SOURCES +=			\
 	filters/fblock_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
+endif
+
+#
+#
+#
+filters_multiformat_multiformat_filter_SOURCES=                \
+	filters/multiformat/multiformat_filter.c               \
+	filters/multiformat/multiformat_ops.c                  \
+	filters/multiformat/conversion_codelets.c
+
+if STARPU_USE_CUDA
+filters_multiformat_multiformat_filter_SOURCES+=               \
+	filters/multiformat/cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+filters_multiformat_multiformat_filter_SOURCES+=\
+	filters/multiformat/opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	filters/multiformat/opencl.cl
 endif
 
 ################

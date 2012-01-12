@@ -3,6 +3,7 @@
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -263,6 +264,29 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 		if (child_handle->nchildren > 0)
 			starpu_data_unpartition(child_handle, gathering_node);
 
+		/* If this is a multiformat handle, we must convert the data now */
+		unsigned int id = starpu_get_handle_interface_id(child_handle);
+		if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
+			_starpu_get_node_kind(child_handle->mf_node) != STARPU_CPU_RAM)
+		{
+			void fake(void *buffers[], void *args) {}
+			struct starpu_codelet cl =
+			{
+				.where = STARPU_CPU,
+				.cpu_funcs = { fake, NULL },
+				.modes = { STARPU_RW },
+				.nbuffers = 1
+			};
+			struct starpu_multiformat_interface *format_interface;
+			format_interface = starpu_data_get_interface_on_node(child_handle, 0);
+			struct starpu_task *task = starpu_task_create();
+			task->handles[0] = child_handle;
+			task->cl = &cl;
+			task->synchronous = 1;
+			if (starpu_task_submit(task) != 0)
+				_STARPU_ERROR("Could not submit the conversion task while unpartitionning\n");
+		}
+
 		int ret;
 		ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
 		/* for now we pretend that the RAM is almost unlimited and that gathering
@@ -390,6 +414,8 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 			handle_child->per_worker[worker].data_interface = calloc(1, interfacesize);
 			STARPU_ASSERT(handle_child->per_worker[worker].data_interface);
 		}
+
+		handle_child->mf_node = handle->mf_node;
 	}
 
 	/* this handle now has children */

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -364,6 +364,7 @@ struct starpu_multiformat_data_interface_ops
 	struct starpu_codelet *cpu_to_cuda_cl;
 	struct starpu_codelet *cuda_to_cpu_cl;
 #endif
+	struct starpu_data_copy_methods *copy;
 };
 
 struct starpu_multiformat_interface
