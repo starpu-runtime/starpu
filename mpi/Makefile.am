@@ -17,7 +17,7 @@
 CC=$(MPICC)
 
 if STARPU_MPI_CHECK
-TESTS_ENVIRONMENT	=	$(MPIEXEC) -np 2
+TESTS_ENVIRONMENT	=	$(MPIEXEC) -np 2 -H localhost
 TESTS			=	$(check_PROGRAMS)
 endif
 
