@@ -1335,6 +1335,7 @@ AC_SUBST(BLAS_LIB,$blas_lib)
 have_fftw=no
 have_fftwf=no
 have_fftwl=no
+fft_support=no
 
 PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   AC_DEFINE([STARPU_HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
@@ -1356,6 +1357,10 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
   have_fftwl=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
+
+if test x$have_fftw = xyes -a x$have_fftwf = xyes ; then
+   fft_support=yes
+fi
 
 ##########################################
 # hwloc                                  #
@@ -1490,9 +1495,6 @@ AC_MSG_NOTICE([
 	OpenCL enabled: $enable_opencl
 	Cell   enabled: $enable_gordon
 
-	GCC plug-in: $build_gcc_plugin
-	GCC plug-in test suite: $run_gcc_plugin_test_suite
-
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
 	--enable-maxopencldev, --enable-maxbuffers)
@@ -1506,12 +1508,17 @@ AC_MSG_NOTICE([
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
 
-	MPI enabled:   $use_mpi
-	SOCL enabled:  $build_socl
 	Magma enabled: $have_magma
 	BLAS library:  $blas_lib
 	hwloc:         $have_valid_hwloc
-
 	FxT trace enabled: $use_fxt
 	StarPU-Top:        $build_starpu_top
+
+	StarPU Extensions:
+	       MPI enabled:   $use_mpi
+	       MPI test suite: $running_mpi_check
+	       FFT Support: $fft_support
+	       GCC plug-in: $build_gcc_plugin
+	       GCC plug-in test suite: $run_gcc_plugin_test_suite
+	       SOCL enabled:  $build_socl
 ])
