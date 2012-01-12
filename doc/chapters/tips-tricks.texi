@@ -6,9 +6,6 @@
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
-@node Tips and Tricks
-@chapter Tips and Tricks to know about
-
 @menu
 * Per-worker library initialization::  How to initialize a computation library once for each worker?
 @end menu

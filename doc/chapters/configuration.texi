@@ -6,9 +6,6 @@
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
-@node Configuring StarPU
-@chapter Configuring StarPU
-
 @menu
 * Compilation configuration::   
 * Execution configuration through environment variables::  
