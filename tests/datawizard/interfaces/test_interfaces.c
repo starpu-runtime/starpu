@@ -488,10 +488,17 @@ run_cuda(int async)
 		return;
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	err = cuda_to_cuda();
-	set_field(&summary, async, CUDA_TO_CUDA, err);
-	/* Even if cuda_to_cuda() failed, a valid copy is left on the first
-	 * cuda device, which means we can safely test cuda_to_ram() */
+	if (starpu_cuda_worker_get_count(void) >= 2)
+	{
+		err = cuda_to_cuda();
+		set_field(&summary, async, CUDA_TO_CUDA, err);
+		/* Even if cuda_to_cuda() failed, a valid copy is left on the first
+		 * cuda device, which means we can safely test cuda_to_ram() */
+	}
+	else
+	{
+		summary.cuda_to_cuda_async = UNTESTED;
+	}
 #else
 	summary.cuda_to_cuda_async = UNTESTED;
 #endif /* !HAVE_CUDA_MEMCPY_PEER */
