@@ -109,9 +109,7 @@ static void check_cuda(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, in
 int main(int argc, char *argv[])
 {
 	int i, ret;
-	struct timeval begin, end;
 	int size;
-	size_t bytes;
 	int n = 0, m = 0;
 	STARPUFFT(plan) plan;
 	starpu_data_handle_t in_handle, out_handle;
@@ -122,7 +120,11 @@ int main(int argc, char *argv[])
 	cufftHandle cuda_plan;
 	cudaError_t cures;
 #endif
+#if defined(STARPU_HAVE_FFTW) || defined(STARPU_USE_CUDA)
+	struct timeval begin, end;
 	double timing;
+	size_t bytes;
+#endif
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -153,7 +155,9 @@ int main(int argc, char *argv[])
 		assert(0);
 	}
 
+#if defined(STARPU_HAVE_FFTW) || defined(STARPU_USE_CUDA)
 	bytes = size * sizeof(STARPUFFT(complex));
+#endif
 
 	STARPUFFT(complex) *in = STARPUFFT(malloc)(size * sizeof(*in));
 	starpu_srand48(0);
