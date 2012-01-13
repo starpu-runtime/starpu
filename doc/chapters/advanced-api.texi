@@ -32,7 +32,33 @@ Defines the per-interface methods. TODO describe all the different fields
 @end deftp
 
 @deftp {Data Type} {struct starpu_data_copy_methods}
-Per-interface data transfer methods. TODO describe all the different fields
+@table @asis
+Per-interface data transfer methods.
+@item @code{void (*register_data_handle)(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);}
+Register an existing interface into a data handle.
+@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node);}
+Allocate data for the interface on a given node.
+@item @code{ void (*free_data_on_node)(void *data_interface, uint32_t node);}
+Free data of the interface on a given node.
+@item @code{ const struct starpu_data_copy_methods *copy_methods;}
+ram/cuda/spu/opencl synchronous and asynchronous transfer methods.
+@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node);}
+Return the current pointer (if any) for the handle on the given node.
+@item @code{ size_t (*get_size)(starpu_data_handle_t handle);}
+Return an estimation of the size of data, for performance models.
+@item @code{ uint32_t (*footprint)(starpu_data_handle_t handle);}
+Return a 32bit footprint which characterizes the data size.
+@item @code{ int (*compare)(void *data_interface_a, void *data_interface_b);}
+Compare the data size of two interfaces.
+@item @code{ void (*display)(starpu_data_handle_t handle, FILE *f);}
+Dump the sizes of a handle to a file.
+@item @code{ int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); }
+Convert the data size to the spu size format. If no SPUs are used, this field can be seto NULL.
+@item @code{enum starpu_data_interface_id interfaceid;}
+An identifier that is unique to each interface.
+@item @code{size_t interface_size;}
+The size of the interface data descriptor.
+@end table
 @end deftp
 
 @node An example of data interface
