@@ -558,7 +558,7 @@ The different values are:
 @end menu
 
 @node Accessing Handle
-@subsubsection Accessing Handle
+@subsubsection Handle
 
 @deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, uint32_t @var{node})
 Return the pointer associated with @var{handle} on node @var{node} or
@@ -576,7 +576,7 @@ Return the unique identifier of the interface associated with the given @var{han
 @end deftypefun
 
 @node Accessing Variable Data Interfaces
-@subsubsection Accessing Variable Data Interfaces
+@subsubsection Variable Data Interfaces
 
 @deftypefun size_t starpu_variable_get_elemsize (starpu_data_handle_t @var{handle})
 Return the size of the variable designated by @var{handle}.
