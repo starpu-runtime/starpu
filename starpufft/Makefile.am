@@ -54,7 +54,7 @@ cudaf_kernels.o: cudaf_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cudaf_kernels.cu
-am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS = cudaf_kernels.o starpufftf.lo starpufft_common.lo
+am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS = cudaf_kernels.o starpufft.lo starpufftf.lo starpufft_common.lo
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 cuda_kernels.o: cuda_kernels.cu
