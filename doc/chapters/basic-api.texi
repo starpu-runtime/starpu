@@ -598,19 +598,19 @@ todo
 @subsubsection Vector Data Interfaces
 
 @deftypefun uint32_t starpu_vector_get_nx (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements registered into the array designated by @var{handle}.
 @end deftypefun
 
 @deftypefun size_t starpu_vector_get_elemsize (starpu_data_handle_t @var{handle})
-todo
+Return the size of each element of the array designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_vector_get_local_ptr (starpu_data_handle_t @var{handle})
-todo
+Return the local pointer associated with @var{handle}.
 @end deftypefun
 
 @defmac STARPU_VECTOR_GET_PTR ({void *}@var{interface})
-todo
+Return a pointer to the array designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_DEV_HANDLE ({void *}@var{interface})
@@ -618,15 +618,15 @@ todo
 @end defmac
 
 @defmac STARPU_VECTOR_GET_OFFSET ({void *}@var{interface})
-todo
+Return the current offset in the array designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_NX ({void *}@var{interface})
-todo
+Return the number of elements registered into the array designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_ELEMSIZE ({void *}@var{interface})
-todo
+Return the size of each element of the array designated by @var{interface}.
 @end defmac
 
 @node Accessing Matrix Data Interfaces
