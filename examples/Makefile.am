@@ -123,7 +123,8 @@ noinst_HEADERS = 				\
 	spmv/matrix_market/mm_to_bcsr.h		\
 	spmv/spmv.h				\
 	spmv/dw_block_spmv.h                    \
-	basic_examples/multiformat_types.h
+	basic_examples/multiformat_types.h      \
+	filters/multiformat/multiformat_types.h
 
 #####################################
 # What to install and what to check #
