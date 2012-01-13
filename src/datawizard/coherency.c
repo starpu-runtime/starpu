@@ -29,7 +29,7 @@ uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	int src_node = -1;
 	unsigned i;
 
-	unsigned nnodes = _starpu_get_memory_nodes_count();
+	unsigned nnodes = starpu_get_memory_nodes_count();
 
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	uint32_t node;
@@ -121,7 +121,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 	if (!(mode & STARPU_RW))
 		return;
 
-	unsigned nnodes = _starpu_get_memory_nodes_count();
+	unsigned nnodes = starpu_get_memory_nodes_count();
 
 	/* the data is present now */
 	unsigned requesting_node = requesting_replicate->memory_node;
@@ -525,7 +525,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
-	wt_mask &= (1<<_starpu_get_memory_nodes_count())-1;
+	wt_mask &= (1<<starpu_get_memory_nodes_count())-1;
 
 	/* Note that it is possible that there is no valid copy of the data (if
 	 * starpu_data_invalidate was called for instance). In that case, we do
@@ -742,7 +742,7 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, uint3
 	else
 	{
 		unsigned i;
-		unsigned nnodes = _starpu_get_memory_nodes_count();
+		unsigned nnodes = starpu_get_memory_nodes_count();
 
 		for (i = 0; i < nnodes; i++)
 		{

@@ -89,6 +89,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node);
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
+unsigned starpu_get_memory_nodes_count(void);
 
 /* It is possible to associate a mask to a piece of data (and its children) so
  * that when it is modified, it is automatically transfered into those memory

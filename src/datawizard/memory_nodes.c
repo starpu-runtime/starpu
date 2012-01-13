@@ -99,7 +99,7 @@ int _starpu_memory_node_to_devid(unsigned node)
 	return descr.devid[node];
 }
 
-unsigned _starpu_get_memory_nodes_count(void)
+unsigned starpu_get_memory_nodes_count(void)
 {
 	return descr.nnodes;
 }
