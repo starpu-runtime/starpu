@@ -209,6 +209,7 @@ main(void)
 	};
 
 	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned int ncpu  = starpu_cpu_worker_get_count();

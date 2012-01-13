@@ -50,6 +50,7 @@ int main(int argc, char **argv)
 	int ret;
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize the resource */

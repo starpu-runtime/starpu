@@ -60,7 +60,8 @@ main(void)
 	int ret;
 	struct starpu_task *task;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	task = starpu_task_create();
 	task->cl = &cl;

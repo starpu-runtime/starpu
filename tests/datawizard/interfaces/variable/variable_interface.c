@@ -87,6 +87,7 @@ void unregister_data(void)
 int
 main(void)
 {
+	int ret;
 	data_interface_test_summary *summary;
 
 	struct starpu_conf conf =
@@ -96,7 +97,8 @@ main(void)
 		.nopencl = 1
 	};
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	register_data();
 

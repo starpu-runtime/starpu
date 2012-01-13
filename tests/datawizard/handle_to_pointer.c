@@ -66,13 +66,14 @@ static struct starpu_codelet cl =
 
 int main(int argc, char *argv[])
 {
-	int err;
+	int err, ret;
 	size_t i;
 	int *pointer;
 	starpu_data_handle_t handle;
 	static const size_t count = 123;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	err = starpu_malloc((void **)&pointer, count * sizeof(int));
 	STARPU_ASSERT((err == 0) && (pointer != NULL));

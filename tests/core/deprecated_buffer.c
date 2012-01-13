@@ -128,6 +128,7 @@ int main(int argc, char **argv)
 	struct submit_task_func with_handles = { .func = submit_codelet_with_handles, .name = "with_handles" };
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ret = submit_codelet(cl_with_mode, insert_task);

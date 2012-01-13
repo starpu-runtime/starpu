@@ -63,6 +63,7 @@ int main(int argc, char **argv)
         conf.sched_policy_name = "pgreedy";
 
 	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ret = starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
