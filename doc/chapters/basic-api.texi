@@ -579,19 +579,19 @@ Return the unique identifier of the interface associated with the given @var{han
 @subsubsection Accessing Variable Data Interfaces
 
 @deftypefun size_t starpu_variable_get_elemsize (starpu_data_handle_t @var{handle})
-todo
+Return the size of the variable designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_variable_get_local_ptr (starpu_data_handle_t @var{handle})
-todo
+Return a pointer to the variable designated by @var{handle}.
 @end deftypefun
 
 @defmac STARPU_VARIABLE_GET_PTR ({void *}@var{interface})
-todo
+Return a pointer to the variable designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_VARIABLE_GET_ELEMSIZE ({void *}@var{interface})
-todo
+Return the size of the variable designated by @var{interface}.
 @end defmac
 
 @node Accessing Vector Data Interfaces
