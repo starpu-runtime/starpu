@@ -615,7 +615,7 @@ CUDA only. For OpenCL, the device handle and offset need to be used instead.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_DEV_HANDLE ({void *}@var{interface})
-Return a device handle for the array designated by @var{interface}. the offset
+Return a device handle for the array designated by @var{interface}, to be used on OpenCL. the offset
 documented below has to be used in addition to this.
 @end defmac
 
@@ -664,8 +664,8 @@ used instead.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_DEV_HANDLE ({void *}@var{interface})
-Return a device handle for the matrix designated by @var{interface}. The offset
-documented below has to be used in addition to this.
+Return a device handle for the matrix designated by @var{interface}, to be used
+on OpenCL. The offset documented below has to be used in addition to this.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_OFFSET ({void *}@var{interface})
