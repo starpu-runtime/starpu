@@ -167,6 +167,7 @@ device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
 * --enable-allocation-cache::   
 * --enable-opengl-render::      
 * --enable-blas-lib::           
+* --disable-starpufft::           
 * --with-magma::                
 * --with-fxt::                  
 * --with-perf-model-dir::       
@@ -208,6 +209,10 @@ Enable the use of OpenGL for the rendering of some examples.
 @subsubsection @code{--enable-blas-lib=<name>}
 Specify the blas library to be used by some of the examples. The
 library has to be 'atlas' or 'goto'.
+
+@node --disable-starpufft
+@subsubsection @code{--disable-starpufft}
+Disable the build of libstarpufft, even if fftw or cuFFT is available.
 
 @node --with-magma
 @subsubsection @code{--with-magma=<path>}

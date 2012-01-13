@@ -1337,6 +1337,10 @@ have_fftwf=no
 have_fftwl=no
 fft_support=no
 
+AC_ARG_ENABLE(starpufft, [AS_HELP_STRING([--disable-starpufft],
+			[Disable build of StarPU-FFT])],
+			enable_starpufft=$enableval,enable_starpufft=yes)
+
 PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   AC_DEFINE([STARPU_HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
   AC_SUBST([STARPU_HAVE_FFTW], [1])
@@ -1358,7 +1362,7 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
-if test \( x$enable_cpu = xyes -a x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes; then
+if test x$enable_starpufft = xyes -a \( \( x$enable_cpu = xyes -a x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes \); then
    fft_support=yes
 fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
