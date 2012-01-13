@@ -167,7 +167,7 @@ void launch_spmv_codelets(void)
 
 	unsigned taskid = 0;
 
-	task_tab = malloc(totaltasks*sizeof(struct starpu_task));
+	task_tab = calloc(totaltasks, sizeof(struct starpu_task));
 	STARPU_ASSERT(task_tab);
 
 	is_entry_tab = calloc(totaltasks, sizeof(uint8_t));
@@ -199,6 +199,7 @@ void launch_spmv_codelets(void)
 			for (index = rowptr[row]; index < rowptr[row+1]; index++, part++)
 			{
 				struct starpu_task *task = &task_tab[taskid];
+				starpu_task_init(task);
 
 				task->use_tag = 1;
 				task->tag_id = taskid;
