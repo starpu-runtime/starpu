@@ -572,7 +572,7 @@ if @var{handle}'s interface does not have data allocated locally
 @end deftypefun
 
 @deftypefun {enum starpu_data_interface_id} starpu_get_handle_interface_id (starpu_data_handle_t @var{handle})
-todo
+Return the unique identifier of the interface associated with the given @var{handle}.
 @end deftypefun
 
 @node Accessing Variable Data Interfaces
