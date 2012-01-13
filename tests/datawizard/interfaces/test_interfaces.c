@@ -488,7 +488,7 @@ run_cuda(int async)
 		return;
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (starpu_cuda_worker_get_count(void) >= 2)
+	if (starpu_cuda_worker_get_count() >= 2)
 	{
 		err = cuda_to_cuda();
 		set_field(&summary, async, CUDA_TO_CUDA, err);
