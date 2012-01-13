@@ -18,6 +18,7 @@
 #include <starpu_opencl.h>
 #include "multiformat_types.h"
 
+#if defined(STARPU_USE_CPU) && defined(STARPU_USE_OPENCL)
 extern struct starpu_opencl_program opencl_program;
 
 void multiformat_scal_opencl_func(void *buffers[], void *args)
@@ -94,3 +95,4 @@ void multiformat_scal_opencl_func(void *buffers[], void *args)
 
 	starpu_opencl_release_kernel(kernel);
 }
+#endif
