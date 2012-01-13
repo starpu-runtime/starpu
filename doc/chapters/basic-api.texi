@@ -610,15 +610,17 @@ Return the local pointer associated with @var{handle}.
 @end deftypefun
 
 @defmac STARPU_VECTOR_GET_PTR ({void *}@var{interface})
-Return a pointer to the array designated by @var{interface}.
+Return a pointer to the array designated by @var{interface}, valid on CPUs and
+CUDA only. For OpenCL, the device handle and offset need to be used instead.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_DEV_HANDLE ({void *}@var{interface})
-todo
+Return a device handle for the array designated by @var{interface}. the offset
+documented below has to be used in addition to this.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_OFFSET ({void *}@var{interface})
-Return the current offset in the array designated by @var{interface}.
+Return the offset in the array designated by @var{interface}, to be used with the device handle.
 @end defmac
 
 @defmac STARPU_VECTOR_GET_NX ({void *}@var{interface})
