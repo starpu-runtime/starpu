@@ -80,13 +80,12 @@ examples_testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir
 # supports double precision.
 if !STARPU_USE_CUDA
 check_PROGRAMS += examples/test
-examples_test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
 else
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 check_PROGRAMS += examples/test
+endif
+endif
 examples_test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
-endif
-endif
 
 TESTS = $(check_PROGRAMS)
 
