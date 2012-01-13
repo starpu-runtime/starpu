@@ -28,7 +28,43 @@
 
 @deftp {Data Type} {struct starpu_data_interface_ops}
 @anchor{struct starpu_data_interface_ops}
-Defines the per-interface methods. TODO describe all the different fields
+Defines the per-interface methods.
+@table @asis
+@item @code{int @{ram,cuda,opencl,spu@}_to_@{ram,cuda,opencl,spu@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);}
+These sixteen functions define how to copy data from the @var{src_interface}
+interface on the @var{src_node} node to the @var{dst_interface} interface
+on the @var{dst_node} node. They return 0 on success.
+@item @code{int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
+@var{dst_node} node (on a CUDA device), using the given @var{stream}. Return 0
+on success.
+@item @code{int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on the
+@var{dst_node} node (in RAM), using the given @var{stream}. Return 0
+on success.
+@item @code{int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on
+the @var{dst_node} node (on another CUDA device), using the given @var{stream}.
+Return 0 on success.
+@item @code{int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
+@var{dst_node} node (on an OpenCL device), using @var{event}, a pointer to a
+cl_event. Return 0 on success.
+@item @code{int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
+on the @var{dst_node} node (in RAM), using the given @var{event}, a pointer to
+a cl_event. Return 0 on success.
+@item @code{int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
+on the @var{dst_node} node (on another OpenCL device), using the given
+@var{event}, a pointer to a cl_event. Return 0 on success.
+@end table
 @end deftp
 
 @deftp {Data Type} {struct starpu_data_copy_methods}
