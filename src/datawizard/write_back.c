@@ -39,7 +39,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting
 
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node, max;
-	for (node = 0, max = starpu_get_memory_nodes_count(); node < max; node++)
+	for (node = 0, max = starpu_memory_nodes_get_count(); node < max; node++)
 	{
 		if (write_through_mask & (1<<node))
 		{
