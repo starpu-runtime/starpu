@@ -804,11 +804,11 @@ todo
 @subsubsection CSR Data Interfaces
 
 @deftypefun uint32_t starpu_csr_get_nnz (starpu_data_handle_t @var{handle})
-todo
+Return the number of non-zero values in the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_csr_get_nrow (starpu_data_handle_t @var{handle})
-todo
+Return the size of the row pointer array of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_csr_get_firstentry (starpu_data_handle_t @var{handle})
@@ -816,39 +816,39 @@ todo
 @end deftypefun
 
 @deftypefun uintptr_t starpu_csr_get_local_nzval (starpu_data_handle_t @var{handle})
-todo
+Return a local pointer to the non-zero values of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun {uint32_t *} starpu_csr_get_local_colind (starpu_data_handle_t @var{handle})
-todo
+Return a local pointer to the column index of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun {uint32_t *} starpu_csr_get_local_rowptr (starpu_data_handle_t @var{handle})
-todo
+Return a local pointer to the row pointer array of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun size_t starpu_csr_get_elemsize (starpu_data_handle_t @var{handle})
-todo
+Return the size of the elements registered into the matrix designated by @var{handle}.
 @end deftypefun
 
 @defmac STARPU_CSR_GET_NNZ ({void *}@var{interface})
-todo
+Return the number of non-zero values in the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_CSR_GET_NROW ({void *}@var{interface})
-todo
+Return the size of the row pointer array of the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_CSR_GET_NZVAL ({void *}@var{interface})
-todo
+Return a pointer to the non-zero values of the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_CSR_GET_COLIND ({void *}@var{interface})
-todo
+Return a pointer to the column index of the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_CSR_GET_ROWPTR ({void *}@var{interface})
-todo
+Return a pointer to the row pointer array of the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
@@ -856,7 +856,7 @@ todo
 @end defmac
 
 @defmac STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
-todo
+Return the size of the elements registered into the matrix designated by @var{interface}.
 @end defmac
 
 @node Data Partition
