@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -248,6 +248,10 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	_starpu_spin_unlock(&initial_handle->header_lock);
 }
 
+void _starpu_empty_codelet_function(void *buffers[], void *args)
+{
+}
+
 void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gathering_node)
 {
 	unsigned child;
@@ -269,11 +273,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 		if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
 			_starpu_get_node_kind(child_handle->mf_node) != STARPU_CPU_RAM)
 		{
-			void fake(void *buffers[], void *args) {}
 			struct starpu_codelet cl =
 			{
 				.where = STARPU_CPU,
-				.cpu_funcs = { fake, NULL },
+				.cpu_funcs = { _starpu_empty_codelet_function, NULL },
 				.modes = { STARPU_RW },
 				.nbuffers = 1
 			};
