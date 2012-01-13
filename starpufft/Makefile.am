@@ -61,7 +61,7 @@ cuda_kernels.o: cuda_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir} -arch sm_13
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cuda_kernels.cu
-am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS += cuda_kernels.o starpufft.lo
+am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS += cuda_kernels.o
 endif
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
