@@ -21,11 +21,22 @@
  * its own copy functions. Some of them have not been implemented here
  * (synchronous functions, for example).
  */
+
 #include <starpu.h>
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
 #include "multiformat_types.h"
+
+#ifndef STARPU_USE_CPU
+/* Without the CPU, there is no point in using the multiformat
+ * interface, so this test is pointless. */
+int
+main(void)
+{
+	return 77;
+}
+#else
 
 static int ncpu = 0;
 static int ncuda = 0;
@@ -35,7 +46,6 @@ static unsigned int nchunks = 1;
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
 
-#if STARPU_USE_CPU
 static void
 multiformat_scal_cpu_func(void *buffers[], void *args)
 {
@@ -48,7 +58,6 @@ multiformat_scal_cpu_func(void *buffers[], void *args)
 	for (i = 0; i < n; i++)
 		aos[i].x *= aos[i].y;
 }
-#endif /* STARPU_USE_CPU */
 
 #ifdef STARPU_USE_CUDA
 extern struct starpu_codelet cpu_to_cuda_cl;
@@ -84,7 +93,6 @@ extern void multiformat_scal_cuda_func(void *buffers[], void *arg);
 extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 #endif
 
-#ifdef STARPU_USE_CPU
 static struct starpu_codelet cpu_cl =
 {
 	.where = STARPU_CPU,
@@ -93,7 +101,6 @@ static struct starpu_codelet cpu_cl =
 	.modes = { STARPU_RW },
 	.name = "codelet_real"
 };
-#endif /* !STARPU_USE_CPU */
 
 #ifdef STARPU_USE_CUDA
 static struct starpu_codelet cuda_cl =
@@ -179,14 +186,12 @@ multiformat_divide_in_equal_chunks_filter_func(void *father,
 	/* The actual partitioning */
 	mf_child->nx = length_first;
 
-#if STARPU_USE_CPU
 	if (mf_father->cpu_ptr)
 	{
 		struct point *tmp = (struct point *) mf_father->cpu_ptr;
 		tmp += id * length_first;
 		mf_child->cpu_ptr = tmp;
 	}
-#endif
 }
 
 static void
@@ -216,18 +221,19 @@ create_and_submit_tasks(void)
 		{
 			task->cl = &cpu_cl;
 		}
-		else if (i == 1)
+		else
+		if (i == 1)
 		{
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 			if (ncuda > 0)
 				task->cl = &cuda_cl;
 #endif /* !STARPU_USE_CUDA */
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 			if (ncuda == 0 && nopencl > 0)
 				task->cl = &opencl_cl;
 #endif /* !STARPU_USE_OPENCL */
 		}
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 		else /* i == 2 */
 		{
 			task->cl = &opencl_cl;
@@ -250,7 +256,6 @@ create_and_submit_tasks(void)
 
 	return 0;
 }
-
 
 static void
 print_it(void)
@@ -279,6 +284,7 @@ check_it(void)
 
 	return EXIT_SUCCESS;
 }
+
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
 struct starpu_opencl_program opencl_conversion_program;
@@ -302,7 +308,6 @@ gpus_available()
 int
 main(void)
 {
-#ifdef STARPU_USE_CPU
 	int err;
 	struct starpu_conf conf =
 	{
@@ -363,9 +368,6 @@ main(void)
 
 
 	return check_it();
-#else
-	/* Without the CPU, there is no point in using the multiformat
-	 * interface, so this test is pointless. */
-	return EXIT_SUCCESS;
-#endif
 }
+
+#endif /* STARPU_USE_CPU */
