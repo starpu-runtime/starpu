@@ -180,6 +180,8 @@ AC_ARG_ENABLE([sched_ctx_hypervisor],
 if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
    AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sched_ctx_hypervisor lib])
    PKG_CHECK_MODULES([SCHED_CTX_HYPERVISOR], [libsched_ctx_hypervisor], [], build_sched_ctx_hypervisor="yes")
+   STARPU_SCHED_CTX_HYPERVISOR="-lsched_ctx_hypervisor"
+   AC_SUBST(STARPU_SCHED_CTX_HYPERVISOR)
    build_sched_ctx_hypervisor="yes"
 else
    build_sched_ctx_hypervisor="no"
