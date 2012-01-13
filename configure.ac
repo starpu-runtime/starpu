@@ -1358,7 +1358,7 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
-if test \( x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes; then
+if test \( x$enable_cpu = xyes -a x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes; then
    fft_support=yes
 fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
