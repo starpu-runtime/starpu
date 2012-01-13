@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -38,10 +38,8 @@ if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
 endif
 
-if STARPU_HAVE_FFTW
-if STARPU_HAVE_FFTWF
+if BUILD_STARPUFFT
 SUBDIRS += starpufft
-endif
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
