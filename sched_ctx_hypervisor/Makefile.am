@@ -17,7 +17,5 @@ SUBDIRS = src examples
 
 libsched_ctx_hypervisor_la_includedir=$(includedir)
 
-noinst_HEADERS = src/sched_ctx_hypervisor_intern.h
-
 include_HEADERS = include/sched_ctx_hypervisor.h
 

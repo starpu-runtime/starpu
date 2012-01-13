@@ -1,4 +1,5 @@
 #include <sched_ctx_hypervisor.h>
+#include <../common/htable32.h>
 
 struct sched_ctx_wrapper {
 	unsigned sched_ctx;

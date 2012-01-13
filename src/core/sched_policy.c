@@ -284,6 +284,25 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	}
 }
 
+static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct starpu_sched_ctx *sched_ctx)
+{
+  int worker = -1, nworkers = 0;
+  struct worker_collection *workers = sched_ctx->workers;
+  if(workers->init_cursor)
+    workers->init_cursor(workers);
+  
+  while(workers->has_next(workers))
+    {
+      worker = workers->get_next(workers);
+      if (starpu_worker_may_execute_task(worker, task, 0))
+		  nworkers++;
+    }
+  
+  if(workers->init_cursor)
+    workers->deinit_cursor(workers);
+  return nworkers;
+}
+
 /* the generic interface that call the proper underlying implementation */
 int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
@@ -291,9 +310,14 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	int workerid = starpu_worker_get_id();
 	unsigned no_workers = 0;
-	unsigned nworkers; 
-       
-	nworkers = sched_ctx->workers->nworkers;
+	unsigned nworkers = 0; 
+
+	/*if there are workers in the ctx that are not able to execute tasks 
+	  we consider the ctx empty */
+	if(!sched_ctx->is_initial_sched)
+	  nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+	else
+	  nworkers = sched_ctx->workers->nworkers;
 
 	if(nworkers == 0)
 	{
@@ -302,6 +326,8 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 			PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
 			PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
 			PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
+			nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+			if(nworkers == 0) return _starpu_push_task(j, job_is_already_locked);
 		}
 		else
 		{
@@ -420,11 +446,14 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
 		sched_ctx = worker->sched_ctx[i];
-		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->criteria != NULL)
+		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->criteria != NULL 
+		   && sched_ctx->criteria->idle_time_cb && sched_ctx->criteria->reset_idle_time_cb)
+		{
 			if(!task)
 				sched_ctx->criteria->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
 			else
 				sched_ctx->criteria->reset_idle_time_cb(sched_ctx->id, worker->workerid);
+		}
 	}
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 

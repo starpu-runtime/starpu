@@ -83,11 +83,15 @@ void sched_ctx_hypervisor_shutdown(void)
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
-		sched_ctx_hypervisor_stop_resize(hypervisor.sched_ctxs[i]);
                 if(hypervisor.sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS && hypervisor.nsched_ctxs > 0)
-			sched_ctx_hypervisor_ignore_ctx(i);
+		{
+			sched_ctx_hypervisor_stop_resize(hypervisor.sched_ctxs[i]);
+			sched_ctx_hypervisor_ignore_ctx(hypervisor.sched_ctxs[i]);
+		}
 	}
 	free(criteria);
+	criteria = NULL;
+
 	pthread_mutex_destroy(&act_hypervisor_mutex);
 }
 
@@ -158,14 +162,14 @@ void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx)
 
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 {
-	    printf("%d: ", sched_ctx );
+	printf("%d: ", sched_ctx );
 	if(hypervisor.sched_ctx_w[sched_ctx].config != NULL && config != NULL)
-	  {
+	{
 		hypervisor.policy.update_config(hypervisor.sched_ctx_w[sched_ctx].config, config);
-	  }
+	}
 	else
 		hypervisor.sched_ctx_w[sched_ctx].config = config;
-
+	
 	return;
 }
 
@@ -348,17 +352,23 @@ void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workerids, int 
 
 static void reset_idle_time_cb(unsigned sched_ctx, int worker)
 {
-	if(hypervisor.resize[sched_ctx])
-		hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] = 0.0;
+	if(criteria != NULL)
+	{
+		if(hypervisor.resize[sched_ctx])
+			hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] = 0.0;
+	}
 }
 
 static void idle_time_cb(unsigned sched_ctx, int worker, double idle_time)
 {
-	if(hypervisor.resize[sched_ctx] && hypervisor.nsched_ctxs > 1 && hypervisor.policy.manage_idle_time)
+	if(criteria != NULL)
 	{
-		hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] += idle_time;
-		hypervisor.policy.manage_idle_time(sched_ctx, worker, hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker]);
-
+		if(hypervisor.resize[sched_ctx] && hypervisor.nsched_ctxs > 1 && hypervisor.policy.manage_idle_time)
+		{
+			hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] += idle_time;
+			hypervisor.policy.manage_idle_time(sched_ctx, worker, hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker]);
+			
+		}
 	}
 	return;
 }
@@ -386,26 +396,20 @@ double sched_ctx_hypervisor_get_debit(unsigned sched_ctx)
 
 	int npushed_tasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].pushed_tasks);
 	int npoped_tasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].poped_tasks);
-	if(hypervisor.sched_ctx_w[sched_ctx].temp_npushed_tasks != npushed_tasks || hypervisor.sched_ctx_w[sched_ctx].temp_npoped_tasks!= npoped_tasks)
+	STARPU_ASSERT(npoped_tasks <= npushed_tasks);
+	if(npushed_tasks > 0 && npoped_tasks > 0)
 	{
-		hypervisor.sched_ctx_w[sched_ctx].temp_npushed_tasks = npushed_tasks;
-		hypervisor.sched_ctx_w[sched_ctx].temp_npoped_tasks = npoped_tasks;
-		
-		STARPU_ASSERT(npoped_tasks <= npushed_tasks);
-		if(npushed_tasks > 0 && npoped_tasks > 0)
-		{
-			double debit = (((double)npoped_tasks)*1.0)/((double)npushed_tasks * 1.0);
-			return debit;
-		}
+		double debit = (((double)npoped_tasks)*1.0)/((double)npushed_tasks * 1.0);
+		return debit;
 	}
-
+	
 	return 0.0;
 }
 
 static void pushed_task_cb(unsigned sched_ctx, int worker)
 {	
 	hypervisor.sched_ctx_w[sched_ctx].pushed_tasks[worker]++;
-       
+	
 	int ntasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].pushed_tasks);
 	
 	if(!imposed_resize)
@@ -416,8 +420,18 @@ static void poped_task_cb(unsigned sched_ctx, int worker)
 {
 	hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker]++;
 	
-	/* if(hypervisor.nsched_ctxs > 1) */
-	/* 	hypervisor.policy.manage_task_flux(sched_ctx); */
+	if(hypervisor.nsched_ctxs > 1)
+	{
+		int npushed_tasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].pushed_tasks);
+		int npoped_tasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].poped_tasks);
+		if(hypervisor.sched_ctx_w[sched_ctx].temp_npushed_tasks != npushed_tasks &&
+		   hypervisor.sched_ctx_w[sched_ctx].temp_npoped_tasks != npoped_tasks)
+		{
+			hypervisor.policy.manage_task_flux(sched_ctx);
+			hypervisor.sched_ctx_w[sched_ctx].temp_npushed_tasks = npushed_tasks;
+			hypervisor.sched_ctx_w[sched_ctx].temp_npoped_tasks = npoped_tasks;
+		}
+	}
 }
 
 static void post_exec_hook_cb(unsigned sched_ctx, int task_tag)

@@ -245,7 +245,7 @@ static unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 			else
 				nworkers_to_move = potential_moving_workers - (config->min_nworkers - nfixed_workers);	
 		}
-		printf("nworkers = %d nworkers_to_move = %d max_nworkers=%d\n", nworkers, nworkers_to_move, config->max_nworkers);
+//		printf("nworkers = %d nworkers_to_move = %d max_nworkers=%d\n", nworkers, nworkers_to_move, config->max_nworkers);
 		if((nworkers - nworkers_to_move) > config->max_nworkers)
 			nworkers_to_move = nworkers - config->max_nworkers;
 	}
@@ -263,7 +263,7 @@ static int _find_fastest_sched_ctx()
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		curr_debit = sched_ctx_hypervisor_get_debit(sched_ctxs[i]);
-		if(fastest_debit <= curr_debit)
+		if(fastest_debit < curr_debit)
 		{
 			fastest_debit = curr_debit;
 			fastest_sched_ctx = sched_ctxs[i];
@@ -284,7 +284,7 @@ static int _find_slowest_sched_ctx()
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		curr_debit = sched_ctx_hypervisor_get_debit(sched_ctxs[i]);
-		if(slowest_debit >= curr_debit)
+		if(slowest_debit > curr_debit)
 		{
 			slowest_debit = curr_debit;
 			slowest_sched_ctx = sched_ctxs[i];
@@ -358,6 +358,7 @@ static void simple_manage_task_flux(unsigned curr_sched_ctx)
 	
 	int slow_sched_ctx = _find_slowest_sched_ctx();
 	int fast_sched_ctx = _find_fastest_sched_ctx();
+
 	if(slow_sched_ctx != fast_sched_ctx && slow_sched_ctx != -1 && fast_sched_ctx != -1)
 	{
 		if(curr_sched_ctx == slow_sched_ctx)

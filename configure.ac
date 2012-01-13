@@ -161,7 +161,7 @@ fi
 
 ###############################################################################
 #									      #
-#				SCED_CTX settings			      #
+#				SCHED_CTX settings			      #
 #									      #
 ###############################################################################
 AC_MSG_CHECKING(maximum number of sched_ctxs)
@@ -179,6 +179,7 @@ AC_ARG_ENABLE([sched_ctx_hypervisor],
 
 if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
    AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sched_ctx_hypervisor lib])
+   PKG_CHECK_MODULES([SCHED_CTX_HYPERVISOR], [libsched_ctx_hypervisor], [], build_sched_ctx_hypervisor="yes")
    build_sched_ctx_hypervisor="yes"
 else
    build_sched_ctx_hypervisor="no"

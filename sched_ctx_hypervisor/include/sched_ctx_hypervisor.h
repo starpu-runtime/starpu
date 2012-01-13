@@ -1,6 +1,4 @@
 #include <starpu.h>
-#include <../common/config.h>
-#include <../common/htable32.h>
 #include <pthread.h>
 
 /* ioctl properties*/
