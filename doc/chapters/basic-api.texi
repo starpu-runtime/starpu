@@ -635,51 +635,62 @@ Return the size of each element of the array designated by @var{interface}.
 @subsubsection Matrix Data Interfaces
 
 @deftypefun uint32_t starpu_matrix_get_nx (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements on the x-axis of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_matrix_get_ny (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements on the y-axis of the matrix designated by
+@var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_matrix_get_local_ld (starpu_data_handle_t @var{handle})
-todo
+Return the number of extra elements present at the end of each row of the
+matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_matrix_get_local_ptr (starpu_data_handle_t @var{handle})
-todo
+Return the local pointer associated with @var{handle}.
 @end deftypefun
 
 @deftypefun size_t starpu_matrix_get_elemsize (starpu_data_handle_t @var{handle})
-todo
+Return the size of the elements registered into the matrix designated by
+@var{handle}.
 @end deftypefun
 
 @defmac STARPU_MATRIX_GET_PTR ({void *}@var{interface})
-todo
+Return a pointer to the matrix designated by @var{interface}, valid on CPUs and
+CUDA devices only. For OpenCL devices, the device handle and offset need to be
+used instead.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_DEV_HANDLE ({void *}@var{interface})
-todo
+Return a device handle for the matrix designated by @var{interface}. The offset
+documented below has to be used in addition to this.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_OFFSET ({void *}@var{interface})
-todo
+Return the offset in the matrix designated by @var{interface}, to be used with
+the device handle.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_NX ({void *}@var{interface})
-todo
+Return the number of elements on the x-axis of the matrix designated by
+@var{interface}.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_NY ({void *}@var{interface})
-todo
+Return the number of elements on the y-axis of the matrix designated by
+@var{interface}.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_LD ({void *}@var{interface})
-todo
+Return the number of extra elements present at the end of each row of the
+matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_ELEMSIZE ({void *}@var{interface})
-todo
+Return the size of the elements registered into the matrix designated by
+@var{interface}.
 @end defmac
 
 @node Accessing Block Data Interfaces
