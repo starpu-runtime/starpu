@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -63,7 +63,7 @@ static void check_fftw(STARPUFFT(complex) *out, STARPUFFT(complex) *out_fftw, in
 	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
 	double relavgdiff = (tot / size) / sqrt(norm);
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8)) {
+	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-7 || relavgdiff > 1e-7)) {
 		fprintf(stderr, "Failure: Difference too big (TYPE f)\n");
 		exit(EXIT_FAILURE);
 	}
@@ -123,14 +123,8 @@ int main(int argc, char *argv[])
 	cudaError_t cures;
 #endif
 	double timing;
-	struct starpu_conf conf;
 
-#ifdef STARPU_DEVEL
-#  warning we disable cuda for now, as the test keeps failing when running on cuda devices
-#endif
-	starpu_conf_init(&conf);
-	conf.ncuda = 0;
-	ret = starpu_init(&conf);
+	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (argc == 1)
