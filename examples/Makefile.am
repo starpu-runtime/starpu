@@ -49,7 +49,8 @@ EXTRA_DIST = 					\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
 	openmp/vector_scal.c			\
-	filters/fblock_opencl_kernel.cl
+	filters/fblock_opencl_kernel.cl		\
+	filters/multiformat/opencl.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
