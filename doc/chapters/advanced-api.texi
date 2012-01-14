@@ -350,7 +350,7 @@ where the worker will pop tasks first. Setting @var{back} to 0 therefore ensures
 a FIFO ordering.
 @end deftypefun
 
-@deftypefun int starpu_worker_may_run_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned {nimpl})
+@deftypefun int starpu_worker_can_execute_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned {nimpl})
 Check if the worker specified by workerid can execute the codelet. Schedulers need to call it before assigning a task to a worker, otherwise the task may fail to execute.
 @end deftypefun
 
