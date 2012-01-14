@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,6 +29,13 @@
 #ifdef STARPU_USE_CUDA
 #define _externC extern
 #include "cudax_kernels.h"
+
+#if defined(FLOAT) || defined(STARPU_HAVE_CUFFTDOUBLECOMPLEX)
+#  define __STARPU_USE_CUDA
+#else
+#  undef __STARPU_USE_CUDA
+#endif
+
 #endif
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
@@ -165,6 +172,30 @@ compute_roots(STARPUFFT(plan) plan)
 #endif
 	}
 }
+
+/* Only CUDA capability >= 1.3 supports doubles, rule old card out.  */
+#ifdef DOUBLE
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl) {
+	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+		return 1;
+#ifdef STARPU_USE_CUDA
+	{
+		/* Cuda device */
+		const struct cudaDeviceProp *props;
+		props = starpu_cuda_get_device_properties(workerid);
+		if (props->major >= 2 || props->minor >= 3)
+			/* At least compute capability 1.3, supports doubles */
+			return 1;
+		/* Old card does not support doubles */
+		return 0;
+	}
+#endif
+	return 0;
+}
+#define CAN_EXECUTE .can_execute = can_execute,
+#else
+#define CAN_EXECUTE
+#endif
 
 #include "starpufftx1d.c"
 #include "starpufftx2d.c"

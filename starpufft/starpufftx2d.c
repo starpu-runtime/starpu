@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 
 #define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag_t) i << I_SHIFT) | (starpu_tag_t) j)
 
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 /* Twist the full vector into a n2,m2 chunk */
 static void
 STARPUFFT(twist1_2d_kernel_gpu)(void *descr[], void *_args)
@@ -306,14 +306,15 @@ struct starpu_perfmodel STARPUFFT(twist3_2d_model) = {
 
 static struct starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 	.where =
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 	.cuda_funcs = {STARPUFFT(twist1_2d_kernel_gpu), NULL},
 #endif
 	.cpu_funcs = {STARPUFFT(twist1_2d_kernel_cpu), NULL},
+	CAN_EXECUTE
 	.model = &STARPUFFT(twist1_2d_model),
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
@@ -321,19 +322,20 @@ static struct starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 
 static struct starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 	.where =
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef STARPU_HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 	.cuda_funcs = {STARPUFFT(fft1_2d_kernel_gpu), NULL},
 #endif
 #ifdef STARPU_HAVE_FFTW
 	.cpu_funcs = {STARPUFFT(fft1_2d_kernel_cpu), NULL},
 #endif
+	CAN_EXECUTE
 	.model = &STARPUFFT(fft1_2d_model),
 	.nbuffers = 4,
 	.modes = {STARPU_R, STARPU_W, STARPU_R, STARPU_R}
@@ -342,6 +344,7 @@ static struct starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 static struct starpu_codelet STARPUFFT(twist2_2d_codelet) = {
 	.where = STARPU_CPU,
 	.cpu_funcs = {STARPUFFT(twist2_2d_kernel_cpu), NULL},
+	CAN_EXECUTE
 	.model = &STARPUFFT(twist2_2d_model),
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -349,19 +352,20 @@ static struct starpu_codelet STARPUFFT(twist2_2d_codelet) = {
 
 static struct starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 	.where =
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef STARPU_HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 	.cuda_funcs = {STARPUFFT(fft2_2d_kernel_gpu), NULL},
 #endif
 #ifdef STARPU_HAVE_FFTW
 	.cpu_funcs = {STARPUFFT(fft2_2d_kernel_cpu), NULL},
 #endif
+	CAN_EXECUTE
 	.model = &STARPUFFT(fft2_2d_model),
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
@@ -370,6 +374,7 @@ static struct starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
 	.where = STARPU_CPU,
 	.cpu_funcs = {STARPUFFT(twist3_2d_kernel_cpu), NULL},
+	CAN_EXECUTE
 	.model = &STARPUFFT(twist3_2d_model),
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -381,7 +386,7 @@ static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
  *
  */
 
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 /* Perform one fft of size n,m */
 static void
 STARPUFFT(fft_2d_plan_gpu)(void *args)
@@ -442,19 +447,20 @@ static struct starpu_perfmodel STARPUFFT(fft_2d_model) = {
 
 static struct starpu_codelet STARPUFFT(fft_2d_codelet) = {
 	.where =
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef STARPU_HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 	.cuda_funcs = {STARPUFFT(fft_2d_kernel_gpu), NULL},
 #endif
 #ifdef STARPU_HAVE_FFTW
 	.cpu_funcs = {STARPUFFT(fft_2d_kernel_cpu), NULL},
 #endif
+	CAN_EXECUTE
 	.model = &STARPUFFT(fft_2d_model),
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
@@ -485,7 +491,7 @@ if (PARALLEL) {
 	 * - twist3: twist back into output
 	 */
 
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 	/* cufft 2D-3D limited to [2,16384] */
 	while (n2 > 16384) {
 		n1 *= 2;
@@ -496,7 +502,7 @@ if (PARALLEL) {
 	STARPU_ASSERT(n1 < (1ULL << J_BITS));
 
 
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 	/* cufft 2D-3D limited to [2,16384] */
 	while (m2 > 16384) {
 		m1 *= 2;
@@ -591,7 +597,7 @@ if (PARALLEL) {
 			break;
 		}
 	}
-#ifdef STARPU_USE_CUDA
+#ifdef __STARPU_USE_CUDA
 if (PARALLEL) {
 	starpu_execute_on_each_worker(STARPUFFT(fft1_2d_plan_gpu), plan, STARPU_CUDA);
 	starpu_execute_on_each_worker(STARPUFFT(fft2_2d_plan_gpu), plan, STARPU_CUDA);
