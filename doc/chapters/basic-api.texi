@@ -522,7 +522,7 @@ TODO
 @end deftypefun
 
 @deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle_t @var{handle}, unsigned @var{memory_node})
-todo
+Return the interface associated with @var{handle} on @var{memory_node}.
 @end deftypefun
 
 @node Accessing Data Interfaces
