@@ -36,7 +36,7 @@ done
 
 echo
 
-structs=$(grep "struct " $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
+structs=$(grep "struct starpu" $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
 for struct in $structs ; do
     x=$(grep "$struct\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
     if test "$x" == "" ; then
@@ -46,9 +46,9 @@ done
 
 echo
 
-enums=$(grep "enum.*{" $(find include -name '*.h') |awk '{print $2}')
+enums=$(grep "enum starpu" $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
 for enum in $enums ; do
-    x=$(grep $enum doc/starpu.texi doc/chapters/*texi | grep deftp)
+    x=$(grep "$enum\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
     if test "$x" == "" ; then
 	echo "enum ${redcolor}${enum}${stcolor} is not (or incorrectly) documented"
     fi
