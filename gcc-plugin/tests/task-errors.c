@@ -60,6 +60,15 @@ void my_task_that_invokes_task (int x, char *y)
 void my_task_that_invokes_task_cpu (int x, char *y)
   __attribute__ ((task_implementation ("cpu", my_task_that_invokes_task)));
 
+/* XXX: The assumption behind this test is that STARPU_USE_GORDON is not
+   defined.  */
+void my_task_with_no_usable_implementation (int x) /* (error "none of the implementations") */
+  __attribute__ ((task));
+
+static void my_task_with_no_usable_implementation_gordon (int x)
+  __attribute__ ((task_implementation ("gordon",
+				       my_task_with_no_usable_implementation)));
+
 /* XXX: In practice this test fails for large values of `STARPU_NMAXBUFS'.  */
 void my_task_with_too_many_pointer_params (/* (error "maximum .* exceeded") */
 					   char *x1, char *x2, char *x3,
@@ -118,3 +127,7 @@ my_task_that_invokes_task_cpu (int x, char *y)
   my_external_task (x, y); /* (error "cannot be invoked from task implementation") */
 }
 
+static void
+my_task_with_no_usable_implementation_gordon (int x)
+{
+}

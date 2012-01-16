@@ -985,6 +985,9 @@ task_implementation_target_to_int (const_tree target)
   else if (!strncmp (TREE_STRING_POINTER (target), "cuda",
 		     TREE_STRING_LENGTH (target)))
     where_int = STARPU_CUDA;
+  else if (!strncmp (TREE_STRING_POINTER (target), "gordon",
+		     TREE_STRING_LENGTH (target)))
+    where_int = STARPU_GORDON;
   else
     where_int = 0;
 
@@ -1009,6 +1012,24 @@ task_implementation_where (const_tree task_impl)
   where = TREE_VALUE (args);
 
   return task_implementation_target_to_int (where);
+}
+
+/* Return a bitwise-or of the supported targets of TASK_DECL.  */
+
+static int
+task_where (const_tree task_decl)
+{
+  gcc_assert (task_p (task_decl));
+
+  int where;
+  const_tree impl;
+
+  for (impl = task_implementation_list (task_decl), where = 0;
+       impl != NULL_TREE;
+       impl = TREE_CHAIN (impl))
+    where |= task_implementation_where (TREE_VALUE (impl));
+
+  return where;
 }
 
 /* Return the task implemented by TASK_IMPL.  */
@@ -1734,6 +1755,39 @@ build_task_body (const_tree task_decl)
 				  insert_task_fn, args);
 }
 
+/* Raise warnings if TASK doesn't meet the basic criteria.  */
+
+static void
+validate_task (tree task)
+{
+  gcc_assert (task_p (task));
+
+  static const int supported = 0
+#ifdef STARPU_USE_CPU
+    | STARPU_CPU
+#endif
+#ifdef STARPU_USE_CUDA
+    | STARPU_CUDA
+#endif
+#ifdef STARPU_USE_OPENCL
+    | STARPU_OPENCL
+#endif
+#ifdef STARPU_USE_GORDON
+    | STARPU_GORDON
+#endif
+    ;
+
+  int where = task_where (task);
+
+  /* If TASK has no implementations, things will barf elsewhere anyway.  */
+
+  if (task_implementation_list (task) != NULL_TREE)
+    if ((where & supported) == 0)
+      error_at (DECL_SOURCE_LOCATION (task),
+		"none of the implementations of task %qE can be used",
+		DECL_NAME (task));
+}
+
 /* Raise an error when IMPL doesn't satisfy the constraints of a task
    implementations, such as not invoking another task.  */
 
@@ -1774,7 +1828,9 @@ lower_starpu (void)
 
   if (task_p (fndecl))
     {
-      /* Make sure the task implementations are valid.  */
+      /* Make sure the task and its implementations are valid.  */
+
+      validate_task (fndecl);
 
       for_each (validate_task_implementation,
 		task_implementation_list (fndecl));
