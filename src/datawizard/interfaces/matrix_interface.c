@@ -287,7 +287,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 	uint32_t ld = nx; // by default
 	size_t elemsize = matrix_interface->elemsize;
 
-	enum starpu_node_kind kind = starpu_get_node_kind(dst_node);
+	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 
 	switch(kind)
 	{
@@ -359,7 +359,7 @@ static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 	cudaError_t status;
 #endif
 
-	enum starpu_node_kind kind = starpu_get_node_kind(node);
+	enum starpu_node_kind kind = starpu_node_get_kind(node);
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:

@@ -89,7 +89,7 @@ struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void)
 	return &descr;
 }
 
-enum starpu_node_kind starpu_get_node_kind(uint32_t node)
+enum starpu_node_kind starpu_node_get_kind(uint32_t node)
 {
 	return descr.nodes[node];
 }

@@ -99,9 +99,9 @@ uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 
 			if (
 #ifndef HAVE_CUDA_MEMCPY_PEER
-					starpu_get_node_kind(i) != STARPU_CUDA_RAM &&
+					starpu_node_get_kind(i) != STARPU_CUDA_RAM &&
 #endif
-					starpu_get_node_kind(i) != STARPU_OPENCL_RAM)
+					starpu_node_get_kind(i) != STARPU_OPENCL_RAM)
 				break ;
 		}
 	}
@@ -162,14 +162,14 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		/* No worker to process the request from that node */
 		return 0;
 
-	int type = starpu_get_node_kind(node);
+	int type = starpu_node_get_kind(node);
 	switch (type)
 	{
 		case STARPU_CUDA_RAM:
 #ifdef HAVE_CUDA_MEMCPY_PEER
 			/* GPUs not always allow direct remote access: if CUDA4
 			 * is enabled, we allow two CUDA devices to communicate. */
-			return (starpu_get_node_kind(handling_node) != STARPU_OPENCL_RAM);
+			return (starpu_node_get_kind(handling_node) != STARPU_OPENCL_RAM);
 #else
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
@@ -187,7 +187,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
 	 * method ! */
 #ifdef STARPU_USE_CUDA
-	if (src_node != dst_node && starpu_get_node_kind(src_node) == STARPU_CUDA_RAM && starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM)
+	if (src_node != dst_node && starpu_node_get_kind(src_node) == STARPU_CUDA_RAM && starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 	{
 		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 		if (!copy_methods->cuda_to_cuda_async)
@@ -262,7 +262,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		handling_nodes[0] = handling_node;
 
 #ifndef HAVE_CUDA_MEMCPY_PEER
-		STARPU_ASSERT(!(mode & STARPU_R) || starpu_get_node_kind(src_node) != STARPU_CUDA_RAM || starpu_get_node_kind(dst_node) != STARPU_CUDA_RAM);
+		STARPU_ASSERT(!(mode & STARPU_R) || starpu_node_get_kind(src_node) != STARPU_CUDA_RAM || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM);
 #endif
 
 		return 1;

@@ -351,7 +351,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
-	node_kind = starpu_get_node_kind(node);
+	node_kind = starpu_node_get_kind(node);
 
 	handle->refcnt++;
 	handle->busy_count++;
@@ -359,7 +359,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	switch(node_kind)
 	{
 	case STARPU_CPU_RAM:
-		switch (starpu_get_node_kind(handle->mf_node))
+		switch (starpu_node_get_kind(handle->mf_node))
 		{
 		case STARPU_CPU_RAM:
 			STARPU_ASSERT(0);

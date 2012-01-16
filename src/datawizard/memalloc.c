@@ -241,7 +241,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 			STARPU_ASSERT(replicate->allocated);
 
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
-		if (starpu_get_node_kind(node) == STARPU_CUDA_RAM)
+		if (starpu_node_get_kind(node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the
 			 * proper CUDA device in case it is needed. This avoids
@@ -700,7 +700,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 
 static size_t _starpu_get_global_mem_size(int dst_node)
 {
-	enum starpu_node_kind kind = starpu_get_node_kind(dst_node);
+	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	size_t global_mem_size;
 
 	switch(kind)
@@ -780,7 +780,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 		STARPU_ASSERT(replicate->data_interface);
 
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
-		if (starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM)
+		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the
 			 * proper CUDA device in case it is needed. This avoids

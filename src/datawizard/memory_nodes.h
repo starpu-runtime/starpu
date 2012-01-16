@@ -69,7 +69,7 @@ unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned memory_node);
 
-enum starpu_node_kind _starpu_get_node_kind(uint32_t node);
+enum starpu_node_kind _starpu_node_get_kind(uint32_t node);
 int _starpu_memory_node_to_devid(unsigned node);
 
 struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void);

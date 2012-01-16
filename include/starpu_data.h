@@ -100,7 +100,7 @@ enum starpu_node_kind
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
-enum starpu_node_kind starpu_get_node_kind(uint32_t node);
+enum starpu_node_kind starpu_node_get_kind(uint32_t node);
 
 
 /* It is possible to associate a mask to a piece of data (and its children) so

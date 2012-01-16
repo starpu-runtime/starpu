@@ -675,7 +675,7 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 {
 	enum starpu_node_kind node_kind;
 
-	node_kind = starpu_get_node_kind(node);
+	node_kind = starpu_node_get_kind(node);
 
 	/*
 	 * Here, we assume that CUDA devices and OpenCL devices use the 
@@ -685,7 +685,7 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 	switch (node_kind)
 	{
 		case STARPU_CPU_RAM:
-			switch(starpu_get_node_kind(handle->mf_node))
+			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
 					return 0;
@@ -699,7 +699,7 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 			break;
 		case STARPU_CUDA_RAM:    /* Fall through */
 		case STARPU_OPENCL_RAM:
-			switch(starpu_get_node_kind(handle->mf_node))
+			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
 					return 1;

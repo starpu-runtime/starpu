@@ -94,8 +94,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
-	enum starpu_node_kind src_kind = starpu_get_node_kind(src_node);
-	enum starpu_node_kind dst_kind = starpu_get_node_kind(dst_node);
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
 	STARPU_ASSERT(src_replicate->refcnt);
 	STARPU_ASSERT(dst_replicate->refcnt);
