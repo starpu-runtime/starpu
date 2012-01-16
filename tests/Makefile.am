@@ -96,7 +96,7 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
-TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" $(LOADER_BIN)
 endif
 
 TESTS = $(noinst_PROGRAMS)

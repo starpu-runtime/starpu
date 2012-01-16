@@ -93,9 +93,31 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 		if (launcher)
-			execlp("libtool", "libtool", "--mode=execute", launcher, test_name, test_args, NULL);
+		{
+			/* "Launchers" such as Valgrind need to be inserted
+			 * after the Libtool-generated wrapper scripts, hence
+			 * this special-case.  */
+			const char *top_builddir = getenv ("top_builddir");
+			if (top_builddir != NULL)
+			{
+				char libtool[strlen(top_builddir)
+					     + sizeof("libtool") + 1];
+				strcpy(libtool, top_builddir);
+				strcat(libtool, "/libtool");
+				execl(libtool, test_name, "--mode=execute",
+				      launcher, test_name, test_args, NULL);
+			}
+			else
+			{
+				fprintf(stderr,
+					"warning: $top_builddir undefined, "
+					"so $STARPU_CHECK_LAUNCHER ignored\n");
+				execl(test_name, test_name, test_args, NULL);
+			}
+		}
 		else
-			execlp("libtool", "libtool", "--mode=execute", test_name, test_args, NULL);
+			execl(test_name, test_name, test_args, NULL);
+
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
 	}
