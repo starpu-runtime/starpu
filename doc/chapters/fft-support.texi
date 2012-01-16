@@ -48,8 +48,8 @@ The flags required to compile or link against the FFT library are accessible
 with the following commands:
 
 @example
-% pkg-config --cflags libstarpufft  # options for the compiler
-% pkg-config --libs libstarpufft    # options for the linker
+% pkg-config --cflags libstarpufft1.0  # options for the compiler
+% pkg-config --libs libstarpufft1.0    # options for the linker
 @end example
 
 Also pass the @code{--static} option if the application is to be linked statically.

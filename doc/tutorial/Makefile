@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # Redistribution  and  use  in  source and binary forms, with or without
 # modification,  are  permitted  provided  that the following conditions
@@ -28,12 +28,12 @@
 # OF  THIS  SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-CFLAGS          +=      $$(pkg-config --cflags libstarpu)
-LDFLAGS         +=      $$(pkg-config --libs libstarpu)
+CFLAGS          +=      $$(pkg-config --cflags libstarpu1.0)
+LDFLAGS         +=      $$(pkg-config --libs libstarpu1.0)
 
-HAS_CUDA	=	$(shell pkg-config --libs libstarpu|grep -i cuda)
+HAS_CUDA	=	$(shell pkg-config --libs libstarpu1.0 |grep -i cuda)
 NVCC		?=	nvcc
-HAS_OPENCL	=	$(shell pkg-config --libs libstarpu|grep -i opencl)
+HAS_OPENCL	=	$(shell pkg-config --libs libstarpu1.0 |grep -i opencl)
 
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c

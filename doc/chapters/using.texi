@@ -33,11 +33,15 @@ The flags required to compile or link against StarPU are then
 accessible with the following commands:
 
 @example
-% pkg-config --cflags libstarpu  # options for the compiler
-% pkg-config --libs libstarpu    # options for the linker
+% pkg-config --cflags libstarpu1.0  # options for the compiler
+% pkg-config --libs libstarpu1.0    # options for the linker
 @end example
 
-Also pass the @code{--static} option if the application is to be linked statically.
+Also pass the @code{--static} option if the application is to be
+linked statically@footnote{It is still possible to use the API
+provided in the version 0.9 of StarPU by calling @code{pkg-config}
+with the @code{libstarpu} package. Similar packages are provided for
+@code{libstarpumpi} and @code{libstarpufft}.}.
 
 @node Running a basic StarPU application
 @section Running a basic StarPU application
