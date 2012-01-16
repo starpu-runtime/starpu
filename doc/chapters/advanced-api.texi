@@ -140,6 +140,10 @@ the format.
 @node Task Bundles
 @section Task Bundles
 
+@deftp {DataType} {struct starpu_task_bundle_entry}
+TODO
+@end deftp
+
 @deftp {DataType} {struct starpu_task_bundle}
 The task bundle structure describes a list of tasks that should be
 scheduled together whenever possible. The different fields are:
@@ -264,6 +268,10 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 
 @node Scheduling Policy API
 @subsection Scheduling Policy API
+
+@deftp {Data Type} {struct starpu_machine_topology}
+TODO
+@end deftp
 
 @deftp {Data Type} {struct starpu_sched_policy}
 This structure contains all the methods that implement a scheduling policy.  An
