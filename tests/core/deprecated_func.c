@@ -67,7 +67,7 @@ struct starpu_codelet cl_cpu_func_funcs =
 	.name = "cpu_func_funcs",
 };
 
-int submit_codelet(struct starpu_codelet *cl, int where)
+int submit_codelet(struct starpu_codelet cl, int where)
 {
 	int x=42, y=14;
 	starpu_data_handle_t handles[2];
@@ -76,8 +76,8 @@ int submit_codelet(struct starpu_codelet *cl, int where)
 	starpu_variable_data_register(&handles[0], 0, (uintptr_t)&x, sizeof(x));
 	starpu_variable_data_register(&handles[1], 0, (uintptr_t)&y, sizeof(y));
 
-	cl->where = where;
-	ret = starpu_insert_task(cl,
+	cl.where = where;
+	ret = starpu_insert_task(&cl,
 				 STARPU_R, handles[0],
 				 STARPU_W, handles[1],
 				 0);
@@ -95,11 +95,11 @@ int submit_codelet(struct starpu_codelet *cl, int where)
 
 	if (x != y)
 	{
-		FPRINTF(stderr, "error when executing codelet <%s> with where=%d\n", cl->name, where);
+		FPRINTF(stderr, "error when executing codelet <%s> with where=%d\n", cl.name, where);
 	}
 	else
 	{
-		FPRINTF(stderr, "success when executing codelet <%s> with where=%d\n", cl->name, where);
+		FPRINTF(stderr, "success when executing codelet <%s> with where=%d\n", cl.name, where);
 	}
 	return (x != y);
 }
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
 	for(where=0 ; where<=STARPU_CPU ; where+=STARPU_CPU)
 	{
-		ret = submit_codelet(&cl_cpu_func, where);
+		ret = submit_codelet(cl_cpu_func, where);
 		if (ret == -ENODEV)
 		{
 			starpu_shutdown();
@@ -124,15 +124,15 @@ int main(int argc, char **argv)
 
 		if (!ret)
 		{
-			ret = submit_codelet(&cl_cpu_funcs, where);
+			ret = submit_codelet(cl_cpu_funcs, where);
 		}
 		if (!ret)
 		{
-			ret = submit_codelet(&cl_cpu_multiple, where);
+			ret = submit_codelet(cl_cpu_multiple, where);
 		}
 		if (!ret)
 		{
-			ret = submit_codelet(&cl_cpu_func_funcs, where);
+			ret = submit_codelet(cl_cpu_func_funcs, where);
 		}
 	}
 
