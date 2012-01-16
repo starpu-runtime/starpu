@@ -1527,7 +1527,7 @@ build_codelet_initializer (tree task_decl)
 
     for (type = task_pointer_parameter_types (task_decl),
 	   modes = NULL_TREE, index = 0;
-	 type != NULL_TREE;
+	 type != NULL_TREE && index < STARPU_NMAXBUFS;
 	 type = TREE_CHAIN (type), index++)
       {
 	tree value = build_int_cst (integer_type_node,
