@@ -714,7 +714,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 	char path[256];
 	get_model_path(model, path, 256);
 
-	_STARPU_DEBUG("Opening performance model file %s for model %s ... ", path, model->symbol);
+	_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
 	unsigned calibrate_flag = _starpu_get_calibrate_flag();
 	model->benchmarking = calibrate_flag;
