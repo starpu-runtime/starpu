@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,6 +59,17 @@ void my_task_that_invokes_task (int x, char *y)
 
 void my_task_that_invokes_task_cpu (int x, char *y)
   __attribute__ ((task_implementation ("cpu", my_task_that_invokes_task)));
+
+/* XXX: In practice this test fails for large values of `STARPU_NMAXBUFS'.  */
+void my_task_with_too_many_pointer_params (/* (error "maximum .* exceeded") */
+					   char *x1, char *x2, char *x3,
+					   char *x4, char *x5, char *x6,
+					   char *x7, char *x8, char *x9,
+					   char *xa, char *xb, char *xc,
+					   char *xd, char *xe, char *xf,
+					   char *xg, char *xh, char *xi)
+  __attribute__ ((task));
+
 
 
 static void

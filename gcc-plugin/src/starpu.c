@@ -206,6 +206,14 @@ void_type_p (const_tree lst)
   return VOID_TYPE_P (TREE_VALUE (lst));
 }
 
+/* Return true if LST holds a pointer type.  */
+
+bool
+pointer_type_p (const_tree lst)
+{
+  gcc_assert (TREE_CODE (lst) == TREE_LIST);
+  return POINTER_TYPE_P (TREE_VALUE (lst));
+}
 
 
 /* Debugging helpers.  */
@@ -321,6 +329,19 @@ for_each (void (*func) (tree), tree t)
 
   for (lst = t; lst != NULL_TREE; lst = TREE_CHAIN (lst))
     func (TREE_VALUE (lst));
+}
+
+static size_t
+count (bool (*pred) (const_tree), const_tree t)
+{
+  size_t result;
+  const_tree lst;
+
+  for (lst = t, result = 0; lst != NULL_TREE; lst = TREE_CHAIN (lst))
+    if (pred (lst))
+      result++;
+
+  return result;
 }
 
 
@@ -702,6 +723,11 @@ handle_task_attribute (tree *node, tree name, tree args,
 	error_at (DECL_SOURCE_LOCATION (fn),
 		  "task return type must be %<void%>");
 
+      if (count (pointer_type_p, TYPE_ARG_TYPES (TREE_TYPE (fn)))
+	  > STARPU_NMAXBUFS)
+	error_at (DECL_SOURCE_LOCATION (fn),
+		  "maximum number of pointer parameters exceeded");
+
       /* This is a function declaration for something local to this
 	 translation unit, so add the `task' attribute to FN.  */
       *no_add_attrs = false;
@@ -938,12 +964,7 @@ task_implementation_list (const_tree task_decl)
 static tree
 task_pointer_parameter_types (const_tree task_decl)
 {
-  bool is_pointer (const_tree item)
-  {
-    return POINTER_TYPE_P (TREE_VALUE (item));
-  }
-
-  return filter (is_pointer, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
+  return filter (pointer_type_p, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
 }
 
 /* Return the StarPU integer constant corresponding to string TARGET.  */
