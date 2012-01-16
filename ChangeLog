@@ -18,6 +18,10 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Add a magic field to struct starpu_task which is set when
+        initialising the task. starpu_task_submit will fail if the
+        field does not have the right value. This will hence avoid
+        submitting tasks which have not been properly initialised.
   * Make where field for struct starpu_codelet optional. When unset, its
 	value will be automatically set based on the availability of the
 	different XXX_funcs fields of the codelet.
