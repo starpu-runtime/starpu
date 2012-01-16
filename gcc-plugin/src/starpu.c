@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1024,16 +1024,29 @@ task_implementation_wrapper (const_tree task_impl)
   return TREE_VALUE (attr);
 }
 
-/* Return true if DECL is a parameter whose type is `output'-qualified.  */
+/* Return true if TYPE is `output'-qualified.  */
 
 static bool
-output_parameter_p (const_tree decl)
+output_type_p (const_tree type)
 {
-  return (TREE_CODE (decl) == PARM_DECL &&
-	  lookup_attribute (output_attribute_name,
-			    TYPE_ATTRIBUTES (TREE_TYPE (decl))) != NULL_TREE);
+  return (lookup_attribute (output_attribute_name,
+			    TYPE_ATTRIBUTES (type)) != NULL_TREE);
 }
 
+/* Return the access mode for POINTER, a PARM_DECL of a task.  */
+
+static enum starpu_access_mode
+access_mode (const_tree type)
+{
+  gcc_assert (POINTER_TYPE_P (type));
+
+  /* If TYPE points to a const-qualified type, then mark the data as
+     read-only; if is has the `output' attribute, then mark it as write-only;
+     otherwise default to read-write.  */
+  return ((TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
+	  ? STARPU_R
+	  : (output_type_p (type) ? STARPU_W : STARPU_RW));
+}
 
 static void
 register_task_attributes (void *gcc_data, void *user_data)
@@ -1485,6 +1498,30 @@ build_codelet_initializer (tree task_decl)
     return build_int_cstu (integer_type_node, len);
   }
 
+  tree access_mode_array (void)
+  {
+    const_tree type;
+    tree modes;
+    size_t index;
+
+    for (type = task_pointer_parameter_types (task_decl),
+	   modes = NULL_TREE, index = 0;
+	 type != NULL_TREE;
+	 type = TREE_CHAIN (type), index++)
+      {
+	tree value = build_int_cst (integer_type_node,
+				    access_mode (TREE_VALUE (type)));
+
+	modes = tree_cons (size_int (index), value, modes);
+      }
+
+    tree index_type = build_index_type (size_int (list_length (modes)));
+
+    return build_constructor_from_list (build_array_type (integer_type_node,
+							  index_type),
+					nreverse (modes));
+  }
+
   printf ("implementations for `%s':\n",
 	  IDENTIFIER_POINTER (DECL_NAME (task_decl)));
 
@@ -1495,6 +1532,7 @@ build_codelet_initializer (tree task_decl)
   inits =
     chain_trees (field_initializer ("where", where_init (impls)),
 		 field_initializer ("nbuffers", pointer_arg_count ()),
+		 field_initializer ("modes", access_mode_array ()),
 		 field_initializer ("cpu_funcs",
 				    implementation_pointers (impls,
 							     STARPU_CPU)),
@@ -1642,16 +1680,9 @@ build_task_body (const_tree task_decl)
 	  /* A pointer: the arguments will be:
 	     `STARPU_RW, ptr' or similar.  */
 
-	  /* If TYPE points to a const-qualified type, then mark the data as
-	     read-only; if is has the `output' attribute, then mark it as
-	     write-only; otherwise default to read-write.  */
-	  int mode =
-	    (TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
-	    ? STARPU_R
-	    : (output_parameter_p (p) ? STARPU_W : STARPU_RW);
-
 	  VEC_safe_push (tree, gc, args,
-			 build_int_cst (integer_type_node, mode));
+			 build_int_cst (integer_type_node,
+					access_mode (type)));
 	  VEC_safe_push (tree, gc, args, build_pointer_lookup (p));
 	}
       else

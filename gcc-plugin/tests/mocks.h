@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,11 +66,12 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
   assert (cl->cuda_funcs[0] == NULL);
 
   va_list args;
+  size_t pointer_arg;
 
   va_start (args, cl);
 
   const struct insert_task_argument *expected;
-  for (expected = expected_insert_task_arguments;
+  for (expected = expected_insert_task_arguments, pointer_arg = 0;
        expected->type != 0;
        expected++)
     {
@@ -101,6 +102,7 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
 	  {
 	    starpu_data_handle_t handle;
 	    handle = starpu_data_lookup (expected->pointer);
+	    assert (type == cl->modes[pointer_arg++]);
 	    assert (va_arg (args, void *) == handle);
 	    break;
 	  }
