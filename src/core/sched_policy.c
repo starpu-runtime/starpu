@@ -443,16 +443,21 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	unsigned i;
 	struct starpu_sched_ctx *sched_ctx = NULL;
+	struct starpu_sched_ctx_hypervisor_criteria **criteria = NULL;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
 		sched_ctx = worker->sched_ctx[i];
-		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->criteria != NULL 
-		   && sched_ctx->criteria->idle_time_cb && sched_ctx->criteria->reset_idle_time_cb)
+		if(sched_ctx != NULL && sched_ctx->id != 0)
 		{
-			if(!task)
-				sched_ctx->criteria->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
-			else
-				sched_ctx->criteria->reset_idle_time_cb(sched_ctx->id, worker->workerid);
+			criteria = sched_ctx->criteria;
+			if(criteria != NULL && *criteria != NULL && 
+			   (*criteria)->idle_time_cb && (*criteria)->reset_idle_time_cb)
+			{
+				if(!task)
+					(*criteria)->idle_time_cb(sched_ctx->id, worker->workerid, 1.0);
+				else
+					(*criteria)->reset_idle_time_cb(sched_ctx->id, worker->workerid);
+			}
 		}
 	}
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -474,8 +479,8 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	if(task->hypervisor_tag > 0 && sched_ctx != NULL && 
-	   sched_ctx->id != 0 && sched_ctx->criteria != NULL)
-		sched_ctx->criteria->post_exec_hook_cb(sched_ctx->id, task->hypervisor_tag);
+	   sched_ctx->id != 0 && *sched_ctx->criteria != NULL)
+		(*sched_ctx->criteria)->post_exec_hook_cb(sched_ctx->id, task->hypervisor_tag);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	if (sched_ctx->sched_policy->post_exec_hook)

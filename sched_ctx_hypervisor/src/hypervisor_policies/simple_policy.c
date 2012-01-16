@@ -300,9 +300,7 @@ static unsigned _simple_resize(unsigned sender_sched_ctx, unsigned receiver_sche
 	if(ret != EBUSY)
 	{					
 		unsigned nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
-		
-		if(sender_sched_ctx == 2)
-			printf("try to resize with nworkers = %d\n", nworkers_to_move);
+//		printf("nworkers = %d\n", nworkers_to_move);
 		if(nworkers_to_move > 0)
 		{
 			unsigned poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -313,6 +311,7 @@ static unsigned _simple_resize(unsigned sender_sched_ctx, unsigned receiver_sche
 				poor_sched_ctx = receiver_sched_ctx;
 				struct simple_policy_config *config = (struct simple_policy_config*)sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				unsigned nworkers = starpu_get_nworkers_of_sched_ctx(poor_sched_ctx);
+      
 				if((nworkers+nworkers_to_move) > config->max_nworkers)
 					nworkers_to_move = nworkers > config->max_nworkers ? 0 : (config->max_nworkers - nworkers);
 				if(nworkers_to_move == 0) poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -365,7 +364,7 @@ static void simple_manage_task_flux(unsigned curr_sched_ctx)
 		{
 			double debit_fast = sched_ctx_hypervisor_get_debit(fast_sched_ctx);
 			/* only if there is a difference of 30 % */
-			if(debit_fast != 0.0 && debit_fast > (curr_debit + curr_debit * 0.1))
+			if(debit_fast != 0.0 && (debit_fast + debit_fast *0.2) > curr_debit)
 				_simple_resize(fast_sched_ctx, curr_sched_ctx);
 		}
 		
@@ -373,7 +372,7 @@ static void simple_manage_task_flux(unsigned curr_sched_ctx)
 		{
 			double debit_slow = sched_ctx_hypervisor_get_debit(slow_sched_ctx);
 			/* only if there is a difference of 30 % */
-			if(curr_debit != 0.0 && (debit_slow + debit_slow *0.1) < curr_debit)
+			if(curr_debit != 0.0 && (debit_slow + debit_slow *0.2) < curr_debit)
 				_simple_resize(curr_sched_ctx, slow_sched_ctx);
 		}
 	}
@@ -403,7 +402,6 @@ static void* simple_ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			double max_idle = va_arg(varg_list, double);
-			
 			for(i = 0; i < nworkers; i++)
 				config->max_idle[workerids[i]] = max_idle;
 
@@ -445,7 +443,6 @@ static void* simple_ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 		case HYPERVISOR_MAX_WORKERS:
 			config->max_nworkers = va_arg(varg_list, unsigned);
 			if(config->max_nworkers == 0)
-			  printf("%d: max nworkers = 0\n", sched_ctx);
 			break;
 
 		case HYPERVISOR_GRANULARITY:

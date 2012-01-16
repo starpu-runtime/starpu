@@ -229,7 +229,7 @@ unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids,
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 unsigned starpu_create_sched_ctx_with_criteria(const char *policy_name, int *workerids, 
 				 int nworkers_ctx, const char *sched_name,
-				 struct starpu_sched_ctx_hypervisor_criteria *criteria)
+				 struct starpu_sched_ctx_hypervisor_criteria **criteria)
 {
 	unsigned sched_ctx_id = starpu_create_sched_ctx(policy_name, workerids, nworkers_ctx, sched_name);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -301,8 +301,7 @@ void _starpu_delete_all_sched_ctxs()
 		{
 			_starpu_deinit_sched_policy(sched_ctx);		
 			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
-			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
-				free_sched_ctx_mem(sched_ctx);
+			free_sched_ctx_mem(sched_ctx);
 		}
 	}
 	return;
@@ -644,10 +643,9 @@ void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id)
 {
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
-		   && sched_ctx->criteria != NULL)
-		sched_ctx->criteria->poped_task_cb(sched_ctx_id, worker->workerid);
+		   && *sched_ctx->criteria != NULL)
+		(*sched_ctx->criteria)->poped_task_cb(sched_ctx_id, worker->workerid);
 }
 
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
@@ -655,8 +653,9 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-	if(sched_ctx != NULL && sched_ctx_id != 0  && sched_ctx->criteria != NULL)
-			sched_ctx->criteria->pushed_task_cb(sched_ctx_id, workerid);
+	if(sched_ctx != NULL && sched_ctx_id != 0  && *sched_ctx->criteria != NULL)
+		(*sched_ctx->criteria)->pushed_task_cb(sched_ctx_id, workerid);
 
 }
+
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
