@@ -4,7 +4,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011 Centre National de la Recherche Scientifique
+# Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
 # Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -36,9 +36,9 @@ done
 
 echo
 
-structs=$(grep "struct.*{" $(find include -name '*.h') |awk '{print $2}')
+structs=$(grep "struct " $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
 for struct in $structs ; do
-    x=$(grep $struct doc/starpu.texi doc/chapters/*texi | grep deftp)
+    x=$(grep "$struct\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
     if test "$x" == "" ; then
 	echo "struct ${redcolor}${struct}${stcolor} is not (or incorrectly) documented"
     fi
