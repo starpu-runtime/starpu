@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 	char *test_name;
 	char *test_args;
 	int   status;
+	char *launcher;
 	struct sigaction sa;
 
 	test_args = NULL;
@@ -64,6 +65,9 @@ int main(int argc, char *argv[])
 		test_args = (char *) malloc(150*sizeof(char));
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
+
+	/* get launcher program */
+	launcher=getenv("STARPU_CHECK_LAUNCHER");
 
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))
@@ -88,13 +92,16 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "[error] setpgid. Mark test as failed\n");
 			exit(EXIT_FAILURE);
 		}
-		execl(test_name, test_name, test_args, NULL);
-		fprintf(stderr, "[error] execl. Mark test as failed\n");
+		if (launcher)
+			execlp("libtool", "libtool", "--mode=execute", launcher, test_name, test_args, NULL);
+		else
+			execlp("libtool", "libtool", "--mode=execute", test_name, test_args, NULL);
+		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
 	}
 	if (child_pid == -1)
 	{
-		fprintf(stderr, "[error] fork. Mark test as failed\n");
+		fprintf(stderr, "[error] fork. test marked as failed\n");
 		exit(EXIT_FAILURE);
 	}
 
