@@ -111,13 +111,21 @@ int main(int argc, char *argv[])
 			else
 			{
 				if (status != AUTOTEST_SKIPPED_TEST)
-					fprintf(stdout, "Exited with return code %d\n", status);
+					fprintf(stdout, "`%s' exited with return code %d\n",
+						test_name, status);
 				return status;
 			}
 		}
+		else if (WIFSIGNALED(child_exit_status))
+		{
+			fprintf(stderr, "[error] `%s' killed with signal %d; test marked as failed\n",
+				test_name, WTERMSIG(child_exit_status));
+			return EXIT_FAILURE;
+		}
 		else
 		{
-			fprintf(stderr, "[error] child process did not terminate normally. Mark test as failed\n");
+			fprintf(stderr, "[error] `%s' did not terminate normally; test marked as failed\n",
+				test_name);
 			return EXIT_FAILURE;
 		}
 	}
