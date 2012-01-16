@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 	char *test_args;
 	int   status;
 	char *launcher;
+	char *launcher_args;
 	struct sigaction sa;
 
 	test_args = NULL;
@@ -68,6 +69,7 @@ int main(int argc, char *argv[])
 
 	/* get launcher program */
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
+	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
 
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))
@@ -100,12 +102,25 @@ int main(int argc, char *argv[])
 			const char *top_builddir = getenv ("top_builddir");
 			if (top_builddir != NULL)
 			{
+				char *argv[100];
+				int i=3;
 				char libtool[strlen(top_builddir)
 					     + sizeof("libtool") + 1];
 				strcpy(libtool, top_builddir);
 				strcat(libtool, "/libtool");
-				execl(libtool, test_name, "--mode=execute",
-				      launcher, test_name, test_args, NULL);
+
+				argv[0] = libtool;
+				argv[1] = "--mode=execute";
+				argv[2] = launcher;
+				argv[i] = strtok(launcher_args, " ");
+				while (argv[i])
+				{
+					i++;
+					argv[i] = strtok(NULL, " ");
+				}
+				argv[i] = test_name;
+				argv[i+1] = NULL;
+				execvp(*argv, argv);
 			}
 			else
 			{
