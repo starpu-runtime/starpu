@@ -88,8 +88,20 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node);
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
+
+enum starpu_node_kind
+{
+	STARPU_UNUSED     = 0x00,
+	STARPU_CPU_RAM    = 0x01,
+	STARPU_CUDA_RAM   = 0x02,
+	STARPU_OPENCL_RAM = 0x03,
+	STARPU_SPU_LS     = 0x04
+};
+
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
+enum starpu_node_kind starpu_get_node_kind(uint32_t node);
+
 
 /* It is possible to associate a mask to a piece of data (and its children) so
  * that when it is modified, it is automatically transfered into those memory

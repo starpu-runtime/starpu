@@ -52,7 +52,7 @@ union _starpu_async_channel_event
 struct _starpu_async_channel
 {
 	union _starpu_async_channel_event event;
-	enum _starpu_node_kind type;
+	enum starpu_node_kind type;
 };
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);

@@ -89,7 +89,7 @@ struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void)
 	return &descr;
 }
 
-enum _starpu_node_kind _starpu_get_node_kind(uint32_t node)
+enum starpu_node_kind starpu_get_node_kind(uint32_t node)
 {
 	return descr.nodes[node];
 }
@@ -104,7 +104,7 @@ unsigned starpu_memory_nodes_get_count(void)
 	return descr.nnodes;
 }
 
-unsigned _starpu_register_memory_node(enum _starpu_node_kind kind, int devid)
+unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */

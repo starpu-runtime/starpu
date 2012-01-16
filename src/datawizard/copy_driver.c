@@ -94,8 +94,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
-	enum _starpu_node_kind src_kind = _starpu_get_node_kind(src_node);
-	enum _starpu_node_kind dst_kind = _starpu_get_node_kind(dst_node);
+	enum starpu_node_kind src_kind = starpu_get_node_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_get_node_kind(dst_node);
 
 	STARPU_ASSERT(src_replicate->refcnt);
 	STARPU_ASSERT(dst_replicate->refcnt);
@@ -311,7 +311,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
-	enum _starpu_node_kind kind = async_channel->type;
+	enum starpu_node_kind kind = async_channel->type;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 	cudaError_t cures;
@@ -351,7 +351,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel)
 {
-	enum _starpu_node_kind kind = async_channel->type;
+	enum starpu_node_kind kind = async_channel->type;
 	unsigned success;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;

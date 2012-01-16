@@ -23,14 +23,6 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 
-enum _starpu_node_kind
-{
-	STARPU_UNUSED     = 0x00,
-	STARPU_CPU_RAM    = 0x01,
-	STARPU_CUDA_RAM   = 0x02,
-	STARPU_OPENCL_RAM = 0x03,
-	STARPU_SPU_LS     = 0x04
-};
 
 #define _STARPU_MEMORY_NODE_TUPLE(node1,node2) (node1 | (node2 << 4))
 #define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
@@ -45,7 +37,7 @@ struct _starpu_cond_and_mutex
 struct _starpu_mem_node_descr
 {
 	unsigned nnodes;
-	enum _starpu_node_kind nodes[STARPU_MAXNODES];
+	enum starpu_node_kind nodes[STARPU_MAXNODES];
 
 	/* Get the device id associated to this node, or -1 if not applicable */
 	int devid[STARPU_MAXNODES];
@@ -73,11 +65,11 @@ void _starpu_set_local_memory_node_key(unsigned *node);
 unsigned _starpu_get_local_memory_node(void);
 void _starpu_memory_node_worker_add(unsigned node);
 unsigned _starpu_memory_node_workers(unsigned node);
-unsigned _starpu_register_memory_node(enum _starpu_node_kind kind, int devid);
+unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned memory_node);
 
-enum _starpu_node_kind _starpu_get_node_kind(uint32_t node);
+enum starpu_node_kind _starpu_get_node_kind(uint32_t node);
 int _starpu_memory_node_to_devid(unsigned node);
 
 struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void);

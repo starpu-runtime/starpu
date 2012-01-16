@@ -104,7 +104,7 @@ static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t
 	struct starpu_multiformat_interface *multiformat_interface =
 		(struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, node);
 
-	switch(_starpu_get_node_kind(node))
+	switch(starpu_get_node_kind(node))
 	{
 		case STARPU_CPU_RAM:
 			return multiformat_interface->cpu_ptr;
@@ -242,7 +242,7 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
-	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum starpu_node_kind kind = starpu_get_node_kind(node);
 
 	switch(kind)
 	{
@@ -282,7 +282,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 	uintptr_t addr = 0;
 	ssize_t allocated_memory;
 
-	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum starpu_node_kind kind = starpu_get_node_kind(dst_node);
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:

@@ -207,7 +207,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 
 	size_t elemsize = variable_interface->elemsize;
 
-	enum _starpu_node_kind kind = _starpu_get_node_kind(dst_node);
+	enum starpu_node_kind kind = starpu_get_node_kind(dst_node);
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
@@ -264,7 +264,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 {
-	enum _starpu_node_kind kind = _starpu_get_node_kind(node);
+	enum starpu_node_kind kind = starpu_get_node_kind(node);
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:

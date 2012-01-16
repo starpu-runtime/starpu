@@ -456,14 +456,14 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		 */
 		enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
 		if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
-			_starpu_get_node_kind(handle->mf_node) != STARPU_CPU_RAM)
+			starpu_get_node_kind(handle->mf_node) != STARPU_CPU_RAM)
 		{
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
 			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 			struct starpu_codelet *cl;
-			enum _starpu_node_kind node_kind = _starpu_get_node_kind(handle->mf_node);
+			enum starpu_node_kind node_kind = starpu_get_node_kind(handle->mf_node);
 
 			switch (node_kind)
 			{

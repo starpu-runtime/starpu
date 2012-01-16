@@ -655,7 +655,7 @@ handle_to_pointer(void)
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		if (_starpu_get_node_kind(node) != STARPU_CPU_RAM)
+		if (starpu_get_node_kind(node) != STARPU_CPU_RAM)
 			continue;
 
 		ptr = handle->ops->handle_to_pointer(handle, node);
