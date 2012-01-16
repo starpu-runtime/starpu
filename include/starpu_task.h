@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -195,6 +195,7 @@ struct starpu_task
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
+	int magic;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -219,7 +220,8 @@ struct starpu_task
 	.profiling_info = NULL,				\
 	.predicted = -1.0,				\
 	.predicted_transfer = -1.0,			\
-	.starpu_private = NULL				\
+	.starpu_private = NULL,				\
+	.magic = 42                  			\
 };
 
 /*

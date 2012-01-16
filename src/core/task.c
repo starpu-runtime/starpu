@@ -78,6 +78,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->predicted_transfer = -1.0;
 
 	task->starpu_private = NULL;
+	task->magic = 42;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
@@ -335,6 +336,7 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 int starpu_task_submit(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
+	STARPU_ASSERT(task->magic == 42);
 
 	int ret;
 	unsigned is_sync = task->synchronous;
