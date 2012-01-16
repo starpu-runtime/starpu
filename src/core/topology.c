@@ -22,7 +22,7 @@
 #include <core/debug.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
-#include <common/hash.h>
+#include <starpu_hash.h>
 #include <profiling/profiling.h>
 
 #ifdef STARPU_HAVE_HWLOC
@@ -93,7 +93,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
                 int i;
                 for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
 		{
-                        uint32_t key = _starpu_crc32_be(config->topology.workers_opencl_gpuid[i], 0);
+                        uint32_t key = starpu_crc32_be(config->topology.workers_opencl_gpuid[i], 0);
                         if (_starpu_htbl_search_32(devices_using_cuda, key) == NULL)
 			{
                                 tmp[nb] = topology->workers_opencl_gpuid[i];
@@ -113,7 +113,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 
                 for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
 		{
-                        uint32_t key = _starpu_crc32_be(topology->workers_opencl_gpuid[i], 0);
+                        uint32_t key = starpu_crc32_be(topology->workers_opencl_gpuid[i], 0);
                         if (_starpu_htbl_search_32(devices_already_used, key) == NULL)
 			{
                                 _starpu_htbl_insert_32(&devices_already_used, key, config);
@@ -345,7 +345,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 		config->workers[topology->nworkers + cudagpu].worker_mask = STARPU_CUDA;
 		config->worker_mask |= STARPU_CUDA;
 
-                uint32_t key = _starpu_crc32_be(devid, 0);
+                uint32_t key = starpu_crc32_be(devid, 0);
                 _starpu_htbl_insert_32(&devices_using_cuda, key, config);
         }
 

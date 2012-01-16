@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include <starpu_data.h>
 #include <common/utils.h>
-#include <common/hash.h>
+#include <starpu_hash.h>
 #include <common/htable32.h>
 #include <util/starpu_insert_task_utils.h>
 
@@ -60,7 +60,7 @@ typedef struct _starpu_mpi_clear_cache_s {
 void _starpu_mpi_clear_cache_callback(void *callback_arg)
 {
         _starpu_mpi_clear_cache_t *clear_cache = (_starpu_mpi_clear_cache_t *)callback_arg;
-        uint32_t key = _starpu_crc32_be((uintptr_t)clear_cache->data, 0);
+        uint32_t key = starpu_crc32_be((uintptr_t)clear_cache->data, 0);
 
         if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
                 _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
@@ -287,7 +287,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
                                 if (do_execute && mpi_rank != me && mpi_rank != -1) {
                                         /* I will have to execute but I don't have the data, receive */
 #ifdef MPI_CACHE
-                                        uint32_t key = _starpu_crc32_be((uintptr_t)data, 0);
+                                        uint32_t key = starpu_crc32_be((uintptr_t)data, 0);
                                         void *already_received = _starpu_htbl_search_32(received_data[mpi_rank], key);
                                         if (!already_received) {
                                                 _starpu_htbl_insert_32(&received_data[mpi_rank], key, data);
@@ -305,7 +305,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
                                 if (!do_execute && mpi_rank == me) {
                                         /* Somebody else will execute it, and I have the data, send it. */
 #ifdef MPI_CACHE
-                                        uint32_t key = _starpu_crc32_be((uintptr_t)data, 0);
+                                        uint32_t key = starpu_crc32_be((uintptr_t)data, 0);
                                         void *already_sent = _starpu_htbl_search_32(sent_data[dest], key);
                                         if (!already_sent) {
                                                 _starpu_htbl_insert_32(&sent_data[dest], key, data);
@@ -411,7 +411,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
                         starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 #ifdef MPI_CACHE
                         if (arg_type & STARPU_W) {
-                                uint32_t key = _starpu_crc32_be((uintptr_t)data, 0);
+                                uint32_t key = starpu_crc32_be((uintptr_t)data, 0);
                                 if (do_execute) {
                                         /* Note that all copies I've sent to neighbours are now invalid */
                                         int n, size;

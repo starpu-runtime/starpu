@@ -20,7 +20,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
-#include <common/hash.h>
+#include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
@@ -151,7 +151,7 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, uint32_t hom
 
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle)
 {
-	return _starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
+	return starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
 }
 
 static int variable_compare(void *data_interface_a, void *data_interface_b)

@@ -21,7 +21,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 
-#include <common/hash.h>
+#include <starpu_hash.h>
 
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
@@ -175,9 +175,9 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle)
 {
 	uint32_t hash;
 
-	hash = _starpu_crc32_be(starpu_block_get_nx(handle), 0);
-	hash = _starpu_crc32_be(starpu_block_get_ny(handle), hash);
-	hash = _starpu_crc32_be(starpu_block_get_nz(handle), hash);
+	hash = starpu_crc32_be(starpu_block_get_nx(handle), 0);
+	hash = starpu_crc32_be(starpu_block_get_ny(handle), hash);
+	hash = starpu_crc32_be(starpu_block_get_nz(handle), hash);
 
 	return hash;
 }

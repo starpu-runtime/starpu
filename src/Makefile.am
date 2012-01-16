@@ -87,7 +87,6 @@ noinst_HEADERS = 						\
 	datawizard/memory_nodes.h				\
 	datawizard/interfaces/data_interface.h			\
 	common/barrier.h					\
-	common/hash.h						\
 	common/timing.h						\
 	common/htable32.h					\
 	common/list.h						\

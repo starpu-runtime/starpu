@@ -22,7 +22,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 
-#include <common/hash.h>
+#include <starpu_hash.h>
 
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
@@ -134,7 +134,7 @@ void starpu_csr_data_register(starpu_data_handle_t *handleptr, uint32_t home_nod
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle)
 {
-	return _starpu_crc32_be(starpu_csr_get_nnz(handle), 0);
+	return starpu_crc32_be(starpu_csr_get_nnz(handle), 0);
 }
 
 static int csr_compare(void *data_interface_a, void *data_interface_b)

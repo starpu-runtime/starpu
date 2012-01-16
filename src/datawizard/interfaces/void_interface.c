@@ -20,7 +20,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
-#include <common/hash.h>
+#include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>

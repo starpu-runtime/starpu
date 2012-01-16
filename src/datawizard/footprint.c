@@ -16,7 +16,7 @@
  */
 
 #include <datawizard/footprint.h>
-#include <common/hash.h>
+#include <starpu_hash.h>
 
 uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)
 {
@@ -30,10 +30,10 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum 
 
 	if (model && model->per_arch[arch][nimpl].size_base) {
 		size_t size = model->per_arch[arch][nimpl].size_base(task, arch, nimpl);
-		footprint = _starpu_crc32_be_n(&size, sizeof(size), footprint);
+		footprint = starpu_crc32_be_n(&size, sizeof(size), footprint);
 	} else if (model && model->size_base) {
 		size_t size = model->size_base(task, nimpl);
-		footprint = _starpu_crc32_be_n(&size, sizeof(size), footprint);
+		footprint = starpu_crc32_be_n(&size, sizeof(size), footprint);
 	} else {
 		for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 		{
@@ -41,7 +41,7 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum 
 
 			uint32_t handle_footprint = _starpu_data_get_footprint(handle);
 
-			footprint = _starpu_crc32_be(handle_footprint, footprint);
+			footprint = starpu_crc32_be(handle_footprint, footprint);
 		}
 	}
 
@@ -57,5 +57,5 @@ uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle)
 
 	uint32_t handle_footprint = handle->ops->footprint(handle);
 
-	return _starpu_crc32_be(handle_footprint, interfaceid);
+	return starpu_crc32_be(handle_footprint, interfaceid);
 }

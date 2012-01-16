@@ -24,16 +24,16 @@
 /* Compute the CRC of a byte buffer seeded by the inputcrc "current state".
  * The return value should be considered as the new "current state" for future
  * CRC computation. */
-uint32_t _starpu_crc32_be_n(void *input, size_t n, uint32_t inputcrc);
+uint32_t starpu_crc32_be_n(void *input, size_t n, uint32_t inputcrc);
 
 /* Compute the CRC of a 32bit number seeded by the inputcrc "current state".
  * The return value should be considered as the new "current state" for future
  * CRC computation. */
-uint32_t _starpu_crc32_be(uint32_t input, uint32_t inputcrc);
+uint32_t starpu_crc32_be(uint32_t input, uint32_t inputcrc);
 
 /* Compute the CRC of a string seeded by the inputcrc "current state".  The
  * return value should be considered as the new "current state" for future CRC
  * computation. */
-uint32_t _starpu_crc32_string(char *str, uint32_t inputcrc);
+uint32_t starpu_crc32_string(char *str, uint32_t inputcrc);
 
 #endif // __HASH_H__
