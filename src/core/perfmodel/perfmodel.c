@@ -260,13 +260,11 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
-		enum starpu_data_interface_id id;
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
 
 		handle = task->handles[i];
-		id = starpu_get_handle_interface_id(handle);
-		if (id != STARPU_MULTIFORMAT_INTERFACE_ID)
+		if (!starpu_is_multiformat_handle(handle))
 			continue;
 
 		if (arch >= STARPU_CPU_DEFAULT && arch < STARPU_CUDA_DEFAULT)

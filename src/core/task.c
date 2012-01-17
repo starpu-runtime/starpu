@@ -658,9 +658,7 @@ _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 	unsigned i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
-		enum starpu_data_interface_id id;
-		id = starpu_get_handle_interface_id(task->handles[i]);
-		if (id == STARPU_MULTIFORMAT_INTERFACE_ID)
+		if (starpu_is_multiformat_handle(task->handles[i]))
 			return 1;
 	}
 

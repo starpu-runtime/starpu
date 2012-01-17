@@ -91,6 +91,11 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 	return result;
 }
 
+int
+starpu_is_multiformat_handle(starpu_data_handle_t handle)
+{
+	return handle->ops->is_multiformat;
+}
 /*
  * Start monitoring a piece of data
  */
@@ -450,12 +455,11 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
 
-		/* If this handle uses the multiformat interface, we may have to convert
+		/* If this handle uses a multiformat interface, we may have to convert
 		 * this piece of data back into the CPU format.
 		 * XXX : This is quite hacky, could we submit a task instead ?
 		 */
-		enum starpu_data_interface_id id = starpu_get_handle_interface_id(handle);
-		if (id == STARPU_MULTIFORMAT_INTERFACE_ID &&
+		if (starpu_is_multiformat_handle(handle) &&
 			starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM)
 		{
 			_STARPU_DEBUG("Conversion needed\n");
