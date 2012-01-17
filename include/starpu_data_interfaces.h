@@ -131,6 +131,7 @@ struct starpu_data_interface_ops
 	size_t interface_size;
 
 	int is_multiformat;
+	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 };
 
 void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,

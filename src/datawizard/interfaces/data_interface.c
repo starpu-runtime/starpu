@@ -469,16 +469,18 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			struct starpu_codelet *cl;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);
 
+			struct starpu_multiformat_data_interface_ops *mf_ops;
+			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 			switch (node_kind)
 			{
 #ifdef STARPU_USE_CUDA
 				case STARPU_CUDA_RAM:
-					cl = format_interface->ops->cuda_to_cpu_cl;
+					cl = mf_ops->cuda_to_cpu_cl;
 					break;
 #endif
 #ifdef STARPU_USE_OPENCL
 				case STARPU_OPENCL_RAM:
-					cl = format_interface->ops->opencl_to_cpu_cl;
+					cl = mf_ops->opencl_to_cpu_cl;
 					break;
 #endif
 				case STARPU_CPU_RAM:      /* Impossible ! */

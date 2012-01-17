@@ -356,6 +356,8 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	handle->refcnt++;
 	handle->busy_count++;
 
+	struct starpu_multiformat_data_interface_ops *mf_ops;
+	mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 	switch(node_kind)
 	{
 	case STARPU_CPU_RAM:
@@ -365,12 +367,12 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 			STARPU_ASSERT(0);
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			conversion_task->cl = format_interface->ops->cuda_to_cpu_cl;
+			conversion_task->cl = mf_ops->cuda_to_cpu_cl;
 			break;
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			conversion_task->cl = format_interface->ops->opencl_to_cpu_cl;
+			conversion_task->cl = mf_ops->opencl_to_cpu_cl;
 			break;
 #endif
 		default:
@@ -380,12 +382,12 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 		break;
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_RAM:
-		conversion_task->cl = format_interface->ops->cpu_to_cuda_cl;
+		conversion_task->cl = mf_ops->cpu_to_cuda_cl;
 		break;
 #endif
 #ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_RAM:
-		conversion_task->cl = format_interface->ops->cpu_to_opencl_cl;
+		conversion_task->cl = mf_ops->cpu_to_opencl_cl;
 		break;
 #endif
 	case STARPU_SPU_LS: /* Not supported */

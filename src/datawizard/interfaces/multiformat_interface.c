@@ -79,6 +79,15 @@ static uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle);
 static int convert_multiformat_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
+static struct starpu_multiformat_data_interface_ops*
+get_mf_ops(void *data_interface)
+{
+	struct starpu_multiformat_interface *mf;
+	mf = (struct starpu_multiformat_interface *) data_interface;
+
+	return mf->ops;
+}
+
 static struct starpu_data_interface_ops interface_multiformat_ops =
 {
 	.register_data_handle  = register_multiformat_handle,
@@ -96,6 +105,7 @@ static struct starpu_data_interface_ops interface_multiformat_ops =
 	.interface_size        = sizeof(struct starpu_multiformat_interface),
 	.display               = display_multiformat_interface,
 	.is_multiformat        = 1,
+	.get_mf_ops            = get_mf_ops
 };
 
 static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
