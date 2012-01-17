@@ -73,7 +73,10 @@ int main(int argc, char **argv)
 	/* We allocate 50% of the memory */
 	uint64_t total_size = get_total_memory_size();
 
-	mb = (int)((0.50 * total_size)/(BLOCK_SIZE));
+	/* On x86_64-freebsd8.2, hwloc 1.3 returns 0 as the total memory
+	 * size, so sanity-check what we have.  */
+	if (total_size > 0)
+		mb = (int)((0.50 * total_size)/(BLOCK_SIZE));
 #endif
 
 	/* An optional argument indicates the number of MB to allocate */
