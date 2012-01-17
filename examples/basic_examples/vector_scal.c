@@ -27,7 +27,7 @@
 #include <starpu_opencl.h>
 #include <stdio.h>
 
-#define	NX	2048000
+#define	NX	204800
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 extern void scal_cpu_func(void *buffers[], void *_args);
