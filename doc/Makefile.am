@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -32,7 +32,8 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 	chapters/mpi-support.texi \
 	chapters/fft-support.texi \
 	chapters/using.texi \
-	chapters/vector_scal_opencl.texi
+	chapters/vector_scal_opencl.texi \
+	chapters/socl.texi
 
 MAINTAINERCLEANFILES = starpu.pdf
 
