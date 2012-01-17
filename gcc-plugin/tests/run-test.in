@@ -7,7 +7,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
          -c "(apply $main (cdr (command-line)))" "$@"
 !#
 ;;; GCC-StarPU
-;;; Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+;;; Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 ;;;
 ;;; GCC-StarPU is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -84,6 +84,9 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     ;; Unfortunately `libtool --mode=execute' doesn't help here, so hard-code
     ;; the real file name.
     ,(string-append "-fplugin=" %builddir "/../src/.libs/starpu.so")
+
+    ;; Use the non-installed headers.
+    ,(string-append "-fplugin-arg-starpu-include-dir=@top_srcdir@/include")
 
     "-g"
     "-fdump-tree-gimple" "-Wall"))

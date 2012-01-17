@@ -1,6 +1,6 @@
 dnl -*- Autoconf -*-
 dnl
-dnl Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+dnl Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 dnl
 dnl StarPU is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU Lesser General Public License as published by
@@ -63,6 +63,10 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
       AC_CHECK_HEADERS([c-common.h c-pragma.h c-family/c-common.h c-family/c-pragma.h],
         [], [], [#include <gcc-plugin.h>
 	         #include <tree.h>])
+
+      AC_DEFINE_UNQUOTED([STARPU_INCLUDE_DIR],
+        ["`eval "echo $includedir"`/starpu/$STARPU_EFFECTIVE_VERSION"],
+        [Define to the directory where StarPU's headers are installed.])
     ])
   fi
 

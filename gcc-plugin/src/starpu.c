@@ -1909,11 +1909,25 @@ static struct opt_pass pass_lower_starpu =
 
 /* Initialization.  */
 
+/* Directory where to look up <starpu.h> instead of `STARPU_INCLUDE_DIR'.  */
+static const char *include_dir;
+
 static void
 define_cpp_macros (void *gcc_data, void *user_data)
 {
   cpp_define (parse_in, "STARPU_GCC_PLUGIN=0");
-  cpp_push_include (parse_in, "starpu.h");
+
+  if (include_dir)
+    {
+      /* Get the header from the user-specified directory.  This is useful
+	 when running the test suite, before StarPU is installed.  */
+      char header[strlen (include_dir) + sizeof ("/starpu.h")];
+      strcpy (header, include_dir);
+      strcat (header, "/starpu.h");
+      cpp_push_include (parse_in, header);
+    }
+  else
+    cpp_push_include (parse_in, STARPU_INCLUDE_DIR "/starpu.h");
 }
 
 int
@@ -1945,6 +1959,25 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP,
 		     NULL, &pass_info);
+
+  include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
+
+  size_t arg;
+  for (arg = 0; arg < plugin_info->argc; arg++)
+    {
+      if (strcmp (plugin_info->argv[arg].key, "include-dir") == 0)
+	{
+	  if (plugin_info->argv[arg].value == NULL)
+	    error_at (UNKNOWN_LOCATION, "missing directory name for option "
+		      "%<-fplugin-arg-starpu-include-dir%>");
+	  else
+	    /* XXX: We assume that `value' has an infinite lifetime.  */
+	    include_dir = plugin_info->argv[arg].value;
+	}
+      else
+	error_at (UNKNOWN_LOCATION, "invalid StarPU plug-in argument %qs",
+		  plugin_info->argv[arg].key);
+    }
 
   return 0;
 }

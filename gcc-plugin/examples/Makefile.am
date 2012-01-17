@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,10 @@ AM_CPPFLAGS =						\
   -I$(top_srcdir)/examples				\
   $(STARPU_OPENCL_CPPFLAGS) $(STARPU_CUDA_CPPFLAGS)
 
-AM_CFLAGS = -fplugin="$(builddir)/../src/.libs/starpu.so" -Wall
+AM_CFLAGS =							\
+  -fplugin="$(builddir)/../src/.libs/starpu.so"			\
+  -fplugin-arg-starpu-include-dir="$(top_srcdir)/include"	\
+  -Wall
 
 noinst_HEADERS =				\
   cholesky/cholesky.h				\
