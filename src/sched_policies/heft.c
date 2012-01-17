@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -147,6 +147,18 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	/* If there is no prediction available, we consider the task has a null length */
 	if (predicted_transfer != -1.0)
 	{
+		if (starpu_timing_now() + predicted_transfer < exp_end[workerid])
+		{
+			/* We may hope that the transfer will be finished by
+			 * the start of the task. */
+			predicted_transfer = 0;
+		}
+		else
+		{
+			/* The transfer will not be finished by then, take the
+			 * remainder into account */
+			predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[workerid];
+		}
 		task->predicted_transfer = predicted_transfer;
 		exp_end[workerid] += predicted_transfer;
 		exp_len[workerid] += predicted_transfer;
@@ -171,6 +183,18 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	exp_end[best_workerid] += predicted;
 	exp_len[best_workerid] += predicted;
 
+	if (starpu_timing_now() + predicted_transfer < exp_end[best_workerid])
+	{
+		/* We may hope that the transfer will be finished by
+		 * the start of the task. */
+		predicted_transfer = 0;
+	}
+	else
+	{
+		/* The transfer will not be finished by then, take the
+		 * remainder into account */
+		predicted_transfer = (starpu_timing_now() + predicted_transfer) - exp_end[best_workerid];
+	}
 	exp_end[best_workerid] += predicted_transfer;
 	exp_len[best_workerid] += predicted_transfer;
 
