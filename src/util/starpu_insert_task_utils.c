@@ -41,6 +41,7 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 
 	/* Free the stack of arguments */
 	free(cl_arg_wrapper->arg_stack);
+	free(cl_arg_wrapper);
 }
 
 size_t _starpu_insert_task_get_arg_size(va_list varg_list)
@@ -250,10 +251,14 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codele
 	int ret = starpu_task_submit(*task);
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
 		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s')\n",
 			*task, (*task)->cl,
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
+		free(cl_arg_wrapper->arg_stack);
+		free(cl_arg_wrapper);
+	}
 
         return ret;
 }
