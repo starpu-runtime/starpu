@@ -28,12 +28,12 @@
 # OF  THIS  SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-CFLAGS          +=      $$(pkg-config --cflags libstarpu1.0)
-LDFLAGS         +=      $$(pkg-config --libs libstarpu1.0)
+CFLAGS          +=      $$(pkg-config --cflags libstarpu-1.0)
+LDFLAGS         +=      $$(pkg-config --libs libstarpu-1.0)
 
-HAS_CUDA	=	$(shell pkg-config --libs libstarpu1.0 |grep -i cuda)
+HAS_CUDA	=	$(shell pkg-config --libs libstarpu-1.0 |grep -i cuda)
 NVCC		?=	nvcc
-HAS_OPENCL	=	$(shell pkg-config --libs libstarpu1.0 |grep -i opencl)
+HAS_OPENCL	=	$(shell pkg-config --libs libstarpu-1.0 |grep -i opencl)
 
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c

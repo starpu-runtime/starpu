@@ -32,8 +32,8 @@ options must be given to the compiler and to the linker:
 
 @cartouche
 @example
-CFLAGS          +=      $$(pkg-config --cflags libstarpu1.0)
-LDFLAGS         +=      $$(pkg-config --libs libstarpu1.0)
+CFLAGS          +=      $$(pkg-config --cflags libstarpu-1.0)
+LDFLAGS         +=      $$(pkg-config --libs libstarpu-1.0)
 @end example
 @end cartouche
 
@@ -218,7 +218,7 @@ disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
 
 @smallexample
 % make hello_world
-cc $(pkg-config --cflags libstarpu1.0)  $(pkg-config --libs libstarpu1.0) hello_world.c -o hello_world
+cc $(pkg-config --cflags libstarpu-1.0)  $(pkg-config --libs libstarpu-1.0) hello_world.c -o hello_world
 % ./hello_world
 Hello world (params = @{1, 2.000000@} )
 Callback function (arg 42)
@@ -345,7 +345,7 @@ constant factor from this pointer.
 
 @smallexample
 % make vector_scal
-cc $(pkg-config --cflags libstarpu1.0)  $(pkg-config --libs libstarpu1.0)  vector_scal.c   -o vector_scal
+cc $(pkg-config --cflags libstarpu-1.0)  $(pkg-config --libs libstarpu-1.0)  vector_scal.c   -o vector_scal
 % ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
@@ -595,8 +595,8 @@ be compiled at run-time when calling the function
 
 @cartouche
 @smallexample
-CFLAGS  += $(shell pkg-config --cflags libstarpu1.0)
-LDFLAGS += $(shell pkg-config --libs libstarpu1.0)
+CFLAGS  += $(shell pkg-config --cflags libstarpu-1.0)
+LDFLAGS += $(shell pkg-config --libs libstarpu-1.0)
 CC       = gcc
 
 vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o
