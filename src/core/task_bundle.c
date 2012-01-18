@@ -107,7 +107,7 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 /* Remove a task from a bundle. This method must be called with bundle->mutex
  * hold. This function returns 0 if the task was found, -ENOENT if the element
  * was not found, 1 if the element is found and if the list was deinitialized
- * because it became empty. */
+ * because it was locked and became empty. */
 int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_task *task)
 {
 	struct starpu_task_bundle_entry *item;
