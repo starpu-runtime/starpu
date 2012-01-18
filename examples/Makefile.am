@@ -125,7 +125,9 @@ noinst_HEADERS = 				\
 	spmv/spmv.h				\
 	spmv/dw_block_spmv.h                    \
 	basic_examples/multiformat_types.h      \
-	filters/multiformat/multiformat_types.h
+	filters/multiformat/multiformat_types.h \
+	filters/custom_mf/custom_interface.h    \
+	filters/custom_mf/custom_types.h
 
 #####################################
 # What to install and what to check #
@@ -156,6 +158,7 @@ examplebin_PROGRAMS +=				\
 	basic_examples/block			\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
+	filters/custom_mf/custom_mf_filter      \
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -391,9 +394,21 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
 endif
 
-#
-#
-#
+
+#############################
+# Custom multiformat filter #
+#############################
+filters_custom_mf_custom_mf_filter_SOURCES=\
+	filters/custom_mf/custom_mf_filter.c \
+	filters/custom_mf/custom_interface.c   \
+	filters/custom_mf/custom_conversion_codelets.c
+
+if STARPU_USE_CUDA
+filters_custom_mf_custom_mf_filter_SOURCES+=\
+	filters/custom_mf/conversion.cu \
+	filters/custom_mf/cuda.cu
+endif
+
 filters_multiformat_multiformat_filter_SOURCES=                \
 	filters/multiformat/multiformat_filter.c               \
 	filters/multiformat/multiformat_ops.c                  \
