@@ -157,8 +157,9 @@ int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_t
 	return -ENOENT;
 }
 
-/* Close a bundle. No task can be added to a closed bundle. A closed bundle
- * automatically gets deinitialized when it becomes empty. */
+/* Close a bundle. No task can be added to a closed bundle. Tasks can still be
+ * removed from a closed bundle. A closed bundle automatically gets
+ * deinitialized when it becomes empty. A closed bundle cannot be reopened. */
 void starpu_task_bundle_close(struct starpu_task_bundle *bundle)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
