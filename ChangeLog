@@ -18,7 +18,7 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
-  * Add a magic field to struct starpu_task which is set when
+  * Add a field named magic to struct starpu_task which is set when
         initialising the task. starpu_task_submit will fail if the
         field does not have the right value. This will hence avoid
         submitting tasks which have not been properly initialised.
