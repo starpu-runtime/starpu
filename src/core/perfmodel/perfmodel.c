@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -390,12 +390,19 @@ void _starpu_create_sampling_directory_if_needed(void)
 
 		if (ret == -1)
 		{
-			STARPU_ASSERT(errno == EEXIST);
+			if (errno != EEXIST) {
+				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
+				perror("mkdir");
+				STARPU_ASSERT(0);
+			}
 
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir, &sb);
-			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+			if (!S_ISDIR(sb.st_mode)) {
+				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
+				STARPU_ASSERT(0);
+			}
 		}
 
 		/* Per-task performance models */
@@ -405,12 +412,20 @@ void _starpu_create_sampling_directory_if_needed(void)
 		ret = _starpu_mkpath(perf_model_dir_codelets, S_IRWXU);
 		if (ret == -1)
 		{
-			STARPU_ASSERT(errno == EEXIST);
+			if (errno != EEXIST) {
+				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
+				perror("mkdir");
+				STARPU_ASSERT(0);
+			}
+
 
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir_codelets, &sb);
-			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+			if (!S_ISDIR(sb.st_mode)) {
+				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
+				STARPU_ASSERT(0);
+			}
 		}
 
 		/* Performance of the memory subsystem */
@@ -420,12 +435,19 @@ void _starpu_create_sampling_directory_if_needed(void)
 		ret = _starpu_mkpath(perf_model_dir_bus, S_IRWXU);
 		if (ret == -1)
 		{
-			STARPU_ASSERT(errno == EEXIST);
+			if (errno != EEXIST) {
+				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
+				perror("mkdir");
+				STARPU_ASSERT(0);
+			}
 
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir_bus, &sb);
-			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+			if (!S_ISDIR(sb.st_mode)) {
+				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
+				STARPU_ASSERT(0);
+			}
 		}
 
 		/* Performance debug measurements */
@@ -435,12 +457,20 @@ void _starpu_create_sampling_directory_if_needed(void)
 		ret = _starpu_mkpath(perf_model_dir_debug, S_IRWXU);
 		if (ret == -1)
 		{
-			STARPU_ASSERT(errno == EEXIST);
+			if (errno != EEXIST) {
+				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
+				perror("mkdir");
+				STARPU_ASSERT(0);
+			}
+
 
 			/* make sure that it is actually a directory */
 			struct stat sb;
 			stat(perf_model_dir_debug, &sb);
-			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+			if (!S_ISDIR(sb.st_mode)) {
+				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
+				STARPU_ASSERT(0);
+			}
 		}
 
 		directory_existence_was_tested = 1;
