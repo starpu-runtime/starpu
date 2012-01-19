@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -45,16 +45,13 @@ CLEANFILES = *.gimple				\
   pointer-tasks
 
 EXTRA_DIST = ./run-test.in			\
-  my-lib.h my-lib.c
-
-if HAVE_GUILE
+  my-lib.h my-lib.c				\
+  $(gcc_tests)
 
 TESTS = $(gcc_tests)
 TESTS_ENVIRONMENT = ./run-test
 
-else !HAVE_GUILE
-
-EXTRA_DIST += $(gcc_tests)
+if !HAVE_GUILE
 
 check-hook:
 	-@echo "GNU Guile not available, test suite not run."
