@@ -30,12 +30,23 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
   AC_REQUIRE([AC_PROG_CC])
   AC_CACHE_CHECK([whether GCC supports plug-ins], [ac_cv_have_gcc_plugins], [
     if test "x$GCC" = xyes; then
+      # ICC 12.1.0 and Clang 3.1 (among others) support `--version',
+      # define `__GNUC__', and provide a `-print-file-name=plugin'
+      # that returns GCC's valid header directory.  This makes them
+      # hardly distinguishable from GCC.  Actually, ICC 12.1.0 is able
+      # to compile our plug-in, so we can let it through...
       _STARPU_WITH_GCC_PLUGIN_API([
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <gcc-plugin.h>
 	      #include <tree.h>
 	      #include <gimple.h>
 	      tree fndecl; gimple call;]],
-	    [[fndecl = lookup_name (get_identifier ("puts"));
+	    [[/* Clang 3.1 doesn't support nested functions, so try to
+	         discriminate it this way.  */
+	      tree foo (void)
+	      {
+	        return lookup_name (get_identifier ("puts"));
+              }
+	      fndecl = foo ();
 	      call = gimple_build_call (fndecl, 0);]])],
 	  [ac_cv_have_gcc_plugins="yes"],
 	  [ac_cv_have_gcc_plugins="no"])
