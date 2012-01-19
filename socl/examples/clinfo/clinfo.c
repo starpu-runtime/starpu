@@ -20,8 +20,7 @@
 
 #include <CL/cl.h>
 
-inline 
-void 
+static inline void 
 checkErr(cl_int err, const char * name) {
     if (err != CL_SUCCESS) {
         fprintf(stderr, "ERROR: %s (%d)\n", name, err);
