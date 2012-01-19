@@ -109,10 +109,15 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 {
 	struct _starpu_task_bundle_entry *item;
 
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+
 	item = bundle->list;
 
 	if (!item)
+	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return -ENOENT;
+	}
 
 	STARPU_ASSERT(task->bundle == bundle);
 	task->bundle = NULL;
@@ -131,6 +136,7 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 			return 1;
 		}
 
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return 0;
 	}
 
@@ -143,12 +149,15 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 		{
 			/* Remove the next element */
 			item->next = next->next;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 			free(next);
 			return 0;
 		}
 
 		item = next;
 	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	/* We could not find the task in the bundle */
 	return -ENOENT;
@@ -320,6 +329,8 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 		entry = entry->next;
 	}
 
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+
 	/* Compute the sum of data transfer time, and destroy the list */
 
 	double total_exp = 0.0;
@@ -336,8 +347,6 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 
 		free(current);
 	}
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return total_exp;
 }

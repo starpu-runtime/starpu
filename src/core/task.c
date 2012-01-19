@@ -97,15 +97,7 @@ void starpu_task_deinit(struct starpu_task *task)
 	/* If case the task is (still) part of a bundle */
 	starpu_task_bundle_t bundle = task->bundle;
 	if (bundle)
-	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
-		int ret = starpu_task_bundle_remove(bundle, task);
-
-		/* Perhaps the bundle was destroyed when removing the last
-		 * entry */
-		if (ret != 1)
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
-	}
+		starpu_task_bundle_remove(bundle, task);
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 

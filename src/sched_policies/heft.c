@@ -478,14 +478,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		/* Remove the task from the bundle since we have made a
 		 * decision for it, and that other tasks should not consider it
 		 * anymore. */
-		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
-		int ret = starpu_task_bundle_remove(bundle, task);
-
-		/* Perhaps the bundle was destroyed when removing the last
-		 * entry */
-		if (ret != 1)
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
-
+		starpu_task_bundle_remove(bundle, task);
 	}
 	else
 	{
