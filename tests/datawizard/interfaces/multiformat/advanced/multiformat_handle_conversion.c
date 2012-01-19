@@ -121,8 +121,8 @@ test_cuda(void)
 		vector2[i] = i;
 	}
 
-	starpu_multiformat_data_register(handles, 0, vector1, NX, &ops);
-	starpu_multiformat_data_register(handles+1, 0, vector2, NX, &ops);
+	starpu_multiformat_data_register(&handles[0], 0, vector1, NX, &ops);
+	starpu_multiformat_data_register(&handles[1], 0, vector2, NX, &ops);
 
 	memset(&global_stats, 0, sizeof(global_stats));
 	create_and_submit_tasks(STARPU_CUDA, handles);
@@ -166,8 +166,8 @@ test_opencl(void)
 		vector2[i] = i;
 	}
 
-	starpu_multiformat_data_register(handles, 0, vector1, NX, &ops);
-	starpu_multiformat_data_register(handles+1, 0, vector2, NX, &ops);
+	starpu_multiformat_data_register(&handles[0], 0, vector1, NX, &ops);
+	starpu_multiformat_data_register(&handles[1], 0, vector2, NX, &ops);
 
 	memset(&global_stats, 0, sizeof(global_stats));
 	create_and_submit_tasks(STARPU_OPENCL, handles);
