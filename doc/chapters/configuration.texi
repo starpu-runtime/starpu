@@ -167,15 +167,16 @@ device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
 * --enable-allocation-cache::   
 * --enable-opengl-render::      
 * --enable-blas-lib::           
-* --disable-starpufft::           
+* --disable-starpufft::         
 * --with-magma::                
 * --with-fxt::                  
 * --with-perf-model-dir::       
 * --with-mpicc::                
 * --with-goto-dir::             
 * --with-atlas-dir::            
-* --with-mkl-cflags::
-* --with-mkl-ldflags::
+* --with-mkl-cflags::           
+* --with-mkl-ldflags::          
+* --disable-gcc-extensions::    
 @end menu
 
 @node --enable-perf-debug
