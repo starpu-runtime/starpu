@@ -176,3 +176,7 @@ configuration:
 @example
 % make install
 @end example
+
+Libtool interface versioning information are included in
+libraries names (libstarpu-1.0.so, libstarpumpi-1.0.so and
+libstarpufft-1.0.so).

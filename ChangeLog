@@ -18,6 +18,8 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Libtool interface versioning has been included in libraries names
+    (libstarpu-1.0.so, libstarpumpi-1.0.so and libstarpufft-1.0.so)
   * Enable by default the SOCL extension.
   * Enable by default the GCC plug-in extension.
   * Add a field named magic to struct starpu_task which is set when
