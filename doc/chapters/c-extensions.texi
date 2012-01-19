@@ -7,11 +7,15 @@
 @cindex C extensions
 @cindex GCC plug-in
 
-When configured with @code{--enable-gcc-extensions}, StarPU builds a
-plug-in for the GNU Compiler Collection (GCC), which defines extensions
-to languages of the C family (C, C++, Objective-C) that make it easier
-to write StarPU code@footnote{This feature is only available for GCC 4.5
-and later.}.  Those extensions include syntactic sugar for defining
+If the GCC used to compile StarPU provides a plug-in
+support@footnote{This feature is only available for GCC 4.5 and
+later.}, StarPU will then build a plug-in for the GNU Compiler
+Collection (GCC), which defines extensions to languages of the C
+family (C, C++, Objective-C) that make it easier to write StarPU code.
+
+The plug-in can be disabled by configuring with @code{--disable-gcc-extensions}.
+
+Those extensions include syntactic sugar for defining
 tasks and their implementations, invoking a task, and manipulating data
 buffers.  Use of these extensions can be made conditional on the
 availability of the plug-in, leading to valid C sequential code when the

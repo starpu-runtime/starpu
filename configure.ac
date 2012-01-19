@@ -1134,14 +1134,18 @@ AC_ARG_ENABLE([gcc-extensions],
   [enable_gcc_plugin="$enableval"],
   [enable_gcc_plugin="no"])
 
-if test "x$enable_gcc_plugin" = "xyes"; then
-   STARPU_GCC_PLUGIN_SUPPORT
+if test "x$enable_gcc_plugin" = "xyes" ; then
+    STARPU_GCC_PLUGIN_SUPPORT
 
-   if test "x$ac_cv_have_gcc_plugins" != "xyes"; then
-     AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
-   fi
+    if test "x$ac_cv_have_gcc_plugins" != "xyes" -a "x$enable_gcc_plugin" = "xyes" ; then
+        AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
+    fi
+else
+    ac_cv_have_gcc_plugins="no"
+fi
 
-   build_gcc_plugin="yes"
+if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
+    build_gcc_plugin="yes"
 
    # GNU Guile 1.8/2.0 is used to run the test suite.
    AC_PATH_PROG([GUILE], [guile])

@@ -254,6 +254,12 @@ Specify the linking flags for the MKL Library. Note that the
 @url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/}
 website provides a script to determine the linking flags.
 
+@node --disable-gcc-extensions
+@subsubsection @code{--enable-gcc-extensions}
+
+Disable the GCC plug-in. It is by default enabled if the GCC compiler
+provides a plug-in support.
+
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
 
