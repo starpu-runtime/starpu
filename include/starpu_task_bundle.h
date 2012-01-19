@@ -42,8 +42,7 @@ typedef struct _starpu_task_bundle *starpu_task_bundle_t;
 /* Initialize a task bundle */
 void starpu_task_bundle_init(starpu_task_bundle_t *bundle);
 
-/* Deinitialize a bundle. In case the destroy flag is set, the bundle structure
- * is freed too. */
+/* Deinitialize a bundle. */
 void starpu_task_bundle_deinit(starpu_task_bundle_t bundle);
 
 /* Insert a task into a bundle. */
