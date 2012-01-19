@@ -3,7 +3,7 @@
 # Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -1143,12 +1143,17 @@ AC_ARG_ENABLE([gcc-extensions],
 
 if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; then
     STARPU_GCC_PLUGIN_SUPPORT
+
+    if test "x$ac_cv_have_gcc_plugins" = "xno" ; then
+        if test "x$enable_gcc_plugin" = "xyes" ; then
+    	    # Since this was explicitly asked for, error out.
+            AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
+	else
+	    AC_MSG_WARN([GCC plug-ins not supported; StarPU's GCC plug-in will not be built])
+        fi
+    fi
 fi
 
-# in case gcc-plugin was explicitely required, but is not available, this is an error
-if test "x$ac_cv_have_gcc_plugins" != "xyes" -a "x$enable_gcc_plugin" = "xyes" ; then
-    AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
-fi
 
 if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
     build_gcc_plugin="yes"
