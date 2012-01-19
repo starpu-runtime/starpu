@@ -80,21 +80,25 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 	}
 	_STARPU_DEP_DEBUG("%d readers\n", nreaders);
 
-	/* Put all tasks in the list into task_array */
-	struct starpu_task *task_array[nreaders];
-	unsigned i = 0;
-	l = handle->last_submitted_readers;
-	while (l)
+	if (nreaders > 0)
 	{
-		STARPU_ASSERT(l->task);
-		if (l->task != post_sync_task) {
-			task_array[i++] = l->task;
-			_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
-		}
+		/* Put all tasks in the list into task_array */
+		struct starpu_task *task_array[nreaders];
+		unsigned i = 0;
+		l = handle->last_submitted_readers;
+		while (l)
+		{
+			STARPU_ASSERT(l->task);
+			if (l->task != post_sync_task) {
+				task_array[i++] = l->task;
+				_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
+			}
 
-		struct _starpu_task_wrapper_list *prev = l;
-		l = l->next;
-		free(prev);
+			struct _starpu_task_wrapper_list *prev = l;
+			l = l->next;
+			free(prev);
+		}
+		starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array);
 	}
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording)
@@ -121,7 +125,6 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 	handle->last_submitted_readers = NULL;
 	handle->last_submitted_writer = post_sync_task;
 
-	starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array);
 }
 /* Write after Write (WAW) */
 static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
