@@ -312,7 +312,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			{
 				TYPE pivot;
 				pivot = sub11[z+z*ld];
-				STARPU_ASSERT(pivot != 0.0);
+				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 		
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
 		
@@ -331,7 +331,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
 				cudaStreamSynchronize(0);
 
-				STARPU_ASSERT(pivot != 0.0);
+				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 				
 				inv_pivot = 1.0/pivot;
 				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
