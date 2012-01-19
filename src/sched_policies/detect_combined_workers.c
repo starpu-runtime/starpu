@@ -101,7 +101,7 @@ static void gather_trees(struct _starpu_tree *target_tree, struct _starpu_tree *
  *			Maximum size of a combined worker.
  */
 
-static unsigned assign_multiple_trees(struct _starpu_tree *trees, unsigned nb_trees, int min_size, int max_size)
+static unsigned assign_multiple_trees(struct _starpu_tree *trees, unsigned nb_trees, unsigned int min_size, unsigned int max_size)
 {
     unsigned short complete = 0;
     unsigned tree_id, tree_id2, nb_workers_tree, nb_workers_tree2, worker_id, nb_workers_total = 0, nb_workers_assigned = 0;
@@ -199,7 +199,7 @@ static unsigned assign_multiple_trees(struct _starpu_tree *trees, unsigned nb_tr
  *			Maximum size of a combined worker.
  */
 
-static unsigned find_and_assign_combinations_with_hwloc_recursive(struct _starpu_tree *tree, int min_size, int max_size)
+static unsigned find_and_assign_combinations_with_hwloc_recursive(struct _starpu_tree *tree, unsigned int min_size, unsigned int max_size)
 {
     unsigned subtree_id, nb_workers = 0;
 
@@ -319,7 +319,7 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(struct _starpu
  *			Topology of the machine : used to know the number of cpus.
  */
 
-static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machine_topology *topology)
+static void get_min_max_sizes(unsigned int *min_size, unsigned int *max_size, struct starpu_machine_topology *topology)
 {
     int _min_size, _max_size;
 
@@ -378,7 +378,7 @@ static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machin
 static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology *topology)
 {
     unsigned nb_workers;
-    int min_size, max_size;
+    unsigned int min_size, max_size;
 
     get_min_max_sizes(&min_size, &max_size, topology);
 
