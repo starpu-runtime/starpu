@@ -87,7 +87,7 @@ static tree unpack_fn;
 /* Forward declarations.  */
 
 static tree build_codelet_declaration (tree task_decl);
-static tree build_task_body (const_tree task_decl);
+static void define_task (tree task_decl);
 static tree build_pointer_lookup (tree pointer);
 
 static bool task_p (const_tree decl);
@@ -1654,14 +1654,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 			      TYPE_ARG_TYPES (TREE_TYPE (task))));
 
 	  /* Build its body.  */
-	  DECL_SAVED_TREE (task) = build_task_body (task);
-	  TREE_STATIC (task) = true;
-	  DECL_EXTERNAL (task) = false;
-	  DECL_INITIAL (task) = build_block (NULL_TREE, NULL_TREE, task, NULL_TREE);
-	  DECL_RESULT (task) =
-	    build_decl (DECL_SOURCE_LOCATION (task), RESULT_DECL,
-			NULL_TREE, void_type_node);
-	  DECL_CONTEXT (DECL_RESULT (task)) = task;
+	  define_task (task);
 
 	  /* Compile TASK's body.  */
 	  rest_of_decl_compilation (task, true, 0);
@@ -1699,11 +1692,41 @@ build_pointer_lookup (tree pointer)
 
 /* Build the body of TASK_DECL, which will call `starpu_insert_task'.  */
 
-static tree
-build_task_body (const_tree task_decl)
+static void
+define_task (tree task_decl)
 {
   VEC(tree, gc) *args = NULL;
+  location_t loc = DECL_SOURCE_LOCATION (task_decl);
   tree p, params = DECL_ARGUMENTS (task_decl);
+
+  tree error_statements (tree error_var)
+  {
+    static tree strerror_fn;
+    LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
+
+    expanded_location xloc = expand_location (loc);
+
+    tree stmts = NULL;
+    char fmt[512];
+    snprintf (fmt, sizeof fmt,
+	      "%s:%d: error: failed to insert task `%s': %%s\n",
+	      xloc.file, xloc.line,
+	      IDENTIFIER_POINTER (DECL_NAME (task_decl)));
+
+    tree error_code =
+      fold_build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
+    tree print =
+      build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
+		       build_string_literal (strlen (fmt) + 1, fmt),
+		       build_call_expr (strerror_fn, 1, error_code));
+
+    append_to_statement_list (print, &stmts);
+    append_to_statement_list (build_call_expr (built_in_decls[BUILT_IN_ABORT],
+					       0),
+			      &stmts);
+
+    return stmts;
+  }
 
   /* The first argument will be a pointer to the codelet.  */
 
@@ -1748,11 +1771,52 @@ build_task_body (const_tree task_decl)
   VEC_safe_push (tree, gc, args,
 		 build_int_cst (integer_type_node, 0));
 
+  /* Introduce a local variable to hold the error code.  */
+
+  tree error_var = build_decl (loc, VAR_DECL,
+  			       create_tmp_var_name (".insert_task_error"),
+  			       integer_type_node);
+  DECL_CONTEXT (error_var) = task_decl;
+  DECL_ARTIFICIAL (error_var) = true;
+
+  /* Build this:
+
+       err = starpu_insert_task (...);
+       if (err != 0)
+         { printf ...; abort (); }
+   */
+
   static tree insert_task_fn;
   LOOKUP_STARPU_FUNCTION (insert_task_fn, "starpu_insert_task");
 
-  return build_call_expr_loc_vec (DECL_SOURCE_LOCATION (task_decl),
-				  insert_task_fn, args);
+  tree call = build_call_expr_loc_vec (loc, insert_task_fn, args);
+
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
+  			    error_var, call);
+
+  tree cond = build3 (COND_EXPR, void_type_node,
+		      build2 (NE_EXPR, boolean_type_node,
+			      error_var, integer_zero_node),
+		      error_statements (error_var),
+		      NULL_TREE);
+
+  tree stmts = NULL;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+
+  tree bind = build3 (BIND_EXPR, void_type_node, error_var, stmts,
+  		      NULL_TREE);
+
+  /* Put it all together.  */
+
+  DECL_SAVED_TREE (task_decl) = bind;
+  TREE_STATIC (task_decl) = true;
+  DECL_EXTERNAL (task_decl) = false;
+  DECL_INITIAL (task_decl) =
+    build_block (error_var, NULL_TREE, task_decl, NULL_TREE);
+  DECL_RESULT (task_decl) =
+    build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
+  DECL_CONTEXT (DECL_RESULT (task_decl)) = task_decl;
 }
 
 /* Raise warnings if TASK doesn't meet the basic criteria.  */
