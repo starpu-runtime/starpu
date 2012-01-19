@@ -244,6 +244,54 @@ build_hello_world (void)
   return build_printf ("Hello, StarPU!");
 }
 
+/* Given ERROR_VAR, an integer variable holding a StarPU error code, return
+   statements that print out an error message and abort.  */
+
+static tree build_error_statements (location_t, tree, const char *, ...)
+  __attribute__ ((format (printf, 3, 4)));
+
+static tree
+build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
+{
+  gcc_assert (TREE_CODE (error_var) == VAR_DECL
+	      && TREE_TYPE (error_var) == integer_type_node);
+
+  static tree strerror_fn;
+  LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
+
+  expanded_location xloc = expand_location (loc);
+
+  char *str, *fmt_long;
+  va_list args;
+
+  va_start (args, fmt);
+
+  /* Build a longer format.  Since FMT itself contains % escapes, this needs
+     to be done in two steps.  */
+
+  vasprintf (&str, fmt, args);
+  asprintf (&fmt_long, "%s:%d: error: %s: %%s\n",
+	    xloc.file, xloc.line, str);
+
+  tree error_code =
+    build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
+  tree print =
+    build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
+		     build_string_literal (strlen (fmt_long) + 1, fmt_long),
+		     build_call_expr (strerror_fn, 1, error_code));
+
+  free (fmt_long);
+  free (str);
+
+  tree stmts = NULL;
+  append_to_statement_list (print, &stmts);
+  append_to_statement_list (build_call_expr (built_in_decls[BUILT_IN_ABORT],
+					     0),
+			    &stmts);
+
+  return stmts;
+}
+
 
 /* List and vector utilities, à la SRFI-1.  */
 
@@ -1699,35 +1747,6 @@ define_task (tree task_decl)
   location_t loc = DECL_SOURCE_LOCATION (task_decl);
   tree p, params = DECL_ARGUMENTS (task_decl);
 
-  tree error_statements (tree error_var)
-  {
-    static tree strerror_fn;
-    LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
-
-    expanded_location xloc = expand_location (loc);
-
-    tree stmts = NULL;
-    char fmt[512];
-    snprintf (fmt, sizeof fmt,
-	      "%s:%d: error: failed to insert task `%s': %%s\n",
-	      xloc.file, xloc.line,
-	      IDENTIFIER_POINTER (DECL_NAME (task_decl)));
-
-    tree error_code =
-      fold_build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
-    tree print =
-      build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
-		       build_string_literal (strlen (fmt) + 1, fmt),
-		       build_call_expr (strerror_fn, 1, error_code));
-
-    append_to_statement_list (print, &stmts);
-    append_to_statement_list (build_call_expr (built_in_decls[BUILT_IN_ABORT],
-					       0),
-			      &stmts);
-
-    return stmts;
-  }
-
   /* The first argument will be a pointer to the codelet.  */
 
   VEC_safe_push (tree, gc, args,
@@ -1794,10 +1813,13 @@ define_task (tree task_decl)
   tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
   			    error_var, call);
 
+  tree name = DECL_NAME (task_decl);
   tree cond = build3 (COND_EXPR, void_type_node,
 		      build2 (NE_EXPR, boolean_type_node,
 			      error_var, integer_zero_node),
-		      error_statements (error_var),
+		      build_error_statements (loc, error_var,
+					      "failed to insert task `%s'",
+					      IDENTIFIER_POINTER (name)),
 		      NULL_TREE);
 
   tree stmts = NULL;
