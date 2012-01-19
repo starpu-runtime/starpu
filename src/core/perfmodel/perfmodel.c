@@ -269,10 +269,14 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 
 		if (arch >= STARPU_CPU_DEFAULT && arch < STARPU_CUDA_DEFAULT)
 			node = cpu_node;
+#ifdef STARPU_USE_CUDA
 		else if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
 			node = cuda_node;
+#endif
+#ifdef STARPU_USE_OPENCL
 		else if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
 			node = opencl_node;
+#endif
 		else
 			STARPU_ASSERT(0);
 
