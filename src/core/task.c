@@ -18,10 +18,10 @@
 
 #include <starpu.h>
 #include <starpu_profiling.h>
-#include <starpu_task_bundle.h>
 #include <core/workers.h>
 #include <core/jobs.h>
 #include <core/task.h>
+#include <core/task_bundle.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <profiling/profiling.h>
@@ -95,7 +95,7 @@ void starpu_task_deinit(struct starpu_task *task)
 	}
 
 	/* If case the task is (still) part of a bundle */
-	struct starpu_task_bundle *bundle = task->bundle;
+	starpu_task_bundle_t bundle = task->bundle;
 	if (bundle)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);

@@ -20,8 +20,9 @@
 
 #include <float.h>
 
-#include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
+#include <core/task_bundle.h>
+#include <core/workers.h>
 #include <starpu_parameters.h>
 #include <starpu_task_bundle.h>
 #include <starpu_top.h>
@@ -392,7 +393,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	 *	and detect if there is some calibration that needs to be done.
 	 */
 
-	struct starpu_task_bundle *bundle = task->bundle;
+	starpu_task_bundle_t bundle = task->bundle;
 
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					&max_exp_end, &best_exp_end,

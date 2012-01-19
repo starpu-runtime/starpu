@@ -17,48 +17,45 @@
 
 #include <starpu.h>
 #include <starpu_task_bundle.h>
+#include <core/task_bundle.h>
 #include <starpu_scheduler.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/list.h>
 
 /* Initialize a task bundle */
-void starpu_task_bundle_init(struct starpu_task_bundle *bundle)
+void starpu_task_bundle_init(starpu_task_bundle_t *bundle)
 {
-	STARPU_ASSERT(bundle);
+	*bundle = (starpu_task_bundle_t) malloc(sizeof(struct _starpu_task_bundle));
+	STARPU_ASSERT(*bundle);
 
-	_STARPU_PTHREAD_MUTEX_INIT(&bundle->mutex, NULL);
-	bundle->closed = 0;
+	_STARPU_PTHREAD_MUTEX_INIT(&(*bundle)->mutex, NULL);
+	(*bundle)->closed = 0;
 
 	/* Start with an empty list */
-	bundle->previous_workerid = -1;
-	bundle->list = NULL;
-
-	/* By default, bundle are destroyed */
-	bundle->destroy = 1;
+	(*bundle)->list = NULL;
 
 }
 
 /* Deinitialize a bundle. In case the destroy flag is set, the bundle structure
  * is freed too. */
-void starpu_task_bundle_deinit(struct starpu_task_bundle *bundle)
+void starpu_task_bundle_deinit(starpu_task_bundle_t bundle)
 {
 	/* Remove all entries from the bundle (which is likely to be empty) */
 	while (bundle->list)
 	{
-		struct starpu_task_bundle_entry *entry = bundle->list;
+		struct _starpu_task_bundle_entry *entry = bundle->list;
 		bundle->list = bundle->list->next;
 		free(entry);
 	}
 
 	_STARPU_PTHREAD_MUTEX_DESTROY(&bundle->mutex);
 
-	if (bundle->destroy)
-		free(bundle);
+	free(bundle);
 }
 
 /* Insert a task into a bundle. */
-int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_task *task)
+int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *task)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
@@ -78,8 +75,8 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 	}
 
 	/* Insert a task at the end of the bundle */
-	struct starpu_task_bundle_entry *entry;
-	entry = (struct starpu_task_bundle_entry *) malloc(sizeof(struct starpu_task_bundle_entry));
+	struct _starpu_task_bundle_entry *entry;
+	entry = (struct _starpu_task_bundle_entry *) malloc(sizeof(struct _starpu_task_bundle_entry));
 	STARPU_ASSERT(entry);
 	entry->task = task;
 	entry->next = NULL;
@@ -90,7 +87,7 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 	}
 	else
 	{
-		struct starpu_task_bundle_entry *item;
+		struct _starpu_task_bundle_entry *item;
 		item = bundle->list;
 		while (item->next)
 			item = item->next;
@@ -108,9 +105,9 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
  * hold. This function returns 0 if the task was found, -ENOENT if the element
  * was not found, 1 if the element is found and if the list was deinitialized
  * because it was locked and became empty. */
-int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_task *task)
+int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *task)
 {
-	struct starpu_task_bundle_entry *item;
+	struct _starpu_task_bundle_entry *item;
 
 	item = bundle->list;
 
@@ -139,7 +136,7 @@ int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_t
 
 	while (item->next)
 	{
-		struct starpu_task_bundle_entry *next;
+		struct _starpu_task_bundle_entry *next;
 		next = item->next;
 
 		if (next->task == task)
@@ -160,7 +157,7 @@ int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_t
 /* Close a bundle. No task can be added to a closed bundle. Tasks can still be
  * removed from a closed bundle. A closed bundle automatically gets
  * deinitialized when it becomes empty. A closed bundle cannot be reopened. */
-void starpu_task_bundle_close(struct starpu_task_bundle *bundle)
+void starpu_task_bundle_close(starpu_task_bundle_t bundle)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
@@ -180,14 +177,14 @@ void starpu_task_bundle_close(struct starpu_task_bundle *bundle)
 }
 
 /* Return the expected duration of the entire task bundle in µs */
-double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle,  enum starpu_perf_archtype arch, unsigned nimpl)
+double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	double expected_length = 0.0;
 
 	/* We expect the length of the bundle the be the sum of the different tasks length. */
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
-	struct starpu_task_bundle_entry *entry;
+	struct _starpu_task_bundle_entry *entry;
 	entry = bundle->list;
 
 	while (entry)
@@ -208,14 +205,14 @@ double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle,  en
 }
 
 /* Return the expected power consumption of the entire task bundle in J */
-double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enum starpu_perf_archtype arch, unsigned nimpl)
+double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	double expected_power = 0.0;
 
 	/* We expect total consumption of the bundle the be the sum of the different tasks consumption. */
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
-	struct starpu_task_bundle_entry *entry;
+	struct _starpu_task_bundle_entry *entry;
 	entry = bundle->list;
 
 	while (entry)
@@ -289,7 +286,7 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 }
 
 /* Return the time (in µs) expected to transfer all data used within the bundle */
-double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle *bundle, unsigned memory_node)
+double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
@@ -298,7 +295,7 @@ double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle 
 	/* We list all the handle that are accessed within the bundle. */
 
 	/* For each task in the bundle */
-	struct starpu_task_bundle_entry *entry = bundle->list;
+	struct _starpu_task_bundle_entry *entry = bundle->list;
 	while (entry)
 	{
 		struct starpu_task *task = entry->task;

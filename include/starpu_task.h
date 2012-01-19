@@ -21,6 +21,7 @@
 
 #include <starpu.h>
 #include <starpu_data.h>
+#include <starpu_task_bundle.h>
 #include <errno.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
@@ -149,7 +150,7 @@ struct starpu_task
 	unsigned workerid;
 
 	/* Bundle including the task */
-	struct starpu_task_bundle *bundle;
+	starpu_task_bundle_t bundle;
 
 	/* If this flag is set, it is not possible to synchronize with the task
 	 * by the means of starpu_task_wait later on. Internal data structures

@@ -33,6 +33,8 @@ extern "C"
 {
 #endif
 
+struct starpu_task;
+
 struct starpu_htbl32_node;
 struct starpu_history_list;
 struct starpu_buffer_descr;
