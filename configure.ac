@@ -1139,31 +1139,30 @@ AC_ARG_ENABLE([gcc-extensions],
   [AS_HELP_STRING([--enable-gcc-extensions],
     [build the GCC plug-in that provides C language extensions (experimental)])],
   [enable_gcc_plugin="$enableval"],
-  [enable_gcc_plugin="yes"])
+  [enable_gcc_plugin="maybe"])
 
-if test "x$enable_gcc_plugin" = "xyes" ; then
+if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; then
     STARPU_GCC_PLUGIN_SUPPORT
+fi
 
-    if test "x$ac_cv_have_gcc_plugins" != "xyes" -a "x$enable_gcc_plugin" = "xyes" ; then
-        AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
-    fi
-else
-    ac_cv_have_gcc_plugins="no"
+# in case gcc-plugin was explicitely required, but is not available, this is an error
+if test "x$ac_cv_have_gcc_plugins" != "xyes" -a "x$enable_gcc_plugin" = "xyes" ; then
+    AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
 fi
 
 if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
     build_gcc_plugin="yes"
 
    # GNU Guile 1.8/2.0 is used to run the test suite.
-   AC_PATH_PROG([GUILE], [guile])
-   if test "x$GUILE" != "x"; then
-      run_gcc_plugin_test_suite="yes"
-   else
-      run_gcc_plugin_test_suite="no"
-   fi
+    AC_PATH_PROG([GUILE], [guile])
+    if test "x$GUILE" != "x"; then
+	run_gcc_plugin_test_suite="yes"
+    else
+	run_gcc_plugin_test_suite="no"
+    fi
 else
-   build_gcc_plugin="no"
-   run_gcc_plugin_test_suite="no"
+    build_gcc_plugin="no"
+    run_gcc_plugin_test_suite="no"
 fi
 
 # Bison is used to generate the C expression parser.  The generated
@@ -1175,7 +1174,7 @@ AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
 
 ###############################################################################
 #                                                                             #
-#                               OpenCL interface                              #
+#                               SOCL interface                                #
 #                                                                             #
 ###############################################################################
 
