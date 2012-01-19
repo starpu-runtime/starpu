@@ -1132,7 +1132,7 @@ AC_ARG_ENABLE([gcc-extensions],
   [AS_HELP_STRING([--enable-gcc-extensions],
     [build the GCC plug-in that provides C language extensions (experimental)])],
   [enable_gcc_plugin="$enableval"],
-  [enable_gcc_plugin="no"])
+  [enable_gcc_plugin="yes"])
 
 if test "x$enable_gcc_plugin" = "xyes" ; then
     STARPU_GCC_PLUGIN_SUPPORT
