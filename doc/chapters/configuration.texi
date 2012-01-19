@@ -177,6 +177,7 @@ device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
 * --with-mkl-cflags::           
 * --with-mkl-ldflags::          
 * --disable-gcc-extensions::    
+* --disable-socl::    
 @end menu
 
 @node --enable-perf-debug
@@ -256,10 +257,16 @@ Specify the linking flags for the MKL Library. Note that the
 website provides a script to determine the linking flags.
 
 @node --disable-gcc-extensions
-@subsubsection @code{--enable-gcc-extensions}
+@subsubsection @code{--disable-gcc-extensions}
 
 Disable the GCC plug-in. It is by default enabled if the GCC compiler
 provides a plug-in support.
+
+@node --disable-socl
+@subsubsection @code{--disable-socl}
+
+Disable the SOCL extension. It is by default enabled if a valid OpenCL
+installation is found.
 
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables

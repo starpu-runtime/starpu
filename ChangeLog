@@ -18,6 +18,7 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Enable by default the SOCL extension.
   * Enable by default the GCC plug-in extension.
   * Add a field named magic to struct starpu_task which is set when
         initialising the task. starpu_task_submit will fail if the

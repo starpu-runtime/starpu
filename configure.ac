@@ -605,19 +605,26 @@ AC_ARG_WITH(opencl-lib-dir,
 		enable_opencl=yes
 	], [opencl_lib_dir=no])
 
-if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
-    	STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
-        if test "$have_valid_opencl" = "no" ; then
-            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
-                if test -n $f ; then
-    	            STARPU_CHECK_OPENCL($f, "no", "no")
-                    if test "$have_valid_opencl" = "yes" ; then
-                        break
-                    fi
-                fi
-            done
-        fi
+AC_DEFUN([STARPU_LOOK_FOR_OPENCL],
+[
+    	if test "x$has_opencl_being_checked" != "xyes" ; then
+    	    STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
+	    if test "$have_valid_opencl" = "no" ; then
+            	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+		    if test -n $f ; then
+    			STARPU_CHECK_OPENCL($f, "no", "no")
+			if test "$have_valid_opencl" = "yes" ; then
+			    break
+			fi
+		    fi
+		done
+	    fi
+	    has_opencl_being_checked=yes
+	fi
+])
 
+if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
+	STARPU_LOOK_FOR_OPENCL()
 	# in case OpenCL was explicitely required, but is not available, this is an error
 	if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
 	    AC_MSG_ERROR([cannot find OpenCL])
@@ -1176,16 +1183,25 @@ AC_ARG_ENABLE([socl],
   [AS_HELP_STRING([--enable-socl],
     [build the OpenCL interface (experimental)])],
   [enable_socl="$enableval"],
-  [enable_socl="no"])
+  [enable_socl="maybe"])
 
-if test "x$enable_socl" = "xyes"; then
-   #STARPU_SOCL_SUPPORT
-   build_socl="yes"
-else
-   build_socl="no"
-   run_socl_test_suite="no"
+AC_MSG_CHECKING(for SOCL)
+
+if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
+    if test "$have_valid_opencl" = "no" ; then
+	STARPU_LOOK_FOR_OPENCL()
+    fi
 fi
 
+# in case SOCL was explicitely required, but is not available, this is an error
+if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
+    AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
+fi
+
+# now we enable SOCL if and only if a proper setup is available
+build_socl=$have_valid_opencl
+
+AC_MSG_RESULT($build_socl)
 AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
