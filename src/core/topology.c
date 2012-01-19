@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -653,7 +653,7 @@ void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATT
 		}
 	}
 
-#elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
+#elif defined(HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__)
 	int ret;
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
