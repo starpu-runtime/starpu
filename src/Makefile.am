@@ -64,7 +64,6 @@ noinst_HEADERS = 						\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
 	core/task.h						\
-	core/task_bundle.h					\
 	core/workers.h						\
 	core/topology.h						\
 	core/debug.h						\
