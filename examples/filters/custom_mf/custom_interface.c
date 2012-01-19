@@ -82,7 +82,7 @@ static struct starpu_multiformat_data_interface_ops*
 get_mf_ops(void *data_interface)
 {
 	struct custom_data_interface *custom;
-	custom = (struct starpu_multiformat_interface *) data_interface;
+	custom = (struct custom_data_interface *) data_interface;
 
 	return custom->ops;
 }
