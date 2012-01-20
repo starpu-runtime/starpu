@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This file is part of the StarPU Handbook.
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @cindex C extensions
@@ -92,7 +92,7 @@ for output pointer or array parameters (@code{STARPU_W}).
 @cindex @code{task_implementation} attribute
 Declare the given function as an implementation of @var{task} to run on
 @var{target}.  @var{target} must be a string, currently one of
-@code{"cpu"} or @code{"cuda"}.
+@code{"cpu"}, @code{"opencl"}, or @code{"cuda"}.
 @c FIXME: Update when OpenCL support is ready.
 
 @end table
