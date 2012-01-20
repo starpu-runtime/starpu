@@ -24,7 +24,7 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 
-/* struct _starpi_tree
+/* struct _starpu_tree
  * ==================
  * Purpose
  * =======

@@ -53,9 +53,13 @@ struct _starpu_task_bundle_entry
  *
  * Fields
  * ======
- * task			Pointer to the task structure.
+ * mutex		Mutex protecting the structure.
  *
- * next			Pointer to the next element in the linked list.
+ * list			Array of tasks included in the bundle.
+ *
+ * closed		Used to know if the user is still willing to
+ * 			add/remove some tasks in the bundle. Especially useful for
+ * 			the runtime to know whether it is safe to destroy a bundle.
  */
 
 struct _starpu_task_bundle
@@ -67,10 +71,8 @@ struct _starpu_task_bundle
 	pthread_mutex_t mutex;
 #endif
 
-	/* list of tasks */
 	struct _starpu_task_bundle_entry *list;
 
-	/* Is the bundle closed ? */
 	int closed;
 };
 

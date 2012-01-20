@@ -24,7 +24,7 @@
 #include <common/list.h>
 
 /* Initialize a task bundle */
-void starpu_task_bundle_init(starpu_task_bundle_t *bundle)
+void starpu_task_bundle_create(starpu_task_bundle_t *bundle)
 {
 	*bundle = (starpu_task_bundle_t) malloc(sizeof(struct _starpu_task_bundle));
 	STARPU_ASSERT(*bundle);
@@ -39,7 +39,7 @@ void starpu_task_bundle_init(starpu_task_bundle_t *bundle)
 
 /* Deinitialize a bundle. In case the destroy flag is set, the bundle structure
  * is freed too. */
-void starpu_task_bundle_deinit(starpu_task_bundle_t bundle)
+void starpu_task_bundle_destroy(starpu_task_bundle_t bundle)
 {
 	/* Remove all entries from the bundle (which is likely to be empty) */
 	while (bundle->list)
@@ -132,8 +132,8 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 		if (bundle->closed && bundle->list == NULL)
 		{
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
-			starpu_task_bundle_deinit(bundle);
-			return 1;
+			starpu_task_bundle_destroy(bundle);
+			return 0;
 		}
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
@@ -174,7 +174,7 @@ void starpu_task_bundle_close(starpu_task_bundle_t bundle)
 	if (bundle->list == NULL)
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
-		starpu_task_bundle_deinit(bundle);
+		starpu_task_bundle_destroy(bundle);
 		return;
 	}
 
