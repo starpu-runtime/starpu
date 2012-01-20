@@ -33,6 +33,7 @@ gcc_tests =					\
   wait-errors.c					\
   heap-allocated.c				\
   heap-allocated-errors.c			\
+  debug-tree.c					\
   shutdown-errors.c
 
 dist_noinst_HEADERS = mocks.h

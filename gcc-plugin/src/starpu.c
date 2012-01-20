@@ -755,11 +755,43 @@ handle_pragma_unregister (struct cpp_reader *reader)
 			     build_pointer_lookup (pointer)));
 }
 
+/* Handle the `debug_tree' pragma (for debugging purposes.)  */
+
+static void
+handle_pragma_debug_tree (struct cpp_reader *reader)
+{
+  tree args, obj;
+  location_t loc;
+
+  loc = cpp_peek_token (reader, 0)->src_loc;
+
+  args = read_pragma_expressions ("debug_tree", loc);
+  if (args == NULL_TREE)
+    /* Parse error, presumably already handled by the parser.  */
+    return;
+
+  obj = TREE_VALUE (args);
+  args = TREE_CHAIN (args);
+
+  if (obj == error_mark_node)
+    return;
+
+  if (args != NULL_TREE)
+    warning_at (loc, 0, "extraneous arguments ignored");
+
+  inform (loc, "debug_tree:");
+  debug_tree (obj);
+  printf ("\n");
+}
+
 static void
 register_pragmas (void *gcc_data, void *user_data)
 {
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "hello",
 		     handle_pragma_hello);
+  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "debug_tree",
+		     handle_pragma_debug_tree);
+
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "initialize",
 				    handle_pragma_initialize);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "wait",
