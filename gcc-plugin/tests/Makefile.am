@@ -38,12 +38,18 @@ gcc_tests =					\
 
 dist_noinst_HEADERS = mocks.h
 
-CLEANFILES = *.gimple				\
+CLEANFILES = *.gimple *.o			\
   base						\
   pointers					\
   register					\
   scalar-tasks					\
-  pointer-tasks
+  pointer-tasks					\
+  lib-user					\
+  output-pointer				\
+  unregister					\
+  heap-allocated				\
+  acquire
+
 
 EXTRA_DIST = ./run-test.in			\
   my-lib.h my-lib.c				\
