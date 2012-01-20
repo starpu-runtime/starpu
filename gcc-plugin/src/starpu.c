@@ -971,12 +971,14 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
     }
   else
     {
-      tree array_type = TREE_TYPE (var);
-      tree pointer_type = build_pointer_type (strip_array_types (array_type));
+      /* Turn VAR into a pointer that feels like an array.  This is what's
+	 done for PARM_DECLs that have an array type.  */
 
-      /* We want VAR to feel like an array, but to really be a pointer.  So
-	 the hack consists in keeping its array type, but giving it the
-	 storage of a pointer.  (XXX) */
+      tree array_type = TREE_TYPE (var);
+      tree element_type = TREE_TYPE (array_type);
+      tree pointer_type = build_pointer_type (element_type);
+
+      TREE_TYPE (var) = pointer_type;
       DECL_SIZE (var) = TYPE_SIZE (pointer_type);
       DECL_SIZE_UNIT (var) = TYPE_SIZE_UNIT (pointer_type);
       DECL_ALIGN (var) = TYPE_ALIGN (pointer_type);
@@ -996,7 +998,7 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
 	 TODO: Provide a way to disable this.  */
       DECL_ATTRIBUTES (var) =
 	tree_cons (get_identifier ("cleanup"),
-		   lookup_name (get_identifier ("starpu_free")),
+		   lookup_name (get_identifier ("_starpu_free_unref")),
 		   DECL_ATTRIBUTES (var));
     }
 

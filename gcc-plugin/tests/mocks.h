@@ -292,12 +292,11 @@ starpu_malloc (void **ptr, size_t size)
   return 0;
 }
 
-int
-starpu_free (void *ptr)
+void
+_starpu_free_unref (void *ptr)
 {
-  assert (ptr == expected_free_argument);
+  assert (* (void **) ptr == expected_free_argument);
   free_calls++;
-  return 0;
 }
 
 

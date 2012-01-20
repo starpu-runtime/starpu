@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,12 +26,14 @@ foo (size_t size)
 
   float *test_array_parm (float m[size][23], int x, int y)
   {
+    assert ((char *) &m[0][0] != (char *) &m);
     return &m[x][y];
   }
 
   size_t minus_one = size - 1;
   float *test_array_static_parm (float m[static minus_one][23], int x, int y)
   {
+    assert ((char *) &m[0][0] != (char *) &m);
     return &m[x][y];
   }
 
@@ -48,6 +50,12 @@ foo (size_t size)
 
   assert (malloc_calls == 1);
 
+  /* `&m' points to the on-stack area that stores the underlying pointer,
+     whereas `m' and `m[0][0]' should point to the heap-allocated area.  */
+  assert ((char *) &m != (char *) m);
+  assert ((char *) &m[0][0] != (char *) &m);
+  assert ((char *) &m[0][0] == (char *) m);
+
   /* Make sure "array arithmetic" works.  */
   assert ((char *) &m[0][1] - (char *) &m[0][0] == sizeof m[0][0]);
   assert ((char *) &m[1][0] - (char *) &m[0][22] == sizeof m[0][0]);
@@ -59,7 +67,6 @@ foo (size_t size)
 	assert (&m[x][y] == test_array_parm (m, x, y));
 	assert (&m[x][y] == test_array_static_parm (m, x, y));
 	assert (&m[x][y] == test_pointer_parm ((float *) m, x, y));
-	assert (&m[x][y] == test_pointer_parm ((float *) &m, x, y));
       }
 
   /* Freed when going out of scope.  */
