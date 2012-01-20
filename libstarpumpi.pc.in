@@ -23,7 +23,7 @@ Name: starpumpi
 Description: offers MPI support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@ -DSTARPU_USE_DEPRECATED_API
-Libs: -L${libdir} -lstarpumpi
+Libs: -L${libdir} -lstarpumpi-@STARPU_EFFECTIVE_VERSION@
 Libs.private: @LDFLAGS@ @LIBS@
 Requires: libstarpu
 Requires.private:
