@@ -203,15 +203,77 @@ The following pragmas are provided:
 @table @code
 
 @item #pragma starpu register @var{ptr} [@var{size}]
-Register @var{ptr} as a @var{size}-element buffer.
+Register @var{ptr} as a @var{size}-element buffer.  When @var{ptr} has
+an array type whose size is known, @var{size} may be omitted.
 
 @item #pragma starpu unregister @var{ptr}
+Unregister the previously-registered memory area pointed to by
+@var{ptr}.  As a side-effect, @var{ptr} points to a valid copy in main
+memory.
+
 @item #pragma starpu acquire @var{ptr}
+Acquire in main memory an up-to-date copy of the previously-registered
+memory area pointed to by @var{ptr}, for read-write access.
+
+@item #pragma starpu release @var{ptr}
+Release the previously-register memory area pointed to by @var{ptr},
+making it available to the tasks.
 
 @end table
 
-FIXME: finish
+As a substitute for the @code{register} and @code{unregister} pragmas,
+the @code{heap_allocated} variable attribute offers a higher-level
+mechanism:
 
+@table @code
+
+@item heap_allocated
+@cindex @code{heap_allocated} attribute
+This attributes applies to local variables with an array type.  Its
+effect is to automatically allocate and register the array's storage on
+the heap, using @code{starpu_malloc} under the hood (@pxref{Basic Data
+Library API, starpu_malloc}).  The heap-allocated array is automatically
+freed and unregistered when the variable's scope is left, as with
+automatic variables@footnote{This is achieved by using the
+@code{cleanup} attribute (@pxref{Variable Attributes,,, gcc, Using the
+GNU Compiler Collection (GCC)})}.
+
+@end table
+
+@noindent
+The following example illustrates use of the @code{heap_allocated}
+attribute:
+
+@example
+extern void cholesky(unsigned nblocks, unsigned size,
+                    float mat[nblocks][nblocks][size])
+  __attribute__ ((task));
+
+int
+main (int argc, char *argv[])
+@{
+#pragma starpu initialize
+
+  /* ... */
+
+  int nblocks, size;
+  parse_args (&nblocks, &size);
+
+  /* Allocate an array of the required size on the heap,
+     and register it.  */
+
+  float matrix[nblocks][nblocks][size]
+    __attribute__ ((heap_allocated));
+
+  cholesky (nblocks, size, matrix);
+
+#pragma starpu shutdown
+
+  /* MATRIX is automatically freed upon return.  */
+
+  return EXIT_SUCCESS;
+@}
+@end example
 
 @node Conditional Extensions
 @section Using C Extensions Conditionally
