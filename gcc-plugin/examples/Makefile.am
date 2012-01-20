@@ -13,13 +13,16 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+if STARPU_USE_CPU
+
 noinst_PROGRAMS =				\
   matrix-mult stencil5 vector_scal/vector_scal
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
   cholesky/cholesky
-endif
+endif !NO_BLAS_LIB
+endif STARPU_USE_CPU
 
 AM_LDFLAGS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
