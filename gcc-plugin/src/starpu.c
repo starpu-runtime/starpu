@@ -134,6 +134,34 @@ build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
 
 #endif
 
+#if !HAVE_DECL_BUILD_ZERO_CST
+
+static tree
+build_zero_cst (tree type)
+{
+  switch (TREE_CODE (type))
+    {
+    case INTEGER_TYPE: case ENUMERAL_TYPE: case BOOLEAN_TYPE:
+    case POINTER_TYPE: case REFERENCE_TYPE:
+    case OFFSET_TYPE:
+      return build_int_cst (type, 0);
+
+    default:
+      abort ();
+    }
+}
+
+#endif
+
+#ifndef VEC_qsort
+
+/* This macro is missing in GCC 4.5.  */
+
+# define VEC_qsort(T,V,CMP) qsort(VEC_address (T,V), VEC_length(T,V),	\
+				  sizeof (T), CMP)
+
+#endif
+
 
 /* Helpers.  */
 
@@ -510,8 +538,10 @@ handle_pragma_register (struct cpp_reader *reader)
     }
 
   TREE_USED (ptr) = true;
+#ifdef DECL_READ_P
   if (DECL_P (ptr))
     DECL_READ_P (ptr) = true;
+#endif
 
   if (TREE_CODE (TREE_TYPE (ptr)) == ARRAY_TYPE
       && !DECL_EXTERNAL (ptr)
@@ -570,8 +600,10 @@ handle_pragma_register (struct cpp_reader *reader)
   else
     {
       TREE_USED (count_arg) = true;
+#ifdef DECL_READ_P
       if (DECL_P (count_arg))
 	DECL_READ_P (count_arg) = true;
+#endif
 
       if (count != NULL_TREE)
 	{
