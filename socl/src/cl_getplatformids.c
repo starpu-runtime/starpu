@@ -29,7 +29,7 @@ soclGetPlatformIDs(cl_uint          num_entries,
 	   return CL_INVALID_VALUE;
 
    if (starpu_opencl_worker_get_count() == 0) {
-      DEBUG_ERROR("StarPU didn't find any OpenCL device. Try disabling CUDA support in StarPU (export STARPU_NCUDA=0).\n")
+      DEBUG_MSG("StarPU didn't find any OpenCL device. Try disabling CUDA support in StarPU (export STARPU_NCUDA=0).\n")
 
       if (num_platforms != NULL)
          *num_platforms = 0;
