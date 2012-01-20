@@ -73,7 +73,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    err = clGetPlatformIDs(0, NULL, &num_platforms);
    if (num_platforms == 0) {
       printf("No OpenCL platform found. If you use SOCL, this could mean StarPU wasn't configured for OpenCL. Try disabling CUDA support in StarPU (export STARPU_NCUDA=0).\n");
-      exit(0);
+      exit(77);
    }
    err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
    check(err, "clGetPlatformIDs");
