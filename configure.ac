@@ -1203,7 +1203,11 @@ if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
 fi
 
 # now we enable SOCL if and only if a proper setup is available
-build_socl=$have_valid_opencl
+if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
+   build_socl=$have_valid_opencl
+else
+   build_socl=no
+fi
 
 AC_MSG_RESULT($build_socl)
 AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
