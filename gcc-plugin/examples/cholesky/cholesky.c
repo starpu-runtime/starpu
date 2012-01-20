@@ -19,11 +19,13 @@
 #include "cholesky.h"
 #include "cholesky_kernels.h"
 
+#define __heap  __attribute__ ((heap_allocated))
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
-static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks)
+static void dw_cholesky(unsigned nblocks, unsigned size, unsigned ld, float *matA[nblocks][nblocks])
 {
 	struct timeval start;
 	struct timeval end;
@@ -95,8 +97,6 @@ int main(int argc, char **argv)
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */
 
-	float ***bmat;
-
 	parse_args(argc, argv);
 
 #warning todo
@@ -104,15 +104,15 @@ int main(int argc, char **argv)
 //	starpu_conf_init(&conf);
 //	conf.sched_policy_name = "heft";
 //	conf.calibrate = 1;
-
 #pragma starpu initialize
+
         starpu_helper_cublas_init();
 
+	float *bmat[nblocks][nblocks] __heap;
+
 	unsigned i,j,x,y;
-        bmat = malloc(nblocks * sizeof(float *));
         for(x=0 ; x<nblocks ; x++)
 	{
-                bmat[x] = malloc(nblocks * sizeof(float *));
                 for(y=0 ; y<nblocks ; y++)
 		{
                         starpu_malloc((void **)&bmat[x][y], BLOCKSIZE*BLOCKSIZE*sizeof(float));
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	dw_cholesky(bmat, size, size/nblocks, nblocks);
+	dw_cholesky(nblocks, size, size/nblocks, bmat);
 
         if (display) {
                 printf("Results:\n");
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	float *rmat = malloc(size*size*sizeof(float));
+	float rmat[size * size] __heap;
         for(x=0 ; x<nblocks ; x++) {
                 for(y=0 ; y<nblocks ; y++) {
                         for (i = 0; i < BLOCKSIZE; i++) {
@@ -198,9 +198,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	float *test_mat = malloc(size*size*sizeof(float));
-	assert(test_mat);
-
+	float test_mat[size * size] __heap;
 	SSYRK("L", "N", size, size, 1.0f,
 	      rmat, size, 0.0f, test_mat, size);
 
@@ -251,11 +249,7 @@ int main(int argc, char **argv)
 		{
                         starpu_free((void *)bmat[x][y]);
 		}
-		free(bmat[x]);
 	}
-	free(bmat);
-	free(rmat);
-	free(test_mat);
 
         starpu_helper_cublas_shutdown();
 #pragma starpu shutdown
