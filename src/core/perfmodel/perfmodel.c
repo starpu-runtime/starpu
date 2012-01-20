@@ -336,6 +336,119 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 	return penalty;
 }
 
+/* Return the expected duration of the entire task bundle in µs */
+double _starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
+{
+	double expected_length = 0.0;
+
+	/* We expect the length of the bundle the be the sum of the different tasks length. */
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+
+	struct _starpu_task_bundle_entry *entry;
+	entry = bundle->list;
+
+	while (entry)
+	{
+		double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
+
+		/* In case the task is not calibrated, we consider the task
+		 * ends immediately. */
+		if (task_length > 0.0)
+			expected_length += task_length;
+
+		entry = entry->next;
+	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+
+	return expected_length;
+}
+
+/* Return the expected power consumption of the entire task bundle in J */
+double _starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
+{
+	double expected_power = 0.0;
+
+	/* We expect total consumption of the bundle the be the sum of the different tasks consumption. */
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+
+	struct _starpu_task_bundle_entry *entry;
+	entry = bundle->list;
+
+	while (entry)
+	{
+		double task_power = starpu_task_expected_power(entry->task, arch, nimpl);
+
+		/* In case the task is not calibrated, we consider the task
+		 * ends immediately. */
+		if (task_power > 0.0)
+			expected_power += task_power;
+
+		entry = entry->next;
+	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+
+	return expected_power;
+}
+
+/* Return the time (in µs) expected to transfer all data used within the bundle */
+double _starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node)
+{
+	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+
+	struct _starpu_handle_list *handles = NULL;
+
+	/* We list all the handle that are accessed within the bundle. */
+
+	/* For each task in the bundle */
+	struct _starpu_task_bundle_entry *entry = bundle->list;
+	while (entry)
+	{
+		struct starpu_task *task = entry->task;
+
+		if (task->cl)
+		{
+			unsigned b;
+			for (b = 0; b < task->cl->nbuffers; b++)
+			{
+				starpu_data_handle_t handle = task->handles[b];
+				enum starpu_access_mode mode = task->cl->modes[b];
+
+				if (!(mode & STARPU_R))
+					continue;
+
+				/* Insert the handle in the sorted list in case
+				 * it's not already in that list. */
+				_insertion_handle_sorted(&handles, handle, mode);
+			}
+		}
+
+		entry = entry->next;
+	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+
+	/* Compute the sum of data transfer time, and destroy the list */
+
+	double total_exp = 0.0;
+
+	while (handles)
+	{
+		struct _starpu_handle_list *current = handles;
+		handles = handles->next;
+
+		double exp;
+		exp = starpu_data_expected_transfer_time(current->handle, memory_node, current->mode);
+
+		total_exp += exp;
+
+		free(current);
+	}
+
+	return total_exp;
+}
+
 static int directory_existence_was_tested = 0;
 
 void _starpu_get_perf_model_dir(char *path, size_t maxlen)

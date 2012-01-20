@@ -24,6 +24,7 @@
 #include <starpu_perfmodel.h>
 //#include <core/jobs.h>
 #include <common/htable32.h>
+#include <core/task_bundle.h>
 //#include <core/workers.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -64,6 +65,13 @@ void _starpu_create_sampling_directory_if_needed(void);
 
 void _starpu_load_bus_performance_files(void);
 double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size);
+
+/* Return the expected duration of the entire task bundle in µs. */
+double _starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
+/* Return the time (in µs) expected to transfer all data used within the bundle */
+double _starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
+/* Return the expected power consumption of the entire task bundle in J. */
+double _starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
 
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);

@@ -19,8 +19,6 @@
 #ifndef __STARPU_TASK_BUNDLE_H__
 #define __STARPU_TASK_BUNDLE_H__
 
-#include <starpu_perfmodel.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -52,20 +50,6 @@ typedef struct _starpu_task_bundle *starpu_task_bundle_t;
  * 			Bundle to create and initialize.
  */
 void starpu_task_bundle_create(starpu_task_bundle_t *bundle);
-
-/* starpu_task_bundle_destroy
- * ==========================
- * Purpose
- * =======
- * Destroy and deinitialize a bundle,
- * memory previoulsy allocated is freed.
- *
- * Arguments
- * =========
- * bundle		(input)
- * 			Bundle to destroy.
- */
-void starpu_task_bundle_destroy(starpu_task_bundle_t bundle);
 
 /* starpu_task_bundle_insert
  * =========================
@@ -133,13 +117,6 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
  * 			Bundle to close.
  */
 void starpu_task_bundle_close(starpu_task_bundle_t bundle);
-
-/* Return the expected duration of the entire task bundle in µs. */
-double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the time (in µs) expected to transfer all data used within the bundle */
-double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
-/* Return the expected power consumption of the entire task bundle in J. */
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
 
 #ifdef __cplusplus
 }

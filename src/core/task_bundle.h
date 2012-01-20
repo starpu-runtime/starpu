@@ -100,4 +100,43 @@ struct _starpu_handle_list
 	struct _starpu_handle_list *next;
 };
 
+/* _starpu_task_bundle_destroy
+ * ==========================
+ * Purpose
+ * =======
+ * Destroy and deinitialize a bundle,
+ * memory previoulsy allocated is freed.
+ *
+ * Arguments
+ * =========
+ * bundle		(input)
+ * 			Bundle to destroy.
+ */
+void _starpu_task_bundle_destroy(starpu_task_bundle_t bundle);
+
+/* _insertion_handle_sorted
+ * ========================
+ * Purpose
+ * =======
+ * Insert an handle in a _starpu_handle_list, elements are sorted
+ * in increasing order, considering their physical address.
+ * As the list doesn't accept duplicate elements, a handle with the
+ * same address as an handle contained in the list is not inserted, but
+ * its mode access is merged with the one of the latter.
+ *
+ * Arguments
+ * =========
+ * listp		(input, output)
+ * 			Pointer to the first element of the list.
+ * 			In the case of an empty list or an inserted handle with small address,
+ * 			it should have changed when the call returns.
+ *
+ * handle		(input)
+ * 			Handle to insert in the list.
+ *
+ * mode			(input)
+ * 			Access mode of the handle.
+ */
+void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_handle_t handle, enum starpu_access_mode mode);
+
 #endif // __CORE_TASK_BUNDLE_H__
