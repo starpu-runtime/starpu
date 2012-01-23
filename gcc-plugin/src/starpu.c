@@ -440,10 +440,37 @@ handle_pragma_initialize (struct cpp_reader *reader)
   static tree init_fn;
   LOOKUP_STARPU_FUNCTION (init_fn, "starpu_init");
 
+  location_t loc = cpp_peek_token (reader, 0)->src_loc;
+
   /* Call `starpu_init (NULL)'.  */
   tree init = build_call_expr (init_fn, 1, build_zero_cst (ptr_type_node));
 
-  add_stmt (init);
+  /* Introduce a local variable to hold the error code.  */
+
+  tree error_var = build_decl (loc, VAR_DECL,
+  			       create_tmp_var_name (".initialize_error"),
+  			       integer_type_node);
+  DECL_CONTEXT (error_var) = current_function_decl;
+  DECL_ARTIFICIAL (error_var) = true;
+
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
+			    error_var, init);
+
+  tree cond = build3 (COND_EXPR, void_type_node,
+		      build2 (NE_EXPR, boolean_type_node,
+			      error_var, integer_zero_node),
+		      build_error_statements (loc, error_var,
+					      "failed to initialize StarPU"), 
+		      NULL_TREE);
+
+  tree stmts = NULL_TREE;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+
+  tree bind = build3 (BIND_EXPR, void_type_node, error_var, stmts,
+  		      NULL_TREE);
+
+  add_stmt (bind);
 }
 
 /* Process `#pragma starpu shutdown'.  */
