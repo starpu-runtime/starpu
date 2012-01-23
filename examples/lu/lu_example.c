@@ -300,7 +300,7 @@ int main(int argc, char **argv)
 
 	init_matrix();
 
-	unsigned *ipiv;
+	unsigned *ipiv = NULL;
 	if (check)
 		save_matrix();
 

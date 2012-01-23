@@ -47,7 +47,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
-	STARPU_ATOMIC_ADD(&check_cnt, 1);
+	(void) STARPU_ATOMIC_ADD(&check_cnt, 1);
 }
 
 static struct starpu_codelet dummy_codelet =

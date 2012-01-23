@@ -57,7 +57,7 @@ static struct starpu_codelet cl =
 int main(int argc, char **argv)
 {
         int rank, nodes;
-	float ***bmat;
+	float ***bmat = NULL;
         starpu_data_handle_t *data_handles;
 
 	unsigned i,j,x,y;

@@ -298,7 +298,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 							STARPU_MAXOPENCLDEVS);
 	}
 
-	int workerid;
+	int workerid=0;
 	static struct starpu_codelet cl;
 	cl.nbuffers = 1;
 	cl.modes[0] = STARPU_RW;

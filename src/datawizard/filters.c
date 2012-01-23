@@ -250,6 +250,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 void _starpu_empty_codelet_function(void *buffers[], void *args)
 {
+	(void) buffers; // unused;
+	(void) args; // unused;
 }
 
 void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gathering_node)
@@ -279,8 +281,6 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 				.modes = { STARPU_RW },
 				.nbuffers = 1
 			};
-			struct starpu_multiformat_interface *format_interface;
-			format_interface = starpu_data_get_interface_on_node(child_handle, 0);
 			struct starpu_task *task = starpu_task_create();
 			task->handles[0] = child_handle;
 			task->cl = &cl;

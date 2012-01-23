@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -230,7 +230,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					int *forced_worker, int *forced_impl,
-					struct _starpu_task_bundle *bundle)
+					starpu_task_bundle_t bundle)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
