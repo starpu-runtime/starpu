@@ -47,7 +47,21 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-size") == 0) {
 		        char *argptr;
-			size = strtol(argv[++i], &argptr, 10);
+			long int ret;
+			ret = strtol(argv[++i], &argptr, 10);
+			if (*argptr != '\0') {
+				fprintf(stderr, "Invalid size %s, aborting \n", argv[i]);
+				exit(EXIT_FAILURE);
+			}
+			if (ret == LONG_MIN || ret == LONG_MAX) {
+				perror("strtol");
+				exit(EXIT_FAILURE);
+			}
+			if (ret == 0) {
+				fprintf(stderr, "0 is not a valid size\n");
+				exit(EXIT_FAILURE);
+			}
+			size = ret;
 		}
 
 		if (strcmp(argv[i], "-nblocks") == 0) {
