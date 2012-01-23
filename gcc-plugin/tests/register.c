@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 static void
 foo (void)
 {
-  char x[] = { 1, 2, 3 };
+  int x[] = { 1, 2, 3 };
 
   expected_register_arguments.pointer = x;
-  expected_register_arguments.elements = sizeof x;
-  expected_register_arguments.element_size = 1;
+  expected_register_arguments.elements = sizeof x / sizeof x[0];
+  expected_register_arguments.element_size = sizeof x[0];
 #pragma starpu register x /* (warning "considered unsafe") */
 }
 
