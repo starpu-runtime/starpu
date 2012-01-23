@@ -41,6 +41,11 @@ static pthread_key_t worker_key;
 
 static struct _starpu_machine_config config;
 
+int _starpu_is_initialized(void)
+{
+	return initialized == INITIALIZED;
+}
+
 struct _starpu_machine_config *_starpu_get_machine_config(void)
 {
 	return &config;

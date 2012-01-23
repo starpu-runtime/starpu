@@ -179,9 +179,16 @@ int starpu_free(void *A)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	if (_starpu_can_submit_cuda_task())
-	{
 #ifdef STARPU_USE_CUDA
+	if (!_starpu_is_initialized())
+	{
+		/* This is especially useful when starpu_free is called from
+ 		 * the GCC-plugin. starpu_shutdown will probably have already
+		 * been called, so we will not be able to submit a task. */
+		cudaFreeHost(A);
+	}
+	else if (_starpu_can_submit_cuda_task())
+	{
 		int push_res;
 
                 free_pinned_cl.where = STARPU_CUDA;
@@ -196,7 +203,6 @@ int starpu_free(void *A)
 
 		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
-#endif
 	}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
@@ -218,6 +224,7 @@ int starpu_free(void *A)
 //#endif
 //	}
 	else
+#endif
 	{
 		free(A);
 	}

@@ -197,6 +197,8 @@ struct _starpu_worker *_starpu_get_worker_struct(unsigned id);
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
 
+int _starpu_is_initialized(void);
+
 /* Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */
 struct _starpu_machine_config *_starpu_get_machine_config(void);
