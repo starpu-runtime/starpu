@@ -92,7 +92,7 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 }
 
 int
-starpu_is_multiformat_handle(starpu_data_handle_t handle)
+starpu_data_is_multiformat_handle(starpu_data_handle_t handle)
 {
 	return handle->ops->is_multiformat;
 }
@@ -459,7 +459,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		 * this piece of data back into the CPU format.
 		 * XXX : This is quite hacky, could we submit a task instead ?
 		 */
-		if (starpu_is_multiformat_handle(handle) &&
+		if (starpu_data_is_multiformat_handle(handle) &&
 			starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM)
 		{
 			_STARPU_DEBUG("Conversion needed\n");
