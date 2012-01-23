@@ -230,7 +230,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					int *forced_worker, int *forced_impl,
-					struct starpu_task_bundle *bundle)
+					struct _starpu_task_bundle *bundle)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
