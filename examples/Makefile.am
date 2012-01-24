@@ -50,7 +50,9 @@ EXTRA_DIST = 					\
 	basic_examples/block_opencl_kernel.cl			\
 	openmp/vector_scal.c			\
 	filters/fblock_opencl_kernel.cl		\
-	filters/multiformat/opencl.cl
+	filters/multiformat/opencl.cl           \
+	filters/custom_mf/conversion_opencl.cl  \
+	filters/custom_mf/custom_opencl.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
@@ -407,6 +409,15 @@ if STARPU_USE_CUDA
 filters_custom_mf_custom_mf_filter_SOURCES+=\
 	filters/custom_mf/conversion.cu \
 	filters/custom_mf/cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+filters_custom_mf_custom_mf_filter_SOURCES+=\
+	filters/custom_mf/conversion_opencl.c \
+	filters/custom_mf/custom_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	filters/custom_mf/conversion_opencl.cl \
+	filters/custom_mf/custom_opencl.cl
 endif
 
 filters_multiformat_multiformat_filter_SOURCES=                \

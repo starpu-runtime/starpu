@@ -20,6 +20,7 @@ struct custom_data_interface
 {
 	void *cpu_ptr;
 	void *cuda_ptr;
+	void *opencl_ptr;
 	struct starpu_multiformat_data_interface_ops *ops;
 	uint32_t nx;
 };
@@ -39,5 +40,9 @@ void custom_data_register(starpu_data_handle_t *handle,
 	(((struct custom_data_interface*)(interface))->cuda_ptr)+ \
 	CUSTOM_GET_NX((interface))
 #endif /* !STARPU_USE_CUDA */
+
+#ifdef STARPU_USE_OPENCL
+#define CUSTOM_GET_OPENCL_X_PTR(interface) (((struct custom_data_interface *)(interface))->opencl_ptr)
+#endif
 
 #endif /* ! __CUSTOM_INTERFACE_H__ */

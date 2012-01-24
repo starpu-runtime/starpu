@@ -55,3 +55,41 @@ struct starpu_codelet cuda_to_cpu_cl =
 	.name = "codelet_cuda_to_cpu"
 };
 #endif
+
+
+#ifdef STARPU_USE_OPENCL
+void opencl_to_cpu_cpu_func(void *buffers[], void *arg)
+{
+	unsigned int n = CUSTOM_GET_NX(buffers[0]);
+	float *x = (float *) CUSTOM_GET_OPENCL_X_PTR(buffers[0]);
+	struct point *aop;
+	aop = (struct point *) CUSTOM_GET_CPU_PTR(buffers[0]);
+
+	int i;
+	for (i = 0; i < n; i++)
+	{
+		aop[i].x = x[i];
+		aop[i].y = x[i+n];
+	}
+}
+
+extern void cpu_to_opencl_opencl_func(void *buffers[], void *arg);
+
+struct starpu_codelet cpu_to_opencl_cl =
+{
+	.where = STARPU_OPENCL,
+	.opencl_funcs = { cpu_to_opencl_opencl_func, NULL },
+	.modes = { STARPU_RW },
+	.nbuffers = 1,
+	.name = "codelet_cpu_to_opencl"
+};
+
+struct starpu_codelet opencl_to_cpu_cl =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = { opencl_to_cpu_cpu_func, NULL },
+	.modes = { STARPU_RW },
+	.nbuffers = 1,
+	.name = "codelet_opencl_to_cpu"
+};
+#endif /* !STARPU_USE_OPENCL */

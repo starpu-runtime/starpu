@@ -15,6 +15,9 @@
  */
 #include <starpu.h>
 #include <starpu_hash.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include "custom_interface.h"
 #include "custom_types.h"
 
@@ -36,7 +39,22 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node,
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 				   void *dst_interface, unsigned dst_node,
 				   cudaStream_t stream);
-#endif
+#endif /* !STARPU_USE_CUDA */
+
+#ifdef STARPU_USE_OPENCL
+static int copy_ram_to_opencl(void *src_interface, unsigned src_node,
+			      void *dst_interface, unsigned dst_node);
+static int copy_opencl_to_ram(void *src_interface, unsigned src_node,
+			      void *dst_interface, unsigned dst_node);
+static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
+				 void *dst_interface, unsigned dst_node);
+static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
+				    void *dst_interface, unsigned dst_node,
+				    void *event);
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
+				    void *dst_interface, unsigned dst_node,
+				    void *event);
+#endif /* !STARPU_USE_OPENCL */
 
 static const struct starpu_data_copy_methods custom_copy_data_methods_s =
 {
@@ -51,11 +69,11 @@ static const struct starpu_data_copy_methods custom_copy_data_methods_s =
 	.cuda_to_cuda_async = copy_cuda_to_cuda_async,
 #endif
 #ifdef STARPU_USE_OPENCL
-	.ram_to_opencl       = NULL,
-	.opencl_to_ram       = NULL,
-	.opencl_to_opencl    = NULL,
-        .ram_to_opencl_async = NULL,
-	.opencl_to_ram_async = NULL,
+	.ram_to_opencl       = copy_ram_to_opencl,
+	.opencl_to_ram       = copy_opencl_to_ram,
+	.opencl_to_opencl    = copy_opencl_to_opencl,
+        .ram_to_opencl_async = copy_ram_to_opencl_async,
+	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
 	.cuda_to_spu = NULL,
 	.spu_to_ram  = NULL,
@@ -126,12 +144,18 @@ register_custom_handle(starpu_data_handle_t handle, uint32_t home_node, void *da
 #ifdef STARPU_USE_CUDA
 			local_interface->cuda_ptr   = custom_interface->cuda_ptr;
 #endif
+#ifdef STARPU_USE_OPENCL
+			local_interface->opencl_ptr = custom_interface->opencl_ptr;
+#endif
 		}
 		else
 		{
 			local_interface->cpu_ptr    = NULL;
 #ifdef STARPU_USE_CUDA
 			local_interface->cuda_ptr   = NULL;
+#endif
+#ifdef STARPU_USE_OPENCL
+			local_interface->opencl_ptr = NULL;
 #endif
 		}
 		local_interface->nx = custom_interface->nx;
@@ -160,7 +184,19 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t nod
 			custom_interface->cpu_ptr = NULL;
 			return -ENOMEM;
 		}
-#endif
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+		custom_interface->opencl_ptr = malloc(size);
+		if (custom_interface->cuda_ptr == NULL)
+		{
+			free(custom_interface->cpu_ptr);
+#ifdef STARPU_USE_CUDA
+			free(custom_interface->cuda_ptr);
+#endif /* !STARPU_USE_CUDA */
+			return -ENOMEM;
+		}
+#endif /* !STARPU_USE_OPENCL */
+			
 		break;
 #if STARPU_USE_CUDA
 	case STARPU_CUDA_RAM:
@@ -180,6 +216,31 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t nod
 		break;
 	}
 #endif
+#ifdef STARPU_USE_OPENCL
+	case STARPU_OPENCL_RAM:
+	{
+		/* XXX : StarPU shoulf probably provide starpu_opencl_allocate_memory(). */
+		cl_context context;
+		cl_command_queue queue;
+		int id = starpu_worker_get_id();
+		int devid = starpu_worker_get_devid(id);
+		starpu_opencl_get_queue(devid, &queue);
+		starpu_opencl_get_context(devid, &context);
+
+		cl_int err;
+		cl_mem memory;
+
+		/* */
+		size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
+		memory = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &err);
+        	if (err != CL_SUCCESS)
+			return -ENOMEM; // There might be other errors.
+
+		custom_interface->opencl_ptr = memory;
+
+		break;
+	}
+#endif /* !STARPU_USE_OPENCL */
 	default:
 		assert(0);
 	}
@@ -208,6 +269,13 @@ static void free_custom_buffer_on_node(void *data_interface, uint32_t node)
 			custom_interface->cuda_ptr = NULL;
 		}
 #endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+		if (custom_interface->opencl_ptr != NULL)
+		{
+			free(custom_interface->opencl_ptr);
+			custom_interface->opencl_ptr = NULL;
+		}
+#endif /* !STARPU_USE_OPENCL */
 		break;
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_RAM:
@@ -246,6 +314,10 @@ custom_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 			return data_interface->cuda_ptr;
+#endif
+#ifdef STARPU_USE_OPENCL
+		case STARPU_OPENCL_RAM:
+			return data_interface->opencl_ptr;
 #endif
 		default:
 			assert(0);
@@ -302,6 +374,9 @@ void custom_data_register(starpu_data_handle_t *handle,
 		.cpu_ptr = ptr,
 #ifdef STARPU_USE_CUDA
 		.cuda_ptr = NULL,
+#endif
+#ifdef STARPU_USE_OPENCL
+		.opencl_ptr = NULL,
 #endif
 		.nx  = nx,
 		.ops = format_ops
@@ -412,3 +487,173 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 	assert(0);
 }
 #endif /* !STARPU_USE_CUDA */
+
+#ifdef STARPU_USE_OPENCL
+static int copy_ram_to_opencl(void *src_interface, unsigned src_node,
+			      void *dst_interface, unsigned dst_node)
+{
+	(void) src_interface;
+	(void) src_node;
+	(void) dst_interface;
+	(void) dst_node;
+	return 0;
+}
+
+static int copy_opencl_to_ram(void *src_interface, unsigned src_node,
+			      void *dst_interface, unsigned dst_node)
+{
+	(void) src_interface;
+	(void) src_node;
+	(void) dst_interface;
+	(void) dst_node;
+	return 0;
+}
+
+static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
+				 void *dst_interface, unsigned dst_node)
+{
+	(void) src_interface;
+	(void) src_node;
+	(void) dst_interface;
+	(void) dst_node;
+	return 0;
+}
+
+/* StarPU will give us these in a near future */
+static cl_int
+_opencl_malloc(cl_context context, cl_mem *mem, size_t size, cl_mem_flags flags)
+{
+	cl_int err;
+        cl_mem memory;
+
+	memory = clCreateBuffer(context, flags, size, NULL, &err);
+	if (err != CL_SUCCESS)
+		return err;
+
+        *mem = memory;
+        return CL_SUCCESS;
+}
+
+static cl_int
+_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node,
+				      cl_mem buffer, unsigned dst_node,
+				      size_t size, size_t offset,
+				      cl_event *event, int *ret,
+				      cl_command_queue queue)
+{
+        cl_int err;
+        cl_bool blocking;
+
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+
+        err = clEnqueueWriteBuffer(queue, buffer, blocking, offset, size, ptr, 0, NULL, event);
+
+        if (err == CL_SUCCESS)
+                *ret = (event == NULL) ? 0 : -EAGAIN;
+
+	return err;
+}
+
+static cl_int
+_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node,
+			   void *ptr, unsigned dst_node,
+			   size_t size, size_t offset, cl_event *event,
+			   cl_command_queue queue)
+
+{
+        cl_int err;
+        cl_bool blocking;
+
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueReadBuffer(queue, buffer, blocking, offset, size, ptr, 0, NULL, event);
+
+        return err;
+}
+
+static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
+				    void *dst_interface, unsigned dst_node,
+				    void *event)
+{
+	ssize_t size;
+	struct custom_data_interface *src_custom, *dst_custom;
+
+	src_custom = (struct custom_data_interface *) src_interface;
+	dst_custom = (struct custom_data_interface *) dst_interface;
+
+	/*
+	 * Opencl stuff.
+	 */
+	cl_context context;
+	cl_command_queue queue;
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+	starpu_opencl_get_queue(devid, &queue);
+	starpu_opencl_get_context(devid, &context);
+
+	/* Real stuff */
+	int err;
+	cl_int ret;
+
+	size = src_custom->nx * 2 * sizeof(float);
+	if (dst_custom->cpu_ptr == NULL)
+	{
+		ret = _opencl_malloc(context, (cl_mem*)&dst_custom->cpu_ptr, 
+				size, CL_MEM_READ_WRITE);
+		assert(ret == CL_SUCCESS);
+	}
+	err = _opencl_copy_ram_to_opencl_async_sync(src_custom->cpu_ptr,
+						src_node,
+						dst_custom->cpu_ptr,
+						dst_node,
+						size,
+						0,
+						NULL,
+						&ret,
+						queue);
+	assert(err == 0);
+	return 0;
+}
+
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
+				    void *dst_interface, unsigned dst_node,
+				    void *event)
+{
+	ssize_t size;
+	struct custom_data_interface *src_custom, *dst_custom;
+
+	src_custom = (struct custom_data_interface *) src_interface;
+	dst_custom = (struct custom_data_interface *) dst_interface;
+
+	/*
+	 * Opencl stuff.
+	 */
+	cl_context context;
+	cl_command_queue queue;
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+	starpu_opencl_get_queue(devid, &queue);
+	starpu_opencl_get_context(devid, &context);
+
+	/* real stuff */
+	int err;
+	cl_int ret;
+	size = src_custom->nx * 2 * sizeof(float);
+	if (!dst_custom->opencl_ptr)
+	{
+		dst_custom->opencl_ptr = malloc(size);
+		assert(dst_custom->opencl_ptr != NULL);
+	}
+
+	err = _opencl_copy_opencl_to_ram(
+			src_custom->opencl_ptr,
+			src_node,
+			dst_custom->opencl_ptr,
+			dst_node,
+			size,
+			0,
+			NULL,
+			queue);
+	assert(err == 0);
+	return 0;
+}
+#endif /* !STARPU_USE_OPENCL */
