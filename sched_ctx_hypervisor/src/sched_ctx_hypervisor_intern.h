@@ -1,6 +1,12 @@
 #include <sched_ctx_hypervisor.h>
 #include <../common/htable32.h>
 
+struct resize_ack{
+	int receiver_sched_ctx;
+	int *moved_workers;
+	int nmoved_workers;
+};
+
 struct sched_ctx_wrapper {
 	unsigned sched_ctx;
 	void *config;
@@ -9,7 +15,13 @@ struct sched_ctx_wrapper {
 	int poped_tasks[STARPU_NMAXWORKERS];
 	int temp_npushed_tasks;
 	int temp_npoped_tasks;
-
+	double total_flops;
+	double total_elapsed_flops[STARPU_NMAXWORKERS];
+	double elapsed_flops[STARPU_NMAXWORKERS];
+	double remaining_flops;
+	double start_time;
+	double bef_res_exp_end;
+	struct resize_ack resize_ack;
 };
 
 struct sched_ctx_hypervisor {

@@ -40,7 +40,8 @@ static void change_worker_sched_ctx(unsigned sched_ctx_id)
 		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 		/* add context to worker */
 		worker->sched_ctx[worker_sched_ctx_id] = sched_ctx;
-		worker->nsched_ctxs++;	}
+		worker->nsched_ctxs++;	
+	}
 	else 
 	{
 		/* remove context from worker */
@@ -278,7 +279,9 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 	int nworkers = config->topology.nworkers;
 
 	if(!(sched_ctx->workers->nworkers == nworkers && sched_ctx->workers->nworkers == inheritor_sched_ctx->workers->nworkers) && sched_ctx->workers->nworkers > 0 && inheritor_sched_ctx_id != STARPU_NMAX_SCHED_CTXS)
+	{
 		starpu_add_workers_to_sched_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, inheritor_sched_ctx_id);
+	}
 	
 	if(!starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
 	{
@@ -639,13 +642,13 @@ unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx_id)
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id)
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops)
 {
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 		   && *sched_ctx->criteria != NULL)
-		(*sched_ctx->criteria)->poped_task_cb(sched_ctx_id, worker->workerid);
+		(*sched_ctx->criteria)->poped_task_cb(sched_ctx_id, worker->workerid, flops);
 }
 
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
@@ -653,8 +656,9 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-	if(sched_ctx != NULL && sched_ctx_id != 0  && *sched_ctx->criteria != NULL)
-		(*sched_ctx->criteria)->pushed_task_cb(sched_ctx_id, workerid);
+	if(sched_ctx != NULL && sched_ctx_id != 0)
+		if(*sched_ctx->criteria != NULL)
+			(*sched_ctx->criteria)->pushed_task_cb(sched_ctx_id, workerid);
 
 }
 

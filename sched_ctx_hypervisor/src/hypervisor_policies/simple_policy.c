@@ -167,10 +167,26 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers)
 					}
 				}
 				
-				if(!considered && (curr_workers[index] < 0 || 
-						   config->priority[worker] <
-						   config->priority[curr_workers[index]]))
-					curr_workers[index] = worker;
+				if(!considered)
+				{
+					/* the first iteration*/
+					if(curr_workers[index] < 0)
+						curr_workers[index] = worker;
+					/* small priority worker is the first to leave the ctx*/
+					else if(config->priority[worker] <
+						   config->priority[curr_workers[index]])
+						curr_workers[index] = worker;
+					/* if we don't consider priorities check for the workers
+					 with the biggest idle time */
+					else if(config->priority[worker] ==
+						   config->priority[curr_workers[index]])
+					{
+						double worker_idle_time = sched_ctx_hypervisor_get_idle_time(sched_ctx, worker);
+						double curr_worker_idle_time = sched_ctx_hypervisor_get_idle_time(sched_ctx, curr_workers[index]);
+						if(worker_idle_time > curr_worker_idle_time)
+							curr_workers[index] = worker;
+					}
+				}
 			}
 		}
 
@@ -245,14 +261,14 @@ static unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 			else
 				nworkers_to_move = potential_moving_workers - (config->min_nworkers - nfixed_workers);	
 		}
-//		printf("nworkers = %d nworkers_to_move = %d max_nworkers=%d\n", nworkers, nworkers_to_move, config->max_nworkers);
+
 		if((nworkers - nworkers_to_move) > config->max_nworkers)
 			nworkers_to_move = nworkers - config->max_nworkers;
 	}
 	return nworkers_to_move;
 }
 
-static int _find_fastest_sched_ctx()
+static int _find_highest_debit_sched_ctx()
 {
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
@@ -273,7 +289,7 @@ static int _find_fastest_sched_ctx()
 	return fastest_sched_ctx;
 }
 
-static int _find_slowest_sched_ctx()
+static int _find_slowest_debit_sched_ctx()
 {
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
@@ -300,7 +316,7 @@ static unsigned _simple_resize(unsigned sender_sched_ctx, unsigned receiver_sche
 	if(ret != EBUSY)
 	{					
 		unsigned nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
-//		printf("nworkers = %d\n", nworkers_to_move);
+
 		if(nworkers_to_move > 0)
 		{
 			unsigned poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -311,12 +327,12 @@ static unsigned _simple_resize(unsigned sender_sched_ctx, unsigned receiver_sche
 				poor_sched_ctx = receiver_sched_ctx;
 				struct simple_policy_config *config = (struct simple_policy_config*)sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				unsigned nworkers = starpu_get_nworkers_of_sched_ctx(poor_sched_ctx);
-      
 				if((nworkers+nworkers_to_move) > config->max_nworkers)
 					nworkers_to_move = nworkers > config->max_nworkers ? 0 : (config->max_nworkers - nworkers);
 				if(nworkers_to_move == 0) poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 			}
-			
+
+
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{						
 				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move);
@@ -355,8 +371,8 @@ static void simple_manage_task_flux(unsigned curr_sched_ctx)
 {
 	double curr_debit = sched_ctx_hypervisor_get_debit(curr_sched_ctx);
 	
-	int slow_sched_ctx = _find_slowest_sched_ctx();
-	int fast_sched_ctx = _find_fastest_sched_ctx();
+	int slow_sched_ctx = _find_slowest_debit_sched_ctx();
+	int fast_sched_ctx = _find_highest_debit_sched_ctx();
 
 	if(slow_sched_ctx != fast_sched_ctx && slow_sched_ctx != -1 && fast_sched_ctx != -1)
 	{
@@ -374,6 +390,97 @@ static void simple_manage_task_flux(unsigned curr_sched_ctx)
 			/* only if there is a difference of 30 % */
 			if(curr_debit != 0.0 && (debit_slow + debit_slow *0.2) < curr_debit)
 				_simple_resize(curr_sched_ctx, slow_sched_ctx);
+		}
+	}
+}
+
+int _find_fastest_sched_ctx()
+{
+	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+
+	double first_exp_end = sched_ctx_hypervisor_get_exp_end(sched_ctxs[0]);
+	int fastest_sched_ctx = first_exp_end == -1.0  ? -1 : sched_ctxs[0];
+	double curr_exp_end = 0.0;
+	int i;
+	for(i = 1; i < nsched_ctxs; i++)
+	{
+		curr_exp_end = sched_ctx_hypervisor_get_exp_end(sched_ctxs[i]);
+		if(first_exp_end > curr_exp_end && curr_exp_end != -1.0)
+		{
+			first_exp_end = curr_exp_end;
+			fastest_sched_ctx = sched_ctxs[i];
+		}
+	}
+
+	return fastest_sched_ctx;
+
+}
+
+int _find_slowest_sched_ctx()
+{
+	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+
+	int slowest_sched_ctx = -1;
+	double curr_exp_end = 0.0;
+	double last_exp_end = -1.0;
+	int i;
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+		curr_exp_end = sched_ctx_hypervisor_get_exp_end(sched_ctxs[i]);
+		/*if it hasn't started bc of no ressources give it priority */
+		if(curr_exp_end == -1.0)
+			return sched_ctxs[i];
+		if(last_exp_end < curr_exp_end)
+		{
+			slowest_sched_ctx = sched_ctxs[i];
+			last_exp_end = curr_exp_end;
+		}
+	}
+
+	return slowest_sched_ctx;
+
+}
+
+static void simple_manage_gflops_rate(unsigned sched_ctx)
+{
+	double exp_end = sched_ctx_hypervisor_get_exp_end(sched_ctx);
+	double flops_left_pct = sched_ctx_hypervisor_get_flops_left_pct(sched_ctx);
+
+	if(flops_left_pct == 0.0f)
+	{
+		int slowest_sched_ctx = _find_slowest_sched_ctx(sched_ctx);
+		if(slowest_sched_ctx != -1 && slowest_sched_ctx != sched_ctx)
+		{
+			double slowest_flops_left_pct = sched_ctx_hypervisor_get_flops_left_pct(slowest_sched_ctx);
+			printf("ctx %d finished & gives away the res to %d; slow_left %lf\n", sched_ctx, slowest_sched_ctx, slowest_flops_left_pct);
+			if(slowest_flops_left_pct != 0.0f)
+			{
+				struct simple_policy_config* config = (struct simple_policy_config*)sched_ctx_hypervisor_get_config(sched_ctx);
+				config->min_nworkers = 0;
+				config->max_nworkers = 0;
+				_simple_resize(sched_ctx, slowest_sched_ctx);
+			}
+		}
+	}
+
+	int fastest_sched_ctx = _find_fastest_sched_ctx();
+	int slowest_sched_ctx = _find_slowest_sched_ctx();
+	if(fastest_sched_ctx != -1 && slowest_sched_ctx != -1 && fastest_sched_ctx != slowest_sched_ctx)
+	{
+		double fastest_exp_end = sched_ctx_hypervisor_get_exp_end(fastest_sched_ctx);
+		double slowest_exp_end = sched_ctx_hypervisor_get_exp_end(slowest_sched_ctx);
+		double fastest_bef_res_exp_end = sched_ctx_hypervisor_get_bef_res_exp_end(fastest_sched_ctx);
+		double slowest_bef_res_exp_end = sched_ctx_hypervisor_get_bef_res_exp_end(slowest_sched_ctx);
+//					       (fastest_bef_res_exp_end < slowest_bef_res_exp_end || 
+//						fastest_bef_res_exp_end == 0.0 || slowest_bef_res_exp_end == 0)))
+
+		if((slowest_exp_end == -1.0 && fastest_exp_end != -1.0) || (fastest_exp_end < slowest_exp_end ))
+		{
+			double fast_flops_left_pct = sched_ctx_hypervisor_get_flops_left_pct(fastest_sched_ctx);
+			if(fast_flops_left_pct < 0.8)
+				_simple_resize(fastest_sched_ctx, slowest_sched_ctx);
 		}
 	}
 }
@@ -442,7 +549,6 @@ static void* simple_ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 
 		case HYPERVISOR_MAX_WORKERS:
 			config->max_nworkers = va_arg(varg_list, unsigned);
-			if(config->max_nworkers == 0)
 			break;
 
 		case HYPERVISOR_GRANULARITY:
@@ -513,6 +619,7 @@ struct hypervisor_policy simple_policy = {
 	.ioctl = simple_ioctl,
 	.manage_idle_time = simple_manage_idle_time,
 	.manage_task_flux = simple_manage_task_flux,
+	.manage_gflops_rate = simple_manage_gflops_rate,
 	.resize = simple_resize,
 	.update_config = simple_update_config
 };

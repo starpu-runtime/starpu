@@ -676,7 +676,7 @@ struct starpu_worker_s *_starpu_get_worker_struct(unsigned id)
 
 struct starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-	STARPU_ASSERT(id <= STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(id >= 0 && id <= STARPU_NMAX_SCHED_CTXS);
 	return &config.sched_ctxs[id];
 }
 

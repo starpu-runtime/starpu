@@ -145,7 +145,7 @@ static void heft_post_exec_hook(struct starpu_task *task)
 		starpu_worker_set_sched_condition(sched_ctx_id, workerid, sched_mutex, sched_cond);
 	}
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	starpu_call_poped_task_cb(workerid, sched_ctx_id);
+	starpu_call_poped_task_cb(workerid, sched_ctx_id, task->flops);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	/* Once we have executed the task, we can update the predicted amount

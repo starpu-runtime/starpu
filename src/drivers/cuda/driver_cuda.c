@@ -300,6 +300,7 @@ void *_starpu_cuda_worker(void *arg)
 
 
 		STARPU_ASSERT(task);
+
 		j = _starpu_get_job_associated_to_task(task);
 
 		/* can CUDA do that task ? */

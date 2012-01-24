@@ -250,7 +250,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	p1.ctx = starpu_create_sched_ctx_with_criteria("heft", p1.workers, nworkers1, "sched_ctx1", criteria);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
-	sched_ctx_hypervisor_handle_ctx(p1.ctx);
+	sched_ctx_hypervisor_handle_ctx(p1.ctx, 0.0);
 	
 	/* sched_ctx_hypervisor_ioctl(p1.ctx, */
 	/* 			   HYPERVISOR_MAX_IDLE, p1.workers, p1.nworkers, 5000.0, */
@@ -285,7 +285,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	p2.ctx = starpu_create_sched_ctx_with_criteria("heft", p2.workers, 0, "sched_ctx2", criteria);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;
-	sched_ctx_hypervisor_handle_ctx(p2.ctx);
+	sched_ctx_hypervisor_handle_ctx(p2.ctx, 0.0);
 	
 	/* sched_ctx_hypervisor_ioctl(p2.ctx, */
 	/* 			   HYPERVISOR_MAX_IDLE, p2.workers, p2.nworkers, 2000.0, */

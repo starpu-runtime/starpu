@@ -312,29 +312,29 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	unsigned no_workers = 0;
 	unsigned nworkers = 0; 
 
-	/*if there are workers in the ctx that are not able to execute tasks 
-	  we consider the ctx empty */
 	if(!sched_ctx->is_initial_sched)
-	  nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
-	else
-	  nworkers = sched_ctx->workers->nworkers;
-
-	if(nworkers == 0)
 	{
-		if(workerid == -1)
+		/*if there are workers in the ctx that are not able to execute tasks 
+		  we consider the ctx empty */
+		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+		
+		if(nworkers == 0)
 		{
-			PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
-			PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
-			PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
-			nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
-			if(nworkers == 0) return _starpu_push_task(j, job_is_already_locked);
-		}
-		else
-		{
-			PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
-			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-			return 0;
+			if(workerid == -1)
+			{
+				PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
+				PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
+				PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
+				nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+				if(nworkers == 0) return _starpu_push_task(j, job_is_already_locked);
+			}
+			else
+			{
+				PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
+				PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				return 0;
+			}
 		}
 	}
 
@@ -366,7 +366,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 		if(ret == -1)
 		{
 			printf("repush task \n");
-			_starpu_push_task(j, job_is_already_locked);
+			ret = _starpu_push_task(j, job_is_already_locked);
 		}
 	}
 

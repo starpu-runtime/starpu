@@ -24,7 +24,7 @@ struct starpu_sched_ctx_hypervisor_criteria* sched_ctx_hypervisor_init(int type)
 
 void sched_ctx_hypervisor_shutdown(void);
 
-void sched_ctx_hypervisor_handle_ctx(unsigned sched_ctx);
+void sched_ctx_hypervisor_handle_ctx(unsigned sched_ctx, double total_flops);
 
 void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx);
 
@@ -50,6 +50,14 @@ int sched_ctx_hypervisor_get_nsched_ctxs();
 
 double sched_ctx_hypervisor_get_debit(unsigned sched_ctx);
 
+double sched_ctx_hypervisor_get_exp_end(unsigned sched_ctx);
+
+double sched_ctx_hypervisor_get_flops_left_pct(unsigned sched_ctx);
+
+double sched_ctx_hypervisor_get_idle_time(unsigned sched_ctx, int worker);
+
+double sched_ctx_hypervisor_get_bef_res_exp_end(unsigned sched_ctx);
+
 /* hypervisor policies */
 #define SIMPLE_POLICY 1
 
@@ -61,6 +69,7 @@ struct hypervisor_policy {
 	void* (*ioctl)(unsigned sched_ctx, va_list varg_list, unsigned later);
 	void (*manage_idle_time)(unsigned req_sched_ctx, int worker, double idle_time);
 	void (*manage_task_flux)(unsigned sched_ctx);
+	void (*manage_gflops_rate)(unsigned sched_ctx);
 	unsigned (*resize)(unsigned sched_ctx, int *sched_ctxs, unsigned nsched_ctxs);
 	void (*update_config)(void* old_config, void* new_config);
 };
