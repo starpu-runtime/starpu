@@ -116,6 +116,7 @@ noinst_PROGRAMS =				\
 	core/insert_task			\
 	core/multithreaded			\
 	core/multithreaded_init			\
+	core/starpu_task_bundle			\
 	core/starpu_task_wait_for_all		\
 	core/starpu_task_wait			\
 	core/static_restartable			\
