@@ -64,6 +64,15 @@ extern "C"
 			STARPU_ASSERT(0); }}
 #endif /* STARPU_HAVE_STRERROR_R */
 
+/* Return true (non-zero) if GCC version MAJ.MIN or later is being used
+ * (macro taken from glibc.)  */
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define STARPU_GNUC_PREREQ(maj, min) \
+	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+# define STARPU_GNUC_PREREQ(maj, min) 0
+#endif
+
 #ifdef __GNUC__
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
@@ -76,7 +85,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_INTERNAL
 #endif
 
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API)
+#if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API)
 #define STARPU_DEPRECATED  __attribute__((__deprecated__))
 #else
 #define STARPU_DEPRECATED
