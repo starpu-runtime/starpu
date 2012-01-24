@@ -267,7 +267,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!starpu_data_is_multiformat_handle(handle))
 			continue;
 
-		if (arch >= STARPU_CPU_DEFAULT && arch < STARPU_CUDA_DEFAULT)
+		if (arch < STARPU_CUDA_DEFAULT)
 			node = cpu_node;
 #ifdef STARPU_USE_CUDA
 		else if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)

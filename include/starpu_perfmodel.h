@@ -55,6 +55,19 @@ enum starpu_perf_archtype
 	STARPU_GORDON_DEFAULT = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS
 };
 
+#if __STDC_VERSION__ > 199901L || defined __GNUC__
+
+/* Make sure the following assertions hold, since StarPU relies on it.  */
+
+_Static_assert(STARPU_CPU_DEFAULT == 0,
+	       "invalid STARPU_CPU_DEFAULT value");
+_Static_assert(STARPU_CUDA_DEFAULT > STARPU_CPU_DEFAULT,
+	       "invalid STARPU_CPU_DEFAULT value");
+_Static_assert(STARPU_CUDA_DEFAULT < STARPU_OPENCL_DEFAULT,
+	       "invalid STARPU_{CUDA,OPENCL}_DEFAULT values");
+
+#endif
+
 #define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
 
 struct starpu_history_entry
