@@ -105,14 +105,6 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 
 void _starpu_job_destroy(struct _starpu_job *j)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-
-	/* Wait for the job to be terminated.  */
-	while (j->terminated == 0)
-		_STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
 	_STARPU_PTHREAD_COND_DESTROY(&j->sync_cond);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
 
