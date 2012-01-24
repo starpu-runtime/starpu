@@ -55,7 +55,7 @@ enum starpu_perf_archtype
 	STARPU_GORDON_DEFAULT = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS
 };
 
-#if __STDC_VERSION__ > 199901L || defined __GNUC__
+#if __STDC_VERSION__ > 199901L || STARPU_GNUC_PREREQ(4, 6)
 
 /* Make sure the following assertions hold, since StarPU relies on it.  */
 
