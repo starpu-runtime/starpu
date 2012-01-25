@@ -96,8 +96,8 @@ int main(int argc, char **argv)
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV) goto enodev;
 
-	FPRINTF(stderr, "[BEFORE] 1-th element    : %f\n", vector[1]);
-	FPRINTF(stderr, "[BEFORE] (NX-1)th element: %f\n", vector[NX-1]);
+	FPRINTF(stderr, "[BEFORE] 1-th element    : %3.2f\n", vector[1]);
+	FPRINTF(stderr, "[BEFORE] (NX-1)th element: %3.2f\n", vector[NX-1]);
 
 #ifdef STARPU_USE_OPENCL
 	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
