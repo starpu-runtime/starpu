@@ -764,11 +764,12 @@ todo
 @subsubsection BCSR Data Interfaces
 
 @deftypefun uint32_t starpu_bcsr_get_nnz (starpu_data_handle_t @var{handle})
-todo
+Return the number of non-zero elements in the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_bcsr_get_nrow (starpu_data_handle_t @var{handle})
-todo
+Return the number of rows (in terms of blocks of size r*c) in the matrix
+designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_bcsr_get_firstentry (starpu_data_handle_t @var{handle})
@@ -776,27 +777,28 @@ todo
 @end deftypefun
 
 @deftypefun uintptr_t starpu_bcsr_get_local_nzval (starpu_data_handle_t @var{handle})
-todo
+Return a pointer to the non-zero values of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun {uint32_t *} starpu_bcsr_get_local_colind (starpu_data_handle_t @var{handle})
-todo
+Return a pointer to the column index, which holds the positions of the non-zero
+entries in the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun {uint32_t *} starpu_bcsr_get_local_rowptr (starpu_data_handle_t @var{handle})
-todo
+Return the row pointer array of the matrix designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_bcsr_get_r (starpu_data_handle_t @var{handle})
-todo
+Return the number of rows in a block.
 @end deftypefun
 
 @deftypefun uint32_t starpu_bcsr_get_c (starpu_data_handle_t @var{handle})
-todo
+Return the numberof columns in a block.
 @end deftypefun
 
 @deftypefun size_t starpu_bcsr_get_elemsize (starpu_data_handle_t @var{handle})
-todo
+Return the size of the elements in the matrix designated by @var{handle}.
 @end deftypefun
 
 
