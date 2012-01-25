@@ -47,7 +47,6 @@ void custom_scal_opencl_func(void *buffers[], void *args)
 
 
 	void *x = CUSTOM_GET_OPENCL_X_PTR(buffers[0]);
-	int douze;
 	if (starpu_opencl_set_kernel_args(&err, &kernel,
 					  sizeof(aop), &aop,
 					  sizeof(x), &x,
