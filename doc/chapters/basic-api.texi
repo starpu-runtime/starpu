@@ -1062,7 +1062,9 @@ unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
 @item @code{can_execute} (optional)
-todo
+Function prototype : 
+@code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)}.
+Returns 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
 
 @item @code{type}
 @code{enum starpu_codelet_type}
