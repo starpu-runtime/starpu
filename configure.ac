@@ -1066,8 +1066,8 @@ if test x$QMAKE != xnot-found; then
 				[AS_HELP_STRING([--with-qwt-include-dir=<path>],
 				[specify installed libqwt include path])],
 				[
-					STARPU_QWT_CPPFLAGS="-I$withval"
-					AC_SUBST(STARPU_QWT_CPPFLAGS)
+					STARPU_QWT_INCLUDE="$withval"
+					AC_SUBST(STARPU_QWT_INCLUDE)
 					QWT_PRI=system
 				])
 			AC_ARG_WITH(qwt-lib-dir,
@@ -1084,6 +1084,7 @@ if test x$QMAKE != xnot-found; then
 					STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
 					QWT_PRI=system
 				])
+			AC_SUBST(STARPU_QWT_LDFLAGS)
 			AC_SUBST(QWT_PRI)
 		])
 	fi
@@ -1521,6 +1522,7 @@ AC_OUTPUT([
 	doc/Makefile
 	mpi/Makefile
 	starpu-top/StarPU-Top.pro
+	starpu-top/StarPU-Top-qwt-system.pri
         gcc-plugin/Makefile
 	gcc-plugin/src/Makefile
 	gcc-plugin/tests/Makefile
