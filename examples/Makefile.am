@@ -50,7 +50,6 @@ EXTRA_DIST = 					\
 	basic_examples/block_opencl_kernel.cl			\
 	openmp/vector_scal.c			\
 	filters/fblock_opencl_kernel.cl		\
-	filters/multiformat/opencl.cl           \
 	filters/custom_mf/conversion_opencl.cl  \
 	filters/custom_mf/custom_opencl.cl
 
@@ -127,7 +126,6 @@ noinst_HEADERS = 				\
 	spmv/spmv.h				\
 	spmv/dw_block_spmv.h                    \
 	basic_examples/multiformat_types.h      \
-	filters/multiformat/multiformat_types.h \
 	filters/custom_mf/custom_interface.h    \
 	filters/custom_mf/custom_types.h
 
@@ -164,7 +162,6 @@ examplebin_PROGRAMS +=				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
-	filters/multiformat/multiformat_filter  \
 	tag_example/tag_example			\
 	tag_example/tag_example3		\
 	tag_example/tag_example2		\
@@ -418,23 +415,6 @@ filters_custom_mf_custom_mf_filter_SOURCES+=\
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/custom_mf/conversion_opencl.cl \
 	filters/custom_mf/custom_opencl.cl
-endif
-
-filters_multiformat_multiformat_filter_SOURCES=                \
-	filters/multiformat/multiformat_filter.c               \
-	filters/multiformat/multiformat_ops.c                  \
-	filters/multiformat/conversion_codelets.c
-
-if STARPU_USE_CUDA
-filters_multiformat_multiformat_filter_SOURCES+=               \
-	filters/multiformat/cuda.cu
-endif
-
-if STARPU_USE_OPENCL
-filters_multiformat_multiformat_filter_SOURCES+=\
-	filters/multiformat/opencl.c
-nobase_STARPU_OPENCL_DATA_DATA += \
-	filters/multiformat/opencl.cl
 endif
 
 ################
