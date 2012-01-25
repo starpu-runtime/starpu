@@ -1816,7 +1816,9 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @subsection Writing OpenCL kernels
 
 @deftypefun void starpu_opencl_display_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, {const char *}@var{msg}, cl_int @var{status})
-todo
+Given a valid error @var{status}, prints the corresponding error message on
+stdout, along with the given function name @var{func}, the given filename
+@var{file}, the given line number @var{line} and the given message @var{msg}.
 @end deftypefun
 
 @deftypefun size_t starpu_opencl_get_global_mem_size (int @var{devid})
