@@ -936,7 +936,7 @@ This function returns the number of children.
 @end deftypefun
 
 @deftypefun starpu_data_handle_t starpu_data_get_child (starpu_data_handle_t @var{handle}, unsigned @var{i})
-todo
+Return the @var{i}th child of the given @var{handle}, which must have been partitionned beforehand.
 @end deftypefun
 
 @deftypefun starpu_data_handle_t starpu_data_get_sub_data (starpu_data_handle_t @var{root_data}, unsigned @var{depth}, ... )
