@@ -4,7 +4,7 @@
 @c Copyright (C) 2012  Centre National de la Recherche Scientifique
 @c See the file starpu.texi for copying conditions.
 
-SOCL is a extension that aims at implementing the OpenCL standard on
+SOCL is an extension that aims at implementing the OpenCL standard on
 top of StarPU. It allows to gives a (relatively) clean and
 standardized API to StarPU.
 By allowing OpenCL applications to use StarPU transparently, it
