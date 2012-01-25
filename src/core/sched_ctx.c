@@ -89,6 +89,7 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 			worker[i]->tasks[sched_ctx_id]->execute_on_a_specific_worker = 1;
 			worker[i]->tasks[sched_ctx_id]->workerid = workerids[i];
 			worker[i]->tasks[sched_ctx_id]->destroy = 1;
+			worker[i]->tasks[sched_ctx_id]->priority = 1;
 
 			_starpu_exclude_task_from_dag(worker[i]->tasks[sched_ctx_id]);
 			

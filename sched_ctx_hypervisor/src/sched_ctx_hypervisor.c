@@ -209,6 +209,20 @@ static void reset_ntasks( int *tasks)
 	return;
 }
 
+static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
+{
+	int i, worker;
+	*ncpus = 0;
+
+	for(i = 0; i < nworkers; i++)
+	{
+		worker = workers[i];
+		enum starpu_archtype arch = starpu_worker_get_type(worker);
+		if(arch == STARPU_CPU_WORKER)
+			cpus[(*ncpus)++] = worker;
+	}
+}
+
 void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move)
 {
 	if(hypervisor.resize[sender_sched_ctx])
@@ -220,8 +234,14 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 		printf("\n");
 
 		hypervisor.sched_ctx_w[sender_sched_ctx].bef_res_exp_end = sched_ctx_hypervisor_get_exp_end(sender_sched_ctx);
+		int *cpus = (int*) malloc(nworkers_to_move * sizeof(int));
+		int ncpus;
 
-		starpu_remove_workers_from_sched_ctx(workers_to_move, nworkers_to_move, sender_sched_ctx);
+		_get_cpus(workers_to_move, nworkers_to_move, cpus, &ncpus);
+
+		if(ncpus != 0)
+			starpu_remove_workers_from_sched_ctx(cpus, ncpus, sender_sched_ctx);
+
 		starpu_add_workers_to_sched_ctx(workers_to_move, nworkers_to_move, receiver_sched_ctx);
 
 		hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.receiver_sched_ctx = receiver_sched_ctx;
