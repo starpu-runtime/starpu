@@ -1323,7 +1323,8 @@ This is private to StarPU, do not modify. If the task is allocated by hand
 (without starpu_task_create), this field should be set to NULL.
 
 @item @code{magic}
-todo
+This field is set when initializing a task. It prevents a task from being
+submitted if it has not been properly initialized.
 @end table
 @end deftp
 
