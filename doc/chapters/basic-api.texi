@@ -697,15 +697,15 @@ Return the size of the elements registered into the matrix designated by
 @subsubsection Block Data Interfaces
 
 @deftypefun uint32_t starpu_block_get_nx (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements on the x-axis of the block designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_block_get_ny (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements on the y-axis of the block designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_block_get_nz (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements on the z-axis of the block designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_block_get_local_ldy (starpu_data_handle_t @var{handle})
@@ -717,35 +717,37 @@ todo
 @end deftypefun
 
 @deftypefun uintptr_t starpu_block_get_local_ptr (starpu_data_handle_t @var{handle})
-todo
+Return the local pointer associated with @var{handle}.
 @end deftypefun
 
 @deftypefun size_t starpu_block_get_elemsize (starpu_data_handle_t @var{handle})
-todo
+Return the size of the elements of the block designated by @var{handle}.
 @end deftypefun
 
 @defmac STARPU_BLOCK_GET_PTR ({void *}@var{interface})
-todo
+Return a pointer to the block designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_DEV_HANDLE ({void *}@var{interface})
-todo
+Return a device handle for the block designated by @var{interface}, to be used
+on OpenCL. The offset document below has to be used in addition to this.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_OFFSET ({void *}@var{interface})
-todo
+Return the offset in the block designated by @var{interface}, to be used with
+the device handle.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_NX ({void *}@var{interface})
-todo
+Return the number of elements on the x-axis of the block designated by @var{handle}.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_NY ({void *}@var{interface})
-todo
+Return the number of elements on the y-axis of the block designated by @var{handle}.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_NZ ({void *}@var{interface})
-todo
+Return the number of elements on the z-axis of the block designated by @var{handle}.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_LDY ({void *}@var{interface})
@@ -757,7 +759,7 @@ todo
 @end defmac
 
 @defmac STARPU_BLOCK_GET_ELEMSIZE ({void *}@var{interface})
-todo
+Return the size of the elements of the matrix designated by @var{interface}.
 @end defmac
 
 @node Accessing BCSR Data Interfaces
