@@ -1720,7 +1720,9 @@ TODO
 @end deftp
 
 @deftypefun int starpu_bus_get_profiling_info (int @var{busid}, {struct starpu_bus_profiling_info *}@var{bus_info})
-todo
+Get the profiling info associated to the worker designated by @var{workerid},
+and reset the profiling measurements. If worker_info is NULL, only reset the
+counters.
 @end deftypefun
 
 @deftypefun int starpu_bus_get_count (void)
