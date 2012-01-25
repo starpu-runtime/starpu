@@ -30,7 +30,10 @@ that @code{pkg-config} can find it. For example if StarPU was installed in
 @end example
 
 The flags required to compile or link against StarPU are then
-accessible with the following commands:
+accessible with the following commands@footnote{It is still possible to use the API
+provided in the version 0.9 of StarPU by calling @code{pkg-config}
+with the @code{libstarpu} package. Similar packages are provided for
+@code{libstarpumpi} and @code{libstarpufft}.}:
 
 @example
 % pkg-config --cflags libstarpu-1.0  # options for the compiler
@@ -38,10 +41,7 @@ accessible with the following commands:
 @end example
 
 Also pass the @code{--static} option if the application is to be
-linked statically@footnote{It is still possible to use the API
-provided in the version 0.9 of StarPU by calling @code{pkg-config}
-with the @code{libstarpu} package. Similar packages are provided for
-@code{libstarpumpi} and @code{libstarpufft}.}.
+linked statically.
 
 @node Running a basic StarPU application
 @section Running a basic StarPU application
