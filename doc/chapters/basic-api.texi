@@ -1278,13 +1278,15 @@ flag is not set.
 @item @code{destroy} (optional) (default: @code{1})
 If this flag is set, the task structure will automatically be freed, either
 after the execution of the callback if the task is detached, or during
+
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
 allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
 will result in undefined behaviour.
 
 @item @code{regenerate} (optional)
-todo
+If this flag is set, the task will be re-submitted to StarPU once it has been
+executed. This flag must not be set if the destroy flag is set too.
 
 @item @code{status} (optional)
 @code{enum starpu_task_status} todo
@@ -1309,7 +1311,8 @@ todo
 todo
 
 @item @code{starpu_private}
-todo
+This is private to StarPU, do not modify. If the task is allocated by hand
+(without starpu_task_create), this field should be set to NULL.
 
 @item @code{magic}
 todo
