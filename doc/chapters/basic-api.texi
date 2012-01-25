@@ -1742,11 +1742,11 @@ TODO
 @end deftypefun
 
 @deftypefun double starpu_timing_timespec_delay_us ({struct timespec} *@var{start}, {struct timespec} *@var{end})
-TODO
+Returns the time elapsed between @var{start} and @var{end} in microseconds.
 @end deftypefun
 
 @deftypefun double starpu_timing_timespec_to_us ({struct timespec} *@var{ts})
-TODO
+Converts the given timespec @var{ts} into microseconds.
 @end deftypefun
 
 @deftypefun void starpu_bus_profiling_helper_display_summary (void)
