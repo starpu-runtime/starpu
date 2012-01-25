@@ -1820,7 +1820,7 @@ todo
 @end deftypefun
 
 @deftypefun size_t starpu_opencl_get_global_mem_size (int @var{devid})
-todo
+Return the size of global device memory in bytes.
 @end deftypefun
 
 @deftypefun void starpu_opencl_get_context (int @var{devid}, {cl_context *}@var{context})
