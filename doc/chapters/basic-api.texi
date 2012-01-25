@@ -1552,7 +1552,14 @@ OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DE
 @end deftp
 
 @deftp {Data Type} {enum starpu_perfmodel_type}
-todo (see below)
+The possible values are :
+@table @asis
+@item @code{STARPU_PER_ARCH} for application-provided per-arch cost model functions.
+@item @code{STARPU_COMMON} for application-provided common cost model function, with per-arch factor.
+@item @code{STARPU_HISTORY_BASED} for automatic history-based cost model.
+@item @code{STARPU_REGRESSION_BASED} for automatic linear regression-based cost model (alpha * size ^ beta).
+@item @code{STARPU_NL_REGRESSION_BASED} for automatic non-linear regression-based cost mode (a * size ^ b + c).
+@end table
 @end deftp
 
 @deftp {Data Type} {struct starpu_perfmodel}
