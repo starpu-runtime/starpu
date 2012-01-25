@@ -1274,7 +1274,7 @@ returned by @code{starpu_worker_get_id}). This field is ignored if
 @code{execute_on_a_specific_worker} field is set to 0.
 
 @item @code{bundle} (optional)
-todo
+The bundle that includes this task. If no bundle is used, this should be NULL.
 
 @item @code{detach} (optional) (default: @code{1})
 If this flag is set, it is not possible to synchronize with the task
