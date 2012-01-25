@@ -1169,6 +1169,15 @@ instance).
 @item @code{name} (optional)
 Codelets are allowed to have a name, which can be useful for debugging purposes.
 
+@item @code{type} (optional)
+The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
+values (@code{STARPU_SPMD} or @code{STARPU_FORKJOIN} declare that a parallel
+implementation is also available. See @ref{Parallel Tasks} for details.
+
+@item @code{max_parallelism} (optional)
+If a parallel implementation is available, this denotes the maximum combined
+worker size that StarPU will use to execute parallel tasks for this codelet.
+
 @end table
 @end deftp
 
