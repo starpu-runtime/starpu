@@ -96,8 +96,8 @@ int main(int argc, char **argv)
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV) goto enodev;
 
-	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
-	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
+	FPRINTF(stderr, "[BEFORE] 1-th element    : %f\n", vector[1]);
+	FPRINTF(stderr, "[BEFORE] (NX-1)th element: %f\n", vector[NX-1]);
 
 #ifdef STARPU_USE_OPENCL
 	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
@@ -156,10 +156,9 @@ int main(int argc, char **argv)
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
-	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
-
-	return 0;
+	FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
+	FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
+	return (vector[1] == (1+1.0f) * factor && vector[NX-1] == (NX-1+1.0f) * factor);
 
 enodev:
 	return 77;
