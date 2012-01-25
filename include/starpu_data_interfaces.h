@@ -367,7 +367,6 @@ struct starpu_multiformat_data_interface_ops
 	struct starpu_codelet *cpu_to_cuda_cl;
 	struct starpu_codelet *cuda_to_cpu_cl;
 #endif
-	struct starpu_data_copy_methods *copy;
 };
 
 struct starpu_multiformat_interface

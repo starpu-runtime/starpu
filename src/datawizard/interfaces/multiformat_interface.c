@@ -195,8 +195,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 		.ops        = format_ops
 	};
 
-	if (format_ops->copy)
-		interface_multiformat_ops.copy_methods = format_ops->copy;
 	starpu_data_register(handleptr, home_node, &multiformat, &interface_multiformat_ops);
 }
 
