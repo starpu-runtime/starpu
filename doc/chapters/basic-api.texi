@@ -1044,6 +1044,10 @@ This partitions a 3D matrix along the X axis.
 
 This section describes the interface to manipulate codelets and tasks.
 
+@deftp {Data Type} {enum starpu_codelet_type}
+todo
+@end deftp
+
 @deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
@@ -1056,6 +1060,16 @@ implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
 indicates that it is only available on Cell SPUs. If the field is
 unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
+
+@item @code{can_execute} (optional)
+todo
+
+@item @code{type}
+@code{enum starpu_codelet_type}
+todo
+
+@item @code{max_parallelism} (optional)
+todo
 
 @item @code{cpu_func} (optional)
 This field has been made deprecated. One should use instead the
@@ -1140,7 +1154,18 @@ involved in the parallel execution.
 
 TODO
 
+@item @code{per_worker_stats} (optional)
+todo
+
+@item @code{name} (optional)
+todo
+
+
 @end table
+@end deftp
+
+@deftp {Data Type} {enum starpu_task_status}
+todo
 @end deftp
 
 @deftp {Data Type} {struct starpu_task}
@@ -1173,6 +1198,9 @@ of entries in this array must be specified in the @code{nbuffers} field of the
 @code{STARPU_NMAXBUFS}.
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
+
+@item @code{interfaces}
+todo
 
 @item @code{cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
@@ -1237,6 +1265,9 @@ which is the identifier of the worker that should process this task (as
 returned by @code{starpu_worker_get_id}). This field is ignored if
 @code{execute_on_a_specific_worker} field is set to 0.
 
+@item @code{bundle} (optional)
+todo
+
 @item @code{detach} (optional) (default: @code{1})
 If this flag is set, it is not possible to synchronize with the task
 by the means of @code{starpu_task_wait} later on. Internal data structures
@@ -1251,10 +1282,36 @@ allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
 will result in undefined behaviour.
 
+@item @code{regenerate} (optional)
+todo
+
+@item @code{status} (optional)
+@code{enum starpu_task_status} todo
+
+@item @code{profiling_info} (optional)
+@code{struct starpu_task_profiling_info *} todo
+
 @item @code{predicted} (output field)
 Predicted duration of the task. This field is only set if the scheduling
 strategy used performance models.
 
+@item @code{predicted_transfer} (optional)
+todo
+
+@item @code{prev}
+todo
+
+@item @code{next}
+todo
+
+@item @code{mf_skip}
+todo
+
+@item @code{starpu_private}
+todo
+
+@item @code{magic}
+todo
 @end table
 @end deftp
 
@@ -1481,6 +1538,10 @@ OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DE
 @end table
 @end deftp
 
+@deftp {Data Type} {enum starpu_perfmodel_type}
+todo (see below)
+@end deftp
+
 @deftp {Data Type} {struct starpu_perfmodel}
 contains all information about a performance model. At least the
 @code{type} and @code{symbol} fields have to be filled when defining a
@@ -1488,7 +1549,8 @@ performance model for a codelet. If not provided, other fields have to be zero.
 
 @table @asis
 @item @code{type}
-is the type of performance model. @code{STARPU_HISTORY_BASED},
+is the type of performance model @code{enum starpu_perfmodel_type}:
+@code{STARPU_HISTORY_BASED},
 @code{STARPU_REGRESSION_BASED}, @code{STARPU_NL_REGRESSION_BASED}: No
 other fields needs to be provided, this is purely history-based. @code{STARPU_PER_ARCH}:
 @code{per_arch} has to be filled with functions which return the cost in
