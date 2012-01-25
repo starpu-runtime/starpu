@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu-@STARPU_EFFECTIVE_VERS
 
 if STARPU_HAVE_MS_LIB
 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib: libstarpu-@STARPU_EFFECTIVE_VERSION@.la dolib
-	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def libstarpu-0 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
+	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def libstarpu-0 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 all-local: .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 endif STARPU_HAVE_MS_LIB
 

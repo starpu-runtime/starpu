@@ -85,11 +85,18 @@ AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
 SIZEOF_VOID_P=$ac_cv_sizeof_void_p
-if test x$SIZEOF_VOID_P = x4; then
-	case "$target" in
-	i386-*darwin*) CFLAGS+=" -march=i686 " ;;
-	esac
-fi
+case $SIZEOF_VOID_P in
+	4)
+		case "$target" in
+		i386-*darwin*) CFLAGS+=" -march=i686 " ;;
+		esac
+		STARPU_MS_LIB_ARCH=X86
+		;;
+	8)
+		STARPU_MS_LIB_ARCH=X64
+		;;
+esac
+AC_SUBST(STARPU_MS_LIB_ARCH)
 
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
