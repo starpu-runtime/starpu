@@ -1157,7 +1157,9 @@ involved in the parallel execution.
 TODO
 
 @item @code{per_worker_stats} (optional)
-todo
+Statistics collected at runtime: this is filled by StarPU and should not be
+accessed directly (use the starpu_display_codelet_stats function instead for
+instance).
 
 @item @code{name} (optional)
 Codelets are allowed to have a name, which can be useful for debugging purposes.
