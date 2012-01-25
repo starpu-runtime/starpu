@@ -1309,10 +1309,10 @@ strategy used performance models.
 todo
 
 @item @code{prev}
-todo
+A pointer to the previous task. This should only be used by StarPU.
 
 @item @code{next}
-todo
+A pointer to the next task. This should only be used by StarPU.
 
 @item @code{mf_skip}
 todo
