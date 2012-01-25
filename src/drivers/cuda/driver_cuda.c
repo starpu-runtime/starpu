@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -117,7 +117,9 @@ static void init_context(int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 	/* force CUDA to initialize the context for real */
-	cudaFree(0);
+	cures = cudaFree(0);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cures = cudaGetDeviceProperties(&props[devid], devid);
 	if (STARPU_UNLIKELY(cures))
