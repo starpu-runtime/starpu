@@ -1306,7 +1306,8 @@ Predicted duration of the task. This field is only set if the scheduling
 strategy used performance models.
 
 @item @code{predicted_transfer} (optional)
-todo
+Predicted data transfer duration for the task in microseconds. This field is
+only valid if the scheduling strategy uses performance models.
 
 @item @code{prev}
 A pointer to the previous task. This should only be used by StarPU.
