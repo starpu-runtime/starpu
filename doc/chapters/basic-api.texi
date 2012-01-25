@@ -357,7 +357,8 @@ Return the handle associated to ptr @var{ptr}.
 @end deftypefun
 
 @deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, uint32_t @var{node})
-todo
+Explicitly ask StarPU to allocate room for a piece of data on the specified
+memory node.
 @end deftypefun
 
 @deftypefun void starpu_data_query_status (starpu_data_handle_t @var{handle}, int @var{memory_node}, {int *}@var{is_allocated}, {int *}@var{is_valid}, {int *}@var{is_requested})
