@@ -459,7 +459,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    if (err) STARPU_OPENCL_REPORT_ERROR(err);}
 
 @i{    @{}
-@i{        size_t global=1;}
+@i{        size_t global=n;}
 @i{        size_t local=1;}
 @i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);}
 @i{        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
