@@ -222,7 +222,7 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 
 void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 {
-	struct starpu_sched_ctx_hypervisor_criteria *criteria = sched_ctx_hypervisor_init(SIMPLE_POLICY);
+	struct starpu_sched_ctx_hypervisor_criteria *criteria = sched_ctx_hypervisor_init(IDLE_POLICY);
 	int nworkers1 = cpu1 + gpu + gpu1;
 	int nworkers2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;

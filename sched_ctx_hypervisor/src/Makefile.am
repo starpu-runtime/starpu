@@ -27,6 +27,7 @@ libsched_ctx_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu.la
 
 libsched_ctx_hypervisor_la_SOURCES = 	\
 	sched_ctx_hypervisor.c		\
+	sched_ctx_config.c		\
 	hypervisor_policies/simple_policy.c
 
 noinst_HEADERS = sched_ctx_hypervisor_intern.h

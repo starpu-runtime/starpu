@@ -9,7 +9,7 @@ struct resize_ack{
 
 struct sched_ctx_wrapper {
 	unsigned sched_ctx;
-	void *config;
+	struct policy_config *config;
 	double current_idle_time[STARPU_NMAXWORKERS];
 	int pushed_tasks[STARPU_NMAXWORKERS];
 	int poped_tasks[STARPU_NMAXWORKERS];
@@ -42,3 +42,8 @@ struct sched_ctx_hypervisor_adjustment {
 };
 
 struct sched_ctx_hypervisor hypervisor;
+
+
+void add_config(unsigned sched_ctx);
+
+void remove_config(unsigned sched_ctx);

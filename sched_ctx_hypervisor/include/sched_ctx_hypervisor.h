@@ -20,6 +20,41 @@ struct sched_ctx_hypervisor_reply{
 };
 pthread_mutex_t act_hypervisor_mutex;
 
+#define MAX_IDLE_TIME 5000000000
+#define MIN_WORKING_TIME 500
+
+struct policy_config {
+	/* underneath this limit we cannot resize */
+	int min_nworkers;
+
+	/* above this limit we cannot resize */
+	int max_nworkers;
+	
+	/*resize granularity */
+	int granularity;
+
+	/* priority for a worker to stay in this context */
+	/* the smaller the priority the faster it will be moved */
+	/* to another context */
+	int priority[STARPU_NMAXWORKERS];
+
+	/* above this limit the priority of the worker is reduced */
+	double max_idle[STARPU_NMAXWORKERS];
+
+	/* underneath this limit the priority of the worker is reduced */
+	double min_working[STARPU_NMAXWORKERS];
+
+	/* workers that will not move */
+	int fixed_workers[STARPU_NMAXWORKERS];
+
+	/* max idle for the workers that will be added during the resizing process*/
+	double new_workers_max_idle;
+
+	/* above this context we allow removing all workers */
+	double empty_ctx_max_idle[STARPU_NMAXWORKERS];
+};
+
+
 struct starpu_sched_ctx_hypervisor_criteria* sched_ctx_hypervisor_init(int type);
 
 void sched_ctx_hypervisor_shutdown(void);
@@ -38,7 +73,7 @@ void sched_ctx_hypervisor_start_resize(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
-void* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
+struct policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
@@ -47,8 +82,6 @@ void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workers, int nw
 int* sched_ctx_hypervisor_get_sched_ctxs();
 
 int sched_ctx_hypervisor_get_nsched_ctxs();
-
-double sched_ctx_hypervisor_get_debit(unsigned sched_ctx);
 
 double sched_ctx_hypervisor_get_exp_end(unsigned sched_ctx);
 
@@ -59,17 +92,12 @@ double sched_ctx_hypervisor_get_idle_time(unsigned sched_ctx, int worker);
 double sched_ctx_hypervisor_get_bef_res_exp_end(unsigned sched_ctx);
 
 /* hypervisor policies */
-#define SIMPLE_POLICY 1
+#define IDLE_POLICY 1
+#define APP_DRIVEN_POLICY 2
+#define GFLOPS_RATE_POLICY 3
 
 struct hypervisor_policy {
-	void (*init)(void);
-	void (*deinit)(void);
-	void (*add_sched_ctx)(unsigned sched_ctx);
-	void(*remove_sched_ctx)(unsigned sched_ctx);
-	void* (*ioctl)(unsigned sched_ctx, va_list varg_list, unsigned later);
 	void (*manage_idle_time)(unsigned req_sched_ctx, int worker, double idle_time);
-	void (*manage_task_flux)(unsigned sched_ctx);
 	void (*manage_gflops_rate)(unsigned sched_ctx);
 	unsigned (*resize)(unsigned sched_ctx, int *sched_ctxs, unsigned nsched_ctxs);
-	void (*update_config)(void* old_config, void* new_config);
 };
