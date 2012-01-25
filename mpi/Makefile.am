@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 CC=$(MPICC)
+CCLD=$(MPICC)
 
 if STARPU_MPI_CHECK
 TESTS_ENVIRONMENT	=	$(MPIEXEC) -np 2 -H localhost
