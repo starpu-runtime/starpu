@@ -27,79 +27,26 @@ can be used to install StarPU.
 @node Getting Sources
 @subsection Getting Sources
 
-The simplest way to get StarPU sources is to download the latest official
-release tarball from @indicateurl{https://gforge.inria.fr/frs/?group_id=1570} ,
-or the latest nightly snapshot from
-@indicateurl{http://starpu.gforge.inria.fr/testing/} . The following documents
-how to get the very latest version from the subversion repository itself, it
-should be needed only if you need the very latest changes (i.e. less than a
-day!)
+The latest official release tarballs of StarPU sources are available
+for download from
+@indicateurl{https://gforge.inria.fr/frs/?group_id=1570}.
 
-The source code is managed by a Subversion server hosted by the
-InriaGforge. To get the source code, you need:
-
-@itemize
-@item
-To install the client side of the software Subversion if it is
-not already available on your system. The software can be obtained from
-@indicateurl{http://subversion.tigris.org} . If you are running
-on Windows, you will probably prefer to use TortoiseSVN from
-@indicateurl{http://tortoisesvn.tigris.org/} .
-
-@item
-You can check out the project's SVN repository through anonymous
-access. This will provide you with a read access to the
-repository.
-
-If you need to have write access on the StarPU project, you can also choose to
-become a member of the project @code{starpu}.  For this, you first need to get
-an account to the gForge server. You can then send a request to join the project
-(@indicateurl{https://gforge.inria.fr/project/request.php?group_id=1570}).
-
-@item
-More information on how to get a gForge account, to become a member of
-a project, or on any other related task can be obtained from the
-InriaGforge at @indicateurl{https://gforge.inria.fr/}. The most important
-thing is to upload your public SSH key on the gForge server (see the
-FAQ at @indicateurl{http://siteadmin.gforge.inria.fr/FAQ.html#Q6} for
-instructions).
-@end itemize
-
-You can now check out the latest version from the Subversion server:
-@itemize
-@item
-using the anonymous access via svn:
-@example
-% svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
-@end example
-@item
-using the anonymous access via https:
-@example
-% svn checkout --username anonsvn https://scm.gforge.inria.fr/svn/starpu/trunk
-@end example
-The password is @code{anonsvn}.
-@item
-using your gForge account
-@example
-% svn checkout svn+ssh://<login>@@scm.gforge.inria.fr/svn/starpu/trunk
-@end example
-@end itemize
-
-The following step requires the availability of @code{autoconf} and
-@code{automake} to generate the @code{./configure} script. This is
-done by calling @code{./autogen.sh}. The required version for
-@code{autoconf} is 2.60 or higher. You will also need @code{makeinfo}.
-
-@example
-% ./autogen.sh
-@end example
-
-If the autotools are not available on your machine or not recent
-enough, you can choose to download the latest nightly tarball, which
-is provided with a @code{configure} script.
+The latest nightly development snapshot is available from
+@indicateurl{http://starpu.gforge.inria.fr/testing/}.
 
 @example
 % wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
+@end example
+
+Additionally, the code can be directly checked out of Subversion, it
+should be done only if you need the very latest changes (i.e. less
+than a day!).@footnote{The client side of the software Subversion can
+be obtained from @indicateurl{http://subversion.tigris.org}. If you
+are running on Windows, you will probably prefer to use TortoiseSVN
+from @indicateurl{http://tortoisesvn.tigris.org/}}.
+
+@example
+% svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
 @end example
 
 @node Optional dependencies
@@ -125,7 +72,8 @@ downloaded from @indicateurl{http://www.open-mpi.org/software/hwloc}.
 
 This step is not necessary when using the tarball releases of StarPU.  If you
 are using the source code from the svn repository, you first need to generate
-the configure scripts and the Makefiles.
+the configure scripts and the Makefiles. This requires the
+availability of @code{autoconf}, @code{automake} >= 2.60, and @code{makeinfo}.
 
 @example
 % ./autogen.sh
