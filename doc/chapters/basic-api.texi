@@ -961,11 +961,15 @@ va_list for the parameter list.
 @end deftypefun
 
 @deftypefun void starpu_data_map_filters (starpu_data_handle_t @var{root_data}, unsigned @var{nfilters}, ...)
-todo
+Applies @var{nfilters} filters to the handle designated by @var{root_handle}
+recursively. @var{nfilters} pointers to variables of the type
+starpu_data_filter should be given.
 @end deftypefun
 
 @deftypefun void starpu_data_vmap_filters (starpu_data_handle_t @var{root_data}, unsigned @var{nfilters}, va_list @var{pa})
-todo
+Applies @var{nfilters} filters to the handle designated by @var{root_handle}
+recursively. It uses a va_list of pointers to variables of the typer
+starpu_data_filter.
 @end deftypefun
 
 @node Predefined filter functions
