@@ -1160,8 +1160,7 @@ TODO
 todo
 
 @item @code{name} (optional)
-todo
-
+Codelets are allowed to have a name, which can be useful for debugging purposes.
 
 @end table
 @end deftp
