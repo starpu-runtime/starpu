@@ -1826,7 +1826,7 @@ Return the size of global device memory in bytes.
 @end deftypefun
 
 @deftypefun void starpu_opencl_get_context (int @var{devid}, {cl_context *}@var{context})
-todo
+Places the OpenCL context of the device designated by @var{devid} into @var{context}.
 @end deftypefun
 
 @deftypefun void starpu_opencl_get_device (int @var{devid}, {cl_device_id *}@var{device})
