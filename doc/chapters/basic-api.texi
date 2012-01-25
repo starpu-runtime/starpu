@@ -1071,13 +1071,6 @@ Function prototype :
 @code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)}.
 Returns 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
 
-@item @code{type}
-@code{enum starpu_codelet_type}
-todo
-
-@item @code{max_parallelism} (optional)
-todo
-
 @item @code{cpu_func} (optional)
 This field has been made deprecated. One should use instead the
 @code{cpu_funcs} field.
@@ -1170,6 +1163,7 @@ instance).
 Codelets are allowed to have a name, which can be useful for debugging purposes.
 
 @item @code{type} (optional)
+(@code{enum starpu_codelet_type})
 The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
 values (@code{STARPU_SPMD} or @code{STARPU_FORKJOIN} declare that a parallel
 implementation is also available. See @ref{Parallel Tasks} for details.
