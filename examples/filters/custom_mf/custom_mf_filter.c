@@ -16,18 +16,34 @@
 #include <starpu.h>
 #include "custom_interface.h"
 #include "custom_types.h"
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif /* !STARPU_USE_OPENCL */
 
-#define N 20
+#define N 12
 
-#define DEBUG 0
+#define DEBUG 1
+
+#ifdef STARPU_USE_CUDA
+static unsigned int ncuda;
+#endif
+#ifdef STARPU_USE_OPENCL
+static unsigned int nopencl;
+#endif
+
 
 static struct point array_of_structs[N];
 static starpu_data_handle_t handle;
-static unsigned int nchunks = 4;
+static unsigned int nchunks = 6;
 
 #ifdef STARPU_USE_CUDA
 extern struct starpu_codelet cpu_to_cuda_cl;
 extern struct starpu_codelet cuda_to_cpu_cl;
+#endif
+
+#ifdef STARPU_USE_OPENCL
+extern struct starpu_codelet cpu_to_opencl_cl;
+extern struct starpu_codelet opencl_to_cpu_cl;
 #endif
 
 static struct starpu_multiformat_data_interface_ops format_ops =
@@ -36,6 +52,11 @@ static struct starpu_multiformat_data_interface_ops format_ops =
 	.cuda_elemsize = sizeof(struct struct_of_arrays),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
 	.cuda_to_cpu_cl = &cuda_to_cpu_cl,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_elemsize  = sizeof(struct struct_of_arrays),
+	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
+	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
 #endif
 	.cpu_elemsize = sizeof(struct point),
 };
@@ -68,6 +89,16 @@ custom_filter(void *father, void *child, struct starpu_data_filter *f,
 		soa_child->y = soa_father->y + chunk_size;
 	}
 #endif
+#ifdef STARPU_USE_OPENCL
+	else if (custom_father->opencl_ptr)
+	{
+		struct struct_of_arrays *soa_father, *soa_child;
+		soa_father = (struct struct_of_arrays*) custom_father->opencl_ptr;
+		soa_child = (struct struct_of_arrays*) custom_child->opencl_ptr;
+		soa_child->x = soa_father->x + chunk_size;
+		soa_child->y = soa_father->y + chunk_size;
+	}
+#endif /* !STARPU_USE_OPENCL */
 
 	custom_child->ops = custom_father->ops;
 	custom_child->nx = chunk_size;
@@ -138,6 +169,19 @@ static struct starpu_codelet cuda_cl =
 };
 #endif /* !STARPU_USE_CUDA */
 
+#ifdef STARPU_USE_OPENCL
+extern void custom_scal_opencl_func(void *buffers[], void *args);
+
+static struct starpu_codelet opencl_cl =
+{
+	.where = STARPU_OPENCL,
+	.opencl_funcs = { custom_scal_opencl_func, NULL },
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.name = "opencl_codelet"
+};
+#endif /* !STARPU_USE_OPENCL */
+
 static int
 create_and_submit_tasks(void)
 {
@@ -146,17 +190,30 @@ create_and_submit_tasks(void)
 	for (i = 0; i < nchunks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		if (i %2 == 0)
+		switch (i%3)
 		{
+		case 0:
 			task->cl = &cpu_cl;
-		}
-		else
-		{
+			break;
+		case 1:
 #ifdef STARPU_USE_CUDA
-			task->cl = &cuda_cl;
-#else
-			task->cl = &cpu_cl;
-#endif /* !STARPU_USE_CUDA */
+			if (ncuda > 0)
+				task->cl = &cuda_cl;
+			else
+#endif
+				task->cl = &cpu_cl;
+			break;
+		case 2:
+#ifdef STARPU_USE_OPENCL
+			if (nopencl > 0)
+				task->cl = &opencl_cl;
+			else
+#endif
+				task->cl = &cpu_cl;
+			break;
+		default:
+			/* We should never get here */
+			assert(0);
 		}
 
 		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
@@ -194,14 +251,18 @@ check_it(void)
 	int i;
 	for (i = 0; i < N; i++)
 	{
-		float expected_value = i + 1.0;
-		expected_value *= array_of_structs[i].y;
+		float expected_value = (i + 1.0)*42.0;
 		if (array_of_structs[i].x != expected_value)
 			return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
+
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+struct starpu_opencl_program opencl_conversion_program;
+#endif /* !STARPU_USE_OPENCL */
 
 int
 main(void)
@@ -215,6 +276,24 @@ main(void)
 	if (err == -ENODEV)
 		goto enodev;
 
+#ifdef STARPU_USE_CUDA
+	ncuda = starpu_cuda_worker_get_count();
+#endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_OPENCL
+	nopencl = starpu_opencl_worker_get_count();
+	if (nopencl > 0)
+	{
+		char *f1 = "examples/filters/custom_mf/custom_opencl.cl";
+		char *f2 = "examples/filters/custom_mf/conversion_opencl.cl";
+		err = starpu_opencl_load_opencl_from_file(f1, &opencl_program,
+							  NULL);
+		assert(err == 0);
+		err = starpu_opencl_load_opencl_from_file(f2,
+						&opencl_conversion_program,
+						NULL);
+		assert(err == 0);
+	}
+#endif /* !STARPU_USE_OPENCL */
 
 	register_and_partition_data();
 #if DEBUG
@@ -231,7 +310,18 @@ main(void)
 #if DEBUG
 	print_it();
 #endif
+
+#if STARPU_USE_OPENCL
+	if (nopencl > 0)
+	{
+        	err = starpu_opencl_unload_opencl(&opencl_program);
+		assert(err == 0);
+		err = starpu_opencl_unload_opencl(&opencl_conversion_program);
+		assert(err == 0);
+	}
+#endif /* !STARPU_USE_OPENCL */
 	starpu_shutdown();		
+	print_it();
 	return check_it();
 
 
