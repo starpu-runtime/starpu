@@ -42,7 +42,7 @@ plan. @code{starpufft_start_handle} is preferrable since it does not wait for
 the task completion, and thus permits to enqueue a series of tasks.
 @end enumerate
 
-@subsection Compilation
+@section Compilation
 
 The flags required to compile or link against the FFT library are accessible
 with the following commands:
@@ -54,7 +54,7 @@ with the following commands:
 
 Also pass the @code{--static} option if the application is to be linked statically.
 
-@subsection Initialisation
+@section Initialisation
 
 @deftypefun {void *} starpufft_malloc (size_t @var{n})
 Allocates memory for @var{n} bytes. This is preferred over @code{malloc}, since
