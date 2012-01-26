@@ -300,9 +300,9 @@ over the entire machine, so that we can maintain data consistency and locate
 data replicates for instance.
 @end deftp
 
-@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops} *@var{ops})
+@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, void *@var{data_interface}, {struct starpu_data_interface_ops} *@var{ops})
 Register a piece of data into the handle located at the @var{handleptr}
-address. The @var{interface} buffer contains the initial description of the
+address. The @var{data_interface} buffer contains the initial description of the
 data in the home node. The @var{ops} argument is a pointer to a structure
 describing the different methods used to manipulate this type of interface. See
 @ref{struct starpu_data_interface_ops} for more details on this structure.
@@ -461,8 +461,8 @@ starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{count}, size_t @var{size})
-Register the @var{count} @var{size}-byte elements pointed to by
+@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{nx}, size_t @var{elemsize})
+Register the @var{nx} @var{elemsize}-byte elements pointed to by
 @var{ptr} and initialize @var{handle} to represent it.
 
 @cartouche
@@ -475,8 +475,8 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{size})
-Register the @var{nx}x@var{ny} 2D matrix of @var{size}-byte elements
+@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{elemsize})
+Register the @var{nx}x@var{ny} 2D matrix of @var{elemsize}-byte elements
 pointed by @var{ptr} and initialize @var{handle} to represent it.
 @var{ld} specifies the number of extra elements present at the end of
 each row; a non-zero @var{ld} adds padding, which can be useful for
@@ -493,8 +493,8 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{size})
-Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{size}-byte
+@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{elemsize})
+Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{elemsize}-byte
 elements pointed by @var{ptr} and initialize @var{handle} to represent
 it.  Again, @var{ldy} and @var{ldz} specify the number of extra elements
 present at the end of each row or column.
@@ -1472,7 +1472,7 @@ starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_tag_wait (starpu_tag_t @var{id})
+@deftypefun int starpu_tag_wait (starpu_tag_t @var{id})
 This function blocks until the task associated to tag @var{id} has been
 executed. This is a blocking call which must therefore not be called within
 tasks or callbacks, but only from the application directly.  It is possible to
@@ -1483,7 +1483,7 @@ data structure was freed (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
 @end deftypefun
 
-@deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag_t *@var{id})
+@deftypefun int starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag_t *@var{id})
 This function is similar to @code{starpu_tag_wait} except that it blocks until
 @emph{all} the @var{ntags} tags contained in the @var{id} array are
 terminated.
@@ -1526,10 +1526,6 @@ mode of a specific data handle with the
 
 @deftypefun unsigned starpu_data_get_default_sequential_consistency_flag (void)
 Return the default sequential consistency flag
-@end deftypefun
-
-@deftypefun unsigned starpu_data_set_default_sequential_consistency_flag (void)
-This function returns the current default sequential consistency flag.
 @end deftypefun
 
 @deftypefun void starpu_data_set_sequential_consistency_flag (starpu_data_handle_t @var{handle}, unsigned @var{flag})
@@ -1632,12 +1628,13 @@ case it depends on the architecture-specific implementation.
 loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{~/.starpu}.
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen})
-returns the path to the debugginf information for the performance model.
+@deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen}, unsigned nimpl)
+returns the path to the debugging information for the performance model.
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen})
+@deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen}, unsigned nimpl)
 returns the architecture name for @var{arch}.
+todo
 @end deftypefun
 
 @deftypefun void starpu_force_bus_sampling (void)
@@ -1777,7 +1774,7 @@ TODO
 @node CUDA extensions
 @section CUDA extensions
 
-@deftypefun {cudaStream_t *} starpu_cuda_get_local_stream (void)
+@deftypefun cudaStream_t starpu_cuda_get_local_stream (void)
 This function gets the current worker's CUDA stream.
 StarPU provides a stream for every CUDA device controlled by StarPU. This
 function is only provided for convenience so that programmers can easily use
@@ -1872,12 +1869,12 @@ relocation purpose for instance).
 todo
 @end deftp
 
-@deftypefun int starpu_opencl_load_opencl_from_file (char *@var{source_file_name}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char}* @var{build_options})
+@deftypefun int starpu_opencl_load_opencl_from_file ({const char} *@var{source_file_name}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char}* @var{build_options})
 @anchor{starpu_opencl_load_opencl_from_file}
 This function compiles an OpenCL source code stored in a file.
 @end deftypefun
 
-@deftypefun int starpu_opencl_load_opencl_from_string (char *@var{opencl_program_source}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char}* @var{build_options})
+@deftypefun int starpu_opencl_load_opencl_from_string ({const char} *@var{opencl_program_source}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char}* @var{build_options})
 This function compiles an OpenCL source code stored in a string.
 @end deftypefun
 
@@ -1888,7 +1885,7 @@ This function unloads an OpenCL compiled code.
 @node Loading OpenCL kernels
 @subsection Loading OpenCL kernels
 
-@deftypefun int starpu_opencl_load_kernel (cl_kernel *@var{kernel}, cl_command_queue *@var{queue}, {struct starpu_opencl_program} *@var{opencl_programs}, char *@var{kernel_name}, int @var{devid})
+@deftypefun int starpu_opencl_load_kernel (cl_kernel *@var{kernel}, cl_command_queue *@var{queue}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char} *@var{kernel_name}, int @var{devid})
 TODO
 @end deftypefun
 

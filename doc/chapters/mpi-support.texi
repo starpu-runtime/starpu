@@ -214,7 +214,7 @@ Tell StarPU-MPI which MPI tag to use when exchanging the data.
 Returns the MPI tag to be used when exchanging the data.
 @end deftypefun
 
-@deftypefun int starpu_data_set_rank (starpu_data_handle_t @var{handle}, int @var{mpi_rank})
+@deftypefun int starpu_data_set_rank (starpu_data_handle_t @var{handle}, int @var{rank})
 Tell StarPU-MPI which MPI node "owns" a given data, that is, the node which will
 always keep an up-to-date value, and will by default execute tasks which write
 to it.
@@ -224,8 +224,8 @@ to it.
 Returns the last value set by @code{starpu_data_set_rank}.
 @end deftypefun
 
-@deftypefun void starpu_mpi_insert_task (MPI_Comm @var{comm}, struct starpu_codelet *@var{cl}, ...)
-Create and submit a task corresponding to @var{cl} with the following
+@deftypefun int starpu_mpi_insert_task (MPI_Comm @var{comm}, struct starpu_codelet *@var{codelet}, ...)
+Create and submit a task corresponding to @var{codelet} with the following
 arguments.  The argument list must be zero-terminated.
 
 The arguments following the codelets are the same types as for the

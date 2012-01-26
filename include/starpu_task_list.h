@@ -34,7 +34,7 @@ struct starpu_task_list
 void starpu_task_list_init(struct starpu_task_list *list);
 
 /* Push a task at the front of a list */
-void starpu_task_list_push_front(struct starpu_task_list *list,	struct starpu_task *task);
+void starpu_task_list_push_front(struct starpu_task_list *list, struct starpu_task *task);
 
 /* Push a task at the back of a list */
 void starpu_task_list_push_back(struct starpu_task_list *list, struct starpu_task *task);

@@ -203,9 +203,8 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
 /* This function is intended to be used by external tools that should read the
  * performance model files */
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model);
-void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
-		enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
-void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch,	char *archname, size_t maxlen, unsigned nimpl);
+void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
+void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
 int starpu_list_models(FILE *output);
 
 void starpu_force_bus_sampling(void);
