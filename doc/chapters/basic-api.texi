@@ -1836,7 +1836,7 @@ Places the OpenCL context of the device designated by @var{devid} into @var{cont
 Places the cl_device_id corresponding to @var{devid} in @var{device}.
 @end deftypefun
 
-@deftypefun void starpu_opencl_get_queue (int @var{devid}, {cl_command_queue *}@var{queue});
+@deftypefun void starpu_opencl_get_queue (int @var{devid}, {cl_command_queue *}@var{queue})
 Places the command queue of the the device designated by @var{devid} into @var{queue}.
 @end deftypefun
 
