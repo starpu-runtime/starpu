@@ -54,12 +54,8 @@ int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int s
 
 /* Asynchronously send an array of buffers, and unlocks the tag once all of
  * them are transmitted. */
-int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle_t *data_handle, int *dest, int *mpi_tag,
-		MPI_Comm *comm, starpu_tag_t tag);
-int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle_t *data_handle, int *source, int *mpi_tag,
-		MPI_Comm *comm, starpu_tag_t tag);
+int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag);
+int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag);
 
 #ifdef __cplusplus
 }
