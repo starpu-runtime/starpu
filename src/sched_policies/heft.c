@@ -206,7 +206,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	task->predicted_transfer = predicted_transfer;
 
 	if (starpu_top_status_get())
-		starpu_top_task_prevision(task, best_workerid,
+		_starpu_top_task_prevision(task, best_workerid,
 					(unsigned long long)(exp_end[best_workerid]-predicted)/1000,
 					(unsigned long long)exp_end[best_workerid]/1000);
 

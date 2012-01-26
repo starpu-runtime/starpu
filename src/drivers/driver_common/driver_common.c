@@ -59,7 +59,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	}
 
 	if (starpu_top)
-		starpu_top_task_started(task,workerid,codelet_start);
+		_starpu_top_task_started(task,workerid,codelet_start);
 
 	_STARPU_TRACE_START_CODELET_BODY(j);
 }
@@ -86,7 +86,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	}
 
 	if (starpu_top)
-	  starpu_top_task_ended(task,workerid,codelet_end);
+	  _starpu_top_task_ended(task,workerid,codelet_end);
 
 	args->status = STATUS_UNKNOWN;
 }

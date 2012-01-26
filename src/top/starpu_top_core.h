@@ -19,3 +19,26 @@
  * Convert timespec to ms
  */
 unsigned long long _starpu_top_timing_timespec_to_ms(const struct timespec *ts);
+
+/*
+ * This functions notify UI than the task has started or ended
+ */
+void _starpu_top_task_started(struct starpu_task *task,
+			     int devid,
+			     const struct timespec* ts);
+void _starpu_top_task_ended(struct starpu_task *task,
+			   int devid,
+			   const struct timespec* ts );
+/*
+ * This functions notify UI than the task have been planed to
+ * run from timestamp_begin to timestamp_end, on computation-core
+ */
+void __starpu_top_task_prevision_timespec(struct starpu_task *task,
+					int devid,
+					const struct timespec* start,
+					const struct timespec* end);
+void _starpu_top_task_prevision(struct starpu_task *task,
+			       int devid, unsigned long long start,
+			       unsigned long long end);
+
+

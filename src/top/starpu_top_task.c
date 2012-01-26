@@ -29,7 +29,7 @@
  **************TASK RELATED FUNCTIONS********
  *******************************************/
 
-void starpu_top_task_started(struct starpu_task *task,
+void _starpu_top_task_started(struct starpu_task *task,
 			     int devid,
 			     const struct timespec *ts)
 {
@@ -45,7 +45,7 @@ void starpu_top_task_started(struct starpu_task *task,
 	_starpu_top_message_add(_starpu_top_mt, str);
 }
 
-void starpu_top_task_ended(struct starpu_task *task,
+void _starpu_top_task_ended(struct starpu_task *task,
 			   int devid,
 			   const struct timespec *ts)
 {
@@ -61,18 +61,18 @@ void starpu_top_task_ended(struct starpu_task *task,
 	_starpu_top_message_add(_starpu_top_mt, str);
 }
 
-void starpu_top_task_prevision_timespec(struct starpu_task *task,
+void __starpu_top_task_prevision_timespec(struct starpu_task *task,
 					int devid,
 					const struct timespec* start,
 					const struct timespec* end)
 {
-	starpu_top_task_prevision(task,
+	_starpu_top_task_prevision(task,
 				  devid,
 				  _starpu_top_timing_timespec_to_ms(start),
 				  _starpu_top_timing_timespec_to_ms(end));
 }
 
-void starpu_top_task_prevision(struct starpu_task *task,
+void _starpu_top_task_prevision(struct starpu_task *task,
 			       int devid,
 			       unsigned long long start,
 			       unsigned long long end)
