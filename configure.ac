@@ -1137,6 +1137,11 @@ if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
 fi
 
+# Same value as Automake's, for use in other places.
+pkglibdir="\${libdir}/$PACKAGE"
+AC_SUBST([pkglibdir])
+
+
 ###############################################################################
 #                                                                             #
 #                               GCC extensions                                #
@@ -1159,6 +1164,18 @@ if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; the
 	else
 	    AC_MSG_WARN([GCC plug-ins not supported; StarPU's GCC plug-in will not be built])
         fi
+    else
+        # The `.so' itself cannot be called `starpu-gcc.so' (because
+	# `-fplugin-arg-' option names and such must match the `.so'
+	# name), so use a meaningful directory name.
+	gccplugindir="\${pkglibdir}/${STARPU_EFFECTIVE_VERSION}/gcc"
+	AC_SUBST([gccplugindir])
+
+	# Lines to be inserted in the `.pc' file.
+	GCC_PLUGIN_DIR_PKGCONFIG="gccplugindir=$gccplugindir"
+	GCC_PLUGIN_PKGCONFIG="gccplugin=\${gccplugindir}/starpu.so"
+	AC_SUBST([GCC_PLUGIN_DIR_PKGCONFIG])
+	AC_SUBST([GCC_PLUGIN_PKGCONFIG])
     fi
 fi
 

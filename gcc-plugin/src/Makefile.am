@@ -13,14 +13,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-# The `.so' itself cannot be called `starpu-gcc.so' (because
-# `-fplugin-arg-' option names and such must match the `.so' name), so
-# use a meaningful directory name.
-plugindir = $(pkglibdir)/$(STARPU_EFFECTIVE_VERSION)/gcc
-
 # `LIBRARIES' would be more appropriate than `LTLIBRARIES' but it
 # requires a name prefixed by `lib'.
-plugin_LTLIBRARIES = starpu.la
+gccplugin_LTLIBRARIES = starpu.la
 
 starpu_la_SOURCES = starpu.c c-expr.y
 

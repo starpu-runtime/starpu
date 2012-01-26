@@ -17,7 +17,13 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
+pkglibdir=@pkglibdir@
 includedir=@includedir@
+
+# When the GCC plug-in is available, the following lines indicate
+# where it is installed.
+@GCC_PLUGIN_DIR_PKGCONFIG@
+@GCC_PLUGIN_PKGCONFIG@
 
 Name: starpu
 Description: offers support for heterogeneous multicore architecture
