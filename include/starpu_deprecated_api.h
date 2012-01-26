@@ -48,6 +48,10 @@ typedef struct starpu_buffer_descr starpu_buffer_descr;
 typedef struct starpu_codelet starpu_codelet;
 typedef enum starpu_access_mode starpu_access_mode;
 
+#define starpu_print_bus_bandwidth     starpu_bus_print_bandwidth
+#define starpu_get_handle_interface_id starpu_handle_get_interface_id
+#define starpu_get_current_task        starpu_task_get_current
+
 #ifdef __cplusplus
 }
 #endif
