@@ -31,7 +31,7 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static void callback(void *arg __attribute__ ((unused)))
 {
-	struct starpu_task *task = starpu_get_current_task();
+	struct starpu_task *task = starpu_task_get_current();
 
 	cnt++;
 

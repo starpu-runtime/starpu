@@ -305,7 +305,7 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl);
 /* Return the task currently executed by the worker, or NULL if this is called
  * either from a thread that is not a task or simply because there is no task
  * being executed at the moment. */
-struct starpu_task *starpu_get_current_task(void);
+struct starpu_task *starpu_task_get_current(void);
 
 #ifdef __cplusplus
 }

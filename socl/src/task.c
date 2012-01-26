@@ -19,7 +19,7 @@
 #include "event.h"
 
 static void task_release_callback(void *arg) {
-  starpu_task task = starpu_get_current_task();
+  starpu_task task = starpu_task_get_current();
   cl_command cmd = (cl_command)arg;
   
   cl_event ev = command_event_get(cmd);

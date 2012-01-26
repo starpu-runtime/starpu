@@ -130,7 +130,7 @@ void starpu_task_destroy(struct starpu_task *task)
 
    /* If starpu_task_destroy is called in a callback, we just set the destroy
       flag. The task will be destroyed after the callback returns */
-   if (task == starpu_get_current_task()
+   if (task == starpu_task_get_current()
        && _starpu_get_local_worker_status() == STATUS_CALLBACK)
    {
 
@@ -633,7 +633,7 @@ void _starpu_initialize_current_task_key(void)
 /* Return the task currently executed by the worker, or NULL if this is called
  * either from a thread that is not a task or simply because there is no task
  * being executed at the moment. */
-struct starpu_task *starpu_get_current_task(void)
+struct starpu_task *starpu_task_get_current(void)
 {
 	return (struct starpu_task *) pthread_getspecific(current_task_key);
 }

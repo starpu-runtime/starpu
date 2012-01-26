@@ -572,7 +572,7 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 	starpu_data_release(handle);
 }
 
-enum starpu_data_interface_id starpu_get_handle_interface_id(starpu_data_handle_t handle)
+enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
 }

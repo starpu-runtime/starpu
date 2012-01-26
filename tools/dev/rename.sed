@@ -136,3 +136,7 @@ s/\bSTARPU_GET_CSR_COLIND\b/STARPU_CSR_GET_COLIND/g
 s/\bSTARPU_GET_CSR_ROWPTR\b/STARPU_CSR_GET_ROWPTR/g
 s/\bSTARPU_GET_CSR_FIRSTENTRY\b/STARPU_CSR_GET_FIRSTENTRY/g
 s/\bSTARPU_GET_CSR_ELEMSIZE\b/STARPU_CSR_GET_ELEMSIZE/g
+s/\bstarpu_print_bus_bandwidth\b/starpu_bus_print_bandwidth/g
+s/\bstarpu_get_handle_interface_id\b/starpu_handle_get_interface_id/g
+s/\bstarpu_get_current_task\b/starpu_task_get_current/g
+

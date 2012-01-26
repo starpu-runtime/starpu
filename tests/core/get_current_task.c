@@ -27,14 +27,14 @@ static void check_task_func(void *descr[], void *arg)
 {
 	/* We check that the returned task is valid from the codelet */
 	struct starpu_task *task = (struct starpu_task *) arg;
-	STARPU_ASSERT(task == starpu_get_current_task());
+	STARPU_ASSERT(task == starpu_task_get_current());
 }
 
 static void check_task_callback(void *arg)
 {
 	/* We check that the returned task is valid from the callback */
 	struct starpu_task *task = (struct starpu_task *) arg;
-	STARPU_ASSERT(task == starpu_get_current_task());
+	STARPU_ASSERT(task == starpu_task_get_current());
 }
 
 static struct starpu_codelet dummy_cl =

@@ -208,7 +208,7 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 int starpu_list_models(FILE *output);
 
 void starpu_force_bus_sampling(void);
-void starpu_print_bus_bandwidth(FILE *f);
+void starpu_bus_print_bandwidth(FILE *f);
 
 #ifdef __cplusplus
 }

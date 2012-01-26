@@ -1033,7 +1033,7 @@ static void write_bus_bandwidth_file_content(void)
 	fclose(f);
 }
 
-void starpu_print_bus_bandwidth(FILE *f)
+void starpu_bus_print_bandwidth(FILE *f)
 {
 	int src, dst, maxnode;
 

@@ -26,7 +26,7 @@ static unsigned ntasks = 1024;
 
 static void callback(void *arg)
 {
-	struct starpu_task *task = starpu_get_current_task();
+	struct starpu_task *task = starpu_task_get_current();
 
 	unsigned *cnt = (unsigned *) arg;
 

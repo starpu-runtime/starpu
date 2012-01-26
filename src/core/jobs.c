@@ -177,7 +177,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 		/* Perhaps we have nested callbacks (eg. with chains of empty
 		 * tasks). So we store the current task and we will restore it
 		 * later. */
-		struct starpu_task *current_task = starpu_get_current_task();
+		struct starpu_task *current_task = starpu_task_get_current();
 
 		_starpu_set_current_task(task);
 

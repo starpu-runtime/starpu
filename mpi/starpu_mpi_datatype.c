@@ -133,7 +133,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 
 int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
-	enum starpu_data_interface_id id = starpu_get_handle_interface_id(data_handle);
+	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
 
 	handle_to_datatype_func func = handle_to_datatype_funcs[id];
 

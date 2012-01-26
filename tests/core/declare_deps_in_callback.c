@@ -30,7 +30,7 @@ static void callback(void *arg)
 	struct starpu_task *taskA, *taskB;
 	int ret;
 
-	taskA = starpu_get_current_task();
+	taskA = starpu_task_get_current();
 	taskB = (struct starpu_task *) arg;
 
 	starpu_task_declare_deps_array(taskB, 1, &taskA);
