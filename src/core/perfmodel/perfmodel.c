@@ -264,7 +264,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		struct starpu_task *conversion_task;
 
 		handle = task->handles[i];
-		if (!starpu_data_is_multiformat_handle(handle))
+		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
 		if (arch < STARPU_CUDA_DEFAULT)

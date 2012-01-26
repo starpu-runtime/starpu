@@ -207,7 +207,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		return -EDEADLK;
         }
 
-	if (starpu_data_is_multiformat_handle(handle) &&
+	if (_starpu_data_is_multiformat_handle(handle) &&
 	    _starpu_handle_needs_conversion_task(handle, 0))
 	{
 		struct starpu_task *task = _starpu_create_conversion_task(handle, 0);

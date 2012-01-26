@@ -385,8 +385,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, uint32_t hom
 
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
-int starpu_data_is_multiformat_handle(starpu_data_handle_t handle);
-
 enum starpu_data_interface_id starpu_get_handle_interface_id(starpu_data_handle_t handle);
 
 /* Lookup a ram pointer into a StarPU handle */

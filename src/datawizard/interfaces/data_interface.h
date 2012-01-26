@@ -34,4 +34,6 @@ extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,
 						void *ptr)
 	STARPU_ATTRIBUTE_INTERNAL;
 
+extern int _starpu_data_is_multiformat_handle(starpu_data_handle_t handle);
+
 #endif // __DATA_INTERFACE_H__

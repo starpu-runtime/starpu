@@ -652,7 +652,7 @@ _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 	unsigned i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
-		if (starpu_data_is_multiformat_handle(task->handles[i]))
+		if (_starpu_data_is_multiformat_handle(task->handles[i]))
 			return 1;
 	}
 

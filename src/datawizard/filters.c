@@ -271,7 +271,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 			starpu_data_unpartition(child_handle, gathering_node);
 
 		/* If this is a multiformat handle, we must convert the data now */
-		if (starpu_data_is_multiformat_handle(child_handle) &&
+		if (_starpu_data_is_multiformat_handle(child_handle) &&
 			starpu_node_get_kind(child_handle->mf_node) != STARPU_CPU_RAM)
 		{
 			struct starpu_codelet cl =
