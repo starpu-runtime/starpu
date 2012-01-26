@@ -62,7 +62,7 @@ static struct starpu_codelet codelet_copybuffer = {
    .where = STARPU_CPU | STARPU_OPENCL,
    .model = NULL,
    .cpu_funcs = { &soclEnqueueCopyBuffer_cpu_task, NULL },
-   .opencl_func = &soclEnqueueCopyBuffer_opencl_task,
+   .opencl_funcs = { &soclEnqueueCopyBuffer_opencl_task, NULL },
    .nbuffers = 2
 };
 
