@@ -1793,6 +1793,14 @@ This function returns a pointer to device properties for worker @var{workerid}
 (assumed to be a CUDA worker).
 @end deftypefun
 
+@deftypefun size_t starpu_cuda_get_global_mem_size (int devid)
+todo
+@end deftypefun
+
+@deftypefun void starpu_cuda_report_error ({const char *}func, {const char *}file, int line, cudaError_t status)
+todo
+@end deftypefun
+
 @deftypefun void starpu_helper_cublas_init (void)
 This function initializes CUBLAS on every CUDA device.
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling
@@ -1803,6 +1811,10 @@ initialized on every device.
 
 @deftypefun void starpu_helper_cublas_shutdown (void)
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
+@end deftypefun
+
+@deftypefun void starpu_cublas_report_error ({const char *}func, {const char *}file, int line, cublasStatus status)
+todo
 @end deftypefun
 
 @node OpenCL extensions

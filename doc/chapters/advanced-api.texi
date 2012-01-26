@@ -98,6 +98,27 @@ The size of the interface data descriptor.
 @end table
 @end deftp
 
+@deftypefun uint32_t starpu_crc32_be_n ({void *}input, size_t n, uint32_t inputcrc)
+todo: say what it is for
+Compute the CRC of a byte buffer seeded by the inputcrc "current
+state". The return value should be considered as the new "current
+state" for future CRC computation.
+@end deftypefun
+
+@deftypefun uint32_t starpu_crc32_be(uint32_t input, uint32_t inputcrc)
+todo: say what it is for
+Compute the CRC of a 32bit number seeded by the inputcrc "current
+state". The return value should be considered as the new "current
+state" for future CRC computation.
+@end deftypefun
+
+@deftypefun uint32_t starpu_crc32_string({char *}str, uint32_t inputcrc)
+todo: say what it is for
+Compute the CRC of a string seeded by the inputcrc "current state".
+The return value should be considered as the new "current state" for
+future CRC computation.
+@end deftypefun
+
 @node An example of data interface
 @subsection An example of data interface
 
