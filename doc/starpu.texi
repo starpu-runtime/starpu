@@ -80,6 +80,8 @@ was last updated on @value{UPDATED}.
 * Configuring StarPU::          How to configure StarPU
 * Full source code for the 'Scaling a Vector' example::  
 * GNU Free Documentation License::  How you can copy and share this manual.
+
+* Concept Index::               Index of programming concepts.
 * Function Index::              Index of C functions.
 * Datatype Index::              Index of C datatypes
 @end menu
@@ -227,6 +229,10 @@ was last updated on @value{UPDATED}.
 @c ---------------------------------------------------------------------
 @c Indices
 @c ---------------------------------------------------------------------
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
 
 @node Function Index
 @unnumbered Function Index
