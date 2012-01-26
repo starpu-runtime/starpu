@@ -19,7 +19,19 @@ buffers.  Use of these extensions can be made conditional on the
 availability of the plug-in, leading to valid C sequential code when the
 plug-in is not used (@pxref{Conditional Extensions}).
 
-This section does not require detailed knowledge of the StarPU library.
+When StarPU has been installed with its GCC plug-in, programs that use
+these extensions can be compiled this way:
+
+@example
+$ gcc -c -fplugin=`pkg-config libstarpu-1.0 --variable=gccplugin` foo.c
+@end example
+
+@noindent
+When the plug-in is not available, the above @command{pkg-config}
+command returns the empty string.
+
+This section describes the C extensions implemented by StarPU's GCC
+plug-in.  It does not require detailed knowledge of the StarPU library.
 
 Note: as of StarPU @value{VERSION}, this is still an area under
 development and subject to change.
