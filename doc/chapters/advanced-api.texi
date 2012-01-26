@@ -11,6 +11,7 @@
 * Multiformat Data Interface::  
 * Task Bundles::                
 * Task Lists::                  
+* Using Parallel Tasks::        
 * Defining a new scheduling policy::  
 * Expert mode::                 
 @end menu
@@ -221,6 +222,38 @@ Get the end of the list.
 @deftypefun {struct starpu_task *} starpu_task_list_next ({struct starpu_task *}@var{task})
 Get the next task of the list. This is not erase-safe.
 @end deftypefun
+
+@node Using Parallel Tasks
+@section Using Parallel Tasks
+
+@deftypefun unsigned starpu_combined_worker_get_count (void)
+todo
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_id (void)
+todo
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_size (void)
+todo
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_rank (void)
+todo
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_assign_workerid (int nworkers, int workerid_array[])
+Register a new combined worker and get its identifier
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_description (int workerid, {int *}worker_size, {int **}combined_workerid)
+Get the description of a combined worker
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_can_execute_task (unsigned workerid, {struct starpu_task *}task, unsigned nimpl)
+Variant of starpu_worker_can_execute_task compatible with combined workers
+@end deftypefun
+
 
 @node Defining a new scheduling policy
 @section Defining a new scheduling policy
