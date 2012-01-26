@@ -734,7 +734,7 @@ void starpu_top_debug_next_step()
 }
 
 
-void starpu_top_process_input_message(char *buffer)
+void _starpu_top_process_input_message(char *buffer)
 {
 	enum starpu_top_message_type message_type = starpu_top_get_message_type(buffer);
 	switch(message_type)

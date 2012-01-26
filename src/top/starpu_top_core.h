@@ -47,3 +47,9 @@ void _starpu_top_task_prevision(struct starpu_task *task,
 			       unsigned long long end);
 
 
+/****************************************************
+***************** Callback function *****************
+*****************************************************/
+
+void _starpu_top_process_input_message(char *message);
+

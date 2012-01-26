@@ -60,15 +60,15 @@ void * message_from_ui(void * p)
 		printf("Message from UI : %s",str);
 		if (check)
 		{
-			starpu_top_process_input_message(str);
+			_starpu_top_process_input_message(str);
 		}
 		else
 		{
 			fprintf(stderr,"Connection dropped\n");
 			//unlocking StarPU.
-			starpu_top_process_input_message("GO\n");
-			starpu_top_process_input_message("DEBUG;OFF\n");
-			starpu_top_process_input_message("STEP\n");
+			_starpu_top_process_input_message("GO\n");
+			_starpu_top_process_input_message("DEBUG;OFF\n");
+			_starpu_top_process_input_message("STEP\n");
 			return NULL;
 		}
 	}
