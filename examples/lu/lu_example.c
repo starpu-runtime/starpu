@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -368,6 +368,15 @@ int main(int argc, char **argv)
 			FILE *f = fopen("lu.pl", "w");
 			starpu_bound_print_lp(f);
 			FPRINTF(stderr,"system printed to lu.pl\n");
+			fclose(f);
+			f = fopen("lu.mps", "w");
+			starpu_bound_print_mps(f);
+			FPRINTF(stderr,"system printed to lu.mps\n");
+			fclose(f);
+			f = fopen("lu.dot", "w");
+			starpu_bound_print_dot(f);
+			FPRINTF(stderr,"system printed to lu.mps\n");
+			fclose(f);
 		}
 		else
 		{
