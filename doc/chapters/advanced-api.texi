@@ -140,7 +140,7 @@ the format.
 @node Task Bundles
 @section Task Bundles
 
-@deftp {Data Type} starpu_task_bundle_t
+@deftp {Data Type} {starpu_task_bundle_t}
 Opaque structure describing a list of tasks that should be scheduled
 on the same worker whenever it's possible. It must be considered as a
 hint given to the scheduler as there is no guarantee that they will be

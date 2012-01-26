@@ -36,7 +36,7 @@ Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
 indicates that no worker was available (so that StarPU was not initialized).
 @end deftypefun
 
-@deftp {Data type} {struct starpu_conf}
+@deftp {Data Type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
 to configure StarPU.
 When the default value is used, StarPU automatically selects the number
@@ -129,7 +129,7 @@ guaranteed to be available until this method has been called.
 @node Workers' Properties
 @section Workers' Properties
 
-@deftp {DataType} {enum starpu_archtype}
+@deftp {Data Type} {enum starpu_archtype}
 The different values are:
 @table @asis
 @item @code{STARPU_CPU_WORKER}
