@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,9 +13,14 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+# The `.so' itself cannot be called `starpu-gcc.so' (because
+# `-fplugin-arg-' option names and such must match the `.so' name), so
+# use a meaningful directory name.
+plugindir = $(pkglibdir)/$(STARPU_EFFECTIVE_VERSION)/gcc
+
 # `LIBRARIES' would be more appropriate than `LTLIBRARIES' but it
 # requires a name prefixed by `lib'.
-pkglib_LTLIBRARIES = starpu.la
+plugin_LTLIBRARIES = starpu.la
 
 starpu_la_SOURCES = starpu.c c-expr.y
 
