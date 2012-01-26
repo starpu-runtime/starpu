@@ -14,7 +14,7 @@
 * Performance model example::   
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
-* Parallel tasks::
+* Parallel Tasks::
 * Debugging::
 * The multiformat interface::
 * On-GPU rendering::
@@ -582,7 +582,7 @@ available in @code{examples/openmp/vector_scal.c}):
 
 @example
 void scal_cpu_func(void *buffers[], void *_args)
-{
+@{
     unsigned i;
     float *factor = _args;
     struct starpu_vector_interface *vector = buffers[0];
@@ -592,23 +592,17 @@ void scal_cpu_func(void *buffers[], void *_args)
 #pragma omp parallel for num_threads(starpu_combined_worker_get_size())
     for (i = 0; i < n; i++)
         val[i] *= *factor;
-}
-
-static struct starpu_perfmodel vector_scal_model =
-{
-    .type = STARPU_HISTORY_BASED,
-    .symbol = "vector_scale_parallel"
-};
+@}
 
 static struct starpu_codelet cl =
-{
-    .modes = { STARPU_RW },
+@{
+    .modes = @{ STARPU_RW @},
     .where = STARPU_CPU,
     .type = STARPU_FORKJOIN,
     .max_parallelism = INT_MAX,
-    .cpu_funcs = {scal_cpu_func, NULL},
+    .cpu_funcs = @{scal_cpu_func, NULL@},
     .nbuffers = 1,
-};
+@};
 @end example
 
 Other examples include for instance calling a BLAS parallel CPU implementation
@@ -643,11 +637,11 @@ static void func(void *buffers[], void *args)
 
 statuc struct starpu_codelet cl =
 @{
-    .modes = { STARPU_RW },
+    .modes = @{ STARPU_RW @},
     .where = STARP_CPU,
     .type = STARPU_SPMD,
     .max_parallelism = INT_MAX,
-    .cpu_funcs = { func, NULL },
+    .cpu_funcs = @{ func, NULL @},
     .nbuffers = 1,
 @}
 @end example
