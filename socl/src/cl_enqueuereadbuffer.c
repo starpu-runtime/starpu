@@ -61,8 +61,8 @@ static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
 static struct starpu_codelet codelet_readbuffer = {
    .where = STARPU_OPENCL,
    .model = NULL,
-   .cpu_func = &soclEnqueueReadBuffer_cpu_task,
-   .opencl_func = &soclEnqueueReadBuffer_opencl_task,
+   .cpu_funcs = { &soclEnqueueReadBuffer_cpu_task, NULL },
+   .opencl_funcs = { &soclEnqueueReadBuffer_opencl_task, NULL },
    .nbuffers = 1
 };
 

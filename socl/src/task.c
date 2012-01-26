@@ -129,7 +129,7 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
 static struct starpu_codelet cputask_codelet = {
    .where = STARPU_CPU,
    .model = NULL,
-   .cpu_func = &cputask_task
+   .cpu_funcs = { &cputask_task, NULL },
 };
 
 starpu_task task_create_cpu(void (*callback)(void*), void *arg, int free_arg) {
