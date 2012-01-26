@@ -776,7 +776,8 @@ designated by @var{handle}.
 @end deftypefun
 
 @deftypefun uint32_t starpu_bcsr_get_firstentry (starpu_data_handle_t @var{handle})
-todo
+Return the index at which all arrays (the column indexes, the row pointers...)
+of the matrix desginated by @var{handle} start.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_bcsr_get_local_nzval (starpu_data_handle_t @var{handle})
@@ -817,7 +818,8 @@ Return the size of the row pointer array of the matrix designated by @var{handle
 @end deftypefun
 
 @deftypefun uint32_t starpu_csr_get_firstentry (starpu_data_handle_t @var{handle})
-todo
+Return the index at which all arrays (the column indexes, the row pointers...)
+of the matrix designated by @var{handle} start.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_csr_get_local_nzval (starpu_data_handle_t @var{handle})
@@ -857,7 +859,8 @@ Return a pointer to the row pointer array of the matrix designated by @var{inter
 @end defmac
 
 @defmac STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
-todo
+Return the index at which all arrays (the column indexes, the row pointers...)
+of the @var{interface} start.
 @end defmac
 
 @defmac STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
