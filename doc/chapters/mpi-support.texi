@@ -167,7 +167,7 @@ int main(int argc, char **argv)
         if (loop == last_loop && rank == last_rank)
         @{
             starpu_data_acquire(token_handle, STARPU_R);
-            fprintf(stdout, "Finished : token value %d\n", token);
+            fprintf(stdout, "Finished: token value %d\n", token);
             starpu_data_release(token_handle);
         @}
         else

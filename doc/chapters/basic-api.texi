@@ -544,7 +544,7 @@ The different values are:
 @item @code{STARPU_VARIABLE_INTERFACE_ID}
 @item @code{STARPU_VOID_INTERFACE_ID}
 @item @code{STARPU_MULTIFORMAT_INTERFACE_ID}
-@item @code{STARPU_NINTERFACES_ID} : number of data interfaces
+@item @code{STARPU_NINTERFACES_ID}: number of data interfaces
 @end table
 @end deftp
 
@@ -1067,7 +1067,7 @@ unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
 @item @code{can_execute} (optional)
-Function prototype : 
+Function prototype: 
 @code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)}.
 Returns 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
 
@@ -1407,7 +1407,7 @@ Output on @code{stderr} some statistics on the codelet @var{cl}.
 This function waits until there is no more ready task.
 @end deftypefun
 
-@c Callbacks : what can we put in callbacks ?
+@c Callbacks: what can we put in callbacks ?
 
 @node Explicit Dependencies
 @section Explicit Dependencies
@@ -1555,7 +1555,7 @@ OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DE
 @end deftp
 
 @deftp {Data Type} {enum starpu_perfmodel_type}
-The possible values are :
+The possible values are:
 @table @asis
 @item @code{STARPU_PER_ARCH} for application-provided per-arch cost model functions.
 @item @code{STARPU_COMMON} for application-provided common cost model function, with per-arch factor.

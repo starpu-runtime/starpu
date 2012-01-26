@@ -25,7 +25,7 @@
 @section Using multiple implementations of a codelet
 One may want to write multiple implementations of a codelet for a single type of
 device and let StarPU choose which one to run. As an example, we will show how
-to use SSE to scale a vector. The codelet can be written as follows :
+to use SSE to scale a vector. The codelet can be written as follows:
 
 @cartouche
 @smallexample
@@ -202,10 +202,10 @@ for (worker = 0; worker < starpu_worker_get_count(); worker++)
         char workername[128];
         starpu_worker_get_name(worker, workername, 128);
         fprintf(stderr, "Worker %s:\n", workername);
-        fprintf(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
-        fprintf(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3,
+        fprintf(stderr, "\ttotal time: %.2lf ms\n", total_time*1e-3);
+        fprintf(stderr, "\texec time: %.2lf ms (%.2f %%)\n", executing_time*1e-3,
                 executing_ratio);
-        fprintf(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3,
+        fprintf(stderr, "\tblocked time: %.2lf ms (%.2f %%)\n", sleeping_time*1e-3,
                 sleeping_ratio);
 @}
 @end smallexample
@@ -606,7 +606,7 @@ static struct starpu_codelet cl =
 @end example
 
 Other examples include for instance calling a BLAS parallel CPU implementation
-(see examples/mult/xgemm.c).
+(see @code{examples/mult/xgemm.c}).
 
 @subsection SPMD-mode parallel tasks
 
@@ -635,7 +635,7 @@ static void func(void *buffers[], void *args)
         val[i] *= *factor;
 @}
 
-statuc struct starpu_codelet cl =
+static struct starpu_codelet cl =
 @{
     .modes = @{ STARPU_RW @},
     .where = STARP_CPU,
@@ -664,7 +664,7 @@ combined worker if the codelet does not actually scale so much.
 @subsection Combined worker sizes
 
 By default, StarPU creates combined workers according to the architecture
-structure as detected by HwLoc. It means that for each object of the Hwloc
+structure as detected by hwloc. It means that for each object of the hwloc
 topology (NUMA node, socket, cache, ...) a combined worker will be created. If
 some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
@@ -705,11 +705,11 @@ gdb helpers are also provided to show the whole StarPU state:
 @node The multiformat interface
 @section The multiformat interface
 It may be interesting to represent the same piece of data using two different
-data structures : one that would only be used on CPUs, and one that would only
+data structures: one that would only be used on CPUs, and one that would only
 be used on GPUs. This can be done by using the multiformat interface. StarPU
 will be able to convert data from one data structure to the other when needed.
 Note that the heft scheduler is the only one optimized for this interface. The
-user must provide StarPU with conversion codelets :
+user must provide StarPU with conversion codelets:
 
 @cartouche
 @smallexample

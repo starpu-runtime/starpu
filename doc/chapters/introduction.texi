@@ -65,7 +65,7 @@ One of the StarPU primary data structures is the @b{codelet}. A codelet describe
 computational kernel that can possibly be implemented on multiple architectures
 such as a CPU, a CUDA device or a Cell's SPU.
 
-@c TODO insert illustration f : f_spu, f_cpu, ...
+@c TODO insert illustration f: f_spu, f_cpu, ...
 
 Another important data structure is the @b{task}. Executing a StarPU task
 consists in applying a codelet on a data set, on one of the architectures on

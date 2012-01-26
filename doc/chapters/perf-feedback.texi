@@ -110,7 +110,7 @@ The bus speed measured by StarPU can be displayed by using the
 @code{starpu_machine_display} tool, for instance:
 
 @example
-StarPU has found :
+StarPU has found:
         3 CUDA devices
                 CUDA 0 (Tesla C2050 02:00.0)
                 CUDA 1 (Tesla C2050 03:00.0)

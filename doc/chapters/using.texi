@@ -53,8 +53,8 @@ Basic examples using StarPU are built in the directory
 
 @example
 % ./examples/basic_examples/vector_scal
-BEFORE : First element was 1.000000
-AFTER First element is 3.140000
+BEFORE: First element was 1.000000
+AFTER: First element is 3.140000
 %
 @end example
 
