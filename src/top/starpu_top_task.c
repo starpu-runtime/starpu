@@ -34,7 +34,7 @@ void _starpu_top_task_started(struct starpu_task *task,
 			     const struct timespec *ts)
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
-	STARPU_ASSERT(starpu_top_status_get());
+	STARPU_ASSERT(_starpu_top_status_get());
 	char *str = (char *) malloc(sizeof(char)*64);
 	snprintf(str, 64,
 				"START;%llu;%d;%llu\n",
@@ -51,7 +51,7 @@ void _starpu_top_task_ended(struct starpu_task *task,
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	(void) devid; //unused
-	STARPU_ASSERT(starpu_top_status_get());
+	STARPU_ASSERT(_starpu_top_status_get());
 	char *str = (char *) malloc(sizeof(char)*64);
 	snprintf(str, 64,
 				"END;%llu;%llu\n",
@@ -78,7 +78,7 @@ void _starpu_top_task_prevision(struct starpu_task *task,
 			       unsigned long long end)
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
-	STARPU_ASSERT(starpu_top_status_get());
+	STARPU_ASSERT(_starpu_top_status_get());
 	struct timespec now;
 	_starpu_clock_gettime(&now);
 	char * str= (char *)malloc(sizeof(char)*200);

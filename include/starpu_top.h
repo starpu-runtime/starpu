@@ -82,11 +82,6 @@ enum starpu_top_message_type
 	TOP_TYPE_UNKNOW
 };
 
-/*
- * This function returns 1 if starpu_top is initialized. 0 otherwise.
- */
-int starpu_top_status_get();
-
 /*****************************************************
 ****   Functions to call BEFORE initialisation   *****
 *****************************************************/

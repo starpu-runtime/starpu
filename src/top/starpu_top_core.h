@@ -21,6 +21,11 @@
 unsigned long long _starpu_top_timing_timespec_to_ms(const struct timespec *ts);
 
 /*
+ * This function returns 1 if starpu_top is initialized. 0 otherwise.
+ */
+int _starpu_top_status_get();
+
+/*
  * This functions notify UI than the task has started or ended
  */
 void _starpu_top_task_started(struct starpu_task *task,

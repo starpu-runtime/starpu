@@ -75,7 +75,7 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 	job->terminated = 0;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || starpu_top_status_get())
+	if (_starpu_bound_recording || _starpu_top_status_get())
 #endif
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 #ifdef STARPU_USE_FXT

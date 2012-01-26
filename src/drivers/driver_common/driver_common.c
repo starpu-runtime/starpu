@@ -32,7 +32,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	struct starpu_codelet *cl = task->cl;
 	struct starpu_task_profiling_info *profiling_info;
 	int profiling = starpu_profiling_status_get();
-	int starpu_top=starpu_top_status_get();
+	int starpu_top=_starpu_top_status_get();
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
 
@@ -70,7 +70,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	struct starpu_codelet *cl = task->cl;
 	struct starpu_task_profiling_info *profiling_info = task->profiling_info;
 	int profiling = starpu_profiling_status_get();
-	int starpu_top=starpu_top_status_get();
+	int starpu_top=_starpu_top_status_get();
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
 
