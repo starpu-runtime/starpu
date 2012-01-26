@@ -27,6 +27,7 @@
 #include <starpu_opencl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #define	NX	204800
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -83,6 +84,13 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
 #endif
+
+static int approximately_equal(float a, float b)
+{
+	int ai = (int) nearbyintf(a * 1000.0);
+	int bi = (int) nearbyintf(b * 1000.0);
+	return ai == bi;
+}
 
 int main(int argc, char **argv)
 {
@@ -159,7 +167,9 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
 	FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
-	return ((vector[1] == (1+1.0f) * factor && vector[NX-1] == (NX-1+1.0f) * factor)
+
+	return ((approximately_equal(vector[1], (1+1.0f) * factor)
+		 && approximately_equal(vector[NX-1], (NX-1+1.0f) * factor))
 		? EXIT_SUCCESS
 		: EXIT_FAILURE);
 
