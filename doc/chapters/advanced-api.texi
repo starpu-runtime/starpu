@@ -126,7 +126,7 @@ pointer to a codelet which converts from CUDA to CPU
 @end table
 @end deftp
 
-@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops});
+@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops})
 Register a piece of data that can be represented in different ways, depending upon
 the processing unit that manipulates it. It allows the programmer, for instance, to
 use an array of structures when working on a CPU, and a structure of arrays when
@@ -162,7 +162,7 @@ Of course @var{task} must have been previously inserted @var{bundle}.
 This function mustn't be called if @var{bundle} is already closed and/or @var{task} is already submitted. Doing so would result in undefined behaviour.
 @end deftypefun
 
-@deftypefun void starpu_task_bundle_close (starpu_task_bundle_t @var{bundle});
+@deftypefun void starpu_task_bundle_close (starpu_task_bundle_t @var{bundle})
 Inform the runtime that the user won't modify @var{bundle} anymore, it means no more inserting or removing task. Thus the runtime can destroy it when possible.
 @end deftypefun
 
