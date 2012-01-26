@@ -63,7 +63,7 @@ was last updated on @value{UPDATED}.
 @comment  better formatting.
 @comment
 @menu
-* Introduction::                A basic introduction to using StarPU
+* Introduction::                Getting started
 * Installing StarPU::           How to configure, build and install StarPU
 * Using StarPU::                How to run StarPU application
 * Basic Examples::              Basic examples of the use of StarPU

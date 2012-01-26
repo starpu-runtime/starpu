@@ -292,6 +292,11 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 @node Scheduling Policy API
 @subsection Scheduling Policy API
 
+While StarPU comes with a variety of scheduling policies (@pxref{Task
+scheduling policy}), it may sometimes be desirable to implement custom
+policies to address specific problems.  The API described below allows
+users to write their own scheduling policy.
+
 @deftp {Data Type} {struct starpu_machine_topology}
 TODO
 @end deftp

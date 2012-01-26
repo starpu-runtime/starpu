@@ -3,7 +3,7 @@
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
 @c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
@@ -40,22 +40,41 @@ fashion.
 @node StarPU in a Nutshell
 @section StarPU in a Nutshell
 
+StarPU is a software tool aiming to allow programmers to exploit the
+computing power of the available CPUs and GPUs, while relieving them
+from the need to specially adapt their programs to the target machine
+and processing units.
+
+At the core of StarPU is its run-time support library, which is
+responsible for scheduling application-provided tasks on heterogeneous
+CPU/GPU machines.  In addition, StarPU comes with programming language
+support, in the form of extensions to languages of the C family
+(@pxref{C Extensions}), as well as an OpenCL front-end (@pxref{SOCL
+OpenCL Extensions}).
+
+@cindex task-based programming model
+StarPU's run-time and programming language extensions support a
+@dfn{task-based programming model}.  Applications submit computational
+tasks, with CPU and/or GPU implementations, and StarPU schedules these
+tasks and associated data transfers on available CPUs and GPUs.  The
+data that a task manipulates are automatically transferred among
+accelerators and the main memory, so that programmers are freed from the
+scheduling issues and technical details associated with these transfers.
+
+StarPU takes particular care of scheduling tasks efficiently, using
+well-known algorithms from the literature (@pxref{Task scheduling
+policy}).  In addition, it allows scheduling experts, such as compiler
+or computational library developers, to implement custom scheduling
+policies in a portable fashion (@pxref{Scheduling Policy API}).
+
+The remainder of this section describes the main concepts used in StarPU.
+
 @menu
 * Codelet and Tasks::           
 * StarPU Data Management Library::  
 * Glossary::
 * Research Papers::
 @end menu
-
-From a programming point of view, StarPU is not a new language but a library
-that executes tasks explicitly submitted by the application.  The data that a
-task manipulates are automatically transferred onto the accelerator so that
-the programmer does not have to take care of complex data movements.  StarPU
-also takes particular care of scheduling those tasks efficiently and allows
-scheduling experts to implement custom scheduling policies in a portable
-fashion. The target audience is typically developers of compilers or computation
-libraries which want to seamlessly extend them to support heterogeneous
-architectures.
 
 @c explain the notion of codelet and task (i.e. g(A, B)
 @node Codelet and Tasks
