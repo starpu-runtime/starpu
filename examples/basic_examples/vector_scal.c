@@ -25,6 +25,7 @@
 
 #include <starpu.h>
 #include <starpu_opencl.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #define	NX	204800
@@ -158,7 +159,9 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
 	FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
-	return (vector[1] == (1+1.0f) * factor && vector[NX-1] == (NX-1+1.0f) * factor);
+	return ((vector[1] == (1+1.0f) * factor && vector[NX-1] == (NX-1+1.0f) * factor)
+		? EXIT_SUCCESS
+		: EXIT_FAILURE);
 
 enodev:
 	return 77;
