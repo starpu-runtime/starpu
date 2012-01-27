@@ -178,6 +178,7 @@ device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
 * --with-mkl-ldflags::          
 * --disable-gcc-extensions::    
 * --disable-socl::    
+* --disable-starpu-top::
 @end menu
 
 @node --enable-perf-debug
@@ -267,6 +268,12 @@ provides a plug-in support.
 
 Disable the SOCL extension. It is by default enabled if a valid OpenCL
 installation is found.
+
+@node --disable-starpu-top
+@subsubsection @code{--disable-starpu-top}
+
+Disable the StarPU-Top interface. It is by default enabled if the required
+dependencies are found.
 
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
