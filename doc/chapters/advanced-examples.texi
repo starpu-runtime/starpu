@@ -482,6 +482,18 @@ through the type @code{STARPU_VALUE}. The function
 implementation to retrieve them.
 @end deftypefun
 
+@deftypefun void starpu_codelet_pack_args ({char **}arg_buffer, {size_t *}arg_buffer_size, ...)
+Pack arguments of type @code{STARPU_VALUE} into a buffer which can be
+given to a codelet and later unpacked with the function
+@code{starpu_codelet_unpack_args} defined below.
+@end deftypefun
+
+@deftypefun void starpu_codelet_unpack_args ({void *}cl_arg, ...)
+Retrieve the arguments of type @code{STARPU_VALUE} associated to a
+task automatically created using the function
+@code{starpu_insert_task} defined above.
+@end deftypefun
+
 Here the implementation of the codelet:
 
 @smallexample
