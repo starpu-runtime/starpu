@@ -124,6 +124,12 @@ static void init_context(int devid)
 	cures = cudaGetDeviceProperties(&props[devid], devid);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	if (props[devid].computeMode == cudaComputeModeExclusive) {
+		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer\n");
+		STARPU_ASSERT(0);
+	}
+#endif
 
 	limit_gpu_mem_if_needed(devid);
 
