@@ -185,7 +185,9 @@ int starpu_free(void *A)
 		/* This is especially useful when starpu_free is called from
  		 * the GCC-plugin. starpu_shutdown will probably have already
 		 * been called, so we will not be able to submit a task. */
-		cudaFreeHost(A);
+		cudaError_t err = cudaFreeHost(A);
+		if (STARPU_UNLIKELY(err))
+			STARPU_CUDA_REPORT_ERROR(err);
 	}
 	else if (_starpu_can_submit_cuda_task())
 	{
