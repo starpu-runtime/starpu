@@ -572,7 +572,7 @@ Return the local pointer associated with @var{handle} or @code{NULL}
 if @var{handle}'s interface does not have data allocated locally
 @end deftypefun
 
-@deftypefun {enum starpu_data_interface_id} starpu_get_handle_interface_id (starpu_data_handle_t @var{handle})
+@deftypefun {enum starpu_data_interface_id} starpu_handle_get_interface_id (starpu_data_handle_t @var{handle})
 Return the unique identifier of the interface associated with the given @var{handle}.
 @end deftypefun
 
@@ -1396,7 +1396,7 @@ available and this task is only implemented for CUDA devices).
 This function blocks until all the tasks that were submitted are terminated.
 @end deftypefun
 
-@deftypefun {struct starpu_task *} starpu_get_current_task (void)
+@deftypefun {struct starpu_task *} starpu_task_get_current (void)
 This function returns the task currently executed by the worker, or
 NULL if it is called either from a thread that is not a task or simply
 because there is no task being executed at the moment.
@@ -1652,7 +1652,7 @@ returns the architecture type of a given worker.
 prints a list of all performance models on @var{output}.
 @end deftypefun
 
-@deftypefun void starpu_print_bus_bandwidth ({FILE *}@var{f})
+@deftypefun void starpu_bus_print_bandwidth ({FILE *}@var{f})
 prints a matrix of bus bandwidths on @var{f}.
 @end deftypefun
 
