@@ -805,6 +805,22 @@ Return the numberof columns in a block.
 Return the size of the elements in the matrix designated by @var{handle}.
 @end deftypefun
 
+@defmac STARPU_BCSR_GET_NNZ ({void *}@var{interface})
+todo
+@end defmac
+
+@defmac STARPU_BCSR_GET_NZVAL ({void *}@var{interface})
+todo
+@end defmac
+
+@defmac STARPU_BCSR_GET_COLIND ({void *}@var{interface})
+todo
+@end defmac
+
+@defmac STARPU_BCSR_GET_ROWPTR ({void *}@var{interface})
+todo
+@end defmac
+
 
 @node Accessing CSR Data Interfaces
 @subsubsection CSR Data Interfaces
@@ -1799,13 +1815,17 @@ This function returns a pointer to device properties for worker @var{workerid}
 (assumed to be a CUDA worker).
 @end deftypefun
 
-@deftypefun size_t starpu_cuda_get_global_mem_size (int devid)
+@deftypefun size_t starpu_cuda_get_global_mem_size (int @var{devid})
 todo
 @end deftypefun
 
-@deftypefun void starpu_cuda_report_error ({const char *}func, {const char *}file, int line, cudaError_t status)
+@deftypefun void starpu_cuda_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, cudaError_t @var{status})
 todo
 @end deftypefun
+
+@defmac STARPU_CUDA_REPORT_ERROR (cudaError_t @var{status})
+todo
+@end defmac
 
 @deftypefun void starpu_helper_cublas_init (void)
 This function initializes CUBLAS on every CUDA device.
@@ -1819,9 +1839,13 @@ initialized on every device.
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
 @end deftypefun
 
-@deftypefun void starpu_cublas_report_error ({const char *}func, {const char *}file, int line, cublasStatus status)
+@deftypefun void starpu_cublas_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, cublasStatus @var{status})
 todo
 @end deftypefun
+
+@defmac STARPU_CUBLAS_REPORT_ERROR (cublasStatus @var{status})
+todo
+@end defmac
 
 @node OpenCL extensions
 @section OpenCL extensions
@@ -1831,16 +1855,11 @@ todo
 * Compiling OpenCL kernels::    Compiling OpenCL kernels
 * Loading OpenCL kernels::      Loading OpenCL kernels
 * OpenCL statistics::           Collecting statistics from OpenCL
+* OpenCL utilities::            Utilities for OpenCL
 @end menu
 
 @node Writing OpenCL kernels
 @subsection Writing OpenCL kernels
-
-@deftypefun void starpu_opencl_display_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, {const char *}@var{msg}, cl_int @var{status})
-Given a valid error @var{status}, prints the corresponding error message on
-stdout, along with the given function name @var{func}, the given filename
-@var{file}, the given line number @var{line} and the given message @var{msg}.
-@end deftypefun
 
 @deftypefun size_t starpu_opencl_get_global_mem_size (int @var{devid})
 Return the size of global device memory in bytes.
@@ -1924,6 +1943,36 @@ to pass it the even returned by @code{clEnqueueNDRangeKernel}, to let StarPU
 collect statistics about the kernel execution (used cycles, consumed power).
 @end deftypefun
 
+@node OpenCL utilities
+@subsection OpenCL utilities
+
+@deftypefun void starpu_opencl_display_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, {const char *}@var{msg}, cl_int @var{status})
+Given a valid error @var{status}, prints the corresponding error message on
+stdout, along with the given function name @var{func}, the given filename
+@var{file}, the given line number @var{line} and the given message @var{msg}.
+@end deftypefun
+
+@defmac STARPU_OPENCL_DISPLAY_ERROR (cl_int @var{status})
+Call the function @code{starpu_opencl_display_error} with the given
+error @var{status}, the current function name, current file and line
+number, and a empty message.
+@end defmac
+
+@deftypefun void starpu_opencl_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, {const char *}@var{msg}, cl_int @var{status})
+Call the function @code{starpu_opencl_display_error} and abort.
+@end deftypefun
+
+@defmac STARPU_OPENCL_REPORT_ERROR (cl_int @var{status})
+Call the function @code{starpu_opencl_report_error} with the given
+error @var{status}, with the current function name, current file and
+line number, and a empty message.
+@end defmac
+
+@defmac STARPU_OPENCL_REPORT_ERROR_WITH_MSG ({const char *}@var{msg}, cl_int @var{status})
+Call the function @code{starpu_opencl_report_error} with the given
+message and the given error @var{status}, with the current function
+name, current file and line number.
+@end defmac
 
 @node Cell extensions
 @section Cell extensions

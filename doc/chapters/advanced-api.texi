@@ -158,6 +158,22 @@ working on a GPU.
 the format.
 @end deftypefun
 
+@defmac STARPU_MULTIFORMAT_GET_PTR ({void *}@var{interface})
+todo
+@end defmac
+
+@defmac STARPU_MULTIFORMAT_GET_CUDA_PTR ({void *}@var{interface})
+todo
+@end defmac
+
+@defmac STARPU_MULTIFORMAT_GET_OPENCL_PTR ({void *}@var{interface})
+todo
+@end defmac
+
+@defmac STARPU_MULTIFORMAT_GET_NX  ({void *}@var{interface})
+todo
+@end defmac
+
 
 @node Task Bundles
 @section Task Bundles
