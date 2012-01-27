@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -81,6 +81,10 @@ int starpu_malloc(void **A, size_t dim)
 	{
 #ifdef STARPU_USE_CUDA
 		int push_res;
+
+#ifdef STARPU_DEVEL
+#warning TODO: CUDA4 is able to directly allocate from any thread without having to launch a task
+#endif
 
 		struct malloc_pinned_codelet_struct s =
 		{
