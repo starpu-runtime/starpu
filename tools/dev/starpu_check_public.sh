@@ -31,3 +31,34 @@ for func in $functions ; do
 	    echo "function ${redcolor}${fname}${stcolor} at location ${redcolor}$location${stcolor} is not used in any examples or tests"
 	fi
 done
+
+echo
+
+structs=$(grep "struct starpu" $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
+for struct in $structs ; do
+    x=$(grep -rs "struct $struct" examples tests mpi starpufft gcc-plugin tools src/sched_policies)
+    if test "$x" == "" ; then
+	echo "struct ${redcolor}${struct}${stcolor} is not used in any examples or tests"
+    fi
+done
+
+echo
+
+enums=$(grep "enum starpu" $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
+for enum in $enums ; do
+    x=$(grep -rs "enum $enum" examples tests mpi starpufft gcc-plugin tools src/sched_policies)
+    if test "$x" == "" ; then
+	echo "enum ${redcolor}${enum}${stcolor} is not used in any examples or tests"
+    fi
+done
+
+echo
+
+macros=$(grep "define\b" include/*|grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
+for macro in $macros ; do
+    x=$(grep -rs "$macro" examples tests mpi starpufft gcc-plugin tools src/sched_policies)
+    if test "$x" == "" ; then
+	echo "macro ${redcolor}${macro}${stcolor} is not used in any examples or tests"
+    fi
+done
+
