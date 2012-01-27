@@ -1072,21 +1072,17 @@ This section describes the interface to manipulate codelets and tasks.
 todo
 @end deftp
 
-@deftp {Data Type} {enum starpu_codelet_where}
-This type enumerates possible values for the field @code{where} of
-@code{struct starpu_codelet} defined below. The different values
-@code{STARPU_CPU}, @code{STARPU_CUDA}, @code{STARPU_SPU},
-@code{STARPU_GORDON}, @code{STARPU_OPENCL} can be combined to specify
-on which types of processing units the codelet can be executed.
-@end deftp
-
 @deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
 
 @table @asis
 @item @code{where} (optional)
-Indicates which types of processing units are able to execute the codelet.
+Indicates which types of processing units are able to execute the
+codelet. The different values
+@code{STARPU_CPU}, @code{STARPU_CUDA}, @code{STARPU_SPU},
+@code{STARPU_GORDON}, @code{STARPU_OPENCL} can be combined to specify
+on which types of processing units the codelet can be executed.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
 implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
 indicates that it is only available on Cell SPUs. If the field is
