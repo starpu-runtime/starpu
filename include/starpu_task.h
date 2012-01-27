@@ -33,11 +33,14 @@ extern "C"
 {
 #endif
 
-#define STARPU_CPU	((1ULL)<<1)
-#define STARPU_CUDA	((1ULL)<<3)
-#define STARPU_SPU	((1ULL)<<4)
-#define STARPU_GORDON	((1ULL)<<5)
-#define STARPU_OPENCL	((1ULL)<<6)
+enum starpu_codelet_where
+{
+	STARPU_CPU=((1ULL)<<1),
+	STARPU_CUDA=((1ULL)<<3),
+	STARPU_SPU=((1ULL)<<4),
+	STARPU_GORDON=((1ULL)<<5),
+	STARPU_OPENCL=((1ULL)<<6)
+};
 
 /* Codelet types */
 enum starpu_codelet_type
