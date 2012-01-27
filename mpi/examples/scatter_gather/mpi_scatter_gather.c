@@ -32,7 +32,7 @@ void cpu_codelet(void *descr[], void *_args)
 	float factor;
 
 	block = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-        starpu_unpack_cl_args(_args, &rank);
+        starpu_codelet_unpack_args(_args, &rank);
 	factor = block[0];
 
 	//fprintf(stderr,"rank %d factor %f\n", rank, factor);

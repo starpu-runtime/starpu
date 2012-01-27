@@ -289,7 +289,7 @@ int dot_kernel(starpu_data_handle_t v1,
 static void scal_kernel_cuda(void *descr[], void *cl_arg)
 {
 	TYPE p1;
-	starpu_unpack_cl_args(cl_arg, &p1);
+	starpu_codelet_unpack_args(cl_arg, &p1);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
@@ -304,7 +304,7 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
 static void scal_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE alpha;
-	starpu_unpack_cl_args(cl_arg, &alpha);
+	starpu_codelet_unpack_args(cl_arg, &alpha);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
@@ -346,7 +346,7 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[1]);
  
 	TYPE alpha, beta;
-	starpu_unpack_cl_args(cl_arg, &beta, &alpha);
+	starpu_codelet_unpack_args(cl_arg, &beta, &alpha);
 
 	/* Compute v1 = alpha M v2 + beta v1 */
 	cublasgemv('N', nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
@@ -365,7 +365,7 @@ static void gemv_kernel_cpu(void *descr[], void *cl_arg)
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[1]);
 
 	TYPE alpha, beta;
-	starpu_unpack_cl_args(cl_arg, &beta, &alpha);
+	starpu_codelet_unpack_args(cl_arg, &beta, &alpha);
 
 	int worker_size = starpu_combined_worker_get_size();
 
@@ -450,7 +450,7 @@ int gemv_kernel(starpu_data_handle_t v1,
 static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 {
 	TYPE p1, p2;
-	starpu_unpack_cl_args(cl_arg, &p1, &p2);
+	starpu_codelet_unpack_args(cl_arg, &p1, &p2);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -470,7 +470,7 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 static void scal_axpy_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE p1, p2;
-	starpu_unpack_cl_args(cl_arg, &p1, &p2);
+	starpu_codelet_unpack_args(cl_arg, &p1, &p2);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -530,7 +530,7 @@ int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
 static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 {
 	TYPE p1;
-	starpu_unpack_cl_args(cl_arg, &p1);
+	starpu_codelet_unpack_args(cl_arg, &p1);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -547,7 +547,7 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 static void axpy_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE p1;
-	starpu_unpack_cl_args(cl_arg, &p1);
+	starpu_codelet_unpack_args(cl_arg, &p1);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);

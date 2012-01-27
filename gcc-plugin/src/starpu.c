@@ -887,7 +887,7 @@ handle_task_attribute (tree *node, tree name, tree args,
     }
 
   /* Lookup & cache function declarations for later reuse.  */
-  LOOKUP_STARPU_FUNCTION (unpack_fn, "starpu_unpack_cl_args");
+  LOOKUP_STARPU_FUNCTION (unpack_fn, "starpu_codelet_unpack_args");
 
   return NULL_TREE;
 }
@@ -1373,7 +1373,7 @@ build_codelet_wrapper_definition (tree task_impl)
 	  }
       }
 
-    /* Build `starpu_unpack_cl_args (cl_args, &var1, &var2, ...)'.  */
+    /* Build `starpu_codelet_unpack_args (cl_args, &var1, &var2, ...)'.  */
 
     args = NULL;
     VEC_safe_push (tree, gc, args, TREE_CHAIN (DECL_ARGUMENTS (wrapper_decl)));

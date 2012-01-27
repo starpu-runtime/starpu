@@ -122,11 +122,11 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
   return 0;
 }
 
-/* Our own implementation of `starpu_unpack_cl_args', for debugging
+/* Our own implementation of `starpu_codelet_unpack_args', for debugging
    purposes.  */
 
 void
-starpu_unpack_cl_args (void *cl_raw_arg, ...)
+starpu_codelet_unpack_args (void *cl_raw_arg, ...)
 {
   va_list args;
   size_t nargs, arg, offset, size;

@@ -28,7 +28,7 @@ static void cpu_task(void **buffers, void *args)
 	size_t size;
 
 	numbers = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	starpu_unpack_cl_args (args, &size);
+	starpu_codelet_unpack_args (args, &size);
 
 	for(i = 0; i < size; i++)
 	{
@@ -44,7 +44,7 @@ static void cuda_task(void **buffers, void *args)
 	size_t size;
 
 	numbers = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
-	starpu_unpack_cl_args (args, &size);
+	starpu_codelet_unpack_args (args, &size);
 
 	for(i = 0; i < size; i++)
 	{

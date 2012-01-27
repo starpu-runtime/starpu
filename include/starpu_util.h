@@ -239,11 +239,11 @@ int starpu_insert_task(struct starpu_codelet *cl, ...);
 
 /* Retrieve the arguments of type STARPU_VALUE associated to a task
  * automatically created using starpu_insert_task. */
-void starpu_unpack_cl_args(void *cl_arg, ...);
+void starpu_codelet_unpack_args(void *cl_arg, ...);
 
 /* Pack arguments of type STARPU_VALUE into a buffer which can be
- * given to a codelet and later unpacked with starpu_unpack_cl_args */
-void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...);
+ * given to a codelet and later unpacked with starpu_codelet_unpack_args */
+void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }

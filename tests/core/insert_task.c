@@ -24,7 +24,7 @@ void func_cpu(void *descr[], void *_args)
 	int ifactor;
 	float ffactor;
 
-	starpu_unpack_cl_args(_args, &ifactor, &ffactor);
+	starpu_codelet_unpack_args(_args, &ifactor, &ffactor);
         *x0 = *x0 * ifactor;
         *x1 = *x1 * ffactor;
 }
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 	task->handles[1] = data_handles[1];
 	char *arg_buffer;
 	size_t arg_buffer_size;
-	starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,
+	starpu_codelet_pack_args(&arg_buffer, &arg_buffer_size,
 			    STARPU_VALUE, &ifactor, sizeof(ifactor),
 			    STARPU_VALUE, &ffactor, sizeof(ffactor),
 			    0);

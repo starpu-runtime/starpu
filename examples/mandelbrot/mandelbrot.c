@@ -238,7 +238,7 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt; /* unused for CUDA tasks */
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
+	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	cl_mem data = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 
@@ -283,7 +283,7 @@ static void compute_block(void *descr[], void *cl_arg)
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt; /* unused for sequential tasks */
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
+	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -327,7 +327,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
+	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 

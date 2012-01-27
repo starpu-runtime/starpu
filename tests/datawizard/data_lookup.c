@@ -28,7 +28,7 @@ static void task(void **buffers, void *args)
 	size_t size, i;
 
 	numbers = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	starpu_unpack_cl_args (args, &size);
+	starpu_codelet_unpack_args (args, &size);
 	for(i = 0; i < size; i++)
 	{
 		numbers[i] = i;

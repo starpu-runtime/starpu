@@ -23,7 +23,7 @@
 #include <stdarg.h>
 #include <util/starpu_insert_task_utils.h>
 
-void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...)
+void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...)
 {
 	va_list varg_list;
 
@@ -35,7 +35,7 @@ void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...)
 	_starpu_pack_cl_args(*arg_buffer_size, arg_buffer, varg_list);
 }
 
-void starpu_unpack_cl_args(void *_cl_arg, ...)
+void starpu_codelet_unpack_args(void *_cl_arg, ...)
 {
 	unsigned char *cl_arg = (unsigned char *) _cl_arg;
 	unsigned current_arg_offset = 0;
