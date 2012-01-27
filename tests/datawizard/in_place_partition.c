@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
 	starpu_data_partition(handle, &f);
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < f.nchildren; i++) {
 		struct starpu_task *task = starpu_task_create();
 
 		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
