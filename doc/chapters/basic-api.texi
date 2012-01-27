@@ -1202,22 +1202,6 @@ worker size that StarPU will use to execute parallel tasks for this codelet.
 @end table
 @end deftp
 
-@defmac STARPU_MULTIPLE_CPU_IMPLEMENTATIONS
-todo
-@end defmac
-
-@defmac STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS
-todo
-@end defmac
-
-@defmac STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS
-todo
-@end defmac
-
-@defmac STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS
-todo
-@end defmac
-
 @deftp {Data Type} {enum starpu_task_status}
 todo
 @end deftp
