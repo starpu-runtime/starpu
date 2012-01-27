@@ -224,6 +224,18 @@ to it.
 Returns the last value set by @code{starpu_data_set_rank}.
 @end deftypefun
 
+@defmac STARPU_EXECUTE_ON_NODE
+this macro is used when calling @code{starpu_mpi_insert_task}, and
+must be followed by a integer value which specified the node on which
+to execute the codelet.
+@end defmac
+
+@defmac STARPU_EXECUTE_ON_DATA
+this macro is used when calling @code{starpu_mpi_insert_task}, and
+must be followed by a data handle to specify that the node owning the
+given data will execute the codelet.
+@end defmac
+
 @deftypefun int starpu_mpi_insert_task (MPI_Comm @var{comm}, struct starpu_codelet *@var{codelet}, ...)
 Create and submit a task corresponding to @var{codelet} with the following
 arguments.  The argument list must be zero-terminated.
