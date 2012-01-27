@@ -53,3 +53,14 @@ for enum in $enums ; do
 	echo "enum ${redcolor}${enum}${stcolor} is not (or incorrectly) documented"
     fi
 done
+
+echo
+
+macros=$(grep "define\b" include/*|grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
+for macro in $macros ; do
+    x=$(grep "$macro\b" doc/starpu.texi doc/chapters/*texi | grep defmac)
+    if test "$x" == "" ; then
+	echo "macro ${redcolor}${macro}${stcolor} is not (or incorrectly) documented"
+    fi
+done
+
