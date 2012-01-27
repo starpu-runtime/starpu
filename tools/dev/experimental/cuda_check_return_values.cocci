@@ -14,6 +14,7 @@
 // See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 virtual report
+virtual org
 
 @seek@
 identifier func;
@@ -58,3 +59,10 @@ func << no_assignment.cuda_func;
 @@
 msg = "Ignoring the return value of %s." % func
 coccilib.report.print_report(p[0], msg)
+
+@script:python depends on no_assignment && org@
+p << no_assignment.p;
+func << no_assignment.cuda_func;
+@@
+msg = "Ignoring the return value of %s." % func
+coccilib.org.print_todo(p[0], msg)
