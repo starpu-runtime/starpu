@@ -460,20 +460,10 @@ The arguments following the codelets can be of the following types:
 @item
 @code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
 @item
-@code{STARPU_VALUE} followed  by a pointer to a constant value and
-the size of the constant;
-@item
-@code{STARPU_CALLBACK} followed by a pointer to a callback function;
-@item
-@code{STARPU_CALLBACK_ARG} followed by a pointer to be given as an
-argument to the callback function;
-@item
-@code{STARPU_CALLBACK_WITH_ARG} followed by two pointers: one to a callback
-function, and the other to be given as an argument to the callback
-function; this is equivalent to using both @code{STARPU_CALLBACK} and
-@code{STARPU_CALLBACK_WITH_ARG}
-@item
-@code{STARPU_PRIORITY} followed by a integer defining a priority level.
+the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
+@code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
+@code{STARPU_PRIORITY}, followed by the appropriated objects as
+defined below.
 @end itemize
 
 Parameters to be passed to the codelet implementation are defined
@@ -481,6 +471,35 @@ through the type @code{STARPU_VALUE}. The function
 @code{starpu_codelet_unpack_args} must be called within the codelet
 implementation to retrieve them.
 @end deftypefun
+
+@defmac STARPU_VALUE
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a pointer to a constant value and the size of the constant
+@end defmac
+
+@defmac STARPU_CALLBACK
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a pointer to a callback function
+@end defmac
+
+@defmac STARPU_CALLBACK_ARG
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a pointer to be given as an argument to the callback
+function
+@end defmac
+
+@defmac  STARPU_CALLBACK_WITH_ARG
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by two pointers: one to a callback function, and the other to
+be given as an argument to the callback function; this is equivalent
+to using both @code{STARPU_CALLBACK} and
+@code{STARPU_CALLBACK_WITH_ARG}
+@end defmac
+
+@defmac STARPU_PRIORITY
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a integer defining a priority level
+@end defmac
 
 @deftypefun void starpu_codelet_pack_args ({char **}arg_buffer, {size_t *}arg_buffer_size, ...)
 Pack arguments of type @code{STARPU_VALUE} into a buffer which can be

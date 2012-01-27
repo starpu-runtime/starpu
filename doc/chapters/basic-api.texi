@@ -1338,9 +1338,15 @@ submitted if it has not been properly initialized.
 Initialize @var{task} with default values. This function is implicitly
 called by @code{starpu_task_create}. By default, tasks initialized with
 @code{starpu_task_init} must be deinitialized explicitly with
-@code{starpu_task_deinit}. Tasks can also be initialized statically, using the
-constant @code{STARPU_TASK_INITIALIZER}.
+@code{starpu_task_deinit}. Tasks can also be initialized statically,
+using @code{STARPU_TASK_INITIALIZER} defined below.
 @end deftypefun
+
+@defmac STARPU_TASK_INITIALIZER
+It is possible to initialize statically allocated tasks with this
+value. This is equivalent to initializing a starpu_task structure with
+the @code{starpu_task_init} function defined above.
+@end defmac
 
 @deftypefun {struct starpu_task *} starpu_task_create (void)
 Allocate a task structure and initialize it with default values. Tasks
