@@ -89,7 +89,10 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 			worker[i]->tasks[sched_ctx_id]->execute_on_a_specific_worker = 1;
 			worker[i]->tasks[sched_ctx_id]->workerid = workerids[i];
 			worker[i]->tasks[sched_ctx_id]->destroy = 1;
-			worker[i]->tasks[sched_ctx_id]->priority = 1;
+			int worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker[i], sched_ctx_id);
+                        /* if the ctx is not in the worker's list it means the update concerns the addition of ctxs*/
+                        if(worker_sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+                                worker[i]->tasks[sched_ctx_id]->priority = 1;
 
 			_starpu_exclude_task_from_dag(worker[i]->tasks[sched_ctx_id]);
 			
@@ -640,6 +643,42 @@ unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx_id)
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return sched_ctx->workers->nworkers;
 
+}
+
+unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2)
+{
+        struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+        struct starpu_sched_ctx *sched_ctx2 = _starpu_get_sched_ctx_struct(sched_ctx_id2);
+
+        struct worker_collection *workers = sched_ctx->workers;
+        struct worker_collection *workers2 = sched_ctx2->workers;
+        int worker, worker2;
+        int shared_workers = 0;
+
+        if(workers->init_cursor)
+                workers->init_cursor(workers);
+
+        if(workers2->init_cursor)
+                workers2->init_cursor(workers2);
+
+        while(workers->has_next(workers))
+        {
+                worker = workers->get_next(workers);
+                while(workers2->has_next(workers2))
+		{
+                        worker2 = workers2->get_next(workers2);
+                        if(worker == worker2)
+				shared_workers++;
+                }
+        }
+
+        if(workers->init_cursor)
+                workers->deinit_cursor(workers);
+
+        if(workers2->init_cursor)
+                workers2->deinit_cursor(workers2);
+
+	return shared_workers;
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR

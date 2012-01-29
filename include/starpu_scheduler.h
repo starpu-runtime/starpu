@@ -174,6 +174,8 @@ unsigned starpu_get_sched_ctx();
 
 unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx);
 
+unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
+
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 

@@ -91,6 +91,12 @@ double sched_ctx_hypervisor_get_idle_time(unsigned sched_ctx, int worker);
 
 double sched_ctx_hypervisor_get_bef_res_exp_end(unsigned sched_ctx);
 
+double sched_ctx_hypervisor_get_ctx_velocity(unsigned sched_ctx);
+
+double sched_ctx_hypervisor_get_cpu_velocity(unsigned sched_ctx);
+
+double sched_ctx_hypervisor_get_flops_left(unsigned sched_ctx);
+
 /* hypervisor policies */
 #define IDLE_POLICY 1
 #define APP_DRIVEN_POLICY 2

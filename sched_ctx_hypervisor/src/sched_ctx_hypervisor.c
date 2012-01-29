@@ -225,7 +225,7 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 
 void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move)
 {
-	if(hypervisor.resize[sender_sched_ctx])
+	if(hypervisor.resize[sender_sched_ctx] || sched_ctx_hypervisor_get_flops_left_pct(sender_sched_ctx) == 0.0f)
 	{
 		int j;
 		printf("resize ctx %d with", sender_sched_ctx);
@@ -437,6 +437,34 @@ static double _get_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
 	return ret_val;
 }
 
+static double _get_elapsed_flops_per_cpus(unsigned sched_ctx, int *ncpus)
+{
+	double ret_val = 0.0;
+
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+        int worker;
+
+	if(workers->init_cursor)
+                workers->init_cursor(workers);
+
+        while(workers->has_next(workers))
+	{
+                worker = workers->get_next(workers);
+                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                if(arch == STARPU_CPU_WORKER)
+                {
+			ret_val += hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[worker];
+			(*ncpus)++;
+                }
+        }
+
+	if(workers->init_cursor)
+		workers->deinit_cursor(workers);
+
+	return ret_val;
+}
+
+
 static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
 {
 	int i;
@@ -457,6 +485,38 @@ double sched_ctx_hypervisor_get_exp_end(unsigned sched_ctx)
 		return exp_end;
 	}
 	return -1.0;
+}
+
+double sched_ctx_hypervisor_get_ctx_velocity(unsigned sched_ctx)
+{
+        double elapsed_flops = _get_elapsed_flops_per_sched_ctx(sched_ctx);
+
+        if( elapsed_flops != 0.0)
+        {
+                double curr_time = starpu_timing_now();
+                double elapsed_time = curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time;
+                return elapsed_flops/elapsed_time;
+        }
+}
+
+double sched_ctx_hypervisor_get_cpu_velocity(unsigned sched_ctx)
+{
+        int ncpus = 0;
+        double elapsed_flops = _get_elapsed_flops_per_cpus(sched_ctx, &ncpus);
+
+        if( elapsed_flops != 0.0)
+        {
+                double curr_time = starpu_timing_now();
+                double elapsed_time = curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time;
+                return (elapsed_flops/elapsed_time) / ncpus;
+        }
+
+        return -1.0;
+}
+
+double sched_ctx_hypervisor_get_flops_left(unsigned sched_ctx)
+{
+        return hypervisor.sched_ctx_w[sched_ctx].remaining_flops;
 }
 
 double sched_ctx_hypervisor_get_flops_left_pct(unsigned sched_ctx)
