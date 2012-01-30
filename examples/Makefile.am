@@ -17,6 +17,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
@@ -158,6 +159,7 @@ examplebin_PROGRAMS +=				\
 	basic_examples/block			\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
+	cpp/incrementer_cpp			\
 	filters/custom_mf/custom_mf_filter      \
 	filters/fvector				\
 	filters/fblock				\
@@ -220,6 +222,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/block			\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
+	cpp/incrementer_cpp			\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -660,10 +663,21 @@ spmv_dw_block_spmv_LDADD =			\
 	$(STARPU_BLAS_LDFLAGS)
 endif
 
+###########################
+# C++ Incrementer example #
+###########################
+
+cpp_incrementer_cpp_SOURCES	=	\
+	cpp/incrementer_cpp.cpp
+
+#if STARPU_USE_CUDA
+#cpp_incrementer_cpp_SOURCES +=	\
+#	incrementer/incrementer_kernels.cu
+#endif
+
 #######################
 # Incrementer example #
 #######################
-
 
 incrementer_incrementer_SOURCES =	\
 	incrementer/incrementer.c
