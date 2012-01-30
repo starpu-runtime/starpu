@@ -13,7 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-
+#include <config.h>
 #include <stdio.h>
 #include <starpu.h>
 
@@ -91,7 +91,7 @@ Options:                                                      \n\
 	-h, --help       display this help and exit           \n\
 	-v, --version    output version information and exit  \n\
                                                               \n\
-Report bugs to <starpu-bugs@lists.gforge.inria.fr>",
+Report bugs to <" PACKAGE_BUGREPORT ">.",
 PROGNAME, PROGNAME);
 	}
 	else if (strncmp(argv[1], "--version", 9) == 0 ||
