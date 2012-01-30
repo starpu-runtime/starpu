@@ -813,7 +813,7 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model
 	res = access(path, F_OK);
 	if (res)
 	{
-		char *dot = strrchr(symbol, '.');
+		const char *dot = strrchr(symbol, '.');
 		if (dot)
 		{
 			char *symbol2 = strdup(symbol);

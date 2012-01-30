@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -339,7 +339,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 	{
 		config->workers[topology->nworkers + cudagpu].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_cuda_gpuid(config);
-		enum starpu_perf_archtype arch = STARPU_CUDA_DEFAULT + devid;
+		enum starpu_perf_archtype arch = (enum starpu_perf_archtype)((int)STARPU_CUDA_DEFAULT + devid);
 		config->workers[topology->nworkers + cudagpu].devid = devid;
 		config->workers[topology->nworkers + cudagpu].perf_arch = arch;
 		config->workers[topology->nworkers + cudagpu].worker_mask = STARPU_CUDA;
@@ -412,7 +412,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 			break;
 		}
 		config->workers[topology->nworkers + openclgpu].arch = STARPU_OPENCL_WORKER;
-		enum starpu_perf_archtype arch = STARPU_OPENCL_DEFAULT + devid;
+		enum starpu_perf_archtype arch = (enum starpu_perf_archtype)((int)STARPU_OPENCL_DEFAULT + devid);
 		config->workers[topology->nworkers + openclgpu].devid = devid;
 		config->workers[topology->nworkers + openclgpu].perf_arch = arch;
 		config->workers[topology->nworkers + openclgpu].worker_mask = STARPU_OPENCL;

@@ -402,6 +402,8 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 {
 	struct starpu_task *task;
+	int worker_id;
+	unsigned node;
 
 	/* We can't tell in advance which task will be picked up, so we measure
 	 * a timestamp, and will attribute it afterwards to the task. */
@@ -431,11 +433,11 @@ pick:
 	if (task->mf_skip)
 		goto profiling;
 
-	int worker_id = starpu_worker_get_id();
+	worker_id = starpu_worker_get_id();
 	if (!starpu_worker_can_execute_task(worker_id, task, 0))
 		return task;
 
-	unsigned node = starpu_worker_get_memory_node(worker_id);
+	node = starpu_worker_get_memory_node(worker_id);
 
 	/*
 	 * We do have a task that uses multiformat handles. Let's create the 
