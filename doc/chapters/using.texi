@@ -36,8 +36,8 @@ with the @code{libstarpu} package. Similar packages are provided for
 @code{libstarpumpi} and @code{libstarpufft}.}:
 
 @example
-% pkg-config --cflags libstarpu-1.0  # options for the compiler
-% pkg-config --libs libstarpu-1.0    # options for the linker
+% pkg-config --cflags starpu-1.0  # options for the compiler
+% pkg-config --libs starpu-1.0    # options for the linker
 @end example
 
 Also pass the @code{--static} option if the application is to be

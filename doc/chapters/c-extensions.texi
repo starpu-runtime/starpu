@@ -23,7 +23,7 @@ When StarPU has been installed with its GCC plug-in, programs that use
 these extensions can be compiled this way:
 
 @example
-$ gcc -c -fplugin=`pkg-config libstarpu-1.0 --variable=gccplugin` foo.c
+$ gcc -c -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` foo.c
 @end example
 
 @noindent

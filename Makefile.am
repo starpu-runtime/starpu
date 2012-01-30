@@ -43,7 +43,7 @@ SUBDIRS += starpufft
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpu.pc libstarpu-1.0.pc
+pkgconfig_DATA = libstarpu.pc starpu-1.0.pc
 if USE_MPI
 pkgconfig_DATA += libstarpumpi.pc libstarpumpi-1.0.pc
 endif
