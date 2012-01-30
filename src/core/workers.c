@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -135,7 +135,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 		return func != 0;
 	}
 	default:
-		STARPU_ASSERT(!"Unknown arch type");
+		STARPU_ASSERT_MSG(0, "Unknown arch type");
 	}
 }
 

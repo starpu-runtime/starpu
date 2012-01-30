@@ -436,7 +436,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				}
 		}
 		else
-			STARPU_ASSERT(!"Unknown history-based performance model");
+			STARPU_ASSERT_MSG(0, "Unknown history-based performance model");
 	}
 
 	/* Writing stuff */
@@ -495,7 +495,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 					max_impl = nimpl + 1;
 		}
 		else
-			STARPU_ASSERT(!"Unknown history-based performance model");
+			STARPU_ASSERT_MSG(0, "Unknown history-based performance model");
 
 		if (max_impl == 0)
 			continue;
