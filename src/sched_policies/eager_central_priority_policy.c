@@ -155,7 +155,7 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 		}
 		while (!task && priolevel-- > 0);
 	}
-	STARPU_ASSERT(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0), "prio does not support \"can_execute\"");
+	STARPU_ASSERT_MSG(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0), "prio does not support \"can_execute\"");
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
