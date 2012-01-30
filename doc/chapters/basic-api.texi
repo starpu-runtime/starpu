@@ -478,8 +478,8 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 @deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{elemsize})
 Register the @var{nx}x@var{ny} 2D matrix of @var{elemsize}-byte elements
 pointed by @var{ptr} and initialize @var{handle} to represent it.
-@var{ld} specifies the number of extra elements present at the end of
-each row; a non-zero @var{ld} adds padding, which can be useful for
+@var{ld} specifies the number of elements between rows.
+a value greater than @var{nx} adds padding, which can be useful for
 alignment purposes.
 
 @cartouche
@@ -496,8 +496,8 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 @deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{elemsize})
 Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{elemsize}-byte
 elements pointed by @var{ptr} and initialize @var{handle} to represent
-it.  Again, @var{ldy} and @var{ldz} specify the number of extra elements
-present at the end of each row or column.
+it.  Again, @var{ldy} and @var{ldz} specify the number of elements
+between rows and between z planes.
 
 @cartouche
 @smallexample
