@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -408,7 +408,7 @@ void _starpu_opencl_init(void)
 
 		if (nb_devices > STARPU_MAXOPENCLDEVS)
 		{
-			_STARPU_DISP("# Warning: %d OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices?\n", nb_devices, STARPU_MAXOPENCLDEVS);
+			_STARPU_DISP("# Warning: %u OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices?\n", nb_devices, STARPU_MAXOPENCLDEVS);
 			nb_devices = STARPU_MAXOPENCLDEVS;
 		}
 

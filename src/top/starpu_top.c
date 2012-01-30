@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
- * Copyright (C) 2011 Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,6 +61,7 @@ char *message_for_topparam_init(struct starpu_top_param* param);
  * we store data and param in a tab to offer a O(1) access when the program  is
  * running
  */
+static
 void copy_data_and_param()
 {
 	printf("%s:%d trace\n", __FILE__, __LINE__);
@@ -208,6 +209,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	sem_wait(&starpu_top_wait_for_go);
 }
 
+static
 void starpu_top_enqueue_data(struct starpu_top_data * data)
 {
 	if(starpu_top_first_data == NULL)

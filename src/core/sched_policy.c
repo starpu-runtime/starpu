@@ -376,7 +376,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 			break;
 #endif
 		default:
-			fprintf(stderr, "Oops : %d\n", handle->mf_node);
+			fprintf(stderr, "Oops : %u\n", handle->mf_node);
 			STARPU_ASSERT(0);
 		}
 		break;

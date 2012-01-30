@@ -27,6 +27,7 @@
 #include <starpu_task_bundle.h>
 #include <starpu_top.h>
 #include <core/jobs.h>
+#include <top/starpu_top_core.h>
 
 static unsigned nworkers;
 

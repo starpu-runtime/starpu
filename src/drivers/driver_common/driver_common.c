@@ -25,6 +25,7 @@
 #include <drivers/driver_common/driver_common.h>
 #include <starpu_top.h>
 #include <core/sched_policy.h>
+#include <top/starpu_top_core.h>
 
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank)
 {

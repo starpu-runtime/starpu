@@ -225,7 +225,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	unsigned i;
 	int err;
 	double sum = 0.0;
-	unsigned int node, cpu_node, cuda_node, opencl_node;
+	unsigned int node, cpu_node;
 
 	/* We need to get one node per archtype. This is kinda ugly,
 	 * but it does the job.
@@ -241,7 +241,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	cpu_node = starpu_worker_get_memory_node(cpu_worker);
 #endif
 #ifdef STARPU_USE_CUDA
-	int cuda_worker;
+	int cuda_worker, cuda_node;
 	err = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
 					    &cuda_worker, 1);
 	if (err != 1 && err != -ERANGE)
@@ -249,7 +249,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	cuda_node = starpu_worker_get_memory_node(cuda_worker);
 #endif
 #ifdef STARPU_USE_OPENCL
-	int opencl_worker;
+	int opencl_worker, opencl_node;
 	err = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
 					    &opencl_worker, 1);
 	if (err != 1 && err != -ERANGE)
