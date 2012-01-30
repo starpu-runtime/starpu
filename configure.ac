@@ -1182,10 +1182,13 @@ if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; the
 	    AC_MSG_WARN([GCC plug-ins not supported; StarPU's GCC plug-in will not be built])
         fi
     else
+        # What GCC version are we using?
+        STARPU_GCC_VERSION
+
         # The `.so' itself cannot be called `starpu-gcc.so' (because
 	# `-fplugin-arg-' option names and such must match the `.so'
 	# name), so use a meaningful directory name.
-	gccplugindir="\${pkglibdir}/${STARPU_EFFECTIVE_VERSION}/gcc"
+	gccplugindir="\${pkglibdir}/${STARPU_EFFECTIVE_VERSION}/gcc/${STARPU_GCC_VERSION_MAJOR}.${STARPU_GCC_VERSION_MINOR}"
 	AC_SUBST([gccplugindir])
 
 	# Lines to be inserted in the `.pc' file.
