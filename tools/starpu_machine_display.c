@@ -82,7 +82,7 @@ static void parse_args(int argc, char **argv)
 	    strncmp(argv[1], "-h", 2) == 0)
 	{
 		(void) fprintf(stderr, "\
-%s shows the processing units that StarPU can use, and the \
+Show the processing units that StarPU can use, and the \
 bandwitdh measured between the memory nodes.                  \n\
                                                               \n\
 Usage: %s [OPTION]                                            \n\
@@ -92,7 +92,7 @@ Options:                                                      \n\
 	-v, --version    output version information and exit  \n\
                                                               \n\
 Report bugs to <" PACKAGE_BUGREPORT ">.",
-PROGNAME, PROGNAME);
+PROGNAME);
 	}
 	else if (strncmp(argv[1], "--version", 9) == 0 ||
 		 strncmp(argv[1], "-v", 2) == 0)
