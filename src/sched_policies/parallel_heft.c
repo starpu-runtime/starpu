@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -190,7 +190,7 @@ static double compute_ntasks_end(int workerid)
 		for (i = 0; i < worker_size; i++)
 		{
 			/* XXX: this is actually bogus: not all pushed tasks are necessarily parallel... */
-			ntasks_end = STARPU_MAX(ntasks_end, ntasks[combined_workerid[i]] / (int)starpu_worker_get_relative_speedup(perf_arch));
+			ntasks_end = STARPU_MAX(ntasks_end, (int) ((double) ntasks[combined_workerid[i]] / starpu_worker_get_relative_speedup(perf_arch)));
 		}
 
 		return ntasks_end;
