@@ -27,6 +27,7 @@
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <math.h>
+#include <string.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -517,26 +518,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 void starpu_codelet_init(struct starpu_codelet *cl)
 {
-	cl->where = 0;
-	cl->can_execute = NULL;
-	cl->type = STARPU_SEQ;
-
-	cl->cuda_func = NULL;
-	cl->cpu_func = NULL;
-	cl->opencl_func = NULL;
-	cl->gordon_func = 0;
-
-	cl->cuda_funcs[0] = NULL;
-	cl->cpu_funcs[0] = NULL;
-	cl->opencl_funcs[0] = NULL;
-	cl->gordon_funcs[0] = 0;
-
-	cl->nbuffers = 0;
-
-	cl->model = NULL;
-	cl->power_model = NULL;
-
-	cl->name = "undefined";
+	memset(cl, 0, sizeof(struct starpu_codelet));
 };
 
 void starpu_display_codelet_stats(struct starpu_codelet *cl)
