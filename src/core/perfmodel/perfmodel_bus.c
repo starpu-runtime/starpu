@@ -54,8 +54,8 @@ struct dev_timing
 	double timing_dtoh;
 };
 
-static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{-1.0}};
-static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{ -1.0}};
+static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{NAN}};
+static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{NAN}};
 static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
 static int ncuda = 0;
@@ -850,7 +850,7 @@ static void write_bus_latency_file_content(void)
 			if ((src > maxnode) || (dst > maxnode))
 			{
 				/* convention */
-				latency = -1.0;
+				latency = NAN;
 			}
 			else if (src == dst)
 			{
@@ -988,7 +988,7 @@ static void write_bus_bandwidth_file_content(void)
 
 			if ((src > maxnode) || (dst > maxnode))
 			{
-				bandwidth = -1.0;
+				bandwidth = NAN;
 			}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 			else if (src != dst)

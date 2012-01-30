@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
@@ -889,7 +890,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl)
 {
-	double exp = -1.0;
+	double exp = NAN;
 	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	struct starpu_regression_model *regmodel;
 
@@ -903,7 +904,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
-	double exp = -1.0;
+	double exp = NAN;
 	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	struct starpu_regression_model *regmodel;
 
@@ -948,21 +949,21 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	history = per_arch_model->history;
 	if (!history)
-		return -1.0;
+		return NAN;
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 	entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-	exp = entry?entry->mean:-1.0;
+	exp = entry?entry->mean:NAN;
 
 	if (entry && entry->nsample < _STARPU_CALIBRATION_MINIMUM)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Not calibrated enough */
-		exp = -1.0;
+		exp = NAN;
 
-	if (exp == -1.0 && !model->benchmarking)
+	if (isnan(exp) && !model->benchmarking)
 	{
 		_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
 		_starpu_set_calibrate_flag(1);

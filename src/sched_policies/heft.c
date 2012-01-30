@@ -139,7 +139,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
 
 	/* If there is no prediction available, we consider the task has a null length */
-	if (predicted != -1.0)
+	if (!isnan(predicted))
 	{
 		task->predicted = predicted;
 		exp_end[workerid] += predicted;
@@ -147,7 +147,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	}
 
 	/* If there is no prediction available, we consider the task has a null length */
-	if (predicted_transfer != -1.0)
+	if (!isnan(predicted_transfer))
 	{
 		if (starpu_timing_now() + predicted_transfer < exp_end[workerid])
 		{
@@ -289,9 +289,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
 
 			if (ntasks_best == -1
-				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-				|| (!calibrating && local_task_length[worker][nimpl] == -1.0) /* Not calibrating but this worker is being calibrated */
-				|| (calibrating && local_task_length[worker][nimpl] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+			    || (!calibrating && isnan(local_task_length[worker][nimpl])) /* Not calibrating but this worker is being calibrated */
+			    || (calibrating && isnan(local_task_length[worker][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
 				)
 			{
 				ntasks_best_end = ntasks_end;
@@ -299,7 +299,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				nimpl_best = nimpl;
 			}
 
-			if (local_task_length[worker][nimpl] == -1.0)
+			if (isnan(local_task_length[worker][nimpl]))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
@@ -322,7 +322,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				nimpl_best = nimpl;
 			}
 
-			if (local_power[worker][nimpl] == -1.0)
+			if (isnan(local_power[worker][nimpl]))
 				local_power[worker][nimpl] = 0.;
 
 		}

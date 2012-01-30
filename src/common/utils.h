@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@
 #include <pthread.h>
 #include <common/barrier.h>
 #include <stdlib.h>
+#include <math.h>
 
 #ifdef STARPU_VERBOSE
 #  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); fflush(stderr); }} while(0)
@@ -49,6 +50,8 @@
 		STARPU_ABORT();                                                            \
 	} while (0)
 
+
+#define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
 
 int _starpu_mkpath(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);

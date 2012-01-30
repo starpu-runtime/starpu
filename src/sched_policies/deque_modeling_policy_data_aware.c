@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -344,17 +344,17 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 			//_STARPU_DEBUG("Scheduler dm: task length (%lf) worker (%u) kernel (%u) \n", local_length,worker,nimpl);
 
 			if (ntasks_best == -1
-					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-					|| (!calibrating && local_length == -1.0) /* Not calibrating but this worker is being calibrated */
-					|| (calibrating && local_length == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
-					)
+			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+			    || (!calibrating && isnan(local_length)) /* Not calibrating but this worker is being calibrated */
+			    || (calibrating && isnan(local_length) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+				)
 			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
 				best_impl = nimpl;
 			}
 
-			if (local_length == -1.0)
+			if (isnan(local_length))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
@@ -457,17 +457,17 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
 			if (ntasks_best == -1
-					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-					|| (!calibrating && local_task_length[worker][nimpl] == -1.0) /* Not calibrating but this worker is being calibrated */
-					|| (calibrating && local_task_length[worker][nimpl] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
-					)
+			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+			    || (!calibrating && isnan(local_task_length[worker][nimpl])) /* Not calibrating but this worker is being calibrated */
+			    || (calibrating && isnan(local_task_length[worker][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+				)
 			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
 				best_impl = nimpl;
 			}
 
-			if (local_task_length[worker][nimpl] == -1.0)
+			if (isnan(local_task_length[worker][nimpl]))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
@@ -491,7 +491,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			}
 
 			local_power[worker][nimpl] = starpu_task_expected_power(task, perf_arch, nimpl);
-			if (local_power[worker][nimpl] == -1.0)
+			if (isnan(local_power[worker][nimpl]))
 				local_power[worker][nimpl] = 0.;
 
 		 }

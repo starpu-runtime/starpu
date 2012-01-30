@@ -70,7 +70,7 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
 
 static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
 {
-	double exp = -1.0;
+	double exp = NAN;
 	double (*per_arch_cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 	double (*per_arch_cost_model)(struct starpu_buffer_descr *);
 
@@ -112,7 +112,7 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	STARPU_ABORT();
 
 	/* Never reached ! */
-	return -1.0;
+	return NAN;
 }
 
 static double common_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
@@ -125,7 +125,7 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, enum sta
 		exp = model->cost_function(task, nimpl);
 		alpha = starpu_worker_get_relative_speedup(arch);
 
-		STARPU_ASSERT(alpha != 0.0f);
+		STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
 
 		return (exp/alpha);
 	}
@@ -134,12 +134,12 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, enum sta
 		exp = model->cost_model(task->buffers);
 		alpha = starpu_worker_get_relative_speedup(arch);
 
-		STARPU_ASSERT(alpha != 0.0f);
+		STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
 
 		return (exp/alpha);
 	}
 
-	return -1.0;
+	return NAN;
 }
 
 void _starpu_load_perfmodel(struct starpu_perfmodel *model)

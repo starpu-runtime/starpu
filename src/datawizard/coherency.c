@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,7 +67,7 @@ uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
 					continue;
 
-				if (time == 0.0)
+				if (_STARPU_IS_ZERO(time))
 				{
 					/* No estimation, will have to revert to dumb strategy */
 					cost = 0.0;

@@ -262,16 +262,16 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			double ntasks_end = compute_ntasks_end(worker);
 
 			if (ntasks_best == -1
-					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-					|| (!calibrating && local_task_length[worker][nimpl] == -1.0) /* Not calibrating but this worker is being calibrated */
-					|| (calibrating && local_task_length[worker][nimpl] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+			    || (!calibrating && isnan(local_task_length[worker][nimpl])) /* Not calibrating but this worker is being calibrated */
+			    || (calibrating && isnan(local_task_length[worker][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
 					)
 			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
 			}
 
-			if (local_task_length[worker][nimpl] == -1.0)
+			if (isnan(local_task_length[worker][nimpl]))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
@@ -300,7 +300,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			local_power[worker][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
 			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker][nimpl],local_power[worker][nimpl],worker,nimpl);
 
-			if (local_power[worker][nimpl] == -1.0)
+			if (isnan(local_power[worker][nimpl]))
 				local_power[worker][nimpl] = 0.;
 
 		} //end for

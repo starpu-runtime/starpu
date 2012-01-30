@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -353,8 +353,8 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times)
 			};
 			enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
 			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl);
-			if (length == -1.0)
-				times[w*nt+t] = -1.0;
+			if (isnan(length))
+				times[w*nt+t] = NAN;
 			else
 				times[w*nt+t] = length / 1000.;
 		}
@@ -429,12 +429,12 @@ void starpu_bound_print_lp(FILE *output)
 			for (w = 0; w < nw; w++)
 			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (t1->duration[arch] == 0.)
+				if (_STARPU_IS_ZERO(t1->duration[arch]))
 				{
 					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
-					if (length == -1.0)
+					if (isnan(length))
 						/* Avoid problems with binary coding of doubles */
-						t1->duration[arch] = -1.0;
+						t1->duration[arch] = NAN;
 					else
 						t1->duration[arch] = length / 1000.;
 				}
@@ -456,7 +456,7 @@ void starpu_bound_print_lp(FILE *output)
 			for (w = 0; w < nw; w++)
 			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (t1->duration[arch] != -1.0)
+				if (!isnan(t1->duration[arch]))
 					fprintf(output, " +t%luw%d", t1->id, w);
 			}
 			fprintf(output, " = 1;\n");
@@ -470,7 +470,7 @@ void starpu_bound_print_lp(FILE *output)
 			for (w = 0; w < nw; w++)
 			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (t1->duration[arch] != -1.0)
+				if (!isnan(t1->duration[arch]))
 					fprintf(output, " + %f t%luw%d", t1->duration[arch], t1->id, w);
 			}
 			fprintf(output, ";\n");
@@ -506,7 +506,7 @@ void starpu_bound_print_lp(FILE *output)
 					for (w = 0; w < nw; w++)
 					{
 						enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-						if (t1->duration[arch] != -1.0)
+						if (!isnan(t1->duration[arch]))
 						{
 							fprintf(output, "s%lu - c%lu >= -3e5 + 1e5 t%luw%d + 1e5 t%luw%d + 1e5 t%luafter%lu;\n",
 									t1->id, t2->id, t1->id, w, t2->id, w, t1->id, t2->id);
@@ -651,7 +651,7 @@ void starpu_bound_print_lp(FILE *output)
 				fprintf(output, "/* worker %s */\n0", name);
 				for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 				{
-					if (times[w*nt+t] != -1.0)
+					if (!isnan(times[w*nt+t]))
 						fprintf(output, "\t%+f * w%dt%dn", (float) times[w*nt+t], w, t);
 				}
 				fprintf(output, " <= tmax;\n");
@@ -663,7 +663,7 @@ void starpu_bound_print_lp(FILE *output)
 			{
 				fprintf(output, "/* task %s key %x */\n0", tp->cl->name, (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
-					if (times[w*nt+t] != -1.0)
+					if (!isnan(times[w*nt+t]))
 						fprintf(output, "\t+w%dt%dn", w, t);
 				fprintf(output, " = %lu;\n", tp->n);
 				/* Show actual values */
@@ -747,7 +747,7 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "\n* Execution times and completion of all tasks\n");
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-				if (times[w*nt+t] != -1.0)
+				if (!isnan(times[w*nt+t]))
 				{
 					char name[9];
 					snprintf(name, sizeof(name), "W%dT%d", w, t);
@@ -830,7 +830,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 		{
 			int someone = 0;
 			for (w = 0; w < nw; w++)
-				if (times[w*nt+t] != -1.)
+				if (!isnan(times[w*nt+t]))
 					someone = 1;
 			if (!someone)
 			{
@@ -849,7 +849,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 			{
 				ia[n] = w+1;
 				ja[n] = colnum(w, t);
-				if (times[w*nt+t] == -1.)
+				if (isnan(times[w*nt+t]))
 					ar[n] = 1000000000.;
 				else
 					ar[n] = times[w*nt+t];

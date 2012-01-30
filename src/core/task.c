@@ -26,6 +26,7 @@
 #include <common/utils.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
+#include <math.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -74,8 +75,8 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->profiling_info = NULL;
 
-	task->predicted = -1.0;
-	task->predicted_transfer = -1.0;
+	task->predicted = NAN;
+	task->predicted_transfer = NAN;
 
 	task->starpu_private = NULL;
 	task->magic = 42;
