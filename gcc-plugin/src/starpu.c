@@ -564,6 +564,14 @@ handle_pragma_register (struct cpp_reader *reader)
       return;
     }
 
+  /* Since we implicitly use sizeof (*PTR), `void *' is not allowed. */
+  if (VOID_TYPE_P (TREE_TYPE (TREE_TYPE (ptr))))
+    {
+      error_at (loc, "pointers to %<void%> not allowed "
+		"in %<register%> pragma");
+      return;
+    }
+
   TREE_USED (ptr) = true;
 #ifdef DECL_READ_P
   if (DECL_P (ptr))
