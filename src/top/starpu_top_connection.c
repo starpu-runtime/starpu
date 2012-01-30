@@ -27,6 +27,7 @@
 #  include <netdb.h>
 #endif
 
+#include <top/starpu_top_core.h>
 #include <top/starpu_top_connection.h>
 #include <top/starpu_top_message_queue.h>
 #include <starpu_top.h>
@@ -48,7 +49,7 @@ FILE* starpu_top_socket_fd_write;
 //client socket (file descriptor)
 int starpu_top_socket_fd;
 
-
+static
 void * message_from_ui(void * p)
 {
 	(void) p;
@@ -72,9 +73,9 @@ void * message_from_ui(void * p)
 			return NULL;
 		}
 	}
-	return NULL;
 }
 
+static
 void * message_to_ui(void * p)
 {
 	(void) p;
@@ -95,7 +96,6 @@ void * message_to_ui(void * p)
 			}
 		}
 	}
-	return NULL;
 }
 
 void _starpu_top_communications_threads_launcher()

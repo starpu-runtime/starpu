@@ -190,7 +190,7 @@ static double compute_ntasks_end(int workerid)
 		for (i = 0; i < worker_size; i++)
 		{
 			/* XXX: this is actually bogus: not all pushed tasks are necessarily parallel... */
-			ntasks_end = STARPU_MAX(ntasks_end, ntasks[combined_workerid[i]] / starpu_worker_get_relative_speedup(perf_arch));
+			ntasks_end = STARPU_MAX(ntasks_end, ntasks[combined_workerid[i]] / (int)starpu_worker_get_relative_speedup(perf_arch));
 		}
 
 		return ntasks_end;

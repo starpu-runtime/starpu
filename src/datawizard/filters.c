@@ -248,6 +248,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	_starpu_spin_unlock(&initial_handle->header_lock);
 }
 
+static
 void _starpu_empty_codelet_function(void *buffers[], void *args)
 {
 	(void) buffers; // unused;

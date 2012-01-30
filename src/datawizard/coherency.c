@@ -183,6 +183,8 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
 {
+	(void) handle; // unused
+
 	/* XXX That's a hack until we get cudaMemcpy3DPeerAsync to work !
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
 	 * method ! */

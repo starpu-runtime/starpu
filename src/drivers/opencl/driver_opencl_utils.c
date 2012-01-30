@@ -143,7 +143,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
         stat(filename, &statbuf);
         source = (char *) malloc(statbuf.st_size + 1);
 
-        for(c=fgetc(fh), x=0 ; c != EOF ; c = fgetc(fh), x++)
+        for(c=(char)fgetc(fh), x=0 ; c != EOF ; c =(char)fgetc(fh), x++)
 	{
 		source[x] = c;
         }

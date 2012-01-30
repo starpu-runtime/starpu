@@ -333,8 +333,8 @@ static void get_min_max_sizes(unsigned int *min_size, unsigned int *max_size, st
     {
 
 	int nb_cpus = topology->nhwcpus;
-	int sqrt_nb_cpus = sqrt(nb_cpus);
-	short exact = (sqrt_nb_cpus * sqrt_nb_cpus == nb_cpus);
+	int sqrt_nb_cpus = (int)sqrt((double)nb_cpus);
+	int exact = (sqrt_nb_cpus * sqrt_nb_cpus == nb_cpus);
 
 	    if(_min_size == -1)
 	    {
