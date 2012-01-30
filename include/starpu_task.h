@@ -300,6 +300,8 @@ int starpu_task_wait_for_all(void);
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);
 
+void starpu_codelet_init(struct starpu_codelet *cl);
+
 void starpu_display_codelet_stats(struct starpu_codelet *cl);
 
 /* Return the task currently executed by the worker, or NULL if this is called
