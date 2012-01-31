@@ -1548,7 +1548,7 @@ AC_OUTPUT([
 	libstarpu.pc
 	starpu-1.0.pc
 	libstarpumpi.pc
-	libstarpumpi-1.0.pc
+	starpumpi-1.0.pc
 	starpufft/Makefile
 	starpufft/libstarpufft.pc
 	starpufft/libstarpufft-1.0.pc

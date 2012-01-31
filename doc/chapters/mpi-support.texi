@@ -35,8 +35,8 @@ The flags required to compile or link against the MPI layer are then
 accessible with the following commands:
 
 @example
-% pkg-config --cflags libstarpumpi-1.0  # options for the compiler
-% pkg-config --libs libstarpumpi-1.0    # options for the linker
+% pkg-config --cflags starpumpi-1.0  # options for the compiler
+% pkg-config --libs starpumpi-1.0    # options for the linker
 @end example
 
 Also pass the @code{--static} option if the application is to be linked statically.
