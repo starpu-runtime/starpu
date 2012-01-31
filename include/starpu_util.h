@@ -43,7 +43,7 @@ extern "C"
 #    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg)	if (!(x)) { fprintf(stderr, "%s\n", msg); } ; assert(x)
+#    define STARPU_ASSERT_MSG(x, msg)	{ if (!(x)) { fprintf(stderr, "%s\n", msg); } ; assert(x); }
 
 #  endif
 #endif
