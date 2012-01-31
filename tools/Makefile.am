@@ -50,6 +50,7 @@ dist_bin_SCRIPTS +=	\
 	starpu_top
 
 
+if STARPU_HAVE_HELP2MAN
 starpu_calibrate_bus.1: starpu_calibrate_bus
 	help2man --no-discard-stderr -N ./starpu_calibrate_bus > starpu_calibrate_bus.1
 
@@ -62,9 +63,9 @@ starpu_perfmodel_display.1: starpu_perfmodel_display
 starpu_perfmodel_plot.1: starpu_perfmodel_plot
 	help2man --no-discard-stderr -N ./starpu_perfmodel_plot > starpu_perfmodel_plot.1
 
-
 dist_man1_MANS =\
 	starpu_calibrate_bus.1 \
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
 	starpu_perfmodel_plot.1
+endif

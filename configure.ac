@@ -1521,6 +1521,9 @@ if test "x$ICC" != "x"; then
 fi
 AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
+# Do not generate manpages for the tools if we do not have help2man
+AC_CHECK_PROGS([HELP2MAN], [help2man])
+AM_CONDITIONAL([STARPU_HAVE_HELP2MAN], [test "x$HELP2MAN" != "x"])
 AC_CHECK_MEMBER([struct cudaDeviceProp.pciDomainID],
   AC_DEFINE([STARPU_HAVE_DOMAINID],[1],[Define to 1 if CUDA device properties include DomainID]),
   , [[#include <cuda_runtime_api.h>]])
