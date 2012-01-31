@@ -71,6 +71,7 @@ static void parse_args(int argc, char **argv)
 	{
 		{"arch",      required_argument, NULL, 'a'},
 		{"footprint", required_argument, NULL, 'f'},
+		{"help",      no_argument,       NULL, 'h'},
 		/* XXX Would be cleaner to set a flag */
 		{"list",      no_argument,       NULL, 'l'},
 		{"parameter", required_argument, NULL, 'p'},
@@ -110,7 +111,7 @@ static void parse_args(int argc, char **argv)
 
 		case 'h':
 			usage(argv);
-			exit(EXIT_FAILURE);
+			exit(EXIT_SUCCESS);
 
 		case 'v':
 			(void) fprintf(stdout, "%s %d.%d\n",
