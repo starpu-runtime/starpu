@@ -19,6 +19,7 @@ StarPU 1.0 (svn revision xxxx)
 The extensions-again release
 
   * Add reduction mode to starpu_mpi_insert_task
+  * Add C++ application example in examples/cpp/
   * Increase default value for STARPU_MAXCPUS -- Maximum number of
         CPUs supported -- to 64.
   * Libtool interface versioning has been included in libraries names

@@ -16,10 +16,7 @@
  */
 
 #include <starpu.h>
-#include <pthread.h>
-#include <sys/time.h>
 
-static unsigned niter = 50;
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #warning todo: fix cuda and opencl
@@ -43,48 +40,44 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 int main(int argc, char **argv)
 {
 	int ret = 0;
+	starpu_data_handle_t float_array_handle;
+	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
+        struct starpu_codelet cl;
+	unsigned i;
+	unsigned niter = 50;
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
-
-	starpu_data_handle_t float_array_handle;
-	starpu_vector_data_register(&float_array_handle, 0 /* home node */,
-			(uintptr_t)&float_array, 4, sizeof(float));
+	starpu_vector_data_register(&float_array_handle, 0, (uintptr_t)&float_array, 4, sizeof(float));
 
 //#ifdef STARPU_USE_OPENCL
 //        ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
 //	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 //#endif
 
-        struct starpu_codelet cl;
         starpu_codelet_init(&cl);
         cl.where = STARPU_CPU;//|STARPU_CUDA;//|STARPU_OPENCL,
         cl.cpu_funcs[0] = cpu_codelet;
-        cl.cpu_funcs[1] = NULL;
 //#ifdef STARPU_USE_CUDA
 //        cl.cuda_funcs[0] = cuda_codelet;
-//        cl.cuda_funcs[1] = NULL;
 //#endif
 //#ifdef STARPU_USE_OPENCL
-//		.opencl_funcs = {opencl_codelet, NULL},
+//	cl.opencl_funcs[0] = opencl_codelet;
 //#endif
         cl.nbuffers = 1;
         cl.modes[0] = STARPU_RW;
 
-	unsigned i;
 	for (i = 0; i < niter; i++)
 	{
-		struct starpu_task *task = starpu_task_create();
-                task->cl = &cl;
-                task->handles[0] = float_array_handle;
-
-                ret = starpu_task_submit(task);
+		ret = starpu_insert_task(&cl,
+					 STARPU_RW, float_array_handle,
+					 0);
                 if (STARPU_UNLIKELY(ret == -ENODEV))
                 {
-                    FPRINTF(stderr, "No worker may execute this task\n");
-                    exit(0);
+			FPRINTF(stderr, "No worker may execute this task\n");
+			exit(77);
                 }
         }
 
