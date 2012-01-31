@@ -1,0 +1,169 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+#include <starpu_mpi.h>
+#include <math.h>
+
+#define X         5
+#define Y         3
+
+int display = 0;
+
+extern void init_cpu_func(void *descr[], void *cl_arg);
+extern void redux_cpu_func(void *descr[], void *cl_arg);
+extern void dot_cpu_func(void *descr[], void *cl_arg);
+
+static struct starpu_codelet init_codelet =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = {init_cpu_func, NULL},
+	.nbuffers = 1
+};
+
+static struct starpu_codelet redux_codelet =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = {redux_cpu_func, NULL},
+	.nbuffers = 2
+};
+
+static struct starpu_codelet dot_codelet =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = {dot_cpu_func, NULL},
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_REDUX}
+};
+
+static void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-display") == 0)
+		{
+			display = 1;
+		}
+	}
+}
+
+/* Returns the MPI node number where data indexes index is */
+int my_distrib(int x, int y, int nb_nodes)
+{
+	/* Block distrib */
+	return ((int)(x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * sqrt(nb_nodes))) % nb_nodes;
+}
+
+int main(int argc, char **argv)
+{
+        int my_rank, size, x, y;
+        int value=0;
+        unsigned matrixA[X][Y];
+        unsigned matrixB[X][Y];
+	unsigned dot, sum=0;
+        starpu_data_handle_t handlesA[X][Y];
+        starpu_data_handle_t handlesB[X][Y];
+	starpu_data_handle_t dot_handle;
+
+	starpu_init(NULL);
+	starpu_mpi_initialize_extended(&my_rank, &size);
+        parse_args(argc, argv);
+
+        for(x = 0; x < X; x++)
+	{
+                for (y = 0; y < Y; y++)
+		{
+                        matrixA[x][y] = value;
+                        matrixB[x][y] = 10+value;
+                        value++;
+                        sum += matrixA[x][y] + matrixB[x][y];
+                }
+        }
+
+        for(x = 0; x < X; x++)
+	{
+                for (y = 0; y < Y; y++)
+		{
+                        int mpi_rank = my_distrib(x, y, size);
+                        if (mpi_rank == my_rank)
+			{
+				/* Owning data */
+				starpu_variable_data_register(&handlesA[x][y], 0, (uintptr_t)&(matrixA[x][y]), sizeof(unsigned));
+				starpu_variable_data_register(&handlesB[x][y], 0, (uintptr_t)&(matrixB[x][y]), sizeof(unsigned));
+			}
+			else
+			{
+				starpu_variable_data_register(&handlesA[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+				starpu_variable_data_register(&handlesB[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+			}
+			if (handlesA[x][y])
+			{
+                                starpu_data_set_rank(handlesA[x][y], mpi_rank);
+                                starpu_data_set_tag(handlesA[x][y], (y*X)+x);
+			}
+			if (handlesB[x][y])
+			{
+                                starpu_data_set_rank(handlesB[x][y], mpi_rank);
+                                starpu_data_set_tag(handlesB[x][y], (y*X)+x);
+			}
+		}
+	}
+
+	starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(unsigned));
+	starpu_data_set_rank(dot_handle, 0);
+	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
+
+	for (x = 0; x < X; x++)
+	{
+		for (y = 0; y < Y ; y++)
+		{
+			starpu_mpi_insert_task(MPI_COMM_WORLD,
+					       &dot_codelet,
+					       STARPU_R, handlesA[x][y],
+					       STARPU_R, handlesB[x][y],
+					       STARPU_REDUX, dot_handle,
+					       0);
+		}
+	}
+
+        fprintf(stderr, "Waiting ...\n");
+        starpu_task_wait_for_all();
+
+        for(x = 0; x < X; x++)
+	{
+                for (y = 0; y < Y; y++)
+		{
+			if (handlesA[x][y]) starpu_data_unregister(handlesA[x][y]);
+			if (handlesB[x][y]) starpu_data_unregister(handlesB[x][y]);
+		}
+	}
+	if (dot_handle)
+	{
+		starpu_data_unregister(dot_handle);
+	}
+
+	starpu_mpi_shutdown();
+	starpu_shutdown();
+
+	if (display)
+	{
+                fprintf(stdout, "[%d] sum=%d\n", my_rank, sum);
+                fprintf(stdout, "[%d] dot=%d\n", my_rank, dot);
+        }
+
+	return 0;
+}
+

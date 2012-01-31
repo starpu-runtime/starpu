@@ -181,6 +181,23 @@ examples_scatter_gather_mpi_scatter_gather_LDADD =	\
 check_PROGRAMS +=		\
 	examples/scatter_gather/mpi_scatter_gather
 
+###################
+# Reduction       #
+###################
+
+examplebin_PROGRAMS +=		\
+	examples/reduction/mpi_reduction
+
+examples_reduction_mpi_reduction_SOURCES =		\
+	examples/reduction/mpi_reduction.c		\
+	examples/reduction/mpi_reduction_kernels.c
+
+examples_reduction_mpi_reduction_LDADD =	\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+
+check_PROGRAMS +=		\
+	examples/reduction/mpi_reduction
+
 ########################
 # Unit testcases       #
 ########################
