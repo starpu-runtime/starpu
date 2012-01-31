@@ -18,6 +18,7 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Add man pages for some of the tools
   * Add reduction mode to starpu_mpi_insert_task
   * Add C++ application example in examples/cpp/
   * Increase default value for STARPU_MAXCPUS -- Maximum number of
