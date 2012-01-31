@@ -16,6 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -26,6 +27,8 @@
 #ifdef __MINGW32__
 #include <windows.h>
 #endif
+
+#define PROGNAME "starpu_perfmodel_display"
 
 static struct starpu_perfmodel model;
 
@@ -43,7 +46,7 @@ uint32_t specific_footprint;
 
 static void usage(char **argv)
 {
-	fprintf(stderr, "Usage: %s [ options ]\n", argv[0]);
+	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
         fprintf(stderr, "\n");
         fprintf(stderr, "One must specify either -l or -s\n");
         fprintf(stderr, "Options:\n");
@@ -52,7 +55,9 @@ static void usage(char **argv)
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
         fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda, gordon)\n");
 	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
-        fprintf(stderr, "\n");
+	fprintf(stderr, "   -h, --help          display this help and exit\n");
+	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
+        fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
 
         exit(-1);
 }
@@ -91,7 +96,13 @@ static void parse_args(int argc, char **argv)
 
 		case 'h':
 			usage(argv);
-			break;
+			exit(EXIT_FAILURE);
+
+		case 'v':
+			(void) fprintf(stdout, "%s %d;%d\n",
+				PROGNAME, STARPU_MAJOR_VERSION,
+				STARPU_MINOR_VERSION);
+			exit(EXIT_SUCCESS);
 
 		case '?':
 		default:
