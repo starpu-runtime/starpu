@@ -18,10 +18,9 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Add reduction mode to starpu_mpi_insert_task
   * Increase default value for STARPU_MAXCPUS -- Maximum number of
         CPUs supported -- to 64.
-  * The GCC plug-in extension now generates code that aborts when
-        `starpu_init' fails.
   * Libtool interface versioning has been included in libraries names
         (libstarpu-1.0.so, libstarpumpi-1.0.so and
         libstarpufft-1.0.so)
