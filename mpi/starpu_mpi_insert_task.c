@@ -166,8 +166,9 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                         execute = starpu_data_get_rank(data);
+			_STARPU_MPI_DEBUG("Executing on node %d\n", execute);
                 }
-		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
+		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX) {
                         va_arg(varg_list, starpu_data_handle_t);
                 }
 		else if (arg_type==STARPU_VALUE) {
@@ -195,9 +196,9 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
         do_execute = -1;
 	va_start(varg_list, codelet);
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
+		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_REDUX || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
                         starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-                        if (arg_type & STARPU_W) {
+                        if (arg_type & STARPU_W || arg_type & STARPU_REDUX) {
                                 if (!data) {
                                         /* We don't have anything allocated for this.
                                          * The application knows we won't do anything
@@ -258,7 +259,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 	}
 	va_end(varg_list);
-	assert(do_execute != -1 && "StarPU needs to see a W data which will tell it where to execute the task");
+	assert(do_execute != -1 && "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
         if (inconsistent_execute == 1) {
                 if (execute == -1) {
