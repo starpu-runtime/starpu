@@ -1551,7 +1551,7 @@ AC_OUTPUT([
 	starpumpi-1.0.pc
 	starpufft/Makefile
 	starpufft/libstarpufft.pc
-	starpufft/libstarpufft-1.0.pc
+	starpufft/starpufft-1.0.pc
 	examples/Makefile
         examples/opt/Makefile
 	examples/stencil/Makefile
