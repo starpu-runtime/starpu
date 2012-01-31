@@ -219,22 +219,12 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t nod
 #ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_RAM:
 	{
-		/* XXX : StarPU shoulf probably provide starpu_opencl_allocate_memory(). */
-		cl_context context;
-		cl_command_queue queue;
-		int id = starpu_worker_get_id();
-		int devid = starpu_worker_get_devid(id);
-		starpu_opencl_get_queue(devid, &queue);
-		starpu_opencl_get_context(devid, &context);
-
 		cl_int err;
 		cl_mem memory;
-
-		/* */
-		size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		memory = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &err);
-        	if (err != CL_SUCCESS)
-			return -ENOMEM; // There might be other errors.
+		ssize_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
+		err = starpu_opencl_allocate_memory(&memory, size, CL_MEM_READ_WRITE);
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
 
 		custom_interface->opencl_ptr = memory;
 
@@ -519,21 +509,6 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 	return 0;
 }
 
-/* StarPU will give us these in a near future */
-static cl_int
-_opencl_malloc(cl_context context, cl_mem *mem, size_t size, cl_mem_flags flags)
-{
-	cl_int err;
-        cl_mem memory;
-
-	memory = clCreateBuffer(context, flags, size, NULL, &err);
-	if (err != CL_SUCCESS)
-		return err;
-
-        *mem = memory;
-        return CL_SUCCESS;
-}
-
 static cl_int
 _opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node,
 				      cl_mem buffer, unsigned dst_node,
@@ -597,7 +572,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	size = src_custom->nx * 2 * sizeof(float);
 	if (dst_custom->cpu_ptr == NULL)
 	{
-		ret = _opencl_malloc(context, (cl_mem*)&dst_custom->cpu_ptr, 
+		ret = starpu_opencl_allocate_memory((cl_mem*)&dst_custom->cpu_ptr,
 				size, CL_MEM_READ_WRITE);
 		assert(ret == CL_SUCCESS);
 	}
