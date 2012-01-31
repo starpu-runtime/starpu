@@ -18,6 +18,7 @@
 
 #include <config.h>
 #include <assert.h>
+#include <getopt.h>
 #include <unistd.h>
 #include <stdio.h>
 
@@ -66,7 +67,20 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "ls:p:a:f:h")) != -1) {
+	static struct option long_options[] =
+	{
+		{"arch",      required_argument, NULL, 'a'},
+		{"footprint", required_argument, NULL, 'f'},
+		/* XXX Would be cleaner to set a flag */
+		{"list",      no_argument,       NULL, 'l'},
+		{"parameter", required_argument, NULL, 'p'},
+		{"symbol",    required_argument, NULL, 's'},
+		{"version",   no_argument,       NULL, 'v'},
+		{0, 0, 0, 0}
+	};
+
+	int option_index;
+	while ((c = getopt_long(argc, argv, "ls:p:a:f:h", long_options, &option_index)) != -1) {
 	switch (c) {
                 case 'l':
                         /* list all models */
@@ -99,7 +113,7 @@ static void parse_args(int argc, char **argv)
 			exit(EXIT_FAILURE);
 
 		case 'v':
-			(void) fprintf(stdout, "%s %d;%d\n",
+			(void) fprintf(stdout, "%s %d.%d\n",
 				PROGNAME, STARPU_MAJOR_VERSION,
 				STARPU_MINOR_VERSION);
 			exit(EXIT_SUCCESS);
