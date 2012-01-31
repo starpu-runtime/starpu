@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -450,7 +450,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				name = "CPU";
 				fprintf(f, "##################\n");
 				fprintf(f, "# %ss\n", name);
-				fprintf(f, "# number of %s architectures\n", name);
+				fprintf(f, "# maximum number of %ss\n", name);
 				fprintf(f, "%u\n", number_of_archs[0]);
 				break;
 			case STARPU_CUDA_DEFAULT:
@@ -501,7 +501,11 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			continue;
 
 		fprintf(f, "###########\n");
-		fprintf(f, "# %s_%u\n", name, arch - substract_to_arch);
+		if (substract_to_arch)
+			fprintf(f, "# %s_%u\n", name, arch - substract_to_arch);
+		else
+			/* CPU */
+			fprintf(f, "# %u CPU(s) in parallel\n", arch + 1);
 		fprintf(f, "# number of implementations\n");
 		fprintf(f, "%u\n", max_impl);
 		for (nimpl = 0; nimpl < max_impl; nimpl++)
