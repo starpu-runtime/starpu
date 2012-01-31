@@ -37,7 +37,7 @@ struct malloc_pinned_codelet_struct
 //{
 //	struct malloc_pinned_codelet_struct *s = arg;
 //        //        *(s->ptr) = malloc(s->dim);
-//        _starpu_opencl_allocate_memory((void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
+//        starpu_opencl_allocate_memory((void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
 //}
 //#endif
 

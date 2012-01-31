@@ -341,7 +341,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
                                 int ret;
 				cl_mem ptr;
 				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
-                                ret = _starpu_opencl_allocate_memory(&ptr, allocated_memory, CL_MEM_READ_WRITE);
+                                ret = starpu_opencl_allocate_memory(&ptr, allocated_memory, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
 				if (ret)
 				{
@@ -353,7 +353,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 
 				}
 
-				ret = _starpu_opencl_allocate_memory(&ptr,
+				ret = starpu_opencl_allocate_memory(&ptr,
 							multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize,
 							CL_MEM_READ_WRITE);
 				addr = (uintptr_t)ptr;
@@ -644,7 +644,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize;
 
 
-	err = _starpu_opencl_copy_ram_to_opencl_async_sync(src_multiformat->cpu_ptr,
+	err = starpu_opencl_copy_ram_to_opencl_async_sync(src_multiformat->cpu_ptr,
 							   src_node,
 							   (cl_mem) dst_multiformat->cpu_ptr,
 							   dst_node,
@@ -682,7 +682,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 		/* XXX : it is weird that we might have to allocate memory here... */
 		dst_multiformat->opencl_ptr = malloc(dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
 	}
-	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_multiformat->opencl_ptr,
+	err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_multiformat->opencl_ptr,
 							   src_node,
 							   dst_multiformat->opencl_ptr,
 							   dst_node,

@@ -39,20 +39,6 @@ int _starpu_opencl_deinit_context(int devid);
 extern
 unsigned _starpu_opencl_get_device_count(void);
 
-extern
-cl_int _starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags flags);
-
-extern
-cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event);
-
-extern
-cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event);
-
-extern
-cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
-
-extern
-cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 #if 0
 extern

@@ -318,7 +318,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 			{
                                 int ret;
 				cl_mem mem;
-                                ret = _starpu_opencl_allocate_memory(&mem, nx*ny*elemsize, CL_MEM_READ_WRITE);
+                                ret = starpu_opencl_allocate_memory(&mem, nx*ny*elemsize, CL_MEM_READ_WRITE);
 				handle = (uintptr_t)mem;
 				if (ret)
 				{
@@ -608,7 +608,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
 	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
 
-	err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
+	err = starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
                                                            dst_matrix->offset, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
@@ -628,7 +628,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
 	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
 
-        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
+        err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
                                                            src_matrix->offset, (cl_event*)_event, &ret);
 

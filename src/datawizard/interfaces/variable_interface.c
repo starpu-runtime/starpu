@@ -237,7 +237,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 			{
                                 int ret;
 				cl_mem ptr;
-                                ret = _starpu_opencl_allocate_memory(&ptr, elemsize, CL_MEM_READ_WRITE);
+                                ret = starpu_opencl_allocate_memory(&ptr, elemsize, CL_MEM_READ_WRITE);
                                 addr = (uintptr_t)ptr;
 				if (ret)
 				{
@@ -440,7 +440,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	struct starpu_variable_interface *dst_variable = dst_interface;
         int err,ret;
 
-        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_variable->ptr, src_node, (cl_mem)dst_variable->ptr, dst_node, src_variable->elemsize,
+        err = starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_variable->ptr, src_node, (cl_mem)dst_variable->ptr, dst_node, src_variable->elemsize,
                                                            0, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
@@ -456,7 +456,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	struct starpu_variable_interface *dst_variable = dst_interface;
         int err, ret;
 
-	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_variable->ptr, src_node, (void*)dst_variable->ptr, dst_node, src_variable->elemsize,
+	err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_variable->ptr, src_node, (void*)dst_variable->ptr, dst_node, src_variable->elemsize,
                                                            0, (cl_event*)_event, &ret);
 
         if (STARPU_UNLIKELY(err))

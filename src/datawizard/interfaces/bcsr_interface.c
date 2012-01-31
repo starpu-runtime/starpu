@@ -315,15 +315,15 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 			int ret;
 			cl_mem ptr;
 
-			ret = _starpu_opencl_allocate_memory(&ptr, nnz*r*c*elemsize, CL_MEM_READ_WRITE);
+			ret = starpu_opencl_allocate_memory(&ptr, nnz*r*c*elemsize, CL_MEM_READ_WRITE);
 			addr_nzval = (uintptr_t)ptr;
 			if (ret) goto fail_nzval;
 
-			ret = _starpu_opencl_allocate_memory(&ptr, nnz*sizeof(uint32_t), CL_MEM_READ_WRITE);
+			ret = starpu_opencl_allocate_memory(&ptr, nnz*sizeof(uint32_t), CL_MEM_READ_WRITE);
 			addr_colind = (void*) ptr;
 			if (ret) goto fail_colind;
 
-			ret = _starpu_opencl_allocate_memory(&ptr, (nrow+1)*sizeof(uint32_t), CL_MEM_READ_WRITE);
+			ret = starpu_opencl_allocate_memory(&ptr, (nrow+1)*sizeof(uint32_t), CL_MEM_READ_WRITE);
 			addr_rowptr = (void*) ptr;
 			if (ret) goto fail_rowptr;
 
@@ -483,15 +483,15 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->nzval, src_node, (void *)dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->nzval, src_node, (void *)dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->colind, src_node, (void *)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->colind, src_node, (void *)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->rowptr, src_node, (void *)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->rowptr, src_node, (void *)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -514,15 +514,15 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->nzval, src_node, (cl_mem)dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
+	err = starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->nzval, src_node, (cl_mem)dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->colind, src_node, (cl_mem)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->colind, src_node, (cl_mem)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->rowptr, src_node, (cl_mem)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->rowptr, src_node, (cl_mem)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 

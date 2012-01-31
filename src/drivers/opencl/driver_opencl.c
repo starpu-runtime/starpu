@@ -175,7 +175,7 @@ cl_int _starpu_opencl_deinit_context(int devid)
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flags)
+cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flags)
 {
 	cl_int err;
         cl_mem memory;
@@ -189,7 +189,7 @@ cl_int _starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags fla
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
+cl_int starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -227,7 +227,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node
         }
 }
 
-cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
+cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
 {
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -244,7 +244,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATT
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
+cl_int starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -279,7 +279,7 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_
         }
 }
 
-cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
+cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
 {
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
