@@ -34,11 +34,17 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
       # define `__GNUC__', and provide a `-print-file-name=plugin'
       # that returns GCC's valid header directory.  This makes them
       # hardly distinguishable from GCC.  Actually, ICC 12.1.0 is able
-      # to compile our plug-in, so we can let it through...
+      # to compile our plug-in, but silently ignores `-fplugin', leading
+      # to obvious build failures; thus, it is explicitly excluded below.
       _STARPU_WITH_GCC_PLUGIN_API([
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <gcc-plugin.h>
 	      #include <tree.h>
 	      #include <gimple.h>
+
+	      #if defined __INTEL_COMPILER || defined __ICC
+	      Beware, this compiler is a fake.  Don't use it.
+	      #endif
+
 	      tree fndecl; gimple call;]],
 	    [[/* Clang 3.1 doesn't support nested functions, so try to
 	         discriminate it this way.  */
