@@ -16,8 +16,9 @@
 
 #include <starpu.h>
 #include <starpu_opencl.h>
+#include "scal.h"
 
-static void scal_func_cpu(void *buffers[], void *cl_arg)
+void scal_func_cpu(void *buffers[], void *cl_arg)
 {
 	unsigned i;
 
@@ -30,14 +31,10 @@ static void scal_func_cpu(void *buffers[], void *cl_arg)
 		val[i] *= 2;
 }
 
-#ifdef STARPU_USE_CUDA
-extern void scal_func_cuda(void *buffers[], void *cl_arg);
-#endif
-
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
 
-static void scal_func_opencl(void *buffers[], void *_args)
+void scal_func_opencl(void *buffers[], void *_args)
 {
 	int id, devid;
         cl_int err;

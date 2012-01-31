@@ -18,3 +18,14 @@
 
 extern struct starpu_codelet scal_codelet;
 extern struct starpu_opencl_program opencl_program;
+
+void scal_func_cpu(void *buffers[], void *cl_arg);
+
+#ifdef STARPU_USE_CUDA
+void scal_func_cuda(void *buffers[], void *cl_arg);
+#endif
+
+#ifdef STARPU_USE_OPENCL
+void scal_func_opencl(void *buffers[], void *_args);
+#endif
+
