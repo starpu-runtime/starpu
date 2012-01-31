@@ -509,42 +509,6 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 	return 0;
 }
 
-static cl_int
-_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node,
-				      cl_mem buffer, unsigned dst_node,
-				      size_t size, size_t offset,
-				      cl_event *event, int *ret,
-				      cl_command_queue queue)
-{
-        cl_int err;
-        cl_bool blocking;
-
-        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-
-        err = clEnqueueWriteBuffer(queue, buffer, blocking, offset, size, ptr, 0, NULL, event);
-
-        if (err == CL_SUCCESS)
-                *ret = (event == NULL) ? 0 : -EAGAIN;
-
-	return err;
-}
-
-static cl_int
-_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node,
-			   void *ptr, unsigned dst_node,
-			   size_t size, size_t offset, cl_event *event,
-			   cl_command_queue queue)
-
-{
-        cl_int err;
-        cl_bool blocking;
-
-        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueReadBuffer(queue, buffer, blocking, offset, size, ptr, 0, NULL, event);
-
-        return err;
-}
-
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
 				    void *event)
@@ -576,15 +540,14 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				size, CL_MEM_READ_WRITE);
 		assert(ret == CL_SUCCESS);
 	}
-	err = _opencl_copy_ram_to_opencl_async_sync(src_custom->cpu_ptr,
-						src_node,
-						dst_custom->cpu_ptr,
-						dst_node,
-						size,
-						0,
-						NULL,
-						&ret,
-						queue);
+	err = starpu_opencl_copy_ram_to_opencl_async_sync(src_custom->cpu_ptr,
+							  src_node,
+							  dst_custom->cpu_ptr,
+							  dst_node,
+							  size,
+							  0,
+							  NULL,
+							  &ret);
 	assert(err == 0);
 	return 0;
 }
@@ -619,7 +582,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 		assert(dst_custom->opencl_ptr != NULL);
 	}
 
-	err = _opencl_copy_opencl_to_ram(
+	err = starpu_opencl_copy_opencl_to_ram_async_sync(
 			src_custom->opencl_ptr,
 			src_node,
 			dst_custom->opencl_ptr,
@@ -627,7 +590,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 			size,
 			0,
 			NULL,
-			queue);
+			&ret);
 	assert(err == 0);
 	return 0;
 }
