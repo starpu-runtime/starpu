@@ -47,6 +47,7 @@ uint32_t specific_footprint;
 
 static void usage(char **argv)
 {
+	fprintf(stderr, "Display a given perfmodel\n\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
         fprintf(stderr, "\n");
         fprintf(stderr, "One must specify either -l or -s\n");
@@ -59,8 +60,6 @@ static void usage(char **argv)
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
-
-        exit(-1);
 }
 
 static void parse_args(int argc, char **argv)
