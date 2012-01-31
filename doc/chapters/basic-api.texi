@@ -1198,6 +1198,12 @@ worker size that StarPU will use to execute parallel tasks for this codelet.
 @end table
 @end deftp
 
+@deftypefun void starpu_codelet_init ({struct starpu_codelet} *@var{cl})
+Initialize @var{cl} with default values. Codelets should preferably be
+initialized statically as shown in @ref{Defining a Codelet}. However
+such a initialisation is not always possible, e.g. when using C++.
+@end deftypefun
+
 @deftp {Data Type} {enum starpu_task_status}
 todo
 @end deftp
