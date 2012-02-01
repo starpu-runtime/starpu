@@ -1551,6 +1551,7 @@ AC_OUTPUT([
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile
+        socl/socl-1.0.pc
 	libstarpu.pc
 	starpu-1.0.pc
 	mpi/libstarpumpi.pc
