@@ -136,6 +136,7 @@ noinst_PROGRAMS =				\
 	core/declare_deps_after_submission	\
 	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
+	core/starpu_init			\
 	core/starpu_worker_exists               \
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
