@@ -24,8 +24,8 @@ The extensions-again release
   * Increase default value for STARPU_MAXCPUS -- Maximum number of
         CPUs supported -- to 64.
   * Libtool interface versioning has been included in libraries names
-        (libstarpu-1.0.so, libstarpumpi-1.0.so and
-        libstarpufft-1.0.so)
+        (libstarpu-1.0.so, libstarpumpi-1.0.so,
+        libstarpufft-1.0.so, libsocl-1.0.so)
   * Enable by default the SOCL extension.
   * Enable by default the GCC plug-in extension.
   * Add a field named magic to struct starpu_task which is set when
