@@ -53,12 +53,12 @@ unsigned _starpu_get_deque_njobs(struct _starpu_deque_jobq *deque_queue)
 	return deque_queue->njobs;
 }
 
-unsigned _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue)
+int _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue)
 {
 	return deque_queue->nprocessed;
 }
 
-struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queue, int workerid __attribute__ ((unused)))
+struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queue, int workerid)
 {
 	struct _starpu_job *j = NULL;
 
@@ -80,7 +80,6 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 			{
 				j->nimpl = nimpl;
 				j = _starpu_job_list_pop_front(deque_queue->jobq);
-				deque_queue->njobs--;
 				_STARPU_TRACE_JOB_POP(j, 0);
 				return j->task;
 			}

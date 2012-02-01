@@ -32,7 +32,7 @@ struct _starpu_deque_jobq
 	unsigned njobs;
 
 	/* the number of tasks that were processed */
-	unsigned nprocessed;
+	int nprocessed;
 
 	/* only meaningful if the queue is only used by a single worker */
 	double exp_start; /* Expected start date of first task in the queue */
@@ -47,7 +47,7 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid);
 
 unsigned _starpu_get_deque_njobs(struct _starpu_deque_jobq *deque_queue);
-unsigned _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue);
+int _starpu_get_deque_nprocessed(struct _starpu_deque_jobq *deque_queue);
 
 
 #endif // __DEQUE_QUEUES_H__
