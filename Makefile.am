@@ -44,9 +44,6 @@ endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc starpu-1.0.pc
-if USE_MPI
-pkgconfig_DATA += libstarpumpi.pc starpumpi-1.0.pc
-endif
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\

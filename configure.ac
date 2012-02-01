@@ -1553,8 +1553,8 @@ AC_OUTPUT([
 	socl/examples/Makefile
 	libstarpu.pc
 	starpu-1.0.pc
-	libstarpumpi.pc
-	starpumpi-1.0.pc
+	mpi/libstarpumpi.pc
+	mpi/starpumpi-1.0.pc
 	starpufft/Makefile
 	starpufft/libstarpufft.pc
 	starpufft/starpufft-1.0.pc

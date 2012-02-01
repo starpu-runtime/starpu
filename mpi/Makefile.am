@@ -41,6 +41,9 @@ EXTRA_DIST = 					\
 	examples/cholesky/mpi_cholesky_models.h \
 	tests/helper.h
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc
+
 examplebindir = $(libdir)/starpu/examples/mpi
 
 examplebin_PROGRAMS =
