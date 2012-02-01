@@ -1984,6 +1984,51 @@ message and the given error @var{status}, with the current function
 name, current file and line number.
 @end defmac
 
+@deftypefun cl_int starpu_opencl_allocate_memory (cl_mem *mem, size_t size, cl_mem_flags flags)
+Allocate @var{size} bytes of memory, stored in @var{mem}. @var{flags} must be a
+valid combination of cl_mem_flags values.
+@end deftypefun
+
+@deftypefun cl_int starpu_opencl_copy_ram_to_opencl_async_sync (void *pointer, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret)
+Copy @var{size} bytes asynchronously from the given @var{pointer} on
+@var{src_node} to the given @var{buffer} on @var{dst_node}.
+@var{offset} is the offset, in bytes, in @var{buffer}.
+@var{event} can be used to wait for this particular copy to complete. It can be
+NULL.
+This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
+was successful, or to 0 if event was NULL.
+@end deftypefun
+
+@deftypefun cl_int starpu_opencl_copy_ram_to_opencl (void *pointer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
+Copy @var{size} bytes from the given @var{pointer} on @var{src_node} to the
+given @var{buffer} on @var{dst_node}. @var{offset} is the offset, in bytes,
+in @var{buffer}. @var{event} can be used to wait for this particular copy to
+complete. It can be NULL.
+This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
+otherwise.
+@end deftypefun
+
+@deftypefun cl_int starpu_opencl_copy_opencl_to_ram_async_sync (cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *pointer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
+Copy @var{size} bytes asynchronously from the given @var{buffer} on
+@var{src_node} to the given @var{pointer} on @var{dst_node}.
+@var{offset} is the offset, in bytes, in @var{buffer}.
+@var{event} can be used to wait for this particular copy to complete. It can be
+NULL.
+This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
+was successful, or to 0 if event was NULL.
+@end deftypefun
+
+@deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *pointerr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
+Copy @var{size} bytes from the given @var{buffer} on @var{src_node} to the
+given @var{pointer} on @var{dst_node}. @var{offset} is the offset, in bytes,
+in @var{buffer}. @var{event} can be used to wait for this particular copy to
+complete. It can be NULL.
+This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
+otherwise.
+@end deftypefun
+
 @node Cell extensions
 @section Cell extensions
 
