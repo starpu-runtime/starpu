@@ -17,7 +17,7 @@ SUBDIRS = src examples
 
 EXTRA_DIST = README
 
-libsocl_la_includedir=$(includedir)/starpu/CL
+libsocl_la_includedir=$(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)/CL
 
 libsocl_la_include_HEADERS = \
   include/CL/cl.h \
