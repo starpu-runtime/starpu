@@ -16,9 +16,6 @@
  */
 
 #include <config.h>
-#if STARPU_HAVE_VALGRIND_H
-#include <valgrind/valgrind.h>
-#endif
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>

@@ -17,6 +17,10 @@
 #include <errno.h>
 #include <common/utils.h>
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 #define STARPU_TEST_SKIPPED 77
 
 //void *ALL_IS_OK = (void *)123456789L;

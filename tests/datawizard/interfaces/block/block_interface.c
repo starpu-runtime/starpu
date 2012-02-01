@@ -14,9 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #include <config.h>
-#if STARPU_HAVE_VALGRIND_H
-#include <valgrind/valgrind.h>
-#endif
 #include <starpu.h>
 #include "../test_interfaces.h"
 #include "../../../helper.h"

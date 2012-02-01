@@ -17,9 +17,6 @@
  */
 
 #include <config.h>
-#if STARPU_HAVE_VALGRIND_H
-#include <valgrind/valgrind.h>
-#endif
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
