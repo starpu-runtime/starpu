@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	ret = check_cpu(-1, -1, -1, &cpu_init);
 	if (ret) return ret;
 
-	ret = check_cpu(12, -1, 12, &cpu);
+	ret = check_cpu(cpu_init*2, -1, cpu_init*2, &cpu);
 	if (ret) return ret;
 
 	ret = check_cpu(-1, -1, -1, &cpu);
@@ -78,10 +78,10 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = check_cpu(-1, 3, 3, &cpu);
+	ret = check_cpu(-1, cpu_init+3, cpu_init+3, &cpu);
 	if (ret) return ret;
 
-	ret = check_cpu(8, 11, 11, &cpu);
+	ret = check_cpu(cpu_init+1, cpu_init*3, cpu_init*3, &cpu);
 	if (ret) return ret;
 
 	return ret;
