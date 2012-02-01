@@ -37,6 +37,9 @@ noinst_HEADERS =				\
   task.h					\
   util.h
 
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
+  -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
+
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   command.c \
   command_list.c \

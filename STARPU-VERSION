@@ -15,3 +15,7 @@ LIBSTARPUFFT_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 LIBSTARPUMPI_INTERFACE_CURRENT=0	# increment upon ABI change
 LIBSTARPUMPI_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPUMPI_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
+
+LIBSOCL_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSOCL_INTERFACE_REVISION=0	# increment upon implementation change
+LIBSOCL_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
