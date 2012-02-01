@@ -662,13 +662,12 @@ static void load_bus_affinity_file_content(void)
 
 static void write_bus_affinity_file_content(void)
 {
-	FILE *f;
-
 	STARPU_ASSERT(was_benchmarked);
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+	FILE *f;
 	char path[256];
 	get_affinity_path(path, 256);
-
 	f = fopen(path, "w+");
 	if (!f)
 	{
@@ -678,7 +677,6 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned cpu;
         int gpu;
 
