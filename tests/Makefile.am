@@ -165,6 +165,7 @@ noinst_PROGRAMS =				\
 	datawizard/critical_section_with_void_interface\
 	datawizard/increment_redux		\
 	datawizard/increment_redux_v2		\
+	datawizard/increment_redux_lazy		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
 	datawizard/interfaces/block/block_interface \
