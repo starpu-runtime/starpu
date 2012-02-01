@@ -592,6 +592,7 @@ static void get_affinity_path(char *path, size_t maxlen)
 
 static void load_bus_affinity_file_content(void)
 {
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
 
 	char path[256];
@@ -600,7 +601,6 @@ static void load_bus_affinity_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
         int gpu;
@@ -629,7 +629,7 @@ static void load_bus_affinity_file_content(void)
 		ret = fscanf(f, "\n");
 		STARPU_ASSERT(ret == 0);
 	}
-#endif
+#endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
         nopencl = _starpu_opencl_get_device_count();
 	for (gpu = 0; gpu < nopencl; gpu++)
@@ -654,10 +654,11 @@ static void load_bus_affinity_file_content(void)
 		ret = fscanf(f, "\n");
 		STARPU_ASSERT(ret == 0);
 	}
-#endif
-#endif
+#endif /* !STARPU_USE_OPENCL */
 
 	fclose(f);
+#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
+
 }
 
 static void write_bus_affinity_file_content(void)
