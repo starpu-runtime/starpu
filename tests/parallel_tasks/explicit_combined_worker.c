@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include <limits.h>
 #include <unistd.h>
@@ -25,6 +29,8 @@
 
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int worker_size = starpu_combined_worker_get_size();
 	STARPU_ASSERT(worker_size > 0);
 	usleep(1000/worker_size);

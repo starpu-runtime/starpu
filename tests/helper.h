@@ -33,3 +33,13 @@
 //#define STARPU_TEST_OUTPUT
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
+#if STARPU_HAVE_VALGRIND_H
+#define STARPU_SKIP_IF_VALGRIND do {                                                               \
+if(RUNNING_ON_VALGRIND) {                                                                          \
+	FPRINTF(stderr, "Running on valgrind, skipping the actual computations in %s\n", __func__);\
+return;                                                                                            \
+}                                                                                                  \
+} while(0)
+#else
+#define STARPU_SKIP_IF_VALGRIND
+#endif 

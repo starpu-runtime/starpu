@@ -14,6 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../helper.h"
 
@@ -23,6 +27,8 @@
 
 void which_index_cpu(void *descr[], void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* A real case would actually compute something */
@@ -39,6 +45,8 @@ struct starpu_codelet which_index =
 
 void work_cpu(void *descr[], void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int i, n = STARPU_VECTOR_GET_NX(descr[0]);
 	float *x0 = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 

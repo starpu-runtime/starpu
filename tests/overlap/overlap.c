@@ -16,6 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -51,6 +55,8 @@ static void callback(void *arg)
 
 static void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	usleep(TASKDURATION);
 }
 

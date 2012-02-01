@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -35,6 +39,8 @@ static starpu_data_handle_t v_handle;
 #ifdef STARPU_USE_CUDA
 static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -45,6 +51,8 @@ static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_a
 
 static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -68,6 +76,8 @@ static struct starpu_codelet memset_cl =
 
 static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 

@@ -15,12 +15,18 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../helper.h"
 
 #ifdef STARPU_USE_CUDA
 static void memset_cuda(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -31,6 +37,8 @@ static void memset_cuda(void *descr[], void *arg)
 
 static void memset_cpu(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 

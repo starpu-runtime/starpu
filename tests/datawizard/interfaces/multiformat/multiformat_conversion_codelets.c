@@ -13,6 +13,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "multiformat_types.h"
 #include "../../../helper.h"
@@ -20,6 +24,8 @@
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	FPRINTF(stderr, "Entering %s\n", __func__);
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
 	struct point *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
@@ -50,6 +56,8 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_to_cpu(void *buffers[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
 	struct point *dst = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);

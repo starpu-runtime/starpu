@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -31,6 +35,8 @@ static unsigned var = 0;
 
 static void f(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	usleep(200000);
 }
 
@@ -45,6 +51,8 @@ static struct starpu_codelet cl_f =
 
 static void g(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	usleep(100000);
 	var = 42;
 }
@@ -60,6 +68,8 @@ static struct starpu_codelet cl_g =
 
 static void h(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	FPRINTF(stderr, "VAR %u (should be 42)\n", var);
 	STARPU_ASSERT(var == 42);
 }

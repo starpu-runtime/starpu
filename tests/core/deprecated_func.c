@@ -14,11 +14,17 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../helper.h"
 
 void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -27,6 +33,8 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 void cpu2_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 

@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../helper.h"
 
@@ -36,6 +40,8 @@ static starpu_data_handle_t handle;
 #ifdef STARPU_USE_CUDA
 static void redux_cuda_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -54,6 +60,8 @@ static void redux_cuda_kernel(void *descr[], void *arg)
 
 static void neutral_cuda_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* This is a dummy technique of course */
@@ -66,6 +74,8 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 #ifdef STARPU_USE_OPENCL
 static void redux_opencl_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned h_dst, h_src;
 
 	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -85,6 +95,8 @@ static void redux_opencl_kernel(void *descr[], void *arg)
 
 static void neutral_opencl_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned h_dst = 0;
 	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 
@@ -99,6 +111,8 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 
 static void redux_cpu_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	*dst = *dst + *src;
@@ -106,6 +120,8 @@ static void redux_cpu_kernel(void *descr[], void *arg)
 
 static void neutral_cpu_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dst = 0;
 }
@@ -144,6 +160,8 @@ static struct starpu_codelet neutral_cl =
 /* dummy OpenCL implementation */
 static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_token;
 
@@ -160,6 +178,8 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 #ifdef STARPU_USE_CUDA
 static void increment_cuda_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned host_token;
 
@@ -176,6 +196,8 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 
 static void increment_cpu_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*tokenptr = *tokenptr + 1;
 }

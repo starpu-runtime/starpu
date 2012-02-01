@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -28,6 +32,8 @@ int critical_var;
 
 static void critical_section(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	/* We do not protect this variable because it is only accessed when the
 	 * "void_handle" piece of data is accessed. */
 	critical_var++;

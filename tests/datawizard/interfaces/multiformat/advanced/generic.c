@@ -13,6 +13,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu_data_interfaces.h>
 #include "generic.h"
 #include "../../../../helper.h"
@@ -22,6 +26,8 @@ struct stats global_stats;
 #ifdef STARPU_USE_CPU
 void cpu_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.cpu++;
 }
 #endif /* !STARPU_USE_CPU */
@@ -29,16 +35,22 @@ void cpu_func(void *buffers[], void *args)
 #ifdef STARPU_USE_CUDA
 void cuda_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.cuda++;
 }
 
 void cpu_to_cuda_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.cpu_to_cuda++;
 }
 
 void cuda_to_cpu_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.cuda_to_cpu++;
 }
 
@@ -60,16 +72,22 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.opencl++;
 }
 
 void cpu_to_opencl_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.cpu_to_opencl++;
 }
 
 void opencl_to_cpu_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	global_stats.opencl_to_cpu++;
 }
 

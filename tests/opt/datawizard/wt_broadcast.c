@@ -14,6 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../../helper.h"
 
@@ -34,6 +38,8 @@ static starpu_data_handle_t handle;
 /* dummy OpenCL implementation */
 static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_token;
 
@@ -50,6 +56,8 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 #ifdef STARPU_USE_CUDA
 static void increment_cuda_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned host_token;
 
@@ -66,6 +74,8 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 
 static void increment_cpu_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*tokenptr = *tokenptr + 1;
 }

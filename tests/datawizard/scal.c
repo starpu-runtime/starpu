@@ -14,12 +14,19 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include <starpu_opencl.h>
 #include "scal.h"
+#include "helper.h"
 
 void scal_func_cpu(void *buffers[], void *cl_arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned i;
 
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
@@ -36,6 +43,8 @@ struct starpu_opencl_program opencl_program;
 
 void scal_func_opencl(void *buffers[], void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;

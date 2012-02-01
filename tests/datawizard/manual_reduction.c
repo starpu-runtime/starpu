@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../helper.h"
 
@@ -82,6 +86,8 @@ static void initialize_per_worker_handle(void *arg __attribute__((unused)))
 
 static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *a = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *b = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -106,6 +112,8 @@ static struct starpu_codelet reduction_codelet =
 
 static void cpu_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val = *val + 1;
 }
@@ -114,6 +122,8 @@ static void cpu_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 /* dummy CUDA implementation */
 static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	unsigned h_val;
@@ -127,6 +137,8 @@ static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 /* dummy OpenCL implementation */
 static void opencl_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	cl_mem d_val = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_val;
 

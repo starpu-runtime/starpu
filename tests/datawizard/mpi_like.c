@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include <errno.h>
 #include <pthread.h>
@@ -51,6 +55,8 @@ void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_
 
 static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 }

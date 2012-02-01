@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -25,6 +29,8 @@ static unsigned ntasks = 65536;
 
 static void check_task_func(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	/* We check that the returned task is valid from the codelet */
 	struct starpu_task *task = (struct starpu_task *) arg;
 	STARPU_ASSERT(task == starpu_task_get_current());

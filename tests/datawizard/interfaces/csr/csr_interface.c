@@ -13,6 +13,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../test_interfaces.h"
 #include "../../../helper.h"
@@ -115,6 +119,8 @@ unregister_data(void)
 static void
 test_csr_cpu_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *val;
 	int factor;
 	int i;

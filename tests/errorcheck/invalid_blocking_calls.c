@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include "../helper.h"
 
@@ -25,6 +29,8 @@ static unsigned data = 42;
 
 static void wrong_func(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int ret;
 
 	/* try to fetch data in the RAM while we are in a codelet, such a

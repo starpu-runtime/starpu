@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+#if STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 #include <starpu.h>
 #include <starpu_opencl.h>
 #include "../../../helper.h"
@@ -24,6 +28,8 @@ static struct starpu_opencl_program opencl_conversion_program;
 
 void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	(void) args;
 	int id, devid, ret;
         cl_int err;
