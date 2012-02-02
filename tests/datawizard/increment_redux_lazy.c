@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,7 +26,6 @@
 #endif
 
 
-static unsigned var = 0;
 static starpu_data_handle_t handle;
 
 /*
@@ -197,6 +196,7 @@ static struct starpu_codelet increment_cl =
 int main(int argc, char **argv)
 {
 	int ret;
+	unsigned *var;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -228,12 +228,16 @@ int main(int argc, char **argv)
 
 		ret = starpu_data_acquire(handle, STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-		STARPU_ASSERT(var == ntasks*(loop + 1));
+		var = (unsigned*) starpu_variable_get_local_ptr(handle);
+		STARPU_ASSERT(*var == ntasks*(loop + 1));
 		starpu_data_release(handle);
 	}
 
+	ret = starpu_data_acquire(handle, STARPU_R);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+	var = (unsigned*) starpu_variable_get_local_ptr(handle);
+	STARPU_ASSERT(*var == ntasks*nloops);
 	starpu_data_unregister(handle);
-	STARPU_ASSERT(var == ntasks*nloops);
 
 	starpu_shutdown();
 
