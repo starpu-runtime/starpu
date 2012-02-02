@@ -253,7 +253,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		wrapper.pre_sync_task->synchronous = 1;
 		int ret = starpu_task_submit(wrapper.pre_sync_task);
 		STARPU_ASSERT(!ret);
-		//starpu_task_wait(wrapper.pre_sync_task);
+		starpu_task_destroy(wrapper.pre_sync_task);
 	}
 	else
 	{
