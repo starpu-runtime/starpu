@@ -114,6 +114,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 {
 	unsigned nparts;
 	unsigned i;
+	unsigned node;
 
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
@@ -133,6 +134,18 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	starpu_data_create_children(initial_handle, nparts, f);
 
 	unsigned nworkers = starpu_worker_get_count();
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (initial_handle->per_node[node].state != STARPU_INVALID)
+			break;
+	}
+	if (node == STARPU_MAXNODES) {
+		/* This is lazy allocation, allocate it now in main RAM, so as
+		 * to have somewhere to gather pieces later */
+		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[0], 0);
+		STARPU_ASSERT(!ret);
+	}
 
 	for (i = 0; i < nparts; i++)
 	{
