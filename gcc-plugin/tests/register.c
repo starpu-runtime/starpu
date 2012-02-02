@@ -40,6 +40,17 @@ bar (float *p, int s)
 #pragma starpu register p s
 }
 
+/* Same as above, but with arguments reversed, to make sure using S doesn't
+   mutate the parameter list.  */
+static void
+baz (int s, float *p)
+{
+  expected_register_arguments.pointer = p;
+  expected_register_arguments.elements = s;
+  expected_register_arguments.element_size = sizeof *p;
+#pragma starpu register p s
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -96,6 +107,7 @@ main (int argc, char *argv[])
 
   foo ();
   bar ((float *) argv, argc);
+  baz (argc, (float *) argv);
 
   expected_register_arguments.pointer = argv;
   expected_register_arguments.elements = argc;
@@ -134,7 +146,7 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof m3d[0];
 #pragma starpu register m3d
 
-  assert (data_register_calls == 16);
+  assert (data_register_calls == 17);
 
   free (y);
 

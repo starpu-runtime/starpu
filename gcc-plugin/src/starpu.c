@@ -609,10 +609,7 @@ handle_pragma_register (struct cpp_reader *reader)
   /* Second argument is optional but should be an integer.  */
   count_arg = (args == NULL_TREE) ? NULL_TREE : TREE_VALUE (args);
   if (args != NULL_TREE)
-    {
-      args = TREE_CHAIN (args);
-      TREE_CHAIN (count_arg) = NULL_TREE;
-    }
+    args = TREE_CHAIN (args);
 
   if (count_arg == NULL_TREE)
     {
