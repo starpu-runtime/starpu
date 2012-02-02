@@ -32,6 +32,10 @@ void func_cpu(void *descr[], void *_args)
 	float ffactor;
 
 	starpu_codelet_unpack_args(_args, &ifactor, &ffactor);
+	/*
+	 * It is safe to use STARPU_SKIP_IF_VALGRIND here
+	 */
+	STARPU_SKIP_IF_VALGRIND;
         *x0 = *x0 * ifactor;
         *x1 = *x1 * ffactor;
 }
