@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
 
+	starpu_task_deinit(&task);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
