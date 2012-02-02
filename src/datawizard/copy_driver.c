@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -132,6 +132,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #ifdef STARPU_USE_CUDA
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		/* only the proper CUBLAS thread can initiate this directly ! */
+#if !defined(HAVE_CUDA_MEMCPY_PEER)
+		STARPU_ASSERT(_starpu_get_local_memory_node() == src_node);
+#endif
 		STARPU_ASSERT(copy_methods->cuda_to_ram);
 		if (!req || !copy_methods->cuda_to_ram_async)
 		{
@@ -154,7 +157,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		/* STARPU_CPU_RAM -> CUBLAS_RAM */
 		/* only the proper CUBLAS thread can initiate this ! */
+#if !defined(HAVE_CUDA_MEMCPY_PEER)
 		STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
+#endif
 		STARPU_ASSERT(copy_methods->ram_to_cuda);
 		if (!req || !copy_methods->ram_to_cuda_async)
 		{
