@@ -19,7 +19,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_SLOW_MACHINE
 static unsigned ntasks = 10;
+#else
+static unsigned ntasks = 10000;
+#endif
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
