@@ -1610,5 +1610,4 @@ AC_MSG_NOTICE([
 	       GCC plug-in: $build_gcc_plugin
 	       GCC plug-in test suite: $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
-               StarPU-Top enabled: $build_starpu_top
 ])
