@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -805,9 +805,11 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			_starpu_spin_unlock(&handle->header_lock);
 
 			_STARPU_TRACE_START_MEMRECLAIM(dst_node);
-			if (is_prefetch)
+			if (is_prefetch) {
+				_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 				flush_memchunk_cache(dst_node, reclaim);
-			else
+				_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
+			} else
 				reclaim_memory_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
 
