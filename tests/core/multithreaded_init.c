@@ -30,6 +30,13 @@ void *launch_starpu(void *id)
 	return NULL;
 }
 
+void *shutdown_starpu(void *unused)
+{
+	(void) unused;
+	starpu_shutdown();
+	return NULL;
+}
+
 int main(int argc, char **argv)
 {
 	unsigned i;
@@ -61,7 +68,11 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/NUM_THREADS);
 
-	starpu_shutdown();
+	for (i = 0; i < NUM_THREADS; i++)
+	{
+		int ret = pthread_create(&threads[i], NULL, shutdown_starpu, NULL);
+		STARPU_ASSERT(ret == 0);
+	}
 
 	return EXIT_SUCCESS;
 }
