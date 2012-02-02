@@ -449,7 +449,9 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 
 			int ret = starpu_task_submit(link->task);
 			STARPU_ASSERT(!ret);
+			struct _starpu_task_wrapper_list *tmp = link;
 			link = link->next;
+			free(tmp);
 		}
 	}
 }
