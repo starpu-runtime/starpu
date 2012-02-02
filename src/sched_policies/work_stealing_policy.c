@@ -338,9 +338,8 @@ static void initialize_ws_policy(struct starpu_machine_topology *topology,
 
 		starpu_worker_set_sched_condition(workerid, &global_sched_cond, &global_sched_mutex);
 
-		perf_arch = starpu_worker_get_perf_archtype(workerid);
-
 #ifdef USE_OVERLOAD
+		perf_arch = starpu_worker_get_perf_archtype(workerid);
 		calibration_value += (unsigned int) starpu_worker_get_relative_speedup(perf_arch);
 #endif /* USE_OVERLOAD */
 	}
