@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <core/task.h>
 #include <datawizard/datawizard.h>
 
 static void data_cpy_func(void *descr[], void *cl_arg)
@@ -63,17 +64,20 @@ static struct starpu_codelet copy_cl =
 	.cuda_funcs = {data_cpy_func, NULL},
 	.opencl_funcs = {data_cpy_func, NULL},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_W, STARPU_R},
 	.model = &copy_model
 };
 
-int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
-			int asynchronous, void (*callback_func)(void*), void *callback_arg)
+int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
+			int asynchronous, void (*callback_func)(void*), void *callback_arg, int reduction)
 {
 	const struct starpu_data_copy_methods *copy_methods = dst_handle->ops->copy_methods;
 
 	struct starpu_task *task = starpu_task_create();
 	STARPU_ASSERT(task);
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	j->reduction_task = reduction;
 
 	task->cl = &copy_cl;
 	task->cl_arg = (void *)copy_methods;
@@ -90,4 +94,10 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 	STARPU_ASSERT(!ret);
 
 	return 0;
+}
+
+int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
+			int asynchronous, void (*callback_func)(void*), void *callback_arg)
+{
+	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0);
 }
