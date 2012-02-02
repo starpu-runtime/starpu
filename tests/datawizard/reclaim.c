@@ -129,6 +129,9 @@ int main(int argc, char **argv)
 		free(host_ptr_array[i]);
 	}
 
+	free(host_ptr_array);
+	free(handle_array);
+
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
