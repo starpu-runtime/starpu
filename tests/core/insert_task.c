@@ -20,7 +20,11 @@
 
 void func_cpu(void *descr[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
+	/*
+	 * Do not use STARPU_SKIP_IF_VALGRIND here.
+	 * We need to call starpu_codelet_unpack_args() in order to make sure
+	 * there are no memory leaks in the program.
+	 */
 
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
