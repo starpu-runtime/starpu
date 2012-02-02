@@ -10,17 +10,17 @@
 * Initialization and Termination::  Initialization and Termination methods
 * Workers' Properties::         Methods to enumerate workers' properties
 * Data Library::                Methods to manipulate data
-* Data Interfaces::             
-* Data Partition::              
+* Data Interfaces::
+* Data Partition::
 * Codelets and Tasks::          Methods to construct tasks
 * Explicit Dependencies::       Explicit Dependencies
 * Implicit Data Dependencies::  Implicit Data Dependencies
-* Performance Model API::       
+* Performance Model API::
 * Profiling API::               Profiling API
 * CUDA extensions::             CUDA extensions
 * OpenCL extensions::           OpenCL extensions
 * Cell extensions::             Cell extensions
-* Miscellaneous helpers::       
+* Miscellaneous helpers::
 @end menu
 
 @node Initialization and Termination
@@ -44,32 +44,39 @@ of processing units and takes the default scheduling policy. This parameter
 overwrites the equivalent environment variables.
 
 @table @asis
-@item @code{sched_policy_name} (default = NULL)
+@item @code{const char *sched_policy_name} (default = NULL)
 This is the name of the scheduling policy. This can also be specified
 with the @code{STARPU_SCHED} environment variable.
-@item @code{sched_policy} (default = NULL)
+
+@item @code{struct starpu_sched_policy *sched_policy} (default = NULL)
 This is the definition of the scheduling policy. This field is ignored
 if @code{sched_policy_name} is set.
-@item @code{ncpus} (default = -1)
+
+@item @code{int ncpus} (default = -1)
 This is the number of CPU cores that StarPU can use. This can also be
 specified with the @code{STARPU_NCPUS} environment variable.
-@item @code{ncuda} (default = -1)
+
+@item @code{int ncuda} (default = -1)
 This is the number of CUDA devices that StarPU can use. This can also
 be specified with the @code{STARPU_NCUDA} environment variable.
-@item @code{nopencl} (default = -1)
+
+@item @code{int nopencl} (default = -1)
 This is the number of OpenCL devices that StarPU can use. This can
 also be specified with the @code{STARPU_NOPENCL} environment variable.
-@item @code{nspus} (default = -1)
+
+@item @code{int nspus} (default = -1)
 This is the number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
-@item @code{use_explicit_workers_bindid} (default = 0)
+
+@item @code{unsigned use_explicit_workers_bindid} (default = 0)
 If this flag is set, the @code{workers_bindid} array indicates where
 the different workers are bound, otherwise StarPU automatically
 selects where to bind the different workers unless the
 @code{STARPU_WORKERS_CPUID} environment variable is set. The
 @code{STARPU_WORKERS_CPUID} environment variable is ignored if the
 @code{use_explicit_workers_bindid} flag is set.
-@item @code{workers_bindid[STARPU_NMAXWORKERS]}
+
+@item @code{unsigned workers_bindid[STARPU_NMAXWORKERS]}
 If the @code{use_explicit_workers_bindid} flag is set, this array
 indicates where to bind the different workers. The i-th entry of the
 @code{workers_bindid} indicates the logical identifier of the
@@ -77,28 +84,36 @@ processor which should execute the i-th worker. Note that the logical
 ordering of the CPUs is either determined by the OS, or provided by
 the @code{hwloc} library in case it is available. When this flag is
 set, the @ref{STARPU_WORKERS_CPUID} environment variable is ignored.
-@item @code{use_explicit_workers_cuda_gpuid} (default = 0)
+
+@item @code{unsigned use_explicit_workers_cuda_gpuid} (default = 0)
 If this flag is set, the CUDA workers will be attached to the CUDA
 devices specified in the @code{workers_cuda_gpuid} array. Otherwise,
 StarPU affects the CUDA devices in a round-robin fashion. When this
 flag is set, the @ref{STARPU_WORKERS_CUDAID} environment variable is
 ignored.
-@item @code{workers_cuda_gpuid[STARPU_NMAXWORKERS]}
+
+@item @code{unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS]}
 If the @code{use_explicit_workers_cuda_gpuid} flag is set, this array
 contains the logical identifiers of the CUDA devices (as used by
 @code{cudaGetDevice}).
-@item @code{use_explicit_workers_opencl_gpuid} (default = 0)
+
+@item @code{unsigned use_explicit_workers_opencl_gpuid} (default = 0)
 If this flag is set, the OpenCL workers will be attached to the OpenCL
 devices specified in the @code{workers_opencl_gpuid} array. Otherwise,
 StarPU affects the OpenCL devices in a round-robin fashion.
-@item @code{workers_opencl_gpuid[STARPU_NMAXWORKERS]}
+
+@item @code{unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS]}
+If the @code{use_explicit_workers_opencl_gpuid} flag is set, this array
+contains the logical identifiers of the OpenCL devices.
 todo
-@item @code{calibrate} (default = 0)
+
+@item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
 executing tasks. If this value is equal to -1, the default value is
 used. The default value is overwritten by the @code{STARPU_CALIBRATE}
 environment variable when it is set.
-@item @code{single_combined_worker} (default = 0)
+
+@item @code{int single_combined_worker} (default = 0)
 By default, StarPU creates various combined workers according to the machine
 structure. Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
@@ -228,9 +243,9 @@ worker identified by @var{workerid}.
 @section Data Library
 
 @menu
-* Introduction to Data Library::  
-* Basic Data Library API::      
-* Access registered data from the application::  
+* Introduction to Data Library::
+* Basic Data Library API::
+* Access registered data from the application::
 @end menu
 
 This section describes the data management facilities provided by StarPU.
@@ -392,7 +407,7 @@ the data, unless that they have not been disabled explictly by calling
 @code{starpu_data_set_sequential_consistency_flag}.
 @code{starpu_data_acquire} is a blocking call, so that it cannot be called from
 tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
-@code{-EDEADLK}). Upon successful completion, this function returns 0. 
+@code{-EDEADLK}). Upon successful completion, this function returns 0.
 @end deftypefun
 
 
@@ -402,7 +417,7 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 available in the appropriate access mode, the callback function is executed.
 The application may access the requested data during the execution of this
 callback. The callback function must call @code{starpu_data_release} once the
-application does not need to access the piece of data anymore. 
+application does not need to access the piece of data anymore.
 Note that implicit data dependencies are also enforced by
 @code{starpu_data_acquire_cb} in case they are enabled.
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
@@ -427,8 +442,8 @@ This function releases the piece of data acquired by the application either by
 @section Data Interfaces
 
 @menu
-* Registering Data::            
-* Accessing Data Interfaces::   
+* Registering Data::
+* Accessing Data Interfaces::
 @end menu
 
 @node Registering Data
@@ -549,13 +564,13 @@ The different values are:
 @end deftp
 
 @menu
-* Accessing Handle::            
-* Accessing Variable Data Interfaces::  
-* Accessing Vector Data Interfaces::  
-* Accessing Matrix Data Interfaces::  
-* Accessing Block Data Interfaces::  
-* Accessing BCSR Data Interfaces::  
-* Accessing CSR Data Interfaces::  
+* Accessing Handle::
+* Accessing Variable Data Interfaces::
+* Accessing Vector Data Interfaces::
+* Accessing Matrix Data Interfaces::
+* Accessing Block Data Interfaces::
+* Accessing BCSR Data Interfaces::
+* Accessing CSR Data Interfaces::
 @end menu
 
 @node Accessing Handle
@@ -887,8 +902,8 @@ Return the size of the elements registered into the matrix designated by @var{in
 @section Data Partition
 
 @menu
-* Basic API::                   
-* Predefined filter functions::  
+* Basic API::
+* Predefined filter functions::
 @end menu
 
 @node Basic API
@@ -898,27 +913,30 @@ Return the size of the elements registered into the matrix designated by @var{in
 The filter structure describes a data partitioning operation, to be given to the
 @code{starpu_data_partition} function, see @ref{starpu_data_partition}
 for an example. The different fields are:
+
 @table @asis
-@item @code{filter_func}
+@item @code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts)}
 This function fills the @code{child_interface} structure with interface
 information for the @code{id}-th child of the parent @code{father_interface} (among @code{nparts}).
-@code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
-@item @code{nchildren}
+
+@item @code{unsigned nchildren}
 This is the number of parts to partition the data into.
-@item @code{get_nchildren}
+
+@item @code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle)}
 This returns the number of children. This can be used instead of @code{nchildren} when the number of
 children depends on the actual data (e.g. the number of blocks in a sparse
 matrix).
-@code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle);}
-@item @code{get_child_ops}
+
+@item @code{struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id)}
 In case the resulting children use a different data interface, this function
 returns which interface is used by child number @code{id}.
-@code{struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
-@item @code{filter_arg}
-Some filters take an addition parameter, but this is usually unused.
-@item @code{filter_arg_ptr}
-Some filters take an additional array parameter like the sizes of the parts, but
-this is usually unused.
+
+@item @code{unsigned filter_arg}
+Allow to define an additional parameter for the filter function.
+
+@item @code{void *filter_arg_ptr}
+Allow to define an additional pointer parameter for the filter
+function, such as the sizes of the different parts.
 @end table
 @end deftp
 
@@ -995,10 +1013,10 @@ starpu_data_filter.
 @subsection Predefined filter functions
 
 @menu
-* Partitioning BCSR Data::      
-* Partitioning BLAS interface::  
-* Partitioning Vector Data::    
-* Partitioning Block Data::     
+* Partitioning BCSR Data::
+* Partitioning BLAS interface::
+* Partitioning Vector Data::
+* Partitioning Block Data::
 @end menu
 
 This section gives a partial list of the predefined partitioning functions.
@@ -1077,7 +1095,7 @@ The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
 
 @table @asis
-@item @code{where} (optional)
+@item @code{uint32_t where} (optional)
 Indicates which types of processing units are able to execute the
 codelet. The different values
 @code{STARPU_CPU}, @code{STARPU_CUDA}, @code{STARPU_SPU},
@@ -1089,16 +1107,23 @@ indicates that it is only available on Cell SPUs. If the field is
 unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
-@item @code{can_execute} (optional)
-Function prototype: 
-@code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)}.
-Returns 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
+@item @code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)} (optional)
+Defines a function which should return 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
 
-@item @code{cpu_func} (optional)
+@item @code{enum starpu_codelet_type type} (optional)
+The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
+values (@code{STARPU_SPMD} or @code{STARPU_FORKJOIN} declare that a parallel
+implementation is also available. See @ref{Parallel Tasks} for details.
+
+@item @code{int max_parallelism} (optional)
+If a parallel implementation is available, this denotes the maximum combined
+worker size that StarPU will use to execute parallel tasks for this codelet.
+
+@item @code{starpu_cpu_func_t cpu_func} (optional)
 This field has been made deprecated. One should use instead the
 @code{cpu_funcs} field.
 
-@item @code{cpu_funcs} (optional)
+@item @code{starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
 Is an array of function pointers to the CPU implementations of the codelet.
 It must be terminated by a NULL value.
 The functions prototype must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
@@ -1109,11 +1134,11 @@ If the @code{where} field is set, then the @code{cpu_funcs} field is
 ignored if @code{STARPU_CPU} does not appear in the @code{where}
 field, it must be non-null otherwise.
 
-@item @code{cuda_func} (optional)
+@item @code{starpu_cuda_func_t cuda_func} (optional)
 This field has been made deprecated. One should use instead the
 @code{cuda_funcs} field.
 
-@item @code{cuda_funcs} (optional)
+@item @code{starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
 Is an array of function pointers to the CUDA implementations of the codelet.
 It must be terminated by a NULL value.
 @emph{The functions must be host-functions written in the CUDA runtime
@@ -1123,11 +1148,11 @@ If the @code{where} field is set, then the @code{cuda_funcs}
 field is ignored if @code{STARPU_CUDA} does not appear in the @code{where}
 field, it must be non-null otherwise.
 
-@item @code{opencl_func} (optional)
+@item @code{starpu_opencl_func_t opencl_func} (optional)
 This field has been made deprecated. One should use instead the
 @code{opencl_funcs} field.
 
-@item @code{opencl_funcs} (optional)
+@item @code{starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
 Is an array of function pointers to the OpenCL implementations of the codelet.
 It must be terminated by a NULL value.
 The functions prototype must be:
@@ -1136,25 +1161,25 @@ If the @code{where} field is set, then the @code{opencl_funcs} field
 is ignored if @code{STARPU_OPENCL} does not appear in the @code{where}
 field, it must be non-null otherwise.
 
-@item @code{gordon_func} (optional)
+@item @code{uint8_t gordon_func} (optional)
 This field has been made deprecated. One should use instead the
 @code{gordon_funcs} field.
 
-@item @code{gordon_funcs} (optional)
+@item @code{uint8_t gordon_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
 Is an array of index of the Cell SPU implementations of the codelet within the
 Gordon library.
 It must be terminated by a NULL value.
 See Gordon documentation for more details on how to register a kernel and
 retrieve its index.
 
-@item @code{nbuffers}
+@item @code{unsigned nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are
 managed by the DSM and are accessed from the @code{void *buffers[]}
 array. The constant argument passed with the @code{cl_arg} field of the
 @code{starpu_task} structure is not counted in this number.  This value should
 not be above @code{STARPU_NMAXBUFS}.
 
-@item @code{modes}
+@item @code{enum starpu_access_mode modes[STARPU_NMAXBUFS]}
 Is an array of @code{enum starpu_access_mode}. It describes the
 required access modes to the data neeeded by the codelet (e.g.
 @code{STARPU_RW}). The number of entries in this array must be
@@ -1163,37 +1188,24 @@ exceed @code{STARPU_NMAXBUFS}.
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
-@item @code{model} (optional)
+@item @code{struct starpu_perfmodel *model} (optional)
 This is a pointer to the task duration performance model associated to this
 codelet. This optional field is ignored when set to @code{NULL}.
 
-TODO
-
-@item @code{power_model} (optional)
+@item @code{struct starpu_perfmodel *power_model} (optional)
 This is a pointer to the task power consumption performance model associated
 to this codelet. This optional field is ignored when set to @code{NULL}.
 In the case of parallel codelets, this has to account for all processing units
 involved in the parallel execution.
 
-TODO
-
-@item @code{per_worker_stats} (optional)
+@item @code{unsigned long per_worker_stats[STARPU_NMAXWORKERS]} (optional)
 Statistics collected at runtime: this is filled by StarPU and should not be
-accessed directly (use the starpu_display_codelet_stats function instead for
-instance).
+accessed directly, but for example by calling the
+@code{starpu_display_codelet_stats} function (See
+@ref{starpu_display_codelet_stats} for details).
 
-@item @code{name} (optional)
-Codelets are allowed to have a name, which can be useful for debugging purposes.
-
-@item @code{type} (optional)
-(@code{enum starpu_codelet_type})
-The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
-values (@code{STARPU_SPMD} or @code{STARPU_FORKJOIN} declare that a parallel
-implementation is also available. See @ref{Parallel Tasks} for details.
-
-@item @code{max_parallelism} (optional)
-If a parallel implementation is available, this denotes the maximum combined
-worker size that StarPU will use to execute parallel tasks for this codelet.
+@item @code{const char *name} (optional)
+Define the name of the codelet. This can be useful for debugging purposes.
 
 @end table
 @end deftp
@@ -1218,19 +1230,19 @@ indicated default values correspond to the configuration of a task allocated
 with @code{starpu_task_create}.
 
 @table @asis
-@item @code{cl}
+@item @code{struct starpu_codelet *cl}
 Is a pointer to the corresponding @code{struct starpu_codelet} data structure. This
 describes where the kernel should be executed, and supplies the appropriate
 implementations. When set to @code{NULL}, no code is executed during the tasks,
 such empty tasks can be useful for synchronization purposes.
 
-@item @code{buffers}
+@item @code{struct starpu_buffer_descr buffers[STARPU_NMAXBUFS]}
 This field has been made deprecated. One should use instead the
 @code{handles} field to specify the handles to the data accessed by
 the task. The access modes are now defined in the @code{mode} field of
-the @code{struct starpu_codelet} structure.
+the @code{struct starpu_codelet cl} field defined above.
 
-@item @code{handles}
+@item @code{starpu_data_handle_t handles[STARPU_NMAXBUFS]}
 Is an array of @code{starpu_data_handle_t}. It specifies the handles
 to the different pieces of data accessed by the task. The number
 of entries in this array must be specified in the @code{nbuffers} field of the
@@ -1239,16 +1251,16 @@ of entries in this array must be specified in the @code{nbuffers} field of the
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
-@item @code{interfaces}
+@item @code{void *interfaces[STARPU_NMAXBUFS]}
 todo
 
-@item @code{cl_arg} (optional; default: @code{NULL})
+@item @code{void *cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
 of the codelet implementation (e.g. @code{cpu_func} or @code{cuda_func}).
 In the specific case of the Cell processor, see the @code{cl_arg_size}
 argument.
 
-@item @code{cl_arg_size} (optional, Cell-specific)
+@item @code{size_t cl_arg_size} (optional, Cell-specific)
 In the case of the Cell processor, the @code{cl_arg} pointer is not directly
 given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
 the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
@@ -1257,32 +1269,32 @@ is therefore not the @code{cl_arg} pointer, but the address of the buffer in
 local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
 codelets, where the @code{cl_arg} pointer is given as such.
 
-@item @code{callback_func} (optional) (default: @code{NULL})
+@item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback
 function is executed @emph{on the host} after the execution of the task. The
 callback is passed the value contained in the @code{callback_arg} field. No
 callback is executed if the field is set to @code{NULL}.
 
-@item @code{callback_arg} (optional) (default: @code{NULL})
+@item @code{void *callback_arg} (optional) (default: @code{NULL})
 This is the pointer passed to the callback function. This field is ignored if
 the @code{callback_func} is set to @code{NULL}.
 
-@item @code{use_tag} (optional) (default: @code{0})
+@item @code{unsigned use_tag} (optional) (default: @code{0})
 If set, this flag indicates that the task should be associated with the tag
 contained in the @code{tag_id} field. Tag allow the application to synchronize
 with the task and to express task dependencies easily.
 
-@item @code{tag_id}
+@item @code{starpu_tag_t tag_id}
 This fields contains the tag associated to the task if the @code{use_tag} field
 was set, it is ignored otherwise.
 
-@item @code{synchronous}
+@item @code{unsigned synchronous}
 If this flag is set, the @code{starpu_task_submit} function is blocking and
 returns only when the task has been executed (or if no worker is able to
 process the task). Otherwise, @code{starpu_task_submit} returns immediately.
 
-@item @code{priority} (optional) (default: @code{STARPU_DEFAULT_PRIO})
+@item @code{int priority} (optional) (default: @code{STARPU_DEFAULT_PRIO})
 This field indicates a level of priority for the task. This is an integer value
 that must be set between the return values of the
 @code{starpu_sched_get_min_priority} function for the least important tasks,
@@ -1295,66 +1307,65 @@ order to allow static task initialization.  Scheduling strategies that take
 priorities into account can use this parameter to take better scheduling
 decisions, but the scheduling policy may also ignore it.
 
-@item @code{execute_on_a_specific_worker} (default: @code{0})
+@item @code{unsigned execute_on_a_specific_worker} (default: @code{0})
 If this flag is set, StarPU will bypass the scheduler and directly affect this
 task to the worker specified by the @code{workerid} field.
 
-@item @code{workerid} (optional)
+@item @code{unsigned workerid} (optional)
 If the @code{execute_on_a_specific_worker} field is set, this field indicates
 which is the identifier of the worker that should process this task (as
 returned by @code{starpu_worker_get_id}). This field is ignored if
 @code{execute_on_a_specific_worker} field is set to 0.
 
-@item @code{bundle} (optional)
+@item @code{starpu_task_bundle_t bundle} (optional)
 The bundle that includes this task. If no bundle is used, this should be NULL.
 
-@item @code{detach} (optional) (default: @code{1})
+@item @code{int detach} (optional) (default: @code{1})
 If this flag is set, it is not possible to synchronize with the task
 by the means of @code{starpu_task_wait} later on. Internal data structures
 are only guaranteed to be freed once @code{starpu_task_wait} is called if the
 flag is not set.
 
-@item @code{destroy} (optional) (default: @code{1})
+@item @code{int destroy} (optional) (default: @code{0})
 If this flag is set, the task structure will automatically be freed, either
 after the execution of the callback if the task is detached, or during
-
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
 allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
 will result in undefined behaviour.
 
-@item @code{regenerate} (optional)
+@item @code{int regenerate} (optional)
 If this flag is set, the task will be re-submitted to StarPU once it has been
 executed. This flag must not be set if the destroy flag is set too.
 
-@item @code{status} (optional)
-@code{enum starpu_task_status} todo
+@item @code{enum starpu_task_status status} (optional)
+todo
 
-@item @code{profiling_info} (optional)
-@code{struct starpu_task_profiling_info *} todo
+@item @code{struct starpu_task_profiling_info *profiling_info} (optional)
+todo
 
-@item @code{predicted} (output field)
+@item @code{double predicted} (output field)
 Predicted duration of the task. This field is only set if the scheduling
 strategy used performance models.
 
-@item @code{predicted_transfer} (optional)
+@item @code{double predicted_transfer} (optional)
 Predicted data transfer duration for the task in microseconds. This field is
 only valid if the scheduling strategy uses performance models.
 
-@item @code{prev}
+@item @code{struct starpu_task *prev}
 A pointer to the previous task. This should only be used by StarPU.
 
-@item @code{next}
+@item @code{struct starpu_task *next}
 A pointer to the next task. This should only be used by StarPU.
 
-@item @code{mf_skip}
+@item @code{unsigned int mf_skip}
 todo
 
-@item @code{starpu_private}
+@item @code{void *starpu_private}
 This is private to StarPU, do not modify. If the task is allocated by hand
 (without starpu_task_create), this field should be set to NULL.
 
-@item @code{magic}
+@item @code{int magic}
 This field is set when initializing a task. It prevents a task from being
 submitted if it has not been properly initialized.
 @end table
@@ -1435,6 +1446,7 @@ because there is no task being executed at the moment.
 @end deftypefun
 
 @deftypefun void starpu_display_codelet_stats ({struct starpu_codelet} *@var{cl})
+@anchor{starpu_display_codelet_stats}
 Output on @code{stderr} some statistics on the codelet @var{cl}.
 @end deftypefun
 
@@ -1575,8 +1587,8 @@ be set with @code{starpu_data_set_sequential_consistency_flag}.
 @deftp {Data Type} {enum starpu_perf_archtype}
 Enumerates the various types of architectures.
 CPU types range within STARPU_CPU_DEFAULT (1 CPU), STARPU_CPU_DEFAULT+1 (2 CPUs), ... STARPU_CPU_DEFAULT + STARPU_MAXCPUS - 1 (STARPU_MAXCPUS CPUs).
-CUDA types range within STARPU_CUDA_DEFAULT (GPU number 0), STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1). 
-OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DEFAULT + 1 (GPU number 1), ..., STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS - 1 (GPU number STARPU_MAXOPENCLDEVS - 1). 
+CUDA types range within STARPU_CUDA_DEFAULT (GPU number 0), STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1).
+OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DEFAULT + 1 (GPU number 1), ..., STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS - 1 (GPU number STARPU_MAXOPENCLDEVS - 1).
 @table @asis
 @item @code{STARPU_CPU_DEFAULT}
 @item @code{STARPU_CUDA_DEFAULT}
@@ -1597,6 +1609,7 @@ The possible values are:
 @end deftp
 
 @deftp {Data Type} {struct starpu_perfmodel}
+@anchor{struct starpu_perfmodel}
 contains all information about a performance model. At least the
 @code{type} and @code{symbol} fields have to be filled when defining a
 performance model for a codelet. If not provided, other fields have to be zero.
@@ -1612,26 +1625,36 @@ micro-seconds. @code{STARPU_COMMON}: @code{cost_function} has to be filled with
 a function that returns the cost in micro-seconds on a CPU, timing on other
 archs will be determined by multiplying by an arch-specific factor.
 
-@item @code{symbol}
+@item @code{const char *symbol}
 is the symbol name for the performance model, which will be used as
 file name to store the model.
 
-@item @code{cost_model}
+@item @code{double (*cost_model)(struct starpu_buffer_descr *)}
 This field is deprecated. Use instead the @code{cost_function} field.
 
-@item @code{cost_function}
+@item @code{double (*cost_function)(struct starpu_task *, unsigned nimpl)}
 Used by @code{STARPU_COMMON}: takes a task and
 implementation number, and must return a task duration estimation in micro-seconds.
 
-@item @code{per_arch}
-Used by @code{STARPU_PER_ARCH}: array of @code{struct
-starpu_per_arch_perfmodel} structures.
-
-@item @code{size_base}
+@item @code{size_t (*size_base)(struct starpu_task *, unsigned nimpl)}
 Used by @code{STARPU_HISTORY_BASED} and
 @code{STARPU_*REGRESSION_BASED}. If not NULL, takes a task and
 implementation number, and returns the size to be used as index for
 history and regression.
+
+@item @code{struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS]}
+Used by @code{STARPU_PER_ARCH}: array of @code{struct
+starpu_per_arch_perfmodel} structures.
+
+@item @code{unsigned is_loaded}
+TODO
+
+@item @code{unsigned benchmarking}
+TODO
+
+@item @code{pthread_rwlock_t model_rwlock}
+TODO
+
 @end table
 @end deftp
 
@@ -1639,23 +1662,32 @@ history and regression.
 contains information about the performance model of a given arch.
 
 @table @asis
-@item @code{cost_model}
+@item @code{double (*cost_model)(struct starpu_buffer_descr *t)}
 This field is deprecated. Use instead the @code{cost_function} field.
 
-@item @code{cost_function}
+@item @code{double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)}
 Used by @code{STARPU_PER_ARCH}, must point to functions which take a task, the
 target arch and implementation number (as mere conveniency, since the array
 is already indexed by these), and must return a task duration estimation in
 micro-seconds.
-@item @code{list}
+
+@item @code{size_t (*size_base)(struct starpu_task *, enum
+starpu_perf_archtype arch, unsigned nimpl)}
+Same as in @ref{struct starpu_perfmodel}, but per-arch, in
+case it depends on the architecture-specific implementation.
+
+@item @code{struct starpu_htbl32_node *history}
+todo
+
+@item @code{struct starpu_history_list *list}
 Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
 records all execution history measures.
-@item @code{regression}
+
+@item @code{struct starpu_regression_model regression}
 Used by @code{STARPU_HISTORY_REGRESION_BASED} and
 @code{STARPU_NL_REGRESSION_BASED}, contains the estimated factors of the
 regression.
-@item @code{size_base}: Same as in @code{struct perfmodel}, but per-arch, in
-case it depends on the architecture-specific implementation.
+
 @end table
 @end deftp
 
@@ -1716,32 +1748,91 @@ This function sets the ID used for profiling trace filename
 This structure contains information about the execution of a task. It is
 accessible from the @code{.profiling_info} field of the @code{starpu_task}
 structure if profiling was enabled. The different fields are:
+
 @table @asis
-@item @code{submit_time}
+@item @code{struct timespec submit_time}
 Date of task submission (relative to the initialization of StarPU).
-@item @code{start_time}
+
+@item @code{struct timespec push_start_time}
+TODO. Scheduling overhead.
+
+@item @code{struct timespec push_end_time}
+TODO. Scheduling overhead
+
+@item @code{struct timespec pop_start_time}
+TODO. Scheduling overhead
+
+@item @code{struct timespec pop_end_time}
+TODO. Scheduling overhead
+
+@item @code{struct timespec acquire_data_start_time}
+TODO. Take input data
+
+@item @code{struct timespec acquire_data_end_time}
+TODO. Take input data
+
+@item @code{struct timespec start_time}
 Date of task execution beginning (relative to the initialization of StarPU).
-@item @code{end_time}
+
+@item @code{struct timespec end_time}
 Date of task execution termination (relative to the initialization of StarPU).
+
+@item @code{struct timespec release_data_start_time}
+TODO. Release data
+
+@item @code{struct timespec release_data_end_time}
+TODO. Release data
+
+@item @code{struct timespec callback_start_time}
+TODO. Callback
+
+@item @code{struct timespec callback_end_time}
+TODO. Callback
+
 @item @code{workerid}
 Identifier of the worker which has executed the task.
+
+@item @code{uint64_t used_cycles}
+TODO
+
+@item @code{uint64_t stall_cycles}
+TODO
+
+@item @code{double power_consumed}
+TODO
+
 @end table
 @end deftp
 
 @deftp {Data Type} {struct starpu_worker_profiling_info}
 This structure contains the profiling information associated to a
 worker. The different fields are:
+
 @table @asis
-@item @code{start_time}
+@item @code{struct timespec start_time}
 Starting date for the reported profiling measurements.
-@item @code{total_time}
+
+@item @code{struct timespec total_time}
 Duration of the profiling measurement interval.
-@item @code{executing_time}
+
+@item @code{struct timespec executing_time}
 Time spent by the worker to execute tasks during the profiling measurement interval.
-@item @code{sleeping_time}
+
+@item @code{struct timespec sleeping_time}
 Time spent idling by the worker during the profiling measurement interval.
-@item @code{executed_tasks}
+
+@item @code{int executed_tasks}
 Number of tasks executed by the worker during the profiling measurement interval.
+
+@item @code{uint64_t used_cycles}
+TODO
+
+@item @code{uint64_t stall_cycles}
+TODO
+
+@item @code{double power_consumed}
+TODO
+
 @end table
 @end deftp
 
@@ -1757,13 +1848,16 @@ value is returned.
 @deftp {Data Type} {struct starpu_bus_profiling_info}
 TODO. The different fields are:
 @table @asis
-@item @code{start_time}
+@item @code{struct timespec start_time}
 TODO
-@item @code{total_time}
+
+@item @code{struct timespec total_time}
 TODO
-@item @code{transferred_bytes}
+
+@item @code{int long long transferred_bytes}
 TODO
-@item @code{transfer_count}
+
+@item @code{int transfer_count}
 TODO
 @end table
 @end deftp
@@ -1917,6 +2011,10 @@ relocation purpose for instance).
 
 @deftp {Data Type} {struct starpu_opencl_program}
 todo
+@table @asis
+@item @code{cl_program programs[STARPU_MAXOPENCLDEVS]}
+todo
+@end table
 @end deftp
 
 @deftypefun int starpu_opencl_load_opencl_from_file ({const char} *@var{source_file_name}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char}* @var{build_options})
@@ -2039,7 +2137,7 @@ nothing yet.
 
 @deftypefun int starpu_data_cpy (starpu_data_handle_t @var{dst_handle}, starpu_data_handle_t @var{src_handle}, int @var{asynchronous}, void (*@var{callback_func})(void*), void *@var{callback_arg})
 Copy the content of the @var{src_handle} into the @var{dst_handle} handle.
-The @var{asynchronous} parameter indicates whether the function should 
+The @var{asynchronous} parameter indicates whether the function should
 block or not. In the case of an asynchronous call, it is possible to
 synchronize with the termination of this operation either by the means of
 implicit dependencies (if enabled) or by calling

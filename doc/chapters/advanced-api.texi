@@ -29,72 +29,90 @@
 
 @deftp {Data Type} {struct starpu_data_interface_ops}
 @anchor{struct starpu_data_interface_ops}
-Defines the per-interface methods.
+Per-interface data transfer methods.
+
 @table @asis
-@item @code{int @{ram,cuda,opencl,spu@}_to_@{ram,cuda,opencl,spu@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);}
-These sixteen functions define how to copy data from the @var{src_interface}
-interface on the @var{src_node} node to the @var{dst_interface} interface
-on the @var{dst_node} node. They return 0 on success.
-@item @code{int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
-@var{dst_node} node (on a CUDA device), using the given @var{stream}. Return 0
-on success.
-@item @code{int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on the
-@var{dst_node} node (in RAM), using the given @var{stream}. Return 0
-on success.
-@item @code{int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on
-the @var{dst_node} node (on another CUDA device), using the given @var{stream}.
-Return 0 on success.
-@item @code{int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
-@var{dst_node} node (on an OpenCL device), using @var{event}, a pointer to a
-cl_event. Return 0 on success.
-@item @code{int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
-on the @var{dst_node} node (in RAM), using the given @var{event}, a pointer to
-a cl_event. Return 0 on success.
-@item @code{int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
-on the @var{dst_node} node (on another OpenCL device), using the given
-@var{event}, a pointer to a cl_event. Return 0 on success.
+@item @code{void (*register_data_handle)(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)}
+Register an existing interface into a data handle.
+
+@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node)}
+Allocate data for the interface on a given node.
+
+@item @code{ void (*free_data_on_node)(void *data_interface, uint32_t node)}
+Free data of the interface on a given node.
+
+@item @code{ const struct starpu_data_copy_methods *copy_methods}
+ram/cuda/spu/opencl synchronous and asynchronous transfer methods.
+
+@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node)}
+Return the current pointer (if any) for the handle on the given node.
+
+@item @code{ size_t (*get_size)(starpu_data_handle_t handle)}
+Return an estimation of the size of data, for performance models.
+
+@item @code{ uint32_t (*footprint)(starpu_data_handle_t handle)}
+Return a 32bit footprint which characterizes the data size.
+
+@item @code{ int (*compare)(void *data_interface_a, void *data_interface_b)}
+Compare the data size of two interfaces.
+
+@item @code{ void (*display)(starpu_data_handle_t handle, FILE *f)}
+Dump the sizes of a handle to a file.
+
+@item @code{ int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)}
+Convert the data size to the spu size format. If no SPUs are used, this field can be seto NULL.
+
+@item @code{enum starpu_data_interface_id interfaceid}
+An identifier that is unique to each interface.
+
+@item @code{size_t interface_size}
+The size of the interface data descriptor.
 @end table
 @end deftp
 
 @deftp {Data Type} {struct starpu_data_copy_methods}
+Defines the per-interface methods.
 @table @asis
-Per-interface data transfer methods.
-@item @code{void (*register_data_handle)(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);}
-Register an existing interface into a data handle.
-@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node);}
-Allocate data for the interface on a given node.
-@item @code{ void (*free_data_on_node)(void *data_interface, uint32_t node);}
-Free data of the interface on a given node.
-@item @code{ const struct starpu_data_copy_methods *copy_methods;}
-ram/cuda/spu/opencl synchronous and asynchronous transfer methods.
-@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node);}
-Return the current pointer (if any) for the handle on the given node.
-@item @code{ size_t (*get_size)(starpu_data_handle_t handle);}
-Return an estimation of the size of data, for performance models.
-@item @code{ uint32_t (*footprint)(starpu_data_handle_t handle);}
-Return a 32bit footprint which characterizes the data size.
-@item @code{ int (*compare)(void *data_interface_a, void *data_interface_b);}
-Compare the data size of two interfaces.
-@item @code{ void (*display)(starpu_data_handle_t handle, FILE *f);}
-Dump the sizes of a handle to a file.
-@item @code{ int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); }
-Convert the data size to the spu size format. If no SPUs are used, this field can be seto NULL.
-@item @code{enum starpu_data_interface_id interfaceid;}
-An identifier that is unique to each interface.
-@item @code{size_t interface_size;}
-The size of the interface data descriptor.
+@item @code{int @{ram,cuda,opencl,spu@}_to_@{ram,cuda,opencl,spu@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+These 16 functions define how to copy data from the @var{src_interface}
+interface on the @var{src_node} node to the @var{dst_interface} interface
+on the @var{dst_node} node. They return 0 on success.
+
+@item @code{int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
+@var{dst_node} node (on a CUDA device), using the given @var{stream}. Return 0
+on success.
+
+@item @code{int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on the
+@var{dst_node} node (in RAM), using the given @var{stream}. Return 0
+on success.
+
+@item @code{int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on
+the @var{dst_node} node (on another CUDA device), using the given @var{stream}.
+Return 0 on success.
+
+@item @code{int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
+@var{dst_node} node (on an OpenCL device), using @var{event}, a pointer to a
+cl_event. Return 0 on success.
+
+@item @code{int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
+on the @var{dst_node} node (in RAM), using the given @var{event}, a pointer to
+a cl_event. Return 0 on success.
+
+@item @code{int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
+Define how to copy data from the @var{src_interface} interface on the
+@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
+on the @var{dst_node} node (on another OpenCL device), using the given
+@var{event}, a pointer to a cl_event. Return 0 on success.
 @end table
 @end deftp
 
@@ -131,19 +149,25 @@ See @code{src/datawizard/interfaces/vector_interface.c} for now.
 @deftp {Data Type} {struct starpu_multiformat_data_interface_ops}
 todo. The different fields are:
 @table @asis
-@item @code{cpu_elemsize}
+@item @code{size_t cpu_elemsize}
 the size of each element on CPUs,
-@item @code{opencl_elemsize}
+
+@item @code{size_t opencl_elemsize}
 the size of each element on OpenCL devices,
-@item @code{cuda_elemsize}
-the size of each element on CUDA devices,
-@item @code{cpu_to_opencl_cl}
+
+@item @code{struct starpu_codelet *cpu_to_opencl_cl}
 pointer to a codelet which converts from CPU to OpenCL
-@item @code{opencl_to_cpu_cl}
+
+@item @code{struct starpu_codelet *opencl_to_cpu_cl}
 pointer to a codelet which converts from OpenCL to CPU
-@item @code{cpu_to_cuda_cl}
+
+@item @code{size_t cuda_elemsize}
+the size of each element on CUDA devices,
+
+@item @code{struct starpu_codelet *cpu_to_cuda_cl}
 pointer to a codelet which converts from CPU to CUDA
-@item @code{cuda_to_cpu_cl}
+
+@item @code{struct starpu_codelet *cuda_to_cpu_cl}
 pointer to a codelet which converts from CUDA to CPU
 @end table
 @end deftp
@@ -314,7 +338,52 @@ policies to address specific problems.  The API described below allows
 users to write their own scheduling policy.
 
 @deftp {Data Type} {struct starpu_machine_topology}
+@table @asis
+@item @code{unsigned nworkers}
 TODO
+
+@item @code{unsigned ncombinedworkers}
+TODO
+
+@item @code{hwloc_topology_t hwtopology}
+TODO
+To maintain ABI compatibility when hwloc is not available, the field
+is replaced with @code{void *dummy}
+
+@item @code{unsigned nhwcpus}
+TODO
+
+@item @code{unsigned nhwcudagpus}
+TODO
+
+@item @code{unsigned nhwopenclgpus}
+TODO
+
+@item @code{unsigned ncpus}
+TODO
+
+@item @code{unsigned ncudagpus}
+TODO
+
+@item @code{unsigned nopenclgpus}
+TODO
+
+@item @code{unsigned ngordon_spus}
+TODO
+
+@item @code{unsigned workers_bindid[STARPU_NMAXWORKERS]}
+Where to bind workers ?
+TODO
+
+@item @code{unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS]}
+Which GPU(s) do we use for CUDA ?
+TODO
+
+@item @code{unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS]}
+Which GPU(s) do we use for OpenCL ?
+TODO
+
+@end table
 @end deftp
 
 @deftp {Data Type} {struct starpu_sched_policy}
@@ -322,36 +391,48 @@ This structure contains all the methods that implement a scheduling policy.  An
 application may specify which scheduling strategy in the @code{sched_policy}
 field of the @code{starpu_conf} structure passed to the @code{starpu_init}
 function. The different fields are:
+
 @table @asis
-@item @code{init_sched}
+@item @code{void (*init_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *)}
 Initialize the scheduling policy.
-@item @code{deinit_sched}
+
+@item @code{void (*deinit_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *)}
 Cleanup the scheduling policy.
-@item @code{push_task}
+
+@item @code{int (*push_task)(struct starpu_task *)}
 Insert a task into the scheduler.
-@item @code{push_task_notify}
+
+@item @code{void (*push_task_notify)(struct starpu_task *, int workerid)}
 Notify the scheduler that a task was pushed on a given worker. This method is
 called when a task that was explicitely assigned to a worker becomes ready and
 is about to be executed by the worker. This method therefore permits to keep
 the state of of the scheduler coherent even when StarPU bypasses the scheduling
 strategy.
-@item @code{pop_task} (optional)
+
+@item @code{struct starpu_task *(*pop_task)(void)} (optional)
 Get a task from the scheduler. The mutex associated to the worker is already
 taken when this method is called. If this method is defined as @code{NULL}, the
 worker will only execute tasks from its local queue. In this case, the
 @code{push_task} method should use the @code{starpu_push_local_task} method to
 assign tasks to the different workers.
-@item @code{pop_every_task}
+
+@item @code{struct starpu_task *(*pop_every_task)(void)}
 Remove all available tasks from the scheduler (tasks are chained by the means
 of the prev and next fields of the starpu_task structure). The mutex associated
 to the worker is already taken when this method is called. This is currently
 only used by the Gordon driver.
-@item @code{post_exec_hook} (optional)
+
+@item @code{void (*pre_exec_hook)(struct starpu_task *)} (optional)
+This method is called every time a task is starting.
+
+@item @code{void (*post_exec_hook)(struct starpu_task *)} (optional)
 This method is called every time a task has been executed.
-@item @code{policy_name}
-Name of the policy (optional).
-@item @code{policy_description}
-Description of the policy (optional).
+
+@item @code{const char *policy_name} (optional)
+Name of the policy.
+
+@item @code{const char *policy_description} (optional)
+Description of the policy.
 @end table
 @end deftp
 
