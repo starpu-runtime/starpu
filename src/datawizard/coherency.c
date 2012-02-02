@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -632,7 +632,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		struct _starpu_data_replicate *local_replicate;
 
 		if (index && descrs[index-1].handle == descrs[index].handle)
-			/* We have already released this data, skip it. This
+			/* We have already took this data, skip it. This
 			 * depends on ordering putting writes before reads, see
 			 * _starpu_compar_handles */
 			continue;
