@@ -82,6 +82,7 @@ main(void)
 	if (ret)
 		return EXIT_FAILURE;
 
+	starpu_task_destroy(task);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
