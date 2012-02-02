@@ -98,10 +98,10 @@ struct starpu_sched_policy
 	  * when this method is called. */
 	struct starpu_task *(*pop_every_task)(void);
 
-	/* This method is called every time a task is starting. (optionnal) */
+	/* This method is called every time a task is starting. (optional) */
 	void (*pre_exec_hook)(struct starpu_task *);
 
-	/* This method is called every time a task has been executed. (optionnal) */
+	/* This method is called every time a task has been executed. (optional) */
 	void (*post_exec_hook)(struct starpu_task *);
 
 	/* Name of the policy (optionnal) */
