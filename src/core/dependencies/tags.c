@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -176,7 +176,14 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	/* enforce data dependencies */
 	_starpu_enforce_deps_starting_from_task(j, 1);
 
+	int must_destroy = j->submitted && j->terminated > 0 && j->task->destroy && j->task->detach;
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
+
+	if (must_destroy)
+		starpu_task_destroy(j->task);
 
 	_starpu_spin_lock(&tag->lock);
 }
