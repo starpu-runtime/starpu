@@ -1332,7 +1332,8 @@ after the execution of the callback if the task is detached, or during
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
 allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
-will result in undefined behaviour.
+will result in undefined behaviour. The flag is set to 1 when the task
+is created by calling @code{starpu_task_create()}.
 
 @item @code{int regenerate} (optional)
 If this flag is set, the task will be re-submitted to StarPU once it has been
