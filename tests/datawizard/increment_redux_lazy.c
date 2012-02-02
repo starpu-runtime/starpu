@@ -237,6 +237,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 	var = (unsigned*) starpu_variable_get_local_ptr(handle);
 	STARPU_ASSERT(*var == ntasks*nloops);
+	starpu_data_release(handle);
 	starpu_data_unregister(handle);
 
 	starpu_shutdown();
