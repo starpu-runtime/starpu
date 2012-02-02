@@ -19,7 +19,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static unsigned ntasks = 10000;
+static unsigned ntasks = 10;
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
@@ -49,11 +49,14 @@ starpu_data_handle_t token_handle;
 
 int increment_token()
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
         task->synchronous = 1;
 	task->cl = &increment_cl;
 	task->handles[0] = token_handle;
-	return starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	starpu_task_destroy(task);
+	return ret;
 }
 
 void callback(void *arg __attribute__ ((unused)))
