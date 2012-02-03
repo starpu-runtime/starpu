@@ -98,12 +98,6 @@ int main(int argc, char **argv)
 	ret = starpu_data_acquire(A_handle, STARPU_R);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
-	/* Check result */
-	unsigned i;
-	for (i = 0; i < VECTORSIZE; i++)
-	{
-		STARPU_ASSERT(A[i] == NLOOPS);
-	}
 
 	starpu_data_release(A_handle);
 
@@ -111,7 +105,19 @@ int main(int argc, char **argv)
 	starpu_data_unregister(B_handle);
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	/* Check result */
+	unsigned i;
+	ret = EXIT_SUCCESS;
+	for (i = 0; i < VECTORSIZE; i++)
+	{
+		if (A[i] != NLOOPS)
+		{
+			ret = EXIT_FAILURE;
+			break;
+		}
+	}
+
+	return ret;
 
 enodev:
 	starpu_data_unregister(A_handle);
