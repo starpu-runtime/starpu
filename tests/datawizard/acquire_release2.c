@@ -94,7 +94,10 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(token_handle);
         FPRINTF(stderr, "Token: %u\n", token);
-        STARPU_ASSERT(token==ntasks);
+	if (token == ntasks * 2)
+		return EXIT_SUCCESS;
+	else
+		return EXIT_FAILURE;
 
 	starpu_shutdown();
 
