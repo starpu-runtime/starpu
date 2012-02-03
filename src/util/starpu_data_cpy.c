@@ -80,7 +80,8 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	if (reduction) {
 		j->reduction_task = reduction;
-		starpu_task_declare_deps_array(task, 1, &reduction_dep_task);
+		if (reduction_dep_task)
+			starpu_task_declare_deps_array(task, 1, &reduction_dep_task);
 	}
 
 	task->cl = &copy_cl;
