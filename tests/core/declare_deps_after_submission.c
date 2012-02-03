@@ -89,6 +89,8 @@ int main(int argc, char **argv)
 
 		ret = starpu_task_wait(taskA);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		starpu_task_destroy(taskA);
 	}
 
 	ret = starpu_task_wait_for_all();
