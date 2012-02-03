@@ -93,15 +93,14 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(token_handle);
+
+	starpu_shutdown();
+
         FPRINTF(stderr, "Token: %u\n", token);
 	if (token == ntasks * 2)
 		return EXIT_SUCCESS;
 	else
 		return EXIT_FAILURE;
-
-	starpu_shutdown();
-
-	return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(token_handle);
