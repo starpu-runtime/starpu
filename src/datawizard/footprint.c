@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,6 +54,8 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum 
 uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle)
 {
 	uint32_t interfaceid = (uint32_t)starpu_handle_get_interface_id(handle);
+
+	STARPU_ASSERT(handle->ops->footprint);
 
 	uint32_t handle_footprint = handle->ops->footprint(handle);
 

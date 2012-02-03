@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -157,6 +157,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	/* Store some values directly in the handle not to recompute them all
 	 * the time. */
+	STARPU_ASSERT(handle->ops->get_size);
 	handle->data_size = handle->ops->get_size(handle);
 	handle->footprint = _starpu_compute_data_footprint(handle);
 
@@ -287,6 +288,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 	handle->mf_node = home_node;
 
 	/* fill the interface fields with the appropriate method */
+	STARPU_ASSERT(ops->register_data_handle);
 	ops->register_data_handle(handle, home_node, data_interface);
 
 	_starpu_register_new_data(handle, home_node, 0);
