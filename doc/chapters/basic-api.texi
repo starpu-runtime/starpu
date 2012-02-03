@@ -1090,6 +1090,57 @@ This section describes the interface to manipulate codelets and tasks.
 todo
 @end deftp
 
+@defmac STARPU_CPU
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on a CPU
+processing unit.
+@end defmac
+
+@defmac STARPU_CUDA
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on a CUDA
+processing unit.
+@end defmac
+
+@defmac STARPU_SPU
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on a SPU
+processing unit.
+@end defmac
+
+@defmac STARPU_GORDON
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on a Cell
+processing unit.
+@end defmac
+
+@defmac STARPU_OPENCL
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on a OpenCL
+processing unit.
+@end defmac
+
+@defmac STARPU_MULTIPLE_CPU_IMPLEMENTATIONS
+Setting the field @code{cpu_func} of a @code{struct starpu_codelet}
+with this macro indicates the codelet will have several
+implementations. The use of this macro is deprecated. One should
+always only define the field @code{cpu_funcs}.
+@end defmac
+
+@defmac STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS
+Setting the field @code{cuda_func} of a @code{struct starpu_codelet}
+with this macro indicates the codelet will have several
+implementations. The use of this macro is deprecated. One should
+always only define the field @code{cuda_funcs}.
+@end defmac
+
+@defmac STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS
+Setting the field @code{opencl_func} of a @code{struct starpu_codelet}
+with this macro indicates the codelet will have several
+implementations. The use of this macro is deprecated. One should
+always only define the field @code{opencl_funcs}.
+@end defmac
+
 @deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
@@ -1904,6 +1955,12 @@ TODO
 @node CUDA extensions
 @section CUDA extensions
 
+@defmac STARPU_USE_CUDA
+This macro is defined when StarPU has been installed with CUDA
+support. It should be used in your code to detect the availability of
+CUDA as shown in @ref{Full source code for the 'Scaling a Vector' example}.
+@end defmac
+
 @deftypefun cudaStream_t starpu_cuda_get_local_stream (void)
 This function gets the current worker's CUDA stream.
 StarPU provides a stream for every CUDA device controlled by StarPU. This
@@ -1962,6 +2019,12 @@ todo
 * OpenCL statistics::           Collecting statistics from OpenCL
 * OpenCL utilities::            Utilities for OpenCL
 @end menu
+
+@defmac STARPU_USE_OPENCL
+This macro is defined when StarPU has been installed with OpenCL
+support. It should be used in your code to detect the availability of
+OpenCL as shown in @ref{Full source code for the 'Scaling a Vector' example}.
+@end defmac
 
 @node Writing OpenCL kernels
 @subsection Writing OpenCL kernels
