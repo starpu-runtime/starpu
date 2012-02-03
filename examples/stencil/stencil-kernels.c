@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -294,10 +294,14 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 	unsigned offset = firstz*block->ldz;
 	cl_mem block_data = (cl_mem)block->ptr;
 	cl_mem boundary_data = (cl_mem)boundary->ptr;
+	cl_event event;
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
-        clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, NULL);
+        clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, &event);
+
+	clWaitForEvents(1, &event);
+	clReleaseEvent(event);
 }
 
 /*
@@ -358,7 +362,10 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 #ifdef LIFE
 		opencl_life_update_host(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-                clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, NULL);
+		cl_event event;
+                clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
+		clWaitForEvents(1, &event);
+		clReleaseEvent(event);
 #endif /* LIFE */
 	}
 
@@ -533,8 +540,12 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
+	cl_event event;
 
-        clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
+        clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, &event);
+
+	clWaitForEvents(1, &event);
+	clReleaseEvent(event);
 }
 #endif /* STARPU_USE_OPENCL */
 
