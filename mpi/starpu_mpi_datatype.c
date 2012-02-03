@@ -128,6 +128,8 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
+	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
 
