@@ -60,8 +60,6 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 	}
 
 	va_end(varg_list);
-
-	free(cl_arg);
 }
 
 int starpu_insert_task(struct starpu_codelet *cl, ...)
