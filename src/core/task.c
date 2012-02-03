@@ -211,7 +211,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	j->submitted = 1;
 
 	int ret = _starpu_enforce_deps_and_schedule(j, 1);
-	int must_destroy = j->submitted && j->terminated > 0 && j->task->destroy && j->task->detach;
+	int must_destroy = j->terminated > 0 && j->task->destroy && j->task->detach;
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
