@@ -81,6 +81,7 @@ int main(int argc, char **argv)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+		starpu_task_destroy(taskB);
 		starpu_task_destroy(taskA);
 	}
 
