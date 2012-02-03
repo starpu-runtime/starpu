@@ -94,13 +94,6 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	/* Make sure that data A is in main memory */
-	ret = starpu_data_acquire(A_handle, STARPU_R);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-
-
-	starpu_data_release(A_handle);
-
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
 	starpu_shutdown();
