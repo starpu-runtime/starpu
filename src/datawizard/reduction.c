@@ -245,7 +245,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 		if (empty)
 			/* The handle was empty, we just need to copy the reduced value. */
-			_starpu_data_cpy(handle, replicate_array[0], 1, NULL, 0, 1);
+			_starpu_data_cpy(handle, replicate_array[0], 1, NULL, 0, 1, last_replicate_deps[0]);
 
 #else
 		if (empty) {

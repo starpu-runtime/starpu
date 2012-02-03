@@ -69,7 +69,8 @@ static struct starpu_codelet copy_cl =
 };
 
 int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
-			int asynchronous, void (*callback_func)(void*), void *callback_arg, int reduction)
+			int asynchronous, void (*callback_func)(void*), void *callback_arg,
+			int reduction, struct starpu_task *reduction_dep_task)
 {
 	const struct starpu_data_copy_methods *copy_methods = dst_handle->ops->copy_methods;
 
@@ -77,7 +78,10 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	STARPU_ASSERT(task);
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-	j->reduction_task = reduction;
+	if (reduction) {
+		j->reduction_task = reduction;
+		starpu_task_declare_deps_array(task, 1, &reduction_dep_task);
+	}
 
 	task->cl = &copy_cl;
 	task->cl_arg = (void *)copy_methods;
@@ -99,5 +103,5 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg)
 {
-	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0);
+	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
 }
