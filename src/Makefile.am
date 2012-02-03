@@ -109,6 +109,7 @@ noinst_HEADERS = 						\
 	profiling/bound.h					\
 	profiling/profiling.h					\
 	util/starpu_insert_task_utils.h				\
+	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
 	top/starpu_top_message_queue.h				\
 	top/starpu_top_connection.h				\
