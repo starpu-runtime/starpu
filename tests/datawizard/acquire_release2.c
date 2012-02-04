@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
         FPRINTF(stderr, "Token: %u\n", token);
-	if (token == ntasks * 2)
+	if (token == ntasks)
 		return EXIT_SUCCESS;
 	else
 		return EXIT_FAILURE;
