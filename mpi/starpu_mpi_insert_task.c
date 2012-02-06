@@ -32,94 +32,22 @@
  * yet: the sender has to know whether the receiver has it, keeping it
  * in an array indexed by node numbers. */
 //#define MPI_CACHE
+#include <starpu_mpi_insert_task_cache.h>
 
-#ifdef MPI_CACHE
-static struct starpu_htbl32_node **sent_data = NULL;
-static struct starpu_htbl32_node **received_data = NULL;
-
-static void _starpu_mpi_task_init(int nb_nodes)
+static void _starpu_mpi_tables_init()
 {
-        int i;
+        if (sent_data == NULL) {
+                int nb_nodes;
+		int i;
 
-        _STARPU_MPI_DEBUG("Initialising hash table for cache\n");
-        sent_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node *));
-        for(i=0 ; i<nb_nodes ; i++) sent_data[i] = NULL;
-        received_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node *));
-        for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
+                MPI_Comm_size(MPI_COMM_WORLD, &nb_nodes);
+		_STARPU_MPI_DEBUG("Initialising hash table for cache\n");
+		sent_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node *));
+		for(i=0 ; i<nb_nodes ; i++) sent_data[i] = NULL;
+		received_data = malloc(nb_nodes * sizeof(struct starpu_htbl32_node *));
+		for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
+	}
 }
-
-typedef struct _starpu_mpi_clear_cache_s {
-        starpu_data_handle_t data;
-        int rank;
-        int mode;
-} _starpu_mpi_clear_cache_t;
-
-#define _STARPU_MPI_CLEAR_SENT_DATA     0
-#define _STARPU_MPI_CLEAR_RECEIVED_DATA 1
-
-void _starpu_mpi_clear_cache_callback(void *callback_arg)
-{
-        _starpu_mpi_clear_cache_t *clear_cache = (_starpu_mpi_clear_cache_t *)callback_arg;
-        uint32_t key = starpu_crc32_be((uintptr_t)clear_cache->data, 0);
-
-        if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
-                _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_32(&sent_data[clear_cache->rank], key, NULL);
-        }
-        else if (clear_cache->mode == _STARPU_MPI_CLEAR_RECEIVED_DATA) {
-                _STARPU_MPI_DEBUG("Clearing received cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_32(&received_data[clear_cache->rank], key, NULL);
-        }
-
-        free(clear_cache);
-}
-
-double _starpu_mpi_clear_cache_cost_function(struct starpu_task *task, unsigned nimpl)
-{
-	return 0;
-}
-
-static struct starpu_perfmodel _starpu_mpi_clear_cache_model =
-{
-	.cost_function = _starpu_mpi_clear_cache_cost_function,
-	.type = STARPU_COMMON,
-};
-
-static void _starpu_mpi_clear_cache_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
-{
-}
-
-static struct starpu_codelet _starpu_mpi_clear_cache_codelet =
-{
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_funcs = {_starpu_mpi_clear_cache_func, NULL},
-	.cuda_funcs = {_starpu_mpi_clear_cache_func, NULL},
-	.opencl_funcs = {_starpu_mpi_clear_cache_func, NULL},
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.model = &_starpu_mpi_clear_cache_model
-	// The model has a cost function which returns 0 so as to allow the codelet to be scheduled anywhere
-};
-
-void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank, int mode)
-{
-        struct starpu_task *task = starpu_task_create();
-
-	// We have a codelet with a empty function just to force the
-	// task being created to have a dependency on data_handle
-        task->cl = &_starpu_mpi_clear_cache_codelet;
-        task->handles[0] = data_handle;
-
-        _starpu_mpi_clear_cache_t *clear_cache = malloc(sizeof(_starpu_mpi_clear_cache_t));
-        clear_cache->data = data_handle;
-        clear_cache->rank = rank;
-        clear_cache->mode = mode;
-
-        task->callback_func = _starpu_mpi_clear_cache_callback;
-        task->callback_arg = clear_cache;
-        starpu_task_submit(task);
-}
-#endif
 
 void _starpu_data_deallocate(starpu_data_handle_t data_handle)
 {
@@ -141,13 +69,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 	MPI_Comm_rank(comm, &me);
 
-#ifdef MPI_CACHE
-        if (sent_data == NULL) {
-                int size;
-                MPI_Comm_size(comm, &size);
-                _starpu_mpi_task_init(size);
-        }
-#endif
+	_starpu_mpi_tables_init();
 
         /* Get the number of buffers and the size of the arguments */
 	va_start(varg_list, codelet);
