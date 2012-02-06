@@ -303,7 +303,7 @@ todo
 todo
 @end deftypefun
 
-@deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array[]})
+@deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array}[])
 Register a new combined worker and get its identifier
 @end deftypefun
 
