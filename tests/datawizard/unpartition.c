@@ -48,9 +48,8 @@ static struct starpu_codelet cl =
 	.nbuffers = 1
 };
 
-int use_handle(starpu_data_handle_t handle)
+struct starpu_task* create_task(starpu_data_handle_t handle)
 {
-	int ret;
 	struct starpu_task *task;
 
 	task = starpu_task_create();
@@ -58,9 +57,7 @@ int use_handle(starpu_data_handle_t handle)
 		task->handles[0] = handle;
 		task->detach = 0;
 
-	ret = starpu_task_submit(task);
-
-	return ret;
+	return task;
 }
 
 int main(int argc, char **argv)
@@ -88,13 +85,17 @@ int main(int argc, char **argv)
 	unsigned iter;
 	for (iter = 0; iter < NITER; iter++)
 	{
+		struct starpu_task *tasks[3];
+
 		starpu_data_map_filters(v_handle, 1, &f);
 
-		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 0));
+		tasks[0] = create_task(starpu_data_get_sub_data(v_handle, 1, 0));
+		ret = starpu_task_submit(tasks[0]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 1));
+		tasks[1] = create_task(starpu_data_get_sub_data(v_handle, 1, 1));
+		ret = starpu_task_submit(tasks[1]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
@@ -103,12 +104,17 @@ int main(int argc, char **argv)
 
 		starpu_data_unpartition(v_handle, 0);
 
-		ret = use_handle(v_handle);
+		tasks[2] = create_task(v_handle);
+		starpu_task_submit(tasks[2]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_wait_for_all();
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
+		starpu_task_destroy(tasks[0]);
+		starpu_task_destroy(tasks[1]);
+		starpu_task_destroy(tasks[2]);
 	}
 
 	starpu_data_unregister(v_handle);
