@@ -17,8 +17,7 @@
 #include <starpu_mpi.h>
 #include <math.h>
 
-#define X         5
-#define Y         3
+#define X         7
 
 int display = 0;
 
@@ -30,14 +29,16 @@ static struct starpu_codelet init_codelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {init_cpu_func, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.name = "init_codelet"
 };
 
 static struct starpu_codelet redux_codelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {redux_cpu_func, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.name = "redux_codelet"
 };
 
 static struct starpu_codelet dot_codelet =
@@ -45,7 +46,8 @@ static struct starpu_codelet dot_codelet =
 	.where = STARPU_CPU,
 	.cpu_funcs = {dot_cpu_func, NULL},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_REDUX}
+	.modes = {STARPU_R, STARPU_REDUX},
+	.name = "dot_codelet"
 };
 
 static void parse_args(int argc, char **argv)
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
         int my_rank, size, x;
         int value=0;
         unsigned vector[X];
-	unsigned dot, sum=0;
+	unsigned dot=0, sum=0;
         starpu_data_handle_t handles[X];
 	starpu_data_handle_t dot_handle;
 
@@ -81,8 +83,8 @@ int main(int argc, char **argv)
 
         for(x = 0; x < X; x++)
 	{
-		vector[x] = x;
-		sum += x;
+		vector[x] = x+1;
+		sum += x+1;
         }
 
         for(x = 0; x < X; x++)
