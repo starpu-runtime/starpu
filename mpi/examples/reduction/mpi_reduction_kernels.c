@@ -42,9 +42,8 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 void dot_cpu_func(void *descr[], void *cl_arg)
 {
 	int *local_x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	int *local_y = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
-	int *dot = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
+	int *dot = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	*dot += *local_x + *local_y;
+	*dot += *local_x;
 }
 
