@@ -1026,12 +1026,17 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
       TREE_SIDE_EFFECTS (alloc) = true;
       add_stmt (alloc);
 
-      /* Add a destructor for VAR.
+      /* Add a destructor for VAR.  Instead of consing the `cleanup'
+	 attribute for VAR, directly use `push_cleanup'.  This guarantees
+	 that CLEANUP_ID is looked up in the right context, and allows us to
+	 pass VAR directly to `starpu_free', instead of `&VAR'.
+
 	 TODO: Provide a way to disable this.  */
-      DECL_ATTRIBUTES (var) =
-	tree_cons (get_identifier ("cleanup"),
-		   lookup_name (get_identifier ("_starpu_free_unref")),
-		   DECL_ATTRIBUTES (var));
+
+      static tree cleanup_decl;
+      LOOKUP_STARPU_FUNCTION (cleanup_decl, "starpu_free");
+
+      push_cleanup (var, build_call_expr (cleanup_decl, 1, var), false);
     }
 
   return NULL_TREE;
