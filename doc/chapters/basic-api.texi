@@ -1383,8 +1383,9 @@ after the execution of the callback if the task is detached, or during
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
 allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
-will result in undefined behaviour. The flag is set to 1 when the task
-is created by calling @code{starpu_task_create()}.
+will result in undefined behaviour. The flag is set to 1 when the task is
+created by calling @code{starpu_task_create()}. Note that
+@code{starpu_task_wait_for_all} will not free any task.
 
 @item @code{int regenerate} (optional)
 If this flag is set, the task will be re-submitted to StarPU once it has been
@@ -1488,7 +1489,8 @@ available and this task is only implemented for CUDA devices).
 @end deftypefun
 
 @deftypefun int starpu_task_wait_for_all (void)
-This function blocks until all the tasks that were submitted are terminated.
+This function blocks until all the tasks that were submitted are terminated. It
+does not destroy these tasks.
 @end deftypefun
 
 @deftypefun {struct starpu_task *} starpu_task_get_current (void)
