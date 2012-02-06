@@ -230,11 +230,12 @@ int main(int argc, char **argv)
 	for (worker = 0; worker < nworkers; worker++)
 		starpu_data_unregister_no_coherency(per_worker_handle[worker]);
 
-	STARPU_ASSERT(variable == (INIT_VALUE + NTASKS));
-
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	if (variable == INIT_VALUE + NTASKS)
+		return EXIT_SUCCESS;
+	else
+		return EXIT_FAILURE;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
