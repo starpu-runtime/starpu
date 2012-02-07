@@ -24,6 +24,7 @@
 #include <starpu_hash.h>
 #include <common/htable32.h>
 #include <util/starpu_insert_task_utils.h>
+#include <datawizard/coherency.h>
 
 //#define STARPU_MPI_VERBOSE	1
 #include <starpu_mpi_private.h>
