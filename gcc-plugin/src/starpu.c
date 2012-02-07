@@ -605,6 +605,26 @@ build_data_register_call (location_t loc, tree pointer, tree count)
 		 NULL_TREE);
 }
 
+/* Return a `starpu_data_unregister' call for VAR.  */
+
+static tree
+build_data_unregister_call (location_t loc, tree var)
+{
+  static tree unregister_fn;
+  LOOKUP_STARPU_FUNCTION (unregister_fn, "starpu_data_unregister");
+
+  /* If VAR is an array, take its address.  */
+  tree pointer =
+    POINTER_TYPE_P (TREE_TYPE (var))
+    ? var
+    : build_addr (var, current_function_decl);
+
+  /* Call `starpu_data_unregister (starpu_data_lookup (ptr))'.  */
+  return build_call_expr (unregister_fn, 1,
+			  build_pointer_lookup (pointer));
+}
+
+
 /* Process `#pragma starpu register VAR [COUNT]' and emit the corresponding
    `starpu_vector_data_register' call.  */
 
@@ -779,9 +799,6 @@ handle_pragma_acquire (struct cpp_reader *reader)
 static void
 handle_pragma_unregister (struct cpp_reader *reader)
 {
-  static tree unregister_fn;
-  LOOKUP_STARPU_FUNCTION (unregister_fn, "starpu_data_unregister");
-
   tree args, var;
   location_t loc;
 
@@ -804,15 +821,7 @@ handle_pragma_unregister (struct cpp_reader *reader)
   else if (TREE_CHAIN (args) != NULL_TREE)
     error_at (loc, "junk after %<starpu unregister%> pragma");
 
-  /* If VAR is an array, take its address.  */
-  tree pointer =
-    POINTER_TYPE_P (TREE_TYPE (var))
-    ? var
-    : build_addr (var, current_function_decl);
-
-  /* Call `starpu_data_unregister (starpu_data_lookup (ptr))'.  */
-  add_stmt (build_call_expr (unregister_fn, 1,
-			     build_pointer_lookup (pointer)));
+  add_stmt (build_data_unregister_call (loc, var));
 }
 
 /* Handle the `debug_tree' pragma (for debugging purposes.)  */
