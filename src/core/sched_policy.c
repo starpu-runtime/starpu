@@ -151,14 +151,9 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 
 	/* Otherwise, we look if the application specified the name of a policy to load */
 	const char *sched_pol_name;
-	if (user_conf && (user_conf->sched_policy_name))
-	{
+	sched_pol_name = getenv("STARPU_SCHED");
+	if (sched_pol_name == NULL && user_conf && user_conf->sched_policy_name)
 		sched_pol_name = user_conf->sched_policy_name;
-	}
-	else
-	{
-		sched_pol_name = getenv("STARPU_SCHED");
-	}
 
 	if (sched_pol_name)
 		selected_policy = find_sched_policy_from_name(sched_pol_name);
