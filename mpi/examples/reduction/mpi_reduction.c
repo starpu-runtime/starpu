@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         int my_rank, size, x;
         int value=0;
         unsigned vector[X];
-	unsigned dot=0, sum=0;
+	unsigned dot, sum=0;
         starpu_data_handle_t handles[X];
 	starpu_data_handle_t dot_handle;
 
@@ -83,7 +83,11 @@ int main(int argc, char **argv)
 
         for(x = 0; x < X; x++)
 	{
-		vector[x] = x+1;
+		int mpi_rank = my_distrib(x, size);
+		if (mpi_rank == my_rank)
+		{
+			vector[x] = x+1;
+		}
 		sum += x+1;
         }
 
@@ -106,6 +110,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (my_rank == 0) {
+		dot = 14;
+		sum+= dot;
+	}
 	starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(unsigned));
 	starpu_data_set_rank(dot_handle, 0);
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
