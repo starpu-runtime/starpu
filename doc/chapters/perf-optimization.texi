@@ -62,6 +62,17 @@ starpu_data_set_wt_mask(img_handle, ~0U);
 will request to always automatically broadcast the updated data to all memory
 nodes.
 
+@node Task granularity
+@section Task granularity
+
+Like any other runtime, StarPU has some overhead to manage tasks. Since
+it does smart scheduling and data management, that overhead is not always
+neglectable. The order of magnitude of the overhead is typically a couple of
+microseconds. The amount of work that a task should do should thus be somewhat
+bigger, to make sure that the overhead becomes neglectible. The offline
+performance feedback can provide a measure of task length, which should thus be
+checked if bad performance are observed.
+
 @node Task submission
 @section Task submission
 
