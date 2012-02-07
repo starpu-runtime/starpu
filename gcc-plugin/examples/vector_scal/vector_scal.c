@@ -34,38 +34,36 @@
 #include <stdlib.h>
 
 #ifdef __SSE__
-#include <xmmintrin.h>
+# include <xmmintrin.h>
 #endif
 
-#define NX     16
-#define FACTOR 3.14
+static void vector_scal(size_t size, float vector[size], float factor)
+	__attribute__ ((task));
 
-static float vector[NX];
 
-static void vector_scal(float *v, size_t n, float factor)
-__attribute__ ((task));
+/* Declare and define the standard CPU implementation.  */
 
-static void vector_scal_cpu(float *v, size_t n, float factor)
-__attribute__ ((task_implementation ("cpu", vector_scal)));
-
-#ifdef __SSE__
-static void vector_scal_sse(float *v, size_t n, float factor)
-__attribute__ ((task_implementation ("cpu", vector_scal)));
-#endif /* !__SSE__ */
+static void vector_scal_cpu(size_t size, float vector[size], float factor)
+	__attribute__ ((task_implementation ("cpu", vector_scal)));
 
 static void
-vector_scal_cpu(float *v, size_t n, float factor)
+vector_scal_cpu(size_t size, float vector[size], float factor)
 {
-	int i;
-	for (i = 0; i < n; i++)
-		v[i] *= factor;
+	size_t i;
+	for (i = 0; i < size; i++)
+		vector[i] *= factor;
 }
 
 #ifdef __SSE__
+/* The SSE-capable CPU implementation.  */
+
+static void vector_scal_sse(size_t size, float vector[size], float factor)
+	__attribute__ ((task_implementation ("cpu", vector_scal)));
+
 static void
-vector_scal_sse(float *vector, size_t n, float factor)
+vector_scal_sse(size_t size, float vector[size], float factor)
 {
-	unsigned int n_iterations = n/4;
+	unsigned int n_iterations = size/4;
 
 	__m128 *VECTOR = (__m128*) vector;
 	__m128 _FACTOR __attribute__((aligned(16)));
@@ -75,33 +73,23 @@ vector_scal_sse(float *vector, size_t n, float factor)
 	for (i = 0; i < n_iterations; i++)
 		VECTOR[i] = _mm_mul_ps(_FACTOR, VECTOR[i]);
 
-	unsigned int remainder = n%4;
+	unsigned int remainder = size%4;
 	if (remainder != 0)
 	{
 		unsigned int start = 4 * n_iterations;
 		for (i = start; i < start+remainder; ++i)
-		{
 			vector[i] = factor * vector[i];
-		}
 	}
 }
-#endif /* !__SSE__ */
-
-static void
-init_data(void)
-{
-	int i;
-	for (i = 0; i < NX; i++)
-		vector[i] = (float) i;
-}
+#endif /* __SSE__ */
 
 #define EPSILON 1e-3
 static int
-check(void)
+check(size_t size, float vector[size], float factor)
 {
-	int i;
-	for (i = 0; i < NX; i++)
-		if (vector[i] - i*FACTOR > EPSILON)
+	size_t i;
+	for (i = 0; i < size; i++)
+		if (vector[i] - i*factor > EPSILON)
 			return 1;
 
 	return 0;
@@ -110,17 +98,23 @@ check(void)
 int
 main(void)
 {
-#pragma  starpu initialize
+#pragma starpu initialize
 
-	init_data();
+#define NX     0x100000
+#define FACTOR 3.14
 
-#pragma starpu register &vector NX
+	float vector[NX] __attribute__ ((heap_allocated));
 
-	vector_scal(vector, NX, FACTOR);
+#pragma starpu register vector
+
+	size_t i;
+	for (i = 0; i < NX; i++)
+		vector[i] = (float) i;
+
+	vector_scal(NX, vector, FACTOR);
 
 #pragma starpu wait
-#pragma starpu unregister &vector
 #pragma starpu shutdown
 
-	return check()?EXIT_FAILURE:EXIT_SUCCESS;
+	return check(NX, vector, FACTOR) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
