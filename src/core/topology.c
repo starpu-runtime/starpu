@@ -145,14 +145,7 @@ static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int
 	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if (use_explicit_workers_gpuid)
-	{
-		/* we use the explicit value from the user */
-		memcpy(workers_gpuid,
-                       explicit_workers_gpuid,
-                       STARPU_NMAXWORKERS*sizeof(unsigned));
-	}
-	else if ((strval = getenv(varname)))
+	if ((strval = getenv(varname)))
 	{
 		/* STARPU_WORKERS_CUDAID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
@@ -190,6 +183,13 @@ static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int
 				workers_gpuid[i] = workers_gpuid[i % number_of_entries];
 			}
 		}
+	}
+	else if (use_explicit_workers_gpuid)
+	{
+		/* we use the explicit value from the user */
+		memcpy(workers_gpuid,
+                       explicit_workers_gpuid,
+                       STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
 	else
 	{
