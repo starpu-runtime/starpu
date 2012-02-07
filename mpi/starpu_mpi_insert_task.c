@@ -88,12 +88,14 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (arg_type==STARPU_EXECUTE_ON_NODE) {
                         xrank = va_arg(varg_list, int);
 			_STARPU_MPI_DEBUG("Executing on node %d\n", xrank);
+			do_execute = 1;
                 }
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                         xrank = starpu_data_get_rank(data);
 			_STARPU_MPI_DEBUG("Executing on data node %d\n", xrank);
 			STARPU_ASSERT(xrank <= nb_nodes);
+			do_execute = 1;
                 }
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_REDUX || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
                         starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
@@ -158,7 +160,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 	}
 	va_end(varg_list);
-	assert(do_execute != -1 && "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
+	STARPU_ASSERT(do_execute != -1 && "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
         if (inconsistent_execute == 1) {
                 if (xrank == -1) {
@@ -171,7 +173,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
                 }
         }
 	else if (xrank != -1) {
-		_STARPU_MPI_DISP("Property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA overwriting node defined by data model\n");
+		_STARPU_MPI_DEBUG("Property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA overwriting node defined by data model\n");
 		do_execute = (me == xrank);
 		dest = xrank;
 	}

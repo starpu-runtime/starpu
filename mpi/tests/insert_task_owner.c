@@ -62,6 +62,14 @@ struct starpu_codelet mycodelet_w_r =
 	.modes = {STARPU_W, STARPU_R}
 };
 
+struct starpu_codelet mycodelet_r_r =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = {func_cpu, NULL},
+        .nbuffers = 2,
+	.modes = {STARPU_R, STARPU_R}
+};
+
 int main(int argc, char **argv)
 {
         int ret, rank, size, err, node;
@@ -132,6 +140,13 @@ int main(int argc, char **argv)
         err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
+				     0);
+        assert(err == 0);
+
+	node = 0;
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_r,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_R, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
         assert(err == 0);
 
