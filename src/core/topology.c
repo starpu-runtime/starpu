@@ -542,14 +542,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if (config->user_conf && config->user_conf->use_explicit_workers_bindid)
-	{
-		/* we use the explicit value from the user */
-		memcpy(topology->workers_bindid,
-			config->user_conf->workers_bindid,
-			STARPU_NMAXWORKERS*sizeof(unsigned));
-	}
-	else if ((strval = getenv("STARPU_WORKERS_CPUID")))
+	if ((strval = getenv("STARPU_WORKERS_CPUID")))
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
@@ -587,6 +580,13 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				topology->workers_bindid[i] = topology->workers_bindid[i % number_of_entries];
 			}
 		}
+	}
+	else if (config->user_conf && config->user_conf->use_explicit_workers_bindid)
+	{
+		/* we use the explicit value from the user */
+		memcpy(topology->workers_bindid,
+			config->user_conf->workers_bindid,
+			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
 	else
 	{
