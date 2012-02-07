@@ -10,6 +10,7 @@ TODO: improve!
 
 @menu
 * Data management::
+* Task granularity::
 * Task submission::
 * Task priorities::
 * Task scheduling policy::
