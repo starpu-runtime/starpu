@@ -562,6 +562,49 @@ read_pragma_expressions (const char *pragma, location_t loc)
   return expr;
 }
 
+/* Build a `starpu_vector_data_register' call for the COUNT elements pointed
+   to by POINTER.  */
+
+static tree
+build_data_register_call (location_t loc, tree pointer, tree count)
+{
+  tree pointer_type = TREE_TYPE (pointer);
+
+  gcc_assert ((TREE_CODE (pointer_type)  == ARRAY_TYPE
+	       && TYPE_DOMAIN (pointer_type) != NULL_TREE)
+	      || POINTER_TYPE_P (pointer_type));
+  gcc_assert (INTEGRAL_TYPE_P (TREE_TYPE (count)));
+
+  static tree register_fn;
+  LOOKUP_STARPU_FUNCTION (register_fn, "starpu_vector_data_register");
+
+  /* Introduce a local variable to hold the handle.  */
+
+  tree handle_var = build_decl (loc, VAR_DECL, create_tmp_var_name (".handle"),
+				ptr_type_node);
+  DECL_CONTEXT (handle_var) = current_function_decl;
+  DECL_ARTIFICIAL (handle_var) = true;
+  DECL_INITIAL (handle_var) = NULL_TREE;
+
+  /* If PTR is an array, take its address.  */
+  tree actual_pointer =
+    POINTER_TYPE_P (pointer_type)
+    ? pointer
+    : build_addr (pointer, current_function_decl);
+
+  /* Build `starpu_vector_data_register (&HANDLE_VAR, 0, POINTER,
+                                         COUNT, sizeof *POINTER)'  */
+  tree call =
+    build_call_expr (register_fn, 5,
+		     build_addr (handle_var, current_function_decl),
+		     build_zero_cst (uintptr_type_node), /* home node */
+		     actual_pointer, count,
+		     size_in_bytes (TREE_TYPE (pointer_type)));
+
+  return build3 (BIND_EXPR, void_type_node, handle_var, call,
+		 NULL_TREE);
+}
+
 /* Process `#pragma starpu register VAR [COUNT]' and emit the corresponding
    `starpu_vector_data_register' call.  */
 
@@ -682,36 +725,8 @@ handle_pragma_register (struct cpp_reader *reader)
   if (args != NULL_TREE)
     error_at (loc, "junk after %<starpu register%> pragma");
 
-  /* If PTR is an array, take its address.  */
-  tree pointer =
-    POINTER_TYPE_P (TREE_TYPE (ptr))
-    ? ptr
-    : build_addr (ptr, current_function_decl);
-
-  /* Introduce a local variable to hold the handle.  */
-  tree handle_var = build_decl (loc, VAR_DECL, create_tmp_var_name (".handle"),
-				ptr_type_node);
-  DECL_CONTEXT (handle_var) = current_function_decl;
-  DECL_ARTIFICIAL (handle_var) = true;
-  DECL_INITIAL (handle_var) = NULL_TREE;
-
-  tree register_fn =
-    lookup_name (get_identifier ("starpu_vector_data_register"));
-
-  /* Build `starpu_vector_data_register (&HANDLE_VAR, 0, POINTER,
-                                         COUNT, sizeof *POINTER)'  */
-  tree call =
-    build_call_expr (register_fn, 5,
-		     build_addr (handle_var, current_function_decl),
-		     build_zero_cst (uintptr_type_node), /* home node */
-		     pointer, count,
-		     size_in_bytes (TREE_TYPE (TREE_TYPE (ptr))));
-
-  tree bind;
-  bind = build3 (BIND_EXPR, void_type_node, handle_var, call,
-		 NULL_TREE);
-
-  add_stmt (bind);
+  /* Add a data register call.  */
+  add_stmt (build_data_register_call (loc, ptr, count));
 }
 
 /* Process `#pragma starpu acquire VAR' and emit the corresponding
