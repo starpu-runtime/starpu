@@ -178,15 +178,11 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config)
 
 	/* By default, we don't calibrate */
 	unsigned do_calibrate = 0;
-	if (config->user_conf && (config->user_conf->calibrate != -1))
-	{
-		do_calibrate = config->user_conf->calibrate;
-	}
-	else
-	{
-		int res = starpu_get_env_number("STARPU_CALIBRATE");
-		do_calibrate =  (res < 0)?0:(unsigned)res;
-	}
+	int res = starpu_get_env_number("STARPU_CALIBRATE");
+	if (res == -1 && config->user_conf)
+		res = config->user_conf->calibrate;
+
+	do_calibrate = (res < 0)?0:(unsigned)res;
 
 	_starpu_set_calibrate_flag(do_calibrate);
 
