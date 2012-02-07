@@ -457,8 +457,9 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 	/* use the directory specified at configure time */
 	snprintf(path, maxlen, "%s", STARPU_PERF_MODEL_DIR);
 #else
-	/* by default, we use $HOME/.starpu/sampling */
-	const char *home_path = getenv("STARPU_HOME");
+	const char *home_path = getenv("XDG_CACHE_HOME");
+	if (!home_path)
+		home_path = getenv("STARPU_HOME");
 	if (!home_path)
 		home_path = getenv("HOME");
 	if (!home_path)
