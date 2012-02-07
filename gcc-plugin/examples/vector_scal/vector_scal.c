@@ -85,6 +85,8 @@ vector_scal_sse (size_t size, float vector[size], float factor)
 
 #ifdef STARPU_USE_OPENCL
 
+#include <starpu_opencl.h>
+
 /* The OpenCL programs, loaded from `main'.  */
 static struct starpu_opencl_program cl_programs;
 
@@ -106,7 +108,7 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
 
   /* Prepare to invoke the kernel.  In the future, this will be largely
      automated.  */
-  err = starpu_opencl_load_kernel (&kernel, &queue, &programs,
+  err = starpu_opencl_load_kernel (&kernel, &queue, &cl_programs,
 				   "vector_mult_opencl", devid);
   if (err != CL_SUCCESS)
     STARPU_OPENCL_REPORT_ERROR (err);
@@ -153,7 +155,7 @@ main (void)
 
 #ifdef STARPU_USE_OPENCL
   starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
-				       &cl_programs, NULL);
+				       &cl_programs, "");
 #endif
 
 #define NX     0x100000
