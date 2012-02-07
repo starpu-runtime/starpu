@@ -233,16 +233,16 @@ int main(int argc, char **argv)
 		switch(starpu_worker_get_type(worker))
 		{
 		case STARPU_CPU_WORKER:
-			free(per_worker[worker]);
+			free((void*)per_worker[worker]);
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_WORKER:
-			cudaFree(per_worker[worker]);
+			cudaFree((void*)per_worker[worker]);
 			break;
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_WORKER:
-			clReleaseMemObject(per_worker[worker]);
+			clReleaseMemObject((void*)per_worker[worker]);
 			break;
 #endif /* !STARPU_USE_OPENCL */
 #ifdef STARPU_USE_GORDON
