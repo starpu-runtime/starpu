@@ -309,7 +309,6 @@ static int ws_push_task(struct starpu_task *task)
 static void initialize_ws_policy(struct starpu_machine_topology *topology,
 		__attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
-	enum starpu_perf_archtype perf_arch;
 	unsigned workerid;
 
 	nworkers = topology->nworkers;
@@ -339,6 +338,7 @@ static void initialize_ws_policy(struct starpu_machine_topology *topology,
 		starpu_worker_set_sched_condition(workerid, &global_sched_cond, &global_sched_mutex);
 
 #ifdef USE_OVERLOAD
+		enum starpu_perf_archtype perf_arch;
 		perf_arch = starpu_worker_get_perf_archtype(workerid);
 		calibration_value += (unsigned int) starpu_worker_get_relative_speedup(perf_arch);
 #endif /* USE_OVERLOAD */
