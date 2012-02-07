@@ -26,12 +26,12 @@
 
    Features to test in a near future :
 	- CUDA
-	- OpenCL
 	- Filters
  */
 #include <stdio.h>
 #include <stdlib.h>
 
+
 /* Declare and define the standard CPU implementation.  */
 
 static void vector_scal (size_t size, float vector[size], float factor)
@@ -48,6 +48,7 @@ vector_scal_cpu (size_t size, float vector[size], float factor)
     vector[i] *= factor;
 }
 
+
 #ifdef __SSE__
 /* The SSE-capable CPU implementation.  */
 
@@ -79,6 +80,59 @@ vector_scal_sse (size_t size, float vector[size], float factor)
 }
 #endif /* __SSE__ */
 
+
+/* Declaration and definition of the OpenCL implementation.  */
+
+#ifdef STARPU_USE_OPENCL
+
+/* The OpenCL programs, loaded from `main'.  */
+static struct starpu_opencl_program cl_programs;
+
+static void vector_scal_opencl (size_t size, float vector[size], float factor)
+  __attribute__ ((task_implementation ("opencl", vector_scal)));
+
+static void
+vector_scal_opencl (size_t size, float vector[size], float factor)
+{
+  int id, devid, err;
+  cl_kernel kernel;
+  cl_command_queue queue;
+  cl_event event;
+
+  cl_mem val = (cl_mem) vector;
+
+  id = starpu_worker_get_id ();
+  devid = starpu_worker_get_devid (id);
+
+  /* Prepare to invoke the kernel.  In the future, this will be largely
+     automated.  */
+  err = starpu_opencl_load_kernel (&kernel, &queue, &programs,
+				   "vector_mult_opencl", devid);
+  if (err != CL_SUCCESS)
+    STARPU_OPENCL_REPORT_ERROR (err);
+
+  err = clSetKernelArg (kernel, 0, sizeof (val), &val);
+  err |= clSetKernelArg (kernel, 1, sizeof (size), &size);
+  err |= clSetKernelArg (kernel, 2, sizeof (factor), &factor);
+  if (err)
+    STARPU_OPENCL_REPORT_ERROR (err);
+
+  size_t global = 1, local = 1;
+  err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global, &local, 0,
+				NULL, &event);
+  if (err != CL_SUCCESS)
+    STARPU_OPENCL_REPORT_ERROR (err);
+
+  clFinish (queue);
+  starpu_opencl_collect_stats (event);
+  clReleaseEvent (event);
+
+  starpu_opencl_release_kernel (kernel);
+}
+
+#endif
+
+
 #define EPSILON 1e-3
 static int
 check (size_t size, float vector[size], float factor)
@@ -96,6 +150,11 @@ int
 main (void)
 {
 #pragma starpu initialize
+
+#ifdef STARPU_USE_OPENCL
+  starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
+				       &cl_programs, NULL);
+#endif
 
 #define NX     0x100000
 #define FACTOR 3.14

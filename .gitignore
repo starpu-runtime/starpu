@@ -188,3 +188,4 @@ starpu.log
 /gcc-plugin/src/c-expr.c
 /gcc-plugin/tests/heap-allocated
 /gcc-plugin/tests/output-pointer
+/gcc-plugin/examples/vector_scal/vector_scal
