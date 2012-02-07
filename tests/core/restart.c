@@ -31,7 +31,6 @@ struct timeval end;
 
 int main(int argc, char **argv)
 {
-#if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned iter;
 
 	double init_timing = 0.0;
@@ -44,6 +43,8 @@ int main(int argc, char **argv)
 		/* Initialize StarPU */
 		ret = starpu_init(NULL);
 		gettimeofday(&end, NULL);
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 		init_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "starpu_shutdown: %2.2f seconds\n", shutdown_timing/(N*1000000));
 
 	return EXIT_SUCCESS;
-#else
+
+enodev:
 	return STARPU_TEST_SKIPPED;
-#endif
 }
