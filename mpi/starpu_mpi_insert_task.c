@@ -101,18 +101,16 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			STARPU_ASSERT(xrank <= nb_nodes);
 			do_execute = 1;
                 }
-		else if (arg_type == STARPU_REDUX) {
+		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX) {
                         starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-			if (data) {
+
+                        if (data && arg_type & STARPU_R) {
 				int rank = starpu_data_get_rank(data);
 				struct starpu_data_interface_ops *ops;
 				ops = data->ops;
 				size_on_nodes[rank] += ops->get_size(data);
-				do_execute = 1;
 			}
-		}
-		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
-                        starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
+
                         if (arg_type & STARPU_W) {
                                 if (!data) {
                                         /* We don't have anything allocated for this.
@@ -175,6 +173,24 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 	}
 	va_end(varg_list);
+
+	if (do_execute == -1) {
+		int i;
+		size_t max_size = 0;
+		for(i=0 ; i<nb_nodes ; i++) {
+			if (size_on_nodes[i] > max_size)
+			{
+				max_size = size_on_nodes[i];
+				xrank = i;
+			}
+		}
+		free(size_on_nodes);
+		if (xrank != -1) {
+			_STARPU_MPI_DEBUG("Node %d is having the most REDUX data\n", xrank);
+			do_execute = 1;
+		}
+	}
+
 	STARPU_ASSERT(do_execute != -1 && "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
         if (inconsistent_execute == 1) {
@@ -189,23 +205,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
                 }
         }
 	else if (xrank != -1) {
-		_STARPU_MPI_DEBUG("Property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA overwriting node defined by data model\n");
-		do_execute = (me == xrank);
-		dest = xrank;
-	}
-	else {
-		int i;
-		size_t max_size = size_on_nodes[0];
-		xrank = 0;
-		for(i=1 ; i<nb_nodes ; i++) {
-			if (size_on_nodes[i] > max_size)
-			{
-				max_size = size_on_nodes[i];
-				xrank = i;
-			}
-		}
-		free(size_on_nodes);
-		_STARPU_MPI_DEBUG("Node %d is having the most REDUX data\n", xrank);
 		do_execute = (me == xrank);
 		dest = xrank;
 	}
