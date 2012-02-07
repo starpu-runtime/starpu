@@ -1006,24 +1006,25 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
   return NULL_TREE;
 }
 
-/* Handle the `heap_allocated' attribute on variable *NODE.  */
+/* Return true when VAR is an automatic variable with complete array type;
+   otherwise, return false, and emit error messages mentioning ATTRIBUTE.  */
 
-static tree
-handle_heap_allocated_attribute (tree *node, tree name, tree args,
-				 int flags, bool *no_add_attrs)
+static bool
+automatic_array_variable_p (const char *attribute, tree var)
 {
+  gcc_assert (TREE_CODE (var) == VAR_DECL);
+
   location_t loc;
-  tree var = *node;
 
   loc = DECL_SOURCE_LOCATION (var);
 
   if (DECL_EXTERNAL (var))
-    error_at (loc, "attribute %<heap_allocated%> cannot be used "
-	      "on external declarations");
+    error_at (loc, "attribute %qs cannot be used on external declarations",
+	      attribute);
   else if (TREE_PUBLIC (var) || TREE_STATIC (var))
     {
-      error_at (loc, "attribute %<heap_allocated%> cannot be used "
-		"on global variables");
+      error_at (loc, "attribute %qs cannot be used on global variables",
+		attribute);
       TREE_TYPE (var) = error_mark_node;
     }
   else if (TREE_CODE (TREE_TYPE (var)) != ARRAY_TYPE)
@@ -1039,6 +1040,20 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
       TREE_TYPE (var) = error_mark_node;
     }
   else
+    return true;
+
+  return false;
+}
+
+/* Handle the `heap_allocated' attribute on variable *NODE.  */
+
+static tree
+handle_heap_allocated_attribute (tree *node, tree name, tree args,
+				 int flags, bool *no_add_attrs)
+{
+  tree var = *node;
+
+  if (automatic_array_variable_p (heap_allocated_attribute_name, var))
     {
       /* Turn VAR into a pointer that feels like an array.  This is what's
 	 done for PARM_DECLs that have an array type.  */
