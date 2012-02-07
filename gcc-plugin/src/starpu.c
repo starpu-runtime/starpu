@@ -76,6 +76,8 @@ static const char task_implementation_list_attribute_name[] =
   ".task_implementation_list";
 static const char task_implementation_wrapper_attribute_name[] =
   ".task_implementation_wrapper";
+static const char heap_allocated_orig_type_attribute_name[] =
+  ".heap_allocated_original_type";
 
 /* Names of data structures defined in <starpu.h>.  */
 static const char codelet_struct_name[] = "starpu_codelet_gcc";
@@ -94,6 +96,8 @@ static bool task_p (const_tree decl);
 static bool task_implementation_p (const_tree decl);
 
 static int task_implementation_target_to_int (const_tree target);
+
+static bool heap_allocated_p (const_tree var_decl);
 
 
 /* Lookup the StarPU function NAME in the global scope and store the result
@@ -648,15 +652,33 @@ handle_pragma_register (struct cpp_reader *reader)
   if (ptr == error_mark_node)
     return;
 
-  if (!POINTER_TYPE_P (TREE_TYPE (ptr))
-      && TREE_CODE (TREE_TYPE (ptr)) != ARRAY_TYPE)
+  tree ptr_type;
+
+  if (DECL_P (ptr))
+    {
+      tree heap_attr =
+	lookup_attribute (heap_allocated_orig_type_attribute_name,
+			  DECL_ATTRIBUTES (ptr));
+
+      if (heap_attr != NULL_TREE)
+	/* PTR is `heap_allocated' so use its original array type to
+	   determine its size.  */
+	ptr_type = TREE_VALUE (heap_attr);
+      else
+	ptr_type = TREE_TYPE (ptr);
+    }
+  else
+    ptr_type = TREE_TYPE (ptr);
+
+  if (!POINTER_TYPE_P (ptr_type)
+      && TREE_CODE (ptr_type) != ARRAY_TYPE)
     {
       error_at (loc, "%qE is neither a pointer nor an array", ptr);
       return;
     }
 
   /* Since we implicitly use sizeof (*PTR), `void *' is not allowed. */
-  if (VOID_TYPE_P (TREE_TYPE (TREE_TYPE (ptr))))
+  if (VOID_TYPE_P (TREE_TYPE (ptr_type)))
     {
       error_at (loc, "pointers to %<void%> not allowed "
 		"in %<register%> pragma");
@@ -669,9 +691,10 @@ handle_pragma_register (struct cpp_reader *reader)
     DECL_READ_P (ptr) = true;
 #endif
 
-  if (TREE_CODE (TREE_TYPE (ptr)) == ARRAY_TYPE
+  if (TREE_CODE (ptr_type) == ARRAY_TYPE
       && !DECL_EXTERNAL (ptr)
       && !TREE_STATIC (ptr)
+      && !(TREE_CODE (ptr) == VAR_DECL && heap_allocated_p (ptr))
       && !MAIN_NAME_P (DECL_NAME (current_function_decl)))
     warning_at (loc, 0, "using an on-stack array as a task input "
 		"considered unsafe");
@@ -679,8 +702,8 @@ handle_pragma_register (struct cpp_reader *reader)
   /* Determine the number of elements in the vector.  */
   tree count = NULL_TREE;
 
-  if (TREE_CODE (TREE_TYPE (ptr)) == ARRAY_TYPE)
-    count = array_type_element_count (loc, TREE_TYPE (ptr));
+  if (TREE_CODE (ptr_type) == ARRAY_TYPE)
+    count = array_type_element_count (loc, ptr_type);
 
   /* Second argument is optional but should be an integer.  */
   count_arg = (args == NULL_TREE) ? NULL_TREE : TREE_VALUE (args);
@@ -1062,6 +1085,11 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
       tree element_type = TREE_TYPE (array_type);
       tree pointer_type = build_pointer_type (element_type);
 
+      /* Keep a copy of VAR's original type.  */
+      DECL_ATTRIBUTES (var) =
+	tree_cons (get_identifier (heap_allocated_orig_type_attribute_name),
+		   array_type, DECL_ATTRIBUTES (var));
+
       TREE_TYPE (var) = pointer_type;
       DECL_SIZE (var) = TYPE_SIZE (pointer_type);
       DECL_SIZE_UNIT (var) = TYPE_SIZE_UNIT (pointer_type);
@@ -1267,6 +1295,17 @@ task_implementation_wrapper (const_tree task_impl)
   gcc_assert (attr != NULL_TREE);
 
   return TREE_VALUE (attr);
+}
+
+/* Return true when VAR_DECL has the `heap_allocated' attribute.  */
+
+static bool
+heap_allocated_p (const_tree var_decl)
+{
+  gcc_assert (TREE_CODE (var_decl) == VAR_DECL);
+
+  return lookup_attribute (heap_allocated_attribute_name,
+			   DECL_ATTRIBUTES (var_decl)) != NULL_TREE;
 }
 
 /* Return true if TYPE is `output'-qualified.  */

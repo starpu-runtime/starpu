@@ -51,6 +51,32 @@ baz (int s, float *p)
 #pragma starpu register p s
 }
 
+/* Check the interaction between `register' and `heap_allocated'.  This test
+   assumes `heap_allocated' works as expected.  */
+
+static void
+heap_alloc (int x, int y)
+{
+  data_register_calls = data_unregister_calls = 0;
+
+  expected_malloc_argument = x * y * sizeof (float);
+
+  float m[x][y] __attribute__ ((heap_allocated));
+
+  expected_register_arguments.pointer = m;
+  expected_register_arguments.elements = x;
+  expected_register_arguments.element_size = y * sizeof m[0][0];
+#pragma starpu register m
+
+  expected_unregister_arguments.pointer = m;
+#pragma starpu unregister m
+
+  assert (data_register_calls == 1);
+  assert (data_unregister_calls == 1);
+
+  expected_free_argument = m;
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -149,6 +175,9 @@ main (int argc, char *argv[])
   assert (data_register_calls == 17);
 
   free (y);
+
+  heap_alloc (42, 77);
+  assert (free_calls == 1);
 
   return EXIT_SUCCESS;
 }
