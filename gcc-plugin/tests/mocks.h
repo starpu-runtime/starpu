@@ -30,6 +30,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
+#include <common/uthash.h>
 
 
 /* Stub used for testing purposes.  */
@@ -154,36 +155,48 @@ starpu_codelet_unpack_args (void *cl_raw_arg, ...)
 }
 
 
-/* Data handles.  For testing purposes, there's a dummy implementation of
-   data handles below, which disguises the original pointer to form a pseudo
-   handle.  This allows us to test whether the task implementation is
-   actually passed a pointer, not a handle.  */
+/* Data handles.  A hash table mapping pointers to handles is maintained,
+   which allows us to mimic the actual behavior of libstarpu.  */
 
-#define pointer_as_int(p) ((uintptr_t) (p))
-#define int_as_pointer(i) ((void *) (i))
+/* Entry in the `registered_handles' hash table.  `starpu_data_handle_t' is
+   assumed to be a pointer to this structure.  */
+struct handle_entry
+{
+  UT_hash_handle hh;
+  void *pointer;
+  starpu_data_handle_t handle;
+};
 
-#define dummy_pointer_to_handle(p)		\
-  ({						\
-     assert ((pointer_as_int (p) & 1) == 0);	\
-     int_as_pointer (~pointer_as_int (p));	\
+#define handle_to_entry(h) ((struct handle_entry *) (h))
+#define handle_to_pointer(h)				\
+  ({							\
+    assert ((h) != NULL);				\
+    assert (handle_to_entry (h)->handle == (h));	\
+    handle_to_entry (h)->pointer;			\
    })
 
-#define dummy_handle_to_pointer(h)		\
-  ({						\
-     assert ((pointer_as_int (h) & 1) == 1);	\
-     int_as_pointer (~pointer_as_int (h));	\
-   })
+static struct handle_entry *registered_handles;
 
 starpu_data_handle_t
 starpu_data_lookup (const void *ptr)
 {
-  return dummy_pointer_to_handle (ptr);
+  starpu_data_handle_t result;
+
+  struct handle_entry *entry;
+
+  HASH_FIND_PTR (registered_handles, &ptr, entry);
+  if (STARPU_UNLIKELY (entry == NULL))
+    result = NULL;
+  else
+    result = entry->handle;
+
+  return result;
 }
 
 void *
 starpu_handle_get_local_ptr (starpu_data_handle_t handle)
 {
-  return dummy_handle_to_pointer (handle);
+  return handle_to_pointer (handle);
 }
 
 
@@ -218,7 +231,18 @@ starpu_vector_data_register (starpu_data_handle_t *handle,
   assert (elemsize == expected_register_arguments.element_size);
 
   data_register_calls++;
-  *handle = dummy_pointer_to_handle ((void *) ptr);
+
+  /* Add PTR to the REGISTERED_HANDLES hash table.  */
+
+  struct handle_entry *entry = malloc (sizeof (*entry));
+  assert (entry != NULL);
+
+  entry->pointer = (void *) ptr;
+  entry->handle = (starpu_data_handle_t) entry;
+
+  HASH_ADD_PTR(registered_handles, pointer, entry);
+
+  *handle = (starpu_data_handle_t) entry;
 }
 
 
@@ -242,8 +266,7 @@ starpu_data_acquire (starpu_data_handle_t handle, enum starpu_access_mode mode)
   /* XXX: Currently only `STARPU_RW'.  */
   assert (mode == STARPU_RW);
 
-  assert (dummy_handle_to_pointer (handle)
-	  == expected_acquire_arguments.pointer);
+  assert (handle_to_pointer (handle) == expected_acquire_arguments.pointer);
   data_acquire_calls++;
 
   return 0;
@@ -267,8 +290,20 @@ struct data_unregister_arguments expected_unregister_arguments;
 void
 starpu_data_unregister (starpu_data_handle_t handle)
 {
-  assert (dummy_handle_to_pointer (handle)
-	  == expected_unregister_arguments.pointer);
+  assert (handle != NULL);
+
+  struct handle_entry *entry = handle_to_entry (handle);
+
+  assert (entry->pointer != NULL);
+  assert (entry->pointer == expected_unregister_arguments.pointer);
+
+  /* Remove the PTR -> HANDLE mapping.  If a mapping from PTR to another
+     handle existed before (e.g., when using filters), it becomes visible
+     again.  */
+  HASH_DEL (registered_handles, entry);
+  entry->pointer = NULL;
+  free (entry);
+
   data_unregister_calls++;
 }
 
@@ -295,6 +330,7 @@ starpu_malloc (void **ptr, size_t size)
 int
 starpu_free (void *ptr)
 {
+  assert (starpu_data_lookup (ptr) == NULL);
   assert (ptr == expected_free_argument);
   free_calls++;
   return 0;

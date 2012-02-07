@@ -75,6 +75,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
 
 (define %default-cflags
   `("-I" ,%srcdir
+    "-I" ,(string-append %srcdir "/../../src")    ; for <common/uthash.h>
     "-I" ,(string-append %srcdir "/../../include")
     "-I" ,(string-append %builddir "/../../include")
     "-I" ,(string-append %builddir "/../..")
