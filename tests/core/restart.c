@@ -31,6 +31,7 @@ struct timeval end;
 
 int main(int argc, char **argv)
 {
+#if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned iter;
 
 	double init_timing = 0.0;
@@ -57,4 +58,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "starpu_shutdown: %2.2f seconds\n", shutdown_timing/(N*1000000));
 
 	return EXIT_SUCCESS;
+#else
+	return STARPU_TEST_SKIPPED;
+#endif
 }
