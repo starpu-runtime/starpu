@@ -191,6 +191,34 @@ array_ref (tree array, size_t index)
 			     RO_ARRAY_INDEXING);
 }
 
+/* Return the number of elements of ARRAY_TYPE, or NULL_TREE if ARRAY_TYPE is
+   an incomplete type.  */
+
+static tree
+array_type_element_count (location_t loc, const_tree array_type)
+{
+  gcc_assert (TREE_CODE (array_type) == ARRAY_TYPE);
+
+  tree count, domain = TYPE_DOMAIN (array_type);
+
+  if (domain != NULL_TREE)
+    {
+      count = build_binary_op (loc, MINUS_EXPR,
+			       TYPE_MAX_VALUE (domain),
+			       TYPE_MIN_VALUE (domain),
+			       false);
+      count = build_binary_op (loc, PLUS_EXPR,
+			       count,
+			       build_int_cstu (integer_type_node, 1),
+			       false);
+      count = fold_convert (size_type_node, count);
+    }
+  else
+    count = NULL_TREE;
+
+  return count;
+}
+
 /* Like `build_constructor_from_list', but sort VALS according to their
    offset in struct TYPE.  Inspired by `gnat_build_constructor'.  */
 
@@ -589,22 +617,7 @@ handle_pragma_register (struct cpp_reader *reader)
   tree count = NULL_TREE;
 
   if (TREE_CODE (TREE_TYPE (ptr)) == ARRAY_TYPE)
-    {
-      tree domain = TYPE_DOMAIN (TREE_TYPE (ptr));
-
-      if (domain != NULL_TREE)
-	{
-	  count = build_binary_op (loc, MINUS_EXPR,
-				   TYPE_MAX_VALUE (domain),
-				   TYPE_MIN_VALUE (domain),
-				   false);
-	  count = build_binary_op (loc, PLUS_EXPR,
-				   count,
-				   build_int_cstu (integer_type_node, 1),
-				   false);
-	  count = fold_convert (size_type_node, count);
-	}
-    }
+    count = array_type_element_count (loc, TREE_TYPE (ptr));
 
   /* Second argument is optional but should be an integer.  */
   count_arg = (args == NULL_TREE) ? NULL_TREE : TREE_VALUE (args);
