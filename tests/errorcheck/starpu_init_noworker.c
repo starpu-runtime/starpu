@@ -21,9 +21,18 @@
 #include <starpu.h>
 #include <stdlib.h>
 
+static void unset_env_variables(void)
+{
+	(void) unsetenv("STARPU_NCPUS");
+	(void) unsetenv("STARPU_NCUDA");
+	(void) unsetenv("STARPU_NNOPENCL");
+}
+
 int main(int argc, char **argv)
 {
 	int ret;	
+
+	unset_env_variables();
 
 	/* We try to initialize StarPU without any worker */
 	struct starpu_conf conf =
