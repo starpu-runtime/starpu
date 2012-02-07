@@ -275,8 +275,6 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 				struct starpu_conf *user_conf)
 {
-	int explicitval STARPU_ATTRIBUTE_UNUSED;
-
 	int i;
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		config->workers[i].workerid = i;
@@ -290,48 +288,49 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 	_starpu_initialize_workers_bindid(config);
 
 #ifdef STARPU_USE_CUDA
-	if (user_conf && (user_conf->ncuda == 0))
+	int ncuda = -1;
+	ncuda = starpu_get_env_number("STARPU_NCUDA");
+
+	/* STARPU_NCUDA is not set. Did the user specify anything ? */
+	if (ncuda == -1 && user_conf)
+		ncuda = user_conf->ncuda;
+
+	
+	if (ncuda != 0)
 	{
-		/* the user explicitely disabled CUDA */
-		topology->ncudagpus = 0;
-	}
-	else
-	{
-		/* we need to initialize CUDA early to count the number of devices */
+		/* The user did not disable CUDA. We need to initialize CUDA
+ 		 * early to count the number of devices */
 		_starpu_init_cuda();
 
-		if (user_conf && (user_conf->ncuda != -1))
+		if (ncuda == -1)
 		{
-			explicitval = user_conf->ncuda;
+			/* Nothing was specified, so let's choose ! */
+			ncuda = STARPU_MIN(_starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
 		}
 		else
 		{
-			explicitval = starpu_get_env_number("STARPU_NCUDA");
-		}
+			/* Let's make sure this value is OK. */
+			if (ncuda > STARPU_MAXCUDADEVS)
+			{
+				fprintf(stderr,
+					"# Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n",
+					ncuda, STARPU_MAXCUDADEVS);
+				ncuda = STARPU_MAXCUDADEVS;
+			}
 
-		if (explicitval < 0)
-		{
-			config->topology.ncudagpus =
-				STARPU_MIN(_starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
-		}
-		else
-		{
-			/* use the specified value */
-			if (explicitval > STARPU_MAXCUDADEVS)
+			if ((unsigned) ncuda > _starpu_get_cuda_device_count())
 			{
-				fprintf(stderr,"# Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", explicitval, STARPU_MAXCUDADEVS);
-				explicitval = STARPU_MAXCUDADEVS;
+				fprintf(stderr,
+					"# Warning: %d CUDA devices requested. Only %d available.\n",
+					ncuda, _starpu_get_cuda_device_count());
+				ncuda = _starpu_get_cuda_device_count();
 			}
-			if ((unsigned) explicitval > _starpu_get_cuda_device_count())
-			{
-				fprintf(stderr,"# Warning: %d CUDA devices requested. Only %d available.\n", explicitval, _starpu_get_cuda_device_count());
-				explicitval = _starpu_get_cuda_device_count();
-			}
-			topology->ncudagpus = (unsigned)explicitval;
-			STARPU_ASSERT(topology->ncudagpus <= STARPU_MAXCUDADEVS);
 		}
-		STARPU_ASSERT(config->topology.ncudagpus + config->topology.nworkers <= STARPU_NMAXWORKERS);
 	}
+
+	/* Now we know how many CUDA devices will be used */
+	topology->ncudagpus = ncuda;
+	STARPU_ASSERT(topology->ncudagpus <= STARPU_MAXCUDADEVS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
@@ -354,53 +353,49 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 #endif
 
 #ifdef STARPU_USE_OPENCL
-	if (user_conf && (user_conf->nopencl == 0))
+	int nopencl;
+	nopencl = starpu_get_env_number("STARPU_NOPENCL");
+
+	/* STARPU_NOPENCL is not set. Did the user specify anything ? */
+	if (nopencl == -1 && user_conf)
+		nopencl = user_conf->nopencl;
+
+	if (nopencl != 0)
 	{
-		/* the user explicitely disabled OpenCL */
-		topology->nopenclgpus = 0;
-	}
-	else
-	{
-		/* we need to initialize OpenCL early to count the number of devices */
-		int nb_devices;
+		/* The user did not disable OPENCL. We need to initialize OpenCL
+ 		 * early to count the number of devices */
 		_starpu_opencl_init();
+		int nb_devices;
 		nb_devices = STARPU_MIN(_starpu_opencl_get_device_count(), STARPU_MAXOPENCLDEVS);
 
-		if (user_conf && (user_conf->nopencl != -1))
+		if (nopencl == -1)
 		{
-			explicitval = user_conf->nopencl;
+			/* Nothing was specified, so let's choose ! */
+			nopencl = nb_devices;
 		}
 		else
 		{
-			explicitval = starpu_get_env_number("STARPU_NOPENCL");
-		}
-
-
-		if (explicitval < 0)
-		{
-			topology->nopenclgpus = nb_devices;
-		}
-		else
-		{
-			if (explicitval > nb_devices)
+			/* Let's make sure this value is OK. */
+			if (nopencl > nb_devices)
 			{
 				/* The user requires more OpenCL devices than there is available */
-				fprintf(stderr,"# Warning: %d OpenCL devices requested. Only %d available.\n", explicitval, nb_devices);
-				topology->nopenclgpus = nb_devices;
+				fprintf(stderr,
+					"# Warning: %d OpenCL devices requested. Only %d available.\n",
+					nopencl, nb_devices);
+					topology->nopenclgpus = nb_devices;
 			}
-			else
+			if (nopencl > STARPU_MAXOPENCLDEVS)
 			{
-				/* use the specified value */
-				topology->nopenclgpus = (unsigned)explicitval;
-			}
-			if (topology->nopenclgpus > STARPU_MAXOPENCLDEVS)
-			{
-				fprintf(stderr,"# Warning: %d OpenCL devices requested. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices.\n", explicitval, STARPU_MAXOPENCLDEVS);
-				topology->nopenclgpus = STARPU_MAXOPENCLDEVS;
+				fprintf(stderr,
+					"# Warning: %d OpenCL devices requested. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices.\n",
+					nopencl, STARPU_MAXOPENCLDEVS);
+				nopencl = STARPU_MAXOPENCLDEVS;
 			}
 		}
-		STARPU_ASSERT(topology->nopenclgpus + topology->nworkers <= STARPU_NMAXWORKERS);
 	}
+
+	topology->nopenclgpus = nopencl;
+	STARPU_ASSERT(topology->nopenclgpus + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_opencl_gpuid(config);
 
@@ -425,29 +420,34 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 #endif
 
 #ifdef STARPU_USE_GORDON
-	if (user_conf && (user_conf->ncuda != -1))
-	{
-		explicitval = user_conf->ncuda;
-	}
-	else
-	{
-		explicitval = starpu_get_env_number("STARPU_NGORDON");
-	}
+	int ngordon;
+	ngordon = starpu_get_env_number("STARPU_NGORDON");
 
-	if (explicitval < 0)
+	/* STARPU_NGORDON is not set. Did the user specify anything ? */
+	if (ngordon == -1 && user_conf)
+		ngordon = user_conf->ngordon;
+
+	if (ngordon != 0)
 	{
-		topology->ngordon_spus = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
-	}
-	else
-	{
-		/* use the specified value */
-		topology->ngordon_spus = (unsigned)explicitval;
-		STARPU_ASSERT(topology->ngordon_spus <= NMAXGORDONSPUS);
-		if (topology->ngordon_spus > STARPU_MAXGORDONSPUS); {
-			fprintf(stderr,"# Warning: %d Gordon CPUs devices requested. Only %d supported\n", explicitval, NMAXGORDONSPUS);
-			topology->ngordon_spus = NMAXGORDONSPUS;
+		if (ngordon == -1)
+		{
+			/* Nothing was specified, so let's choose ! */
+			ngordon = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
+		}
+		else
+		{
+			STARPU_ASSERT(ngordon <= NMAXGORDONSPUS);
+			if (ngordon > STARPU_MAXGORDONSPUS);
+			{
+				fprintf(stderr,
+					"# Warning: %d Gordon CPUs devices requested. Only %d supported\n",
+					ngordon, NMAXGORDONSPUS);
+				ngordon = NMAXGORDONSPUS;
+			}
 		}
 	}
+
+	topology->ngordon_spus = ngordon;
 	STARPU_ASSERT(topology->ngordon_spus + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned spu;
@@ -467,32 +467,37 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
 #ifdef STARPU_USE_CPU
-	if (user_conf && (user_conf->ncpus != -1))
-	{
-		explicitval = user_conf->ncpus;
-	}
-	else
-	{
-		explicitval = starpu_get_env_number("STARPU_NCPUS");
-	}
+	int ncpu;
+	ncpu = starpu_get_env_number("STARPU_NCPUS");
 
-	if (explicitval < 0)
+	/* STARPU_NCPUS is not set. Did the user specify anything ? */
+	if (ncpu == -1 && user_conf)
+		ncpu = user_conf->ncpus;
+
+	if (ncpu != 0)
 	{
-		unsigned already_busy_cpus = (topology->ngordon_spus?1:0) + topology->ncudagpus + topology->nopenclgpus;
-		long avail_cpus = topology->nhwcpus - already_busy_cpus;
-		if (avail_cpus < 0)
-			avail_cpus = 0;
-		topology->ncpus = STARPU_MIN(avail_cpus, STARPU_MAXCPUS);
-	}
-	else
-	{
-		/* use the specified value */
-		topology->ncpus = (unsigned)explicitval;
-		if (topology->ncpus > STARPU_MAXCPUS) {
-			fprintf(stderr,"# Warning: %d CPU devices requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", explicitval, STARPU_MAXCPUS);
-			topology->ncpus = STARPU_MAXCPUS;
+		if (ncpu == -1)
+		{
+			unsigned already_busy_cpus = (topology->ngordon_spus?1:0) + topology->ncudagpus + topology->nopenclgpus;
+			long avail_cpus = topology->nhwcpus - already_busy_cpus;
+			if (avail_cpus < 0)
+				avail_cpus = 0;
+			ncpu = STARPU_MIN(avail_cpus, STARPU_MAXCPUS);
+		}
+		else
+		{
+			if (topology->ncpus > STARPU_MAXCPUS)
+			{
+				fprintf(stderr,
+					"# Warning: %d CPU devices requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n",
+					ncpu, STARPU_MAXCPUS);
+				ncpu = STARPU_MAXCPUS;
+			}
 		}
 	}
+
+
+	topology->ncpus = ncpu;
 	STARPU_ASSERT(topology->ncpus + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned cpu;
