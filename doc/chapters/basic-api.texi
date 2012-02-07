@@ -39,9 +39,9 @@ indicates that no worker was available (so that StarPU was not initialized).
 @deftp {Data Type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
 to configure StarPU.
-When the default value is used, StarPU automatically selects the number
-of processing units and takes the default scheduling policy. This parameter
-overwrites the equivalent environment variables.
+When the default value is used, StarPU automatically selects the number of
+processing units and takes the default scheduling policy. The environment
+variables overwrite the equivalent parameters.
 
 @table @asis
 @item @code{const char *sched_policy_name} (default = NULL)
@@ -69,12 +69,10 @@ This is the number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
 
 @item @code{unsigned use_explicit_workers_bindid} (default = 0)
-If this flag is set, the @code{workers_bindid} array indicates where
-the different workers are bound, otherwise StarPU automatically
-selects where to bind the different workers unless the
-@code{STARPU_WORKERS_CPUID} environment variable is set. The
-@code{STARPU_WORKERS_CPUID} environment variable is ignored if the
-@code{use_explicit_workers_bindid} flag is set.
+If this flag is set, the @code{workers_bindid} array indicates where the
+different workers are bound, otherwise StarPU automatically selects where to
+bind the different workers. This can also be specified with the
+@code{STARPU_WORKERS_CPUID} environment variable.
 
 @item @code{unsigned workers_bindid[STARPU_NMAXWORKERS]}
 If the @code{use_explicit_workers_bindid} flag is set, this array
@@ -82,15 +80,13 @@ indicates where to bind the different workers. The i-th entry of the
 @code{workers_bindid} indicates the logical identifier of the
 processor which should execute the i-th worker. Note that the logical
 ordering of the CPUs is either determined by the OS, or provided by
-the @code{hwloc} library in case it is available. When this flag is
-set, the @ref{STARPU_WORKERS_CPUID} environment variable is ignored.
+the @code{hwloc} library in case it is available.
 
 @item @code{unsigned use_explicit_workers_cuda_gpuid} (default = 0)
-If this flag is set, the CUDA workers will be attached to the CUDA
-devices specified in the @code{workers_cuda_gpuid} array. Otherwise,
-StarPU affects the CUDA devices in a round-robin fashion. When this
-flag is set, the @ref{STARPU_WORKERS_CUDAID} environment variable is
-ignored.
+If this flag is set, the CUDA workers will be attached to the CUDA devices
+specified in the @code{workers_cuda_gpuid} array. Otherwise, StarPU affects the
+CUDA devices in a round-robin fashion. This can also be specified with the
+@code{STARPU_WORKERS_CUDAID} environment variable.
 
 @item @code{unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS]}
 If the @code{use_explicit_workers_cuda_gpuid} flag is set, this array
@@ -98,9 +94,10 @@ contains the logical identifiers of the CUDA devices (as used by
 @code{cudaGetDevice}).
 
 @item @code{unsigned use_explicit_workers_opencl_gpuid} (default = 0)
-If this flag is set, the OpenCL workers will be attached to the OpenCL
-devices specified in the @code{workers_opencl_gpuid} array. Otherwise,
-StarPU affects the OpenCL devices in a round-robin fashion.
+If this flag is set, the OpenCL workers will be attached to the OpenCL devices
+specified in the @code{workers_opencl_gpuid} array. Otherwise, StarPU affects
+the OpenCL devices in a round-robin fashion. This can also be specified with
+the @code{STARPU_WORKERS_OPENCLID} environment variable.
 
 @item @code{unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS]}
 If the @code{use_explicit_workers_opencl_gpuid} flag is set, this array
@@ -109,17 +106,16 @@ todo
 
 @item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. If this value is equal to -1, the default value is
-used. The default value is overwritten by the @code{STARPU_CALIBRATE}
-environment variable when it is set.
+executing tasks. If this value is equal to -1, the default value is used. This
+can also be specified with the @code{STARPU_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
 By default, StarPU creates various combined workers according to the machine
 structure. Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
 makes StarPU only create one combined worker, containing all
-the CPU workers. The default value is overwritten by the
-@code{STARPU_SINGLE_COMBINED_WORKER} environment variable when it is set.
+the CPU workers. This can also be specified by the
+@code{STARPU_SINGLE_COMBINED_WORKER} environment variable.
 @end table
 @end deftp
 
