@@ -60,14 +60,15 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
         int arg_type;
         va_list varg_list;
-        int me, do_execute;
+        int me, do_execute, xrank, nb_nodes;
 	size_t arg_buffer_size = 0;
 	char *arg_buffer;
-        int dest=0, execute, inconsistent_execute;
+        int dest=0, inconsistent_execute;
 
         _STARPU_MPI_LOG_IN();
 
 	MPI_Comm_rank(comm, &me);
+	MPI_Comm_size(comm, &nb_nodes);
 
 	_starpu_mpi_tables_init();
 
@@ -78,46 +79,22 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	va_start(varg_list, codelet);
 	_starpu_pack_cl_args(arg_buffer_size, &arg_buffer, varg_list);
 
-        /* Finds out if the property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA is specified */
-        execute = -1;
-	va_start(varg_list, codelet);
-	while ((arg_type = va_arg(varg_list, int)) != 0) {
-		if (arg_type==STARPU_EXECUTE_ON_NODE) {
-                        execute = va_arg(varg_list, int);
-                }
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-                        execute = starpu_data_get_rank(data);
-			_STARPU_MPI_DEBUG("Executing on node %d\n", execute);
-                }
-		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX) {
-                        va_arg(varg_list, starpu_data_handle_t);
-                }
-		else if (arg_type==STARPU_VALUE) {
-			va_arg(varg_list, void *);
-			va_arg(varg_list, size_t);
-		}
-		else if (arg_type==STARPU_CALLBACK) {
-			va_arg(varg_list, void (*)(void *));
-		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
-			va_arg(varg_list, void (*)(void *));
-			va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
-			va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PRIORITY) {
-			va_arg(varg_list, int);
-		}
-        }
-	va_end(varg_list);
-
 	/* Find out whether we are to execute the data because we own the data to be written to. */
         inconsistent_execute = 0;
         do_execute = -1;
+	xrank = -1;
 	va_start(varg_list, codelet);
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
+		if (arg_type==STARPU_EXECUTE_ON_NODE) {
+                        xrank = va_arg(varg_list, int);
+			_STARPU_MPI_DEBUG("Executing on node %d\n", xrank);
+                }
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
+                        xrank = starpu_data_get_rank(data);
+			_STARPU_MPI_DEBUG("Executing on data node %d\n", xrank);
+			STARPU_ASSERT(xrank <= nb_nodes);
+                }
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_REDUX || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
                         starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
                         if (arg_type & STARPU_W || arg_type & STARPU_REDUX) {
@@ -184,18 +161,22 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	assert(do_execute != -1 && "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
         if (inconsistent_execute == 1) {
-                if (execute == -1) {
+                if (xrank == -1) {
                         _STARPU_MPI_DEBUG("Different tasks are owning W data. Needs to specify which one is to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
 			return -EINVAL;
                 }
                 else {
-                        do_execute = (me == execute);
-                        dest = execute;
+                        do_execute = (me == xrank);
+                        dest = xrank;
                 }
         }
-        else if (execute != -1) {
-                _STARPU_MPI_DEBUG("Property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA ignored as W data are all owned by the same task\n");
-        }
+	else if (xrank != -1) {
+		_STARPU_MPI_DISP("Property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA overwriting node defined by data model\n");
+		do_execute = (me == xrank);
+		dest = xrank;
+	}
+
+	_STARPU_MPI_DEBUG("Executing %d - Sending to node %d\n", do_execute, dest);
 
         /* Send and receive data as requested */
 	va_start(varg_list, codelet);
@@ -290,7 +271,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 					int mpi_tag = starpu_data_get_tag(data);
 					STARPU_ASSERT(mpi_tag >= 0 && "StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank");
                                         if (mpi_rank == me) {
-                                                if (execute != -1 && me != execute) {
+                                                if (xrank != -1 && me != xrank) {
                                                         _STARPU_MPI_DEBUG("Receive data %p back from the task %d which executed the codelet ...\n", data, dest);
                                                         starpu_mpi_irecv_detached(data, dest, mpi_tag, comm, NULL, NULL);
                                                 }

@@ -20,11 +20,14 @@
 
 void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	int *y = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	int node;
+	int rank;
 
-        *x = *x + 1;
-        *y = *y + 1;
+        starpu_codelet_unpack_args(_args, &node);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	FPRINTF(stderr, "Expected node: %d - Actual node: %d\n", node, rank);
+
+	assert(node == rank);
 }
 
 struct starpu_codelet mycodelet_r_w =
@@ -59,23 +62,10 @@ struct starpu_codelet mycodelet_w_r =
 	.modes = {STARPU_W, STARPU_R}
 };
 
-#define ACQUIRE_DATA \
-        if (rank == 0) starpu_data_acquire(data_handlesx0, STARPU_R);    \
-        if (rank == 1) starpu_data_acquire(data_handlesx1, STARPU_R);    \
-        FPRINTF(stderr, "[%d] Values: %d %d\n", rank, x0, x1);
-
-#define RELEASE_DATA \
-        if (rank == 0) starpu_data_release(data_handlesx0); \
-        if (rank == 1) starpu_data_release(data_handlesx1); \
-
-#define CHECK_RESULT \
-        if (rank == 0) assert(x0 == vx0[0] && x1 == vx1[0]); \
-        if (rank == 1) assert(x0 == vx0[1] && x1 == vx1[1]);
-
 int main(int argc, char **argv)
 {
-        int ret, rank, size, err;
-        int x0=0, x1=0, vx0[2] = {x0, x0}, vx1[2]={x1,x1};
+        int ret, rank, size, err, node;
+        int x0=32, x1=23;
         starpu_data_handle_t data_handlesx0;
         starpu_data_handle_t data_handlesx1;
 
@@ -111,60 +101,61 @@ int main(int argc, char **argv)
 		starpu_data_set_tag(data_handlesx0, 0);
         }
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, 0);
+	node = starpu_data_get_rank(data_handlesx1);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1,
+				     0);
         assert(err == 0);
-        ACQUIRE_DATA;
-        vx1[1]++;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_r, STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1, 0);
+	node = starpu_data_get_rank(data_handlesx0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_r,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1,
+				     0);
         assert(err == 0);
-        ACQUIRE_DATA;
-        vx0[0] ++;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, 0);
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1,
+				     0);
         assert(err == -EINVAL);
-        ACQUIRE_DATA;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, 1, 0);
+	node = 1;
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
+				     0);
         assert(err == 0);
-        ACQUIRE_DATA;
-        vx0[0] ++ ; vx1[1] ++;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, 0, 0);
+	node = 0;
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
+				     0);
         assert(err == 0);
-        ACQUIRE_DATA;
-        vx0[0] ++ ; vx1[1] ++;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
         /* Here the value specified by the property STARPU_EXECUTE_ON_NODE is
-           going to be ignored as the data model clearly specifies
-           which task is going to execute the codelet */
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE_ON_NODE, 12, 0);
+           going to overwrite the node even though the data model clearly specifies
+           which node is going to execute the codelet */
+	node = 0;
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
+				     0);
         assert(err == 0);
-        ACQUIRE_DATA;
-        vx1[1] ++;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
         /* Here the value specified by the property STARPU_EXECUTE_ON_NODE is
-           going to be ignored as the data model clearly specifies
-           which task is going to execute the codelet */
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_w_r, STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, 11, 0);
+           going to overwrite the node even though the data model clearly specifies
+           which node is going to execute the codelet */
+	node = 0;
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_w_r,
+				     STARPU_VALUE, &node, sizeof(node),
+				     STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
+				     0);
         assert(err == 0);
-        ACQUIRE_DATA;
-        vx0[0] ++;
-        CHECK_RESULT;
-        RELEASE_DATA;
 
+	fprintf(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
 	starpu_mpi_shutdown();
 	starpu_shutdown();
