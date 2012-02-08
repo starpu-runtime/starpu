@@ -1,5 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
+ * Copyright (C) 2012 inria
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -24,6 +25,14 @@
 #include <starpu_parameters.h>
 #include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
+
+#ifndef DBL_MIN
+#define DBL_MIN __DBL_MIN__
+#endif
+
+#ifndef DBL_MAX
+#define DBL_MAX __DBL_MAX__
+#endif
 
 static pthread_mutex_t big_lock;
 
