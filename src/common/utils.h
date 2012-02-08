@@ -59,10 +59,43 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 /* If FILE is currently on a comment line, eat it.  */
 void _starpu_drop_comments(FILE *f);
 
-#define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) { int p_ret = pthread_mutex_init((mutex), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_init: %s\n", strerror(p_ret)); STARPU_ABORT(); }}
-#define _STARPU_PTHREAD_MUTEX_DESTROY(mutex) { int p_ret = pthread_mutex_destroy(mutex); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_destroy: %s\n", strerror(p_ret)); STARPU_ABORT(); }}
-#define _STARPU_PTHREAD_MUTEX_LOCK(mutex) { int p_ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_lock : %s\n", strerror(p_ret)); STARPU_ABORT(); }}
-#define _STARPU_PTHREAD_MUTEX_UNLOCK(mutex) { int p_ret = pthread_mutex_unlock(mutex); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_mutex_unlock : %s\n", strerror(p_ret)); STARPU_ABORT(); }}
+#define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) {                              \
+	int p_ret = pthread_mutex_init((mutex), (attr));                       \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_mutex_init: %s\n",                      \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+}
+#define _STARPU_PTHREAD_MUTEX_DESTROY(mutex) {                                 \
+	int p_ret = pthread_mutex_destroy(mutex);                              \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_mutex_destroy: %s\n",                   \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+}
+#define _STARPU_PTHREAD_MUTEX_LOCK(mutex) {                                    \
+	int p_ret = pthread_mutex_lock(mutex);                                 \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_mutex_lock : %s\n",                     \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+}
+
+#define _STARPU_PTHREAD_MUTEX_UNLOCK(mutex) {                                  \
+	int p_ret = pthread_mutex_unlock(mutex);                               \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_mutex_unlock : %s\n",                   \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+}
 
 #define _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) { int p_ret = pthread_rwlock_init((rwlock), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
 #define _STARPU_PTHREAD_RWLOCK_RDLOCK(rwlock) { int p_ret = pthread_rwlock_rdlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_rdlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
