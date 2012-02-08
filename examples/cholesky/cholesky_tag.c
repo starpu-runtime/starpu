@@ -248,6 +248,8 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	int ret;
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();

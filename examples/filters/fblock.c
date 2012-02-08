@@ -105,6 +105,8 @@ int main(int argc, char **argv)
 	};
 
         ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_OPENCL

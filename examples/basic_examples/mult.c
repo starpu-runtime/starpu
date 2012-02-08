@@ -343,6 +343,8 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize matrices A, B and C and register them to StarPU */

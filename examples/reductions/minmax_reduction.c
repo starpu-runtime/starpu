@@ -130,6 +130,8 @@ int main(int argc, char **argv)
 	int ret;
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned long nelems = nblocks*entries_per_bock;

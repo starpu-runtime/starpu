@@ -57,6 +57,8 @@ int main(int argc, char **argv)
         FPRINTF(stderr,"\n");
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);	
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */

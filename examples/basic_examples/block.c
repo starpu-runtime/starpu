@@ -87,6 +87,8 @@ int main(int argc, char **argv)
         float multiplier=1.0;
 
         ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
         block = (float*)malloc(nx*ny*nz*sizeof(float));
