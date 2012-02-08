@@ -26,6 +26,8 @@ void *launch_starpu(void *id)
 {
 	int ret;
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(STARPU_TEST_SKIPPED);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	return NULL;
 }
