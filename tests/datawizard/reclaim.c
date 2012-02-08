@@ -102,7 +102,12 @@ int main(int argc, char **argv)
 	for (i = 0; i < mb; i++)
 	{
 		host_ptr_array[i] = (float *) malloc(BLOCK_SIZE);
-		STARPU_ASSERT(host_ptr_array[i]);
+		if (host_ptr_array[i] == NULL)
+		{
+			mb = i;
+			fprintf(stderr, "Cannot allocate more than %d buffers\n", mb);
+			break;
+		}
 		starpu_variable_data_register(&handle_array[i], 0, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);
 		STARPU_ASSERT(handle_array[i]);
 	}
