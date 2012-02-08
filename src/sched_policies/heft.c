@@ -29,6 +29,14 @@
 #include <core/jobs.h>
 #include <top/starpu_top_core.h>
 
+#ifndef DBL_MIN
+#define DBL_MIN __DBL_MIN__
+#endif
+
+#ifndef DBL_MAX
+#define DBL_MAX __DBL_MAX__
+#endif
+
 static unsigned nworkers;
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
