@@ -427,6 +427,8 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 	int ret;
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
