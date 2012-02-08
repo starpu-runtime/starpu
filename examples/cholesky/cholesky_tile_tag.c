@@ -259,6 +259,8 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Disable sequential consistency */
