@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,26 +29,26 @@
 //#define STARPU_MPI_VERBOSE	1
 
 #ifdef STARPU_MPI_VERBOSE
-#  define _STARPU_MPI_DEBUG(fmt, args ...) { if (!getenv("STARPU_SILENT")) { \
-    						int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                     \
-                                                int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");    \
-                                                fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , rank, __func__ ,##args); \
-                                                fflush(stderr); }}
+#  define _STARPU_MPI_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
+    						int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);       \
+                                                int yyy; for(yyy=0 ; yyy<=_debug_rank ; yyy++) fprintf(stderr, "    ");    \
+                                                fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , _debug_rank, __func__ ,##args); \
+                                                fflush(stderr); }} while(0);
 #else
 #  define _STARPU_MPI_DEBUG(fmt, args ...)
 #endif
 
 #ifdef STARPU_MPI_VERBOSE0
-#  define _STARPU_MPI_LOG_IN()             { if (!getenv("STARPU_SILENT")) { \
-                                               int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
+#  define _STARPU_MPI_LOG_IN()             do { if (!getenv("STARPU_SILENT")) { \
+                                               int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
+                                               int yyy; for(yyy=0 ; yyy<=_debug_rank ; yyy++) fprintf(stderr, "    ");      \
+                                               fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", _debug_rank, __func__ ); \
+                                               fflush(stderr); }} while(0)
+#  define _STARPU_MPI_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) { \
+                                               int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
                                                int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
-                                               fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", rank, __func__ ); \
-                                               fflush(stderr); }}
-#  define _STARPU_MPI_LOG_OUT()            { if (!getenv("STARPU_SILENT")) { \
-                                               int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
-                                               int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
-                                               fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", rank, __func__ ); \
-                                               fflush(stderr); }}
+                                               fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", _debug_rank, __func__ ); \
+                                               fflush(stderr); }} while(0)
 #else
 #  define _STARPU_MPI_LOG_IN()
 #  define _STARPU_MPI_LOG_OUT()
