@@ -28,6 +28,7 @@ gcc_tests =					\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\
+  external-task-impl.c				\
   no-initialize.c				\
   lib-user.c					\
   wait-errors.c					\

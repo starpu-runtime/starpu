@@ -2080,20 +2080,23 @@ validate_task_implementation (tree impl)
   const struct cgraph_edge *callee;
 
   cgraph = cgraph_get_node (impl);
-  for (callee = cgraph->callees;
-       callee != NULL;
-       callee = callee->next_callee)
-    {
-      if (task_p (callee->callee->decl))
-	{
-	  location_t loc;
 
-	  loc = gimple_location (callee->call_stmt);
-	  error_at (loc, "task %qE cannot be invoked from task implementation %qE",
-		    DECL_NAME (callee->callee->decl),
-		    DECL_NAME (impl));
-	}
-    }
+  /* When a definition of IMPL is available, check its callees.  */
+  if (cgraph != NULL)
+    for (callee = cgraph->callees;
+	 callee != NULL;
+	 callee = callee->next_callee)
+      {
+	if (task_p (callee->callee->decl))
+	  {
+	    location_t loc;
+
+	    loc = gimple_location (callee->call_stmt);
+	    error_at (loc, "task %qE cannot be invoked from task implementation %qE",
+		      DECL_NAME (callee->callee->decl),
+		      DECL_NAME (impl));
+	  }
+      }
 }
 
 static unsigned int
