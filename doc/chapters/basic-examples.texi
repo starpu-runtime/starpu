@@ -42,14 +42,72 @@ Also pass the @code{--static} option if the application is to be linked statical
 @node Hello World
 @section Hello World
 
+This section shows how to implement a simple program that submits a task
+to StarPU.
+
+Writing a task is both simpler and less error-prone when using the C
+extensions implemented by StarPU's GCC plug-in (@pxref{C Extensions}).
+In a nutshell, all it takes is to declare a task, declare and define its
+implementations (for CPU, OpenCL, and/or CUDA), and invoke the task like
+a regular C function.  The example below defines @code{my_task}, which
+has a single implementation for CPU:
+
+@example
+/* Task declaration.  */
+static void my_task (int x) __attribute__ ((task));
+
+/* Declaration of the CPU implementation of `my_task'.  */
+static void my_task_cpu (int x)
+  __attribute__ ((task_implementation ("cpu", my_task)));
+
+/* Definition of said CPU implementation.  */
+static void
+my_task_cpu (int x)
+@{
+  printf ("Hello, world!  With x = %d\n", x);
+@}
+
+int
+main ()
+@{
+  /* Initialize StarPU.  */
+#pragma starpu initialize
+
+  /* Do an asynchronous call to `my_task'.  */
+  my_task (42);
+
+  /* Wait for the call to complete.  */
+#pragma starpu wait
+
+  /* Terminate.  */
+#pragma starpu shutdown
+
+  return 0;
+@}
+@end example
+
+@noindent
+The code can then be compiled and linked with GCC and the
+@code{-fplugin} flag:
+
+@example
+$ gcc hello-starpu.c \
+    -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
+    `pkg-config starpu-1.0 --libs`
+@end example
+
+As can be seen above, basic use the C extensions allows programmers to
+use StarPU tasks while essentially annotating ``regular'' C code.
+
+The remainder of this section shows how to achieve the same result using
+StarPU's standard C API.
+
 @menu
 * Required Headers::            
 * Defining a Codelet::          
 * Submitting a Task::           
 * Execution of Hello World::    
 @end menu
-
-In this section, we show how to implement a simple program that submits a task to StarPU.
 
 @node Required Headers
 @subsection Required Headers
