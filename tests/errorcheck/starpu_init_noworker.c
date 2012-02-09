@@ -21,6 +21,13 @@
 #include <starpu.h>
 #include <stdlib.h>
 
+#if !(defined(_BSD_SOURCE) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
+#warning unsetenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 static void unset_env_variables(void)
 {
 	(void) unsetenv("STARPU_NCPUS");
@@ -55,3 +62,4 @@ int main(int argc, char **argv)
 
 	return EXIT_SUCCESS;
 }
+#endif
