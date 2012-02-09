@@ -542,7 +542,7 @@ Return the interface associated with @var{handle} on @var{memory_node}.
 
 Each data interface is provided with a set of field access functions.
 The ones using a @code{void *} parameter aimed to be used in codelet
-implementations (see for example the code in @ref{Scaling a Vector}).
+implementations (see for example the code in @ref{Vector Scaling Using StarPu's API}).
 
 @deftp {Data Type} {enum starpu_data_interface_id}
 The different values are:
