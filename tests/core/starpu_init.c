@@ -18,7 +18,7 @@
 #include "../helper.h"
 #include <stdlib.h>
 
-#if !(defined(_BSD_SOURCE) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
+#if !defined(STARPU_HAVE_UNSETENV)
 #warning unsetenv is not defined. Skipping test
 int main(int argc, char **argv)
 {

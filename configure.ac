@@ -158,6 +158,9 @@ fi
 # Some systems do not define strerror_r
 AC_CHECK_FUNC([strerror_r], [AC_DEFINE([STARPU_HAVE_STRERROR_R], [1], [Define to 1 if the function strerro_r is available.])])
 
+# Some systems do not define unsetenv
+AC_CHECK_FUNC([unsetenv], [AC_DEFINE([STARPU_HAVE_UNSETENV], [1], [Define to 1 if the function unsetenv is available.])])
+
 # Define slow machine
 AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--enable-slow-machine],
 				   [Lower default values for the testcases run by make check])],
