@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -196,7 +197,7 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 			unsigned must_destroy_task = 0;
 			struct starpu_task *task = j->task;
 
-			if (j->terminated > 0 && task->destroy && task->detach)
+			if (j->submitted && j->terminated > 0 && task->destroy && task->detach)
 				must_destroy_task = 1;
 
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
