@@ -23,6 +23,7 @@
 
 #if !(defined(_BSD_SOURCE) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
 #warning unsetenv is not defined. Skipping test
+#include "../helper.h"
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
