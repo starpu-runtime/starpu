@@ -137,6 +137,17 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
 #endif
 
 
+#ifdef STARPU_USE_CUDA
+
+/* Declaration of the CUDA implementation.  The definition itself is in the
+   `.cu' file itself.  */
+
+extern void vector_scal_cuda (size_t size, float vector[size], float factor)
+  __attribute__ ((task_implementation ("cuda", vector_scal)));
+
+#endif
+
+
 #define EPSILON 1e-3
 static bool
 check (size_t size, float vector[size], float factor)
