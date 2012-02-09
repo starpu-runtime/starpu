@@ -198,7 +198,7 @@ implementation may run in parallel with the continuation of the caller.
 The next section describes how memory buffers must be handled in
 StarPU-GCC code.  For a complete example, see the
 @code{gcc-plugin/examples} directory of the source distribution, and
-@ref{Extended C Source Code of Vector Scaling, the vector-scaling
+@ref{Vector Scaling Using the C Extension, the vector-scaling
 example}.
 
 
