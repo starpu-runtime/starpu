@@ -17,17 +17,9 @@
 # error must be compiled with the StarPU GCC plug-in
 #endif
 
-/* This is a simple example that is primarily meant to test the features
-   offered by the StarPU GCC plug-in.
-
-   Currently tested features :
-	- multi-implementations
-	- CPU codelet
-
-   Features to test in a near future :
-	- CUDA
-	- Filters
- */
+/* This examples showcases features of the StarPU GCC plug-in.  It defines a
+   "vector scaling" task with multiple CPU implementations, an OpenCL
+   implementation, and a CUDA implementation.   */
 
 #include <stdbool.h>
 #include <stdio.h>
