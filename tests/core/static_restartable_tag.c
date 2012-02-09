@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
 
 	task.use_tag = 1;
 	task.tag_id = tag;
+	task.detach = 0;
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
@@ -91,6 +93,8 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	}
 
+	ret = starpu_task_wait(&task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	starpu_task_deinit(&task);
 
 	gettimeofday(&end, NULL);
