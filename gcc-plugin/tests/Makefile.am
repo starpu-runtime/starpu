@@ -56,7 +56,13 @@ EXTRA_DIST = ./run-test.in			\
   my-lib.h my-lib.c				\
   $(gcc_tests)
 
+# The test suite assumes that the CPU back-end is available.
+if STARPU_USE_CPU
+
 TESTS = $(gcc_tests)
+
+endif
+
 TESTS_ENVIRONMENT = ./run-test
 
 if !HAVE_GUILE

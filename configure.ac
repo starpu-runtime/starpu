@@ -1209,10 +1209,15 @@ fi
 if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
     build_gcc_plugin="yes"
 
-   # GNU Guile 1.8/2.0 is used to run the test suite.
+    # GNU Guile 1.8/2.0 is used to run the test suite.
     AC_PATH_PROG([GUILE], [guile])
     if test "x$GUILE" != "x"; then
-	run_gcc_plugin_test_suite="yes"
+        if test "x$enable_cpu" = "xyes"; then
+	   run_gcc_plugin_test_suite="yes"
+	else
+	   AC_MSG_WARN([CPU back-end disabled; GCC plug-in test suite will not be run])
+	   run_gcc_plugin_test_suite="no"
+	fi
     else
 	run_gcc_plugin_test_suite="no"
     fi
