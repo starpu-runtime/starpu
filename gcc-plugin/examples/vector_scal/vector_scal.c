@@ -28,6 +28,8 @@
 	- CUDA
 	- Filters
  */
+
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -136,21 +138,24 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
 
 
 #define EPSILON 1e-3
-static int
+static bool
 check (size_t size, float vector[size], float factor)
 {
   size_t i;
+
   for (i = 0; i < size; i++)
     if (vector[i] - i * factor > EPSILON)
-      return 1;
+      return false;
 
-  return 0;
+  return true;
 }
 
 
 int
 main (void)
 {
+  bool valid;
+
 #pragma starpu initialize
 
 #ifdef STARPU_USE_OPENCL
@@ -161,18 +166,24 @@ main (void)
 #define NX     0x100000
 #define FACTOR 3.14
 
-  float vector[NX] __attribute__ ((heap_allocated));
+  {
+    float vector[NX] __attribute__ ((heap_allocated));
 
 #pragma starpu register vector
 
-  size_t i;
-  for (i = 0; i < NX; i++)
-    vector[i] = (float) i;
+    size_t i;
+    for (i = 0; i < NX; i++)
+      vector[i] = (float) i;
 
-  vector_scal (NX, vector, FACTOR);
+    vector_scal (NX, vector, FACTOR);
 
 #pragma starpu wait
+
+    valid = check (NX, vector, FACTOR);
+
+  } /* VECTOR is automatically freed here.  */
+
 #pragma starpu shutdown
 
-  return check (NX, vector, FACTOR) ? EXIT_FAILURE : EXIT_SUCCESS;
+  return valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }
