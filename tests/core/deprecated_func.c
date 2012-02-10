@@ -88,6 +88,7 @@ int submit_codelet(struct starpu_codelet cl, int where)
 				 0);
 	if (ret == -ENODEV)
 	{
+		FPRINTF(stderr, "cannot execute codelet <%s> with where=%d\n", cl.name, where);
 		starpu_data_unregister(handles[0]);
 		starpu_data_unregister(handles[1]);
 		return ret;
