@@ -25,25 +25,16 @@ The following arguments can be given to the @code{configure} script.
 @node Common configuration
 @subsection Common configuration
 
+@table @code
 
-@menu
-* --enable-debug::              
-* --enable-fast::               
-* --enable-verbose::            
-* --enable-coverage::           
-@end menu
-
-@node --enable-debug
-@subsubsection @code{--enable-debug}
+@item --enable-debug
 Enable debugging messages.
 
-@node --enable-fast
-@subsubsection @code{--enable-fast}
-Do not enforce assertions, saves a lot of time spent to compute them otherwise.
+@item --enable-fast
+Disable assertion checks, which saves computation time.
 
-@node --enable-verbose
-@subsubsection @code{--enable-verbose}
-Augment the verbosity of the debugging messages. This can be disabled
+@item --enable-verbose
+Increase the verbosity of the debugging messages.  This can be disabled
 at runtime by setting the environment variable @code{STARPU_SILENT} to
 any value.
 
@@ -51,9 +42,10 @@ any value.
 % STARPU_SILENT=1 ./vector_scal
 @end smallexample
 
-@node --enable-coverage
-@subsubsection @code{--enable-coverage}
+@item --enable-coverage
 Enable flags for the @code{gcov} coverage tool.
+
+@end table
 
 @node Configuring workers
 @subsection Configuring workers
