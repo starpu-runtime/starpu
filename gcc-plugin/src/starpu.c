@@ -1457,10 +1457,14 @@ build_codelet_wrapper_definition (tree task_impl)
 
   tree build_body (tree wrapper_decl, tree vars)
   {
+    bool opencl_p;
     tree stmts = NULL, call, v;
     VEC(tree, gc) *args;
 
-    /* Build `var0 = STARPU_VECTOR_GET_PTR (buffers[0]); ...'.  */
+    opencl_p = (task_implementation_where (task_impl) == STARPU_OPENCL);
+
+    /* Build `var0 = STARPU_VECTOR_GET_PTR (buffers[0]); ...' or
+       `var0 = STARPU_VECTOR_GET_DEV_HANDLE (buffers[0])' for OpenCL.  */
 
     size_t index = 0;
     for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
@@ -1470,18 +1474,20 @@ build_codelet_wrapper_definition (tree task_impl)
 	    /* Compute `void *VDESC = buffers[0];'.  */
 	    tree vdesc = array_ref (DECL_ARGUMENTS (wrapper_decl), index);
 
-	    /* Below we assume (1) that pointer arguments are registered as
-	       StarPU vector handles, and (2) that the `ptr' field is at
-	       offset 0 of `struct starpu_vector_interface'.  The latter allows us
-	       to use a simple pointer dereference instead of expanding
-	       `STARPU_VECTOR_GET_PTR'.  */
-	    verify (offsetof (struct starpu_vector_interface, ptr) == 0,
-		    "unexpected vector interface layout");
+	    /* Use the right field, depending on OPENCL_P.  */
+	    size_t offset =
+	      opencl_p
+	      ? offsetof (struct starpu_vector_interface, dev_handle)
+	      : offsetof (struct starpu_vector_interface, ptr);
+
+	    gcc_assert (POINTER_TYPE_P (TREE_TYPE (vdesc)));
 
 	    /* Compute `type *PTR = *(type **) VDESC;'.  */
-	    tree ptr = build1 (INDIRECT_REF,
-			       build_pointer_type (TREE_TYPE (v)),
-			       vdesc);
+	    tree ptr =
+	      build_indirect_ref (UNKNOWN_LOCATION,
+				  fold_convert (build_pointer_type (TREE_TYPE (v)),
+						pointer_plus (vdesc, offset)),
+				  RO_ARRAY_INDEXING);
 
 	    append_to_statement_list (build2 (MODIFY_EXPR, TREE_TYPE (v),
 					      v, ptr),
