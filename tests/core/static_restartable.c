@@ -62,6 +62,10 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+#ifdef STARPU_SLOW_MACHINE
+	ntasks /= 100;
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

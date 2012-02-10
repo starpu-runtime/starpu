@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#warning memory leaks
+
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
