@@ -180,6 +180,22 @@ build_zero_cst (tree type)
 /* Helpers.  */
 
 
+/* Return POINTER plus OFFSET, where OFFSET is in bytes.  */
+
+static tree
+pointer_plus (tree pointer, size_t offset)
+{
+  gcc_assert (POINTER_TYPE_P (TREE_TYPE (pointer)));
+
+  if (offset == 0)
+    return pointer;
+  else
+    return build_binary_op (UNKNOWN_LOCATION, PLUS_EXPR,
+			    pointer,
+			    build_int_cstu (integer_type_node, offset),
+			    false);
+}
+
 /* Build a reference to the INDEXth element of ARRAY.  `build_array_ref' is
    not exported, so we roll our own.
    FIXME: This version may not work for array types and doesn't do as much
@@ -190,18 +206,8 @@ array_ref (tree array, size_t index)
 {
   gcc_assert (POINTER_TYPE_P (TREE_TYPE (array)));
 
-  tree pointer_plus_offset =
-    index > 0
-    ? build_binary_op (UNKNOWN_LOCATION, PLUS_EXPR,
-		       array,
-		       build_int_cstu (integer_type_node, index),
-		       0)
-    : array;
-
-  gcc_assert (POINTER_TYPE_P (TREE_TYPE (pointer_plus_offset)));
-
   return build_indirect_ref (UNKNOWN_LOCATION,
-			     pointer_plus_offset,
+			     pointer_plus (array, index),
 			     RO_ARRAY_INDEXING);
 }
 
