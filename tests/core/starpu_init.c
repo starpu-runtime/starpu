@@ -18,7 +18,7 @@
 #include "../helper.h"
 #include <stdlib.h>
 
-#if !defined(STARPU_HAVE_UNSETENV)
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
 #warning unsetenv is not defined. Skipping test
 int main(int argc, char **argv)
 {
