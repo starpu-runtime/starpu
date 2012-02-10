@@ -234,22 +234,19 @@ making it available to the tasks.
 
 @end table
 
-As a substitute for the @code{register} and @code{unregister} pragmas,
-the @code{heap_allocated} variable attribute offers a higher-level
-mechanism:
+Additionally, the @code{heap_allocated} variable attribute offers a
+simple way to allocate storage for arrays on the heap:
 
 @table @code
 
 @item heap_allocated
 @cindex @code{heap_allocated} attribute
 This attributes applies to local variables with an array type.  Its
-effect is to automatically allocate and register the array's storage on
+effect is to automatically allocate the array's storage on
 the heap, using @code{starpu_malloc} under the hood (@pxref{Basic Data
 Library API, starpu_malloc}).  The heap-allocated array is automatically
-freed and unregistered when the variable's scope is left, as with
-automatic variables@footnote{This is achieved by using the
-@code{cleanup} attribute (@pxref{Variable Attributes,,, gcc, Using the
-GNU Compiler Collection (GCC)})}.
+freed when the variable's scope is left, as with
+automatic variables.
 
 @end table
 
@@ -275,14 +272,20 @@ main (int argc, char *argv[])
   /* Allocate an array of the required size on the heap,
      and register it.  */
 
-  float matrix[nblocks][nblocks][size]
-    __attribute__ ((heap_allocated));
+  @{
+    float matrix[nblocks][nblocks][size]
+      __attribute__ ((heap_allocated));
 
-  cholesky (nblocks, size, matrix);
+#pragma starpu register matrix
+
+    cholesky (nblocks, size, matrix);
+
+#pragma starpu wait
+#pragma starpu unregister matrix
+
+  @}   /* MATRIX is automatically freed here.  */
 
 #pragma starpu shutdown
-
-  /* MATRIX is automatically freed upon return.  */
 
   return EXIT_SUCCESS;
 @}
