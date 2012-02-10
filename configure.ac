@@ -1231,7 +1231,7 @@ fi
 
 # Bison is used to generate the C expression parser.  The generated
 # parser is part of the distribution, though.
-AC_PROG_YACC
+AM_MISSING_PROG([YACC], [bison])
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
 AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])

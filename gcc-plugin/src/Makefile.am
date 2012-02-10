@@ -19,6 +19,10 @@ gccplugin_LTLIBRARIES = starpu.la
 
 starpu_la_SOURCES = starpu.c c-expr.y
 
+# Use the Yacc-compatibility mode so that Bison doesn't error out upon
+# reduce/reduce conflicts.
+AM_YFLAGS = -y
+
 AM_CPPFLAGS =						\
   -I$(top_srcdir)/include				\
   -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1
