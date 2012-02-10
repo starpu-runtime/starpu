@@ -81,7 +81,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
         arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
 	va_start(varg_list, codelet);
-	_starpu_pack_cl_args(arg_buffer_size, &arg_buffer, varg_list);
+	_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
         inconsistent_execute = 0;

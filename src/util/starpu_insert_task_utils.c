@@ -96,7 +96,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
         return arg_buffer_size;
 }
 
-int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list)
+int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list)
 {
         int arg_type;
 	unsigned current_arg_offset = 0;
