@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#warning memory leak
+
 static unsigned ntasks = 40000;
 
 #ifdef STARPU_USE_CUDA

@@ -20,8 +20,13 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#define NTHREADS	16
-#define NITER		128
+#define NTHREADS_DEFAULT	16
+#define NITER_DEFAULT		128
+
+static int nthreads = NTHREADS_DEFAULT;
+static int niter = NITER_DEFAULT;
+
+#warning memory leaks
 
 //#define DEBUG_MESSAGES	1
 
@@ -53,7 +58,7 @@ static pthread_cond_t data_req_cond;
 struct data_req *data_req_list;
 unsigned progress_thread_running;
 
-static struct thread_data problem_data[NTHREADS];
+static struct thread_data problem_data[NTHREADS_DEFAULT];
 
 /* We implement some ring transfer, every thread will try to receive a piece of
  * data from its neighbour and increment it before transmitting it to its
@@ -106,7 +111,7 @@ static int test_recv_handle_async(void *arg)
 
 	int ret;
 	struct thread_data *thread_data = (struct thread_data *) arg;
-	
+
 	_STARPU_PTHREAD_MUTEX_LOCK(&thread_data->recv_mutex);
 
 	ret = (thread_data->recv_flag == 1);
@@ -114,7 +119,7 @@ static int test_recv_handle_async(void *arg)
 	if (ret)
 	{
 		thread_data->recv_flag = 0;
-		thread_data->val = thread_data->recv_buf; 
+		thread_data->val = thread_data->recv_buf;
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&thread_data->recv_mutex);
@@ -123,11 +128,11 @@ static int test_recv_handle_async(void *arg)
 	{
 #ifdef DEBUG_MESSAGES
 		FPRINTF(stderr, "Thread %d received value %d from thread %d\n",
-			thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
+			thread_data->index, thread_data->val, (thread_data->index - 1)%nthreads);
 #endif
 		starpu_data_release(thread_data->handle);
 	}
-	
+
 	return ret;
 }
 
@@ -152,7 +157,7 @@ static int test_send_handle_async(void *arg)
 	int ret;
 	struct thread_data *thread_data = (struct thread_data *) arg;
 	struct thread_data *neighbour_data = thread_data->neighbour;
-	
+
 	_STARPU_PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
 	ret = (neighbour_data->recv_flag == 0);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
@@ -198,7 +203,7 @@ static void *progress_func(void *arg)
 	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 
 	progress_thread_running = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);	
+	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
 
 	while (progress_thread_running)
 	{
@@ -243,7 +248,7 @@ static void *progress_func(void *arg)
 							req_aux->next = req;
 							break;
 						}
-						
+
 						req_aux = req_aux->next;
 					}
 				}
@@ -264,7 +269,7 @@ static void *thread_func(void *arg)
 
 	starpu_variable_data_register(&thread_data->handle, 0, (uintptr_t)&thread_data->val, sizeof(unsigned));
 
-	for (iter = 0; iter < NITER; iter++)
+	for (iter = 0; iter < niter; iter++)
 	{
 		/* The first thread initiates the first transfer */
 		if (!((index == 0) && (iter == 0)))
@@ -274,10 +279,10 @@ static void *thread_func(void *arg)
 				recv_handle_async, thread_data
 			);
 		}
-		
+
 		increment_handle_async(thread_data);
 
-		if (!((index == (NTHREADS - 1)) && (iter == (NITER - 1))))
+		if (!((index == (nthreads - 1)) && (iter == (niter - 1))))
 		{
 			starpu_data_acquire_cb(
 				thread_data->handle, STARPU_R,
@@ -297,10 +302,14 @@ int main(int argc, char **argv)
 	int ret;
 	void *retval;
 
+#ifdef STARPU_SLOW_MACHINE
+	niter /= 16;
+	nthreads /= 4;
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
 	/* Create a thread to perform blocking calls */
 	pthread_t progress_thread;
 	_STARPU_PTHREAD_MUTEX_INIT(&data_req_mutex, NULL);
@@ -309,13 +318,13 @@ int main(int argc, char **argv)
 	progress_thread_running = 0;
 
 	unsigned t;
-	for (t = 0; t < NTHREADS; t++)
+	for (t = 0; t < nthreads; t++)
 	{
 		problem_data[t].index = t;
 		problem_data[t].val = 0;
 		_STARPU_PTHREAD_MUTEX_INIT(&problem_data[t].recv_mutex, NULL);
 		problem_data[t].recv_flag = 0;
-		problem_data[t].neighbour = &problem_data[(t+1)%NTHREADS];
+		problem_data[t].neighbour = &problem_data[(t+1)%nthreads];
 	}
 
 	pthread_create(&progress_thread, NULL, progress_func, NULL);
@@ -325,13 +334,13 @@ int main(int argc, char **argv)
 		_STARPU_PTHREAD_COND_WAIT(&data_req_cond, &data_req_mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
-	for (t = 0; t < NTHREADS; t++)
+	for (t = 0; t < nthreads; t++)
 	{
 		ret = pthread_create(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
 		STARPU_ASSERT(!ret);
 	}
 
-	for (t = 0; t < NTHREADS; t++)
+	for (t = 0; t < nthreads; t++)
 	{
 		ret = pthread_join(problem_data[t].thread, &retval);
 		STARPU_ASSERT(!ret);
@@ -348,16 +357,16 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(retval == NULL);
 
 	/* We check that the value in the "last" thread is valid */
-	starpu_data_handle_t last_handle = problem_data[NTHREADS - 1].handle;
+	starpu_data_handle_t last_handle = problem_data[nthreads - 1].handle;
 	starpu_data_acquire(last_handle, STARPU_R);
-	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
+	if (problem_data[nthreads - 1].val != (nthreads * niter))
 	{
-		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
+		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[nthreads - 1].val, (nthreads * niter));
 		STARPU_ABORT();
 	}
 	starpu_data_release(last_handle);
 
-	for (t = 0; t < NTHREADS; t++)
+	for (t = 0; t < nthreads; t++)
 	{
 		starpu_data_unregister(problem_data[t].handle);
 	}

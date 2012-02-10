@@ -28,8 +28,11 @@
 
 #include "../helper.h"
 
-#define N	100
-#define K	256
+#define N_DEF	100
+#define K_DEF	256
+
+static int n=N_DEF;
+static int k=K_DEF;
 
 /*
  * In this test, we maintain a vector v = (a,b,c).
@@ -83,6 +86,11 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+#ifdef STARPU_SLOW_MACHINE
+	n /= 10;
+	k /= 8;
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -108,11 +116,11 @@ int main(int argc, char **argv)
         starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
-	for (iter = 0; iter < K; iter++)
+	for (iter = 0; iter < k; iter++)
 	{
 		int ret;
 		unsigned ind;
-		for (ind = 0; ind < N; ind++)
+		for (ind = 0; ind < n; ind++)
 		{
 			/* increment a = v[0] */
 			struct starpu_codelet cl_inc_a =
@@ -153,7 +161,7 @@ int main(int argc, char **argv)
 
 		starpu_data_release(v_handle);
 
-		for (ind = 0; ind < N; ind++)
+		for (ind = 0; ind < n; ind++)
 		{
 			/* increment c = v[2] */
 			struct starpu_codelet cl_inc_c =
@@ -199,7 +207,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	if ((v[0] != N*K) || (v[1] != K) || (v[2] != N*K))
+	if ((v[0] != n*k) || (v[1] != k) || (v[2] != n*k))
 	{
 		FPRINTF(stderr, "Incorrect result\n");
 		return EXIT_FAILURE;

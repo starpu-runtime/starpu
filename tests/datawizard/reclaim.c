@@ -86,6 +86,11 @@ int main(int argc, char **argv)
 	if (2*mb > ntasks)
 		ntasks = 2*mb;
 
+#ifdef STARPU_SLOW_MACHINE
+	mb /= 100;
+	ntasks /= 100;
+#endif
+
 	FPRINTF(stderr, "Allocate %d buffers and create %u tasks\n", mb, ntasks);
 
         ret = starpu_init(NULL);

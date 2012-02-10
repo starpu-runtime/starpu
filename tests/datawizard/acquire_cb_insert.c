@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#warning memory leak
+
 #define N 16
 #define M 4
 #define X 2
@@ -117,18 +119,18 @@ int main(int argc, char **argv)
 	starpu_data_unregister(x_handle);
 
         FPRINTF(stderr, "VALUES: %d", x);
-
         for(i=0 ; i<N ; i++)
 	{
 		FPRINTF(stderr, " %f", f[i]);
         }
+	FPRINTF(stderr, "\n");
 
 	STARPU_ASSERT(f[X*(N/M)] == 1);
 	STARPU_ASSERT(f[X*(N/M)+1] == 2);
 	STARPU_ASSERT(f[X*(N/M)+2] == 3);
 	STARPU_ASSERT(f[X*(N/M)+3] == 4);
 
-	FPRINTF(stderr, "\n");
+	starpu_free(f);
 
 	starpu_shutdown();
 	return EXIT_SUCCESS;

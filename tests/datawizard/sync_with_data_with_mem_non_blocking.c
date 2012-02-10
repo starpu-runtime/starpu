@@ -23,13 +23,19 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#define NBUFFERS	64
-#define NITER		128
-#define VECTORSIZE	1024
+#warning memory leak
 
-float *buffer[NBUFFERS];
+#define NBUFFERS_DEF	64
+#define NITER_DEF	128
+#define VECTORSIZE_DEF	1024
 
-starpu_data_handle_t v_handle[NBUFFERS];
+static int nbuffers = NBUFFERS_DEF;
+static int niter = NITER_DEF;
+static int vectorsize = VECTORSIZE_DEF;
+
+float *buffer[NBUFFERS_DEF];
+
+starpu_data_handle_t v_handle[NBUFFERS_DEF];
 
 static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -73,7 +79,7 @@ void callback_sync_data(void *arg __attribute__ ((unused)))
 
 	n_synced_buffers++;
 
-	if (n_synced_buffers == NBUFFERS)
+	if (n_synced_buffers == nbuffers)
 		_STARPU_PTHREAD_COND_SIGNAL(&cond);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -83,27 +89,33 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+#ifdef STARPU_SLOW_MACHINE
+	nbuffers /= 4;
+	niter /= 4;
+	vectorsize /= 8;
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Allocate all buffers and register them to StarPU */
 	unsigned b;
-	for (b = 0; b < NBUFFERS; b++)
+	for (b = 0; b < nbuffers; b++)
 	{
-		ret = starpu_malloc((void **)&buffer[b], VECTORSIZE);
+		ret = starpu_malloc((void **)&buffer[b], vectorsize);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_vector_data_register(&v_handle[b], 0,
-				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
+				(uintptr_t)buffer[b], vectorsize, sizeof(char));
 		starpu_data_set_sequential_consistency_flag(v_handle[b], 0);
 	}
 
 	unsigned iter;
-	for (iter = 0; iter < NITER; iter++)
+	for (iter = 0; iter < niter; iter++)
 	{
 		/* Use the buffers on the different workers so that it may not
 		 * be in main memory anymore */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 		{
 			ret = use_handle(v_handle[b]);
 			if (ret == -ENODEV) goto enodev;
@@ -118,7 +130,7 @@ int main(int argc, char **argv)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 		/* Grab the different pieces of data into main memory */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 		{
 			ret = starpu_data_acquire_cb(v_handle[b], STARPU_RW,
 						     callback_sync_data, NULL);
@@ -128,18 +140,18 @@ int main(int argc, char **argv)
 		/* Wait for all buffers to be available */
 		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
-		while (n_synced_buffers != NBUFFERS)
+		while (n_synced_buffers != nbuffers)
 			_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 		/* Release them */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 			starpu_data_release(v_handle[b]);
 	}
 
 	/* do some cleanup */
-	for (b = 0; b < NBUFFERS; b++)
+	for (b = 0; b < nbuffers; b++)
 	{
 		starpu_data_unregister(v_handle[b]);
 		starpu_free(buffer[b]);

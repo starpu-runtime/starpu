@@ -24,6 +24,8 @@
 #define NTHREADS	4
 #define NITER		128
 
+#warning memory leak
+
 //static pthread_cond_t cond;
 //static pthread_mutex_t mutex;
 

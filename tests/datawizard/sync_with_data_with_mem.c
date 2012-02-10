@@ -22,13 +22,19 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#define NBUFFERS	64
-#define NITER		128
-#define VECTORSIZE	1024
+#warning memory leak
 
-float *buffer[NBUFFERS];
+#define NBUFFERS_DEF	64
+#define NITER_DEF	128
+#define VECTORSIZE_DEF	1024
 
-starpu_data_handle_t v_handle[NBUFFERS];
+static int nbuffers = NBUFFERS_DEF;
+static int niter = NITER_DEF;
+static int vectorsize = VECTORSIZE_DEF;
+
+float *buffer[NBUFFERS_DEF];
+
+starpu_data_handle_t v_handle[NBUFFERS_DEF];
 
 static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -66,26 +72,32 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+#ifdef STARPU_SLOW_MACHINE
+	nbuffers /= 4;
+	niter /= 4;
+	vectorsize /= 8;
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Allocate all buffers and register them to StarPU */
 	unsigned b;
-	for (b = 0; b < NBUFFERS; b++)
+	for (b = 0; b < nbuffers; b++)
 	{
-		ret = starpu_malloc((void **)&buffer[b], VECTORSIZE);
+		ret = starpu_malloc((void **)&buffer[b], vectorsize);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_vector_data_register(&v_handle[b], 0,
-				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
+				(uintptr_t)buffer[b], vectorsize, sizeof(char));
 	}
 
 	unsigned iter;
-	for (iter = 0; iter < NITER; iter++)
+	for (iter = 0; iter < niter; iter++)
 	{
 		/* Use the buffers on the different workers so that it may not
 		 * be in main memory anymore */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 		{
 			ret = use_handle(v_handle[b]);
 			if (ret == -ENODEV) goto enodev;
@@ -96,19 +108,19 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 		/* Grab the different pieces of data into main memory */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 		{
 			ret = starpu_data_acquire(v_handle[b], STARPU_RW);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		}
 
 		/* Release them */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 			starpu_data_release(v_handle[b]);
 	}
 
 	/* do some cleanup */
-	for (b = 0; b < NBUFFERS; b++)
+	for (b = 0; b < nbuffers; b++)
 	{
 		starpu_data_unregister(v_handle[b]);
 		starpu_free(buffer[b]);
