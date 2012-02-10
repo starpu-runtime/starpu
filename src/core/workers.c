@@ -400,12 +400,6 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
-	if (init_count > 0)
-	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-		return;
-	}
-		
 	while (initialized == CHANGING)
 		/* Wait for the other one changing it */
 		_STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
