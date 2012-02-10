@@ -338,7 +338,6 @@ supported C extensions.
 The code below illustrates how to define a task and its implementations
 in a way that allows it to be compiled without the GCC plug-in:
 
-@cartouche
 @smallexample
 /* The macros below abstract over the attributes specific to
    StarPU-GCC and the name of the CPU implementation.  */
@@ -394,7 +393,6 @@ main (int argc, char *argv[])
   return EXIT_SUCCESS;
 @}
 @end smallexample
-@end cartouche
 
 Note that attributes such as @code{task} are simply ignored by GCC when
 the StarPU plug-in is not loaded, so the @code{__task} macro could be
