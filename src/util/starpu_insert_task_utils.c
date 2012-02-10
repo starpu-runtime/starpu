@@ -157,7 +157,16 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 		}
 	}
 
-	(*arg_buffer)[0] = nargs;
+	if (nargs)
+	{
+		(*arg_buffer)[0] = nargs;
+	}
+	else
+	{
+		free(*arg_buffer);
+		*arg_buffer = NULL;
+	}
+
 	va_end(varg_list);
 	return 0;
 }
