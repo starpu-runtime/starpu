@@ -386,8 +386,7 @@ The @code{main} function above does several things:
 
 @itemize
 @item
-It initializes StarPU.  This has to be done explicitly, as it is
-undesirable to add implicit initialization code in user code.
+It initializes StarPU.
 
 @item
 It allocates @var{vector} in the heap; it will automatically be freed
@@ -412,9 +411,7 @@ It @dfn{waits} for the termination of the @code{vector_scal}
 asynchronous call.
 
 @item
-Finally, StarPU is shut down, giving it an opportunity to write
-profiling info to a file on disk, for instance (@pxref{Off-line,
-off-line performance feedback}).
+Finally, StarPU is shut down.
 
 @end itemize
 
