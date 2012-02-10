@@ -570,6 +570,7 @@ void starpu_shutdown(void)
 	if (init_count)
 	{
 		_STARPU_DEBUG("Still somebody needing StarPU, don't deinitialize\n");
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return;
 	}
 
