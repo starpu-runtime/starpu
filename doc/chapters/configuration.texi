@@ -3,7 +3,7 @@
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
 @c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
@@ -159,122 +159,85 @@ device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
 @node Advanced configuration
 @subsection Advanced configuration
 
-@menu
-* --enable-perf-debug::         
-* --enable-model-debug::        
-* --enable-stats::              
-* --enable-maxbuffers::         
-* --enable-allocation-cache::   
-* --enable-opengl-render::      
-* --enable-blas-lib::           
-* --disable-starpufft::         
-* --with-magma::                
-* --with-fxt::                  
-* --with-perf-model-dir::       
-* --with-mpicc::                
-* --with-goto-dir::             
-* --with-atlas-dir::            
-* --with-mkl-cflags::           
-* --with-mkl-ldflags::          
-* --disable-gcc-extensions::    
-* --disable-socl::    
-* --disable-starpu-top::
-@end menu
+@table @code
 
-@node --enable-perf-debug
-@subsubsection @code{--enable-perf-debug}
+@item --enable-perf-debug
 Enable performance debugging through gprof.
 
-@node --enable-model-debug
-@subsubsection @code{--enable-model-debug}
+@item --enable-model-debug
 Enable performance model debugging.
 
-@node --enable-stats
-@subsubsection @code{--enable-stats}
-Enable statistics.
+@item --enable-stats
+@c see ../../src/datawizard/datastats.c
+Enable gathering of memory transfer statistics.
 
-@node --enable-maxbuffers
-@subsubsection @code{--enable-maxbuffers=<nbuffers>}
+@item --enable-maxbuffers
 Define the maximum number of buffers that tasks will be able to take
 as parameters, then available as the @code{STARPU_NMAXBUFS} macro.
 
-@node --enable-allocation-cache
-@subsubsection @code{--enable-allocation-cache}
+@item --enable-allocation-cache
 Enable the use of a data allocation cache to avoid the cost of it with
 CUDA. Still experimental.
 
-@node --enable-opengl-render
-@subsubsection @code{--enable-opengl-render}
+@item --enable-opengl-render
 Enable the use of OpenGL for the rendering of some examples.
 @c TODO: rather default to enabled when detected
 
-@node --enable-blas-lib
-@subsubsection @code{--enable-blas-lib=<name>}
+@item --enable-blas-lib
 Specify the blas library to be used by some of the examples. The
 library has to be 'atlas' or 'goto'.
 
-@node --disable-starpufft
-@subsubsection @code{--disable-starpufft}
+@item --disable-starpufft
 Disable the build of libstarpufft, even if fftw or cuFFT is available.
 
-@node --with-magma
-@subsubsection @code{--with-magma=<path>}
-Specify where magma is installed. This directory should notably contain
-@code{include/magmablas.h}.
+@item --with-magma=@var{prefix}
+Search for MAGMA under @var{prefix}.  @var{prefix} should notably
+contain @file{include/magmablas.h}.
 
-@node --with-fxt
-@subsubsection @code{--with-fxt=<path>}
-Specify the location of FxT (for generating traces and rendering them
-using ViTE). This directory should notably contain
-@code{include/fxt/fxt.h}.
-@c TODO add ref to other section
+@item --with-fxt=@var{prefix}
+Search for FxT under @var{prefix}.
+@url{http://savannah.nongnu.org/projects/fkt, FxT} is used to generate
+traces of scheduling events, which can then be rendered them using ViTE
+(@pxref{Off-line, off-line performance feedback}).  @var{prefix} should
+notably contain @code{include/fxt/fxt.h}.
 
-@node --with-perf-model-dir
-@subsubsection @code{--with-perf-model-dir=<dir>}
-Specify where performance models should be stored (instead of defaulting to the
-current user's home).
+@item --with-perf-model-dir=@var{dir}
+Store performance models under @var{dir}, instead of the current user's
+home.
 
-@node --with-mpicc
-@subsubsection @code{--with-mpicc=<path to mpicc>}
-Specify the location of the @code{mpicc} compiler to be used for starpumpi.
+@item --with-mpicc=@var{path}
+Use the @command{mpicc} compiler at @var{path}, for starpumpi
+(@pxref{StarPU MPI support}).
 
-@node --with-goto-dir
-@subsubsection @code{--with-goto-dir=<dir>}
-Specify the location of GotoBLAS.
+@item --with-goto-dir=@var{prefix}
+Search for GotoBLAS under @var{prefix}.
 
-@node --with-atlas-dir
-@subsubsection @code{--with-atlas-dir=<dir>}
-Specify the location of ATLAS. This directory should notably contain
-@code{include/cblas.h}.
+@item --with-atlas-dir=@var{prefix}
+Search for ATLAS under @var{prefix}, which should notably contain
+@file{include/cblas.h}.
 
-@node --with-mkl-cflags
-@subsubsection @code{--with-mkl-cflags=<cflags>}
-Specify the compilation flags for the MKL Library.
+@item --with-mkl-cflags=@var{cflags}
+Use @var{cflags} to compile code that uses the MKL library.
 
-@node --with-mkl-ldflags
-@subsubsection @code{--with-mkl-ldflags=<ldflags>}
-Specify the linking flags for the MKL Library. Note that the
-@url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/}
-website provides a script to determine the linking flags.
+@item --with-mkl-ldflags=@var{ldflags}
+Use @var{ldflags} when linking code that uses the MKL library.  Note
+that the
+@url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/,
+MKL website} provides a script to determine the linking flags.
 
-@node --disable-gcc-extensions
-@subsubsection @code{--disable-gcc-extensions}
+@item --disable-gcc-extensions
+Disable the GCC plug-in (@pxref{C Extensions}).  By default, it is
+enabled when the GCC compiler provides a plug-in support.
 
-Disable the GCC plug-in. It is by default enabled if the GCC compiler
-provides a plug-in support.
+@item --disable-socl
+Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
+default, it is enabled when an OpenCL implementation is found.
 
-@node --disable-socl
-@subsubsection @code{--disable-socl}
+@item --disable-starpu-top
+Disable the StarPU-Top interface (@pxref{starpu-top}).  By default, it
+is enabled when the required dependencies are found.
 
-Disable the SOCL extension. It is by default enabled if a valid OpenCL
-installation is found.
-
-@node --disable-starpu-top
-@subsubsection @code{--disable-starpu-top}
-
-Disable the StarPU-Top interface. It is by default enabled if the required
-dependencies are found.
-
+@end table
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
 
