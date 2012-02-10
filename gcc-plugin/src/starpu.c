@@ -113,6 +113,13 @@ static bool heap_allocated_p (const_tree var_decl);
       gcc_assert ((var) != NULL_TREE && TREE_CODE (var) == FUNCTION_DECL); \
     }
 
+/* Compile-time assertions.  */
+
+#if STARPU_GNUC_PREREQ (4, 6)
+# define verify(cond, msg) _Static_assert ((cond), msg)
+#else
+# define verify(cond, msg) assert (cond);
+#endif
 
 
 /* Useful code backported from GCC 4.6.  */
@@ -1462,7 +1469,8 @@ build_codelet_wrapper_definition (tree task_impl)
 	       offset 0 of `struct starpu_vector_interface'.  The latter allows us
 	       to use a simple pointer dereference instead of expanding
 	       `STARPU_VECTOR_GET_PTR'.  */
-	    assert (offsetof (struct starpu_vector_interface, ptr) == 0);
+	    verify (offsetof (struct starpu_vector_interface, ptr) == 0,
+		    "unexpected vector interface layout");
 
 	    /* Compute `type *PTR = *(type **) VDESC;'.  */
 	    tree ptr = build1 (INDIRECT_REF,
