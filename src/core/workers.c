@@ -34,7 +34,7 @@
 /* acquire/release semantic for concurrent initialization/de-initialization */
 static pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
-static int init_count;
+static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
 static pthread_key_t worker_key;
