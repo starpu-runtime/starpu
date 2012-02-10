@@ -36,6 +36,8 @@ int main(int argc, char **argv)
 #endif
 
 	n = starpu_worker_get_count();
+	if (n == 1) return STARPU_TEST_SKIPPED;
+
 	size = 10 * n;
 
 	foo = (unsigned *) calloc(size, sizeof(*foo));
@@ -51,7 +53,7 @@ int main(int argc, char **argv)
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
-		.nchildren = n > 1 ? n : 2,
+		.nchildren = n,
 	};
 
 	starpu_data_partition(handle, &f);
