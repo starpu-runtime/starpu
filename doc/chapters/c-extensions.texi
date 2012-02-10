@@ -30,6 +30,10 @@ $ gcc -c -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` foo.c
 When the plug-in is not available, the above @command{pkg-config}
 command returns the empty string.
 
+In addition, the @code{-fplugin-arg-starpu-verbose} flag can be used to
+obtain feedback from the compiler as it analyzes the C extensions used
+in source files.
+
 This section describes the C extensions implemented by StarPU's GCC
 plug-in.  It does not require detailed knowledge of the StarPU library.
 

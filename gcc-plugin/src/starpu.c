@@ -64,6 +64,9 @@ int plugin_is_GPL_compatible;
 /* The name of this plug-in.  */
 static const char plugin_name[] = "starpu";
 
+/* Whether to enable verbose output.  */
+static bool verbose_output_p = false;
+
 /* Names of public attributes.  */
 static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
@@ -1726,7 +1729,10 @@ build_codelet_initializer (tree task_decl)
 	impl_decl = TREE_VALUE (impl);
 	gcc_assert (TREE_CODE (impl_decl) == FUNCTION_DECL);
 
-	printf ("   `%s'\n", IDENTIFIER_POINTER (DECL_NAME (impl_decl)));
+	if (verbose_output_p)
+	  /* List the implementations of TASK_DECL.  */
+	  inform (DECL_SOURCE_LOCATION (impl_decl),
+		  "   %qE", DECL_NAME (impl_decl));
 
 	where_int |= task_implementation_where (impl_decl);
       }
@@ -1806,8 +1812,9 @@ build_codelet_initializer (tree task_decl)
 					nreverse (modes));
   }
 
-  printf ("implementations for `%s':\n",
-	  IDENTIFIER_POINTER (DECL_NAME (task_decl)));
+  if (verbose_output_p)
+    inform (DECL_SOURCE_LOCATION (task_decl),
+	    "implementations for task %qE:", DECL_NAME (task_decl));
 
   tree impls, inits;
 
@@ -2168,9 +2175,10 @@ lower_starpu (void)
       if (lookup_attribute (task_attribute_name,
 			    DECL_ATTRIBUTES (callee_decl)))
 	{
-	  printf ("%s: `%s' calls task `%s'\n", __func__,
-		  IDENTIFIER_POINTER (DECL_NAME (fndecl)),
-		  IDENTIFIER_POINTER (DECL_NAME (callee_decl)));
+	  if (verbose_output_p)
+	    inform (gimple_location (callee->call_stmt),
+		    "%qE calls task %qE",
+		    DECL_NAME (fndecl), DECL_NAME (callee_decl));
 
 	  /* TODO: Insert analysis to check whether the pointer arguments
 	     need to be registered.  */
@@ -2257,6 +2265,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 	    /* XXX: We assume that `value' has an infinite lifetime.  */
 	    include_dir = plugin_info->argv[arg].value;
 	}
+      else if (strcmp (plugin_info->argv[arg].key, "verbose") == 0)
+	verbose_output_p = true;
       else
 	error_at (UNKNOWN_LOCATION, "invalid StarPU plug-in argument %qs",
 		  plugin_info->argv[arg].key);

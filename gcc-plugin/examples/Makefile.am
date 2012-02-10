@@ -35,6 +35,7 @@ AM_CPPFLAGS =						\
 AM_CFLAGS =							\
   -fplugin="$(builddir)/../src/.libs/starpu.so"			\
   -fplugin-arg-starpu-include-dir="$(top_srcdir)/include"	\
+  -fplugin-arg-starpu-verbose					\
   -Wall
 
 noinst_HEADERS =				\

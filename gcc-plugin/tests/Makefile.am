@@ -34,6 +34,7 @@ gcc_tests =					\
   wait-errors.c					\
   heap-allocated.c				\
   heap-allocated-errors.c			\
+  verbose.c					\
   debug-tree.c					\
   shutdown-errors.c
 
