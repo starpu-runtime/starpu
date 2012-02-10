@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -51,21 +51,23 @@ dist_bin_SCRIPTS +=	\
 
 
 if STARPU_HAVE_HELP2MAN
-starpu_calibrate_bus.1: starpu_calibrate_bus
-	help2man --no-discard-stderr -N ./starpu_calibrate_bus > starpu_calibrate_bus.1
-
-starpu_machine_display.1: starpu_machine_display
-	help2man --no-discard-stderr -N ./starpu_machine_display > starpu_machine_display.1
-
-starpu_perfmodel_display.1: starpu_perfmodel_display
-	help2man --no-discard-stderr -N ./starpu_perfmodel_display > starpu_perfmodel_display.1
-
-starpu_perfmodel_plot.1: starpu_perfmodel_plot
-	help2man --no-discard-stderr -N ./starpu_perfmodel_plot > starpu_perfmodel_plot.1
+starpu_calibrate_bus.1: starpu_calibrate_bus.c $(top_srcdir)/configure.ac
+	$(MAKE) $(AM_MAKEFLAGS) $*$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$*$(EXEEXT)
+starpu_machine_display.1: starpu_machine_display.c $(top_srcdir)/configure.ac
+	$(MAKE) $(AM_MAKEFLAGS) $*$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$*$(EXEEXT)
+starpu_perfmodel_display.1: starpu_perfmodel_display.c $(top_srcdir)/configure.ac
+	$(MAKE) $(AM_MAKEFLAGS) $*$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$*$(EXEEXT)
+starpu_perfmodel_plot.1: starpu_perfmodel_plot.c $(top_srcdir)/configure.ac
+	$(MAKE) $(AM_MAKEFLAGS) $*$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$*$(EXEEXT)
+endif
 
 dist_man1_MANS =\
 	starpu_calibrate_bus.1 \
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
 	starpu_perfmodel_plot.1
-endif
+
