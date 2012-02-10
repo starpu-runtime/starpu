@@ -202,12 +202,11 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
 
-	j->terminated = 0;
-
 	_starpu_increment_nsubmitted_tasks();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
+	j->terminated = 0;
 	j->submitted = 1;
 
 	int ret = _starpu_enforce_deps_and_schedule(j, 1);
