@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,12 +38,14 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_HAVE_VALGRIND_H
-#define STARPU_SKIP_IF_VALGRIND do {                                                               \
-if(RUNNING_ON_VALGRIND) {                                                                          \
-	FPRINTF(stderr, "Running on valgrind, skipping the actual computations in %s\n", __func__);\
-return;                                                                                            \
-}                                                                                                  \
-} while(0)
+#  define STARPU_SKIP_IF_VALGRIND \
+	do {								\
+		if(RUNNING_ON_VALGRIND) {				\
+			FPRINTF(stderr, "Running on valgrind, skipping the actual computations in %s\n", __func__); \
+			return;						\
+		}							\
+	} while(0)
 #else
-#define STARPU_SKIP_IF_VALGRIND
-#endif 
+#  define STARPU_SKIP_IF_VALGRIND
+#endif
+
