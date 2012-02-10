@@ -50,103 +50,74 @@ Enable flags for the @code{gcov} coverage tool.
 @node Configuring workers
 @subsection Configuring workers
 
-@menu
-* --enable-maxcpus::         
-* --disable-cpu::               
-* --enable-maxcudadev::         
-* --disable-cuda::              
-* --with-cuda-dir::             
-* --with-cuda-include-dir::             
-* --with-cuda-lib-dir::             
-* --disable-cuda-memcpy-peer::
-* --enable-maxopencldev::       
-* --disable-opencl::            
-* --with-opencl-dir::           
-* --with-opencl-include-dir::           
-* --with-opencl-lib-dir::           
-* --enable-gordon::             
-* --with-gordon-dir::           
-* --enable-maximplementations::
-@end menu
+@table @code
 
-@node --enable-maxcpus
-@subsubsection @code{--enable-maxcpus=<number>}
-Define the maximum number of CPU cores that StarPU will support, then
+@item --enable-maxcpus=@var{count}
+Use at most @var{count} CPU cores.  This information is then
 available as the @code{STARPU_MAXCPUS} macro.
 
-@node --disable-cpu
-@subsubsection @code{--disable-cpu}
+@item --disable-cpu
 Disable the use of CPUs of the machine. Only GPUs etc. will be used.
 
-@node --enable-maxcudadev
-@subsubsection @code{--enable-maxcudadev=<number>}
-Define the maximum number of CUDA devices that StarPU will support, then
+@item --enable-maxcudadev=@var{count}
+Use at most @var{count} CUDA devices.  This information is then
 available as the @code{STARPU_MAXCUDADEVS} macro.
 
-@node --disable-cuda
-@subsubsection @code{--disable-cuda}
+@item --disable-cuda
 Disable the use of CUDA, even if a valid CUDA installation was detected.
 
-@node --with-cuda-dir
-@subsubsection @code{--with-cuda-dir=<path>}
-Specify the directory where CUDA is installed. This directory should notably contain
-@code{include/cuda.h}.
+@item --with-cuda-dir=@var{prefix}
+Search for CUDA under @var{prefix}, which should notably contain
+@file{include/cuda.h}.
 
-@node --with-cuda-include-dir
-@subsubsection @code{--with-cuda-include-dir=<path>}
-Specify the directory where CUDA headers are installed. This directory should
+@item --with-cuda-include-dir=@var{dir}
+Search for CUDA headers under @var{dir}, which should
 notably contain @code{cuda.h}. This defaults to @code{/include} appended to the
 value given to @code{--with-cuda-dir}.
 
-@node --with-cuda-lib-dir
-@subsubsection @code{--with-cuda-lib-dir=<path>}
-Specify the directory where the CUDA library is installed. This directory should
-notably contain the CUDA shared libraries (e.g. libcuda.so). This defaults to
+@item --with-cuda-lib-dir=@var{dir}
+Search for CUDA libraries under @var{dir}, which should notably contain
+the CUDA shared libraries---e.g., @file{libcuda.so}.  This defaults to
 @code{/lib} appended to the value given to @code{--with-cuda-dir}.
 
-@node --disable-cuda-memcpy-peer
-@subsubsection @code{--disable-cuda-memcpy-peer}
-Explicitely disable peer transfers when using CUDA 4.0
+@item --disable-cuda-memcpy-peer
+Explicitly disable peer transfers when using CUDA 4.0.
 
-@node --enable-maxopencldev
-@subsubsection @code{--enable-maxopencldev=<number>}
-Define the maximum number of OpenCL devices that StarPU will support, then
+@item --enable-maxopencldev=@var{count}
+Use at most @var{count} OpenCL devices.  This information is then
 available as the @code{STARPU_MAXOPENCLDEVS} macro.
 
-@node --disable-opencl
-@subsubsection @code{--disable-opencl}
+@item --disable-opencl
 Disable the use of OpenCL, even if the SDK is detected.
 
-@node --with-opencl-dir
-@subsubsection @code{--with-opencl-dir=<path>}
-Specify the location of the OpenCL SDK. This directory should notably contain
-@code{include/CL/cl.h} (or @code{include/OpenCL/cl.h} on Mac OS).
+@item --with-opencl-dir=@var{prefix}
+Search for an OpenCL implementation under @var{prefix}, which should
+notably contain @file{include/CL/cl.h} (or @file{include/OpenCL/cl.h} on
+Mac OS).
 
-@node --with-opencl-include-dir
-@subsubsection @code{--with-opencl-include-dir=<path>}
-Specify the location of OpenCL headers. This directory should notably contain
-@code{CL/cl.h} (or @code{OpenCL/cl.h} on Mac OS). This defaults to
+@item --with-opencl-include-dir=@var{dir}
+Search for OpenCL headers under @var{dir}, which should notably contain
+@file{CL/cl.h} (or @file{OpenCL/cl.h} on Mac OS).  This defaults to
 @code{/include} appended to the value given to @code{--with-opencl-dir}.
 
-@node --with-opencl-lib-dir
-@subsubsection @code{--with-opencl-lib-dir=<path>}
-Specify the location of the OpenCL library. This directory should notably
-contain the OpenCL shared libraries (e.g. libOpenCL.so). This defaults to
+@item --with-opencl-lib-dir=@var{dir}
+Search for an OpenCL library under @var{dir}, which should notably
+contain the OpenCL shared libraries---e.g. @file{libOpenCL.so}. This defaults to
 @code{/lib} appended to the value given to @code{--with-opencl-dir}.
 
-@node --enable-gordon
-@subsubsection @code{--enable-gordon}
+@item --enable-gordon
 Enable the use of the Gordon runtime for Cell SPUs.
 @c TODO: rather default to enabled when detected
 
-@node --with-gordon-dir
-@subsubsection @code{--with-gordon-dir=<path>}
-Specify the location of the Gordon SDK.
+@item --with-gordon-dir=@var{prefix}
+Search for the Gordon SDK under @var{prefix}.
 
-@node --enable-maximplementations
-@subsubsection @code{--enable-maximplementations=<number>}
-Define the number of implementations that can be defined for a single kind of
-device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
+@item --enable-maximplementations=@var{count}
+Allow for at most @var{count} codelet implementations for the same
+target device.  This information is then available as the
+@code{STARPU_MAXIMPLEMENTATIONS} macro.
+
+@end table
 
 @node Advanced configuration
 @subsection Advanced configuration
