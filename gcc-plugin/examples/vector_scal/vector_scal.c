@@ -149,7 +149,7 @@ check (size_t size, float vector[size], float factor)
   size_t i;
 
   for (i = 0; i < size; i++)
-    if (vector[i] - i * factor > EPSILON)
+    if (fabs(vector[i] - i * factor) > EPSILON)
       return false;
 
   return true;
