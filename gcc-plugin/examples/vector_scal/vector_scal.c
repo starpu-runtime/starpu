@@ -107,8 +107,10 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
   if (err != CL_SUCCESS)
     STARPU_OPENCL_REPORT_ERROR (err);
 
+  /* XXX : clSetKernelArg will not work with a size_t ... */
+  int _size = size;
   err = clSetKernelArg (kernel, 0, sizeof (val), &val);
-  err |= clSetKernelArg (kernel, 1, sizeof (size), &size);
+  err |= clSetKernelArg (kernel, 1, sizeof (_size), &_size);
   err |= clSetKernelArg (kernel, 2, sizeof (factor), &factor);
   if (err)
     STARPU_OPENCL_REPORT_ERROR (err);
