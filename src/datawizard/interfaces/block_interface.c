@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +77,7 @@ static void display_block_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
+static void allocate_new_block(starpu_data_handle_t handle, void **data_interface);
 
 static struct starpu_data_interface_ops interface_block_ops =
 {
@@ -93,7 +94,8 @@ static struct starpu_data_interface_ops interface_block_ops =
 #endif
 	.interfaceid = STARPU_BLOCK_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_block_interface),
-	.display = display_block_interface
+	.display = display_block_interface,
+	.allocate_new_data = allocate_new_block
 };
 
 #ifdef STARPU_USE_GORDON
@@ -403,6 +405,21 @@ static void free_block_buffer_on_node(void *data_interface, uint32_t node)
 		default:
 			STARPU_ASSERT(0);
 	}
+}
+
+static void allocate_new_block(starpu_data_handle_t handle, void **data_interface)
+{
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)malloc(sizeof(struct starpu_block_interface));
+	block_interface->ptr = (uintptr_t) NULL;
+	block_interface->dev_handle = (uintptr_t) NULL;
+	block_interface->offset = 0;
+	block_interface->nx = starpu_block_get_nx(handle);
+	block_interface->ny = starpu_block_get_ny(handle);
+	block_interface->nz = starpu_block_get_nz(handle);
+	block_interface->ldy = starpu_block_get_local_ldy(handle);
+	block_interface->ldz = starpu_block_get_local_ldz(handle);
+	block_interface->elemsize = starpu_block_get_elemsize(handle);
+	*data_interface = block_interface;
 }
 
 #ifdef STARPU_USE_CUDA

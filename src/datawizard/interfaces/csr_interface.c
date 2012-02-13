@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,6 +70,7 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node);
 static size_t csr_interface_get_size(starpu_data_handle_t handle);
 static int csr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle);
+static void allocate_new_csr(starpu_data_handle_t handle, void **data_interface);
 
 static struct starpu_data_interface_ops interface_csr_ops =
 {
@@ -81,7 +82,8 @@ static struct starpu_data_interface_ops interface_csr_ops =
 	.interfaceid = STARPU_CSR_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_csr_interface),
 	.footprint = footprint_csr_interface_crc32,
-	.compare = csr_compare
+	.compare = csr_compare,
+	.allocate_new_data = allocate_new_csr
 };
 
 static void register_csr_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
@@ -411,6 +413,18 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 		default:
 			STARPU_ASSERT(0);
 	}
+}
+
+static void allocate_new_csr(starpu_data_handle_t handle, void **data_interface)
+{
+	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)malloc(sizeof(struct starpu_csr_interface));
+	csr_interface->nnz = starpu_csr_get_nnz(handle);
+	csr_interface->nrow = starpu_csr_get_nrow(handle);
+	csr_interface->nzval = starpu_csr_get_local_nzval(handle);
+	csr_interface->colind = starpu_csr_get_local_colind(handle);
+	csr_interface->rowptr = starpu_csr_get_local_rowptr(handle);
+	csr_interface->elemsize = starpu_csr_get_elemsize(handle);
+	*data_interface = csr_interface;
 }
 
 #ifdef STARPU_USE_CUDA
