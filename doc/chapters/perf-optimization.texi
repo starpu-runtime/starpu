@@ -20,6 +20,7 @@ TODO: improve!
 * Power-based scheduling::
 * Profiling::
 * CUDA-specific optimizations::
+* Performance debugging::
 @end menu
 
 Simply encapsulating application kernels into tasks already permits to
@@ -289,3 +290,29 @@ StarPU already does appropriate calls for the CUBLAS library.
 
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. That will lower the potential for overlapping.
+
+@node Performance debugging
+@section Performance debugging
+
+To get an idea of what is happening, a lot of performance feedback is available,
+detailed in the next chapter. The various informations should be checked for.
+
+@itemize
+@item What does the Gantt diagram look like? (see @ref{Gantt diagram})
+@itemize
+  @item If it's mostly green (running tasks), then the machine is properly
+  utilized, and perhaps the codelets are just slow. Check their performance, see
+  @ref{Codelet performance}.
+  @item If it's mostly purple (FetchingInput), tasks keep waiting for data
+  transfers, do you perhaps have far more communication than computation? Did
+  you properly use CUDA streams to make sure communication can be
+  overlapped? Did you use data-locality aware schedulers to avoid transfers as
+  much as possible?
+  @item If it's mostly red (Blocked), tasks keep waiting for dependencies,
+  do you have enough parallelism? It might be a good idea to check what the DAG
+  looks like (see @ref{DAG}).
+  @item If only some workers are completely red (Blocked), for some reason the
+  scheduler didn't assign tasks to them. Perhaps the performance model is bogus,
+  check it (see @ref{Codelet performance}).
+@end itemize
+@end itemize
