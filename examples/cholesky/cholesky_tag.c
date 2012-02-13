@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -243,7 +243,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-static void initialize_system(float **A, unsigned dim, unsigned pinned)
+static int initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	int ret;
 
@@ -262,6 +262,7 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	{
 		*A = malloc(dim*dim*sizeof(float));
 	}
+	return 0;
 }
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
@@ -309,7 +310,9 @@ int main(int argc, char **argv)
 	float *mat;
 
 	mat = malloc(size*size*sizeof(float));
-	initialize_system(&mat, size, pinned);
+	int ret = initialize_system(&mat, size, pinned);
+	if (ret)
+		return ret;
 
 	unsigned i,j;
 	for (i = 0; i < size; i++)
