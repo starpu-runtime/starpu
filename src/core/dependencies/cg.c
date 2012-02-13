@@ -138,7 +138,7 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				unsigned ndeps_completed =
 					STARPU_ATOMIC_ADD(&job_successors->ndeps_completed, 1);
 
-				if (job_successors->ndeps == ndeps_completed)
+				if (j->submitted && job_successors->ndeps == ndeps_completed)
 				{
 					/* Note that this also ensures that tag deps are
 					 * fulfilled. This counter is reseted only when the
