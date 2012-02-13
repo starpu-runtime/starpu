@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -179,10 +179,12 @@ void *_starpu_cpu_worker(void *arg)
 		}
 
 		_starpu_set_current_task(j->task);
+		cpu_arg->current_task = j->task;
 
                 res = execute_job_on_cpu(j, cpu_arg, is_parallel_task, rank, perf_arch);
 
 		_starpu_set_current_task(NULL);
+		cpu_arg->current_task = NULL;
 
 		if (res)
 		{

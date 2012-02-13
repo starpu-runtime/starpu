@@ -328,10 +328,12 @@ void *_starpu_cuda_worker(void *arg)
 		}
 
 		_starpu_set_current_task(task);
+		args->current_task = j->task;
 
 		res = execute_job_on_cuda(j, args);
 
 		_starpu_set_current_task(NULL);
+		args->current_task = NULL;
 
 		if (res)
 		{

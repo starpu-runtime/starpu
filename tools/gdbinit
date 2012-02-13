@@ -1,7 +1,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2011  Université de Bordeaux 1
+# Copyright (C) 2010-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -121,9 +121,27 @@ document starpu-workers
 Prints a list of the StarPU workers
 end
 
+define starpu-tags
+  printf "tags htbl %p\n", tag_htbl
+  printf "TODO\n"
+end
+
 define starpu-tasks
   printf "%d submitted tasks\n", nsubmitted
   printf "%d ready tasks\n", nready
+  printf "Tasks being run:\n"
+  set $n = 0
+  while $n < config.topology.nworkers
+    set $task = config.workers[$n].current_task
+    if ($task)
+      printf "worker %d: %p\n", $n, $task
+    end
+    set $n = $n + 1
+  end
+  if (tag_htbl)
+    printf "TODO: tags\n"
+  end
+  print "TODO: complete\n"
 end
 
 define starpu
@@ -311,4 +329,5 @@ starpu-print-requests   prints all StarPU data requests
 starpu-print-prequests  prints all pending StarPU data requests
 starpu-print-frequests  prints all StarPU prefetch data requests
 starpu-tasks            prints a list of the tasks flowing in StarPU
+starpu-tags             prints a list of the tags known to StarPU
 end
