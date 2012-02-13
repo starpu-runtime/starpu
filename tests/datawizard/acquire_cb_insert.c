@@ -125,15 +125,14 @@ int main(int argc, char **argv)
         }
 	FPRINTF(stderr, "\n");
 
-	STARPU_ASSERT(f[X*(N/M)] == 1);
-	STARPU_ASSERT(f[X*(N/M)+1] == 2);
-	STARPU_ASSERT(f[X*(N/M)+2] == 3);
-	STARPU_ASSERT(f[X*(N/M)+3] == 4);
+	ret = EXIT_SUCCESS;
+	if (f[X*(N/M)] != 1 || f[X*(N/M)+1] != 2 ||
+	    f[X*(N/M)+2] != 3 || f[X*(N/M)+3] != 4)
+		ret = EXIT_FAILURE;
 
 	starpu_free(f);
-
 	starpu_shutdown();
-	return EXIT_SUCCESS;
+	return ret;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
