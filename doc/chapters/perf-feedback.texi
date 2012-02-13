@@ -100,7 +100,7 @@ the different workers.
 @node Bus feedback
 @subsection Bus-related feedback 
 
-TODO
+TODO: ajouter STARPU_BUS_STATS
 
 @c how to enable/disable performance monitoring
 
@@ -305,7 +305,7 @@ $ dot -Tpdf dag.dot -o output.pdf
 @subsection Monitoring activity
 
 When the FxT trace file @code{filename} has been generated, it is possible to
-generate a activity trace by calling:
+generate an activity trace by calling:
 @example
 $ starpu_fxt_tool -i filename
 @end example
