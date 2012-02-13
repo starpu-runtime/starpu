@@ -22,7 +22,7 @@
 #include "../helper.h"
 
 #define NTHREADS	4
-#define NITER		128
+#define NITER		2
 
 #warning memory leak
 
@@ -201,11 +201,6 @@ int main(int argc, char **argv)
 	/* We check that the value in the "last" thread is valid */
 	starpu_data_handle_t last_handle = problem_data[NTHREADS - 1].handle;
 	starpu_data_acquire(last_handle, STARPU_R);
-	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
-	{
-		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
-		STARPU_ABORT();
-	}
 	starpu_data_release(last_handle);
 
 	for (t = 0; t < NTHREADS; t++)
@@ -214,6 +209,12 @@ int main(int argc, char **argv)
 	}
 
 	starpu_shutdown();
+
+	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
+	{
+		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
