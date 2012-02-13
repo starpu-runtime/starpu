@@ -19,6 +19,12 @@
 #include "dw_factolu.h"
 #include <sys/time.h>
 
+#if 0
+#define debug(fmt, ...) fprintf(stderr, fmt, ## __VA_ARGS__)
+#else
+#define debug(fmt, ...)
+#endif
+
 unsigned *advance_11; /* size nblocks, whether the 11 task is done */
 unsigned *advance_12_21; /* size nblocks*nblocks */
 unsigned *advance_22; /* array of nblocks *nblocks*nblocks */
@@ -83,7 +89,7 @@ static struct starpu_codelet cl22 =
 
 
 #define STARTED	0x01
-#define DONE	0x10
+#define DONE	0x11
 
 /*
  *	Upgraded Callbacks : break the pipeline design !
@@ -98,6 +104,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	unsigned i = args->i;
 	unsigned j = args->j;
 	unsigned nblocks = args->nblocks;
+
+	debug("u22 %d %d %d\n", k, i, j);
 
 	/* we did task 22k,i,j */
 	advance_22[k*nblocks*nblocks + i + j*nblocks] = DONE;
@@ -123,12 +131,13 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		if (!no_prio)
 			task->priority = STARPU_MAX_PRIO;
 
+		debug( "u22 %d %d %d start u11 %d\n", k, i, j, k + 1);
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
-	if ( i == k + 1)
+	if ( i == k + 1 && j > k + 1)
 	{
 		uint8_t dep;
 		/* 11 k+1*/
@@ -156,6 +165,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task21->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->i);
 					task21->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 
+					debug( "u22 %d %d %d start u21 %d %d\n", k, i, j, k+1, j);
 					ret = starpu_task_submit(task21);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
@@ -163,7 +173,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	}
 
 	/* 11k + 22k-1,i,k => 12 k,i */
-	if (j == k + 1)
+	if (j == k + 1 && i > k + 1)
 	{
 		uint8_t dep;
 		/* 11 k+1*/
@@ -191,6 +201,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task12->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u12a->i, u12a->i);
 					task12->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u12a->k, u12a->i);
 
+					debug( "u22 %d %d %d start u12 %d %d\n", k, i, j, k+1, i);
 					ret = starpu_task_submit(task12);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
@@ -209,6 +220,8 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 	unsigned i = args->i;
 	unsigned k = args->k;
 	unsigned nblocks = args->nblocks;
+
+	debug( "u12 %d %d\n", i, k);
 
 	/* we did task 21i,k */
 	advance_12_21[i*nblocks + k] = DONE;
@@ -249,6 +262,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				if (!no_prio && (slicey == i+1))
 					task22->priority = STARPU_MAX_PRIO;
 
+				debug( "u12 %d %d start u22 %d %d %d\n", i, k, i, k, slicey);
 				ret = starpu_task_submit(task22);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
@@ -269,6 +283,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 	/* we did task 21i,k */
 	advance_12_21[i + k*nblocks] = DONE;
 
+	debug("u21 %d %d\n", i, k);
 
 	unsigned slicex;
 	for (slicex = i+1; slicex < nblocks; slicex++)
@@ -306,6 +321,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				if (!no_prio && (slicex == i+1))
 					task22->priority = STARPU_MAX_PRIO;
 
+				debug( "u21 %d %d start u22 %d %d %d\n", i, k, i, slicex, k);
 				ret = starpu_task_submit(task22);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
@@ -321,6 +337,8 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 
 	unsigned nblocks = args->nblocks;
 	unsigned i = args->i;
+
+	debug("u11 %d\n", i);
 
 	/* we did task 11k */
 	advance_11[i] = DONE;
@@ -377,6 +395,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task12->priority = STARPU_MAX_PRIO;
 
+					debug( "u11 %d start u12 %d %d\n", i, i, slice);
 					ret = starpu_task_submit(task12);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
@@ -417,6 +436,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task21->priority = STARPU_MAX_PRIO;
 
+					debug( "u11 %d start u21 %d %d\n", i, i, slice);
 					ret = starpu_task_submit(task21);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
