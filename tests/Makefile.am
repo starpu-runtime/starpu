@@ -169,6 +169,7 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_lazy		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
+	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \
 	datawizard/interfaces/csr/csr_interface \
