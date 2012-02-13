@@ -186,7 +186,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 		free(size_on_nodes);
 		if (xrank != -1) {
-			_STARPU_MPI_DEBUG("Node %d is having the most REDUX data\n", xrank);
+			_STARPU_MPI_DEBUG("Node %d is having the most R data\n", xrank);
 			do_execute = 1;
 		}
 	}
@@ -208,8 +208,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		do_execute = (me == xrank);
 		dest = xrank;
 	}
-
-	_STARPU_MPI_DEBUG("Executing %d - Sending to node %d\n", do_execute, dest);
 
         /* Send and receive data as requested */
 	va_start(varg_list, codelet);
@@ -430,4 +428,46 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
                 starpu_mpi_isend_detached(data_handle, node, 42, comm, NULL, NULL);
         }
         starpu_task_wait_for_all();
+}
+
+void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
+{
+        int me, rank, tag, nb_nodes;
+
+        rank = starpu_data_get_rank(data_handle);
+        tag = starpu_data_get_tag(data_handle);
+
+	MPI_Comm_rank(comm, &me);
+	MPI_Comm_size(comm, &nb_nodes);
+
+	_STARPU_MPI_DEBUG("Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
+
+	// need to count how many nodes have the data in redux mode
+	if (me == rank) {
+		int i;
+
+		STARPU_ASSERT(data_handle->ops->allocate_new_data);
+
+		for(i=0 ; i<nb_nodes ; i++) {
+			if (i != rank) {
+				void *data_interface;
+				starpu_data_handle_t new_handle;
+
+				data_handle->ops->allocate_new_data(data_handle, &data_interface);
+				starpu_data_register(&new_handle, -1, data_interface, data_handle->ops);
+
+				_STARPU_MPI_DEBUG("Receiving redux handle from %d in %p ...\n", i, new_handle);
+
+				starpu_mpi_irecv_detached(new_handle, i, tag, comm, NULL, NULL);
+				starpu_insert_task(data_handle->redux_cl,
+						   STARPU_RW, data_handle,
+						   STARPU_R, new_handle,
+						   0);
+			}
+		}
+	}
+	else {
+		_STARPU_MPI_DEBUG("Sending redux handle to %d ...\n", rank);
+		starpu_mpi_isend_detached(data_handle, rank, tag, comm, NULL, NULL);
+	}
 }

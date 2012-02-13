@@ -19,8 +19,6 @@
 
 #define X         7
 
-int display = 0;
-
 extern void init_cpu_func(void *descr[], void *cl_arg);
 extern void redux_cpu_func(void *descr[], void *cl_arg);
 extern void dot_cpu_func(void *descr[], void *cl_arg);
@@ -50,18 +48,6 @@ static struct starpu_codelet dot_codelet =
 	.name = "dot_codelet"
 };
 
-static void parse_args(int argc, char **argv)
-{
-	int i;
-	for (i = 1; i < argc; i++)
-	{
-		if (strcmp(argv[i], "-display") == 0)
-		{
-			display = 1;
-		}
-	}
-}
-
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int nb_nodes)
 {
@@ -71,7 +57,6 @@ int my_distrib(int x, int nb_nodes)
 int main(int argc, char **argv)
 {
         int my_rank, size, x;
-        int value=0;
         unsigned vector[X];
 	unsigned dot, sum=0;
         starpu_data_handle_t handles[X];
@@ -79,7 +64,6 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&my_rank, &size);
-        parse_args(argc, argv);
 
         for(x = 0; x < X; x++)
 	{
@@ -144,7 +128,7 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	if (display && my_rank == 0)
+	if (my_rank == 0)
 	{
                 fprintf(stderr, "[%d] sum=%d\n", my_rank, sum);
                 fprintf(stderr, "[%d] dot=%d\n", my_rank, dot);
