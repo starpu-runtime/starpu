@@ -184,6 +184,8 @@ main (void)
 
 #pragma starpu wait
 
+#pragma starpu unregister vector
+
     valid = check (NX, vector, FACTOR);
 
   } /* VECTOR is automatically freed here.  */
