@@ -90,6 +90,10 @@ int main(int argc, char **argv)
 		}
 		sum += x+1;
         }
+	if (my_rank == 0) {
+		dot = 14;
+		sum+= dot;
+	}
 
         for(x = 0; x < X; x++)
 	{
@@ -110,12 +114,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (my_rank == 0) {
-		dot = 14;
-		sum+= dot;
-	}
 	starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(unsigned));
 	starpu_data_set_rank(dot_handle, 0);
+	starpu_data_set_tag(dot_handle, X+1);
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
 
 	for (x = 0; x < X; x++)
@@ -126,6 +127,7 @@ int main(int argc, char **argv)
 				       STARPU_REDUX, dot_handle,
 				       0);
 	}
+	starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
 
         fprintf(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
@@ -142,10 +144,11 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	if (display)
+	if (display && my_rank == 0)
 	{
-                fprintf(stdout, "[%d] sum=%d\n", my_rank, sum);
-                fprintf(stdout, "[%d] dot=%d\n", my_rank, dot);
+                fprintf(stderr, "[%d] sum=%d\n", my_rank, sum);
+                fprintf(stderr, "[%d] dot=%d\n", my_rank, dot);
+		if (sum != dot) fprintf(stderr, "Error when computing reduction\n");
         }
 
 	return 0;
