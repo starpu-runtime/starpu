@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -19,9 +19,9 @@
 #include "dw_factolu.h"
 #include <sys/time.h>
 
-uint8_t *advance_12_21; /* size nblocks*nblocks */
-uint8_t *advance_11; /* size nblocks*nblocks */
-uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
+unsigned *advance_11; /* size nblocks, whether the 11 task is done */
+unsigned *advance_12_21; /* size nblocks*nblocks */
+unsigned *advance_22; /* array of nblocks *nblocks*nblocks */
 
 struct timeval start;
 struct timeval end;
@@ -638,13 +638,13 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 {
 
-	advance_11 = calloc(nblocks, sizeof(uint8_t));
+	advance_11 = calloc(nblocks, sizeof(*advance_11));
 	STARPU_ASSERT(advance_11);
 
-	advance_12_21 = calloc(nblocks*nblocks, sizeof(uint8_t));
+	advance_12_21 = calloc(nblocks*nblocks, sizeof(*advance_12_21));
 	STARPU_ASSERT(advance_12_21);
 
-	advance_22 = calloc(nblocks*nblocks*nblocks, sizeof(uint8_t));
+	advance_22 = calloc(nblocks*nblocks*nblocks, sizeof(*advance_22));
 	STARPU_ASSERT(advance_22);
 
 	cl_args *args = malloc(sizeof(cl_args));
