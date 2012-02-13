@@ -115,7 +115,7 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
   if (err)
     STARPU_OPENCL_REPORT_ERROR (err);
 
-  size_t global = 1, local = 1;
+  size_t global = _size, local = 1;
   err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global, &local, 0,
 				NULL, &event);
   if (err != CL_SUCCESS)
