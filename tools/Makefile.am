@@ -52,16 +52,16 @@ dist_bin_SCRIPTS +=	\
 
 if STARPU_HAVE_HELP2MAN
 starpu_calibrate_bus.1: starpu_calibrate_bus.c $(top_srcdir)/configure.ac
-	$(MAKE) $(AM_MAKEFLAGS) starpu_calibrate_bus$(EXEEXT)
+	$(MAKE) starpu_calibrate_bus$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./starpu_calibrate_bus$(EXEEXT)
 starpu_machine_display.1: starpu_machine_display.c $(top_srcdir)/configure.ac
-	$(MAKE) $(AM_MAKEFLAGS) starpu_machine_display$(EXEEXT)
+	$(MAKE) starpu_machine_display$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./starpu_machine_display$(EXEEXT)
 starpu_perfmodel_display.1: starpu_perfmodel_display.c $(top_srcdir)/configure.ac
-	$(MAKE) $(AM_MAKEFLAGS) starpu_perfmodel_display$(EXEEXT)
+	$(MAKE) starpu_perfmodel_display$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./starpu_perfmodel_display$(EXEEXT)
 starpu_perfmodel_plot.1: starpu_perfmodel_plot.c $(top_srcdir)/configure.ac
-	$(MAKE) $(AM_MAKEFLAGS) starpu_perfmodel_plot$(EXEEXT)
+	$(MAKE) starpu_perfmodel_plot$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./starpu_perfmodel_plot$(EXEEXT)
 endif
 
