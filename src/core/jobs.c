@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -150,7 +150,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 	task->status = STARPU_TASK_FINISHED;
 
 	/* in case there are dependencies, wake up the proper tasks */
-	j->submitted = 0;
 	_starpu_notify_dependencies(j);
 
 	/* We must have set the j->terminated flag early, so that it is
