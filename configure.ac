@@ -54,6 +54,9 @@ m4_ifdef([AM_SILENT_RULES],
   [AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign silent-rules color-tests])],
   [AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])])
 
+m4_ifdef([AM_SILENT_RULES],
+  [AM_SILENT_RULES(yes)])
+
 AC_PREREQ(2.60)
 
 AC_PROG_CC
