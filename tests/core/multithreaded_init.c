@@ -78,5 +78,11 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(ret == 0);
 	}
 
+	for (i = 0; i < NUM_THREADS; i++)
+	{
+		int ret = pthread_join(threads[i], NULL);
+		STARPU_ASSERT(ret == 0);
+	}
+
 	return EXIT_SUCCESS;
 }
