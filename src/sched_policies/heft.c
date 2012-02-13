@@ -297,7 +297,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
 
 			if (ntasks_best == -1
-			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better worker */
 			    || (!calibrating && isnan(local_task_length[worker][nimpl])) /* Not calibrating but this worker is being calibrated */
 			    || (calibrating && isnan(local_task_length[worker][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
 				)
@@ -313,9 +313,10 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
 
-			if (local_task_length[worker][nimpl] <= 0.0)
+			if (isnan(local_task_length[worker][nimpl])
+				|| _STARPU_IS_ZERO(local_task_length[worker][nimpl]))
 				/* there is no prediction available for that task
-				 * with that arch yet, so switch to a greedy strategy */
+				 * with that arch (yet or at all), so switch to a greedy strategy */
 				unknown = 1;
 
 			if (unknown)

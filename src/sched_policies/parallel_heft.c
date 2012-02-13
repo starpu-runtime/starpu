@@ -286,7 +286,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
 
-			if (local_task_length[worker][nimpl] <= 0.0)
+			if (isnan(local_task_length[worker][nimpl])
+					|| _STARPU_IS_ZERO(local_task_length[worker][nimpl]))
 				/* there is no prediction available for that task
 				 * with that arch yet, so switch to a greedy strategy */
 				unknown = 1;
