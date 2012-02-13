@@ -313,6 +313,8 @@ detailed in the next chapter. The various informations should be checked for.
   looks like (see @ref{DAG}).
   @item If only some workers are completely red (Blocked), for some reason the
   scheduler didn't assign tasks to them. Perhaps the performance model is bogus,
-  check it (see @ref{Codelet performance}).
+  check it (see @ref{Codelet performance}). Do all your codelets have a
+  performance model?  When some of them don't, the schedulers switches to a
+  greedy algorithm which thus performs bad.
 @end itemize
 @end itemize
