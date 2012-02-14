@@ -17,7 +17,7 @@
 
 /* gcc build:
 
-   gcc -fopenmp vector_scal.c -o vector_scal $(pkg-config --cflags starpu-1.0) $(pkg-config --libs starpu-1.0)
+   gcc -fopenmp -O2 -g vector_scal.c -o vector_scal $(pkg-config --cflags starpu-1.0) $(pkg-config --libs starpu-1.0)
 
  */
 
@@ -101,8 +101,6 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_data_unregister(vector_handle);
-
-	starpu_task_destroy(task);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
