@@ -36,7 +36,7 @@ extern "C" void cpu_to_cuda_cuda_func(void *buffers[], void *_args)
 	struct point *src;
 	struct struct_of_arrays *dst;
 
-	src = (struct point *) STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+	src = (struct point *) STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
 	dst = (struct struct_of_arrays *) STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
 
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);

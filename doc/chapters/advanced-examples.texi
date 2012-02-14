@@ -788,7 +788,7 @@ starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
 @end cartouche
 
 Kernels can be written almost as for any other interface. Note that
-STARPU_MULTIFORMAT_GET_PTR shall only be used for CPU kernels. CUDA kernels
+STARPU_MULTIFORMAT_GET_CPU_PTR shall only be used for CPU kernels. CUDA kernels
 must use STARPU_MULTIFORMAT_GET_CUDA_PTR, and OpenCL kernels must use
 STARPU_MULTIFORMAT_GET_OPENCL_PTR. STARPU_MULTIFORMAT_GET_NX may be used in any
 kind of kernel.
@@ -800,7 +800,7 @@ multiformat_scal_cpu_func(void *buffers[], void *args)
     struct point *aos;
     unsigned int n;
 
-    aos = STARPU_MULTIFORMAT_GET_PTR(buffers[0]);
+    aos = STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
     n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
     ...
 @}

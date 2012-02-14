@@ -120,24 +120,23 @@ on the @var{dst_node} node (on another OpenCL device), using the given
 @end deftp
 
 @deftypefun uint32_t starpu_crc32_be_n ({void *}@var{input}, size_t @var{n}, uint32_t @var{inputcrc})
-todo: say what it is for
 Compute the CRC of a byte buffer seeded by the inputcrc "current
 state". The return value should be considered as the new "current
-state" for future CRC computation.
+state" for future CRC computation. This is used for computing data size
+footprint.
 @end deftypefun
 
 @deftypefun uint32_t starpu_crc32_be (uint32_t @var{input}, uint32_t @var{inputcrc})
-todo: say what it is for
 Compute the CRC of a 32bit number seeded by the inputcrc "current
 state". The return value should be considered as the new "current
-state" for future CRC computation.
+state" for future CRC computation. This is used for computing data size
+footprint.
 @end deftypefun
 
 @deftypefun uint32_t starpu_crc32_string ({char *}@var{str}, uint32_t @var{inputcrc})
-todo: say what it is for
 Compute the CRC of a string seeded by the inputcrc "current state".
 The return value should be considered as the new "current state" for
-future CRC computation.
+future CRC computation. This is used for computing data size footprint.
 @end deftypefun
 
 @node An example of data interface
@@ -185,20 +184,20 @@ working on a GPU.
 the format.
 @end deftypefun
 
-@defmac STARPU_MULTIFORMAT_GET_PTR ({void *}@var{interface})
-todo
+@defmac STARPU_MULTIFORMAT_GET_CPU_PTR ({void *}@var{interface})
+returns the local pointer to the data with CPU format.
 @end defmac
 
 @defmac STARPU_MULTIFORMAT_GET_CUDA_PTR ({void *}@var{interface})
-todo
+returns the local pointer to the data with CUDA format.
 @end defmac
 
 @defmac STARPU_MULTIFORMAT_GET_OPENCL_PTR ({void *}@var{interface})
-todo
+returns the local pointer to the data with OpenCL format.
 @end defmac
 
 @defmac STARPU_MULTIFORMAT_GET_NX  ({void *}@var{interface})
-todo
+returns the number of elements in the data.
 @end defmac
 
 
