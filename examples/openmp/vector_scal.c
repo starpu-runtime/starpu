@@ -25,13 +25,13 @@
 #include <stdio.h>
 #include <limits.h>
 
-#define	NX	2048
+#define	NX	2048000
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 void scal_cpu_func(void *buffers[], void *_args)
 {
 	unsigned i;
-	float *factor = _args;
+	float *factor = _args, f = *factor;
 	struct starpu_vector_interface *vector = buffers[0];
 	unsigned n = STARPU_VECTOR_GET_NX(vector);
 	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
@@ -39,8 +39,13 @@ void scal_cpu_func(void *buffers[], void *_args)
 	FPRINTF(stderr, "running task with %d CPUs.\n", starpu_combined_worker_get_size());
 
 #pragma omp parallel for num_threads(starpu_combined_worker_get_size())
-	for (i = 0; i < n; i++)
-		val[i] *= *factor;
+	for (i = 0; i < n; i++) {
+		float v = val[i];
+		int j;
+		for (j = 0; j < 100; j++)
+			v = v * f;
+		val[i] = v;
+	}
 }
 
 static struct starpu_perfmodel vector_scal_model =
@@ -63,9 +68,11 @@ static struct starpu_codelet cl =
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
-	float vector[NX];
+	float *vector;
 	unsigned i;
 	int ret;
+
+	vector = malloc(NX*sizeof(*vector));
 
 	for (i = 0; i < NX; i++)
                 vector[i] = (i+1.0f);
@@ -86,19 +93,20 @@ int main(int argc, char **argv)
 	starpu_data_handle_t vector_handle;
 	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
 
-	float factor = 3.14;
+	float factor = 1.001;
 
-	struct starpu_task *task = starpu_task_create();
-	task->synchronous = 1;
+	for (i = 0; i < 100; i++) {
+		struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl;
+		task->cl = &cl;
 
-	task->handles[0] = vector_handle;
-	task->cl_arg = &factor;
-	task->cl_arg_size = sizeof(factor);
+		task->handles[0] = vector_handle;
+		task->cl_arg = &factor;
+		task->cl_arg_size = sizeof(factor);
 
-	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
 
 	starpu_data_unregister(vector_handle);
 
