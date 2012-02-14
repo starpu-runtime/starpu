@@ -1453,10 +1453,11 @@ freed. This should be used for statically allocated tasks for instance.
 
 @deftypefun void starpu_task_destroy ({struct starpu_task} *@var{task})
 Free the resource allocated during @code{starpu_task_create} and
-associated with @var{task}. This function can be called automatically
-after the execution of a task by setting the @code{destroy} flag of the
-@code{starpu_task} structure (default behaviour).  Calling this function
-on a statically allocated task results in an undefined behaviour.
+associated with @var{task}. This function is already called automatically
+after the execution of a task when the @code{destroy} flag of the
+@code{starpu_task} structure is set, which is the default for tasks created by
+@code{starpu_task_create}.  Calling this function on a statically allocated task
+results in an undefined behaviour.
 @end deftypefun
 
 @deftypefun int starpu_task_wait ({struct starpu_task} *@var{task})
