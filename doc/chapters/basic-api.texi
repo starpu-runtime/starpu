@@ -1373,7 +1373,7 @@ by the means of @code{starpu_task_wait} later on. Internal data structures
 are only guaranteed to be freed once @code{starpu_task_wait} is called if the
 flag is not set.
 
-@item @code{int destroy} (optional) (default: @code{0})
+@item @code{int destroy} (optional) (default: @code{0} for starpu_task_init, @code{1} for starpu_task_create)
 If this flag is set, the task structure will automatically be freed, either
 after the execution of the callback if the task is detached, or during
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
