@@ -398,8 +398,8 @@ static unsigned get_n_entries(struct starpu_perfmodel *model, unsigned arch, uns
 
 static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 {
-	unsigned number_of_archs[4] = { 0, 0, 0, 0};
-	unsigned arch;
+	unsigned narch[4] = { 0, 0, 0, 0};
+	unsigned arch, arch_base = 0, my_narch = 0;
 	unsigned nimpl;
 	unsigned idx = 0;
 
@@ -411,6 +411,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			case STARPU_CUDA_DEFAULT:
 			case STARPU_OPENCL_DEFAULT:
 			case STARPU_GORDON_DEFAULT:
+				arch_base = arch;
 				idx++;
 				break;
 			default:
@@ -422,7 +423,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 				if (get_n_entries(model, arch, nimpl))
 				{
-					number_of_archs[idx]++;
+					narch[idx]=arch-arch_base+1;
 					break;
 				}
 		}
@@ -431,7 +432,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 				if (model->per_arch[arch][nimpl].regression.nsample)
 				{
-					number_of_archs[idx]++;
+					narch[idx]=arch-arch_base+1;
 					break;
 				}
 		}
@@ -447,35 +448,39 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		switch (arch)
 		{
 			case STARPU_CPU_DEFAULT:
+				arch_base = arch;
 				name = "CPU";
 				fprintf(f, "##################\n");
 				fprintf(f, "# %ss\n", name);
 				fprintf(f, "# maximum number of %ss\n", name);
-				fprintf(f, "%u\n", number_of_archs[0]);
+				fprintf(f, "%u\n", my_narch = narch[0]);
 				break;
 			case STARPU_CUDA_DEFAULT:
+				arch_base = arch;
 				name = "CUDA";
 				substract_to_arch = STARPU_MAXCPUS;
 				fprintf(f, "##################\n");
 				fprintf(f, "# %ss\n", name);
 				fprintf(f, "# number of %s architectures\n", name);
-				fprintf(f, "%u\n", number_of_archs[1]);
+				fprintf(f, "%u\n", my_narch = narch[1]);
 				break;
 			case STARPU_OPENCL_DEFAULT:
+				arch_base = arch;
 				name = "OPENCL";
 				substract_to_arch += STARPU_MAXCUDADEVS;
 				fprintf(f, "##################\n");
 				fprintf(f, "# %ss\n", name);
 				fprintf(f, "# number of %s architectures\n", name);
-				fprintf(f, "%u\n", number_of_archs[2]);
+				fprintf(f, "%u\n", my_narch = narch[2]);
 				break;
 			case STARPU_GORDON_DEFAULT:
+				arch_base = arch;
 				name = "GORDON";
 				substract_to_arch += STARPU_MAXOPENCLDEVS;
 				fprintf(f, "##################\n");
 				fprintf(f, "# %ss\n", name);
 				fprintf(f, "# number of %s architectures\n", name);
-				fprintf(f, "%u\n", number_of_archs[3]);
+				fprintf(f, "%u\n", my_narch = narch[3]);
 				break;
 			default:
 				break;
@@ -497,7 +502,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		else
 			STARPU_ASSERT_MSG(0, "Unknown history-based performance model");
 
-		if (max_impl == 0)
+		if (arch >= my_narch + arch_base)
 			continue;
 
 		fprintf(f, "###########\n");
