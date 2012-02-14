@@ -270,7 +270,9 @@ data twice to the same MPI node, unless the data has been modified.
 @end deftypefun
 
 @deftypefun void starpu_mpi_get_data_on_node (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle}, int @var{node})
-todo
+Transfer data @var{data_handle} to MPI node @var{node}, sending it from its
+owner if needed. At least the target node and the owner have to call the
+function.
 @end deftypefun
 
 Here an stencil example showing how to use @code{starpu_mpi_insert_task}. One

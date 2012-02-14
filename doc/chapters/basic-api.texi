@@ -101,8 +101,7 @@ the @code{STARPU_WORKERS_OPENCLID} environment variable.
 
 @item @code{unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS]}
 If the @code{use_explicit_workers_opencl_gpuid} flag is set, this array
-contains the logical identifiers of the OpenCL devices.
-todo
+contains the logical identifiers of the OpenCL devices to be used.
 
 @item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
@@ -299,7 +298,7 @@ This datatype describes a data access mode. The different available modes are:
 @item @code{STARPU_W}: write-only mode.
 @item @code{STARPU_RW}: read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
 @item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
-@item @code{STARPU_REDUX} reduction mode.
+@item @code{STARPU_REDUX} reduction mode. TODO: add an example in the advanced examples section.
 @end table
 @end deftp
 
@@ -382,7 +381,10 @@ without impacting the application.
 @end deftypefun
 
 @deftypefun void starpu_data_set_reduction_methods (starpu_data_handle_t @var{handle}, {struct starpu_codelet *}@var{redux_cl}, {struct starpu_codelet *}@var{init_cl})
-todo
+This sets the codelets to be used for the @var{handle} when it is accessed in
+REDUX mode. Per-worker buffers will be initialized with the @var{init_cl}
+codelet, and reduction between per-worker buffers will be done with the
+@var{redux_cl} codelet.
 @end deftypefun
 
 @node Access registered data from the application
@@ -656,8 +658,8 @@ Return the number of elements on the y-axis of the matrix designated by
 @end deftypefun
 
 @deftypefun uint32_t starpu_matrix_get_local_ld (starpu_data_handle_t @var{handle})
-Return the number of extra elements present at the end of each row of the
-matrix designated by @var{handle}.
+Return the number of elements between each row of the matrix designated by
+@var{handle}. Maybe be equal to nx when there is no padding.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_matrix_get_local_ptr (starpu_data_handle_t @var{handle})
@@ -696,8 +698,8 @@ Return the number of elements on the y-axis of the matrix designated by
 @end defmac
 
 @defmac STARPU_MATRIX_GET_LD ({void *}@var{interface})
-Return the number of extra elements present at the end of each row of the
-matrix designated by @var{interface}.
+Return the number of elements between each row of the matrix designated by
+@var{interface}. May be equal to nx when there is no padding.
 @end defmac
 
 @defmac STARPU_MATRIX_GET_ELEMSIZE ({void *}@var{interface})
@@ -721,11 +723,13 @@ Return the number of elements on the z-axis of the block designated by @var{hand
 @end deftypefun
 
 @deftypefun uint32_t starpu_block_get_local_ldy (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements between each row of the block designated by
+@var{handle}, in the format of the current memory node.
 @end deftypefun
 
 @deftypefun uint32_t starpu_block_get_local_ldz (starpu_data_handle_t @var{handle})
-todo
+Return the number of elements between each z plane of the block designated by
+@var{handle}, in the format of the current memory node.
 @end deftypefun
 
 @deftypefun uintptr_t starpu_block_get_local_ptr (starpu_data_handle_t @var{handle})
@@ -763,11 +767,13 @@ Return the number of elements on the z-axis of the block designated by @var{hand
 @end defmac
 
 @defmac STARPU_BLOCK_GET_LDY ({void *}@var{interface})
-todo
+Return the number of elements between each row of the block designated by
+@var{interface}. May be equal to nx when there is no padding.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_LDZ ({void *}@var{interface})
-todo
+Return the number of elements between each z plane of the block designated by
+@var{interface}. May be equal to nx*ny when there is no padding.
 @end defmac
 
 @defmac STARPU_BLOCK_GET_ELEMSIZE ({void *}@var{interface})
@@ -817,19 +823,19 @@ Return the size of the elements in the matrix designated by @var{handle}.
 @end deftypefun
 
 @defmac STARPU_BCSR_GET_NNZ ({void *}@var{interface})
-todo
+Return the number of non-zero values in the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_BCSR_GET_NZVAL ({void *}@var{interface})
-todo
+Return a pointer to the non-zero values of the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_BCSR_GET_COLIND ({void *}@var{interface})
-todo
+Return a pointer to the column index of the matrix designated by @var{interface}.
 @end defmac
 
 @defmac STARPU_BCSR_GET_ROWPTR ({void *}@var{interface})
-todo
+Return a pointer to the row pointer array of the matrix designated by @var{interface}.
 @end defmac
 
 
@@ -1023,11 +1029,11 @@ list can be found in @code{starpu_data_filters.h} .
 @subsubsection Partitioning BCSR Data
 
 @deftypefun void starpu_canonical_block_filter_bcsr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-TODO
+This partitions a block-sparse matrix into dense matrices.
 @end deftypefun
 
 @deftypefun void starpu_vertical_block_filter_func_csr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-TODO
+This partitions a block-sparse matrix into vertical block-sparse matrices.
 @end deftypefun
 
 @node Partitioning BLAS interface
@@ -1083,7 +1089,17 @@ This partitions a 3D matrix along the X axis.
 This section describes the interface to manipulate codelets and tasks.
 
 @deftp {Data Type} {enum starpu_codelet_type}
-todo
+Describes the type of parallel task. The different values are:
+@table @asis
+@item @code{STARPU_SEQ} (default) for classical sequential tasks.
+@item @code{STARPU_SPMD} for a parallel task whose threads are handled by
+StarPU, the code has to use @code{starpu_combined_worker_get_size} and
+@code{starpu_combined_worker_get_rank} to distribute the work
+@item @code{STARPU_FORKJOIN} for a parallel task whose threads are started by
+the codelet function, which has to use @code{starpu_combined_worker_get_size} to
+determine how many threads should be started.
+@end table
+See @ref{Parallel Tasks} for details.
 @end deftp
 
 @defmac STARPU_CPU
@@ -1264,7 +1280,17 @@ such a initialisation is not always possible, e.g. when using C++.
 @end deftypefun
 
 @deftp {Data Type} {enum starpu_task_status}
-todo
+State of a task, can be either of
+@table @asis
+@item @code{STARPU_TASK_INVALID} The task has just been initialized.
+@item @code{STARPU_TASK_BLOCKED} The task has just been submitted, and its dependencies has not been checked yet.
+@item @code{STARPU_TASK_READY} The task is ready for execution.
+@item @code{STARPU_TASK_RUNNING} The task is running on some worker.
+@item @code{STARPU_TASK_FINISHED} The task is finished executing.
+@item @code{STARPU_TASK_BLOCKED_ON_TAG} The task is waiting for a tag.
+@item @code{STARPU_TASK_BLOCKED_ON_TASK} The task is waiting for a task.
+@item @code{STARPU_TASK_BLOCKED_ON_DATA} The task is waiting for some data.
+@end table
 @end deftp
 
 @deftp {Data Type} {struct starpu_task}
@@ -1299,7 +1325,8 @@ If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
 @item @code{void *interfaces[STARPU_NMAXBUFS]}
-todo
+The actual data pointers to the memory node where execution will happen, managed
+by the DSM.
 
 @item @code{void *cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
@@ -1388,10 +1415,10 @@ If this flag is set, the task will be re-submitted to StarPU once it has been
 executed. This flag must not be set if the destroy flag is set too.
 
 @item @code{enum starpu_task_status status} (optional)
-todo
+Current state of the task.
 
 @item @code{struct starpu_task_profiling_info *profiling_info} (optional)
-todo
+Profiling information for the task.
 
 @item @code{double predicted} (output field)
 Predicted duration of the task. This field is only set if the scheduling
@@ -1698,13 +1725,14 @@ Used by @code{STARPU_PER_ARCH}: array of @code{struct
 starpu_per_arch_perfmodel} structures.
 
 @item @code{unsigned is_loaded}
-TODO
+Whether the performance model is already loaded from the disk.
 
 @item @code{unsigned benchmarking}
-TODO
+Whether the performance model is still being calibrated.
 
 @item @code{pthread_rwlock_t model_rwlock}
-TODO
+Lock to protect concurrency between loading from disk (W), updating the values
+(W), and making a performance estimation (R).
 
 @end table
 @end deftp
@@ -1728,7 +1756,7 @@ Same as in @ref{struct starpu_perfmodel}, but per-arch, in
 case it depends on the architecture-specific implementation.
 
 @item @code{struct starpu_htbl32_node *history}
-todo
+The history of performance measurements.
 
 @item @code{struct starpu_history_list *list}
 Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
@@ -1752,7 +1780,6 @@ returns the path to the debugging information for the performance model.
 
 @deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen}, unsigned nimpl)
 returns the architecture name for @var{arch}.
-todo
 @end deftypefun
 
 @deftypefun void starpu_force_bus_sampling (void)
@@ -1805,22 +1832,23 @@ structure if profiling was enabled. The different fields are:
 Date of task submission (relative to the initialization of StarPU).
 
 @item @code{struct timespec push_start_time}
-TODO. Scheduling overhead.
+Time when the task was submitted to the scheduler.
 
 @item @code{struct timespec push_end_time}
-TODO. Scheduling overhead
+Time when the scheduler finished with the task submission.
 
 @item @code{struct timespec pop_start_time}
-TODO. Scheduling overhead
+Time when the scheduler started to be requested for a task, and eventually gave
+that task.
 
 @item @code{struct timespec pop_end_time}
-TODO. Scheduling overhead
+Time when the scheduler finished providing the task for execution.
 
 @item @code{struct timespec acquire_data_start_time}
-TODO. Take input data
+Time when the worker started fetching input data.
 
 @item @code{struct timespec acquire_data_end_time}
-TODO. Take input data
+Time when the worker finished fetching input data.
 
 @item @code{struct timespec start_time}
 Date of task execution beginning (relative to the initialization of StarPU).
@@ -1829,28 +1857,28 @@ Date of task execution beginning (relative to the initialization of StarPU).
 Date of task execution termination (relative to the initialization of StarPU).
 
 @item @code{struct timespec release_data_start_time}
-TODO. Release data
+Time when the worker started releasing data.
 
 @item @code{struct timespec release_data_end_time}
-TODO. Release data
+Time when the worker finished releasing data.
 
 @item @code{struct timespec callback_start_time}
-TODO. Callback
+Time when the worker started the application callback for the task.
 
 @item @code{struct timespec callback_end_time}
-TODO. Callback
+Time when the worker finished the application callback for the task.
 
 @item @code{workerid}
 Identifier of the worker which has executed the task.
 
 @item @code{uint64_t used_cycles}
-TODO
+Number of cycles used by the task, only available in the MoviSim
 
 @item @code{uint64_t stall_cycles}
-TODO
+Number of cycles stalled within the task, only available in the MoviSim
 
 @item @code{double power_consumed}
-TODO
+Power consumed by the task, only available in the MoviSim
 
 @end table
 @end deftp
@@ -1876,13 +1904,13 @@ Time spent idling by the worker during the profiling measurement interval.
 Number of tasks executed by the worker during the profiling measurement interval.
 
 @item @code{uint64_t used_cycles}
-TODO
+Number of cycles used by the worker, only available in the MoviSim
 
 @item @code{uint64_t stall_cycles}
-TODO
+Number of cycles stalled within the worker, only available in the MoviSim
 
 @item @code{double power_consumed}
-TODO
+Power consumed by the worker, only available in the MoviSim
 
 @end table
 @end deftp
@@ -1897,19 +1925,19 @@ value is returned.
 @end deftypefun
 
 @deftp {Data Type} {struct starpu_bus_profiling_info}
-TODO. The different fields are:
+The different fields are:
 @table @asis
 @item @code{struct timespec start_time}
-TODO
+Time of bus profiling startup.
 
 @item @code{struct timespec total_time}
-TODO
+Total time of bus profiling.
 
 @item @code{int long long transferred_bytes}
-TODO
+Number of bytes transferred during profiling.
 
 @item @code{int transfer_count}
-TODO
+Number of transfers during profiling.
 @end table
 @end deftp
 
@@ -1920,19 +1948,19 @@ counters.
 @end deftypefun
 
 @deftypefun int starpu_bus_get_count (void)
-TODO
+Return the number of buses in the machine.
 @end deftypefun
 
 @deftypefun int starpu_bus_get_id (int @var{src}, int @var{dst})
-TODO
+Return the identifier of the bus between @var{src} and @var{dst}
 @end deftypefun
 
 @deftypefun int starpu_bus_get_src (int @var{busid})
-TODO
+Return the source point of bus @var{busid}
 @end deftypefun
 
 @deftypefun int starpu_bus_get_dst (int @var{busid})
-TODO
+Return the destination point of bus @var{busid}
 @end deftypefun
 
 @deftypefun double starpu_timing_timespec_delay_us ({struct timespec} *@var{start}, {struct timespec} *@var{end})
@@ -1944,11 +1972,11 @@ Converts the given timespec @var{ts} into microseconds.
 @end deftypefun
 
 @deftypefun void starpu_bus_profiling_helper_display_summary (void)
-TODO
+Displays statistics about the bus on stderr.
 @end deftypefun
 
 @deftypefun void starpu_worker_profiling_helper_display_summary (void)
-TODO
+Displays statistics about the workers on stderr.
 @end deftypefun
 
 @node CUDA extensions
@@ -1977,15 +2005,16 @@ This function returns a pointer to device properties for worker @var{workerid}
 @end deftypefun
 
 @deftypefun size_t starpu_cuda_get_global_mem_size (int @var{devid})
-todo
+Return the size of the global memory of CUDA device @var{devid}.
 @end deftypefun
 
 @deftypefun void starpu_cuda_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, cudaError_t @var{status})
-todo
+Report a CUDA error.
 @end deftypefun
 
 @defmac STARPU_CUDA_REPORT_ERROR (cudaError_t @var{status})
-todo
+Calls starpu_cuda_report_error, passing the current function, file and line
+position.
 @end defmac
 
 @deftypefun void starpu_helper_cublas_init (void)
@@ -2001,11 +2030,12 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @end deftypefun
 
 @deftypefun void starpu_cublas_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, cublasStatus @var{status})
-todo
+Report a cublas error.
 @end deftypefun
 
 @defmac STARPU_CUBLAS_REPORT_ERROR (cublasStatus @var{status})
-todo
+Calls starpu_cublas_report_error, passing the current function, file and line
+position.
 @end defmac
 
 @node OpenCL extensions
@@ -2045,11 +2075,11 @@ Places the command queue of the the device designated by @var{devid} into @var{q
 @end deftypefun
 
 @deftypefun void starpu_opencl_get_current_context ({cl_context *}@var{context})
-todo
+Return the context of the current worker.
 @end deftypefun
 
 @deftypefun void starpu_opencl_get_current_queue ({cl_command_queue *}@var{queue})
-todo
+Return the computation kernel command queue of the current worker.
 @end deftypefun
 
 @deftypefun int starpu_opencl_set_kernel_args ({cl_int *}@var{err}, {cl_kernel *}@var{kernel}, ...)
@@ -2073,10 +2103,10 @@ use (e.g. different programs on the different OpenCL devices, for
 relocation purpose for instance).
 
 @deftp {Data Type} {struct starpu_opencl_program}
-todo
+Stores the OpenCL programs as compiled for the different OpenCL devices.
 @table @asis
 @item @code{cl_program programs[STARPU_MAXOPENCLDEVS]}
-todo
+Stores each program for each OpenCL device.
 @end table
 @end deftp
 
@@ -2097,11 +2127,13 @@ This function unloads an OpenCL compiled code.
 @subsection Loading OpenCL kernels
 
 @deftypefun int starpu_opencl_load_kernel (cl_kernel *@var{kernel}, cl_command_queue *@var{queue}, {struct starpu_opencl_program} *@var{opencl_programs}, {const char} *@var{kernel_name}, int @var{devid})
-TODO
+Create a kernel @var{kernel} for device @var{devid}, on its computation command
+queue returned in @var{queue}, using program @var{opencl_programs} and name
+@var{kernel_name}
 @end deftypefun
 
 @deftypefun int starpu_opencl_release_kernel (cl_kernel @var{kernel})
-TODO
+Release the given @var{kernel}, to be called after kernel execution.
 @end deftypefun
 
 @node OpenCL statistics

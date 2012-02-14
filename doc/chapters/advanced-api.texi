@@ -289,20 +289,28 @@ Get the next task of the list. This is not erase-safe.
 @node Using Parallel Tasks
 @section Using Parallel Tasks
 
-@deftypefun unsigned starpu_combined_worker_get_count (void)
-todo
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_id (void)
-todo
-@end deftypefun
+These are used by parallel tasks:
 
 @deftypefun int starpu_combined_worker_get_size (void)
-todo
+Return the size of the current combined worker, i.e. the total number of cpus
+running the same task in the case of SPMD parallel tasks, or the total number
+of threads that the task is allowed to start in the case of FORKJOIN parallel
+tasks.
 @end deftypefun
 
 @deftypefun int starpu_combined_worker_get_rank (void)
-todo
+Return the rank of the current thread within the combined worker. Can only be
+used in FORKJOIN parallel tasks, to know which part of the task to work on.
+@end deftypefun
+
+Most of these are used for schedulers which support parallel tasks.
+
+@deftypefun unsigned starpu_combined_worker_get_count (void)
+Return the number of different combined workers.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_id (void)
+Return the identifier of the current combined worker.
 @end deftypefun
 
 @deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array}[])
@@ -342,48 +350,60 @@ users to write their own scheduling policy.
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
 @item @code{unsigned nworkers}
-TODO
+Total number of workers.
 
 @item @code{unsigned ncombinedworkers}
-TODO
+Total number of combined workers.
 
 @item @code{hwloc_topology_t hwtopology}
-TODO
+Topology as detected by hwloc.
+
 To maintain ABI compatibility when hwloc is not available, the field
 is replaced with @code{void *dummy}
 
 @item @code{unsigned nhwcpus}
-TODO
+Total number of CPUs, as detected by the topology code. May be different from
+the actual number of CPU workers.
 
 @item @code{unsigned nhwcudagpus}
-TODO
+Total number of CUDA devices, as detected. May be different from the actual
+number of CUDA workers.
 
 @item @code{unsigned nhwopenclgpus}
-TODO
+Total number of OpenCL devices, as detected. May be different from the actual
+number of CUDA workers.
 
 @item @code{unsigned ncpus}
-TODO
+Actual number of CPU workers used by StarPU.
 
 @item @code{unsigned ncudagpus}
-TODO
+Actual number of CUDA workers used by StarPU.
 
 @item @code{unsigned nopenclgpus}
-TODO
+Actual number of OpenCL workers used by StarPU.
 
 @item @code{unsigned ngordon_spus}
-TODO
+Actual number of Gordon workers used by StarPU.
 
 @item @code{unsigned workers_bindid[STARPU_NMAXWORKERS]}
-Where to bind workers ?
-TODO
+Indicates the successive cpu identifier that should be used to bind the
+workers. It is either filled according to the user's explicit
+parameters (from starpu_conf) or according to the STARPU_WORKERS_CPUID env.
+variable. Otherwise, a round-robin policy is used to distributed the workers
+over the cpus.
 
 @item @code{unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS]}
-Which GPU(s) do we use for CUDA ?
-TODO
+Indicates the successive cpu identifier that should be used by the CUDA
+driver.  It is either filled according to the user's explicit parameters (from
+starpu_conf) or according to the STARPU_WORKERS_CUDAID env. variable. Otherwise,
+they are taken in ID order.
 
 @item @code{unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS]}
-Which GPU(s) do we use for OpenCL ?
-TODO
+Indicates the successive cpu identifier that should be used by the OpenCL
+driver.  It is either filled according to the user's explicit parameters (from
+starpu_conf) or according to the STARPU_WORKERS_OPENCLID env. variable. Otherwise,
+they are taken in ID order.
+
 
 @end table
 @end deftp
@@ -540,14 +560,15 @@ static struct starpu_sched_policy dummy_sched_policy = @{
 @section Expert mode
 
 @deftypefun void starpu_wake_all_blocked_workers (void)
-todo
+Wake all the workers, so they can inspect data requests and task submissions
+again.
 @end deftypefun
 
 @deftypefun int starpu_progression_hook_register (unsigned (*@var{func})(void *arg), void *@var{arg})
-todo
+Register a progression hook, to be called when workers are idle.
 @end deftypefun
 
 @deftypefun void starpu_progression_hook_deregister (int @var{hook_id})
-todo
+Unregister a given progression hook.
 @end deftypefun
 
