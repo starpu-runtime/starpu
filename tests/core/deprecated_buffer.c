@@ -162,5 +162,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return ret;
+	STARPU_RETURN(ret);
 }
