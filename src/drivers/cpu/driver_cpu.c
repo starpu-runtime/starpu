@@ -56,8 +56,14 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
 		_starpu_cl_func_t func = _starpu_task_get_cpu_nth_implementation(cl, j->nimpl);
+		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
+			/* bind to parallel worker */
+			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
+		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
+			/* rebind to single CPU */
+			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid);
 	}
 
 	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank);
