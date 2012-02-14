@@ -62,7 +62,7 @@ static void parallel_heft_post_exec_hook(struct starpu_task *task)
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 
-	if (model < 0.0)
+	if (isnan(model))
 		model = 0.0;
 
 	/* Once we have executed the task, we can update the predicted amount
@@ -99,7 +99,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
-		worker_exp_len[best_workerid] += exp_end_predicted - worker_exp_end[best_workerid];
+		worker_exp_len[best_workerid] += task->predicted;
 		worker_exp_end[best_workerid] = exp_end_predicted;
 		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
 
@@ -119,6 +119,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		j->task_size = worker_size;
 		j->combined_workerid = best_workerid;
 		j->active_task_alias_count = 0;
+		task->predicted_transfer = 0;
 
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
@@ -133,7 +134,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			/* TODO */
 			alias->predicted_transfer = 0;
 
-			worker_exp_len[local_worker] += exp_end_predicted - worker_exp_end[local_worker];
+			worker_exp_len[local_worker] += alias->predicted;
 			worker_exp_end[local_worker] = exp_end_predicted;
 			worker_exp_start[local_worker] = exp_end_predicted - worker_exp_len[local_worker];
 
@@ -213,7 +214,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 
 	/* this flag is set if the corresponding worker is selected because
 	   there is no performance prediction available yet */
-	int forced_best = -1;
+	int forced_best = -1, forced_nimpl = -1;
 
 	double local_task_length[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
@@ -228,7 +229,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	double best_exp_end = DBL_MAX;
 	//double penality_best = 0.0;
 
-	int ntasks_best = -1;
+	int ntasks_best = -1, nimpl_best = -1;
 	double ntasks_best_end = 0.0;
 	int calibrating = 0;
 
@@ -245,7 +246,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 	unsigned nimpl;
-	unsigned best_impl = 0;
 	for (worker = 0; worker < (nworkers+ncombinedworkers); worker++)
 	{
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -278,6 +278,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
+				nimpl_best = nimpl;
 			}
 
 			if (isnan(local_task_length[worker][nimpl]))
@@ -303,7 +304,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			{
 				/* a better solution was found */
 				best_exp_end = local_exp_end[worker][nimpl];
-				best_impl = nimpl;
+				nimpl_best = nimpl;
 			}
 
 
@@ -316,8 +317,10 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		} //end for
 	}
 
-	if (unknown)
+	if (unknown) {
 		forced_best = ntasks_best;
+		forced_nimpl = nimpl_best;
+	}
 
 	double best_fitness = -1;
 
@@ -349,6 +352,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 					/* we found a better solution */
 					best_fitness = fitness[worker][nimpl];
 					best = worker;
+					nimpl_best = nimpl;
 				}
 
 			//	fprintf(stderr, "FITNESS worker %d -> %e local_exp_end %e - local_data_penalty %e\n", worker, fitness[worker][nimpl], local_exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl]);
@@ -364,18 +368,19 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		 * with that arch we want to speed-up calibration time
 		 * so we force this measurement */
 		best = forced_best;
+		nimpl_best = forced_nimpl;
 		//penality_best = 0.0;
-		best_exp_end = local_exp_end[best][nimpl];
+		best_exp_end = compute_expected_end(best, 0);
 	}
 	else
 	{
-		//penality_best = local_data_penalty[best][nimpl];
-		best_exp_end = local_exp_end[best][nimpl];
+		//penality_best = local_data_penalty[best][nimpl_best];
+		best_exp_end = local_exp_end[best][nimpl_best];
 	}
 
 
-	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", best_impl);
-	_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
+	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", nimpl_best);
+	_starpu_get_job_associated_to_task(task)->nimpl = nimpl_best;
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best, best_exp_end, prio);
 }
