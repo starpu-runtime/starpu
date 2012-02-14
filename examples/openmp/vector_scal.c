@@ -17,7 +17,7 @@
 
 /* gcc build:
 
-   gcc -fopenmp vector_scal.c -o vector_scal $(pkg-config --cflags libstarpu) $(pkg-config --libs libstarpu)
+   gcc -fopenmp vector_scal.c -o vector_scal $(pkg-config --cflags starpu-1.0) $(pkg-config --libs starpu-1.0)
 
  */
 
