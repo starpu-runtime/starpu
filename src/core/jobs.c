@@ -106,6 +106,10 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 
 void _starpu_job_destroy(struct _starpu_job *j)
 {
+	/* Wait for any code that was still working on the job (and was
+	 * probably our waker) */
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	_STARPU_PTHREAD_COND_DESTROY(&j->sync_cond);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
 
