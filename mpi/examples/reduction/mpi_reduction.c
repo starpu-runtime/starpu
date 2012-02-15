@@ -17,8 +17,6 @@
 #include <starpu_mpi.h>
 #include <math.h>
 
-#define X         7
-
 extern void init_cpu_func(void *descr[], void *cl_arg);
 extern void redux_cpu_func(void *descr[], void *cl_arg);
 extern void dot_cpu_func(void *descr[], void *cl_arg);
@@ -56,40 +54,56 @@ int my_distrib(int x, int nb_nodes)
 
 int main(int argc, char **argv)
 {
-        int my_rank, size, x;
-        unsigned vector[X];
-	unsigned dot, sum=0;
-        starpu_data_handle_t handles[X];
+        int my_rank, size, x, y;
+        long int *vector;
+	long int dot, sum;
+        starpu_data_handle_t *handles;
 	starpu_data_handle_t dot_handle;
+
+	int nb_elements, step;
 
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(&my_rank, &size);
 
-        for(x = 0; x < X; x++)
+	nb_elements = size*8000;
+	step = 4;
+
+	vector = (long int *) malloc(nb_elements*sizeof(vector[0]));
+        for(x = 0; x < nb_elements; x+=step)
 	{
-		int mpi_rank = my_distrib(x, size);
+		int mpi_rank = my_distrib(x/step, size);
 		if (mpi_rank == my_rank)
 		{
-			vector[x] = x+1;
+			for(y=0 ; y<step ; y++)
+			{
+				vector[x+y] = x+y+1;
+			}
 		}
-		sum += x+1;
         }
 	if (my_rank == 0) {
 		dot = 14;
+		sum = (nb_elements * (nb_elements + 1)) / 2;
 		sum+= dot;
+		starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(dot));
+	}
+	else
+	{
+		starpu_variable_data_register(&dot_handle, -1, (uintptr_t)NULL, sizeof(dot));
 	}
 
-        for(x = 0; x < X; x++)
+
+	handles = (starpu_data_handle_t *) malloc(nb_elements*sizeof(handles[0]));
+        for(x = 0; x < nb_elements; x+=step)
 	{
-		int mpi_rank = my_distrib(x, size);
+		int mpi_rank = my_distrib(x/step, size);
 		if (mpi_rank == my_rank)
 		{
 			/* Owning data */
-			starpu_variable_data_register(&handles[x], 0, (uintptr_t)&(vector[x]), sizeof(unsigned));
+			starpu_vector_data_register(&handles[x], 0, (uintptr_t)&(vector[x]), step, sizeof(vector[0]));
 		}
 		else
 		{
-			starpu_variable_data_register(&handles[x], -1, (uintptr_t)NULL, sizeof(unsigned));
+			starpu_vector_data_register(&handles[x], -1, (uintptr_t)NULL, step, sizeof(vector[0]));
 		}
 		if (handles[x])
 		{
@@ -98,12 +112,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(unsigned));
 	starpu_data_set_rank(dot_handle, 0);
-	starpu_data_set_tag(dot_handle, X+1);
+	starpu_data_set_tag(dot_handle, nb_elements+1);
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
 
-	for (x = 0; x < X; x++)
+	for (x = 0; x < nb_elements; x+=step)
 	{
 		starpu_mpi_insert_task(MPI_COMM_WORLD,
 				       &dot_codelet,
@@ -116,7 +129,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
 
-        for(x = 0; x < X; x++)
+        for(x = 0; x < nb_elements; x+=step)
 	{
 		if (handles[x]) starpu_data_unregister(handles[x]);
 	}
@@ -124,15 +137,17 @@ int main(int argc, char **argv)
 	{
 		starpu_data_unregister(dot_handle);
 	}
+	free(vector);
+	free(handles);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
 	if (my_rank == 0)
 	{
-                fprintf(stderr, "[%d] sum=%d\n", my_rank, sum);
-                fprintf(stderr, "[%d] dot=%d\n", my_rank, dot);
-		if (sum != dot) fprintf(stderr, "Error when computing reduction\n");
+                fprintf(stderr, "[%d] sum=%ld\n", my_rank, sum);
+                fprintf(stderr, "[%d] dot=%ld\n", my_rank, dot);
+		fprintf(stderr, "%s when computing reduction\n", (sum == dot) ? "Success" : "Error");
         }
 
 	return 0;

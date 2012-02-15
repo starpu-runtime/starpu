@@ -27,8 +27,8 @@
  */
 void init_cpu_func(void *descr[], void *cl_arg)
 {
-	int *dot = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	*dot = 0.0f;
+	long int *dot = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	*dot = 0;
 	_DISPLAY("Init dot\n");
 }
 
@@ -37,11 +37,11 @@ void init_cpu_func(void *descr[], void *cl_arg)
  */
 void redux_cpu_func(void *descr[], void *cl_arg)
 {
-	int *dota = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	int *dotb = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	long int *dota = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	long int *dotb = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	*dota = *dota + *dotb;
-	_DISPLAY("Calling redux %d=%d+%d\n", *dota, *dota-*dotb, *dotb);
+	_DISPLAY("Calling redux %ld=%ld+%ld\n", *dota, *dota-*dotb, *dotb);
 }
 
 /*
@@ -49,10 +49,18 @@ void redux_cpu_func(void *descr[], void *cl_arg)
  */
 void dot_cpu_func(void *descr[], void *cl_arg)
 {
-	int *local_x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	int *dot = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	long int *local_x = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	*dot += *local_x;
-	_DISPLAY("Calling dot=%d=%d+%d\n", *dot, *dot-*local_x, *local_x);
+	long int *dot = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+//	_DISPLAY("Before dot=%ld (adding %d elements...)\n", *dot, n);
+	unsigned i;
+	for (i = 0; i < n; i++)
+	{
+//		_DISPLAY("Adding %ld\n", local_x[i]);
+		*dot += local_x[i];
+	}
+//	_DISPLAY("After dot=%ld\n", *dot);
 }
 
