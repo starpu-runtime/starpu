@@ -244,6 +244,10 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			}
 		}
 
+		if (empty)
+			/* The handle was empty, we just need to copy the reduced value. */
+			_starpu_data_cpy(handle, replicate_array[0], 1, NULL, 0, 1, last_replicate_deps[0]);
+
 		/* Let's submit all the reduction tasks. */
 		unsigned i;
 		for (i = 0; i < redux_task_idx; i++)
@@ -251,12 +255,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			int ret = starpu_task_submit(redux_tasks[i]);
 			STARPU_ASSERT(ret == 0);
 		}
-
-
-		if (empty)
-			/* The handle was empty, we just need to copy the reduced value. */
-			_starpu_data_cpy(handle, replicate_array[0], 1, NULL, 0, 1, last_replicate_deps[0]);
-
 #else
 		if (empty) {
 			struct starpu_task *redux_task = starpu_task_create();
