@@ -229,7 +229,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 		 * by the caller, it is its responsability to destroy the task.
 		 * */
 		if (!job_is_already_locked && destroy)
-			starpu_task_destroy(task);
+			_starpu_task_destroy(task);
 	}
 
 	if (regenerate)

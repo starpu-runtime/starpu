@@ -126,9 +126,8 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
  * called automatically after the execution of a task by setting the "destroy"
  * flag of the starpu_task structure (default behaviour). Calling this function
  * on a statically allocated task results in an undefined behaviour. */
-void starpu_task_destroy(struct starpu_task *task)
+void _starpu_task_destroy(struct starpu_task *task)
 {
-	STARPU_ASSERT(task);
 
    /* If starpu_task_destroy is called in a callback, we just set the destroy
       flag. The task will be destroyed after the callback returns */
@@ -148,10 +147,19 @@ void starpu_task_destroy(struct starpu_task *task)
    }
 }
 
+void starpu_task_destroy(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	STARPU_ASSERT_MSG(!task->destroy || !task->detach, "starpu_task_destroy must not be called for task with destroy = 1 and detach = 1");
+	_starpu_task_destroy(task);
+}
+
 int starpu_task_wait(struct starpu_task *task)
 {
         _STARPU_LOG_IN();
 	STARPU_ASSERT(task);
+
+	STARPU_ASSERT_MSG(!task->detach, "starpu_task_wait can only be called on tasks with detach = 0");
 
 	if (task->detach || task->synchronous)
 	{
@@ -172,10 +180,8 @@ int starpu_task_wait(struct starpu_task *task)
 
 	/* as this is a synchronous task, the liberation of the job
 	   structure was deferred */
-	if (task->destroy) {
-		_starpu_job_destroy(j);
-		free(task);
-	}
+	if (task->destroy)
+		_starpu_task_destroy(task);
 
         _STARPU_LOG_OUT();
 	return 0;
@@ -217,7 +223,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
 
 	if (must_destroy)
-		starpu_task_destroy(j->task);
+		_starpu_task_destroy(j->task);
 
         _STARPU_LOG_OUT();
         return ret;
@@ -470,7 +476,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
 
 	if (must_destroy)
-		starpu_task_destroy(j->task);
+		_starpu_task_destroy(j->task);
 
 	return ret;
 }

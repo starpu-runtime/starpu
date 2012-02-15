@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,9 @@
 #include <common/config.h>
 #include <core/jobs.h>
 
+/* Internal version of starpu_task_destroy: don't check task->destroy flag */
+void _starpu_task_destroy(struct starpu_task *task);
+
 /* In order to implement starpu_task_wait_for_all, we keep track of the number of
  * task currently submitted */
 void _starpu_decrement_nsubmitted_tasks(void);
@@ -41,6 +44,8 @@ void _starpu_set_current_task(struct starpu_task *task);
 int _starpu_submit_job(struct _starpu_job *j);
 
 int _starpu_task_submit_nodeps(struct starpu_task *task);
+
+void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[], int check);
 
 /* Returns the job structure (which is the internal data structure associated
  * to a task). */

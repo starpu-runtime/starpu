@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -155,6 +155,7 @@ int main(int argc, char **argv)
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &memset_cl;
 	task->handles[0] = handle;
+	task->destroy = 0;
 
 	show_task_perfs(size, task);
 

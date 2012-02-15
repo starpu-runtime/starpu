@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ void _starpu_notify_task_dependencies(struct _starpu_job *j)
 }
 
 /* task depends on the tasks in task array */
-void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[], int check)
 {
 	if (ndeps == 0)
 		return;
@@ -69,6 +69,9 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 	struct _starpu_job *job;
 
 	job = _starpu_get_job_associated_to_task(task);
+
+	if (check)
+		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission");
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 
@@ -81,7 +84,10 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 
 		struct _starpu_job *dep_job;
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
+
 		STARPU_ASSERT_MSG(dep_job != job, "A task must not depend on itself.");
+		if (check)
+			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || dep_job->task->detach, "Task dependencies have to be set before submission");
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
@@ -92,4 +98,9 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
+}
+
+void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+{
+	_starpu_task_declare_deps_array(task, ndeps, task_array, 1);
 }

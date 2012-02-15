@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 		_STARPU_DEP_DEBUG("RAW %p\n", handle);
 		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
-		starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
+		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
 	}
         else
         {
@@ -98,7 +98,7 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 			l = l->next;
 			free(prev);
 		}
-		starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array);
+		_starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array, 0);
 	}
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording)
@@ -134,7 +134,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 	if (handle->last_submitted_writer && handle->last_submitted_writer != post_sync_task)
 	{
 		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
-		starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
+		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
 		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
 	}
         else

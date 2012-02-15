@@ -119,8 +119,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
 
-	/* there should not be mutiple filters applied on the same data */
-	STARPU_ASSERT(initial_handle->nchildren == 0);
+	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data");
 
 	/* how many parts ? */
 	if (f->get_nchildren)
@@ -273,6 +272,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 	unsigned node;
 
 	_starpu_spin_lock(&root_handle->header_lock);
+
+	STARPU_ASSERT_MSG(root_handle->nchildren != 0, "data is not partitioned");
 
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)

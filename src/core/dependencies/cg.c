@@ -203,7 +203,7 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 			if (must_destroy_task)
-				starpu_task_destroy(task);
+				_starpu_task_destroy(task);
 		}
 
 		if (cg_type == STARPU_CG_APPS)

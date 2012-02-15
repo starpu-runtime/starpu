@@ -183,7 +183,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
 
 	if (must_destroy)
-		starpu_task_destroy(j->task);
+		_starpu_task_destroy(j->task);
 
 	_starpu_spin_lock(&tag->lock);
 }
