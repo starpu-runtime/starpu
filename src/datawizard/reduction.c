@@ -189,8 +189,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 		/* Redux step-by-step for step from 1 to replicate_count/2, i.e.
 		 * 1-by-1, then 2-by-2, then 4-by-4, etc. */
-		unsigned step = 1;
-		while (step < replicate_count)
+		for (unsigned step = 1; step < replicate_count; step *=2)
 		{
 			unsigned i;
 			for (i = 0; i < replicate_count; i+=2*step)
@@ -237,8 +236,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 				}
 			}
-
-			step *= 2;
 		}
 
 		if (empty)
