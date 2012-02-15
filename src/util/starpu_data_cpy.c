@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
-#include "starpu_data_cpy.h"
+#include <util/starpu_data_cpy.h>
 
 static void data_cpy_func(void *descr[], void *cl_arg)
 {
