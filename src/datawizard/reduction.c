@@ -186,10 +186,13 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		 * replicate */
 		struct starpu_task *last_replicate_deps[replicate_count];
 		memset(last_replicate_deps, 0, replicate_count*sizeof(struct starpu_task *));
+		struct starpu_task *redux_tasks[replicate_count];
+		memset(redux_tasks, 0, replicate_count*sizeof(struct starpu_task *));
 
 		/* Redux step-by-step for step from 1 to replicate_count/2, i.e.
 		 * 1-by-1, then 2-by-2, then 4-by-4, etc. */
 		unsigned step;
+		unsigned redux_task_idx = 0;
 		for (step = 1; step < replicate_count; step *=2)
 		{
 			unsigned i;
@@ -232,12 +235,25 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					/* we don't perform the reduction until both replicates are ready */
 					starpu_task_declare_deps_array(redux_task, ndeps, task_deps);
 
-					int ret = starpu_task_submit(redux_task);
-					STARPU_ASSERT(!ret);
+					/* We cannot submit tasks here : we do
+					 * not want to depend on tasks that have
+					 * been completed, so we juste store
+					 * this task : it will be submitted
+					 * later. */
+					redux_tasks[redux_task_idx++] = redux_task;
 
 				}
 			}
 		}
+
+		/* Let's submit all the reduction tasks. */
+		unsigned i;
+		for (i = 0; i < redux_task_idx; i++)
+		{
+			int ret = starpu_task_submit(redux_tasks[i]);
+			STARPU_ASSERT(ret == 0);
+		}
+
 
 		if (empty)
 			/* The handle was empty, we just need to copy the reduced value. */
