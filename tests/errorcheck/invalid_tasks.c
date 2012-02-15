@@ -18,12 +18,19 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#ifdef STARPU_USE_CPU
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
+#warning unsetenv is not defined or no cpu are available. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 static void dummy_func(void *descr[], void *arg)
 {
 }
 
-static struct starpu_codelet cuda_only_cl = 
+static struct starpu_codelet cuda_only_cl =
 {
 	.where = STARPU_CUDA,
 	.cuda_funcs = {dummy_func, NULL},
@@ -34,10 +41,12 @@ static struct starpu_codelet cuda_only_cl =
 
 int main(int argc, char **argv)
 {
-#ifdef STARPU_USE_CPU
 	int ret;
 
 	/* We force StarPU to use 1 CPU only */
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NCPUS");
 	struct starpu_conf conf;
 	memset(&conf, 0, sizeof(conf));
 	conf.ncpus = 1;
@@ -65,8 +74,4 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
-#else
-	fprintf(stderr,"WARNING: Can not test this without CPUs\n");
-	return STARPU_TEST_SKIPPED;
-#endif
 }
