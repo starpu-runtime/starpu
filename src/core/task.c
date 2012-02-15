@@ -531,7 +531,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 void starpu_codelet_init(struct starpu_codelet *cl)
 {
 	memset(cl, 0, sizeof(struct starpu_codelet));
-};
+}
 
 void starpu_display_codelet_stats(struct starpu_codelet *cl)
 {

@@ -48,7 +48,7 @@ int _starpu_top_status_get()
 }
 
 static
-unsigned long long int current_timestamp();
+unsigned long long current_timestamp();
 
 /*********************************************
 *****************INIT FUNC********************
@@ -629,7 +629,7 @@ void starpu_top_debug_lock(const char* debug_message)
  **************TIME FUNCTION****************
  *******************************************/
 
-unsigned long long int current_timestamp()
+unsigned long long current_timestamp()
 {
 	struct timespec now;
 	_starpu_clock_gettime(&now);

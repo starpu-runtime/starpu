@@ -197,7 +197,6 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->last_submitted_ghost_readers_id = NULL;
 #endif
 
-		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			struct _starpu_data_replicate *initial_replicate;
