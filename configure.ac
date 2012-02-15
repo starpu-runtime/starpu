@@ -1298,10 +1298,10 @@ AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
 AC_PATH_XTRA
-if test "x$x_includes" != "xNONE"; then
+if test "x$no_x" != "xyes"; then
 	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
 fi
-AM_CONDITIONAL([HAVE_X11], [test "x$x_includes" != "xNONE"])
+AM_CONDITIONAL([HAVE_X11], [test "x$no_x" != "xyes"])
 
 # In case there are BLAS kernels that are used by the example applications
 # we may specify which library to use. Note that this is not used for StarPU
