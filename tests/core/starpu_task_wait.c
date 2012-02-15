@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 #ifdef STARPU_SLOW_MACHINE
-	ntasks /= 100;
+	ntasks /= 1024;
 #endif
 
 	ret = starpu_init(NULL);
