@@ -37,7 +37,6 @@ static struct starpu_codelet cuda_only_cl =
 	.model = NULL,
 	.nbuffers = 0
 };
-#endif
 
 int main(int argc, char **argv)
 {
