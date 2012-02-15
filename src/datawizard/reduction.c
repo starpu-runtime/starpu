@@ -187,7 +187,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		struct starpu_task *last_replicate_deps[replicate_count];
 		memset(last_replicate_deps, 0, replicate_count*sizeof(struct starpu_task *));
 		struct starpu_task *redux_tasks[replicate_count];
-		memset(redux_tasks, 0, replicate_count*sizeof(struct starpu_task *));
 
 		/* Redux step-by-step for step from 1 to replicate_count/2, i.e.
 		 * 1-by-1, then 2-by-2, then 4-by-4, etc. */
@@ -241,7 +240,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					 * this task : it will be submitted
 					 * later. */
 					redux_tasks[redux_task_idx++] = redux_task;
-
 				}
 			}
 		}
