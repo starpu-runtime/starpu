@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -595,65 +595,10 @@ int axpy_kernel(starpu_data_handle_t v1,
 	return 0;
 }
 
-
-/*
- *	COPY kernel : vector_dst <- vector_src
- */
-
-static void copy_handle_cpu(void *descr[], void *cl_arg)
-{
-	TYPE *dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	TYPE *src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
-	
-	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
-	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
-
-	memcpy(dst, src, nx*elemsize);
-}
-
-#ifdef STARPU_USE_CUDA
-static void copy_handle_cuda(void *descr[], void *cl_arg)
-{
-	TYPE *dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	TYPE *src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
-	
-	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
-	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
-
-	cudaMemcpyAsync(dst, src, nx*elemsize, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
-}
-#endif
-
-static struct starpu_perfmodel copy_handle_model =
-{
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "copy_handle"
-};
-
-static struct starpu_codelet copy_handle_cl =
-{
-	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {copy_handle_cpu, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {copy_handle_cuda, NULL},
-#endif
-	.nbuffers = 2,
-	.model = &copy_handle_model
-};
-
 int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
 {
-	int ret;
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
-	{
-		ret = starpu_insert_task(&copy_handle_cl,
-					 STARPU_W, starpu_data_get_sub_data(dst, 1, b),
-					 STARPU_R, starpu_data_get_sub_data(src, 1, b),
-					 0);
-		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
-	}
+		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, b), starpu_data_get_sub_data(src, 1, b), 1, NULL, NULL);
 	return 0;
 }
