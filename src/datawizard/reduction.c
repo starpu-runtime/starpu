@@ -217,8 +217,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					redux_task->handles[1] = replicate_array[i+step];
 					redux_task->cl->modes[1] = STARPU_R;
 
-					redux_task->detach = 0;
-
 					int ndeps = 0;
 					struct starpu_task *task_deps[2];
 
