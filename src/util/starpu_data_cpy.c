@@ -18,6 +18,7 @@
 #include <common/config.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
+#include "starpu_data_cpy.h"
 
 static void data_cpy_func(void *descr[], void *cl_arg)
 {
@@ -68,7 +69,6 @@ static struct starpu_codelet copy_cl =
 	.model = &copy_model
 };
 
-static
 int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
 		     int asynchronous, void (*callback_func)(void*), void *callback_arg,
 		     int reduction, struct starpu_task *reduction_dep_task)
