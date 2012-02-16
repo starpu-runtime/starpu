@@ -89,6 +89,8 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 
 	_starpu_cg_list_init(&job->job_successors);
 
+	job->implicit_dep_handle = NULL;
+
 	_STARPU_PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&job->sync_cond, NULL);
 
@@ -144,17 +146,13 @@ void _starpu_wait_job(struct _starpu_job *j)
         _STARPU_LOG_OUT();
 }
 
-void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_already_locked)
+void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 
-	if (!job_is_already_locked)
-		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
-
-	/* in case there are dependencies, wake up the proper tasks */
-	_starpu_notify_dependencies(j);
 
 	/* We must have set the j->terminated flag early, so that it is
 	 * possible to express task dependencies within the callback
@@ -162,8 +160,16 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 	 * the callback is not done yet. */
 	j->terminated = 1;
 
-	if (!job_is_already_locked)
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	/* Task does not have a cl, but has explicit data dependencies, we need
+	 * to tell them that we will not exist any more before notifying the
+	 * tasks waiting for us */
+	if (j->implicit_dep_handle)
+		_starpu_release_data_enforce_sequential_consistency(j->task, j->implicit_dep_handle);
+
+	/* in case there are dependencies, wake up the proper tasks */
+	_starpu_notify_dependencies(j);
 
 	/* the callback is executed after the dependencies so that we may remove the tag
  	 * of the task itself */
@@ -208,27 +214,23 @@ void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_alrea
 	int detach = task->detach;
 	int regenerate = task->regenerate;
 
-	if (!detach)
-	{
-		/* we do not desallocate the job structure if some is going to
-		 * wait after the task */
-		if (!job_is_already_locked)
-			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-		/* A value of 2 is put to specify that not only the codelet but
-		 * also the callback were executed. */
-		j->terminated = 2;
-		_STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
+	/* we do not desallocate the job structure if some is going to
+	 * wait after the task */
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	/* A value of 2 is put to specify that not only the codelet but
+	 * also the callback were executed. */
+	j->terminated = 2;
+	_STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 
-		if (!job_is_already_locked)
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-	}
-	else
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	if (detach)
 	{
 		/* no one is going to synchronize with that task so we release
 		 * the data structures now. In case the job was already locked
 		 * by the caller, it is its responsability to destroy the task.
 		 * */
-		if (!job_is_already_locked && destroy)
+		if (destroy)
 			_starpu_task_destroy(task);
 	}
 
@@ -281,17 +283,11 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	return ret;
 }
 
-#ifdef STARPU_DEVEL
-#warning TODO remove the job_is_already_locked parameter
-#endif
-static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j, unsigned job_is_already_locked)
+static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 {
 	unsigned ret;
 
 	struct _starpu_cg_list *job_successors = &j->job_successors;
-
-	if (!job_is_already_locked)
-		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
@@ -306,20 +302,17 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j, u
 		ret = 0;
 	}
 
-	if (!job_is_already_locked)
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
 	return ret;
 }
 
 /*
  *	In order, we enforce tag, task and data dependencies. The task is
  *	passed to the scheduler only once all these constraints are fulfilled.
+ *
+ *	The job mutex has to be taken for atomicity with task submission, and
+ *	is released here.
  */
-#ifdef STARPU_DEVEL
-#warning TODO remove the job_is_already_locked parameter
-#endif
-unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_is_already_locked)
+unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 {
 	unsigned ret;
         _STARPU_LOG_IN();
@@ -327,16 +320,19 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_i
 	/* enfore tag dependencies */
 	if (_starpu_not_all_tag_deps_are_fulfilled(j))
 	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
                 _STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
         }
 
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked))
+	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
                 _STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
         }
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
 	if (_starpu_submit_job_enforce_data_deps(j))
@@ -345,29 +341,31 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_i
 		return 0;
         }
 
-	ret = _starpu_push_task(j, job_is_already_locked);
+	ret = _starpu_push_task(j);
 
         _STARPU_LOG_OUT();
 	return ret;
 }
 
 /* Tag deps are already fulfilled */
-#ifdef STARPU_DEVEL
-#warning TODO remove the job_is_already_locked parameter
-#endif
-unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j, unsigned job_is_already_locked)
+unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 {
 	unsigned ret;
 
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked))
+	if (_starpu_not_all_task_deps_are_fulfilled(j))
+	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		return 0;
+	}
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
 	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
-	ret = _starpu_push_task(j, job_is_already_locked);
+	ret = _starpu_push_task(j);
 
 	return ret;
 }

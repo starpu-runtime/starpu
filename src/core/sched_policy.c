@@ -290,7 +290,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 }
 
 /* the generic interface that call the proper underlying implementation */
-int _starpu_push_task(struct _starpu_job *j, unsigned job_is_already_locked)
+int _starpu_push_task(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
         _STARPU_LOG_IN();
@@ -304,7 +304,7 @@ int _starpu_push_task(struct _starpu_job *j, unsigned job_is_already_locked)
 	 * corresponding dependencies */
 	if (task->cl == NULL)
 	{
-		_starpu_handle_job_termination(j, job_is_already_locked);
+		_starpu_handle_job_termination(j);
                 _STARPU_LOG_OUT_TAG("handle_job_termination");
 		return 0;
 	}

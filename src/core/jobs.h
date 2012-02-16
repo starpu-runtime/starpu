@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -80,6 +80,11 @@ LIST_TYPE(_starpu_job,
 	 * */
 	struct _starpu_cg_list job_successors;
 
+	/* For tasks with cl==NULL but submitted with explicit data dependency,
+	 * the handle for this dependency, so as to remove the task from the
+	 * last_writer/readers */
+	starpu_data_handle_t implicit_dep_handle;
+
 	/* The value of the footprint that identifies the job may be stored in
 	 * this structure. */
 	unsigned footprint_is_computed;
@@ -142,13 +147,13 @@ void _starpu_wait_job(struct _starpu_job *j);
 void _starpu_exclude_task_from_dag(struct starpu_task *task);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
-unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j, unsigned job_is_already_locked);
-unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j, unsigned job_is_already_locked);
+unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j);
+unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 
 
 /* This function must be called after the execution of a job, this triggers all
  * job's dependencies and perform the callback function if any. */
-void _starpu_handle_job_termination(struct _starpu_job *j, unsigned job_is_already_locked);
+void _starpu_handle_job_termination(struct _starpu_job *j);
 
 /* Get the sum of the size of the data accessed by the job. */
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j);

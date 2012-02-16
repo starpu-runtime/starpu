@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,12 +33,23 @@
 
 struct _starpu_job;
 
-/* Completion Group list */
+/* Completion Group list, records both the number of expected notifications
+ * before the completion can start, and the list of successors when the
+ * completion is finished. */
 struct _starpu_cg_list
 {
-	unsigned nsuccs; /* how many successors ? */
+	/* Protects atomicity of the list and the terminated flag */
+	struct _starpu_spinlock lock;
+
+	/* Number of notifications to be waited for */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
+
+	/* Whether the completion is finished. */
+	unsigned terminated;
+
+	/* List of successors */
+	unsigned nsuccs; /* how many successors ? */
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	unsigned succ_list_size;
 	struct _starpu_cg **succ;
@@ -85,7 +96,7 @@ struct _starpu_cg
 
 void _starpu_cg_list_init(struct _starpu_cg_list *list);
 void _starpu_cg_list_deinit(struct _starpu_cg_list *list);
-void _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg);
+int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg);
 void _starpu_notify_cg(struct _starpu_cg *cg);
 void _starpu_notify_cg_list(struct _starpu_cg_list *successors);
 void _starpu_notify_task_dependencies(struct _starpu_job *j);

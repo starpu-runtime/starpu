@@ -212,18 +212,12 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
+	/* Need to atomically set submitted to 1 and check dependencies, since
+	 * this is concucrent with _starpu_notify_cg */
 	j->terminated = 0;
 	j->submitted = 1;
 
-	int ret = _starpu_enforce_deps_and_schedule(j, 1);
-	int must_destroy = j->terminated > 0 && j->task->destroy && j->task->detach;
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
-	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
-
-	if (must_destroy)
-		_starpu_task_destroy(j->task);
+	int ret = _starpu_enforce_deps_and_schedule(j);
 
         _STARPU_LOG_OUT();
         return ret;
@@ -435,8 +429,6 @@ int starpu_task_submit(struct starpu_task *task)
  * skipping dependencies completely (when it knows what it is doing).  */
 int _starpu_task_submit_nodeps(struct starpu_task *task)
 {
-	int ret;
-
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
@@ -467,18 +459,9 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 		}
 	}
 
-	ret = _starpu_push_task(j, 1);
-
-	int must_destroy = j->terminated > 0 && j->task->destroy && j->task->detach;
-
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
-
-	if (must_destroy)
-		_starpu_task_destroy(j->task);
-
-	return ret;
+	return _starpu_push_task(j);
 }
 
 /*

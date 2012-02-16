@@ -63,6 +63,9 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 		_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 	}
+
+	if (!pre_sync_task->cl)
+		_starpu_get_job_associated_to_task(pre_sync_task)->implicit_dep_handle = handle;
 }
 
 /* Write after Read (WAR) */
@@ -125,7 +128,10 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 	handle->last_submitted_readers = NULL;
 	handle->last_submitted_writer = post_sync_task;
 
+	if (!post_sync_task->cl)
+		_starpu_get_job_associated_to_task(post_sync_task)->implicit_dep_handle = handle;
 }
+
 /* Write after Write (WAW) */
 static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
 {
@@ -164,18 +170,9 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 	}
 
 	handle->last_submitted_writer = post_sync_task;
-}
 
-static void disable_last_writer_callback(void *cl_arg)
-{
-	starpu_data_handle_t handle = (starpu_data_handle_t) cl_arg;
-
-	/* NB: we don't take the handle->sequential_consistency_mutex mutex
-	 * because the empty task that is used for synchronization is going to
-	 * be unlock in the context of a call to
-	 * _starpu_detect_implicit_data_deps_with_handle. It will therefore
-	 * already have been locked. */
-	handle->last_submitted_writer = NULL;
+	if (!post_sync_task->cl)
+		_starpu_get_job_associated_to_task(post_sync_task)->implicit_dep_handle = handle;
 }
 
 /* This function adds the implicit task dependencies introduced by data
@@ -185,10 +182,13 @@ static void disable_last_writer_callback(void *cl_arg)
  * introduced by a task submission, both tasks are just the submitted task, but
  * in the case of user interactions with the DSM, these may be different tasks.
  * */
-/* NB : handle->sequential_consistency_mutex must be hold by the caller */
-void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
+/* NB : handle->sequential_consistency_mutex must be hold by the caller;
+ * returns a task, to be submitted after releasing that mutex. */
+struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
 						   starpu_data_handle_t handle, enum starpu_access_mode mode)
 {
+	struct starpu_task *task = NULL;
+
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();
 
@@ -200,7 +200,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 		/* Skip tasks that are associated to a reduction phase so that
 		 * they do not interfere with the application. */
 		if (pre_sync_job->reduction_task || post_sync_job->reduction_task)
-			return;
+			return NULL;
 
 		_STARPU_DEP_DEBUG("Tasks %p %p\n", pre_sync_task, post_sync_task);
 		/* In case we are generating the DAG, we add an implicit
@@ -257,21 +257,20 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				new_sync_task = starpu_task_create();
 				STARPU_ASSERT(new_sync_task);
 				new_sync_task->cl = NULL;
-				new_sync_task->callback_func = disable_last_writer_callback;
-				new_sync_task->callback_arg = handle;
 #ifdef STARPU_USE_FXT
 				_starpu_get_job_associated_to_task(new_sync_task)->model_name = "sync_task_redux";
 #endif
 
 				_starpu_add_writer_after_readers(handle, new_sync_task, new_sync_task);
 
-				starpu_task_submit(new_sync_task);
+				task = new_sync_task;
 			}
 			_starpu_add_reader_after_writer(handle, pre_sync_task, post_sync_task);
 		}
 		handle->last_submitted_mode = mode;
 	}
         _STARPU_LOG_OUT();
+	return task;
 }
 
 /* Create the implicit dependencies for a newly submitted task */
@@ -293,14 +292,17 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	{
 		starpu_data_handle_t handle = task->handles[buffer];
 		enum starpu_access_mode mode = task->cl->modes[buffer];
+		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
 		if (mode & STARPU_SCRATCH)
 			continue;
 
 		_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		_starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		if (new_task)
+			starpu_task_submit(new_task);
 	}
         _STARPU_LOG_OUT();
 }
@@ -313,6 +315,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
  * sequence, f(Ar) g(Ar) h(Aw), we expect to have h depend on both f and g, but
  * if h is submitted after the termination of f or g, StarPU will not create a
  * dependency as this is not needed anymore. */
+/* the sequential_consistency_mutex of the handle has to be already held */
 void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle_t handle)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -465,7 +468,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)
 	{
-		struct starpu_task *sync_task;
+		struct starpu_task *sync_task, *new_task;
 		sync_task = starpu_task_create();
 		sync_task->detach = 0;
 		sync_task->destroy = 1;
@@ -475,8 +478,11 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */
-		_starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+
+		if (new_task)
+			starpu_task_submit(new_task);
 
 		/* TODO detect if this is superflous */
 		int ret = starpu_task_submit(sync_task);

@@ -41,18 +41,13 @@ static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 	return cg;
 }
 
-/* the job lock must be taken */
 static void _starpu_task_add_succ(struct _starpu_job *j, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(j);
 
-	_starpu_add_successor_to_cg_list(&j->job_successors, cg);
-
-	if (j->terminated)
-	{
+	if (_starpu_add_successor_to_cg_list(&j->job_successors, cg))
 		/* the task was already completed sooner */
 		_starpu_notify_cg(cg);
-	}
 }
 
 void _starpu_notify_task_dependencies(struct _starpu_job *j)
@@ -73,9 +68,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 	if (check)
 		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission");
 	else
-		STARPU_ASSERT_MSG(!job->terminated, "Task dependencies have to be set before termination");
-
-	_STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
+		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination");
 
 	struct _starpu_cg *cg = create_cg_task(ndeps, job);
 
@@ -91,17 +84,13 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		if (check)
 			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || dep_job->task->detach, "Task dependencies have to be set before submission");
 		else
-			STARPU_ASSERT_MSG(!dep_job->terminated, "Task dependencies have to be set before termination");
+			STARPU_ASSERT_MSG(dep_job->terminated <= 1, "Task dependencies have to be set before termination");
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
 
-		_STARPU_PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
 		_starpu_task_add_succ(dep_job, cg);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 	}
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 }
 
 void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])

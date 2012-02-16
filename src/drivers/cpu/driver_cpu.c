@@ -148,7 +148,7 @@ void *_starpu_cpu_worker(void *arg)
 		if (!_STARPU_CPU_MAY_PERFORM(j))
 		{
 			/* put it and the end of the queue ... XXX */
-			_starpu_push_task(j, 0);
+			_starpu_push_task(j);
 			continue;
 		}
 
@@ -197,7 +197,7 @@ void *_starpu_cpu_worker(void *arg)
 			switch (res)
 			{
 				case -EAGAIN:
-					_starpu_push_task(j, 0);
+					_starpu_push_task(j);
 					continue;
 				default:
 					STARPU_ASSERT(0);
@@ -205,7 +205,7 @@ void *_starpu_cpu_worker(void *arg)
 		}
 
 		if (rank == 0)
-			_starpu_handle_job_termination(j, 0);
+			_starpu_handle_job_termination(j);
         }
 
 	_STARPU_TRACE_WORKER_DEINIT_START

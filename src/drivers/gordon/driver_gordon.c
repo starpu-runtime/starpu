@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -177,7 +177,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 static void handle_terminated_job(struct _starpu_job *j)
 {
 	_starpu_push_task_output(j, 0);
-	_starpu_handle_job_termination(j, 0);
+	_starpu_handle_job_termination(j);
 	starpu_wake_all_blocked_workers();
 }
 
@@ -215,7 +215,7 @@ static void gordon_callback_list_func(void *arg)
 		}
 
 		_starpu_push_task_output(j, 0);
-		_starpu_handle_job_termination(j, 0);
+		_starpu_handle_job_termination(j);
 		//starpu_wake_all_blocked_workers();
 
 		task_cnt++;
@@ -420,7 +420,7 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 				}
 				else
 				{
-					_starpu_push_task(j, 0);
+					_starpu_push_task(j);
 				}
 			}
 #endif

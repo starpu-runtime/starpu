@@ -171,19 +171,8 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	 * lock again, resulting in a deadlock. */
 	_starpu_spin_unlock(&tag->lock);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-
 	/* enforce data dependencies */
-	_starpu_enforce_deps_starting_from_task(j, 1);
-
-	int must_destroy = j->terminated > 0 && j->task->destroy && j->task->detach;
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
-	/* If the task terminated immediately (cl == NULL), we have to destroy it ourself */
-
-	if (must_destroy)
-		_starpu_task_destroy(j->task);
+	_starpu_enforce_deps_starting_from_task(j);
 
 	_starpu_spin_lock(&tag->lock);
 }
