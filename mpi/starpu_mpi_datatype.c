@@ -138,7 +138,7 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype
 {
 	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
 
-	STARPU_ASSERT_MSG(id > STARPU_MULTIFORMAT_INTERFACE_ID, "Unknown data interface");
+	STARPU_ASSERT_MSG(id <= STARPU_MULTIFORMAT_INTERFACE_ID, "Unknown data interface");
 
 	handle_to_datatype_func func = handle_to_datatype_funcs[id];
 
