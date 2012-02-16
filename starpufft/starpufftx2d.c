@@ -806,6 +806,7 @@ if (PARALLEL) {
 
 	/* Create FFT task */
 	task = starpu_task_create();
+	task->detach = 0;
 	task->cl = &STARPUFFT(fft_2d_codelet);
 	task->handles[0] = in;
 	task->handles[1] = out;
