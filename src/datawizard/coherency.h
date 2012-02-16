@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -62,7 +62,8 @@ LIST_TYPE(_starpu_data_replicate,
 
 	/* is the data locally allocated ? */
 	uint8_t allocated;
-	/* was it automatically allocated ? */
+	/* was it automatically allocated ? (else it's the application-provided
+	 * buffer, don't ever try to free it!) */
 	/* perhaps the allocation was perform higher in the hiearchy
 	 * for now this is just translated into !automatically_allocated
 	 * */
