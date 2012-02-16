@@ -25,6 +25,10 @@ dist_bin_SCRIPTS =
 
 dist_pkgdata_DATA = gdbinit
 
+EXTRA_DIST =					\
+  dev/rename.sed				\
+  dev/rename.sh
+
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 bin_PROGRAMS += starpu_calibrate_bus
