@@ -715,11 +715,10 @@ Other parallel libraries are also not safe when being invoked concurrently
 from different threads, due to the use of global variables in their sequential
 sections for instance.
 
-The solution is then to use only a single combined worker, scoping all
-the CPUs.  This can be done by setting @code{single_combined_worker}
-to 1 in the @code{starpu_conf} structure, or setting the
-@code{STARPU_SINGLE_COMBINED_WORKER} environment variable to 1. StarPU will then
-use parallel tasks only over all the CPUs at the same time.
+The solution is then to use only one combined worker at a time.  This can be
+done by setting @code{single_combined_worker} to 1 in the @code{starpu_conf}
+structure, or setting the @code{STARPU_SINGLE_COMBINED_WORKER} environment
+variable to 1. StarPU will then run only one parallel task at a time.
 
 @node Debugging
 @section Debugging
