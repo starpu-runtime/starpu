@@ -72,6 +72,8 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 	if (check)
 		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission");
+	else
+		STARPU_ASSERT_MSG(!job->terminated, "Task dependencies have to be set before termination");
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 
@@ -88,6 +90,8 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		STARPU_ASSERT_MSG(dep_job != job, "A task must not depend on itself.");
 		if (check)
 			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || dep_job->task->detach, "Task dependencies have to be set before submission");
+		else
+			STARPU_ASSERT_MSG(!dep_job->terminated, "Task dependencies have to be set before termination");
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
