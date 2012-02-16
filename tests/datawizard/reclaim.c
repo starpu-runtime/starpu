@@ -88,6 +88,8 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_SLOW_MACHINE
 	mb /= 100;
+	if (mb == 0)
+		mb = 1;
 	ntasks /= 100;
 #endif
 
