@@ -290,7 +290,7 @@ static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 static void allocate_new_variable(starpu_data_handle_t handle, void **data_interface)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)malloc(sizeof(struct starpu_variable_interface));
-	variable_interface->ptr = NULL;
+	variable_interface->ptr = (uintptr_t) NULL;
 	variable_interface->elemsize = handle->ops->get_size(handle);
 	*data_interface = variable_interface;
 }
