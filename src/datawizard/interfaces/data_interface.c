@@ -34,6 +34,7 @@ struct handle_entry
 /* Hash table mapping host pointers to data handles.  */
 static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
+static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
 
 void _starpu_data_interface_init()
 {
@@ -582,4 +583,10 @@ enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
 	return handle->per_node[memory_node].data_interface;
+}
+
+int starpu_data_interface_get_next_id()
+{
+	_data_interface_number += 1;
+	return _data_interface_number-1;
 }

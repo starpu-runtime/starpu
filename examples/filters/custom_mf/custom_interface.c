@@ -96,8 +96,7 @@ static void     display_custom_interface(starpu_data_handle_t handle, FILE *f);
 static uint32_t custom_get_nx(starpu_data_handle_t handle);
 
 
-static struct starpu_multiformat_data_interface_ops*
-get_mf_ops(void *data_interface)
+static struct starpu_multiformat_data_interface_ops*get_mf_ops(void *data_interface)
 {
 	struct custom_data_interface *custom;
 	custom = (struct custom_data_interface *) data_interface;
@@ -118,7 +117,7 @@ static struct starpu_data_interface_ops interface_custom_ops =
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon     = NULL,
 #endif
-	.interfaceid           = STARPU_NINTERFACES_ID+1, //XXX
+	.interfaceid           = -1,
 	.interface_size        = sizeof(struct custom_data_interface),
 	.display               = display_custom_interface,
 	.is_multiformat        = 1,
@@ -372,6 +371,9 @@ void custom_data_register(starpu_data_handle_t *handle,
 		.ops = format_ops
 	};
 
+	if (interface_custom_ops.interfaceid == -1) {
+		interface_custom_ops.interfaceid = starpu_data_interface_get_next_id();
+	}
 	starpu_data_register(handle, home_node, &custom, &interface_custom_ops);
 }
 

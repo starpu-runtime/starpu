@@ -97,7 +97,7 @@ enum starpu_data_interface_id
 	STARPU_VARIABLE_INTERFACE_ID=5,
 	STARPU_VOID_INTERFACE_ID=6,
 	STARPU_MULTIFORMAT_INTERFACE_ID=7,
-	STARPU_NINTERFACES_ID=8 /* number of data interfaces */
+	STARPU_MAX_INTERFACE_ID=8 /* maximum number of data interfaces */
 };
 
 struct starpu_data_interface_ops
@@ -136,6 +136,9 @@ struct starpu_data_interface_ops
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 };
+
+/* Return the next available id for a data interface */
+int starpu_data_interface_get_next_id();
 
 void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, void *data_interface, struct starpu_data_interface_ops *ops);
 
