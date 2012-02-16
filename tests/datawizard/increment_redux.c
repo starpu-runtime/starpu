@@ -248,12 +248,18 @@ int main(int argc, char **argv)
 
 		ret = starpu_data_acquire(handle, STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-		STARPU_ASSERT(var == ntasks*(loop + 1));
+		if (var != ntasks * (loop+1))
+		{
+			starpu_data_release(handle);
+			starpu_data_unregister(handle);
+			goto err;
+		}
 		starpu_data_release(handle);
 	}
 
 	starpu_data_unregister(handle);
-	STARPU_ASSERT(var == ntasks*nloops);
+	if (var != ntasks * nloops)
+		goto err;
 
 	starpu_shutdown();
 
@@ -266,4 +272,9 @@ enodev:
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
+
+err:
+	starpu_shutdown();
+	STARPU_RETURN(EXIT_FAILURE);
+
 }
