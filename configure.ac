@@ -417,13 +417,16 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     # Check cuda is compatible with the C compiler
     AC_MSG_CHECKING(whether CUDA is working)
     if test "$have_valid_cuda" = "yes" ; then
-	AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+        SAVED_CPPFLAGS="${CPPFLAGS}"
+        CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <cuda.h>]],
 		[[]]
 		),
 	    [have_valid_cuda="yes"],
-	    [have_valid_cuda="no"],
-	)
+	    [have_valid_cuda="no"]
+	])
+        CPPFLAGS="${SAVED_CPPFLAGS}"
     fi
     AC_MSG_RESULT($have_valid_cuda)
 
@@ -1531,8 +1534,8 @@ AC_CHECK_PROGS([ICC], [icc])
 # If cuda and icc are both available, check they are compatible
 if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    AC_MSG_CHECKING(whether CUDA and ICC are compatible)
-   OLD_CC=$CC
-   CC=$ICC
+   OLD_CC="$CC"
+   CC="$ICC"
    AC_COMPILE_IFELSE(
        AC_LANG_PROGRAM(
 	   [[#include <cuda.h>]],
@@ -1542,7 +1545,7 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
        [ICC=""
            AC_MSG_RESULT(no)]
    )
-   CC=$OLD_ICC
+   CC="$OLD_CC"
 fi
 
 # Disable ICC on windows
