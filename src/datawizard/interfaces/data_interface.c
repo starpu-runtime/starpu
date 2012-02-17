@@ -523,13 +523,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct _starpu_data_replicate *local = &handle->per_node[node];
-
-		if (local->allocated && local->automatically_allocated)
-		{
-			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, node);
-		}
+		/* free the data copy in a lazy fashion */
+		_starpu_request_mem_chunk_removal(handle, node);
 	}
 
 	_starpu_data_requester_list_delete(handle->req_list);
