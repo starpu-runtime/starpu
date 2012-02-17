@@ -126,7 +126,7 @@ static void init_context(int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (props[devid].computeMode == cudaComputeModeExclusive) {
-		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer\n");
+		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ASSERT(0);
 	}
 #endif
