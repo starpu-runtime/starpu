@@ -54,6 +54,11 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+
+#ifdef STARPU_HAVE_VALGRIND_H
+	if(RUNNING_ON_VALGRIND) return STARPU_TEST_SKIPPED;
+#endif
+
 	unsigned i;
 	double timing;
 	struct timeval start;
