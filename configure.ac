@@ -414,6 +414,19 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
         fi
     fi
 
+    # Check cuda is compatible with the C compiler
+    AC_MSG_CHECKING(whether CUDA is working)
+    if test "$have_valid_cuda" = "yes" ; then
+	AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+		[[#include <cuda.h>]],
+		[[]]
+		),
+	    [have_valid_cuda="yes"],
+	    [have_valid_cuda="no"],
+	)
+    fi
+    AC_MSG_RESULT($have_valid_cuda)
+
     # in case CUDA was explicitely required, but is not available, this is an error
     if test x$enable_cuda = xyes -a x$have_valid_cuda = xno; then
 	AC_MSG_ERROR([cannot find CUDA])
@@ -1518,16 +1531,20 @@ AC_CHECK_PROGS([ICC], [icc])
 # If cuda and icc are both available, check they are compatible
 if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    AC_MSG_CHECKING(whether CUDA and ICC are compatible)
+   OLD_CC=$CC
+   CC=$ICC
    AC_COMPILE_IFELSE(
        AC_LANG_PROGRAM(
 	   [[#include <cuda.h>]],
 	   [[]]
 	   ),
        AC_MSG_RESULT(yes),
-       [ICC="" 
+       [ICC=""
            AC_MSG_RESULT(no)]
    )
+   CC=$OLD_ICC
 fi
+
 # Disable ICC on windows
 if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
     ICC=""
