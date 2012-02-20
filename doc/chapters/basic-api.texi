@@ -1472,9 +1472,12 @@ by the task have to be freed by calling
 @end deftypefun
 
 @deftypefun void starpu_task_deinit ({struct starpu_task} *@var{task})
-Release all the structures automatically allocated to execute @var{task}. This is
-called automatically by @code{starpu_task_destroy}, but the task structure itself is not
-freed. This should be used for statically allocated tasks for instance.
+Release all the structures automatically allocated to execute @var{task}, but
+not the task structure itself. It is thus useful for statically allocated tasks
+for instance.  It is called automatically by @code{starpu_task_destroy}.  It
+has to be called only after explicitly waiting for the task (waiting for the
+callback is not enough, since starpu still manipulates the task after calling
+the callback).
 @end deftypefun
 
 @deftypefun void starpu_task_destroy ({struct starpu_task} *@var{task})

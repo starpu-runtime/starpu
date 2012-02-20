@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -118,7 +118,10 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
 
+	/* Do not cleanup the statically allocated tasks, as StarPU is still working on it after the callback */
+#if 0
 	starpu_task_deinit(&task);
+#endif
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
