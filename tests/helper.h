@@ -50,7 +50,14 @@
 #endif
 
 #ifdef STARPU_HAVE_VALGRIND_H
-#  define STARPU_RETURN(ret) do { if(RUNNING_ON_VALGRIND) return 0; else return ret; } while(0)
+#  define STARPU_RETURN(ret) \
+	do {								\
+		if(RUNNING_ON_VALGRIND) {				\
+			FPRINTF(stderr, "Running on valgrind, ignoring return value\n"); \
+			return 0;					\
+		} \
+		else return ret; \
+	} while(0)
 #else
 #  define STARPU_RETURN(ret) return ret
 #endif
