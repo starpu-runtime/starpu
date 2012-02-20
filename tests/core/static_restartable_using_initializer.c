@@ -67,6 +67,9 @@ int main(int argc, char **argv)
 #ifdef STARPU_SLOW_MACHINE
 	ntasks /= 100;
 #endif
+#ifdef STARPU_HAVE_VALGRIND_H
+	if(RUNNING_ON_VALGRIND) ntasks = 5;
+#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

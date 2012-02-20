@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	ret = check_cpu(cpu_init*3, cpu_init+1, cpu_init*3, &cpu);
 	if (ret) return ret;
 
-	return ret;
+	STARPU_RETURN(ret);
 }
 
  #endif
