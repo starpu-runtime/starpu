@@ -303,7 +303,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_data_penalty[worker_ctx] = starpu_task_expected_data_transfer_time(memory_node, task);
 				local_power[worker_ctx] = starpu_task_expected_power(task, perf_arch, nimpl);
 				//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker_ctx],local_power[worker_ctx],worker,nimpl);
-				//				printf("%d/%d: task length (%lf) exp_end (%lf) local_data_penalty (%lf)\n", worker, worker_ctx, local_task_length[worker_ctx], (exp_start[worker] + exp_len[worker] + local_task_length[worker_ctx]), local_data_penalty[worker_ctx]);
 			}
 			
 			double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
@@ -468,7 +467,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	if(workers->init_cursor)
 		workers->deinit_cursor(workers);
-
 	return push_task_on_best_worker(task, best, model_best, prio, sched_ctx_id);
 }
 

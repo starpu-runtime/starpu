@@ -135,6 +135,14 @@ void starpu_fxt_write_paje_header(FILE *file)
 	3       S       T       \"Thread State\"                        \n \
 	3       Ctx1      T     \"InCtx1\"         		\n \
 	3       Ctx2      T     \"InCtx2\"         		\n \
+	3       Ctx3      T     \"InCtx3\"         		\n \
+	3       Ctx4      T     \"InCtx4\"         		\n \
+	3       Ctx5      T     \"InCtx5\"         		\n \
+	3       Ctx6      T     \"InCtx6\"         		\n \
+	3       Ctx7      T     \"InCtx7\"         		\n \
+	3       Ctx8      T     \"InCtx8\"         		\n \
+	3       Ctx9      T     \"InCtx9\"         		\n \
+	3       Ctx10     T     \"InCtx10\"         		\n \
 	3       MS       Mn       \"Memory Node State\"                        \n \
 	4       ntask    Sc       \"Number of tasks\"                        \n \
 	4       bw      Mn       \"Bandwidth\"                        \n \
@@ -162,6 +170,70 @@ void starpu_fxt_write_paje_header(FILE *file)
 	6       B       Ctx2       Blocked         \".9 .1 .0\"		\n \
 	6       Sl       Ctx2      Sleeping         \".9 .1 .0\"		\n \
 	6       P       Ctx2       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx3      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx3      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx3      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx3      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx3       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx3       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx3      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx3       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx4      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx4      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx4      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx4      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx4       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx4       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx4      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx4       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx5      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx5      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx5      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx5      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx5       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx5       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx5      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx5       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx6      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx6      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx6      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx6      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx6       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx6       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx6      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx6       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx7      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx7      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx7      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx7      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx7       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx7       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx7      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx7       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx8      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx8      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx8      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx8      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx8       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx8       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx8      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx8       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx9      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx9      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx9      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx9      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx9       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx9       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx9      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx9       Progressing         \".4 .1 .6\"		\n \
+	6       I       Ctx10      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       Ctx10      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       Ctx10      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       Ctx10      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       C       Ctx10       Callback       \".0 .3 .8\"            \n \
+	6       B       Ctx10       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       Ctx10      Sleeping         \".9 .1 .0\"		\n \
+	6       P       Ctx10       Progressing         \".4 .1 .6\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \

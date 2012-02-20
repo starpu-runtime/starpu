@@ -7,9 +7,9 @@ static unsigned list_has_next(struct worker_collection *workers)
 
 	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
 
-	unsigned ret = *cursor < nworkers;
+	unsigned ret = cursor ? *cursor < nworkers : 0;
 
-	if(!ret) *cursor = 0;
+	if(!ret && cursor) *cursor = 0;
 
 	return ret;
 }

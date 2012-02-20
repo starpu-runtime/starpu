@@ -23,7 +23,6 @@ static struct policy_config* _create_config(void)
 
 static void _update_config(struct policy_config *old, struct policy_config* new)
 {
-	printf("new = %d old = %d\n", new->max_nworkers, old->max_nworkers);
 	old->min_nworkers = new->min_nworkers != -1 ? new->min_nworkers : old->min_nworkers ;
 	old->max_nworkers = new->max_nworkers != -1 ? new->max_nworkers : old->max_nworkers ;
 	old->new_workers_max_idle = new->new_workers_max_idle != -1.0 ? new->new_workers_max_idle : old->new_workers_max_idle;

@@ -103,7 +103,5 @@ double sched_ctx_hypervisor_get_flops_left(unsigned sched_ctx);
 #define GFLOPS_RATE_POLICY 3
 
 struct hypervisor_policy {
-	void (*manage_idle_time)(unsigned req_sched_ctx, int worker, double idle_time);
-	void (*manage_gflops_rate)(unsigned sched_ctx);
-	unsigned (*resize)(unsigned sched_ctx, int *sched_ctxs, unsigned nsched_ctxs);
+	unsigned (*resize)(unsigned sched_ctx);
 };
