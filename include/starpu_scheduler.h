@@ -127,17 +127,16 @@ struct worker_collection {
 
 #define WORKER_LIST 0
 
-struct starpu_sched_ctx_hypervisor_criteria {
-	void (*idle_time_cb)(unsigned sched_ctx, int worker, double idle_time);
-	void (*reset_idle_time_cb)(unsigned sched_ctx, int worker);
-	void (*working_time_cb)(unsigned sched_ctx, double working_time);
-	void (*pushed_task_cb)(unsigned sched_ctx, int worker);
-	void (*poped_task_cb)(unsigned sched_ctx, int worker, double flops);
-	void (*post_exec_hook_cb)(unsigned sched_ctx, int taskid);
+struct starpu_performance_counters {
+	void (*notify_idle_cycle)(unsigned sched_ctx, int worker, double idle_time);
+	void (*notify_idle_end)(unsigned sched_ctx, int worker);
+	void (*notify_pushed_task)(unsigned sched_ctx, int worker);
+	void (*notify_poped_task)(unsigned sched_ctx, int worker, double flops);
+	void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid);
 };
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
-unsigned starpu_create_sched_ctx_with_criteria(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name, struct starpu_sched_ctx_hypervisor_criteria **criteria);
+unsigned starpu_create_sched_ctx_with_perf_counters(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name, struct starpu_performance_counters **perf_counters);
 void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops);
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_BUILD_SCHED_CTX_HYPERVISOR

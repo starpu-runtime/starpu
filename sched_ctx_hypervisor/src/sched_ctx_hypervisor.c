@@ -1,7 +1,7 @@
 #include <sched_ctx_hypervisor_intern.h>
 
 unsigned imposed_resize = 0;
-struct starpu_sched_ctx_hypervisor_criteria* criteria = NULL;
+struct starpu_performance_counters* perf_counters = NULL;
 
 extern struct hypervisor_policy idle_policy;
 extern struct hypervisor_policy app_driven_policy;
@@ -36,7 +36,7 @@ static void _load_hypervisor_policy(int type)
 	hypervisor.policy.resize = policy->resize;
 }
 
-struct starpu_sched_ctx_hypervisor_criteria** sched_ctx_hypervisor_init(int type)
+struct starpu_performance_counters** sched_ctx_hypervisor_init(int type)
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
@@ -73,13 +73,13 @@ struct starpu_sched_ctx_hypervisor_criteria** sched_ctx_hypervisor_init(int type
 
 	_load_hypervisor_policy(type);
 
-	criteria = (struct starpu_sched_ctx_hypervisor_criteria*)malloc(sizeof(struct starpu_sched_ctx_hypervisor_criteria));
-	criteria->idle_time_cb = idle_time_cb;
-	criteria->pushed_task_cb = pushed_task_cb;
-	criteria->poped_task_cb = poped_task_cb;
-	criteria->post_exec_hook_cb = post_exec_hook_cb;
-	criteria->reset_idle_time_cb = reset_idle_time_cb;
-	return criteria;
+	perf_counters = (struct starpu_performance_counters*)malloc(sizeof(struct starpu_performance_counters));
+	perf_counters->notify_idle_cycle = idle_time_cb;
+	perf_counters->notify_pushed_task = pushed_task_cb;
+	perf_counters->notify_poped_task = poped_task_cb;
+	perf_counters->notify_post_exec_hook = post_exec_hook_cb;
+	perf_counters->notify_idle_end = reset_idle_time_cb;
+	return perf_counters;
 }
 
 void sched_ctx_hypervisor_stop_resize(unsigned sched_ctx)
@@ -106,14 +106,14 @@ void sched_ctx_hypervisor_shutdown(void)
 			sched_ctx_hypervisor_ignore_ctx(hypervisor.sched_ctxs[i]);
 		}
 	}
-	criteria->idle_time_cb = NULL;
-	criteria->pushed_task_cb = NULL;
-	criteria->poped_task_cb = NULL;
-	criteria->post_exec_hook_cb = NULL;
-	criteria->reset_idle_time_cb = NULL;
+	perf_counters->notify_idle_cycle = NULL;
+	perf_counters->notify_pushed_task = NULL;
+	perf_counters->notify_poped_task = NULL;
+	perf_counters->notify_post_exec_hook = NULL;
+	perf_counters->notify_idle_end = NULL;
 
-	free(criteria);
-	criteria = NULL;
+	free(perf_counters);
+	perf_counters = NULL;
 
 	pthread_mutex_destroy(&act_hypervisor_mutex);
 }

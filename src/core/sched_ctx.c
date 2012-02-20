@@ -232,13 +232,13 @@ unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids,
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-unsigned starpu_create_sched_ctx_with_criteria(const char *policy_name, int *workerids, 
+unsigned starpu_create_sched_ctx_with_perf_counters(const char *policy_name, int *workerids, 
 				 int nworkers_ctx, const char *sched_name,
-				 struct starpu_sched_ctx_hypervisor_criteria **criteria)
+				 struct starpu_performance_counters **perf_counters)
 {
 	unsigned sched_ctx_id = starpu_create_sched_ctx(policy_name, workerids, nworkers_ctx, sched_name);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->criteria = criteria;
+	sched_ctx->perf_counters = perf_counters;
 	return sched_ctx_id;
 }
 #endif
@@ -692,8 +692,8 @@ void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops
 	struct starpu_worker_s *worker =  _starpu_get_worker_struct(workerid);
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
-		   && *sched_ctx->criteria != NULL)
-		(*sched_ctx->criteria)->poped_task_cb(sched_ctx_id, worker->workerid, flops);
+		   && *sched_ctx->perf_counters != NULL)
+		(*sched_ctx->perf_counters)->notify_poped_task(sched_ctx_id, worker->workerid, flops);
 }
 
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
@@ -702,8 +702,8 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(sched_ctx != NULL && sched_ctx_id != 0)
-		if(*sched_ctx->criteria != NULL)
-			(*sched_ctx->criteria)->pushed_task_cb(sched_ctx_id, workerid);
+		if(*sched_ctx->perf_counters != NULL)
+			(*sched_ctx->perf_counters)->notify_pushed_task(sched_ctx_id, workerid);
 
 }
 

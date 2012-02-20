@@ -222,7 +222,7 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 
 void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 {
-	struct starpu_sched_ctx_hypervisor_criteria *criteria = sched_ctx_hypervisor_init(IDLE_POLICY);
+	struct starpu_performance_counters *perf_counters = sched_ctx_hypervisor_init(IDLE_POLICY);
 	int nworkers1 = cpu1 + gpu + gpu1;
 	int nworkers2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;
@@ -247,7 +247,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	for(i = 0; i < 12; i++)
 		p1.workers[i] = i; 
 
-	p1.ctx = starpu_create_sched_ctx_with_criteria("heft", p1.workers, nworkers1, "sched_ctx1", criteria);
+	p1.ctx = starpu_create_sched_ctx_with_perf_counters("heft", p1.workers, nworkers1, "sched_ctx1", perf_counters);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
 	sched_ctx_hypervisor_handle_ctx(p1.ctx, 0.0);
@@ -282,7 +282,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	/* for(i = n_all_gpus  + cpu1; i < n_all_gpus + cpu1 + cpu2; i++) */
 	/* 	p2.workers[k++] = i; */
 
-	p2.ctx = starpu_create_sched_ctx_with_criteria("heft", p2.workers, 0, "sched_ctx2", criteria);
+	p2.ctx = starpu_create_sched_ctx_with_perf_counters("heft", p2.workers, 0, "sched_ctx2", perf_counters);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;
 	sched_ctx_hypervisor_handle_ctx(p2.ctx, 0.0);

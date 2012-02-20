@@ -70,8 +70,8 @@ struct starpu_sched_ctx {
 	pthread_mutex_t empty_ctx_mutex;
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	/* a structure containing a series of criteria determining the resize procedure */
-	struct starpu_sched_ctx_hypervisor_criteria **criteria;
+	/* a structure containing a series of performance counters determining the resize procedure */
+	struct starpu_performance_counters **perf_counters;
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 };
 
