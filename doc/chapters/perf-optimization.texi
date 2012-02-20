@@ -134,7 +134,7 @@ buffers.
 The @b{dmdas} (deque model data aware sorted) scheduler is similar to dmda, it
 also supports arbitrary priority values.
 
-The @b{heft} (HEFT) scheduler is similar to dmda, it also supports task bundles.
+The @b{heft} (heterogeneous earliest finish time) scheduler is similar to dmda, it also supports task bundles.
 
 The @b{pheft} (parallel HEFT) scheduler is similar to heft, it also supports
 parallel tasks (still experimental).
