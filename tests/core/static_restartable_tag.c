@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
@@ -96,7 +96,10 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	}
 
+	/* Do not cleanup the statically allocated tasks, as StarPU is still working on it after releasing the tag */
+#if 0
 	starpu_task_deinit(&task);
+#endif
 
 	gettimeofday(&end, NULL);
 
