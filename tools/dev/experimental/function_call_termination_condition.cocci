@@ -1,7 +1,7 @@
 /*
  * StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,28 +25,54 @@
  * unsigned int max = foo(...);
  * for (i = 0; i < max; i++) { ... }
  *
- * This semantic patch does not automagically generate a patch, but still
- * points out that kind of code so that it can be fixed (if necesary) by
- * programmers.
  */
 
-/*
- * You may want to run spatch(1) with either -D report or -D org.
- * Otherwise, a context output will be generated.
- */
-virtual report
+virtual context
 virtual org 
+virtual patch
+virtual report
 
 @initialize:python depends on report || org@
 msg="Function call in the termination condition of a for loop"
 
 @r@
+type t;
 identifier f;
 identifier it; 
-expression E;
+expression E1;
 position p;
 @@
-for (it = E; it < f@p(...); ...)
+t it;
+...
+for@p (it = E1; it < f(...); ...)
+{
+...
+}
+
+@depends on r && context@
+identifier r.f;
+identifier r.it;
+expression r.E1;
+@@
+* for (it = E1; it < f(...); ...)
+{
+...
+}
+
+@script:python depends on r && org@
+p << r.p;
+@@
+coccilib.org.print_todo(p[0], msg)
+
+@depends on r && patch@
+type r.t;
+expression r.E1, E2, E3;
+identifier r.it;
+position r.p;
+@@
+-for@p(it = E1; it < E3; E2) 
++t max = E3;
++for(it = E1; i < max; E2) 
 {
 ...
 }
@@ -55,19 +81,3 @@ for (it = E; it < f@p(...); ...)
 p << r.p;
 @@
 coccilib.report.print_report(p[0], msg)
-
-@script:python depends on r && org@
-p << r.p;
-@@
-msg="Function call in the termination condition of a for loop"
-coccilib.org.print_todo(p[0], msg)
-
-@depends on !report && !org && r@
-identifier r.f;
-identifier r.it;
-expression r.E;
-@@
-* for (it = E; it < f(...); ...)
-{
-...
-}

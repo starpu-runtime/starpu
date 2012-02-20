@@ -18,19 +18,14 @@ void
 bad_1(void)
 {
 	int i;
-	for (i = 0; i < bar(); i++)
+	for (i = 0; i < bar(a,b); i++)
 	{
 		do_stg();
 	}
-}
 
-void
-bad_2(void)
-{
-	int i;
-	for (i = foo(); i < bar(); i++)
+	for (i = 0; i < foo(); i++)
 	{
-		do_stg();
+		do_stg_else();
 	}
 }
 
@@ -38,6 +33,9 @@ void
 good_1(void)
 {
 	int i, max;
-	for (i = foo(), max = bar(); i < max; i++)
+	max = bar();
+	for (i = foo(); i < max; i++)
+	{
 		do_stg();
+	}
 }
