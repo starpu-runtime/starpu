@@ -128,7 +128,8 @@ noinst_HEADERS = 				\
 	spmv/dw_block_spmv.h                    \
 	basic_examples/multiformat_types.h      \
 	filters/custom_mf/custom_interface.h    \
-	filters/custom_mf/custom_types.h
+	filters/custom_mf/custom_types.h	\
+	interface/complex_interface.h
 
 #####################################
 # What to install and what to check #
@@ -171,6 +172,7 @@ examplebin_PROGRAMS +=				\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
@@ -233,6 +235,7 @@ STARPU_EXAMPLES +=				\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
@@ -690,6 +693,18 @@ incrementer_incrementer_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_kernel.cl
+endif
+
+#####################
+# interface example #
+#####################
+
+interface_complex_SOURCES	=	\
+	interface/complex.c		\
+	interface/complex_interface.c
+if STARPU_USE_CUDA
+interface_complex_SOURCES	+=	\
+	interface/complex_kernels.cu
 endif
 
 ######################

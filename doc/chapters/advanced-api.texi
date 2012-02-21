@@ -146,8 +146,132 @@ future CRC computation. This is used for computing data size footprint.
 Returns the next available id for a newly created data interface.
 @end deftypefun
 
-TODO
-See @code{src/datawizard/interfaces/vector_interface.c} for now.
+Let's define a new data interface to manage complex numbers.
+
+@cartouche
+@smallexample
+/* interface for complex numbers */
+struct starpu_complex_interface
+@{
+        double *real;
+        double *imaginary;
+        int nx;
+@};
+@end smallexample
+@end cartouche
+
+Registering such a data to StarPU is easily done using the function
+@code{starpu_data_register} (@pxref{Basic Data Library API}). The last
+parameter of the function, @code{interface_complex_ops}, will be
+described below.
+
+@cartouche
+@smallexample
+void starpu_complex_data_register(starpu_data_handle_t *handle,
+     uint32_t home_node, double *real, double *imaginary, int nx)
+@{
+        struct starpu_complex_interface complex =
+        @{
+                .real = real,
+                .imaginary = imaginary,
+                .nx = nx
+        @};
+
+        if (interface_complex_ops.interfaceid == -1)
+        @{
+                interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
+        @}
+
+        starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
+@}
+@end smallexample
+@end cartouche
+
+Different operations need to be defined for a data interface through
+the type @code{struct starpu_data_interface_ops} (@pxref{Data
+Interface API}). We only define here the basic operations needed to
+run simple applications. The source code for the different functions
+can be found in the file
+@code{examples/interface/complex_interface.c}.
+
+@cartouche
+@smallexample
+static struct starpu_data_interface_ops interface_complex_ops =
+@{
+        .register_data_handle = complex_register_data_handle,
+        .allocate_data_on_node = complex_allocate_data_on_node,
+        .copy_methods = &complex_copy_methods,
+        .get_size = complex_get_size,
+        .footprint = complex_footprint,
+        .interfaceid = -1,
+@};
+@end smallexample
+@end cartouche
+
+Functions need to be defined to access the different fields of the
+complex interface from a StarPU data handle.
+
+@cartouche
+@smallexample
+double *starpu_complex_get_real(starpu_data_handle_t handle)
+@{
+        struct starpu_complex_interface *complex_interface =
+          (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, 0);
+        return complex_interface->real;
+@}
+
+double *starpu_complex_get_imaginary(starpu_data_handle_t handle);
+int starpu_complex_get_nx(starpu_data_handle_t handle);
+@end smallexample
+@end cartouche
+
+Similar functions need to be defined to access the different fields of the
+complex interface from a @code{void *} pointer to be used within codelet
+implemetations.
+
+@cartouche
+@smallexample
+#define STARPU_COMPLEX_GET_REAL(interface)	\
+        (((struct starpu_complex_interface *)(interface))->real)
+#define STARPU_COMPLEX_GET_IMAGINARY(interface)	\
+        (((struct starpu_complex_interface *)(interface))->imaginary)
+#define STARPU_COMPLEX_GET_NX(interface)	\
+        (((struct starpu_complex_interface *)(interface))->nx)
+@end smallexample
+@end cartouche
+
+Complex data interfaces can then be registered to StarPU.
+
+@cartouche
+@smallexample
+double real = 45.0;
+double imaginary = 12.0;
+starpu_complex_data_register(&handle1, 0, &real, &imaginary, 1);
+starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
+@end smallexample
+@end cartouche
+
+and used by codelets.
+
+@cartouche
+@smallexample
+void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+@{
+        int nx = STARPU_COMPLEX_GET_NX(descr[0]);
+        double *real = STARPU_COMPLEX_GET_REAL(descr[0]);
+        double *imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
+        int i;
+
+        for(i=0 ; i<nx ; i++)
+        @{
+                fprintf(stderr, "Complex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
+        @}
+@}
+@end smallexample
+@end cartouche
+
+The whole code for this complex data interface is available in the
+directory @code{examples/interface/}.
 
 @node Multiformat Data Interface
 @section Multiformat Data Interface
