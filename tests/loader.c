@@ -114,7 +114,7 @@ static void test_cleaner(int sig)
 	pid_t child_gid;
 
 	// send signal to all loader family members
-	fprintf(stderr, "[error] test is blocked since %d seconds. Mark it as failed\n", timeout);
+	fprintf(stderr, "[error] test has been blocked for %d seconds. Mark it as failed\n", timeout);
 	child_gid = getpgid(child_pid);
 	kill(-child_gid, SIGKILL);
 	exit(EXIT_FAILURE);
