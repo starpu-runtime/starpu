@@ -51,7 +51,7 @@ bin_PROGRAMS += \
 noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=	\
-	starpu_top
+	starpu_workers_activity
 
 
 if STARPU_HAVE_HELP2MAN
