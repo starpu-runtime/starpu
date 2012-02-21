@@ -719,7 +719,7 @@ endif
 mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
 if HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
-mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) -lX11
 endif
 
 ################
