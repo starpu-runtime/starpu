@@ -51,6 +51,9 @@ run_script()
 	script=$1
 	mode=$2
 
+	# Make sure the script explicitely defines this virtual rule.
+	grep "^virtual ${mode}" $script > /dev/null || return;
+
 	output_file=`basename ${script}`
 	output_file=${results}/${mode}/${output_file%cocci}${mode}
 	error_file=${output_file%${mode}}err
