@@ -109,35 +109,35 @@ starpu_machine_display_SOURCES	=	../tools/starpu_machine_display.c
 
 noinst_PROGRAMS =				\
 	starpu_machine_display			\
-	core/deprecated_func			\
-	core/deprecated_buffer			\
-	core/restart				\
-	core/execute_on_a_specific_worker	\
-	core/insert_task			\
-	core/multithreaded			\
-	core/multithreaded_init			\
-	core/starpu_task_bundle			\
-	core/starpu_task_wait_for_all		\
-	core/starpu_task_wait			\
-	core/static_restartable			\
-	core/static_restartable_using_initializer\
-	core/static_restartable_tag		\
-	core/regenerate				\
-	core/wait_all_regenerable_tasks		\
-	core/subgraph_repeat			\
-	core/subgraph_repeat_regenerate		\
-	core/empty_task				\
-	core/empty_task_sync_point		\
-	core/empty_task_sync_point_tasks	\
-	core/empty_task_chain			\
-	core/tag_wait_api			\
-	core/task_wait_api			\
-	core/declare_deps_in_callback		\
-	core/declare_deps_after_submission	\
-	core/declare_deps_after_submission_synchronous	\
-	core/get_current_task			\
-	core/starpu_init			\
-	core/starpu_worker_exists               \
+	main/deprecated_func			\
+	main/deprecated_buffer			\
+	main/restart				\
+	main/execute_on_a_specific_worker	\
+	main/insert_task			\
+	main/multithreaded			\
+	main/multithreaded_init			\
+	main/starpu_task_bundle			\
+	main/starpu_task_wait_for_all		\
+	main/starpu_task_wait			\
+	main/static_restartable			\
+	main/static_restartable_using_initializer\
+	main/static_restartable_tag		\
+	main/regenerate				\
+	main/wait_all_regenerable_tasks		\
+	main/subgraph_repeat			\
+	main/subgraph_repeat_regenerate		\
+	main/empty_task				\
+	main/empty_task_sync_point		\
+	main/empty_task_sync_point_tasks	\
+	main/empty_task_chain			\
+	main/tag_wait_api			\
+	main/task_wait_api			\
+	main/declare_deps_in_callback		\
+	main/declare_deps_after_submission	\
+	main/declare_deps_after_submission_synchronous	\
+	main/get_current_task			\
+	main/starpu_init			\
+	main/starpu_worker_exists               \
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
