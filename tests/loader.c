@@ -96,9 +96,10 @@ static void launch_gdb(const char *exe)
 
 	default:				  /* parent */
 		{
+			pid_t who;
 			int status;
-			err = waitpid(pid, &status, 0);
-			if (err != 0)
+			who = waitpid(pid, &status, 0);
+			if (who != pid)
 				fprintf(stderr, "while waiting for gdb "
 					"process %d: %m\n", pid);
 		}
