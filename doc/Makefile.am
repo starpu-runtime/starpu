@@ -57,3 +57,7 @@ uninstall-local:
 #
 #CLEANFILES= \
 #	vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
+
+# Rule to update documentation on web server. Should only be used locally.
+update-web:
+	scp starpu.pdf starpu.html sync:/web/runtime/html/StarPU
