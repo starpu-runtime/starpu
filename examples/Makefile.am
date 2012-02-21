@@ -149,7 +149,7 @@ LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
-TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" $(LOADER_BIN)
 endif
 
 examplebin_PROGRAMS +=				\
