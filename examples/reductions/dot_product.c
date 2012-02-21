@@ -40,11 +40,11 @@ static starpu_data_handle_t dot_handle;
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	const struct cudaDeviceProp *props;
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		return 1;
 #ifdef STARPU_USE_CUDA
 	/* Cuda device */
+	const struct cudaDeviceProp *props;
 	props = starpu_cuda_get_device_properties(workerid);
 	if (props->major >= 2 || props->minor >= 3)
 		/* At least compute capability 1.3, supports doubles */

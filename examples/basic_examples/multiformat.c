@@ -21,8 +21,12 @@
 #include "multiformat_types.h"
 
 static int ncpu = 0;
+#ifdef STARPU_USE_CUDA
 static int ncuda = 0;
+#endif
+#ifdef STARPU_USE_OPENCL
 static int nopencl = 0;
+#endif
 
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
