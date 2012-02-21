@@ -137,15 +137,13 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(check_cnt == (4*loop_cnt));
 
-	/* Do not cleanup the statically allocated tasks, as StarPU is still working on it after the callback */
-#if 0
+	starpu_shutdown();
+
+	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
 	starpu_task_deinit(&taskA);
 	starpu_task_deinit(&taskB);
 	starpu_task_deinit(&taskC);
 	starpu_task_deinit(&taskD);
-#endif
-
-	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 

@@ -118,11 +118,10 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
 
-	/* Do not cleanup the statically allocated tasks, as StarPU is still working on it after the callback */
-#if 0
-	starpu_task_deinit(&task);
-#endif
 	starpu_shutdown();
+
+	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
+	starpu_task_deinit(&task);
 
 	return EXIT_SUCCESS;
 

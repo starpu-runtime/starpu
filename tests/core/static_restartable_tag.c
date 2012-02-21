@@ -96,11 +96,6 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	}
 
-	/* Do not cleanup the statically allocated tasks, as StarPU is still working on it after releasing the tag */
-#if 0
-	starpu_task_deinit(&task);
-#endif
-
 	gettimeofday(&end, NULL);
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000
@@ -110,6 +105,9 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
 
 	starpu_shutdown();
+
+	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
+	starpu_task_deinit(&task);
 
 	return EXIT_SUCCESS;
 

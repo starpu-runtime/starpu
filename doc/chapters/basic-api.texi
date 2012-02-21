@@ -1475,9 +1475,9 @@ by the task have to be freed by calling
 Release all the structures automatically allocated to execute @var{task}, but
 not the task structure itself. It is thus useful for statically allocated tasks
 for instance.  It is called automatically by @code{starpu_task_destroy}.  It
-has to be called only after explicitly waiting for the task (waiting for the
-callback is not enough, since starpu still manipulates the task after calling
-the callback).
+has to be called only after explicitly waiting for the task or after
+@code{starpu_shutdown} (waiting for the callback is not enough, since starpu
+still manipulates the task after calling the callback).
 @end deftypefun
 
 @deftypefun void starpu_task_destroy ({struct starpu_task} *@var{task})
