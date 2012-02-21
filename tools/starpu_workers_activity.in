@@ -33,12 +33,12 @@ usage()
     echo "	-h, --help          display this help and exit"
     echo "	-v, --version       output version information and exit"
     echo ""
-    echo "Report bugs to <$PACKAGE_BUGREPORT>"
+    echo "Report bugs to <@PACKAGE_BUGREPORT@>"
     exit 0
 }
 
 if [ "$1" == "-v" ] || [ "$1" == "--version" ] ; then
-    echo "$PROGNAME ${STARPU_MAJOR_VERSION}.${STARPU_MINOR_VERSION}"
+    echo "$PROGNAME @STARPU_MAJOR_VERSION@.@STARPU_MINOR_VERSION@"
     exit 0
 fi
 

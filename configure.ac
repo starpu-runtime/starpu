@@ -1589,6 +1589,7 @@ AC_CHECK_MEMBER([struct cudaDeviceProp.pciBusID],
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x gcc-plugin/tests/run-test
+  chmod +x tools/starpu_workers_activity
 ])
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
@@ -1598,6 +1599,7 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	tools/starpu_workers_activity
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile
