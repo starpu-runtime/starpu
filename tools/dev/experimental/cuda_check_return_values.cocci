@@ -13,9 +13,12 @@
 //
 // See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-virtual report
+virtual context
 virtual org
+virtual patch
+virtual report
 
+/*
 @seek@
 identifier func;
 expression E;
@@ -44,7 +47,11 @@ identifier seek.cuda_func;
 E@p = cuda_func(...);
 + if (STARPU_UNLIKELY(E != cudaSuccess))
 +	STARPU_CUDA_REPORT_ERROR(E);
+*/
 
+
+@initialize:python depends on report || org@
+msg = "Ignoring the return value of %s."
 
 @no_assignment@
 identifier cuda_func =~ "^cuda";
@@ -53,16 +60,30 @@ position p;
 cuda_func@p(...);
 
 
-@script:python depends on no_assignment && report@
-p << no_assignment.p;
-func << no_assignment.cuda_func;
+@depends on no_assignment && context@
+identifier no_assignment.cuda_func;
+position no_assignment.p;
 @@
-msg = "Ignoring the return value of %s." % func
-coccilib.report.print_report(p[0], msg)
+* cuda_func@p(...);
 
 @script:python depends on no_assignment && org@
 p << no_assignment.p;
 func << no_assignment.cuda_func;
 @@
-msg = "Ignoring the return value of %s." % func
-coccilib.org.print_todo(p[0], msg)
+coccilib.org.print_todo(p[0], msg % func)
+
+@depends on no_assignment && patch@
+identifier no_assignment.cuda_func;
+position no_assignment.p;
+@@
+-cuda_func@p(
++cudaError_t err = cuda_func(
+...);
++ if (STARPU_UNLIKELY(err != cudaSuccess))
++	STARPU_CUDA_REPORT_ERROR(err);
+
+@script:python depends on no_assignment && report@
+p << no_assignment.p;
+func << no_assignment.cuda_func;
+@@
+coccilib.report.print_report(p[0], msg % func)
