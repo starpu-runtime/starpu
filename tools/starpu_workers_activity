@@ -16,6 +16,8 @@
 # 
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+PROGNAME=$0
+
 usage()
 {
     echo "Offline tool to display the activity of the workers during the execution."
@@ -25,11 +27,22 @@ usage()
     echo ""
     echo "  Typical usage:"
     echo "     ./fxt_tool -i /tmp/prof_file_foo"
-    echo "     $0 activity.data"
-    exit 1
+    echo "     $PROGNAME activity.data"
+    echo ""
+    echo "Options:"
+    echo "	-h, --help          display this help and exit"
+    echo "	-v, --version       output version information and exit"
+    echo ""
+    echo "Report bugs to <$PACKAGE_BUGREPORT>"
+    exit 0
 }
 
-if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "" ] ; then
+if [ "$1" == "-v" ] || [ "$1" == "--version" ] ; then
+    echo "$PROGNAME ${STARPU_MAJOR_VERSION}.${STARPU_MINOR_VERSION}"
+    exit 0
+fi
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] || [ "$1" == "" ] ; then
     usage
 fi
 
