@@ -50,7 +50,11 @@ static struct starpu_task *create_dummy_task(void)
 int main(int argc, char **argv)
 {
 	int ret;
-	unsigned loop;
+	unsigned loop, nloops = NLOOPS;
+
+#ifdef STARPU_SLOW_MACHINE
+	nloops /= 8;
+#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -58,7 +62,7 @@ int main(int argc, char **argv)
 
 	struct starpu_task *taskA, *taskB;
 
-	for (loop = 0; loop < NLOOPS; loop++)
+	for (loop = 0; loop < nloops; loop++)
 	{
 		taskA = create_dummy_task();
 		taskB = create_dummy_task();
