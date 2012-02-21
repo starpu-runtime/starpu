@@ -63,6 +63,9 @@ starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./starpu_perfmodel_display$(EXEEXT)
 starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./starpu_perfmodel_plot$(EXEEXT)
+starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
+	chmod +x starpu_workers_activity$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./starpu_workers_activity$(EXEEXT)
 
 clean-local:
 	$(RM) starpu_calibrate_bus.1 starpu_machine_display.1 starpu_perfmodel_display.1 starpu_perfmodel_plot.1
@@ -71,6 +74,7 @@ dist_man1_MANS =\
 	starpu_calibrate_bus.1 \
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
-	starpu_perfmodel_plot.1
+	starpu_perfmodel_plot.1	\
+	starpu_workers_activity.1
 endif
 
