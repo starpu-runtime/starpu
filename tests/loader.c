@@ -14,6 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <unistd.h>
@@ -22,13 +26,87 @@
 #include <signal.h>
 #include <string.h>
 
-#include <common/config.h>
-
 #define  DEFAULT_TIMEOUT       600
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
 static int   timeout;
+
+static void launch_gdb(const char *exe)
+{
+#ifdef STARPU_GDB_PATH
+# define CORE_FILE "core"
+# define GDB_COMMAND "thread apply all bt full"
+	int err;
+	pid_t pid;
+	struct stat st;
+	const char *top_builddir;
+	char *gdb;
+
+	err = stat(CORE_FILE, &st);
+	if (err != 0)
+	{
+		fprintf(stderr, "while looking for core file of %s: %s: %m\n",
+			exe, CORE_FILE);
+		return;
+	}
+
+	if (!(st.st_mode & S_IFREG))
+	{
+		fprintf(stderr, CORE_FILE ": not a regular file\n");
+		return;
+	}
+
+	top_builddir = getenv("top_builddir");
+
+	pid = fork();
+	switch (pid)
+	{
+	case 0:					  /* kid */
+		if (top_builddir != NULL)
+		{
+			/* Run gdb with Libtool.  */
+			gdb = alloca(strlen(top_builddir)
+				     + sizeof("libtool") + 1);
+			strcpy(gdb, top_builddir);
+			strcat(gdb, "/libtool");
+			err = execl(gdb, "gdb", "--mode=execute",
+				    STARPU_GDB_PATH, "--batch",
+				    "-ex", GDB_COMMAND,
+				    exe, CORE_FILE, NULL);
+		}
+		else
+		{
+			/* Run gdb directly  */
+			gdb = STARPU_GDB_PATH;
+			err = execl(gdb, "gdb", "--batch", "-ex", GDB_COMMAND,
+				    exe, CORE_FILE, NULL);
+		}
+		if (err != 0)
+		{
+			fprintf(stderr, "while launching `%s': %m\n", gdb);
+			exit(EXIT_FAILURE);
+		}
+		exit(EXIT_SUCCESS);
+		break;
+
+	case -1:
+		fprintf(stderr, "fork: %m\n");
+		return;
+
+	default:				  /* parent */
+		{
+			int status;
+			err = waitpid(pid, &status, 0);
+			if (err != 0)
+				fprintf(stderr, "while waiting for gdb "
+					"process %d: %m\n", pid);
+		}
+	}
+# undef GDB_COMMAND
+# undef CORE_FILE
+#endif	/* STARPU_GDB_PATH */
+}
 
 static void test_cleaner(int sig)
 {
@@ -164,6 +242,7 @@ int main(int argc, char *argv[])
 		{
 			fprintf(stderr, "[error] `%s' killed with signal %d; test marked as failed\n",
 				test_name, WTERMSIG(child_exit_status));
+			launch_gdb(test_name);
 			return EXIT_FAILURE;
 		}
 		else
