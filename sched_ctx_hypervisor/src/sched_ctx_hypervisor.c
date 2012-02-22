@@ -125,7 +125,6 @@ void sched_ctx_hypervisor_shutdown(void)
 void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 {	
 	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
-	hypervisor.steal_requests[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
 	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
 
 	_add_config(sched_ctx);
@@ -187,7 +186,6 @@ void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx)
 	_remove_config(sched_ctx);
 
 	free(hypervisor.configurations[sched_ctx]);
-	free(hypervisor.steal_requests[sched_ctx]);
 	free(hypervisor.resize_requests[sched_ctx]);
 }
 
@@ -333,51 +331,6 @@ void get_overage_workers(unsigned sched_ctx, int *workerids, int nworkers, int *
 		workers->deinit_cursor(workers);
 }
 
-void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workerids, int nworkers, int task_tag)
-{
-	/* do it right now */
-	if(task_tag == -1)	
-	{
-		pthread_mutex_lock(&act_hypervisor_mutex);
-		
-		if(hypervisor.sched_ctx_w[sched_ctx].sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		{
-			printf("do request\n");
-
-			int overage_workers[STARPU_NMAXWORKERS];
-			int noverage_workers = 0;
-			get_overage_workers(sched_ctx, workerids, nworkers, overage_workers, &noverage_workers);
-			starpu_add_workers_to_sched_ctx(workerids, nworkers, sched_ctx);
-
-			sched_ctx_hypervisor_ioctl(sched_ctx, 
-						   HYPERVISOR_PRIORITY, workerids, nworkers, 1,
-						   NULL);		
-
-			if(noverage_workers > 0)
-				starpu_remove_workers_from_sched_ctx(overage_workers, noverage_workers, sched_ctx);
-			
-			int i;
-			for(i = 0; i < hypervisor.nsched_ctxs; i++)
-				if(hypervisor.sched_ctxs[i] != sched_ctx && hypervisor.sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS)
-					starpu_remove_workers_from_sched_ctx(workerids, nworkers, hypervisor.sched_ctxs[i]);
-		}
-		
-		pthread_mutex_unlock(&act_hypervisor_mutex);
-	}
-	else
-	{
-		struct sched_ctx_hypervisor_adjustment* adjustment = (struct sched_ctx_hypervisor_adjustment*)malloc(sizeof(struct sched_ctx_hypervisor_adjustment));
-		int i;
-		for(i = 0; i < nworkers; i++)
-			adjustment->workerids[i] = workerids[i];
-		adjustment->nworkers = nworkers;
-		
-		_starpu_htbl_insert_32(&hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag, (void*)adjustment);	
-	}
-
-	return ;
-}
-
 /* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
 static void notify_idle_end(unsigned sched_ctx, int worker)
 {
@@ -487,15 +440,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 				_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, NULL);
 			}
 		}	
-		
-/* 		struct sched_ctx_hypervisor_adjustment *adjustment = (struct sched_ctx_hypervisor_adjustment*) _starpu_htbl_search_32(hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag); */
-/* 		if(adjustment && adjustment != hypervisor.steal_requests[sched_ctx]) */
-/* 		{ */
-/* 			sched_ctx_hypervisor_steal_workers(sched_ctx, adjustment->workerids, adjustment->nworkers, -1); */
-/* 			free(adjustment); */
-/* 			_starpu_htbl_insert_32(&hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag, NULL); */
-/* 		} */
-		
+				
 		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
 
 		if(hypervisor.resize[sched_ctx])
