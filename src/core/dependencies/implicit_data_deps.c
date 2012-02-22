@@ -301,8 +301,10 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-		if (new_task)
-			starpu_task_submit(new_task);
+		if (new_task) {
+			int ret = starpu_task_submit(new_task);
+			STARPU_ASSERT(!ret);
+		}
 	}
         _STARPU_LOG_OUT();
 }
@@ -481,8 +483,10 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
-		if (new_task)
-			starpu_task_submit(new_task);
+		if (new_task) {
+			int ret = starpu_task_submit(new_task);
+			STARPU_ASSERT(!ret);
+		}
 
 		/* TODO detect if this is superflous */
 		int ret = starpu_task_submit(sync_task);

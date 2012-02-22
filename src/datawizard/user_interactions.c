@@ -159,8 +159,10 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
-		if (new_task)
-			starpu_task_submit(new_task);
+		if (new_task) {
+			int ret = starpu_task_submit(new_task);
+			STARPU_ASSERT(!ret);
+		}
 
 		/* TODO detect if this is superflous */
 		int ret = starpu_task_submit(wrapper->pre_sync_task);
@@ -217,11 +219,13 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	    _starpu_handle_needs_conversion_task(handle, 0))
 	{
 		struct starpu_task *task = _starpu_create_conversion_task(handle, 0);
+		int ret;
 		handle->refcnt--;
 		handle->busy_count--;
 		handle->mf_node = 0;
 		task->synchronous = 1;
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_ASSERT(!ret);
 	}
 
 	struct user_interaction_wrapper wrapper =
@@ -255,8 +259,10 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-		if (new_task)
-			starpu_task_submit(new_task);
+		if (new_task) {
+			int ret = starpu_task_submit(new_task);
+			STARPU_ASSERT(!ret);
+		}
 
 		/* TODO detect if this is superflous */
 		wrapper.pre_sync_task->synchronous = 1;
