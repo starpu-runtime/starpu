@@ -23,11 +23,23 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 SOCL_EXAMPLES	=
 TESTS		=	$(SOCL_EXAMPLES)
 
-check_PROGRAMS	=	$(STARPU_EXAMPLES)
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS	=	$(SOCL_EXAMPLES)
+else
+check_PROGRAMS	=	$(LOADER) $(SOCL_EXAMPLES)
+endif
+
+if !STARPU_HAVE_WINDOWS
+## test loader program
+LOADER			=	loader
+loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER_BIN		=	$(abs_top_builddir)/socl/examples/$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" $(LOADER_BIN)
+endif
 
 examplebindir = $(libdir)/starpu/examples/socl/
 examplebin_PROGRAMS =
-
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
