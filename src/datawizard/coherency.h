@@ -225,9 +225,13 @@ struct _starpu_data_state
 void _starpu_display_msi_stats(void);
 
 /* This does not take a reference on the handle, the caller has to do it,
- * e.g. through _starpu_attempt_to_submit_data_request_from_apps() */
+ * e.g. through _starpu_attempt_to_submit_data_request_from_apps()
+ * detached means that the core is allowed to drop the request. The caller
+ * should thus *not* take a reference since it can not know whether the request will complete
+ * async means that _starpu_fetch_data_on_node will wait for completion of the request
+ */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate,
-			       enum starpu_access_mode mode, unsigned is_prefetch,
+			       enum starpu_access_mode mode, unsigned detached, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg);
 /* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
@@ -254,9 +258,14 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint
 
 uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
+/* is_prefetch is whether the DSM may drop the request (when there is not enough memory for instance
+ * async is whether the caller wants a reference on the last request, to be
+ * able to wait for it (which will release that reference).
+ */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
 								  enum starpu_access_mode mode, unsigned is_prefetch,
+								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg);
 
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid);

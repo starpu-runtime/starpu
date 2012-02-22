@@ -291,7 +291,9 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 		if (mode & STARPU_R)
 		{
 			/* in case the exisiting request did not imply a memory
-			 * transfer yet, we have to increment the refcnt now
+			 * transfer yet, we have to take a second refcnt now
+			 * for the source, in addition to the refcnt for the
+			 * destination
 			 * (so that the source remains valid) */
 			if (!(r->mode & STARPU_R))
 			{
@@ -335,6 +337,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
 								  enum starpu_access_mode mode, unsigned is_prefetch,
+								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg)
 {
 	unsigned requesting_node = dst_replicate->memory_node;
@@ -451,7 +454,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			_starpu_spin_unlock(&r->lock);
 	}
 
-	if (!is_prefetch)
+	if (!async)
 		requests[nhops - 1]->refcnt++;
 
 
@@ -464,7 +467,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 }
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *dst_replicate,
-			       enum starpu_access_mode mode, unsigned is_prefetch,
+			       enum starpu_access_mode mode, unsigned detached, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg)
 {
 	uint32_t local_node = _starpu_get_local_memory_node();
@@ -473,15 +476,16 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
-	if (!is_prefetch)
+	if (!detached)
 	{
+		/* Take a reference which will be released by _starpu_release_data_on_node */
 		dst_replicate->refcnt++;
 		dst_replicate->handle->busy_count++;
 	}
 
 	struct _starpu_data_request *r;
 	r = _starpu_create_request_to_fetch_data(handle, dst_replicate, mode,
-						 is_prefetch, callback_func, callback_arg);
+						 detached, async, callback_func, callback_arg);
 
 	/* If no request was created, the handle was already up-to-date on the
 	 * node. In this case, _starpu_create_request_to_fetch_data has already
@@ -491,19 +495,19 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 	_starpu_spin_unlock(&handle->header_lock);
 
-	int ret = is_prefetch?0:_starpu_wait_data_request_completion(r, 1);
+	int ret = async?0:_starpu_wait_data_request_completion(r, 1);
         _STARPU_LOG_OUT();
         return ret;
 }
 
 static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_access_mode mode)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, NULL, NULL);
 }
 
 static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_access_mode mode)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
 }
 
 uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, uint32_t node)
@@ -543,6 +547,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
+	/* Release refcnt taken by fetch_data_on_node */
 	replicate->refcnt--;
 	STARPU_ASSERT(replicate->refcnt >= 0);
 

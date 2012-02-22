@@ -157,6 +157,7 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 #warning we should use requests during memory reclaim
 #endif
 			/* TODO use request !! */
+			/* Take temporary references on the replicates */
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 			handle->busy_count+=2;
@@ -797,6 +798,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			if (starpu_memstrategy_data_size_coefficient*handle->data_size > reclaim)
 				reclaim = starpu_memstrategy_data_size_coefficient*handle->data_size;
 
+			/* Take temporary reference on the replicate */
 			replicate->refcnt++;
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);

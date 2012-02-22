@@ -89,7 +89,7 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 
 	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
 
-	ret = _starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 1,
+	ret = _starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, 1,
 					 _starpu_data_acquire_fetch_data_callback, wrapper);
 	STARPU_ASSERT(!ret);
 }
@@ -127,14 +127,6 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 	_STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
 	_STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
-
-#ifdef STARPU_DEVEL
-#warning TODO instead of having the is_prefetch argument, _starpu_fetch_data shoud consider two flags: async and detached
-#endif
-	_starpu_spin_lock(&handle->header_lock);
-	handle->per_node[0].refcnt++;
-	handle->busy_count++;
-	_starpu_spin_unlock(&handle->header_lock);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
@@ -192,7 +184,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 
 	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
 
-	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, NULL, NULL);
+	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, 0, NULL, NULL);
 
 	/* continuation of starpu_data_acquire */
 	_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
@@ -282,7 +274,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
-		int ret = _starpu_fetch_data_on_node(handle, ram_replicate, mode, 0, NULL, NULL);
+		int ret = _starpu_fetch_data_on_node(handle, ram_replicate, mode, 0, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
 	else
@@ -323,7 +315,7 @@ static void _prefetch_data_on_node(void *arg)
         int ret;
 
 	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
-	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, NULL, NULL);
+	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, wrapper->async, NULL, NULL);
         STARPU_ASSERT(!ret);
 
 	if (!wrapper->async)
@@ -362,7 +354,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	{
 		/* we can immediately proceed */
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		_starpu_fetch_data_on_node(handle, replicate, mode, async, NULL, NULL);
+		_starpu_fetch_data_on_node(handle, replicate, mode, async, async, NULL, NULL);
 
 		/* remove the "lock"/reference */
 
@@ -370,6 +362,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 		if (!async)
 		{
+			/* Release our refcnt, like _starpu_release_data_on_node would do */
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
 			STARPU_ASSERT(handle->busy_count > 0);
@@ -377,8 +370,15 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 			_starpu_data_check_not_busy(handle);
 		}
 
+		/* In case there was a temporary handle (eg. used for reduction), this
+		 * handle may have requested to be destroyed when the data is released
+		 * */
+		unsigned handle_was_destroyed = handle->lazy_unregister;
+
 		_starpu_notify_data_dependencies(handle);
-		_starpu_spin_unlock(&handle->header_lock);
+
+		if (!handle_was_destroyed)
+			_starpu_spin_unlock(&handle->header_lock);
 
 	}
 	else if (!async)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -110,6 +110,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_lock(&r->lock);
 
+	/* Take a reference on the target for the request to be able to write it */
 	dst_replicate->refcnt++;
 	handle->busy_count++;
 
@@ -117,6 +118,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	{
 		unsigned src_node = src_replicate->memory_node;
 		dst_replicate->request[src_node] = r;
+		/* Take a reference on the source for the request to be able to read it */
 		src_replicate->refcnt++;
 		handle->busy_count++;
 	}
@@ -279,7 +281,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 	r->completed = 1;
 
-	/* Remove a reference on the destination replicate  */
+	/* Remove a reference on the destination replicate for the request */
 	STARPU_ASSERT(dst_replicate->refcnt > 0);
 	dst_replicate->refcnt--;
 	STARPU_ASSERT(handle->busy_count > 0);
