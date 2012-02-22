@@ -370,9 +370,6 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
  * therefore not in the cache. */
 static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_replicate, struct _starpu_mem_chunk *mc, unsigned is_already_in_mc_list)
 {
-	starpu_data_handle_t old_data;
-	old_data = mc->data;
-
 	/* we found an appropriate mem chunk: so we get it out
 	 * of the "to free" list, and reassign it to the new
 	 * piece of data */
@@ -407,7 +404,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	}
 }
 
-static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, starpu_data_handle_t new_data, unsigned is_already_in_mc_list)
+static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list)
 {
 	unsigned success = 0;
 
@@ -430,7 +427,7 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 		transfer_subtree_to_node(old_data, node, 0);
 
 		/* now replace the previous data */
-		reuse_mem_chunk(node, new_data, mc, is_already_in_mc_list);
+		reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
 	}
 
 	/* unlock the leafs */
@@ -482,7 +479,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(uint32_t n
 /* this function looks for a memory chunk that matches a given footprint in the
  * list of mem chunk that need to be freed. This function must be called with
  * mc_rwlock[node] taken in write mode. */
-static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle_t data, uint32_t footprint)
+static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle_t data, struct _starpu_data_replicate *replicate, uint32_t footprint)
 {
 	struct _starpu_mem_chunk *mc, *next_mc;
 
@@ -491,7 +488,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	if (mc)
 	{
 		/* We found an entry in the cache so we can reuse it */
-		reuse_mem_chunk(node, data, mc, 0);
+		reuse_mem_chunk(node, replicate, mc, 0);
 		return 1;
 	}
 
@@ -508,7 +505,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 		if (mc->data->is_not_important && (mc->footprint == footprint))
 		{
 //			fprintf(stderr, "found a candidate ...\n");
-			if (try_to_reuse_mem_chunk(mc, node, data, 1))
+			if (try_to_reuse_mem_chunk(mc, node, replicate, 1))
 				return 1;
 		}
 	}
@@ -759,7 +756,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 	_STARPU_TRACE_START_ALLOC_REUSE(dst_node);
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 
-	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
+	if (try_to_find_reusable_mem_chunk(dst_node, handle, replicate, footprint))
 	{
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 		_starpu_allocation_cache_hit(dst_node);
