@@ -118,8 +118,13 @@ static void init_context(int devid)
 
 	/* force CUDA to initialize the context for real */
 	cures = cudaFree(0);
-	if (STARPU_UNLIKELY(cures))
+	if (STARPU_UNLIKELY(cures)) {
+		if (cures == cudaErrorDevicesUnavailable) {
+			fprintf(stderr,"All CUDA-capable devices are busy or unavailable\n");
+			exit(77);
+		}
 		STARPU_CUDA_REPORT_ERROR(cures);
+	}
 
 	cures = cudaGetDeviceProperties(&props[devid], devid);
 	if (STARPU_UNLIKELY(cures))
