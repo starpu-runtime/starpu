@@ -71,8 +71,18 @@ struct sched_ctx_wrapper {
 	struct resize_ack resize_ack;
 };
 
+struct hypervisor_policy {
+	const char* name;
+	unsigned custom;
+	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
+	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
+	void (*handle_poped_task)(unsigned sched_ctx, int worker);
+	void (*handle_idle_end)(unsigned sched_ctx, int worker);
+	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node_s* resize_requests, int task_tag);
+};
 
-struct starpu_performance_counters* sched_ctx_hypervisor_init(int type);
+
+struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_policy* policy);
 
 void sched_ctx_hypervisor_shutdown(void);
 
@@ -103,15 +113,3 @@ int sched_ctx_hypervisor_get_nsched_ctxs();
 struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
 double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
-/* hypervisor policies */
-#define IDLE_POLICY 1
-#define APP_DRIVEN_POLICY 2
-#define GFLOPS_RATE_POLICY 3
-
-struct hypervisor_policy {
-	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
-	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
-	void (*handle_poped_task)(unsigned sched_ctx, int worker);
-	void (*handle_idle_end)(unsigned sched_ctx, int worker);
-	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node_s* resize_requests, int task_tag);
-};

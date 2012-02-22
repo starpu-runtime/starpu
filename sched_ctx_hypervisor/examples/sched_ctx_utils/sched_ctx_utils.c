@@ -219,7 +219,10 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 
 void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 {
-	struct starpu_performance_counters *perf_counters = sched_ctx_hypervisor_init(IDLE_POLICY);
+	struct hypervisor_policy policy;
+	policy.custom = 0;
+	policy.name = "idle";
+	struct starpu_performance_counters *perf_counters = sched_ctx_hypervisor_init(&policy);
 	int nworkers1 = cpu1 + gpu + gpu1;
 	int nworkers2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;

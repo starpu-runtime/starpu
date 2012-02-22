@@ -3,44 +3,101 @@
 unsigned imposed_resize = 0;
 struct starpu_performance_counters* perf_counters = NULL;
 
-extern struct hypervisor_policy idle_policy;
-extern struct hypervisor_policy app_driven_policy;
-extern struct hypervisor_policy gflops_rate_policy;
-
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
 static void notify_pushed_task(unsigned sched_ctx, int worker);
 static void notify_poped_task(unsigned sched_ctx, int worker, double flops);
 static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
 static void notify_idle_end(unsigned sched_ctx, int  worker);
 
-static void _load_hypervisor_policy(int type)
+
+extern struct hypervisor_policy idle_policy;
+extern struct hypervisor_policy app_driven_policy;
+extern struct hypervisor_policy gflops_rate_policy;
+
+
+static struct hypervisor_policy *predefined_policies[] = {
+        &idle_policy,
+	&app_driven_policy,
+	&gflops_rate_policy
+};
+
+static void _load_hypervisor_policy(struct hypervisor_policy *policy)
 {
-	struct hypervisor_policy *policy = NULL;
+        STARPU_ASSERT(policy);
 
-	switch(type)
-	{
-	case IDLE_POLICY:
-		policy = &idle_policy;
-		break;
-	case APP_DRIVEN_POLICY:
-		policy = &app_driven_policy;
-		break;
-	case GFLOPS_RATE_POLICY:
-		policy = &gflops_rate_policy;
-		break;
-
-	}
+#ifdef STARPU_VERBOSE
+        if (policy->name)
+        {
+		_STARPU_DEBUG("Use %s hypervisor policy \n", policy->name);
+        }
+#endif
 
 	hypervisor.policy.handle_poped_task = policy->handle_poped_task;
 	hypervisor.policy.handle_pushed_task = policy->handle_pushed_task;
 	hypervisor.policy.handle_idle_cycle = policy->handle_idle_cycle;
 	hypervisor.policy.handle_idle_end = policy->handle_idle_end;
 	hypervisor.policy.handle_post_exec_hook = policy->handle_post_exec_hook;
-
 }
 
+
+static struct hypervisor_policy *_find_hypervisor_policy_from_name(const char *policy_name)
+{
+
+        if (!policy_name)
+                return NULL;
+
+        unsigned i;
+        for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
+        {
+                struct hypervisor_policy *p;
+                p = predefined_policies[i];
+                if (p->name)
+                {
+                        if (strcmp(policy_name, p->name) == 0) {
+                                /* we found a policy with the requested name */
+                                return p;
+                        }
+                }
+        }
+        fprintf(stderr, "Warning: hypervisor policy \"%s\" was not found, try \"help\" to get a list\n", policy_name);
+
+        /* nothing was found */
+        return NULL;
+}
+
+static struct hypervisor_policy *_select_hypervisor_policy(struct hypervisor_policy* hypervisor_policy)
+{
+	struct hypervisor_policy *selected_policy = NULL;
+
+	if(hypervisor_policy && hypervisor_policy->custom)
+		return hypervisor_policy;
+
+        /* we look if the application specified the name of a policy to load */
+        const char *policy_name;
+        if (hypervisor_policy && hypervisor_policy->name)
+        {
+                policy_name = hypervisor_policy->name;
+        }
+        else 
+	{
+                policy_name = getenv("HYPERVISOR_POLICY");
+        }
+
+        if (policy_name)
+                selected_policy = _find_hypervisor_policy_from_name(policy_name);
+
+        /* Perhaps there was no policy that matched the name */
+        if (selected_policy)
+                return selected_policy;
+
+        /* If no policy was specified, we use the idle policy as a default */
+
+        return &idle_policy;
+}
+
+
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
-struct starpu_performance_counters** sched_ctx_hypervisor_init(int type)
+struct starpu_performance_counters** sched_ctx_hypervisor_init(struct hypervisor_policy *hypervisor_policy)
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
@@ -72,7 +129,8 @@ struct starpu_performance_counters** sched_ctx_hypervisor_init(int type)
 		}
 	}
 
-	_load_hypervisor_policy(type);
+	struct hypervisor_policy *selected_hypervisor_policy = _select_hypervisor_policy(hypervisor_policy);
+	_load_hypervisor_policy(selected_hypervisor_policy);
 
 	perf_counters = (struct starpu_performance_counters*)malloc(sizeof(struct starpu_performance_counters));
 	perf_counters->notify_idle_cycle = notify_idle_cycle;
@@ -219,7 +277,7 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 /* forbids another resize request before this one is take into account */
 void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move)
 {
-	if(nworkers_to_move > 0)
+	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx])
 	{
 		int j;
 		printf("resize ctx %d with", sender_sched_ctx);
@@ -305,44 +363,14 @@ void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag)
 	_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, (void*)sched_ctx);	
 }
 
-void get_overage_workers(unsigned sched_ctx, int *workerids, int nworkers, int *overage_workers, int *noverage_workers)
-{
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
-	int worker, i, found = -1;
-
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
-
-	while(workers->has_next(workers))
-	{
-		worker = workers->get_next(workers);
-		for(i = 0; i < nworkers; i++)
-			if(workerids[i] == worker)
-			{
-				found = worker;
-				break;
-			}
-		if(found == -1)
-			overage_workers[(*noverage_workers)++]  = worker;
-		found = -1;
-	}
-
-	if(workers->init_cursor)
-		workers->deinit_cursor(workers);
-}
-
 /* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
 static void notify_idle_end(unsigned sched_ctx, int worker)
 {
 	if(hypervisor.resize[sched_ctx])
 		hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] = 0.0;
 
-	if(idle_policy.handle_idle_end)
-		idle_policy.handle_idle_end(sched_ctx, worker);
-	if(app_driven_policy.handle_idle_end)
-		app_driven_policy.handle_idle_end(sched_ctx, worker);
-	if(gflops_rate_policy.handle_idle_end)
-		gflops_rate_policy.handle_idle_end(sched_ctx, worker);
+	if(hypervisor.policy.handle_idle_end)
+		hypervisor.policy.handle_idle_end(sched_ctx, worker);
 }
 
 /* notifies the hypervisor that the worker spent another cycle in idle time */
@@ -355,13 +383,8 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 		{
 			sc_w->current_idle_time[worker] += idle_time;
 
-/* 			if(idle_policy.handle_idle_cycle) */
-/* 				idle_policy.handle_idle_cycle(sched_ctx, worker); */
-			if(app_driven_policy.handle_idle_cycle)
-				app_driven_policy.handle_idle_cycle(sched_ctx, worker);
-			if(gflops_rate_policy.handle_idle_cycle)
-				gflops_rate_policy.handle_idle_cycle(sched_ctx, worker);
-
+			if(hypervisor.policy.handle_idle_cycle)
+				hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
 		}		
 		else if(sc_w->resize_ack.receiver_sched_ctx != -1)
 		{
@@ -384,13 +407,8 @@ static void notify_pushed_task(unsigned sched_ctx, int worker)
 	if(!imposed_resize && ntasks == hypervisor.min_tasks)
 		hypervisor.resize[sched_ctx] = 1;
 
-	if(idle_policy.handle_pushed_task)
-		idle_policy.handle_pushed_task(sched_ctx, worker);
-	if(app_driven_policy.handle_pushed_task)
-		app_driven_policy.handle_pushed_task(sched_ctx, worker);
-	if(gflops_rate_policy.handle_pushed_task)
-		gflops_rate_policy.handle_pushed_task(sched_ctx, worker);
-
+	if(hypervisor.policy.handle_pushed_task)
+		hypervisor.policy.handle_pushed_task(sched_ctx, worker);
 }
 
 /* notifies the hypervisor that a task was poped from the queue of the worker */
@@ -405,12 +423,8 @@ static void notify_poped_task(unsigned sched_ctx, int worker, double elapsed_flo
 		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
 		if(hypervisor.resize[sched_ctx])
 		{
-			if(idle_policy.handle_poped_task)
-				idle_policy.handle_poped_task(sched_ctx, worker);
-			if(app_driven_policy.handle_poped_task)
-				app_driven_policy.handle_poped_task(sched_ctx, worker);
-/* 			if(gflops_rate_policy.handle_poped_task) */
-/* 				gflops_rate_policy.handle_poped_task(sched_ctx, worker); */
+			if(hypervisor.policy.handle_poped_task)
+				hypervisor.policy.handle_poped_task(sched_ctx, worker);
 		}
 		else if(sc_w->resize_ack.receiver_sched_ctx != -1)
 		{
@@ -447,12 +461,8 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 		{
 			struct starpu_htbl32_node_s* resize_requests = hypervisor.resize_requests[sched_ctx];
 
-			if(idle_policy.handle_post_exec_hook)
-				idle_policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
-			if(app_driven_policy.handle_post_exec_hook)
-				app_driven_policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
-			if(gflops_rate_policy.handle_post_exec_hook)
-				gflops_rate_policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+			if(hypervisor.policy.handle_post_exec_hook)
+				hypervisor.policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
 		}
 		else if(sc_w->resize_ack.receiver_sched_ctx != -1)
 		{

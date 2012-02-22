@@ -13,5 +13,7 @@ struct hypervisor_policy idle_policy = {
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = idle_handle_idle_cycle,
 	.handle_idle_end = NULL,
-	.handle_post_exec_hook = NULL
+	.handle_post_exec_hook = NULL,
+	.custom = 0,
+	.name = "idle"
 };
