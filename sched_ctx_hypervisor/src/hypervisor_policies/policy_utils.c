@@ -59,6 +59,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 
 int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_archtype arch)
 {
+	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	struct policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
 
 	int *curr_workers = (int*)malloc((*nworkers) * sizeof(int));
@@ -109,8 +110,8 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 						else if(config->priority[worker] ==
 							config->priority[curr_workers[index]])
 						{
-							double worker_idle_time = sched_ctx_hypervisor_get_idle_time(sched_ctx, worker);
-							double curr_worker_idle_time = sched_ctx_hypervisor_get_idle_time(sched_ctx, curr_workers[index]);
+							double worker_idle_time = sc_w->current_idle_time[worker];
+							double curr_worker_idle_time = sc_w->current_idle_time[curr_workers[index]];
 							if(worker_idle_time > curr_worker_idle_time)
 								curr_workers[index] = worker;
 						}

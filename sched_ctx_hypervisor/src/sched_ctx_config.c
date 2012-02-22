@@ -52,7 +52,7 @@ void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 	return;
 }
 
-void add_config(unsigned sched_ctx)
+void _add_config(unsigned sched_ctx)
 {
 	struct policy_config *config = _create_config();
 	config->min_nworkers = 0;
@@ -73,7 +73,7 @@ void add_config(unsigned sched_ctx)
 	sched_ctx_hypervisor_set_config(sched_ctx, config);
 }
 
-void remove_config(unsigned sched_ctx)
+void _remove_config(unsigned sched_ctx)
 {
 	sched_ctx_hypervisor_set_config(sched_ctx, NULL);
 }

@@ -37,9 +37,6 @@ params p1, p2;
 int it = 0;
 int it2 = 0;
 
-struct sched_ctx_hypervisor_reply reply1[NSAMPLES*2*2];
-struct sched_ctx_hypervisor_reply reply2[NSAMPLES*2*2];
-
 pthread_key_t key;
 
 void init()
@@ -90,7 +87,7 @@ void* start_bench(void *val){
 	/* { */
 	/* 	pthread_mutex_lock(&mut); */
 	/* 	if(first){ */
-	/* 		sched_ctx_hypervisor_ignore_ctx(p->ctx); */
+	/* 		sched_ctx_hypervisor_unregiser_ctx(p->ctx); */
 	/* 		starpu_delete_sched_ctx(p->ctx, p->the_other_ctx); */
 	/* 	} */
 		
@@ -250,7 +247,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	p1.ctx = starpu_create_sched_ctx_with_perf_counters("heft", p1.workers, nworkers1, "sched_ctx1", perf_counters);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
-	sched_ctx_hypervisor_handle_ctx(p1.ctx, 0.0);
+	sched_ctx_hypervisor_register_ctx(p1.ctx, 0.0);
 	
 	/* sched_ctx_hypervisor_ioctl(p1.ctx, */
 	/* 			   HYPERVISOR_MAX_IDLE, p1.workers, p1.nworkers, 5000.0, */
@@ -285,7 +282,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	p2.ctx = starpu_create_sched_ctx_with_perf_counters("heft", p2.workers, 0, "sched_ctx2", perf_counters);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;
-	sched_ctx_hypervisor_handle_ctx(p2.ctx, 0.0);
+	sched_ctx_hypervisor_register_ctx(p2.ctx, 0.0);
 	
 	/* sched_ctx_hypervisor_ioctl(p2.ctx, */
 	/* 			   HYPERVISOR_MAX_IDLE, p2.workers, p2.nworkers, 2000.0, */

@@ -1,28 +1,25 @@
 #include <sched_ctx_hypervisor.h>
 #include <../common/htable32.h>
 
-struct resize_ack{
-	int receiver_sched_ctx;
-	int *moved_workers;
-	int nmoved_workers;
-};
+/* struct resize_ack{ */
+/* 	int receiver_sched_ctx; */
+/* 	int *moved_workers; */
+/* 	int nmoved_workers; */
+/* }; */
 
-struct sched_ctx_wrapper {
-	unsigned sched_ctx;
-	struct policy_config *config;
-	double current_idle_time[STARPU_NMAXWORKERS];
-	int pushed_tasks[STARPU_NMAXWORKERS];
-	int poped_tasks[STARPU_NMAXWORKERS];
-	int temp_npushed_tasks;
-	int temp_npoped_tasks;
-	double total_flops;
-	double total_elapsed_flops[STARPU_NMAXWORKERS];
-	double elapsed_flops[STARPU_NMAXWORKERS];
-	double remaining_flops;
-	double start_time;
-	double bef_res_exp_end;
-	struct resize_ack resize_ack;
-};
+/* struct sched_ctx_wrapper { */
+/* 	unsigned sched_ctx; */
+/* 	struct policy_config *config; */
+/* 	double current_idle_time[STARPU_NMAXWORKERS]; */
+/* 	int pushed_tasks[STARPU_NMAXWORKERS]; */
+/* 	int poped_tasks[STARPU_NMAXWORKERS]; */
+/* 	double total_flops; */
+/* 	double total_elapsed_flops[STARPU_NMAXWORKERS]; */
+/* 	double elapsed_flops[STARPU_NMAXWORKERS]; */
+/* 	double remaining_flops; */
+/* 	double start_time; */
+/* 	struct resize_ack resize_ack; */
+/* }; */
 
 struct sched_ctx_hypervisor {
 	struct sched_ctx_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
@@ -44,6 +41,6 @@ struct sched_ctx_hypervisor_adjustment {
 struct sched_ctx_hypervisor hypervisor;
 
 
-void add_config(unsigned sched_ctx);
+void _add_config(unsigned sched_ctx);
 
-void remove_config(unsigned sched_ctx);
+void _remove_config(unsigned sched_ctx);

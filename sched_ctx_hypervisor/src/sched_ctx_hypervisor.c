@@ -7,13 +7,11 @@ extern struct hypervisor_policy idle_policy;
 extern struct hypervisor_policy app_driven_policy;
 extern struct hypervisor_policy gflops_rate_policy;
 
-static void idle_time_cb(unsigned sched_ctx, int worker, double idle_time);
-static void pushed_task_cb(unsigned sched_ctx, int worker);
-static void poped_task_cb(unsigned sched_ctx, int worker, double flops);
-static void post_exec_hook_cb(unsigned sched_ctx, int taskid);
-static void reset_idle_time_cb(unsigned sched_ctx, int  worker);
-
-static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val);
+static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
+static void notify_pushed_task(unsigned sched_ctx, int worker);
+static void notify_poped_task(unsigned sched_ctx, int worker, double flops);
+static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
+static void notify_idle_end(unsigned sched_ctx, int  worker);
 
 static void _load_hypervisor_policy(int type)
 {
@@ -33,9 +31,15 @@ static void _load_hypervisor_policy(int type)
 
 	}
 
-	hypervisor.policy.resize = policy->resize;
+	hypervisor.policy.handle_poped_task = policy->handle_poped_task;
+	hypervisor.policy.handle_pushed_task = policy->handle_pushed_task;
+	hypervisor.policy.handle_idle_cycle = policy->handle_idle_cycle;
+	hypervisor.policy.handle_idle_end = policy->handle_idle_end;
+	hypervisor.policy.handle_post_exec_hook = policy->handle_post_exec_hook;
+
 }
 
+/* initializez the performance counters that starpu will use to retrive hints for resizing */
 struct starpu_performance_counters** sched_ctx_hypervisor_init(int type)
 {
 	hypervisor.min_tasks = 0;
@@ -49,12 +53,9 @@ struct starpu_performance_counters** sched_ctx_hypervisor_init(int type)
 		hypervisor.sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].sched_ctx = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].config = NULL;
-		hypervisor.sched_ctx_w[i].temp_npushed_tasks = 0;
-		hypervisor.sched_ctx_w[i].temp_npoped_tasks = 0;
 		hypervisor.sched_ctx_w[i].total_flops = 0.0;
 		hypervisor.sched_ctx_w[i].remaining_flops = 0.0;
 		hypervisor.sched_ctx_w[i].start_time = 0.0;
-		hypervisor.sched_ctx_w[i].bef_res_exp_end = 0.0;
 		hypervisor.sched_ctx_w[i].resize_ack.receiver_sched_ctx = -1;
 		hypervisor.sched_ctx_w[i].resize_ack.moved_workers = NULL;
 		hypervisor.sched_ctx_w[i].resize_ack.nmoved_workers = 0;
@@ -74,20 +75,22 @@ struct starpu_performance_counters** sched_ctx_hypervisor_init(int type)
 	_load_hypervisor_policy(type);
 
 	perf_counters = (struct starpu_performance_counters*)malloc(sizeof(struct starpu_performance_counters));
-	perf_counters->notify_idle_cycle = idle_time_cb;
-	perf_counters->notify_pushed_task = pushed_task_cb;
-	perf_counters->notify_poped_task = poped_task_cb;
-	perf_counters->notify_post_exec_hook = post_exec_hook_cb;
-	perf_counters->notify_idle_end = reset_idle_time_cb;
+	perf_counters->notify_idle_cycle = notify_idle_cycle;
+	perf_counters->notify_pushed_task = notify_pushed_task;
+	perf_counters->notify_poped_task = notify_poped_task;
+	perf_counters->notify_post_exec_hook = notify_post_exec_hook;
+	perf_counters->notify_idle_end = notify_idle_end;
 	return perf_counters;
 }
 
+/* the user can forbid the resizing process*/
 void sched_ctx_hypervisor_stop_resize(unsigned sched_ctx)
 {
 	imposed_resize = 1;
 	hypervisor.resize[sched_ctx] = 0;
 }
 
+/* the user can restart the resizing process*/
 void sched_ctx_hypervisor_start_resize(unsigned sched_ctx)
 {
 	imposed_resize = 1;
@@ -103,7 +106,7 @@ void sched_ctx_hypervisor_shutdown(void)
                 if(hypervisor.sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS && hypervisor.nsched_ctxs > 0)
 		{
 			sched_ctx_hypervisor_stop_resize(hypervisor.sched_ctxs[i]);
-			sched_ctx_hypervisor_ignore_ctx(hypervisor.sched_ctxs[i]);
+			sched_ctx_hypervisor_unregister_ctx(hypervisor.sched_ctxs[i]);
 		}
 	}
 	perf_counters->notify_idle_cycle = NULL;
@@ -118,13 +121,14 @@ void sched_ctx_hypervisor_shutdown(void)
 	pthread_mutex_destroy(&act_hypervisor_mutex);
 }
 
-void sched_ctx_hypervisor_handle_ctx(unsigned sched_ctx, double total_flops)
+/* the hypervisor is in charge only of the contexts registered to it*/
+void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 {	
 	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
 	hypervisor.steal_requests[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
 	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
 
-	add_config(sched_ctx);
+	_add_config(sched_ctx);
 	hypervisor.sched_ctx_w[sched_ctx].sched_ctx = sched_ctx;
 	hypervisor.sched_ctxs[hypervisor.nsched_ctxs++] = sched_ctx;
 
@@ -164,7 +168,8 @@ static void _rearange_sched_ctxs(int *sched_ctxs, int old_nsched_ctxs)
 	}
 }
 
-void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx)
+/* unregistered contexts will no longer be resized */
+void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx)
 {
         unsigned i;
         for(i = 0; i < hypervisor.nsched_ctxs; i++)
@@ -179,7 +184,7 @@ void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx)
         _rearange_sched_ctxs(hypervisor.sched_ctxs, hypervisor.nsched_ctxs);
 	hypervisor.nsched_ctxs--;
 	hypervisor.sched_ctx_w[sched_ctx].sched_ctx = STARPU_NMAX_SCHED_CTXS;
-	remove_config(sched_ctx);
+	_remove_config(sched_ctx);
 
 	free(hypervisor.configurations[sched_ctx]);
 	free(hypervisor.steal_requests[sched_ctx]);
@@ -197,15 +202,6 @@ static int get_ntasks( int *tasks)
 	return ntasks;
 }
 
-static void reset_ntasks( int *tasks)
-{
-	int j;
-	for(j = 0; j < STARPU_NMAXWORKERS; j++)
-	{
-		tasks[j] = 0;
-	}
-	return;
-}
 
 static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 {
@@ -221,10 +217,11 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 	}
 }
 
+/* actually move the workers: the cpus are moved, gpus are only shared  */
+/* forbids another resize request before this one is take into account */
 void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move)
 {
-	if((hypervisor.resize[sender_sched_ctx] || sched_ctx_hypervisor_get_flops_left_pct(sender_sched_ctx) == 0.0f) &&
-	   nworkers_to_move > 0)
+	if(nworkers_to_move > 0)
 	{
 		int j;
 		printf("resize ctx %d with", sender_sched_ctx);
@@ -232,7 +229,6 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 			printf(" %d", workers_to_move[j]);
 		printf("\n");
 
-		hypervisor.sched_ctx_w[sender_sched_ctx].bef_res_exp_end = sched_ctx_hypervisor_get_exp_end(sender_sched_ctx);
 		int *cpus = (int*) malloc(nworkers_to_move * sizeof(int));
 		int ncpus;
 
@@ -261,6 +257,22 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 	return;
 }
 
+static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
+{
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[i] = val;
+}
+
+double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w)
+{
+	double ret_val = 0.0;
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		ret_val += sc_w->elapsed_flops[i];
+	return ret_val;
+}
+
 unsigned _check_for_resize_ack(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *moved_workers, int nmoved_workers)
 {
 	struct sched_ctx_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
@@ -279,30 +291,20 @@ unsigned _check_for_resize_ack(unsigned sender_sched_ctx, unsigned receiver_sche
 
 	double start_time =  starpu_timing_now();
 	sender_sc_w->start_time = start_time;
-	sender_sc_w->remaining_flops = sender_sc_w->remaining_flops - _get_elapsed_flops_per_sched_ctx(sender_sched_ctx);
+	sender_sc_w->remaining_flops = sender_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sender_sc_w);
 	_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
 	
 	receiver_sc_w->start_time = start_time;
-	receiver_sc_w->remaining_flops = receiver_sc_w->remaining_flops - _get_elapsed_flops_per_sched_ctx(receiver_sched_ctx);
+	receiver_sc_w->remaining_flops = receiver_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(receiver_sc_w);
 	_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
 	
 	hypervisor.resize[sender_sched_ctx] = 1;
 	return 1;
 }
 
-unsigned sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag)
+void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag)
 {
-	if(task_tag == -1)
-	{
-		return app_driven_policy.resize(sched_ctx);
-	}
-	else
-	{	
-		unsigned *sched_ctx_pt = (unsigned*)malloc(sizeof(unsigned));
-		*sched_ctx_pt = sched_ctx;
-		_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, (void*)sched_ctx_pt);	
-		return 0;
-	}
+	_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, (void*)sched_ctx);	
 }
 
 void get_overage_workers(unsigned sched_ctx, int *workerids, int nworkers, int *overage_workers, int *noverage_workers)
@@ -376,33 +378,37 @@ void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workerids, int 
 	return ;
 }
 
-double sched_ctx_hypervisor_get_idle_time(unsigned sched_ctx, int worker)
-{
-	return hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker];
-}
-
-double sched_ctx_hypervisor_get_bef_res_exp_end(unsigned sched_ctx)
-{
-	return hypervisor.sched_ctx_w[sched_ctx].bef_res_exp_end;
-}
-
-static void reset_idle_time_cb(unsigned sched_ctx, int worker)
+/* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
+static void notify_idle_end(unsigned sched_ctx, int worker)
 {
 	if(hypervisor.resize[sched_ctx])
 		hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] = 0.0;
+
+	if(idle_policy.handle_idle_end)
+		idle_policy.handle_idle_end(sched_ctx, worker);
+	if(app_driven_policy.handle_idle_end)
+		app_driven_policy.handle_idle_end(sched_ctx, worker);
+	if(gflops_rate_policy.handle_idle_end)
+		gflops_rate_policy.handle_idle_end(sched_ctx, worker);
 }
 
-static void idle_time_cb(unsigned sched_ctx, int worker, double idle_time)
+/* notifies the hypervisor that the worker spent another cycle in idle time */
+static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 {
-	if(hypervisor.nsched_ctxs > 1 && idle_policy.resize)
+	if(hypervisor.nsched_ctxs > 1)
 	{
 		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
-		sc_w->current_idle_time[worker] += idle_time;
 		if(hypervisor.resize[sched_ctx])
 		{
-			struct policy_config *config = sc_w->config;
-			if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
-				idle_policy.resize(sched_ctx);
+			sc_w->current_idle_time[worker] += idle_time;
+
+/* 			if(idle_policy.handle_idle_cycle) */
+/* 				idle_policy.handle_idle_cycle(sched_ctx, worker); */
+			if(app_driven_policy.handle_idle_cycle)
+				app_driven_policy.handle_idle_cycle(sched_ctx, worker);
+			if(gflops_rate_policy.handle_idle_cycle)
+				gflops_rate_policy.handle_idle_cycle(sched_ctx, worker);
+
 		}		
 		else if(sc_w->resize_ack.receiver_sched_ctx != -1)
 		{
@@ -413,127 +419,8 @@ static void idle_time_cb(unsigned sched_ctx, int worker, double idle_time)
 	return;
 }
 
-int* sched_ctx_hypervisor_get_sched_ctxs()
-{
-	return hypervisor.sched_ctxs;
-}
-
-int sched_ctx_hypervisor_get_nsched_ctxs()
-{
-	return hypervisor.nsched_ctxs;
-}
-
-static double _get_total_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
-{
-	double ret_val = 0.0;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		ret_val += hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[i];
-	return ret_val;
-}
-
-static double _get_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
-{
-	double ret_val = 0.0;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		ret_val += hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[i];
-	return ret_val;
-}
-
-static double _get_elapsed_flops_per_cpus(unsigned sched_ctx, int *ncpus)
-{
-	double ret_val = 0.0;
-
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
-        int worker;
-
-	if(workers->init_cursor)
-                workers->init_cursor(workers);
-
-        while(workers->has_next(workers))
-	{
-                worker = workers->get_next(workers);
-                enum starpu_archtype arch = starpu_worker_get_type(worker);
-                if(arch == STARPU_CPU_WORKER)
-                {
-			ret_val += hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[worker];
-			(*ncpus)++;
-                }
-        }
-
-	if(workers->init_cursor)
-		workers->deinit_cursor(workers);
-
-	return ret_val;
-}
-
-
-static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
-{
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[i] = val;
-}
-
-double sched_ctx_hypervisor_get_exp_end(unsigned sched_ctx)
-{	
-	double elapsed_flops = _get_elapsed_flops_per_sched_ctx(sched_ctx);
-
-	if( elapsed_flops != 0.0)
-	{
-		double curr_time = starpu_timing_now();
-		double elapsed_time = curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time;
-		double exp_end = (elapsed_time * hypervisor.sched_ctx_w[sched_ctx].remaining_flops / 
-				  elapsed_flops) + curr_time;
-		return exp_end;
-	}
-	return -1.0;
-}
-
-double sched_ctx_hypervisor_get_ctx_velocity(unsigned sched_ctx)
-{
-        double elapsed_flops = _get_elapsed_flops_per_sched_ctx(sched_ctx);
-
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time;
-                return elapsed_flops/elapsed_time;
-        }
-}
-
-double sched_ctx_hypervisor_get_cpu_velocity(unsigned sched_ctx)
-{
-        int ncpus = 0;
-        double elapsed_flops = _get_elapsed_flops_per_cpus(sched_ctx, &ncpus);
-
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time;
-                return (elapsed_flops/elapsed_time) / ncpus;
-        }
-
-        return -1.0;
-}
-
-double sched_ctx_hypervisor_get_flops_left(unsigned sched_ctx)
-{
-        return hypervisor.sched_ctx_w[sched_ctx].remaining_flops;
-}
-
-double sched_ctx_hypervisor_get_flops_left_pct(unsigned sched_ctx)
-{
-	struct sched_ctx_wrapper *wrapper = &hypervisor.sched_ctx_w[sched_ctx];
-	double total_elapsed_flops = _get_total_elapsed_flops_per_sched_ctx(sched_ctx);
-	if(wrapper->total_flops == total_elapsed_flops || total_elapsed_flops > wrapper->total_flops)
-		return 0.0;
-       
-	return (wrapper->total_flops - total_elapsed_flops)/wrapper->total_flops;
-}
-
-static void pushed_task_cb(unsigned sched_ctx, int worker)
+/* notifies the hypervisor that a new task was pushed on the queue of the worker */
+static void notify_pushed_task(unsigned sched_ctx, int worker)
 {	
 	hypervisor.sched_ctx_w[sched_ctx].pushed_tasks[worker]++;
 	if(hypervisor.sched_ctx_w[sched_ctx].total_flops != 0.0 && hypervisor.sched_ctx_w[sched_ctx].start_time == 0.0)
@@ -543,9 +430,18 @@ static void pushed_task_cb(unsigned sched_ctx, int worker)
 	
 	if(!imposed_resize && ntasks == hypervisor.min_tasks)
 		hypervisor.resize[sched_ctx] = 1;
+
+	if(idle_policy.handle_pushed_task)
+		idle_policy.handle_pushed_task(sched_ctx, worker);
+	if(app_driven_policy.handle_pushed_task)
+		app_driven_policy.handle_pushed_task(sched_ctx, worker);
+	if(gflops_rate_policy.handle_pushed_task)
+		gflops_rate_policy.handle_pushed_task(sched_ctx, worker);
+
 }
 
-static void poped_task_cb(unsigned sched_ctx, int worker, double elapsed_flops)
+/* notifies the hypervisor that a task was poped from the queue of the worker */
+static void notify_poped_task(unsigned sched_ctx, int worker, double elapsed_flops)
 {
 	hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker]++;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[worker] += elapsed_flops;
@@ -554,8 +450,15 @@ static void poped_task_cb(unsigned sched_ctx, int worker, double elapsed_flops)
 	if(hypervisor.nsched_ctxs > 1)
 	{
 		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
-		if(hypervisor.resize[sched_ctx] || sched_ctx_hypervisor_get_flops_left_pct(sched_ctx) == 0.0f)
-			gflops_rate_policy.resize(sched_ctx);
+		if(hypervisor.resize[sched_ctx])
+		{
+			if(idle_policy.handle_poped_task)
+				idle_policy.handle_poped_task(sched_ctx, worker);
+			if(app_driven_policy.handle_poped_task)
+				app_driven_policy.handle_poped_task(sched_ctx, worker);
+/* 			if(gflops_rate_policy.handle_poped_task) */
+/* 				gflops_rate_policy.handle_poped_task(sched_ctx, worker); */
+		}
 		else if(sc_w->resize_ack.receiver_sched_ctx != -1)
 		{
 			_check_for_resize_ack(sched_ctx, sc_w->resize_ack.receiver_sched_ctx,
@@ -564,11 +467,11 @@ static void poped_task_cb(unsigned sched_ctx, int worker, double elapsed_flops)
 	}
 }
 
-static void post_exec_hook_cb(unsigned sched_ctx, int task_tag)
+/* notifies the hypervisor that a tagged task has just been executed */
+static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 {
 	STARPU_ASSERT(task_tag > 0);
 
-//	if(hypervisor.nsched_ctxs > 1 && hypervisor.resize[sched_ctx])
 	if(hypervisor.nsched_ctxs > 1)
 	{
 		unsigned conf_sched_ctx;
@@ -585,20 +488,45 @@ static void post_exec_hook_cb(unsigned sched_ctx, int task_tag)
 			}
 		}	
 		
-		struct sched_ctx_hypervisor_adjustment *adjustment = (struct sched_ctx_hypervisor_adjustment*) _starpu_htbl_search_32(hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag);
-		if(adjustment && adjustment != hypervisor.steal_requests[sched_ctx])
-		{
-			sched_ctx_hypervisor_steal_workers(sched_ctx, adjustment->workerids, adjustment->nworkers, -1);
-			free(adjustment);
-			_starpu_htbl_insert_32(&hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag, NULL);
-		}
+/* 		struct sched_ctx_hypervisor_adjustment *adjustment = (struct sched_ctx_hypervisor_adjustment*) _starpu_htbl_search_32(hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag); */
+/* 		if(adjustment && adjustment != hypervisor.steal_requests[sched_ctx]) */
+/* 		{ */
+/* 			sched_ctx_hypervisor_steal_workers(sched_ctx, adjustment->workerids, adjustment->nworkers, -1); */
+/* 			free(adjustment); */
+/* 			_starpu_htbl_insert_32(&hypervisor.steal_requests[sched_ctx], (uint32_t)task_tag, NULL); */
+/* 		} */
 		
-		unsigned *sched_ctx_pt = _starpu_htbl_search_32(hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag);
-		if(sched_ctx_pt && sched_ctx_pt != hypervisor.resize_requests[sched_ctx])
+		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
+
+		if(hypervisor.resize[sched_ctx])
 		{
-			sched_ctx_hypervisor_resize(sched_ctx, -1);
-			free(sched_ctx_pt);
-			_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, NULL);
+			struct starpu_htbl32_node_s* resize_requests = hypervisor.resize_requests[sched_ctx];
+
+			if(idle_policy.handle_post_exec_hook)
+				idle_policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+			if(app_driven_policy.handle_post_exec_hook)
+				app_driven_policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+			if(gflops_rate_policy.handle_post_exec_hook)
+				gflops_rate_policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+		}
+		else if(sc_w->resize_ack.receiver_sched_ctx != -1)
+		{
+			_check_for_resize_ack(sched_ctx, sc_w->resize_ack.receiver_sched_ctx,
+					      sc_w->resize_ack.moved_workers, sc_w->resize_ack.nmoved_workers);
 		}
 	}
+}
+struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx)
+{
+	return &hypervisor.sched_ctx_w[sched_ctx];
+}
+
+int* sched_ctx_hypervisor_get_sched_ctxs()
+{
+	return hypervisor.sched_ctxs;
+}
+
+int sched_ctx_hypervisor_get_nsched_ctxs()
+{
+	return hypervisor.nsched_ctxs;
 }

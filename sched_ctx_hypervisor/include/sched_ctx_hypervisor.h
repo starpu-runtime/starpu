@@ -14,10 +14,6 @@
 #define HYPERVISOR_TIME_TO_APPLY -10
 #define HYPERVISOR_EMPTY_CTX_MAX_IDLE -11
 
-struct sched_ctx_hypervisor_reply{
-	int procs[STARPU_NMAXWORKERS];
-	int nprocs;
-};
 pthread_mutex_t act_hypervisor_mutex;
 
 #define MAX_IDLE_TIME 5000000000
@@ -55,27 +51,48 @@ struct policy_config {
 };
 
 
-struct starpu_sched_ctx_hypervisor_criteria* sched_ctx_hypervisor_init(int type);
+struct resize_ack{
+	int receiver_sched_ctx;
+	int *moved_workers;
+	int nmoved_workers;
+};
+
+struct sched_ctx_wrapper {
+	unsigned sched_ctx;
+	struct policy_config *config;
+	double current_idle_time[STARPU_NMAXWORKERS];
+	int pushed_tasks[STARPU_NMAXWORKERS];
+	int poped_tasks[STARPU_NMAXWORKERS];
+	double total_flops;
+	double total_elapsed_flops[STARPU_NMAXWORKERS];
+	double elapsed_flops[STARPU_NMAXWORKERS];
+	double remaining_flops;
+	double start_time;
+	struct resize_ack resize_ack;
+};
+
+
+struct starpu_performance_counters* sched_ctx_hypervisor_init(int type);
 
 void sched_ctx_hypervisor_shutdown(void);
 
-void sched_ctx_hypervisor_handle_ctx(unsigned sched_ctx, double total_flops);
+void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops);
 
-void sched_ctx_hypervisor_ignore_ctx(unsigned sched_ctx);
+void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx);
 
-unsigned sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag);
+void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag);
 
-void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receier_sched_ctx, int *workers_to_move, unsigned nworkers_to_movex);
+void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receier_sched_ctx, int *workers_to_move, unsigned nworkers_to_move);
 
 void sched_ctx_hypervisor_stop_resize(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_start_resize(unsigned sched_ctx);
 
+void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
+
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
 struct policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
-
-void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workers, int nworkers, int task_tag);
 
@@ -83,25 +100,18 @@ int* sched_ctx_hypervisor_get_sched_ctxs();
 
 int sched_ctx_hypervisor_get_nsched_ctxs();
 
-double sched_ctx_hypervisor_get_exp_end(unsigned sched_ctx);
+struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
-double sched_ctx_hypervisor_get_flops_left_pct(unsigned sched_ctx);
-
-double sched_ctx_hypervisor_get_idle_time(unsigned sched_ctx, int worker);
-
-double sched_ctx_hypervisor_get_bef_res_exp_end(unsigned sched_ctx);
-
-double sched_ctx_hypervisor_get_ctx_velocity(unsigned sched_ctx);
-
-double sched_ctx_hypervisor_get_cpu_velocity(unsigned sched_ctx);
-
-double sched_ctx_hypervisor_get_flops_left(unsigned sched_ctx);
-
+double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
 /* hypervisor policies */
 #define IDLE_POLICY 1
 #define APP_DRIVEN_POLICY 2
 #define GFLOPS_RATE_POLICY 3
 
 struct hypervisor_policy {
-	unsigned (*resize)(unsigned sched_ctx);
+	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
+	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
+	void (*handle_poped_task)(unsigned sched_ctx, int worker);
+	void (*handle_idle_end)(unsigned sched_ctx, int worker);
+	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node_s* resize_requests, int task_tag);
 };
