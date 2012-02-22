@@ -26,6 +26,7 @@ __attribute__((constructor)) static void socl_init() {
   struct starpu_conf conf;
   starpu_conf_init(&conf);
   conf.ncuda = 0;
+  putenv("STARPU_NCUDA=0");
 
   mem_object_init();
 
