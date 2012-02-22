@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -78,7 +78,8 @@ http://www.open-mpi.org/projects/hwloc
    export PATH="/c/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin":$PATH
 
    Try to call <lib.exe> and <link.exe> without any option to make sure these
-   dump their help output, else no .def or .lib file will be produced.
+   dump their help output with a series of options, otherwise no .def or .lib
+   file will be produced.
 
 5. Install GPU Drivers (not mandatory)
 
