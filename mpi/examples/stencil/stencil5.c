@@ -38,8 +38,8 @@ struct starpu_codelet stencil5_cl =
 };
 
 #define NITER_DEF 500
-#define X         15
-#define Y         50
+#define X         20
+#define Y         20
 
 int display = 0;
 int niter = NITER_DEF;
