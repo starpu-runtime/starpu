@@ -130,9 +130,6 @@ struct starpu_data_interface_ops
 	/* The size of the interface data descriptor */
 	size_t interface_size;
 
-	/* */
-	void (*allocate_new_data)(starpu_data_handle_t handle, void **data_interface);
-
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 };
@@ -141,6 +138,7 @@ struct starpu_data_interface_ops
 int starpu_data_interface_get_next_id();
 
 void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, void *data_interface, struct starpu_data_interface_ops *ops);
+void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
 /* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
  * interface does not support this operation or data for this handle is not

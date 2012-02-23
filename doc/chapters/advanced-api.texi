@@ -68,8 +68,6 @@ An identifier that is unique to each interface.
 @item @code{size_t interface_size}
 The size of the interface data descriptor.
 
-@item @code{ void (*allocate_new_data)(starpu_data_handle_t handle, void **data_interface)}
-Create a new data interface of the given type based on the handle @var{handle}.
 @end table
 @end deftp
 

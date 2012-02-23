@@ -295,6 +295,12 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 	_starpu_register_new_data(handle, home_node, 0);
 }
 
+void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
+{
+	void *local_interface = starpu_data_get_interface_on_node(handlesrc, 0);
+	starpu_data_register(handledst, -1, local_interface, handlesrc->ops);
+}
+
 void *starpu_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {
 	/* Check whether the operation is supported and the node has actually

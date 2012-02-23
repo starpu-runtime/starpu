@@ -78,7 +78,6 @@ static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
-static void allocate_new_variable(starpu_data_handle_t handle, void **data_interface);
 
 static struct starpu_data_interface_ops interface_variable_ops =
 {
@@ -96,7 +95,6 @@ static struct starpu_data_interface_ops interface_variable_ops =
 	.interfaceid = STARPU_VARIABLE_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_variable_interface),
 	.display = display_variable_interface,
-	.allocate_new_data = allocate_new_variable
 };
 
 static void *variable_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
@@ -285,14 +283,6 @@ static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 		default:
 			STARPU_ASSERT(0);
 	}
-}
-
-static void allocate_new_variable(starpu_data_handle_t handle, void **data_interface)
-{
-	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)malloc(sizeof(struct starpu_variable_interface));
-	variable_interface->ptr = (uintptr_t) NULL;
-	variable_interface->elemsize = handle->ops->get_size(handle);
-	*data_interface = variable_interface;
 }
 
 #ifdef STARPU_USE_CUDA

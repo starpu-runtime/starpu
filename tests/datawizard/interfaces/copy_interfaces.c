@@ -24,9 +24,7 @@ static int check_copy(starpu_data_handle_t handle, char *header)
 	starpu_data_handle_t new_handle;
 	int ret=0;
 
-	STARPU_ASSERT(handle->ops->allocate_new_data);
-	handle->ops->allocate_new_data(handle, &new_interface);
-	starpu_data_register(&new_handle, -1, new_interface, handle->ops);
+	starpu_data_register_same(&new_handle, handle);
 
 	if (!getenv("STARPU_SSILENT") && new_handle->ops->display)
 	{
@@ -36,6 +34,8 @@ static int check_copy(starpu_data_handle_t handle, char *header)
 	}
 
 	old_interface = starpu_data_get_interface_on_node(handle, 0);
+	new_interface = starpu_data_get_interface_on_node(new_handle, 0);
+
 	if (new_handle->ops->compare(old_interface, new_interface) == 0)
 	{
 		FPRINTF(stderr, "Error when copying %s data\n", header);

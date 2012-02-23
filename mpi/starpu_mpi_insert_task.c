@@ -446,15 +446,11 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 	if (me == rank) {
 		int i;
 
-		STARPU_ASSERT(data_handle->ops->allocate_new_data);
-
 		for(i=0 ; i<nb_nodes ; i++) {
 			if (i != rank) {
-				void *data_interface;
 				starpu_data_handle_t new_handle;
 
-				data_handle->ops->allocate_new_data(data_handle, &data_interface);
-				starpu_data_register(&new_handle, -1, data_interface, data_handle->ops);
+				starpu_data_register_same(&new_handle, data_handle);
 
 				_STARPU_MPI_DEBUG("Receiving redux handle from %d in %p ...\n", i, new_handle);
 

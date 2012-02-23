@@ -78,7 +78,6 @@ static void display_vector_interface(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
-static void allocate_new_vector(starpu_data_handle_t handle, void **data_interface);
 
 static struct starpu_data_interface_ops interface_vector_ops =
 {
@@ -96,7 +95,6 @@ static struct starpu_data_interface_ops interface_vector_ops =
 	.interfaceid = STARPU_VECTOR_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_vector_interface),
 	.display = display_vector_interface,
-	.allocate_new_data = allocate_new_vector
 };
 
 static void *vector_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
@@ -330,17 +328,6 @@ static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 		default:
 			STARPU_ASSERT(0);
 	}
-}
-
-static void allocate_new_vector(starpu_data_handle_t handle, void **data_interface)
-{
-	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)malloc(sizeof(struct starpu_vector_interface));
-	vector_interface->ptr = (uintptr_t) NULL;
-	vector_interface->dev_handle = (uintptr_t) NULL;
-	vector_interface->offset = 0;
-	vector_interface->nx = starpu_vector_get_nx(handle);
-	vector_interface->elemsize = starpu_vector_get_elemsize(handle);
-	*data_interface = vector_interface;
 }
 
 #ifdef STARPU_USE_CUDA
