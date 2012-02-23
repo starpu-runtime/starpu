@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -23,7 +23,11 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#define NITER		1000
+#ifdef STARPU_SLOW_MACHINE
+#define NLOOPS		100
+#else
+#define NLOOPS		1000
+#endif
 #define VECTORSIZE	1024
 
 float *buffer;
