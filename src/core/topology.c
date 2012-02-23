@@ -486,7 +486,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 		}
 		else
 		{
-			if (topology->ncpus > STARPU_MAXCPUS)
+			if (ncpu > STARPU_MAXCPUS)
 			{
 				fprintf(stderr,
 					"# Warning: %d CPU devices requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n",
