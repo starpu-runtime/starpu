@@ -70,13 +70,27 @@ int main(int argc, char **argv)
 {
 	int ret;
 	int cpu, cpu_init;
+	int cpu_test1, cpu_test2, cpu_test3;
 
 	unsetenv("STARPU_NCPUS");
 
 	ret = check_cpu(-1, -1, -1, &cpu_init);
 	if (ret) return ret;
 
-	ret = check_cpu(cpu_init*2, -1, cpu_init*2, &cpu);
+	if (cpu_init >= STARPU_MAXCPUS-5)
+	{
+		cpu_test1 = cpu_init-1;
+		cpu_test2 = cpu_init-2;
+		cpu_test3 = cpu_init-3;
+	}
+	else
+	{
+		cpu_test1 = cpu_init+1;
+		cpu_test2 = cpu_init+2;
+		cpu_test3 = cpu_init+3;
+	}
+
+	ret = check_cpu(cpu_test1, -1, cpu_test1, &cpu);
 	if (ret) return ret;
 
 	ret = check_cpu(-1, -1, -1, &cpu);
@@ -87,10 +101,10 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = check_cpu(-1, cpu_init+3, cpu_init+3, &cpu);
+	ret = check_cpu(-1, cpu_test2, cpu_test2, &cpu);
 	if (ret) return ret;
 
-	ret = check_cpu(cpu_init*3, cpu_init+1, cpu_init*3, &cpu);
+	ret = check_cpu(cpu_test3, cpu_test1, cpu_test3, &cpu);
 	if (ret) return ret;
 
 	STARPU_RETURN(ret);
