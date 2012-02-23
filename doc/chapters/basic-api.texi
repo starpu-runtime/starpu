@@ -1658,7 +1658,7 @@ Return the default sequential consistency flag
 @deftypefun void starpu_data_set_sequential_consistency_flag (starpu_data_handle_t @var{handle}, unsigned @var{flag})
 Sets the data consistency mode associated to a data handle. The consistency
 mode set using this function has the priority over the default mode which can
-be set with @code{starpu_data_set_sequential_consistency_flag}.
+be set with @code{starpu_data_set_default_sequential_consistency_flag}.
 @end deftypefun
 
 @node Performance Model API
