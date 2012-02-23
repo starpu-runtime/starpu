@@ -36,8 +36,7 @@ void _starpu_cg_list_init(struct _starpu_cg_list *list)
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	/* this is a small initial default value ... may be changed */
 	list->succ_list_size = 0;
-	list->succ =
-		(struct _starpu_cg **) realloc(NULL, list->succ_list_size*sizeof(struct _starpu_cg *));
+	list->succ = NULL;
 #endif
 }
 

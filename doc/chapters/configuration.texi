@@ -222,6 +222,7 @@ variables.
 * STARPU_NCUDA::                Number of CUDA workers
 * STARPU_NOPENCL::              Number of OpenCL workers
 * STARPU_NGORDON::              Number of SPU workers (Cell)
+* STARPU_WORKERS_NOBIND::       Do not bind workers
 * STARPU_WORKERS_CPUID::        Bind workers to specific CPUs
 * STARPU_WORKERS_CUDAID::       Select specific CUDA devices
 * STARPU_WORKERS_OPENCLID::     Select specific OpenCL devices
@@ -252,6 +253,12 @@ OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 @subsubsection @code{STARPU_NGORDON} -- Number of SPU workers (Cell)
 
 Specify the number of SPUs that StarPU can use.
+
+@node STARPU_WORKERS_NOBIND
+@subsubsection @code{STARPU_WORKERS_NOBIND} -- Do not bind workers to specific CPUs
+
+Setting it to non-zero will prevent StarPU from binding its threads to
+CPUs. This is for instance useful when running the testsuite in parallel.
 
 @node STARPU_WORKERS_CPUID
 @subsubsection @code{STARPU_WORKERS_CPUID} -- Bind workers to specific CPUs
