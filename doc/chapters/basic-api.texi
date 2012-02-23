@@ -326,6 +326,11 @@ matrix) which can be registered by the means of helper functions (e.g.
 @code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
 @end deftypefun
 
+@deftypefun void starpu_data_register_same ({starpu_data_handle_t *}@var{handledst}, starpu_data_handle_t @var{handlesrc})
+Register a new piece of data into the handle @var{handledst} with the
+same interface as the handle @var{handlesrc}.
+@end deftypefun
+
 @deftypefun void starpu_data_unregister (starpu_data_handle_t @var{handle})
 This function unregisters a data handle from StarPU. If the data was
 automatically allocated by StarPU because the home node was -1, all
