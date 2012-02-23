@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -126,6 +126,7 @@ int main(int argc, char **argv)
 		_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
+	starpu_data_unpartition(handle, 0);
 	starpu_data_unregister(handle);
 	starpu_free(buffer);
 	starpu_shutdown();
