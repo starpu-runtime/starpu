@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -168,6 +168,7 @@ int main(int argc, char **argv)
 		double length = starpu_timing_timespec_delay_us(&info->submit_time, &info->end_time);
 		double push_duration = starpu_timing_timespec_delay_us(&info->push_start_time, &info->push_end_time);
 		double pop_duration = starpu_timing_timespec_delay_us(&info->pop_start_time, &info->pop_end_time);
+		starpu_task_destroy(tasks[i]);
 		cumulated += (length - queued);
 		cumulated_push += push_duration;
 		cumulated_pop += pop_duration;
