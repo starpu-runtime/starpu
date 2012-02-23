@@ -451,6 +451,7 @@ static void vector_scal_opencl (size_t size, float vector[size],
                                 float factor)
   __attribute__ ((task_implementation ("opencl", vector_scal)));
 
+@c TODO This example will not work : size cannot be a size_t in clSetKernelArg, and global should not be 1. Do we want to document the ugly hach we use, though ?
 static void
 vector_scal_opencl (size_t size, float vector[size], float factor)
 @{
