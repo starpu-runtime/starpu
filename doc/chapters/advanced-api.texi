@@ -278,7 +278,7 @@ directory @code{examples/interface/}.
 @section Multiformat Data Interface
 
 @deftp {Data Type} {struct starpu_multiformat_data_interface_ops}
-todo. The different fields are:
+The different fields are:
 @table @asis
 @item @code{size_t cpu_elemsize}
 the size of each element on CPUs,
