@@ -204,6 +204,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
         .get_size = complex_get_size,
         .footprint = complex_footprint,
         .interfaceid = -1,
+        .interface_size = sizeof(struct starpu_complex_interface),
 @};
 @end smallexample
 @end cartouche
