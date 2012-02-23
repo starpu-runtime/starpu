@@ -355,7 +355,8 @@ invalidated data in read-mode results in undefined behaviour.
 
 @deftypefun void starpu_data_set_wt_mask (starpu_data_handle_t @var{handle}, uint32_t @var{wt_mask})
 This function sets the write-through mask of a given data, i.e. a bitmask of
-nodes where the data should be always replicated after modification.
+nodes where the data should be always replicated after modification. It also
+prevents the data from being evicted from these nodes when memory gets scarse.
 @end deftypefun
 
 @deftypefun int starpu_data_prefetch_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, unsigned @var{async})

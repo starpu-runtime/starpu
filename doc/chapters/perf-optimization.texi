@@ -64,6 +64,10 @@ starpu_data_set_wt_mask(img_handle, ~0U);
 will request to always automatically broadcast the updated data to all memory
 nodes.
 
+Setting the write-through mask to @code{~0U} can also be useful to make sure all
+memory nodes always have a copy of the data, so that it is never evicted when
+memory gets scarse.
+
 @node Task granularity
 @section Task granularity
 
