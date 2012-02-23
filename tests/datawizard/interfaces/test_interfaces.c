@@ -558,6 +558,7 @@ ram_to_ram(void)
 	if (err != 0)
 	{
 		err = TASK_SUBMISSION_FAILURE;
+		task->destroy = 0;
 		starpu_task_destroy(task);
 		goto out;
 	}
