@@ -195,6 +195,11 @@ void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 {
 	_starpu_spin_lock(&tag->lock);
 
+	if (tag->state == STARPU_DONE) {
+		_starpu_spin_unlock(&tag->lock);
+		return;
+	}
+
 	tag->state = STARPU_DONE;
 	_STARPU_TRACE_TAG_DONE(tag);
 

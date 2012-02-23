@@ -166,8 +166,9 @@ examplebin_PROGRAMS +=				\
 	filters/fblock				\
 	filters/fmatrix				\
 	tag_example/tag_example			\
-	tag_example/tag_example3		\
 	tag_example/tag_example2		\
+	tag_example/tag_example3		\
+	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
 	spmv/spmv				\
 	callback/callback			\
@@ -229,8 +230,9 @@ STARPU_EXAMPLES +=				\
 	filters/fblock				\
 	filters/fmatrix				\
 	tag_example/tag_example			\
-	tag_example/tag_example3		\
 	tag_example/tag_example2		\
+	tag_example/tag_example3		\
+	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
 	spmv/spmv				\
 	callback/callback			\

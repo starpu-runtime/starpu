@@ -15,6 +15,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* This example shows how to submit a series of tasks in a chain of dependency:
+ *
+ * ... -> task (i) --> task (i+1) --> ...
+ *
+ * This is repeated several times
+ */
+
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -63,19 +70,20 @@ static void parse_args(int argc, char **argv)
 
 void callback_cpu(void *argcb);
 
-static void tag_cleanup_grid(unsigned ni, unsigned it)
+static void tag_cleanup_grid(unsigned ni, unsigned iter)
 {
 	unsigned i;
+
 	for (i = 0; i < ni; i++)
-		starpu_tag_remove(TAG(i,it));
+		starpu_tag_remove(TAG(i,iter));
 } 
 
-static void create_task_grid(unsigned it)
+static void create_task_grid(unsigned iter)
 {
-	unsigned i;
+	int i;
 	int ret;
 
-/*	FPRINTF(stderr, "start iter %d ni %d...\n", it, ni); */
+/*	FPRINTF(stderr, "start iter %d ni %d...\n", iter, ni); */
 
 	for (i = 0; i < ni; i++)
 	{
@@ -86,10 +94,10 @@ static void create_task_grid(unsigned it)
 		task->cl_arg = NULL;
 
 		task->use_tag = 1;
-		task->tag_id = TAG(i, it);
+		task->tag_id = TAG(i, iter);
 
 		if (i != 0)
-			starpu_tag_declare_deps(TAG(i,it), 1, TAG(i-1,it));
+			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
 
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -97,8 +105,7 @@ static void create_task_grid(unsigned it)
 
 }
 
-void cpu_codelet(void *descr[] __attribute__ ((unused)),
-			void *_args __attribute__ ((unused)))
+void cpu_codelet(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
 {
 }
 

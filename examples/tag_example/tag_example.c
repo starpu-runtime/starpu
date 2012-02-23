@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -13,6 +13,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/* This example shows how to use tags to define a grid of dependencies, shaped this way:
+ *
+ *           ...               ...
+ *            v                 v
+ * ... -> task (i,  j) --> task (i,  j+1) --> ...
+ *            v                 v
+ * ... -> task (i+1,j) --> task (i+1,j+1) --> ...
+ *            v                 v
+ *           ...               ...
  */
 
 #include <string.h>

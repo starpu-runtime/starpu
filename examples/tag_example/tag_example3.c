@@ -15,6 +15,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* This example shows how to submit a series of tasks in a chain of dependency:
+ *
+ * ... -> task (i) --> task (i+1) --> ...
+ *
+ * but here submitted in reverse order.
+ *
+ * This is repeated several times
+ */
+
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -68,11 +77,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned iter)
 	unsigned i;
 
 	for (i = 0; i < ni; i++)
-	{
 		starpu_tag_remove(TAG(i,iter));
-	}
-
-
 } 
 
 static void create_task_grid(unsigned iter)
@@ -102,7 +107,7 @@ static void create_task_grid(unsigned iter)
 
 }
 
-void cpu_codelet(void *descr[], void *_args __attribute__ ((unused)))
+void cpu_codelet(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
 {
 }
 
