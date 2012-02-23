@@ -1445,7 +1445,8 @@ A pointer to the previous task. This should only be used by StarPU.
 A pointer to the next task. This should only be used by StarPU.
 
 @item @code{unsigned int mf_skip}
-todo
+This is only used for tasks that use multiformat handle. This should only be
+used by StarPU.
 
 @item @code{void *starpu_private}
 This is private to StarPU, do not modify. If the task is allocated by hand
