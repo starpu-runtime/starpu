@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
@@ -482,3 +482,6 @@ endif
 datawizard_interfaces_void_void_interface_SOURCES=\
 	datawizard/interfaces/test_interfaces.c        \
 	datawizard/interfaces/void/void_interface.c
+
+showcheck:
+	-cat test-suite.log

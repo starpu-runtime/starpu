@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+# Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2012 INRIA
@@ -746,3 +746,6 @@ examplebin_PROGRAMS +=				\
 
 top_hello_world_top_SOURCES =			\
 	top/hello_world_top.c
+
+showcheck:
+	-cat test-suite.log

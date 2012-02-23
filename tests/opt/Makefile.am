@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 # Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
 #
@@ -43,3 +43,6 @@ optbin_PROGRAMS +=				\
 datawizard_wt_broadcast_SOURCES =		\
 	datawizard/wt_broadcast.c
 
+
+showcheck:
+	-cat test-suite.log

@@ -296,3 +296,6 @@ tests_ring_SOURCES += tests/ring_kernel.cu
 tests_ring_async_SOURCES += tests/ring_kernel.cu
 tests_ring_async_implicit_SOURCES += tests/ring_kernel.cu
 endif
+
+showcheck:
+	-cat test-suite.log
