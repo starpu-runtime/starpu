@@ -712,6 +712,10 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+
+	free(advance_11);
+	free(advance_12_21);
+	free(advance_22);
 }
 
 void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
