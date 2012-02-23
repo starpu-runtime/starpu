@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,6 @@
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
-
 
 static unsigned var = 0;
 static starpu_data_handle_t handle;
@@ -106,10 +105,14 @@ int main(int argc, char **argv)
 	uint32_t wt_mask = (1<<0);
 	starpu_data_set_wt_mask(handle, wt_mask);
 
-	unsigned ntasks = 2;
+	unsigned ntasks = 1024;
+	unsigned nloops = 16;
 
+	unsigned loop;
 	unsigned t;
 
+	for (loop = 0; loop < nloops; loop++)
+	{
 	for (t = 0; t < ntasks; t++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -121,13 +124,14 @@ int main(int argc, char **argv)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
+	}
 
 	starpu_data_unregister(handle);
 
-	if (var != ntasks)
+	if (var != ntasks*nloops)
 		fprintf(stderr, "VAR is %d should be %d\n", var, ntasks);
 
-	STARPU_ASSERT(var == ntasks);
+	STARPU_ASSERT(var == ntasks*nloops);
 
 	starpu_shutdown();
 
