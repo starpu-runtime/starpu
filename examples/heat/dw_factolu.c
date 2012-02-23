@@ -268,6 +268,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 			}
 		}
 	}
+	free(argcb);
 }
 
 void dw_callback_v2_codelet_update_u21(void *argcb)
@@ -327,6 +328,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 			}
 		}
 	}
+	free(argcb);
 }
 
 void dw_callback_v2_codelet_update_u11(void *argcb)
@@ -443,6 +445,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 			}
 		}
 	}
+	free(argcb);
 }
 
 
@@ -733,6 +736,20 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 		STARPU_ASSERT(*A);
 		*B = malloc((size_t)dim*sizeof(float));
 		STARPU_ASSERT(*B);
+	}
+}
+
+void free_system(float *A, float *B, unsigned dim, unsigned pinned)
+{
+	if (pinned)
+	{
+		starpu_free(A);
+		starpu_free(B);
+	}
+	else
+	{
+		free(A);
+		free(B);
 	}
 }
 
