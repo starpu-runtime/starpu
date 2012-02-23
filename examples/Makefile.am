@@ -748,4 +748,4 @@ top_hello_world_top_SOURCES =			\
 	top/hello_world_top.c
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)

@@ -115,4 +115,4 @@ view:
 	feh --zoom 800 -F 0.xpm 0.5.xpm 1.xpm 2.xpm 3.xpm 4.xpm 6.xpm mpi.xpm
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)

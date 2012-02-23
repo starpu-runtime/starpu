@@ -78,4 +78,4 @@ endif
 
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)

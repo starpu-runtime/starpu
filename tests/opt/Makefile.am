@@ -45,4 +45,4 @@ datawizard_wt_broadcast_SOURCES =		\
 
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)

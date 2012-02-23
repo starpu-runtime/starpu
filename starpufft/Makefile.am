@@ -94,4 +94,4 @@ TESTS = $(check_PROGRAMS)
 #examples_testf_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)

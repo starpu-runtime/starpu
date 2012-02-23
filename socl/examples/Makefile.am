@@ -64,4 +64,4 @@ clinfo_clinfo_SOURCES = clinfo/clinfo.c
 #endif
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)

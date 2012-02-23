@@ -298,4 +298,4 @@ tests_ring_async_implicit_SOURCES += tests/ring_kernel.cu
 endif
 
 showcheck:
-	-cat test-suite.log
+	-cat $(TEST_LOGS)
