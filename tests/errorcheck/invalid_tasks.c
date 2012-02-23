@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(task);
 	STARPU_ASSERT(ret == -ENODEV);
 
+	task->destroy = 0;
 	starpu_task_destroy(task);
 
 	struct starpu_task *task_specific = starpu_task_create();
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(task_specific);
 	STARPU_ASSERT(ret == -ENODEV);
 
+	task_specific->destroy = 0;
 	starpu_task_destroy(task_specific);
 
 	starpu_shutdown();
