@@ -187,6 +187,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.get_size = complex_get_size,
 	.footprint = complex_footprint,
 	.interfaceid = -1,
+	.interface_size = sizeof(struct starpu_complex_interface),
 };
 
 void starpu_complex_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, double *real, double *imaginary, int nx)
