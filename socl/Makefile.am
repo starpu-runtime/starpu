@@ -31,3 +31,8 @@ libsocl_la_include_HEADERS = \
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = socl-1.0.pc
+
+showcheck:
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

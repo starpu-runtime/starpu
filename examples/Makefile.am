@@ -748,4 +748,7 @@ top_hello_world_top_SOURCES =			\
 	top/hello_world_top.c
 
 showcheck:
-	-cat $(TEST_LOGS)
+	-cat $(TEST_LOGS) /dev/null
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

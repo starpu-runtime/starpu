@@ -94,3 +94,8 @@ txt_DATA = AUTHORS COPYING.LGPL README
 EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION
 
 include starpu-top/extradist
+
+showcheck:
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

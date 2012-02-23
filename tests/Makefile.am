@@ -484,4 +484,4 @@ datawizard_interfaces_void_void_interface_SOURCES=\
 	datawizard/interfaces/void/void_interface.c
 
 showcheck:
-	-cat $(TEST_LOGS)
+	-cat $(TEST_LOGS) /dev/null

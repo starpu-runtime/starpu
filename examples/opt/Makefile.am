@@ -78,4 +78,4 @@ endif
 
 
 showcheck:
-	-cat $(TEST_LOGS)
+	-cat $(TEST_LOGS) /dev/null

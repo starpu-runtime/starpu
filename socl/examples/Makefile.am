@@ -64,4 +64,4 @@ clinfo_clinfo_SOURCES = clinfo/clinfo.c
 #endif
 
 showcheck:
-	-cat $(TEST_LOGS)
+	-cat $(TEST_LOGS) /dev/null
