@@ -280,7 +280,7 @@ struct starpu_csr_interface
 	uint32_t nnz; /* number of non-zero entries */
 	uint32_t nrow; /* number of rows */
 	uintptr_t nzval; /* non-zero values */
-	uint32_t *colind; /* position of non-zero entried on the row */
+	uint32_t *colind; /* position of non-zero entries on the row */
 	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
 
         /* k for k-based indexing (0 or 1 usually) */
