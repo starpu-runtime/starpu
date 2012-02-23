@@ -224,5 +224,5 @@ int main(int argc, char **argv)
 #endif
         starpu_shutdown();
 
-	return 0;
+	return (submit == -ENODEV) ? 77 : 0;
 }
