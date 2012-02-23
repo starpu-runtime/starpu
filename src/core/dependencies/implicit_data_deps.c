@@ -352,6 +352,9 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 		struct _starpu_task_wrapper_list *l;
 		l = handle->last_submitted_readers;
 		struct _starpu_task_wrapper_list *prev = NULL;
+#ifdef STARPU_DEVEL
+#warning TODO: use double-linked list to make finding ourself fast
+#endif
 		while (l)
 		{
 			struct _starpu_task_wrapper_list *next = l->next;

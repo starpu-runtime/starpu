@@ -68,6 +68,13 @@ Setting the write-through mask to @code{~0U} can also be useful to make sure all
 memory nodes always have a copy of the data, so that it is never evicted when
 memory gets scarse.
 
+Implicit data dependency computation can become expensive if a lot
+of tasks access the same piece of data. If no dependency is required
+on some piece of data (e.g. because it is only accessed in read-only
+mode, or because write accesses are actually commutative), use the
+@code{starpu_data_set_sequential_consistency_flag} function to disable implicit
+dependencies on that data.
+
 @node Task granularity
 @section Task granularity
 
