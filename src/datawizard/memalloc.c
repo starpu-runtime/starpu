@@ -304,6 +304,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	handle = mc->data;
 	STARPU_ASSERT(handle);
 
+	/* This data should be written through to this node, avoid dropping it! */
+	if (handle->wt_mask & (1<<node))
+		return 0;
+
 	/* REDUX memchunk */
 	if (mc->relaxed_coherency == 2)
 	{
