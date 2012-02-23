@@ -24,9 +24,9 @@
 #include "../helper.h"
 
 #ifdef STARPU_SLOW_MACHINE
-#define NLOOPS		100
+#define NITER		100
 #else
-#define NLOOPS		1000
+#define NITER		1000
 #endif
 #define VECTORSIZE	1024
 
