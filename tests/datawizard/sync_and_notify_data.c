@@ -149,7 +149,6 @@ int main(int argc, char **argv)
 			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-			starpu_task_destroy(task);
 		}
 
 		/* synchronize v in RAM */
@@ -192,7 +191,6 @@ int main(int argc, char **argv)
 			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-			starpu_task_destroy(task);
 		}
 
 	}

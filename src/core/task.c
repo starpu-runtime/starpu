@@ -419,7 +419,11 @@ int starpu_task_submit(struct starpu_task *task)
 	ret = _starpu_submit_job(j);
 
 	if (is_sync)
+	{
 		_starpu_wait_job(j);
+		if (task->destroy)
+		     _starpu_task_destroy(task);
+	}
 
         _STARPU_LOG_OUT();
 	return ret;

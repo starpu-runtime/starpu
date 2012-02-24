@@ -59,7 +59,6 @@ int increment_token()
 	task->cl = &increment_cl;
 	task->handles[0] = token_handle;
 	ret = starpu_task_submit(task);
-	starpu_task_destroy(task);
 	return ret;
 }
 

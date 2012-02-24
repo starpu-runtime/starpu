@@ -115,9 +115,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* destroy the task */
-	starpu_task_destroy(task);
-
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it
 	 * is called, it is not possible to submit tasks anymore, and the user

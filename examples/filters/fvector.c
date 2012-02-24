@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
-		exit(77);	
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
@@ -88,8 +88,6 @@ int main(int argc, char **argv)
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
-		starpu_task_destroy(task);
 	}
 
 	starpu_data_unpartition(handle, 0);

@@ -155,7 +155,6 @@ int main(int argc, char **argv)
                         FPRINTF(stderr, "Error when submitting task\n");
                         exit(ret);
                 }
-		starpu_task_destroy(task);
         }
 
         /* Unpartition the data, unregister it from StarPU and shutdown */

@@ -156,8 +156,6 @@ int main(int argc, char **argv)
  	 * monitoring it */
 	starpu_data_unregister(vector_handle);
 
-	starpu_task_destroy(task);
-
 #ifdef STARPU_USE_OPENCL
         starpu_opencl_unload_opencl(&opencl_program);
 #endif
