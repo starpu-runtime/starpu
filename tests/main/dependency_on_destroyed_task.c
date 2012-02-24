@@ -12,6 +12,13 @@
  * probably OK to disable it for a while :-) Maybe we could also detect
  * destroyed tasks in starpu_task_declare_deps_array.
  */
+#ifdef STARPU_HAVE_VALGRIND_H
+int
+main(void)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 static void abort_catcher(int sig)
 {
 	(void) sig;
@@ -76,4 +83,5 @@ main(void)
 
 	return EXIT_FAILURE;
 }
+#endif
 
