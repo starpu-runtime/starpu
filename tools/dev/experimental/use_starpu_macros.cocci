@@ -1,6 +1,6 @@
 // StarPU --- Runtime system for heterogeneous multicore architectures.
 //
-// Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+// Copyright (C) 2011-2012 inria
 //
 // StarPU is free software; you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -13,20 +13,109 @@
 //
 // See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+virtual context
+virtual org
+virtual patch
+virtual report
+
+//
+// General stuff for org and report modes.
+//
+@initialize:python depends on report || org@
+d = { 'abort':'STARPU_ABORT', 'assert':'STARPU_ASSERT'}
+msg = "Please use %s rather than %s."
+
+@r@
+identifier f =~ "abort|assert";
+position p;
 @@
+f@p(...);
+
+@min@
+expression E1,E2;
+identifier i;
+position p;
+@@
+(
+return@p E1<E2?E1:E2;
+|
+i =@p  E1<E2?E1:E2
+)
+
+@max@
+expression E1, E2;
+identifier i;
+position p;
+@@
+(
+return@p E1>E2?E1:E2;
+|
+i =@p E1>E2?E1:E2
+)
+
+//
+// Context mode.
+//
+@depends on context@
+@@
+*	abort();
+
+
+@depends on context@
+@@
+*	assert(...);
+
+
+@depends on context@
+identifier i;
+expression E1, E2;
+@@
+(
+* 	return E1<E2?E1:E2;
+|
+*	i =  E1<E2?E1:E2            // No semi-colon at the end, so that it
+|
+*	return E1>E2?E1:E2;
+|
+*	i = E1>E2?E1:E2             // No semi-colon at the end, so that it
+)
+
+//
+// Org mode.
+//
+
+@script:python depends on r && org@
+p << r.p;
+f << r.f;
+@@
+coccilib.org.print_todo(p[0], msg % (d[str(f)], f))
+
+@script:python depends on min && org@
+p << min.p;
+@@
+coccilib.org.print_todo(p[0], "Please use STARPU_MIN")
+
+@script:python depends on max && org@
+p << max.p;
+@@
+coccilib.org.print_todo(p[0], "Please use STARPU_MAX")
+
+
+//
+// Patch mode.
+//
+@depends on patch@
 @@
 -	abort();
 +	STARPU_ABORT();
 
-
-@@
+@depends on patch@
 @@
 -	assert(
 +	STARPU_ASSERT(
 ...)
 
-
-@min_max@
+@depends on patch@
 identifier i;
 expression E1, E2;
 @@
@@ -43,3 +132,22 @@ expression E1, E2;
 -	i = E1>E2?E1:E2             // No semi-colon at the end, so that it
 +	i = STARPU_MAX(E1, E2)      // matches both "i = ..." and "t i = ..."
 )
+
+//
+// Report mode.
+//
+@script:python depends on r && report@
+p << r.p;
+f << r.f;
+@@
+coccilib.report.print_report(p[0], msg % (d[str(f)], f))
+
+@script:python depends on min && report@
+p << min.p;
+@@
+coccilib.report.print_report(p[0], "Please use STARPU_MIN")
+
+@script:python depends on max && report@
+p << max.p;
+@@
+coccilib.report.print_report(p[0], "Please use STARPU_MAX")
