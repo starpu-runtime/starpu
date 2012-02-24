@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 void *_starpu_htbl_search_32(struct starpu_htbl32_node *htbl, uint32_t key)
 {
 	unsigned currentbit;
-	unsigned keysize = 32;
+	unsigned keysize = sizeof(uint32_t)*8;
 
 	struct starpu_htbl32_node *current_htbl = htbl;
 
@@ -62,7 +62,7 @@ void *_starpu_htbl_search_32(struct starpu_htbl32_node *htbl, uint32_t key)
 void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, void *entry)
 {
 	unsigned currentbit;
-	unsigned keysize = 32;
+	unsigned keysize = sizeof(uint32_t)*8;
 
 	struct starpu_htbl32_node **current_htbl_ptr = htbl;
 
@@ -101,4 +101,28 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 	*current_htbl_ptr = (struct starpu_htbl32_node *) entry;
 
 	return old_entry;
+}
+
+static void _starpu_htbl_destroy_32_bit(struct starpu_htbl32_node *htbl, unsigned bit, void (*remove)(void*))
+{
+	unsigned keysize = sizeof(uint32_t)*8;
+	int i;
+
+	if (!htbl)
+		return;
+
+	if (bit >= keysize) {
+		/* entry, delete it */
+		if (remove)
+			remove(htbl);
+		return;
+	}
+
+	for (i = 0; i < 1<<_STARPU_HTBL32_NODE_SIZE; i++) {
+		_starpu_htbl_destroy_32_bit(htbl->children[i], bit+_STARPU_HTBL32_NODE_SIZE, remove);
+	}
+}
+void _starpu_htbl_destroy_32(struct starpu_htbl32_node *htbl, void (*remove)(void*))
+{
+	_starpu_htbl_destroy_32_bit(htbl, 0, remove);
 }

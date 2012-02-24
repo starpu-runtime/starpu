@@ -662,8 +662,6 @@ static void _starpu_dump_registered_models(void)
 	{
 		save_history_based_model(node->model);
 		node = node->next;
-
-		/* XXX free node */
 	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
@@ -680,6 +678,45 @@ void _starpu_deinitialize_registered_performance_models(void)
 {
 	if (_starpu_get_calibrate_flag())
 		_starpu_dump_registered_models();
+
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
+	struct starpu_model_list *node, *pnode;
+	node = registered_models;
+
+	_STARPU_DEBUG("FREE MODELS !\n");
+
+	while (node)
+	{
+		struct starpu_perfmodel *model = node->model;
+		unsigned arch;
+		unsigned nimpl;
+
+		_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
+		for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
+		{
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+			{
+				struct starpu_per_arch_perfmodel *archmodel = &model->per_arch[arch][nimpl];
+				struct starpu_history_list *list, *plist;
+				_starpu_htbl_destroy_32(archmodel->history, NULL);
+				list = archmodel->list;
+				while (list) {
+					free(list->entry);
+					plist = list;
+					list = list->next;
+					free(plist);
+				}
+			}
+		}
+
+		model->is_loaded = 0;
+		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+
+		pnode = node;
+		node = node->next;
+		free(pnode);
+	}
 
 	_STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 }
