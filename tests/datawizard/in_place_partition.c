@@ -36,7 +36,11 @@ int main(int argc, char **argv)
 #endif
 
 	n = starpu_worker_get_count();
-	if (n == 1) return STARPU_TEST_SKIPPED;
+	if (n == 1)
+	{
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	size = 10 * n;
 
