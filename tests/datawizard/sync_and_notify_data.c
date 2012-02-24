@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_SLOW_MACHINE
 	n /= 10;
-	k /= 8;
+	k /= 16;
 #endif
 
 	ret = starpu_init(NULL);
