@@ -136,7 +136,6 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	for (i = 1; i < ni; i++)
 	{
-		starpu_tag_remove(TAG(0, i));
 		for (j = 0; j < i; j++)
 			starpu_tag_remove(TAG(j, i));
 	}
