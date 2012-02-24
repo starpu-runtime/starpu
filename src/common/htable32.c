@@ -121,6 +121,8 @@ static void _starpu_htbl_destroy_32_bit(struct starpu_htbl32_node *htbl, unsigne
 	for (i = 0; i < 1<<_STARPU_HTBL32_NODE_SIZE; i++) {
 		_starpu_htbl_destroy_32_bit(htbl->children[i], bit+_STARPU_HTBL32_NODE_SIZE, remove);
 	}
+
+	free(htbl);
 }
 void _starpu_htbl_destroy_32(struct starpu_htbl32_node *htbl, void (*remove)(void*))
 {
