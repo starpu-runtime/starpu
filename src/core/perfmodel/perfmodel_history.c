@@ -700,6 +700,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 				struct starpu_per_arch_perfmodel *archmodel = &model->per_arch[arch][nimpl];
 				struct starpu_history_list *list, *plist;
 				_starpu_htbl_destroy_32(archmodel->history, NULL);
+				archmodel->history = NULL;
 				list = archmodel->list;
 				while (list) {
 					free(list->entry);
@@ -707,6 +708,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 					list = list->next;
 					free(plist);
 				}
+				archmodel->list = NULL;
 			}
 		}
 
@@ -717,6 +719,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 		node = node->next;
 		free(pnode);
 	}
+	registered_models = NULL;
 
 	_STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 }
