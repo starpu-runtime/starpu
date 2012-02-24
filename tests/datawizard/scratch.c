@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	}
 
 	free(A);
-	return ret;
+	STARPU_RETURN(ret);
 
 enodev:
 	starpu_data_unregister(A_handle);
