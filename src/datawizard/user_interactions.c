@@ -317,8 +317,9 @@ static void _prefetch_data_on_node(void *arg)
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, wrapper->async, NULL, NULL);
         STARPU_ASSERT(!ret);
 
-	if (!wrapper->async)
-	{
+	if (wrapper->async)
+		free(wrapper);
+	else {
 		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		wrapper->finished = 1;
 		_STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
@@ -328,7 +329,6 @@ static void _prefetch_data_on_node(void *arg)
 	_starpu_spin_lock(&handle->header_lock);
 	_starpu_notify_data_dependencies(handle);
 	_starpu_spin_unlock(&handle->header_lock);
-
 }
 
 static
@@ -353,6 +353,9 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	{
 		/* we can immediately proceed */
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+
+		free(wrapper);
+
 		_starpu_fetch_data_on_node(handle, replicate, mode, async, async, NULL, NULL);
 
 		/* remove the "lock"/reference */
@@ -378,7 +381,6 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 		if (!handle_was_destroyed)
 			_starpu_spin_unlock(&handle->header_lock);
-
 	}
 	else if (!async)
 	{
@@ -386,6 +388,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		while (!wrapper->finished)
 			_STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+		free(wrapper);
 	}
 
 	return 0;
