@@ -427,7 +427,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent)
 {
 	STARPU_ASSERT(handle);
-
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "data needs to be unpartitioned before unregistration");
 
 	if (coherent)
 	{

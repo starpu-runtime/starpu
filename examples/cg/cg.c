@@ -150,6 +150,14 @@ static void register_data(void)
 
 static void unregister_data(void)
 {
+	starpu_data_unpartition(A_handle, 0);
+	starpu_data_unpartition(b_handle, 0);
+	starpu_data_unpartition(x_handle, 0);
+
+	starpu_data_unpartition(r_handle, 0);
+	starpu_data_unpartition(d_handle, 0);
+	starpu_data_unpartition(q_handle, 0);
+
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(b_handle);
 	starpu_data_unregister(x_handle);

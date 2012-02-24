@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -319,6 +319,8 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "GFlop/s: %.2f\n", flops/timing/1000.0);
 
 	starpu_data_unpartition(C_handle, 0);
+	starpu_data_unpartition(B_handle, 0);
+	starpu_data_unpartition(A_handle, 0);
 
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
