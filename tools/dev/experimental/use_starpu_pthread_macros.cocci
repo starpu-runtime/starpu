@@ -1,6 +1,6 @@
 // StarPU --- Runtime system for heterogeneous multicore architectures.
 //
-// Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+// Copyright (C) 2011-2012 inria
 // Copyright (C) 2011 Centre National de la Recherche Scientifique
 //
 // StarPU is free software; you can redistribute it and/or modify
@@ -14,7 +14,67 @@
 //
 // See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-@pthread_mutex_@
+virtual context
+virtual org
+virtual patch
+virtual report
+
+@initialize:python depends on report || org@
+d = {
+'pthread_mutex_init'      : '_STARPU_PTHREAD_MUTEX_INIT',
+'pthread_mutex_lock'      : '_STARPU_PTHREAD_MUTEX_LOCK',
+'pthread_mutex_unlock'    : '_STARPU_PTHREAD_MUTEX_UNLOCK',
+'pthread_mutex_destroy'   : '_STARPU_PTHREAD_MUTEX_DESTROY',
+'pthread_rwlock_init'     : '_STARPU_PTHREAD_RWLOCK_INIT',
+'pthread_rwlock_rdlock'   : '_STARPU_PTHREAD_RWLOCK_RDLOCK',
+'pthread_rwlock_wrlock'   : '_STARPU_PTHREAD_RWLOCK_WRLOCK',
+'pthread_rwlock_unlock'   : '_STARPU_PTHREAD_RWLOCK_UNLOCK',
+'pthread_rwlock_destroy'  : '_STARPU_PTHREAD_RWLOCK_DESTROY',
+'pthread_cond_init'       : '_STARPU_PTHREAD_COND_INIT',
+'pthread_cond_signal'     : '_STARPU_PTHREAD_COND_SIGNAL',
+'pthread_cond_broadcast'  : '_STARPU_PTHREAD_COND_BROADCAST',
+'pthread_cond_wait'       : '_STARPU_PTHREAD_COND_WAIT',
+'pthread_cond_destroy'    : '_STARPU_PTHREAD_COND_DESTROY',
+'pthread_barrier_init'    : '_STARPU_PTHREAD_BARRIER_INIT',
+'pthread_barrier_wait'    : '_STARPU_PTHREAD_BARRIER_WAIT',
+'pthread_barrier_destroy' : '_STARPU_PTHREAD_BARRIER_DESTROY',
+'pthread_spin_destroy'    : '_STARPU_PTHREAD_SPIN_DESTROY',
+'pthread_spin_lock'       : '_STARPU_PTHREAD_SPIN_LOCK',
+'pthread_spin_unlock'     : '_STARPU_PTHREAD_SPIN_UNLOCK'
+}
+msg = "Use %s instead of %s."
+
+@r@
+identifier f =~ "^pthread_";
+position p;
+@@
+f@p(...)
+
+//
+// Context mode.
+//
+@depends on context@
+identifier f =~ "^pthread_";
+@@
+* f(...)
+
+//
+// Org mode.
+//
+@script:python depends on r && org@
+p << r.p;
+f << r.f;
+@@
+if str(f) in d.keys():
+	coccilib.org.print_todo(p[0], msg % (d[str(f)], f))
+else:
+	coccilib.org.print_todo(p[0], "Shouldn't %s be wrapped in a macro ?" % str(f))
+
+
+//
+// Patch mode.
+//
+@pthread_mutex_ depends on patch@
 expression E1, E2;
 @@
 (
@@ -32,7 +92,7 @@ expression E1, E2;
 )
 
 
-@pthread_rwlock_@
+@pthread_rwlock_ depends on patch@
 expression E;
 @@
 (
@@ -53,7 +113,7 @@ expression E;
 )
 
 
-@pthread_cond_@
+@pthread_cond_ depends on patch@
 expression E1, E2;
 @@
 (
@@ -74,7 +134,7 @@ expression E1, E2;
 )
 
 
-@pthread_barrier_@
+@pthread_barrier_ depends on patch@
 expression E1, E2, E3;
 @@
 (
@@ -88,7 +148,7 @@ expression E1, E2, E3;
 + _STARPU_PTHREAD_BARRIER_DESTROY(E1);
 )
 
-@pthread_spin_@
+@pthread_spin_ depends on patch@
 expression E1;
 @@
 (
@@ -101,3 +161,15 @@ expression E1;
 - pthread_spin_unlock(E1);
 + _STARPU_PTHREAD_SPIN_UNLOCK(E1);
 )
+
+//
+// Report mode.
+//
+@script:python depends on r && report@
+p << r.p;
+f << r.f;
+@@
+if str(f) in d.keys():
+	coccilib.report.print_report(p[0], msg % (d[str(f)], f))
+else:
+	coccilib.report.print_report(p[0], "Shouldn't %s be wrapped in a macro ?" % str(f))
