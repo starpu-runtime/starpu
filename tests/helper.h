@@ -51,8 +51,8 @@ static int _starpu_valgrind_print_once = 0;
 			{						\
 				FPRINTF(stderr, "Running on valgrind, skipping the actual computations\n"); \
 				_starpu_valgrind_print_once = 1;	\
-				return;					\
 			}						\
+			return;						\
 		}							\
 	} while(0)
 #else
