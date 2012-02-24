@@ -44,7 +44,8 @@ void cpu_codelet_A(void *descr[], void *_args)
 void cpu_codelet_B(void *descr[], void *_args)
 {
 	int *arg = _args;
-	STARPU_ASSERT(*arg == 1);
+	if (*arg != 1)
+		exit(EXIT_FAILURE);
 	fprintf(stderr,"B");
 }
 
