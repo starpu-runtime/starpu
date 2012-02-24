@@ -125,6 +125,16 @@ static void generate_random_problem(void)
 	memset(q, 0, n*sizeof(TYPE));
 }
 
+static void free_data(void)
+{
+	starpu_free(A);
+	starpu_free(b);
+	starpu_free(x);
+	starpu_free(r);
+	starpu_free(d);
+	starpu_free(q);
+}
+
 static void register_data(void)
 {
 	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, n, n, n, sizeof(TYPE));
@@ -420,6 +430,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 	unregister_data();
+	free_data();
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
