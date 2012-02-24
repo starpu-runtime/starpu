@@ -226,3 +226,6 @@ if STARPU_USE_OPENCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
 endif
+
+showcheck:
+	-cat /dev/null

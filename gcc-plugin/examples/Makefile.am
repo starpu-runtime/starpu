@@ -70,3 +70,9 @@ else !STARPU_USE_CUDA
 EXTRA_DIST += vector_scal/vector_scal_cuda.cu
 
 endif
+
+showcheck:
+	-cat $(TEST_LOGS) /dev/null
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done
