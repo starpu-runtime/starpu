@@ -276,12 +276,20 @@ static int
 create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 {
 	static int cpu_workers[STARPU_MAXCPUS];
+#ifdef STARPU_USE_CUDA
 	static int cuda_workers[STARPU_MAXCUDADEVS];
+#endif
+#ifdef STARPU_USE_OPENCL
 	static int opencl_workers[STARPU_MAXOPENCLDEVS];
+#endif
 
 	static int n_cpus = -1;
+#ifdef STARPU_USE_CUDA
 	static int n_cudas = -1;
+#endif
+#ifdef STARPU_USE_OPENCL
 	static int n_opencls = -1;
+#endif
 
 	if (n_cpus == -1) /* First time here */
 	{
@@ -290,12 +298,16 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 		n_cpus = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
 							cpu_workers,
 							STARPU_MAXCPUS);
+#ifdef STARPU_USE_CUDA
 		n_cudas = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
 							cuda_workers,
 							STARPU_MAXCUDADEVS);
+#endif
+#ifdef STARPU_USE_OPENCL
 		n_opencls = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
 							opencl_workers,
 							STARPU_MAXOPENCLDEVS);
+#endif
 	}
 
 	int workerid=0;
@@ -358,6 +370,7 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	task->synchronous = 1;
 	task->cl = &cl;
 	task->handles[0] = *current_config->handle;
+	task->destroy = 0;
 	if (id != -1)
 	{
 		task->execute_on_a_specific_worker = 1;
@@ -555,11 +568,11 @@ ram_to_ram(void)
 
 	task->handles[0] = dst;
 	err = starpu_task_submit(task);
+	starpu_task_destroy(task);
+
 	if (err != 0)
 	{
 		err = TASK_SUBMISSION_FAILURE;
-		task->destroy = 0;
-		starpu_task_destroy(task);
 		goto out;
 	}
 
