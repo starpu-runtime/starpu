@@ -38,11 +38,19 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_HAVE_VALGRIND_H
+static int _starpu_valgrind_print_once = 0;
+
 #  define STARPU_SKIP_IF_VALGRIND \
-	do {								\
-		if(RUNNING_ON_VALGRIND) {				\
-			FPRINTF(stderr, "Running on valgrind, skipping the actual computations in %s\n", __func__); \
-			return;						\
+	do \
+	{								\
+		if(RUNNING_ON_VALGRIND)					\
+		{							\
+			if (!_starpu_valgrind_print_once)		\
+			{						\
+				FPRINTF(stderr, "Running on valgrind, skipping the actual computations\n"); \
+				_starpu_valgrind_print_once = 1;	\
+				return;					\
+			}						\
 		}							\
 	} while(0)
 #else
@@ -51,8 +59,10 @@
 
 #ifdef STARPU_HAVE_VALGRIND_H
 #  define STARPU_RETURN(ret) \
-	do {								\
-		if(RUNNING_ON_VALGRIND) {				\
+	do								\
+	{								\
+		if(RUNNING_ON_VALGRIND)					\
+		{							\
 			FPRINTF(stderr, "Running on valgrind, ignoring return value\n"); \
 			return 0;					\
 		} \
