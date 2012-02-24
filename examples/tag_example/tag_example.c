@@ -232,6 +232,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	starpu_task_wait_for_all();
 
+	tag_cleanup_grid(ni, nj, nk-2);
+	tag_cleanup_grid(ni, nj, nk-1);
+
 	starpu_shutdown();
 
 	FPRINTF(stderr, "TEST DONE ...\n");
