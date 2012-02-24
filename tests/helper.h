@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef _TESTS_HELPER_H
+#define _TESTS_HELPER_H
 #include <errno.h>
 #include <common/utils.h>
 
@@ -71,3 +73,4 @@ static int _starpu_valgrind_print_once = 0;
 #else
 #  define STARPU_RETURN(ret) return ret
 #endif
+#endif /* _TESTS_HELPER_H */
