@@ -61,3 +61,6 @@ uninstall-local:
 # Rule to update documentation on web server. Should only be used locally.
 update-web:
 	scp starpu.pdf starpu.html sync:/web/runtime/html/StarPU
+
+showcheck:
+	-cat /dev/null

@@ -78,3 +78,5 @@ dist_man1_MANS =\
 	starpu_workers_activity.1
 endif
 
+showcheck:
+	-cat /dev/null
