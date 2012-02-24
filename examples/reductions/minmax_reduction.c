@@ -195,6 +195,8 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(minmax[0] <= minmax[1]);
 
+	free(x);
+	free(x_handles);
 	starpu_shutdown();
 
 	return 0;
