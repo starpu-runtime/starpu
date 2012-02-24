@@ -57,6 +57,7 @@ main(void)
 
 	/* taskA should have been destroyed by now. */
 	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = abort_catcher;
 	sigaction(SIGABRT, &sa, NULL);
 	sigaction(SIGSEGV, &sa, NULL);
