@@ -288,7 +288,10 @@ main(void)
 #endif
 
 	if (ncpu == 0 || !gpus_available())
+	{
+		starpu_shutdown();
 		return 77;
+	}
 
 #ifdef STARPU_USE_OPENCL
 	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_opencl_kernel.cl",
