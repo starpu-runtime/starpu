@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 
 	starpu_free(f);
 	starpu_shutdown();
-	return ret;
+	STARPU_RETURN(ret);
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");

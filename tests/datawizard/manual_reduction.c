@@ -256,9 +256,10 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	if (variable == INIT_VALUE + NTASKS)
-		return EXIT_SUCCESS;
+		ret = EXIT_SUCCESS;
 	else
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
+	STARPU_RETURN(ret);
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");

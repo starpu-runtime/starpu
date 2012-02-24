@@ -210,11 +210,12 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
+	ret = EXIT_SUCCESS;
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{
 		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
 	}
 
-	return EXIT_SUCCESS;
+	STARPU_RETURN(ret);
 }

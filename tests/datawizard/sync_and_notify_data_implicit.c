@@ -197,13 +197,13 @@ int main(int argc, char **argv)
 	starpu_data_unregister(v_handle);
 	starpu_shutdown();
 
+	ret = EXIT_SUCCESS;
 	if ((v[0] != n*k) || (v[1] != k) || (v[2] != n*k))
 	{
 		FPRINTF(stderr, "Incorrect result\n");
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
 	}
-
-	return EXIT_SUCCESS;
+	STARPU_RETURN(ret);
 
 enodev:
 	starpu_data_unregister(v_handle);

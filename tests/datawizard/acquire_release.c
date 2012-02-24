@@ -104,9 +104,10 @@ int main(int argc, char **argv)
 
         FPRINTF(stderr, "Token: %u\n", token);
 	if (token == ntasks * 2)
-		return EXIT_SUCCESS;
+		ret = EXIT_SUCCESS;
 	else
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
+	STARPU_RETURN(ret);
 
 enodev:
 	starpu_data_unregister(token_handle);
