@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -265,7 +265,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	return 0;
 }
 
-static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned pinned)
 {
 	starpu_data_handle_t dataA;
 
@@ -292,6 +292,15 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	_cholesky(dataA, nblocks);
 
 	starpu_data_unregister(dataA);
+
+	if (pinned)
+	{
+		starpu_free(matA);
+	}
+	else
+	{
+		free(matA);
+	}
 
 	starpu_helper_cublas_shutdown();
 
@@ -346,7 +355,7 @@ int main(int argc, char **argv)
 #endif
 
 
-	cholesky(mat, size, size, nblocks);
+	cholesky(mat, size, size, nblocks, pinned);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");
@@ -390,6 +399,7 @@ int main(int argc, char **argv)
 			}
 		}
 		FPRINTF(stdout, "\n");
+		free(test_mat);
 	}
 #endif
 

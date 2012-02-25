@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -273,17 +273,6 @@ int main(int argc, char **argv)
 	{
 		if (x <= y)
 		{
-			A[y][x] = malloc(BLOCKSIZE*BLOCKSIZE*sizeof(float));
-			assert(A[y][x]);
-		}
-	}
-
-
-	for (y = 0; y < nblocks; y++)
-	for (x = 0; x < nblocks; x++)
-	{
-		if (x <= y)
-		{
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&A[y][x], 128, BLOCKSIZE*BLOCKSIZE*sizeof(float));
 #else
@@ -331,6 +320,7 @@ int main(int argc, char **argv)
 		if (x <= y)
 		{
 			starpu_data_unregister(A_state[y][x]);
+			free(A[y][x]);
 		}
 	}
 

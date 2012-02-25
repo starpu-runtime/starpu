@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -290,7 +290,7 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	}
 }
 
-void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks)
+void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
 {
 	struct timeval start;
 	struct timeval end;
@@ -307,6 +307,15 @@ void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 
 	double flop = (1.0f*size*size*size)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+
+	if (pinned)
+	{
+		starpu_free(matA);
+	}
+	else
+	{
+		free(matA);
+	}
 
 	starpu_helper_cublas_shutdown();
 
@@ -359,7 +368,7 @@ int main(int argc, char **argv)
 #endif
 
 
-	cholesky_grain(mat, size, size, nblocks, nbigblocks);
+	cholesky_grain(mat, size, size, nblocks, nbigblocks, pinned);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");
@@ -404,6 +413,7 @@ int main(int argc, char **argv)
 		}
 		FPRINTF(stdout, "\n");
 	}
+	free(test_mat);
 #endif
 
 	return 0;
