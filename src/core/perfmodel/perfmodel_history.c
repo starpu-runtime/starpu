@@ -721,6 +721,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 	}
 	registered_models = NULL;
 
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	_STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 }
 
