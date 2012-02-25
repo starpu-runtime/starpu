@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -232,6 +232,8 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 	/* gather all the data */
 	starpu_data_unpartition(dataA, 0);
 	starpu_data_unregister(dataA);
+
+	free(piv_description);
 }
 
 
@@ -284,4 +286,5 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	{
 		starpu_data_unregister(dataAp[bi+nblocks*bj]);
 	}
+	free(dataAp);
 }

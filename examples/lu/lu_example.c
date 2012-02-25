@@ -132,7 +132,7 @@ void copy_blocks_into_matrix(void)
 				A_blocks[bi+nblocks*bj][i + j * blocksize];
 		}
 
-		/* free(A_blocks[bi+nblocks*bj]); */
+		starpu_free(A_blocks[bi+nblocks*bj]);
 	}
 }
 
@@ -285,6 +285,10 @@ static void check_result(void)
 
 	if (residual/(matnorm*size) > 1e-5)
 		exit(-1);
+
+	free(L);
+	free(U);
+	free(A_saved);
 }
 
 int main(int argc, char **argv)
@@ -391,11 +395,15 @@ int main(int argc, char **argv)
 	if (check)
 	{
 		FPRINTF(stderr, "Checking result\n");
-		if (pivot)
+		if (pivot) {
 			pivot_saved_matrix(ipiv);
+			free(ipiv);
+		}
 
 		check_result();
 	}
+
+	starpu_free(A);
 
 	FPRINTF(stderr, "Shutting down\n");
 	starpu_helper_cublas_shutdown();
