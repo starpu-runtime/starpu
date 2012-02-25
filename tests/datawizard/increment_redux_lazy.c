@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	STARPU_RETURN(EXIT_SUCCESS);
 
 enodev:
 	starpu_data_unregister(handle);
@@ -251,5 +251,5 @@ enodev:
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
-	return STARPU_TEST_SKIPPED;
+	STARPU_RETURN(STARPU_TEST_SKIPPED);
 }

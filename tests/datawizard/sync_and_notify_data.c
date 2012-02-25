@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
@@ -208,10 +208,10 @@ int main(int argc, char **argv)
 	if ((v[0] != n*k) || (v[1] != k) || (v[2] != n*k))
 	{
 		FPRINTF(stderr, "Incorrect result\n");
-		return EXIT_FAILURE;
+		STARPU_RETURN(EXIT_FAILURE);
 	}
 
-	return EXIT_SUCCESS;
+	STARPU_RETURN(EXIT_SUCCESS);
 
 enodev:
 	starpu_data_unregister(v_handle);
@@ -219,5 +219,5 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
-	return STARPU_TEST_SKIPPED;
+	STARPU_RETURN(STARPU_TEST_SKIPPED);
 }
