@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -533,6 +533,8 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 
 unsigned _starpu_machine_is_running(void)
 {
+	/* running is just protected by a memory barrier */
+	STARPU_SYNCHRONIZE();
 	return config.running;
 }
 
@@ -560,6 +562,8 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 {
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
+	/* running is just protected by a memory barrier */
+	STARPU_SYNCHRONIZE();
 	starpu_wake_all_blocked_workers();
 }
 
