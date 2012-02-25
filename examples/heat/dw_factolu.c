@@ -352,6 +352,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 		finished = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
+		free(argcb);
 		return;
 	}
 	else 
@@ -468,6 +469,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 		finished = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
+		free(argcb);
 		return;
 	}
 	else 
