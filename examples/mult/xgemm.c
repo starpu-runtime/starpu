@@ -329,6 +329,10 @@ int main(int argc, char **argv)
 	if (check)
 		check_output();
 
+	starpu_free(A);
+	starpu_free(B);
+	starpu_free(C);
+
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
