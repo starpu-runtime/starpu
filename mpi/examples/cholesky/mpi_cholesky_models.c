@@ -18,25 +18,23 @@
 #include "mpi_cholesky_models.h"
 
 /*
- * As a convention, in that file, descr[0] is represented by A,
- * 				  descr[1] is B ...
+ *	Number of flops of Gemm
  */
 
-/*
- *	Number of flops of Gemm 
- */
-
-struct starpu_perfmodel_t chol_model_11 = {
+struct starpu_perfmodel chol_model_11 =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_11"
 };
 
-struct starpu_perfmodel_t chol_model_21 = {
+struct starpu_perfmodel chol_model_21 =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_21"
 };
 
-struct starpu_perfmodel_t chol_model_22 = {
+struct starpu_perfmodel chol_model_22 =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_22"
 };

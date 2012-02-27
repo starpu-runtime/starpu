@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,41 +24,45 @@
  *	Create the codelets
  */
 
-static starpu_codelet cl11 =
+static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u11,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u11,
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &chol_model_11
 };
 
-static starpu_codelet cl21 =
+static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u21,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u21,
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &chol_model_21
 };
 
-static starpu_codelet cl22 =
+static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u22,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u22,
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &chol_model_22
 };
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes) {
+int my_distrib(int x, int y, int nb_nodes)
+{
         return (x+y) % nb_nodes;
 }
 
@@ -70,25 +74,29 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 {
 	struct timeval start;
 	struct timeval end;
-        starpu_data_handle **data_handles;
+        starpu_data_handle_t **data_handles;
         int x, y;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-        data_handles = malloc(nblocks*sizeof(starpu_data_handle *));
-        for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle));
+        data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
+        for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle_t));
 
-        for(x = 0; x < nblocks ;  x++) {
-                for (y = 0; y < nblocks; y++) {
+        for(x = 0; x < nblocks ;  x++)
+	{
+                for (y = 0; y < nblocks; y++)
+		{
                         int mpi_rank = my_distrib(x, y, nodes);
-                        if (mpi_rank == rank) {
+                        if (mpi_rank == rank)
+			{
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)matA[x][y],
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
                         }
 			/* TODO: make better test to only registering what is needed */
-                        else {
+                        else
+			{
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)NULL,
@@ -144,8 +152,10 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 
         starpu_task_wait_for_all();
 
-        for(x = 0; x < nblocks ;  x++) {
-                for (y = 0; y < nblocks; y++) {
+        for(x = 0; x < nblocks ;  x++)
+	{
+                for (y = 0; y < nblocks; y++)
+		{
                         if (data_handles[x][y])
                                 starpu_data_unregister(data_handles[x][y]);
                 }
@@ -209,7 +219,8 @@ int main(int argc, char **argv)
 	}
 
 
-        if (display) {
+        if (display)
+	{
                 printf("[%d] Input :\n", rank);
 
 		for(y=0 ; y<nblocks ; y++)
@@ -221,10 +232,12 @@ int main(int argc, char **argv)
 				{
 					for (i = 0; i < BLOCKSIZE; i++)
 					{
-						if (i <= j) {
+						if (i <= j)
+						{
 							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
 						}
-						else {
+						else
+						{
 							printf(".\t");
 						}
 					}
@@ -238,7 +251,8 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 
-        if (display) {
+        if (display)
+	{
                 printf("[%d] Results :\n", rank);
 		for(y=0 ; y<nblocks ; y++)
 		{
@@ -249,10 +263,12 @@ int main(int argc, char **argv)
 				{
 					for (i = 0; i < BLOCKSIZE; i++)
 					{
-						if (i <= j) {
+						if (i <= j)
+						{
 							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
 						}
-						else {
+						else
+						{
 							printf(".\t");
 						}
 					}
@@ -263,10 +279,14 @@ int main(int argc, char **argv)
 	}
 
 	float *rmat = malloc(size*size*sizeof(float));
-        for(x=0 ; x<nblocks ; x++) {
-                for(y=0 ; y<nblocks ; y++) {
-                        for (i = 0; i < BLOCKSIZE; i++) {
-                                for (j = 0; j < BLOCKSIZE; j++) {
+        for(x=0 ; x<nblocks ; x++)
+	{
+                for(y=0 ; y<nblocks ; y++)
+		{
+                        for (i = 0; i < BLOCKSIZE; i++)
+			{
+                                for (j = 0; j < BLOCKSIZE; j++)
+				{
                                         rmat[j+(y*BLOCKSIZE)+(i+(x*BLOCKSIZE))*size] = bmat[x][y][j +i*BLOCKSIZE];
                                 }
                         }
@@ -278,7 +298,8 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i > j) {
+			if (i > j)
+			{
 				rmat[j+i*size] = 0.0f; // debug
 			}
 		}
@@ -290,15 +311,18 @@ int main(int argc, char **argv)
 				rmat, size, 0.0f, test_mat, size);
 
 	fprintf(stderr, "[%d] comparing results ...\n", rank);
-        if (display) {
+        if (display)
+	{
                 for (j = 0; j < size; j++)
 		{
                         for (i = 0; i < size; i++)
 			{
-                                if (i <= j) {
+                                if (i <= j)
+				{
                                         printf("%2.2f\t", test_mat[j +i*size]);
                                 }
-                                else {
+                                else
+				{
                                         printf(".\t");
                                 }
                         }
@@ -312,7 +336,8 @@ int main(int argc, char **argv)
                 for (y = 0; y < nblocks; y++)
 		{
                         int mpi_rank = my_distrib(x, y, nodes);
-                        if (mpi_rank == rank) {
+                        if (mpi_rank == rank)
+			{
                                 for (i = (size/nblocks)*x ; i < (size/nblocks)*x+(size/nblocks); i++)
                                 {
                                         for (j = (size/nblocks)*y ; j < (size/nblocks)*y+(size/nblocks); j++)
@@ -321,7 +346,8 @@ int main(int argc, char **argv)
                                                 {
                                                         float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
                                                         float err = abs(test_mat[j +i*size] - orig);
-                                                        if (err > 0.00001) {
+                                                        if (err > 0.00001)
+							{
                                                                 fprintf(stderr, "[%d] Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
 								correctness = 0;
 								break;

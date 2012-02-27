@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,13 @@
 #ifndef __STARPU_BOUND_H__
 #define __STARPU_BOUND_H__
 
+#include <stdio.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /* Start recording tasks (resets stats).  `deps' tells whether dependencies
  * should be recorded too (this is quite expensive).  */
 void starpu_bound_start(int deps, int prio);
@@ -31,7 +38,7 @@ void starpu_bound_stop(void);
 /* Print the DAG that was recorded */
 void starpu_bound_print_dot(FILE *output);
 
-/* Get theoretical upper bound (needs glpk support) */
+/* Get theoretical upper bound (in ms) (needs glpk support) */
 void starpu_bound_compute(double *res, double *integer_res, int integer);
 
 /* Emit Linear Programming system on output for the recorded tasks in lp format */
@@ -42,5 +49,9 @@ void starpu_bound_print_mps(FILE *output);
 
 /* Emit statistics of actual execution vs theoretical upper bound */
 void starpu_bound_print(FILE *output, int integer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __STARPU_BOUND_H__ */

@@ -186,7 +186,7 @@ struct _cl_mem {
   CL_ENTITY;
 
   /* StarPU handle */
-  starpu_data_handle handle;
+  starpu_data_handle_t handle;
 
   /* Pointer to data in host memory */
   void *ptr;    

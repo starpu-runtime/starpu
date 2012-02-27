@@ -20,8 +20,8 @@
 
 #include <starpu.h>
 
-extern struct starpu_perfmodel_t chol_model_11;
-extern struct starpu_perfmodel_t chol_model_21;
-extern struct starpu_perfmodel_t chol_model_22;
+extern struct starpu_perfmodel chol_model_11;
+extern struct starpu_perfmodel chol_model_21;
+extern struct starpu_perfmodel chol_model_22;
 
 #endif // __DW_CHOLESKY_MODELS_H__

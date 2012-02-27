@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2012  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,64 +19,107 @@
 #ifndef __STARPU_TASK_BUNDLE_H__
 #define __STARPU_TASK_BUNDLE_H__
 
-#include <starpu.h>
-#include <starpu_config.h>
-
-#if ! defined(_MSC_VER)
-#  include <pthread.h>
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-struct starpu_task_bundle_entry {
-	struct starpu_task *task;
-	struct starpu_task_bundle_entry *next;
-};
+struct starpu_task;
 
-/* The task bundle structure describes a list of tasks that should be scheduled
- * together whenever possible. */
-struct starpu_task_bundle {
-	/* Mutex protecting the bundle */
-#if defined(_MSC_VER)
-	void *mutex;
-#else
-	pthread_mutex_t mutex;
+/* starpu_task_bundle_t
+ * ==================
+ * Purpose
+ * =======
+ * Opaque structure describing a list of tasks that should be scheduled
+ * on the same worker whenever it's possible.
+ * It must be considered as a hint given to the scheduler as there is no guarantee that
+ * they will be executed on the same worker.
+ */
+typedef struct _starpu_task_bundle *starpu_task_bundle_t;
+
+/* starpu_task_bundle_create
+ * =========================
+ * Purpose
+ * =======
+ * Factory function creating a bundle, when the call return,
+ * memory needed is allocated and the bundle is ready to use.
+ *
+ * Arguments
+ * =========
+ * bundle		(output)
+ * 			Bundle to create and initialize.
+ */
+void starpu_task_bundle_create(starpu_task_bundle_t *bundle);
+
+/* starpu_task_bundle_insert
+ * =========================
+ * Purpose
+ * =======
+ * Insert a task in a bundle. Until the task is removed from the bundle
+ * its expected length and data transfer time will be considered along
+ * those of the other tasks of the bundle.
+ * This function mustn't be called if the bundle is already closed and/or
+ * the task is already submitted.
+ *
+ * Return value
+ * ============
+ * On success, it returns 0.
+ * There are two cases of error :
+ * 	- if the bundle is already closed it returns -EPERM
+ * 	- if the task was already submitted it return -EINVAL.
+ *
+ * Arguments
+ * =========
+ * bundle		(input)
+ * 			Bundle where to insert the task.
+ *
+ * task			(input)
+ * 			Task to insert.
+ */
+int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *task);
+
+/* starpu_task_bundle_remove
+ * =========================
+ * Purpose
+ * =======
+ * Remove the tasks passed as argument from the bundle.
+ * Of course the task must have been previously inserted in the bundle.
+ * This function mustn't be called if the bundle is already closed and/or
+ * the task is already submitted. Doing so would result in undefined behaviour.
+ *
+ * Return value
+ * ============
+ * On success, it returns 0.
+ * If the bundle is already closed it returns -ENOENT.
+ *
+ * Arguments
+ * =========
+ * bundle		(input)
+ * 			Bundle containing the task.
+ *
+ * task			(input)
+ * 			The task to remove.
+ */
+int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *task);
+
+/* starpu_task_bundle_close
+ * =========================
+ * Purpose
+ * =======
+ * Calling this functions informs the runtime that the user
+ * won't modify the bundle anymore, it means no more
+ * inserting or removing a task.
+ * Thus the runtime can destroy it when needed.
+ *
+ * Arguments
+ * =========
+ * bundle		(input)
+ * 			Bundle to close.
+ */
+void starpu_task_bundle_close(starpu_task_bundle_t bundle);
+
+#ifdef __cplusplus
+}
 #endif
-	/* last worker previously assigned a task from the bundle (-1 if none) .*/
-	int previous_workerid;
-	/* list of tasks */
-	struct starpu_task_bundle_entry *list;
-	/* If this flag is set, the bundle structure is automatically free'd
-	 * when the bundle is deinitialized. */
-	int destroy;
-	/* Is the bundle closed ? */
-	int closed;
-	/* TODO retain bundle (do not schedule until closed) */
-};
-
-/* Initialize a task bundle */
-void starpu_task_bundle_init(struct starpu_task_bundle *bundle);
-
-/* Deinitialize a bundle. In case the destroy flag is set, the bundle structure
- * is freed too. */
-void starpu_task_bundle_deinit(struct starpu_task_bundle *bundle);
-
-/* Insert a task into a bundle. */
-int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_task *task);
-
-/* Remove a task from a bundle. This method must be called with bundle->mutex
- * hold. This function returns 0 if the task was found, -ENOENT if the element
- * was not found, 1 if the element is found and if the list was deinitialized
- * because it became empty. */
-int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_task *task);
-
-/* Close a bundle. No task can be added to a closed bundle. A closed bundle
- * automatically gets deinitialized when it becomes empty. */
-void starpu_task_bundle_close(struct starpu_task_bundle *bundle);
-
-/* Return the expected duration of the entire task bundle in µs. */
-double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the time (in µs) expected to transfer all data used within the bundle */
-double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle *bundle, unsigned memory_node);
-/* Return the expected power consumption of the entire task bundle in J. */
-double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enum starpu_perf_archtype arch, unsigned nimpl);
 
 #endif // __STARPU_TASK_BUNDLE_H__

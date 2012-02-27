@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <starpu_mpi.h>
 #include <math.h>
+#include "helper.h"
 
 void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -27,29 +28,36 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
         int i, j;
         unsigned sum=0;
 
-	for (i = 0; i < nx; i++) {
-		for (j = 0; j < ny; j++) {
+	for (i = 0; i < nx; i++)
+	{
+		for (j = 0; j < ny; j++)
+		{
                         sum += matrix[i+j*ld];
                 }
         }
-	for (i = 0; i < nx; i++) {
-		for (j = 0; j < ny; j++) {
+	for (i = 0; i < nx; i++)
+	{
+		for (j = 0; j < ny; j++)
+		{
                         matrix[i+j*ld] = sum;///(nx*ny);
                 }
         }
 }
 
-starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet =
+{
 	.where = STARPU_CPU,
-	.cpu_func = func_cpu,
-        .nbuffers = 1
+	.cpu_funcs = {func_cpu, NULL},
+        .nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 #define SIZE       6
 #define BLOCKS     3
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes) {
+int my_distrib(int x, int y, int nb_nodes)
+{
         return x % nb_nodes;
 }
 
@@ -57,44 +65,53 @@ int my_distrib(int x, int y, int nb_nodes) {
 int main(int argc, char **argv)
 {
         int rank, size, x, y;
-        int value=0;
+        int ret, value=0;
         unsigned matrix[SIZE*SIZE];
-        starpu_data_handle data_handles[SIZE][SIZE];
+        starpu_data_handle_t data_handles[SIZE][SIZE];
 
-	starpu_init(NULL);
-	starpu_mpi_initialize_extended(&rank, &size);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize_extended(&rank, &size);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
 
-        for(x = 0; x < SIZE; x++) {
-                for (y = 0; y < SIZE; y++) {
+        for(x = 0; x < SIZE; x++)
+	{
+                for (y = 0; y < SIZE; y++)
+		{
                         matrix[x+y*SIZE] = rank*100 + value;
                         value++;
                 }
         }
 #if 1
         for(x = 0; x < SIZE; x++) {
-                fprintf(stdout, "[%d] ", rank);
+                FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < SIZE; y++) {
-                        fprintf(stdout, "%3d ", matrix[x+y*SIZE]);
+                        FPRINTF(stdout, "%3d ", matrix[x+y*SIZE]);
                 }
-                fprintf(stdout, "\n");
+                FPRINTF(stdout, "\n");
         }
 #endif
 
-        for(x = 0; x < BLOCKS ;  x++) {
-                for (y = 0; y < BLOCKS; y++) {
+        for(x = 0; x < BLOCKS ;  x++)
+	{
+                for (y = 0; y < BLOCKS; y++)
+		{
                         int mpi_rank = my_distrib(x, y, size);
-                        if (mpi_rank == rank) {
-                                //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
+                        if (mpi_rank == rank)
+			{
+                                //FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
                                                             SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
                         }
-                        else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
+                        else if (rank == mpi_rank+1 || rank == mpi_rank-1)
+			{
                                 /* I don't own that index, but will need it for my computations */
-                                //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
+                                //FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
                                                             SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
                         }
-                        else {
+                        else
+			{
                                 /* I know it's useless to allocate anything for this */
                                 data_handles[x][y] = NULL;
                         }
@@ -106,19 +123,25 @@ int main(int argc, char **argv)
                 }
         }
 
-        for(x = 0; x < BLOCKS; x++) {
-                for (y = 0; y < BLOCKS; y++) {
-                        starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
-                                               STARPU_RW, data_handles[x][y],
-                                               0);
+        for(x = 0; x < BLOCKS; x++)
+	{
+                for (y = 0; y < BLOCKS; y++)
+		{
+                        ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+						     STARPU_RW, data_handles[x][y],
+						     0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+
                 }
         }
 
-        fprintf(stderr, "Waiting ...\n");
+        FPRINTF(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
 
-        for(x = 0; x < BLOCKS; x++) {
-                for (y = 0; y < BLOCKS; y++) {
+        for(x = 0; x < BLOCKS; x++)
+	{
+                for (y = 0; y < BLOCKS; y++)
+		{
                         if (data_handles[x][y])
                                 starpu_data_unregister(data_handles[x][y]);
                 }
@@ -128,12 +151,13 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 #if 1
-        for(x = 0; x < SIZE; x++) {
-                fprintf(stdout, "[%d] ", rank);
+        for(x = 0; x < SIZE; x++)
+	{
+                FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < SIZE; y++) {
-                        fprintf(stdout, "%3d ", matrix[x+y*SIZE]);
+                        FPRINTF(stdout, "%3d ", matrix[x+y*SIZE]);
                 }
-                fprintf(stdout, "\n");
+                FPRINTF(stdout, "\n");
         }
 #endif
 

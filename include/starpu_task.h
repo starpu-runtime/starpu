@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
  *
@@ -20,71 +20,77 @@
 #ifndef __STARPU_TASK_H__
 #define __STARPU_TASK_H__
 
-#include <errno.h>
 #include <starpu.h>
-#include <starpu_config.h>
+#include <starpu_data.h>
+#include <starpu_task_bundle.h>
+#include <errno.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 # include <cuda.h>
 #endif
 
-#include <starpu_data.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
-#define STARPU_SPU	((1ULL)<<4)
-#define STARPU_GORDON	((1ULL)<<5)
+#define	STARPU_SPU	((1ULL)<<4),
+#define	STARPU_GORDON	((1ULL)<<5)
 #define STARPU_OPENCL	((1ULL)<<6)
 
 /* Codelet types */
-#define STARPU_SEQ		0
-#define STARPU_SPMD		1
-#define STARPU_FORKJOIN		2
+enum starpu_codelet_type
+{
+	STARPU_SEQ,
+	STARPU_SPMD,
+	STARPU_FORKJOIN
+};
 
 /* task status */
-#define STARPU_TASK_INVALID	0
-#define STARPU_TASK_BLOCKED	1
-#define STARPU_TASK_READY	2
-#define STARPU_TASK_RUNNING	3
-#define STARPU_TASK_FINISHED	4
-
-#define STARPU_TASK_BLOCKED_ON_TAG	5
-#define STARPU_TASK_BLOCKED_ON_TASK	6
-#define STARPU_TASK_BLOCKED_ON_DATA	7
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+enum starpu_task_status
+{
+	STARPU_TASK_INVALID,
+	STARPU_TASK_BLOCKED,
+	STARPU_TASK_READY,
+	STARPU_TASK_RUNNING,
+	STARPU_TASK_FINISHED,
+	STARPU_TASK_BLOCKED_ON_TAG,
+	STARPU_TASK_BLOCKED_ON_TASK,
+	STARPU_TASK_BLOCKED_ON_DATA
+};
 
 typedef uint64_t starpu_tag_t;
-
 
 typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
 typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
 typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
 typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
 
-#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    (starpu_cpu_func_t) -1
-#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   (starpu_cuda_func_t) -1
-#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS (starpu_opencl_func_t) -1
+#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
+#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
+#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
 #define STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS 255
 
-
 /*
- * A codelet describes the various function 
+ * A codelet describes the various function
  * that may be called from a worker
  */
-typedef struct starpu_codelet_t {
+struct starpu_task;
+struct starpu_codelet
+{
 	/* where can it be performed ? */
 	uint32_t where;
-	unsigned type;
+	int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl);
+	enum starpu_codelet_type type;
 	int max_parallelism;
 
 	/* the different implementations of the codelet */
-	void (*cuda_func)(void **, void *);
-	void (*cpu_func)(void **, void *);
-	void (*opencl_func)(void **, void *);
-	uint8_t gordon_func;
+	starpu_cuda_func_t cuda_func STARPU_DEPRECATED;
+	starpu_cpu_func_t cpu_func STARPU_DEPRECATED;
+	starpu_opencl_func_t opencl_func STARPU_DEPRECATED;
+	uint8_t gordon_func STARPU_DEPRECATED;
 
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
@@ -93,31 +99,41 @@ typedef struct starpu_codelet_t {
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
+	/* which are the access modes for these buffers */
+	enum starpu_access_mode modes[STARPU_NMAXBUFS];
 
 	/* performance model of the codelet */
-	struct starpu_perfmodel_t *model;
+	struct starpu_perfmodel *model;
 	/* consumption model of the codelet.
 	 * In the case of parallel codelets, accounts for all units. */
-	struct starpu_perfmodel_t *power_model;
+	struct starpu_perfmodel *power_model;
 
 	/* statistics collected at runtime: this is filled by StarPU and should
 	 * not be accessed directly (use the starpu_display_codelet_stats
 	 * function instead for instance). */
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
-} starpu_codelet;
 
-struct starpu_task {
-	struct starpu_codelet_t *cl;
+	const char *name;
+};
+
+#ifdef STARPU_GCC_PLUGIN
+typedef struct starpu_codelet starpu_codelet_gcc;
+#endif /* STARPU_GCC_PLUGIN */
+
+struct starpu_task
+{
+	struct starpu_codelet *cl;
 
 	/* arguments managed by the DSM */
-	struct starpu_buffer_descr_t buffers[STARPU_NMAXBUFS];
+	struct starpu_buffer_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
+	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
 	/* in case the argument buffer has to be uploaded explicitely */
 	size_t cl_arg_size;
-	
+
 	/* when the task is done, callback_func(callback_arg) is called */
 	void (*callback_func)(void *);
 	void *callback_arg;
@@ -127,7 +143,7 @@ struct starpu_task {
 
 	/* options for the task execution */
 	unsigned synchronous; /* if set, a call to push is blocking */
-	int priority; /* STARPU_MAX_PRIO = most important 
+	int priority; /* STARPU_MAX_PRIO = most important
         		: STARPU_MIN_PRIO = least important */
 
 	/* in case the task has to be executed on a specific worker */
@@ -135,7 +151,7 @@ struct starpu_task {
 	unsigned workerid;
 
 	/* Bundle including the task */
-	struct starpu_task_bundle *bundle;
+	starpu_task_bundle_t bundle;
 
 	/* If this flag is set, it is not possible to synchronize with the task
 	 * by the means of starpu_task_wait later on. Internal data structures
@@ -154,10 +170,10 @@ struct starpu_task {
 
 	/* If this flag is set, the task will be re-submitted to StarPU once it
 	 * has been executed. This flag must not be set if the destroy flag is
-	 * set too. */ 
+	 * set too. */
 	int regenerate;
 
-	unsigned status;
+	enum starpu_task_status status;
 
 	/* This gets filled when profiling is enabled by using
 	 * starpu_profiling_status_set */
@@ -167,14 +183,21 @@ struct starpu_task {
 	 * scheduling strategy uses performance models. */
 	double predicted;
 
+	/* Predicted data transfer duration for the task in µs. This field is
+	 * only valid if the scheduling strategy uses performance models. */
+	double predicted_transfer;
+
 	/* This field are provided for the convenience of the scheduler. */
 	struct starpu_task *prev;
 	struct starpu_task *next;
+
+	unsigned int mf_skip;
 
 	/* this is private to StarPU, do not modify. If the task is allocated
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
+	int magic;
 
 	/* Scheduling context */
 	unsigned sched_ctx;
@@ -209,11 +232,13 @@ struct starpu_task {
 	.status = STARPU_TASK_INVALID,			\
 	.profiling_info = NULL,				\
 	.predicted = -1.0,				\
+	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
+	.magic = 42                  			\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
-		.hypervisor_tag = 0,			\
-		.flops = 0.0			\
+	.hypervisor_tag = 0,			\
+	.flops = 0.0			\
 };
 
 /*
@@ -275,9 +300,8 @@ struct starpu_task *starpu_task_create(void);
  * structure (default behaviour). Calling this function on a statically
  * allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
-
 int starpu_task_submit(struct starpu_task *task);
-	
+
 /* This function blocks until the task was executed. It is not possible to
  * synchronize with a task more than once. It is not possible to wait
  * synchronous or detached tasks.
@@ -289,16 +313,21 @@ int starpu_task_wait(struct starpu_task *task);
  * been executed. */
 int starpu_task_wait_for_all(void);
 
+/* This function waits until there is no more ready task. */
+int starpu_task_wait_for_no_ready(void);
+
 /* This function waits until all the tasks that were already submitted to a specific
  * context have been executed. */
 int starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id);
 
-void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
+void starpu_codelet_init(struct starpu_codelet *cl);
+
+void starpu_display_codelet_stats(struct starpu_codelet *cl);
 
 /* Return the task currently executed by the worker, or NULL if this is called
  * either from a thread that is not a task or simply because there is no task
  * being executed at the moment. */
-struct starpu_task *starpu_get_current_task(void);
+struct starpu_task *starpu_task_get_current(void);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,11 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <starpu_config.h>
-#include <starpu_perfmodel.h>
+#include <starpu.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #define STARPU_POISON_PTR	((void *)0xdeadbeef)
@@ -36,17 +36,47 @@ extern "C" {
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
 
 #ifdef STARPU_NO_ASSERT
-#define STARPU_ASSERT(x)	do {} while(0);
+#define STARPU_ASSERT(x)		do {} while(0)
+#define STARPU_ASSERT_MSG(x, msg)	do {} while(0)
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
-#    define STARPU_ASSERT(x)	do { if (!(x)) *(int*)NULL = 0; } while(0)
+#    define STARPU_ASSERT(x)		do { if (!(x)) *(int*)NULL = 0; } while(0)
+#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); *(int*)NULL = 0; }} while(0)
 #  else
-#    define STARPU_ASSERT(x)	assert(x)
+#    define STARPU_ASSERT(x)		assert(x)
+#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); } ; assert(x); } while(0)
+
 #  endif
 #endif
 
 #define STARPU_ABORT()		abort()
 
+#if defined(STARPU_HAVE_STRERROR_R)
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { \
+			char xmessage[256]; strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			STARPU_ASSERT(0); }}
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
+			char xmessage[256]; strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			STARPU_ASSERT(0); }}
+#else
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) {		\
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+			STARPU_ASSERT(0); }}
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+			STARPU_ASSERT(0); }}
+#endif /* STARPU_HAVE_STRERROR_R */
+
+/* Return true (non-zero) if GCC version MAJ.MIN or later is being used
+ * (macro taken from glibc.)  */
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define STARPU_GNUC_PREREQ(maj, min) \
+	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+# define STARPU_GNUC_PREREQ(maj, min) 0
+#endif
 
 #ifdef __GNUC__
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
@@ -60,13 +90,21 @@ extern "C" {
 #  define STARPU_ATTRIBUTE_INTERNAL
 #endif
 
+#if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API)
+#define STARPU_DEPRECATED  __attribute__((__deprecated__))
+#else
+#define STARPU_DEPRECATED
+#endif /* __GNUC__ */
+
 #if defined(__i386__) || defined(__x86_64__)
 
-static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next) {
+static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
+{
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next) {
+static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
+{
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
 	return next;
@@ -75,9 +113,11 @@ static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next) {
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
-static __inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) { \
+static __inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) \
+{ \
 	unsigned old, next; \
-	while (1) { \
+	while (1) \
+	{ \
 		old = *ptr; \
 		next = expr; \
 		if (starpu_cmpxchg(ptr, old, next) == old) \
@@ -133,7 +173,8 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #include <starpu_task.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 static __inline int starpu_get_env_number(const char *str)
@@ -141,7 +182,8 @@ static __inline int starpu_get_env_number(const char *str)
 	char *strval;
 
 	strval = getenv(str);
-	if (strval) {
+	if (strval)
+	{
 		/* the env variable was actually set */
 		unsigned val;
 		char *check;
@@ -152,7 +194,8 @@ static __inline int starpu_get_env_number(const char *str)
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
 		return val;
 	}
-	else {
+	else
+	{
 		/* there is no such env variable */
 		/* fprintf("There was no %s ENV\n", str); */
 		return -1;
@@ -161,50 +204,6 @@ static __inline int starpu_get_env_number(const char *str)
 
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
-
-#define STARPU_FXT_MAX_FILES	64
-
-struct starpu_fxt_codelet_event {
-	char symbol[256]; /* name of the codelet */
-	int workerid;
-	enum starpu_perf_archtype archtype;
-	uint32_t hash;
-	size_t size;
-	float time;
-};
-
-struct starpu_fxt_options {
-	unsigned per_task_colour;
-	unsigned no_counter;
-	unsigned no_bus;
-	unsigned ninputfiles;
-	char *filenames[STARPU_FXT_MAX_FILES];
-	char *out_paje_path;
-	char *distrib_time_path;
-	char *activity_path;
-	char *dag_path;
-
-	/* In case we are going to gather multiple traces (eg in the case of
-	 * MPI processes), we may need to prefix the name of the containers. */
-	char *file_prefix;
-	uint64_t file_offset;
-	int file_rank;
-
-	/*
-	 *	Output parameters
-	 */
-
-	char worker_names[STARPU_NMAXWORKERS][256]; 
-	enum starpu_perf_archtype worker_archtypes[STARPU_NMAXWORKERS];
-	int nworkers;
-
-	/* In case we want to dump the list of codelets to an external tool */
-	struct starpu_fxt_codelet_event **dumped_codelets;
-	long dumped_codelets_count;
-};
-
-void starpu_fxt_options_init(struct starpu_fxt_options *options);
-void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 
 /* Some helper functions for application using CUBLAS kernels */
 void starpu_helper_cublas_init(void);
@@ -229,28 +228,28 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
  * (if enabled) or by calling starpu_task_wait_for_all(). If callback_func is
  * not NULL, this callback function is executed after the handle has been
  * copied, and it is given the callback_arg pointer as argument.*/
-int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle,
-			int asynchronous, void (*callback_func)(void*), void *callback_arg);
+int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */
 #define STARPU_VALUE		(1<<4)	/* Pointer to a constant value */
 #define STARPU_CALLBACK		(1<<5)	/* Callback function */
-#define STARPU_CALLBACK_ARG	(1<<6)	/* Argument of the callback function (of type void *) */
-#define STARPU_PRIORITY		(1<<7)	/* Priority associated to the task */
-#define STARPU_EXECUTE_ON_NODE	(1<<8)	/* Used by MPI to define which task is going to execute the codelet */
-#define STARPU_EXECUTE_ON_DATA	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
-#define STARPU_HYPERVISOR_TAG	(1<<10)	/* Used to checkpoint a task after whose execution we'll execute  a code */
+#define STARPU_CALLBACK_WITH_ARG	(1<<6)	/* Callback function */
+#define STARPU_CALLBACK_ARG	(1<<7)	/* Argument of the callback function (of type void *) */
+#define STARPU_PRIORITY		(1<<8)	/* Priority associated to the task */
+#define STARPU_EXECUTE_ON_NODE	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_HYPERVISOR_TAG	(1<<11)	/* Used to checkpoint a task after whose execution we'll execute  a code */
 
 /* Wrapper to create a task. */
-int starpu_insert_task(starpu_codelet *cl, ...);
+int starpu_insert_task(struct starpu_codelet *cl, ...);
 
 /* Retrieve the arguments of type STARPU_VALUE associated to a task
  * automatically created using starpu_insert_task. */
-void starpu_unpack_cl_args(void *cl_arg, ...);
+void starpu_codelet_unpack_args(void *cl_arg, ...);
 
 /* Pack arguments of type STARPU_VALUE into a buffer which can be
- * given to a codelet and later unpacked with starpu_unpack_cl_args */
-void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...);
+ * given to a codelet and later unpacked with starpu_codelet_unpack_args */
+void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }

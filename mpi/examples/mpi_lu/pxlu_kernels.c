@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,7 @@ static void STARPU_PLU(cublas_u22)(void *descr[], void *_args)
 }
 #endif// STARPU_USE_CUDA
 
-static struct starpu_perfmodel_t STARPU_PLU(model_22) = {
+static struct starpu_perfmodel STARPU_PLU(model_22) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_22_atlas)
@@ -107,13 +107,14 @@ static struct starpu_perfmodel_t STARPU_PLU(model_22) = {
 #endif
 };
 
-starpu_codelet STARPU_PLU(cl22) = {
+struct starpu_codelet STARPU_PLU(cl22) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u22),
+	.cpu_funcs = {STARPU_PLU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u22),
+	.cuda_funcs = {STARPU_PLU(cublas_u22), NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &STARPU_PLU(model_22)
 };
 
@@ -203,7 +204,7 @@ static void STARPU_PLU(cublas_u12)(void *descr[], void *_args)
 }
 #endif // STARPU_USE_CUDA
 
-static struct starpu_perfmodel_t STARPU_PLU(model_12) = {
+static struct starpu_perfmodel STARPU_PLU(model_12) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_12_atlas)
@@ -214,13 +215,14 @@ static struct starpu_perfmodel_t STARPU_PLU(model_12) = {
 #endif
 };
 
-starpu_codelet STARPU_PLU(cl12) = {
+struct starpu_codelet STARPU_PLU(cl12) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u12),
+	.cpu_funcs = {STARPU_PLU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u12),
+	.cuda_funcs = {STARPU_PLU(cublas_u12), NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &STARPU_PLU(model_12)
 };
 
@@ -311,7 +313,7 @@ static void STARPU_PLU(cublas_u21)(void *descr[], void *_args)
 }
 #endif 
 
-static struct starpu_perfmodel_t STARPU_PLU(model_21) = {
+static struct starpu_perfmodel STARPU_PLU(model_21) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_21_atlas)
@@ -322,13 +324,14 @@ static struct starpu_perfmodel_t STARPU_PLU(model_21) = {
 #endif
 };
 
-starpu_codelet STARPU_PLU(cl21) = {
+struct starpu_codelet STARPU_PLU(cl21) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u21),
+	.cpu_funcs = {STARPU_PLU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u21),
+	.cuda_funcs = {STARPU_PLU(cublas_u21), NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &STARPU_PLU(model_21)
 };
 
@@ -416,7 +419,7 @@ static void STARPU_PLU(cublas_u11)(void *descr[], void *_args)
 }
 #endif// STARPU_USE_CUDA
 
-static struct starpu_perfmodel_t STARPU_PLU(model_11) = {
+static struct starpu_perfmodel STARPU_PLU(model_11) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_11_atlas)
@@ -427,13 +430,14 @@ static struct starpu_perfmodel_t STARPU_PLU(model_11) = {
 #endif
 };
 
-starpu_codelet STARPU_PLU(cl11) = {
+struct starpu_codelet STARPU_PLU(cl11) = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_PLU(cpu_u11),
+	.cpu_funcs = {STARPU_PLU(cpu_u11), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_PLU(cublas_u11),
+	.cuda_funcs = {STARPU_PLU(cublas_u11), NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &STARPU_PLU(model_11)
 };
 

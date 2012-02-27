@@ -26,7 +26,7 @@ static void starpu_mpi_unlock_tag_callback(void *arg)
 	free(tagptr);
 }
 
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle,
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle,
 				int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr = malloc(sizeof(starpu_tag_t));
@@ -37,7 +37,7 @@ int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle,
 }
 
 
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr = malloc(sizeof(starpu_tag_t));
 	*tagptr = tag;
@@ -65,7 +65,7 @@ static void starpu_mpi_array_unlock_callback(void *_arg)
 }
 
 int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle *data_handle, int *dest, int *mpi_tag,
+		starpu_data_handle_t *data_handle, int *dest, int *mpi_tag,
 		MPI_Comm *comm, starpu_tag_t tag)
 {
 	struct arg_array *arg = malloc(sizeof(struct arg_array));
@@ -85,7 +85,7 @@ int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
 }
 
 
-int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
+int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
 {
 	struct arg_array *arg = malloc(sizeof(struct arg_array));
 

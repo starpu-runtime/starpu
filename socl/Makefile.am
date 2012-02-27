@@ -13,11 +13,11 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SUBDIRS = src
+SUBDIRS = src examples
 
 EXTRA_DIST = README
 
-libsocl_la_includedir=$(includedir)/starpu/CL
+libsocl_la_includedir=$(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)/socl/CL
 
 libsocl_la_include_HEADERS = \
   include/CL/cl.h \
@@ -28,3 +28,11 @@ libsocl_la_include_HEADERS = \
   include/CL/cl_starpu.h \
   include/CL/opencl.h \
   include/CL/cl.hpp
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = socl-1.0.pc
+
+showcheck:
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

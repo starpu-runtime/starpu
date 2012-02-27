@@ -19,7 +19,7 @@
 #include "event.h"
 
 static void task_release_callback(void *arg) {
-  starpu_task task = starpu_get_current_task();
+  starpu_task task = starpu_task_get_current();
   cl_command cmd = (cl_command)arg;
   
   cl_event ev = command_event_get(cmd);
@@ -126,10 +126,10 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
   free(arg);
 }
 
-static starpu_codelet cputask_codelet = {
+static struct starpu_codelet cputask_codelet = {
    .where = STARPU_CPU,
    .model = NULL,
-   .cpu_func = &cputask_task
+   .cpu_funcs = { &cputask_task, NULL }
 };
 
 starpu_task task_create_cpu(void (*callback)(void*), void *arg, int free_arg) {

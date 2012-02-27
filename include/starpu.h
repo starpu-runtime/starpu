@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,8 @@ typedef unsigned long long uint64_t;
 
 #include <starpu_util.h>
 #include <starpu_data.h>
+#include <starpu_data_interfaces.h>
+#include <starpu_data_filters.h>
 #include <starpu_perfmodel.h>
 #include <starpu_task.h>
 #include <starpu_task_list.h>
@@ -44,13 +46,15 @@ typedef unsigned long long uint64_t;
 #include <starpu_expert.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-struct starpu_conf {
+struct starpu_conf
+{
 	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy_name;
-	struct starpu_sched_policy_s *sched_policy;
+	struct starpu_sched_policy *sched_policy;
 
 	/* number of CPU workers (-1 for default) */
 	int ncpus;
@@ -108,7 +112,8 @@ int starpu_combined_worker_get_id(void);
 int starpu_combined_worker_get_size(void);
 int starpu_combined_worker_get_rank(void);
 
-enum starpu_archtype {
+enum starpu_archtype
+{
 	STARPU_CPU_WORKER, /* CPU core */
 	STARPU_CUDA_WORKER, /* NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER, /* OpenCL CUDA device */
@@ -155,5 +160,9 @@ int starpu_worker_get_devid(int id);
 #ifdef __cplusplus
 }
 #endif
+
+#if defined(STARPU_USE_DEPRECATED_API)
+#include "starpu_deprecated_api.h"
+#endif /* STARPU_USE_DEPRECATED_API */
 
 #endif /* __STARPU_H__ */

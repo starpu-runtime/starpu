@@ -18,26 +18,31 @@
 #ifndef __STARPU_CUDA_H__
 #define __STARPU_CUDA_H__
 
+#include <starpu_config.h>
+
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <cublas.h>
-#include <starpu_config.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void starpu_cublas_report_error(const char *func, cublasStatus status);
+void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status);
 #define STARPU_CUBLAS_REPORT_ERROR(status) \
-	starpu_cublas_report_error(__starpu_func__, status)
+	starpu_cublas_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
-void starpu_cuda_report_error(const char *func, cudaError_t status);
+void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status);
 #define STARPU_CUDA_REPORT_ERROR(status) \
-	starpu_cuda_report_error(__starpu_func__, status)
+	starpu_cuda_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
+size_t starpu_cuda_get_global_mem_size(int devid);
 cudaStream_t starpu_cuda_get_local_stream(void);
+
+const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid);
 
 #ifdef __cplusplus
 }

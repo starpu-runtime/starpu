@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,41 +19,44 @@
 #ifndef __STARPU_DATA_FILTERS_H__
 #define __STARPU_DATA_FILTERS_H__
 
+#include <starpu.h>
 #include <stdarg.h>
 
-#include <starpu.h>
-#include <starpu_config.h>
-
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-struct starpu_data_interface_ops_t;
+struct starpu_data_interface_ops;
 
-struct starpu_data_filter {
+struct starpu_data_filter
+{
 	void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);
         unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);
         struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
         unsigned filter_arg;
         unsigned nchildren;
+        unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle);
+        struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
+        unsigned filter_arg;
         void *filter_arg_ptr;
 };
 
-void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);
-void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);
+void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f);
+void starpu_data_unpartition(starpu_data_handle_t root_data, uint32_t gathering_node);
 
-int starpu_data_get_nb_children(starpu_data_handle handle);
-starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
+int starpu_data_get_nb_children(starpu_data_handle_t handle);
+starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i);
 
 /* unsigned list */
-starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );
+starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, unsigned depth, ... );
 /* Same, but using va_list */
-starpu_data_handle starpu_data_vget_sub_data(starpu_data_handle root_data, unsigned depth, va_list pa );
+starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_data, unsigned depth, va_list pa);
 
 /* struct starpu_data_filter * list */
-void starpu_data_map_filters(starpu_data_handle root_data, unsigned nfilters, ...);
+void starpu_data_map_filters(starpu_data_handle_t root_data, unsigned nfilters, ...);
 /* Same, but using va_list */
-void starpu_data_vmap_filters(starpu_data_handle root_data, unsigned nfilters, va_list pa);
+void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters, va_list pa);
 
 /* a few examples of filters */
 

@@ -40,27 +40,27 @@ static unsigned numa = 0;
 static size_t allocated_memory = 0;
 static size_t allocated_memory_extra = 0;
 
-static starpu_data_handle *dataA_handles;
+static starpu_data_handle_t *dataA_handles;
 static TYPE **dataA;
 
 /* In order to implement the distributed LU decomposition, we allocate
  * temporary buffers */
 #ifdef SINGLE_TMP11
-static starpu_data_handle tmp_11_block_handle;
+static starpu_data_handle_t tmp_11_block_handle;
 static TYPE *tmp_11_block;
 #else
-static starpu_data_handle *tmp_11_block_handles;
+static starpu_data_handle_t *tmp_11_block_handles;
 static TYPE **tmp_11_block;
 #endif
 #ifdef SINGLE_TMP1221
-static starpu_data_handle *tmp_12_block_handles;
+static starpu_data_handle_t *tmp_12_block_handles;
 static TYPE **tmp_12_block;
-static starpu_data_handle *tmp_21_block_handles;
+static starpu_data_handle_t *tmp_21_block_handles;
 static TYPE **tmp_21_block;
 #else
-static starpu_data_handle *(tmp_12_block_handles[2]);
+static starpu_data_handle_t *(tmp_12_block_handles[2]);
 static TYPE **(tmp_12_block[2]);
-static starpu_data_handle *(tmp_21_block_handles[2]);
+static starpu_data_handle_t *(tmp_21_block_handles[2]);
 static TYPE **(tmp_21_block[2]);
 #endif
 
@@ -127,34 +127,34 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 }
 
 #ifdef SINGLE_TMP11
-starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void)
+starpu_data_handle_t STARPU_PLU(get_tmp_11_block_handle)(void)
 {
 	return tmp_11_block_handle;
 }
 #else
-starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(unsigned k)
+starpu_data_handle_t STARPU_PLU(get_tmp_11_block_handle)(unsigned k)
 {
 	return tmp_11_block_handles[k];
 }
 #endif
 
 #ifdef SINGLE_TMP1221
-starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j)
+starpu_data_handle_t STARPU_PLU(get_tmp_12_block_handle)(unsigned j)
 {
 	return tmp_12_block_handles[j];
 }
 
-starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
+starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
 {
 	return tmp_21_block_handles[i];
 }
 #else
-starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k)
+starpu_data_handle_t STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k)
 {
 	return tmp_12_block_handles[k%2][j];
 }
 
-starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
+starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
 {
 	return tmp_21_block_handles[k%2][i];
 }
@@ -203,9 +203,9 @@ static void init_matrix(int rank)
 #endif
 
 	/* Allocate a grid of data handles, not all of them have to be allocated later on */
-	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle));
+	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle_t));
 	dataA = calloc(nblocks*nblocks, sizeof(TYPE *));
-	allocated_memory_extra += nblocks*nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
+	allocated_memory_extra += nblocks*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 
 	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 
@@ -216,8 +216,8 @@ static void init_matrix(int rank)
 		for (i = 0; i < nblocks; i++)
 		{
 			TYPE **blockptr = &dataA[j+i*nblocks];
-//			starpu_data_handle *handleptr = &dataA_handles[j+nblocks*i];
-			starpu_data_handle *handleptr = &dataA_handles[j+nblocks*i];
+//			starpu_data_handle_t *handleptr = &dataA_handles[j+nblocks*i];
+			starpu_data_handle_t *handleptr = &dataA_handles[j+nblocks*i];
 
 			if (get_block_rank(i, j) == rank)
 			{
@@ -261,9 +261,9 @@ static void init_matrix(int rank)
 	starpu_matrix_data_register(&tmp_11_block_handle, 0, (uintptr_t)tmp_11_block,
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 #else
-	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
 	tmp_11_block = calloc(nblocks, sizeof(TYPE *));
-	allocated_memory_extra += nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
+	allocated_memory_extra += nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -282,20 +282,20 @@ static void init_matrix(int rank)
 
 	/* tmp buffers 12 and 21 */
 #ifdef SINGLE_TMP1221
-	tmp_12_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
-	tmp_21_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	tmp_12_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
+	tmp_21_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
 	tmp_12_block = calloc(nblocks, sizeof(TYPE *));
 	tmp_21_block = calloc(nblocks, sizeof(TYPE *));
 
-	allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
+	allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 #else
 	for (i = 0; i < 2; i++) {
-		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle));
-		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle));
+		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
+		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
 		tmp_12_block[i] = calloc(nblocks, sizeof(TYPE *));
 		tmp_21_block[i] = calloc(nblocks, sizeof(TYPE *));
 
-		allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
+		allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 	}
 #endif
 	
@@ -365,7 +365,7 @@ int get_block_rank(unsigned i, unsigned j)
 	return (j % q) * p + (i % p);
 }
 
-starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
+starpu_data_handle_t STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 {
 	return dataA_handles[j+i*nblocks];
 }
@@ -385,7 +385,7 @@ static void display_grid(int rank, unsigned nblocks)
 			for (i = 0; i < nblocks; i++)
 			{
 				TYPE *blockptr = STARPU_PLU(get_block)(i, j);
-				starpu_data_handle handle = STARPU_PLU(get_block_handle)(i, j);
+				starpu_data_handle_t handle = STARPU_PLU(get_block_handle)(i, j);
 
 				fprintf(stderr, "%d (data %p handle %p)", get_block_rank(i, j), blockptr, handle);
 			}

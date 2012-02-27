@@ -48,19 +48,19 @@ unsigned STARPU_PLU(display_flag)(void);
 
 void STARPU_PLU(compute_ax)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, int rank);
 void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, int rank);
-starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j);
+starpu_data_handle_t STARPU_PLU(get_block_handle)(unsigned i, unsigned j);
 TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j);
 #ifdef SINGLE_TMP11
-starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void);
+starpu_data_handle_t STARPU_PLU(get_tmp_11_block_handle)(void);
 #else
-starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(unsigned k);
+starpu_data_handle_t STARPU_PLU(get_tmp_11_block_handle)(unsigned k);
 #endif
 #ifdef SINGLE_TMP1221
-starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j);
-starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i);
+starpu_data_handle_t STARPU_PLU(get_tmp_12_block_handle)(unsigned j);
+starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i);
 #else
-starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k);
-starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k);
+starpu_data_handle_t STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k);
+starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k);
 #endif
 
 void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize);

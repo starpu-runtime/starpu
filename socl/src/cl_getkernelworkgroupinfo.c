@@ -81,9 +81,9 @@ static void gkwgi_task2(void **UNUSED(desc), void *data) {
    }
 }
 
-static starpu_codelet gkwgi_codelet = {
+static struct starpu_codelet gkwgi_codelet = {
    .where = STARPU_OPENCL,
-   .opencl_func = gkwgi_task2,
+   .opencl_funcs = { gkwgi_task2, NULL },
    .nbuffers = 0,
    .model = NULL
 };

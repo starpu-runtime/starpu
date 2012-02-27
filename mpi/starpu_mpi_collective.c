@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 
-int starpu_mpi_scatter_detached(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm)
+int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm)
 {
 	int rank;
 	int x;
@@ -47,7 +47,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle *data_handles, int count, int
 	return 0;
 }
 
-int starpu_mpi_gather_detached(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm)
+int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm)
 {
 	int rank;
 	int x;

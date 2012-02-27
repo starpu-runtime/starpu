@@ -17,12 +17,13 @@
 
 #include <starpu_mpi.h>
 #include <common/utils.h>
+#include "helper.h"
 
 #define NITER	2048
 #define SIZE	16
 
 float *tab;
-starpu_data_handle tab_handle;
+starpu_data_handle_t tab_handle;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -30,34 +31,35 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 void callback(void *arg __attribute__((unused)))
 {
 	unsigned *received = arg;
-	
-	PTHREAD_MUTEX_LOCK(&mutex);
+
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = 1;
-	PTHREAD_COND_SIGNAL(&cond);
-	PTHREAD_MUTEX_UNLOCK(&mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 
 int main(int argc, char **argv)
 {
+	int ret, rank, size;
+
 	MPI_Init(NULL, NULL);
-
-	int rank, size;
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	if (size != 2)
 	{
 		if (rank == 0)
-			fprintf(stderr, "We need exactly 2 processes.\n");
+			FPRINTF(stderr, "We need exactly 2 processes.\n");
 
 		MPI_Finalize();
-		return 0;
+		return STARPU_TEST_SKIPPED;
 	}
 
-	starpu_init(NULL);
-	starpu_mpi_initialize();
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
 
 	tab = malloc(SIZE*sizeof(float));
 
@@ -74,17 +76,18 @@ int main(int argc, char **argv)
 		{
 			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
 		}
-		else {
+		else
+		{
 			int received = 0;
 			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
 
-			PTHREAD_MUTEX_LOCK(&mutex);
+			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!received)
-				PTHREAD_COND_WAIT(&cond, &mutex);
-			PTHREAD_MUTEX_UNLOCK(&mutex);
+				_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		}
 	}
-	
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

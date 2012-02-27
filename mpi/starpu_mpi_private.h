@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,26 +29,26 @@
 //#define STARPU_MPI_VERBOSE	1
 
 #ifdef STARPU_MPI_VERBOSE
-#  define _STARPU_MPI_DEBUG(fmt, args ...) { if (!getenv("STARPU_SILENT")) { \
-    						int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                     \
-                                                int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");    \
-                                                fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , rank, __func__ ,##args); \
-                                                fflush(stderr); }}
+#  define _STARPU_MPI_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
+    						int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);       \
+                                                int yyy; for(yyy=0 ; yyy<=_debug_rank ; yyy++) fprintf(stderr, "    ");    \
+                                                fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , _debug_rank, __func__ ,##args); \
+                                                fflush(stderr); }} while(0);
 #else
 #  define _STARPU_MPI_DEBUG(fmt, args ...)
 #endif
 
 #ifdef STARPU_MPI_VERBOSE0
-#  define _STARPU_MPI_LOG_IN()             { if (!getenv("STARPU_SILENT")) { \
-                                               int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
+#  define _STARPU_MPI_LOG_IN()             do { if (!getenv("STARPU_SILENT")) { \
+                                               int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
+                                               int yyy; for(yyy=0 ; yyy<=_debug_rank ; yyy++) fprintf(stderr, "    ");      \
+                                               fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", _debug_rank, __func__ ); \
+                                               fflush(stderr); }} while(0)
+#  define _STARPU_MPI_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) { \
+                                               int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
                                                int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
-                                               fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", rank, __func__ ); \
-                                               fflush(stderr); }}
-#  define _STARPU_MPI_LOG_OUT()            { if (!getenv("STARPU_SILENT")) { \
-                                               int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
-                                               int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
-                                               fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", rank, __func__ ); \
-                                               fflush(stderr); }}
+                                               fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", _debug_rank, __func__ ); \
+                                               fflush(stderr); }} while(0)
 #else
 #  define _STARPU_MPI_LOG_IN()
 #  define _STARPU_MPI_LOG_OUT()
@@ -60,9 +60,9 @@
 #define TEST_REQ        3
 #define BARRIER_REQ     4
 
-LIST_TYPE(starpu_mpi_req,
+LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
-	starpu_data_handle data_handle;
+	starpu_data_handle_t data_handle;
 
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
@@ -72,7 +72,7 @@ LIST_TYPE(starpu_mpi_req,
 	int mpi_tag;
 	MPI_Comm comm;
 
-	void (*func)(struct starpu_mpi_req_s *);
+	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
 	MPI_Request request;
@@ -89,7 +89,7 @@ LIST_TYPE(starpu_mpi_req,
 
 	/* In the case of a Wait/Test request, we are going to post a request
 	 * to test the completion of another request */
-	struct starpu_mpi_req_s *other_request;
+	struct _starpu_mpi_req *other_request;
 
 	/* in the case of detached requests */
 	unsigned detached;

@@ -20,7 +20,6 @@
 #define __STARPU_SCHEDULER_H__
 
 #include <starpu.h>
-#include <starpu_config.h>
 
 #if ! defined(_MSC_VER)
 #  include <pthread.h>
@@ -30,9 +29,15 @@
 #include <hwloc.h>
 #endif
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct starpu_task;
 
-struct starpu_machine_topology_s {
+struct starpu_machine_topology
+{
 	unsigned nworkers;
 
 	unsigned ncombinedworkers;
@@ -56,7 +61,7 @@ struct starpu_machine_topology_s {
 
 	/* Where to bind workers ? */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
-	
+
 	/* Which GPU(s) do we use for CUDA ? */
 	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
 
@@ -67,7 +72,8 @@ struct starpu_machine_topology_s {
 /* This structure contains all the methods that implement a scheduling policy.
  * An application may specify which scheduling strategy in the "sched_policy"
  * field of the starpu_conf structure passed to the starpu_init function. */
-struct starpu_sched_policy_s {
+struct starpu_sched_policy
+{
 	/* Initialize the scheduling policy. */
 	void (*init_sched)(unsigned sched_ctx_id);
 
@@ -75,7 +81,8 @@ struct starpu_sched_policy_s {
 	void (*deinit_sched)(unsigned sched_ctx_id);
 
 	/* Insert a task into the scheduler. */
-        int (*push_task)(struct starpu_task *);
+	int (*push_task)(struct starpu_task *);
+
 	/* Notify the scheduler that a task was directly pushed to the worker
 	 * without going through the scheduler. This method is called when a
 	 * task is explicitely assigned to a worker. This method therefore
@@ -83,18 +90,20 @@ struct starpu_sched_policy_s {
 	 * when StarPU bypasses the scheduling strategy. */
 	void (*push_task_notify)(struct starpu_task *, int workerid);
 
-
 	/* Get a task from the scheduler. The mutex associated to the worker is
 	 * already taken when this method is called. */
-	struct starpu_task *(*pop_task)();
+	struct starpu_task *(*pop_task)(void);
 
 	 /* Remove all available tasks from the scheduler (tasks are chained by
 	  * the means of the prev and next fields of the starpu_task
 	  * structure). The mutex associated to the worker is already taken
 	  * when this method is called. */
-	struct starpu_task *(*pop_every_task)();
+	struct starpu_task *(*pop_every_task)(void);
 
-	/* This method is called every time a task has been executed. (optionnal) */
+	/* This method is called every time a task is starting. (optional) */
+	void (*pre_exec_hook)(struct starpu_task *);
+
+	/* This method is called every time a task has been executed. (optional) */
 	void (*post_exec_hook)(struct starpu_task *);
 
 	/* Initialize the scheduling policy for added workers. */
@@ -176,7 +185,7 @@ unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx);
 unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
 
 /* Check if the worker specified by workerid can execute the codelet. */
-int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
+int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
 /* The scheduling policy may put tasks directly into a worker's local queue so
  * that it is not always necessary to create its own queue when the local queue
@@ -209,12 +218,10 @@ void starpu_sched_set_max_priority(int max_prio);
 
 /* Register a new combined worker and get its identifier */
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
-/* Initialize combined workers */
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
 /* Get the description of a combined worker */
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
-/* Variant of starpu_worker_may_execute_task compatible with combined workers */
-int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
+/* Variant of starpu_worker_can_execute_task compatible with combined workers */
+int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
 /*
  *	Data prefetching
@@ -238,9 +245,15 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 /* Returns expected data transfer time in µs */
 double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task);
 /* Predict the transfer time (in µs) to move a handle to a memory node */
-double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode);
+double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_access_mode mode);
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+/* Returns expected conversion time in ms (multiformat interface only) */
+double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+
+#ifdef __cplusplus
+}
+#endif
 
 /* Waits until all the tasks of a worker, already submitted, have been executed */
 int starpu_wait_for_all_tasks_of_worker(int workerid);

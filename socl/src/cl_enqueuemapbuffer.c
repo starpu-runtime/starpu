@@ -26,7 +26,7 @@ static void mapbuffer_callback(void *args) {
 static void mapbuffer_task(void *args) {
 	command_map_buffer cmd = (command_map_buffer)args;
 
-	starpu_access_mode mode = (cmd->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
+	enum starpu_access_mode mode = (cmd->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
 
 	starpu_data_acquire_cb(cmd->buffer->handle, mode, mapbuffer_callback, cmd);
 }

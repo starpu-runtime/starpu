@@ -60,11 +60,11 @@ static void soclEnqueueWriteBuffer_opencl_task(void *descr[], void *args) {
    free(args);
 }
 
-static starpu_codelet codelet_writebuffer = {
+static struct starpu_codelet codelet_writebuffer = {
    .where = STARPU_OPENCL,
    .model = NULL,
-   .cpu_func = &soclEnqueueWriteBuffer_cpu_task,
-   .opencl_func = &soclEnqueueWriteBuffer_opencl_task,
+   .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
+   .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
    .nbuffers = 1
 };
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,8 @@
 #include <starpu_mpi.h>
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes) {
+int my_distrib(int x, int y, int nb_nodes)
+{
         return (x+y) % nb_nodes;
 }
 
@@ -31,7 +32,7 @@ void cpu_codelet(void *descr[], void *_args)
 	float factor;
 
 	block = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-        starpu_unpack_cl_args(_args, &rank);
+        starpu_codelet_unpack_args(_args, &rank);
 	factor = block[0];
 
 	//fprintf(stderr,"rank %d factor %f\n", rank, factor);
@@ -45,18 +46,19 @@ void cpu_codelet(void *descr[], void *_args)
 	}
 }
 
-static starpu_codelet cl =
+static struct starpu_codelet cl =
 {
 	.where = STARPU_CPU,
-	.cpu_func = cpu_codelet,
-	.nbuffers = 1
+	.cpu_funcs = {cpu_codelet, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
 };
 
 int main(int argc, char **argv)
 {
         int rank, nodes;
-	float ***bmat;
-        starpu_data_handle *data_handles;
+	float ***bmat = NULL;
+        starpu_data_handle_t *data_handles;
 
 	unsigned i,j,x,y;
 
@@ -117,7 +119,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* Allocate data handles and register data to StarPU */
-        data_handles = malloc(nblocks*nblocks*sizeof(starpu_data_handle *));
+        data_handles = malloc(nblocks*nblocks*sizeof(starpu_data_handle_t *));
         for(x = 0; x < nblocks ;  x++)
 	{
                 for (y = 0; y < nblocks; y++)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,11 +16,12 @@
  */
 
 #include <starpu_mpi.h>
+#include "helper.h"
 
 #define NITER	2048
 
 unsigned token = 42;
-starpu_data_handle token_handle;
+starpu_data_handle_t token_handle;
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
@@ -32,13 +33,15 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	(*tokenptr)++;
 }
 
-static starpu_codelet increment_cl = {
+static struct starpu_codelet increment_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = increment_cuda,
+	.cuda_funcs = {increment_cuda, NULL},
 #endif
-	.cpu_func = increment_cpu,
-	.nbuffers = 1
+	.cpu_funcs = {increment_cpu, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 void increment_token(void)
@@ -46,15 +49,14 @@ void increment_token(void)
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &increment_cl;
-	task->buffers[0].handle = token_handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = token_handle;
 
 	starpu_task_submit(task);
 }
 
 int main(int argc, char **argv)
 {
-	int rank, size;
+	int ret, rank, size;
 
 #if 0
 	MPI_Init(NULL, NULL);
@@ -62,16 +64,18 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
-	starpu_init(NULL);
-	starpu_mpi_initialize_extended(&rank, &size);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize_extended(&rank, &size);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
 
 	if (size < 2)
 	{
 		if (rank == 0)
-			fprintf(stderr, "We need at least 2 processes.\n");
+			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		MPI_Finalize();
-		return 0;
+		return STARPU_TEST_SKIPPED;
 	}
 
 
@@ -90,7 +94,7 @@ int main(int argc, char **argv)
 		if (loop == 0 && rank == 0)
 		{
 			token = 0;
-			fprintf(stdout, "Start with token value %d\n", token);
+			FPRINTF(stdout, "Start with token value %d\n", token);
 		}
 		else
 		{
@@ -102,10 +106,11 @@ int main(int argc, char **argv)
 		if (loop == last_loop && rank == last_rank)
 		{
 			starpu_data_acquire(token_handle, STARPU_R);
-			fprintf(stdout, "Finished : token value %d\n", token);
+			FPRINTF(stdout, "Finished : token value %d\n", token);
 			starpu_data_release(token_handle);
 		}
-		else {
+		else
+		{
 			starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
 		}
 	}
@@ -119,7 +124,7 @@ int main(int argc, char **argv)
 
 	if (rank == last_rank)
 	{
-                fprintf(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
+                FPRINTF(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
                 STARPU_ASSERT(token == nloops*size);
 	}
 

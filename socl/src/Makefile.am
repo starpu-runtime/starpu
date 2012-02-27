@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,16 +14,33 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = -Wall -Wextra
-LIBS = $(top_builddir)/src/libstarpu.la
+AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
+AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) -no-undefined
 
 SUBDIRS =
 
-lib_LTLIBRARIES = libsocl.la
+lib_LTLIBRARIES = libsocl-@STARPU_EFFECTIVE_VERSION@.la
 
-libsocl_la_SOURCES = 						\
+noinst_HEADERS =				\
+  command.h					\
+  command_list.h				\
+  command_queue.h				\
+  debug.h					\
+  devices.h					\
+  event.h					\
+  gc.h						\
+  getinfo.h					\
+  mem_objects.h					\
+  socl.h					\
+  task.h					\
+  util.h
+
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
+  -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
+
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   command.c \
   command_list.c \
   command_queue.c \

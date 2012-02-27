@@ -23,9 +23,14 @@
  */
 __attribute__((constructor)) static void socl_init() {
   
+  struct starpu_conf conf;
+  starpu_conf_init(&conf);
+  conf.ncuda = 0;
+  putenv("STARPU_NCUDA=0");
+
   mem_object_init();
 
-  starpu_init(NULL);
+  starpu_init(&conf);
   
   /* Disable dataflow implicit dependencies */
   starpu_data_set_default_sequential_consistency_flag(0);

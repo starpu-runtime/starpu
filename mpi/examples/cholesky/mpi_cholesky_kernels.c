@@ -29,7 +29,7 @@
 #endif
 
 /*
- *   U22 
+ *   U22
  */
 
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
@@ -51,15 +51,16 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 	cublasStatus st;
 #endif
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
-			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21, 
+			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21,
 				right, ld12, 1.0f, center, ld22);
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			cublasSgemm('n', 't', dy, dx, dz, 
-					-1.0f, left, ld21, right, ld12, 
+			cublasSgemm('n', 't', dy, dx, dz,
+					-1.0f, left, ld21, right, ld12,
 					 1.0f, center, ld22);
 			st = cublasGetError();
 			STARPU_ASSERT(!st);
@@ -86,7 +87,7 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 }
 #endif// STARPU_USE_CUDA
 
-/* 
+/*
  * U21
  */
 
@@ -105,7 +106,8 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 	unsigned nx21 = STARPU_MATRIX_GET_NY(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			STRSM("R", "L", "T", "N", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -131,25 +133,26 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args)
 {
 	chol_common_codelet_update_u21(descr, 1, _args);
 }
-#endif 
+#endif
 
 /*
  *	U11
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, __attribute__((unused)) void *_args) 
+static inline void chol_common_codelet_update_u11(void *descr[], int s, __attribute__((unused)) void *_args)
 {
 //	printf("11\n");
 	float *sub11;
 
-	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	unsigned nx = STARPU_MATRIX_GET_NY(descr[0]);
 	unsigned ld = STARPU_MATRIX_GET_LD(descr[0]);
 
 	unsigned z;
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 
 			/*
@@ -165,10 +168,10 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 				sub11[z+z*ld] = lambda11;
 
 				STARPU_ASSERT(lambda11 != 0.0f);
-		
+
 				SSCAL(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
-		
-				SSYR("L", nx - z - 1, -1.0f, 
+
+				SSYR("L", nx - z - 1, -1.0f,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
@@ -180,7 +183,8 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 				int ret;
 				int info;
 				ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
-				if (ret != MAGMA_SUCCESS) {
+				if (ret != MAGMA_SUCCESS)
+				{
 					fprintf(stderr, "Error in Magma: %d\n", ret);
 					STARPU_ABORT();
 				}
@@ -195,7 +199,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 				cudaStreamSynchronize(0);
 
 				STARPU_ASSERT(lambda11 != 0.0f);
-				
+
 				lambda11 = sqrt(lambda11);
 
 				cublasSetVector(1, sizeof(float), &lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float));
@@ -206,7 +210,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
-		
+
 			cudaThreadSynchronize();
 #endif
 			break;

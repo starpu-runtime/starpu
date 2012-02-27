@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,14 +22,14 @@
  *	a datatype and the datatype itself, so we need to provide both.
  */
 
-typedef int (*handle_to_datatype_func)(starpu_data_handle, MPI_Datatype *);
-typedef void *(*handle_to_ptr_func)(starpu_data_handle);
+typedef int (*handle_to_datatype_func)(starpu_data_handle_t, MPI_Datatype *);
+typedef void *(*handle_to_ptr_func)(starpu_data_handle_t);
 
 /*
  * 	Matrix
  */
 
-static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -51,7 +51,7 @@ static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatyp
  * 	Block
  */
 
-static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -82,7 +82,7 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
  * 	Vector
  */
 
-static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -102,7 +102,7 @@ static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatyp
  * 	Variable
  */
 
-static int handle_to_datatype_variable(starpu_data_handle data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -121,19 +121,24 @@ static int handle_to_datatype_variable(starpu_data_handle data_handle, MPI_Datat
  *	Generic
  */
 
-static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] = {
+static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
+{
 	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_matrix,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
+	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
 
-int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype)
+int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
-	unsigned id = starpu_get_handle_interface_id(data_handle);
+	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
+
+	STARPU_ASSERT_MSG(id <= STARPU_MULTIFORMAT_INTERFACE_ID, "Unknown data interface");
 
 	handle_to_datatype_func func = handle_to_datatype_funcs[id];
 
@@ -142,7 +147,7 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *
 	return func(data_handle, datatype);
 }
 
-void *starpu_mpi_handle_to_ptr(starpu_data_handle data_handle)
+void *starpu_mpi_handle_to_ptr(starpu_data_handle_t data_handle)
 {
 	return (void*) starpu_handle_get_local_ptr(data_handle);
 }

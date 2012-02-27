@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,33 +16,35 @@
  */
 
 #include <starpu_mpi.h>
+#include "helper.h"
 
 #define NITER	2048
 #define SIZE	16
 
 float *tab;
-starpu_data_handle tab_handle;
+starpu_data_handle_t tab_handle;
 
 int main(int argc, char **argv)
 {
+	int ret, rank, size;
+
 	MPI_Init(NULL, NULL);
-
-	int rank, size;
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	if (size != 2)
 	{
 		if (rank == 0)
-			fprintf(stderr, "We need exactly 2 processes.\n");
+			FPRINTF(stderr, "We need exactly 2 processes.\n");
 
 		MPI_Finalize();
-		return 0;
+		return STARPU_TEST_SKIPPED;
 	}
 
-	starpu_init(NULL);
-	starpu_mpi_initialize();
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_initialize();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
 
 	tab = malloc(SIZE*sizeof(float));
 
@@ -61,13 +63,14 @@ int main(int argc, char **argv)
 		{
 			starpu_mpi_isend_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
 		}
-		else {
+		else
+		{
 			starpu_mpi_irecv_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
 		}
 
 		starpu_tag_wait(tag);
 	}
-	
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
