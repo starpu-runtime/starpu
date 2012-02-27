@@ -1111,8 +1111,8 @@ static void check_bus_config_file()
         else
 	{
                 FILE *f;
-                int ret, read_cuda, read_opencl;
-                unsigned read_cpus;
+                int ret, read_cuda = -1, read_opencl = -1;
+                unsigned read_cpus = -1;
                 struct _starpu_machine_config *config = _starpu_get_machine_config();
 
                 // Loading configuration from file
