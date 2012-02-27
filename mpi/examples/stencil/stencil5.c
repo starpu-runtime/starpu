@@ -76,7 +76,8 @@ int main(int argc, char **argv)
         unsigned matrix[X][Y];
         starpu_data_handle_t data_handles[X][Y];
 
-	starpu_init(NULL);
+	int ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	starpu_mpi_initialize_extended(&my_rank, &size);
         parse_args(argc, argv);
 

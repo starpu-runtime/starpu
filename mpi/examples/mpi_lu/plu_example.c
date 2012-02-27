@@ -421,7 +421,8 @@ int main(int argc, char **argv)
 
 	parse_args(rank, argc, argv);
 
-	starpu_init(NULL);
+	int ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);

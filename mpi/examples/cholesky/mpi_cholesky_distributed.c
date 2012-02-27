@@ -195,7 +195,8 @@ int main(int argc, char **argv)
 	conf.sched_policy_name = "heft";
 	conf.calibrate = 1;
 
-	starpu_init(&conf);
+	int ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	starpu_mpi_initialize_extended(&rank, &nodes);
 	starpu_helper_cublas_init();
 

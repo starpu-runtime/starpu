@@ -62,7 +62,8 @@ int main(int argc, char **argv)
 
 	int nb_elements, step;
 
-	starpu_init(NULL);
+	int ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	starpu_mpi_initialize_extended(&my_rank, &size);
 
 	nb_elements = size*8000;
