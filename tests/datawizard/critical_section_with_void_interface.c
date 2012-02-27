@@ -78,11 +78,11 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(void_handle);
 
-	STARPU_ASSERT(critical_var == ntasks);
+	ret = (critical_var == ntasks) ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	STARPU_RETURN(ret);
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
