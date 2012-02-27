@@ -128,8 +128,8 @@ static void decode(char **src, char *motif, char *value)
 	       char *neo = malloc((strlen(*src)-strlen(motif)+strlen(value)) * sizeof(char));
 	       char *to = neo;
 
-	       to = stpncpy(to, *src, strlen(*src)-strlen(y));
-	       to = stpcpy(to, value);
+	       to = strncpy(to, *src, strlen(*src)-strlen(y)); to += strlen(*src)-strlen(y);
+	       to = strcpy(to, value); to += strlen(value);
 	       to = stpcpy(to, y+strlen(motif));
 
 	       *src = strdup(neo);
