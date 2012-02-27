@@ -11,5 +11,9 @@ f(void)
 static void
 g(void)
 {
+
+	starpu_init(NULL);
 	starpu_task_submit(task);
+
+	starpu_task_wait(task);
 }
