@@ -24,6 +24,7 @@ static int _compute_priority(unsigned sched_ctx)
 	return total_priority;
 }
 
+/* find the context with the slowest priority */
 unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 {
 	int i;
@@ -57,6 +58,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 	return sched_ctx;
 }
 
+/* get first nworkers with the highest idle time in the context */
 int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_archtype arch)
 {
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
@@ -133,6 +135,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 	return curr_workers;
 }
 
+/* get the number of workers in the context that are allowed to be moved (that are not fixed) */
 unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
 {
 	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
@@ -158,6 +161,9 @@ unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ct
 	return potential_workers;
 }
 
+/* compute the number of workers that should be moved depending:
+   - on the min/max number of workers in a context imposed by the user, 
+   - on the resource granularity imposed by the user for the resizing process*/
 unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 {
        	struct policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
@@ -170,7 +176,6 @@ unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 		if(potential_moving_workers <= config->min_nworkers)
 			/* if we have to give more than min better give it all */ 
 			/* => empty ctx will block until having the required workers */
-			
 			nworkers_to_move = potential_moving_workers; 
 		else if(potential_moving_workers > config->max_nworkers)
 		{

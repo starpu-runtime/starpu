@@ -64,6 +64,7 @@ double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
         }
 }
 
+/* compute an average value of the cpu velocity */
 double _get_cpu_velocity(struct sched_ctx_wrapper* sc_w)
 {
         int ncpus = 0;
@@ -79,6 +80,7 @@ double _get_cpu_velocity(struct sched_ctx_wrapper* sc_w)
         return -1.0;
 }
 
+/* computes the instructions left to be executed out of the total instructions to execute */
 double _get_flops_left_pct(unsigned sched_ctx)
 {
 	struct sched_ctx_wrapper *wrapper = sched_ctx_hypervisor_get_wrapper(sched_ctx);
@@ -89,6 +91,7 @@ double _get_flops_left_pct(unsigned sched_ctx)
 	return (wrapper->total_flops - total_elapsed_flops)/wrapper->total_flops;
 }
 
+/* select the workers needed to be moved in order to force the sender and the receiver context to finish simultaneously */
 static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *nworkers)
 {
 	struct sched_ctx_wrapper* sender_sc_w = sched_ctx_hypervisor_get_wrapper(sender_sched_ctx);
@@ -149,7 +152,8 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
                 }
 		else
                 {
-//			printf("nworkers_needed = %d\n", nworkers_needed);
+			/*if the needed number of workers is to big we only move the number of workers 
+			  corresponding to the granularity set by the user */
                         int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
 
                         if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
@@ -281,6 +285,8 @@ static void gflops_rate_resize(unsigned sched_ctx)
 	double exp_end = _get_exp_end(sched_ctx);
 	double flops_left_pct = _get_flops_left_pct(sched_ctx);
 
+	/* if the context finished all the instructions it had to execute 
+	 we move all the resources to the slowest context */
 	if(flops_left_pct == 0.0f)
 	{
 		int slowest_sched_ctx = _find_slowest_available_sched_ctx(sched_ctx);
