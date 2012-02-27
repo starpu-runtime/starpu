@@ -311,9 +311,8 @@ int main(int argc, char **argv)
 	}
 
 	starpu_helper_cublas_shutdown();
-	starpu_shutdown();
-
 	starpu_free(mat);
+	starpu_shutdown();
 
 	return 0;
 }
