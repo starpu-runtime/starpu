@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  UniversitÃ© de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009, 2010-2011  UniversitÃ© de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,67 +16,79 @@
  */
 
 /** @file
- * @brief Listes doublement chainées automatiques
+ * @brief Listes doublement chainÃ©es automatiques
  */
 
 
 /** @remarks list how-to
  * *********************************************************
  * LIST_TYPE(FOO, contenu);
- *  - déclare les types suivants
- *      + pour les cellules : FOO_t
- *      + pour les listes : FOO_list_t
- *      + pour les itérateurs : FOO_itor_t
- *  - déclare les accesseurs suivants :
- *     * création d'une cellule 
+ *  - dÃ©clare les types suivants
+ *      + pour les cellules : FOO
+ *      + pour les listes : FOO_list
+ *      + pour les itÃ©rateurs : FOO
+ *  - dÃ©clare les accesseurs suivants :
+ *     * crÃ©ation d'une cellule 
  *   FOO_t      FOO_new(void);  
  *     * suppression d'une cellule
  *   void       FOO_delete(FOO_t); 
- *     * création d'une liste (vide)
+ *     * crÃ©ation d'une liste (vide)
  *   FOO_list_t FOO_list_new(void);
  *     * suppression d'une liste
  *   void       FOO_list_delete(FOO_list_t);
  *     * teste si une liste est vide
  *   int        FOO_list_empty(FOO_list_t);
- *     * retire un élément de la liste
+ *     * retire un Ã©lÃ©ment de la liste
  *   void       FOO_list_erase(FOO_list_t, FOO_t);
- *     * ajoute une élément en queue de liste
+ *     * ajoute une Ã©lÃ©ment en queue de liste
  *   void       FOO_list_push_back(FOO_list_t, FOO_t);
- *     * ajoute un élément en tête de list
+ *     * ajoute un Ã©lÃ©ment en tÃªte de list
  *   void       FOO_list_push_front(FOO_list_t, FOO_t);
- *     * retire l'élément en queue de liste
+ *     * ajoute la deuxiÃ¨me liste Ã  la fin de la premiÃ¨re liste
+ *   FOO_t      FOO_list_push_list_back(FOO_list_t, FOO_list_t);
+ *     * ajoute la premiÃ¨re liste au dÃ©but de la deuxiÃ¨me liste
+ *   FOO_t      FOO_list_push_list_front(FOO_list_t, FOO_list_t);
+ *     * retire l'Ã©lÃ©ment en queue de liste
  *   FOO_t      FOO_list_pop_back(FOO_list_t);
- *     * retire l'élement en tête de liste
+ *     * retire l'Ã©lement en tÃªte de liste
  *   FOO_t      FOO_list_pop_front(FOO_list_t);
- *     * retourne l'élément en queue de liste
+ *     * retourne l'Ã©lÃ©ment en queue de liste
  *   FOO_t      FOO_list_back(FOO_list_t);
- *     * retourne l'élement en tête de liste
+ *     * retourne l'Ã©lement en tÃªte de liste
  *   FOO_t      FOO_list_front(FOO_list_t);
- *     * vérifie si la liste chainée est cohérente
+ *     * vÃ©rifie si la liste chainÃ©e est cohÃ©rente
  *   int	FOO_list_check(FOO_list_t);
+ *     *
+ *   FOO_t      FOO_list_begin(FOO_list_t);
+ *     *
+ *   FOO_t      FOO_list_end(FOO_list_t);
+ *     *
+ *   FOO_t      FOO_list_next(FOO_t)
+ *     *
+ *   int        FOO_list_size(FOO_list_t)
  * *********************************************************
  * Exemples d'utilisation :
- *  - au départ, on a :
+ *  - au dÃ©part, on a :
  *    struct ma_structure_s
  *    {
  *      int a;
  *      int b;
  *    };
- *  - on veut en faire une liste. On remplace la déclaration par :
+ *  - on veut en faire une liste. On remplace la dÃ©claration par :
  *    LIST_TYPE(ma_structure,
  *      int a;
  *      int b;
  *    );
- *    qui crée les types ma_structure_t et ma_structure_list_t.
+ *    qui crÃ©e les types ma_structure_t et ma_structure_list_t.
  *  - allocation d'une liste vide :
  *  ma_structure_list_t l = ma_structure_list_new();
- *  - ajouter un élément 'e' en tête de la liste 'l' :
+ *  - ajouter un Ã©lÃ©ment 'e' en tÃªte de la liste 'l' :
  *  ma_structure_t e = ma_structure_new();
  *  e->a = 0;
  *  e->b = 1;
  *  ma_structure_list_push_front(l, e);
- *  - itérateur de liste :
- *  ma_structure_itor_t i;
+ *  - itÃ©rateur de liste :
+ *  ma_structure i;
  *  for(i  = ma_structure_list_begin(l);
  *      i != ma_structure_list_end(l);
  *      i  = ma_structure_list_next(i))
@@ -91,76 +103,71 @@
 /**@hideinitializer
  * Generates a new type for list of elements */
 #define LIST_TYPE(ENAME, DECL) \
-  LIST_DECLARE_TYPE(ENAME) \
   LIST_CREATE_TYPE(ENAME, DECL)
-
-/**@hideinitializer
- * Forward type declaration for lists */
-#define LIST_DECLARE_TYPE(ENAME) \
-  /** automatic type: ENAME##_list_t is a list of ENAME##_t */ \
-  typedef struct ENAME##_list_s* ENAME##_list_t; \
-  /** automatic type: defines ENAME##_t */ \
-  typedef struct ENAME##_s* ENAME##_t; \
-  /** automatic type: ENAME##_itor_t is an iterator on lists of ENAME##_t */ \
-  typedef ENAME##_t ENAME##_itor_t;
 
 /**@hideinitializer
  * The effective type declaration for lists */
 #define LIST_CREATE_TYPE(ENAME, DECL) \
-  /** from automatic type: ENAME##_t */ \
-  struct ENAME##_s \
+  /** from automatic type: struct ENAME */ \
+  struct ENAME \
   { \
-    struct ENAME##_s*_prev; /**< @internal previous cell */ \
-    struct ENAME##_s*_next; /**< @internal next cell */ \
+    struct ENAME *_prev; /**< @internal previous cell */ \
+    struct ENAME *_next; /**< @internal next cell */ \
     DECL \
   }; \
   /** @internal */ \
-  struct ENAME##_list_s \
+  struct ENAME##_list \
   { \
-    struct ENAME##_s* _head; /**< @internal head of the list */ \
-    struct ENAME##_s* _tail; /**< @internal tail of the list */ \
+    struct ENAME *_head; /**< @internal head of the list */ \
+    struct ENAME *_tail; /**< @internal tail of the list */ \
   }; \
-  /** @internal */static inline ENAME##_t ENAME##_new(void) \
-    { ENAME##_t e = (ENAME##_t)malloc(sizeof(struct ENAME##_s)); \
+  /** @internal */static inline struct ENAME *ENAME##_new(void) \
+    { struct ENAME *e = (struct ENAME *)malloc(sizeof(struct ENAME)); \
       e->_next = NULL; e->_prev = NULL; return e; } \
-  /** @internal */static inline void ENAME##_delete(ENAME##_t e) \
+  /** @internal */static inline void ENAME##_delete(struct ENAME *e) \
     { free(e); } \
-  /** @internal */static inline void ENAME##_list_push_front(ENAME##_list_t l, ENAME##_t e) \
+  /** @internal */static inline void ENAME##_list_push_front(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_tail == NULL) l->_tail = e; else l->_head->_prev = e; \
       e->_prev = NULL; e->_next = l->_head; l->_head = e; } \
-  /** @internal */static inline void ENAME##_list_push_back(ENAME##_list_t l, ENAME##_t e) \
+  /** @internal */static inline void ENAME##_list_push_back(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_head == NULL) l->_head = e; else l->_tail->_next = e; \
       e->_next = NULL; e->_prev = l->_tail; l->_tail = e; } \
-  /** @internal */static inline ENAME##_t ENAME##_list_front(ENAME##_list_t l) \
+  /** @internal */static inline void ENAME##_list_push_list_front(struct ENAME##_list *l1, struct ENAME##_list *l2) \
+    { if (l2->_head == NULL) { l2->_head = l1->_head; l2->_tail = l1->_tail; } \
+      else if (l1->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l2->_head = l1->_head; } } \
+  /** @internal */static inline void ENAME##_list_push_list_back(struct ENAME##_list *l1, struct ENAME##_list *l2) \
+    { if(l1->_head == NULL) { l1->_head = l2->_head; l1->_tail = l2->_tail; } \
+      else if (l2->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l1->_tail = l2->_head; } } \
+  /** @internal */static inline struct ENAME *ENAME##_list_front(struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline ENAME##_t ENAME##_list_back(ENAME##_list_t l) \
+  /** @internal */static inline struct ENAME *ENAME##_list_back(struct ENAME##_list *l) \
     { return l->_tail; } \
-  /** @internal */static inline ENAME##_list_t ENAME##_list_new(void) \
-    { ENAME##_list_t l; l=(ENAME##_list_t)malloc(sizeof(struct ENAME##_list_s)); \
+  /** @internal */static inline struct ENAME##_list *ENAME##_list_new(void) \
+    { struct ENAME##_list *l; l=(struct ENAME##_list *)malloc(sizeof(struct ENAME##_list)); \
       l->_head=NULL; l->_tail=l->_head; return l; } \
-  /** @internal */static inline int ENAME##_list_empty(ENAME##_list_t l) \
+  /** @internal */static inline int ENAME##_list_empty(struct ENAME##_list *l) \
     { return (l->_head == NULL); } \
-  /** @internal */static inline void ENAME##_list_delete(ENAME##_list_t l) \
+  /** @internal */static inline void ENAME##_list_delete(struct ENAME##_list *l) \
     { free(l); } \
-  /** @internal */static inline void ENAME##_list_erase(ENAME##_list_t l, ENAME##_t c) \
-    { ENAME##_t p = c->_prev; if(p) p->_next = c->_next; else l->_head = c->_next; \
+  /** @internal */static inline void ENAME##_list_erase(struct ENAME##_list *l, struct ENAME *c) \
+    { struct ENAME *p = c->_prev; if(p) p->_next = c->_next; else l->_head = c->_next; \
       if(c->_next) c->_next->_prev = p; else l->_tail = p; } \
-  /** @internal */static inline ENAME##_t ENAME##_list_pop_front(ENAME##_list_t l) \
-    { ENAME##_t e = ENAME##_list_front(l); \
+  /** @internal */static inline struct ENAME *ENAME##_list_pop_front(struct ENAME##_list *l) \
+    { struct ENAME *e = ENAME##_list_front(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */static inline ENAME##_t ENAME##_list_pop_back(ENAME##_list_t l) \
-    { ENAME##_t e = ENAME##_list_back(l); \
+  /** @internal */static inline struct ENAME *ENAME##_list_pop_back(struct ENAME##_list *l) \
+    { struct ENAME *e = ENAME##_list_back(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */static inline ENAME##_itor_t ENAME##_list_begin(ENAME##_list_t l) \
+  /** @internal */static inline struct ENAME *ENAME##_list_begin(struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline ENAME##_itor_t ENAME##_list_end(ENAME##_list_t l __attribute__ ((unused))) \
+  /** @internal */static inline struct ENAME *ENAME##_list_end(struct ENAME##_list *l __attribute__ ((unused))) \
     { return NULL; } \
-  /** @internal */static inline ENAME##_itor_t ENAME##_list_next(ENAME##_itor_t i) \
+  /** @internal */static inline struct ENAME *ENAME##_list_next(struct ENAME *i) \
     { return i->_next; } \
-  /** @internal */static inline int ENAME##_list_size(ENAME##_list_t l) \
-    { ENAME##_itor_t i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
-  /** @internal */static inline int ENAME##_list_check(ENAME##_list_t l) \
-    { ENAME##_itor_t i=l->_head; while(i) \
+  /** @internal */static inline int ENAME##_list_size(struct ENAME##_list *l) \
+    { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
+  /** @internal */static inline int ENAME##_list_check(struct ENAME##_list *l) \
+    { struct ENAME *i=l->_head; while(i) \
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
       i=i->_next;} return 1; }

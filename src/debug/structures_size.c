@@ -25,14 +25,14 @@ void _starpu_debug_display_structures_size(void)
 {
 	fprintf(stderr, "struct starpu_task\t\t%u bytes\t(%x)\n",
 			(unsigned) sizeof(struct starpu_task), (unsigned) sizeof(struct starpu_task));
-	fprintf(stderr, "struct starpu_job_s\t\t%u bytes\t(%x)\n",
-			(unsigned) sizeof(struct starpu_job_s), (unsigned) sizeof(struct starpu_job_s));
-	fprintf(stderr, "struct starpu_data_state_t\t%u bytes\t(%x)\n",
-			(unsigned) sizeof(struct starpu_data_state_t), (unsigned) sizeof(struct starpu_data_state_t));
-	fprintf(stderr, "struct starpu_tag_s\t\t%u bytes\t(%x)\n",
-			(unsigned) sizeof(struct starpu_tag_s), (unsigned) sizeof(struct starpu_tag_s));
-	fprintf(stderr, "struct starpu_cg_s\t\t%u bytes\t(%x)\n",
-			(unsigned) sizeof(struct starpu_cg_s), (unsigned) sizeof(struct starpu_cg_s));
-	fprintf(stderr, "struct starpu_worker_s\t\t%u bytes\t(%x)\n",
-			(unsigned) sizeof(struct starpu_worker_s), (unsigned) sizeof(struct starpu_worker_s));
+	fprintf(stderr, "struct _starpu_job\t\t%u bytes\t(%x)\n",
+			(unsigned) sizeof(struct _starpu_job), (unsigned) sizeof(struct _starpu_job));
+	fprintf(stderr, "struct _starpu_data_state\t%u bytes\t(%x)\n",
+			(unsigned) sizeof(struct _starpu_data_state), (unsigned) sizeof(struct _starpu_data_state));
+	fprintf(stderr, "struct _starpu_tag\t\t%u bytes\t(%x)\n",
+			(unsigned) sizeof(struct _starpu_tag), (unsigned) sizeof(struct _starpu_tag));
+	fprintf(stderr, "struct _starpu_cg\t\t%u bytes\t(%x)\n",
+			(unsigned) sizeof(struct _starpu_cg), (unsigned) sizeof(struct _starpu_cg));
+	fprintf(stderr, "struct _starpu_worker\t\t%u bytes\t(%x)\n",
+			(unsigned) sizeof(struct _starpu_worker), (unsigned) sizeof(struct _starpu_worker));
 }

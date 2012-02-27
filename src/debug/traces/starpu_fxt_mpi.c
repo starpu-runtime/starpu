@@ -21,7 +21,8 @@
 
 #include "starpu_fxt.h"
 
-struct mpi_transfer {
+struct mpi_transfer
+{
 	unsigned matched;
 	int other_rank; /* src for a recv, dest for a send */
 	int mpi_tag;
@@ -31,25 +32,27 @@ struct mpi_transfer {
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
  * filled with the timestamp of the barrier */
-int starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
+int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
 {
 	STARPU_ASSERT(offset);
 
 	/* Open the trace file */
 	int fd_in;
 	fd_in = open(filename_in, O_RDONLY);
-	if (fd_in < 0) {
+	if (fd_in < 0)
+	{
 	        perror("open failed :");
 	        exit(-1);
 	}
 
 	static fxt_t fut;
 	fut = fxt_fdopen(fd_in);
-	if (!fut) {
+	if (!fut)
+	{
 	        perror("fxt_fdopen :");
 	        exit(-1);
 	}
-	
+
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
@@ -57,9 +60,11 @@ int starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key
 
 	int func_ret = -1;
 	unsigned found = 0;
-	while(!found) {
+	while(!found)
+	{
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
-		if (ret != FXT_EV_OK) {
+		if (ret != FXT_EV_OK)
+		{
 			fprintf(stderr, "no more block ...\n");
 			break;
 		}
@@ -106,7 +111,7 @@ unsigned mpi_recvs_used[64] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 unsigned mpi_recvs_matched[64] = {0};
 
-void starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
 	unsigned slot = mpi_sends_used[src]++;
 
@@ -116,7 +121,8 @@ void starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, 
 		{
 			mpi_sends_list_size[src] *= 2;
 		}
-		else {
+		else
+		{
 			mpi_sends_list_size[src] = 1;
 		}
 
@@ -130,7 +136,7 @@ void starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, 
 	mpi_sends[src][slot].date = date;
 }
 
-void starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
 {
 	unsigned slot = mpi_recvs_used[dst]++;
 
@@ -140,7 +146,8 @@ void starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, 
 		{
 			mpi_recvs_list_size[dst] *= 2;
 		}
-		else {
+		else
+		{
 			mpi_recvs_list_size[dst] = 1;
 		}
 
@@ -174,7 +181,8 @@ struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED,
 
 			all_previous_were_matched = 0;
 		}
-		else {
+		else
+		{
 			if (all_previous_were_matched)
 			{
 				/* All previous transfers are already matched,
@@ -224,7 +232,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 	}
 }
 
-void starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
+void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
 {
 	unsigned inputfile;
 

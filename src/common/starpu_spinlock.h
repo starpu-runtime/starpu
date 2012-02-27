@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,11 +23,8 @@
 #include <common/utils.h>
 #include <common/config.h>
 
-//#ifndef STARPU_SPINLOCK_CHECK
-//#define STARPU_SPINLOCK_CHECK	1
-//#endif
-
-typedef struct starpu_spinlock_s {
+struct _starpu_spinlock
+{
 #ifdef STARPU_SPINLOCK_CHECK
 	pthread_mutexattr_t errcheck_attr;
 	pthread_mutex_t errcheck_lock;
@@ -39,13 +36,13 @@ typedef struct starpu_spinlock_s {
 	uint32_t taken __attribute__ ((aligned(16)));
 #endif
 #endif
-} starpu_spinlock_t;
+};
 
-int _starpu_spin_init(starpu_spinlock_t *lock);
-int _starpu_spin_destroy(starpu_spinlock_t *lock);
+int _starpu_spin_init(struct _starpu_spinlock *lock);
+int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
-int _starpu_spin_lock(starpu_spinlock_t *lock);
-int _starpu_spin_trylock(starpu_spinlock_t *lock);
-int _starpu_spin_unlock(starpu_spinlock_t *lock);
+int _starpu_spin_lock(struct _starpu_spinlock *lock);
+int _starpu_spin_trylock(struct _starpu_spinlock *lock);
+int _starpu_spin_unlock(struct _starpu_spinlock *lock);
 
 #endif // __STARPU_SPINLOCK_H__

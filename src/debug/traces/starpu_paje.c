@@ -19,7 +19,7 @@
 
 #ifdef STARPU_USE_FXT
 
-void starpu_fxt_write_paje_header(FILE *file)
+void _starpu_fxt_write_paje_header(FILE *file)
 {
 	fprintf(file, "%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "%%	Alias	string\n");
@@ -123,7 +123,6 @@ void starpu_fxt_write_paje_header(FILE *file)
 	fprintf(file, "%%	DestContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%EndEventDef\n");
-
 
 	fprintf(file, "                                        \n \
 	1       MPIP      0       \"MPI Program\"                      	\n \
@@ -238,6 +237,7 @@ void starpu_fxt_write_paje_header(FILE *file)
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
 	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
+	6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
 	5       MPIL     MPIP	P	P      MPIL\n \
 	5       L       P	Mn	Mn      L\n");
@@ -246,5 +246,3 @@ void starpu_fxt_write_paje_header(FILE *file)
 }
 
 #endif
-
-

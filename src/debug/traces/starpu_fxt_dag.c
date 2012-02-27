@@ -25,7 +25,7 @@
 static FILE *out_file;
 static unsigned cluster_cnt;
 
-void starpu_fxt_dag_init(char *out_path)
+void _starpu_fxt_dag_init(char *out_path)
 {
 	if (!out_path)
 	{
@@ -35,7 +35,8 @@ void starpu_fxt_dag_init(char *out_path)
 
 	/* create a new file */
 	out_file = fopen(out_path, "w+");
-	if (!out_file) {
+	if (!out_file)
+	{
 		fprintf(stderr,"error while opening %s\n", out_path);
 		perror("fopen");
 		exit(1);
@@ -51,7 +52,7 @@ void starpu_fxt_dag_init(char *out_path)
 	fprintf(out_file, "\tcolor=black;\n");
 }
 
-void starpu_fxt_dag_terminate(void)
+void _starpu_fxt_dag_terminate(void)
 {
 	if (!out_file)
 		return;
@@ -63,33 +64,33 @@ void starpu_fxt_dag_terminate(void)
 	fclose(out_file);
 }
 
-void starpu_fxt_dag_add_tag_deps(uint64_t child, uint64_t father)
+void _starpu_fxt_dag_add_tag_deps(uint64_t child, uint64_t father)
 {
 	if (out_file)
-	fprintf(out_file, "\t \"tag_%llx\"->\"tag_%llx\"\n", 
-		(unsigned long long)father, (unsigned long long)child);
+		fprintf(out_file, "\t \"tag_%llx\"->\"tag_%llx\"\n",
+			(unsigned long long)father, (unsigned long long)child);
 }
 
-void starpu_fxt_dag_add_task_deps(unsigned long dep_prev, unsigned long dep_succ)
+void _starpu_fxt_dag_add_task_deps(unsigned long dep_prev, unsigned long dep_succ)
 {
 	if (out_file)
-	fprintf(out_file, "\t \"task_%lx\"->\"task_%lx\"\n", dep_prev, dep_succ);
-} 
-
-void starpu_fxt_dag_set_tag_done(uint64_t tag, const char *color)
-{
-	if (out_file)
-	fprintf(out_file, "\t \"tag_%llx\" [ style=filled, label=\"\", color=\"%s\"]\n", 
-		(unsigned long long)tag, color);
+		fprintf(out_file, "\t \"task_%lx\"->\"task_%lx\"\n", dep_prev, dep_succ);
 }
 
-void starpu_fxt_dag_set_task_done(unsigned long job_id, const char *label, const char *color)
+void _starpu_fxt_dag_set_tag_done(uint64_t tag, const char *color)
 {
 	if (out_file)
-	fprintf(out_file, "\t \"task_%lx\" [ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
+		fprintf(out_file, "\t \"tag_%llx\" [ style=filled, label=\"\", color=\"%s\"]\n",
+			(unsigned long long)tag, color);
 }
 
-void starpu_fxt_dag_add_sync_point(void)
+void _starpu_fxt_dag_set_task_done(unsigned long job_id, const char *label, const char *color)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"task_%lx\" [ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
+}
+
+void _starpu_fxt_dag_add_sync_point(void)
 {
 	if (!out_file)
 		return;

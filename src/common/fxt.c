@@ -23,21 +23,22 @@
 
 #ifdef STARPU_USE_FXT
 #include <common/fxt.h>
+#include <starpu_fxt.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
-		
-#define PROF_BUFFER_SIZE  (8*1024*1024)
 
-static char PROF_FILE_USER[128];
-static int fxt_started = 0;
+#define _STARPU_PROF_BUFFER_SIZE  (8*1024*1024)
 
-static int written = 0;
+static char _STARPU_PROF_FILE_USER[128];
+static int _starpu_fxt_started = 0;
 
-static int id;
+static int _starpu_written = 0;
 
-static void _profile_set_tracefile(void *last, ...)
+static int _starpu_id;
+
+static void _starpu_profile_set_tracefile(void *last, ...)
 {
 	va_list vl;
 	char *user;
@@ -47,7 +48,7 @@ static void _profile_set_tracefile(void *last, ...)
 			fxt_prefix = "/tmp/";
 
 	va_start(vl, last);
-	vsprintf(PROF_FILE_USER, fxt_prefix, vl);
+	vsprintf(_STARPU_PROF_FILE_USER, fxt_prefix, vl);
 	va_end(vl);
 
 	user = getenv("USER");
@@ -55,31 +56,34 @@ static void _profile_set_tracefile(void *last, ...)
 		user = "";
 
 	char suffix[128];
-	snprintf(suffix, 128, "prof_file_%s_%d", user, id);
+	snprintf(suffix, 128, "prof_file_%s_%d", user, _starpu_id);
 
-	strcat(PROF_FILE_USER, suffix);
+	strcat(_STARPU_PROF_FILE_USER, suffix);
 }
 
-void starpu_set_profiling_id(int new_id) {
+void starpu_set_profiling_id(int new_id)
+{
         _STARPU_DEBUG("Set id to <%d>\n", new_id);
-	id = new_id;
-        _profile_set_tracefile(NULL);
+	_starpu_id = new_id;
+        _starpu_profile_set_tracefile(NULL);
 }
 
 void _starpu_start_fxt_profiling(void)
 {
 	unsigned threadid;
 
-	if (!fxt_started) {
-		fxt_started = 1;
-		_profile_set_tracefile(NULL);
+	if (!_starpu_fxt_started)
+	{
+		_starpu_fxt_started = 1;
+		_starpu_profile_set_tracefile(NULL);
 	}
 
 	threadid = syscall(SYS_gettid);
 
 	atexit(_starpu_stop_fxt_profiling);
 
-	if(fut_setup(PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0) {
+	if (fut_setup(_STARPU_PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0)
+	{
 		perror("fut_setup");
 		STARPU_ABORT();
 	}
@@ -89,7 +93,7 @@ void _starpu_start_fxt_profiling(void)
 	return;
 }
 
-static void generate_paje_trace(char *input_fxt_filename, char *output_paje_filename)
+static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename)
 {
 	/* We take default options */
 	struct starpu_fxt_options options;
@@ -108,19 +112,19 @@ static void generate_paje_trace(char *input_fxt_filename, char *output_paje_file
 
 void _starpu_stop_fxt_profiling(void)
 {
-	if (!written)
+	if (!_starpu_written)
 	{
 #ifdef STARPU_VERBOSE
 	        char hostname[128];
 		gethostname(hostname, 128);
-		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, PROF_FILE_USER);
+		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, _STARPU_PROF_FILE_USER);
 #endif
-		fut_endup(PROF_FILE_USER);
+		fut_endup(_STARPU_PROF_FILE_USER);
 
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
 		if (generate_trace == 1)
-			generate_paje_trace(PROF_FILE_USER, "paje.trace");
+			_starpu_generate_paje_trace(_STARPU_PROF_FILE_USER, "paje.trace");
 
 		int ret = fut_done();
 		if (ret < 0)
@@ -130,7 +134,7 @@ void _starpu_stop_fxt_profiling(void)
 			fprintf(stderr, "Warning: the FxT trace could not be generated properly\n");
 		}
 
-		written = 1;
+		_starpu_written = 1;
 	}
 }
 
@@ -144,6 +148,6 @@ void _starpu_fxt_register_thread(unsigned cpuid)
 void starpu_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
-	STARPU_TRACE_USER_EVENT(code);
+	_STARPU_TRACE_USER_EVENT(code);
 #endif
 }

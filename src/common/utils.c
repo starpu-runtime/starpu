@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <libgen.h>
+#include <errno.h>
 
 #ifdef __MINGW32__
 #include <io.h>
@@ -30,6 +31,7 @@
 
 int _starpu_mkpath(const char *s, mode_t mode)
 {
+	int olderrno;
 	char *q, *r = NULL, *path = NULL, *up = NULL;
 	int rv;
 
@@ -59,15 +61,17 @@ int _starpu_mkpath(const char *s, mode_t mode)
 
 	if ((mkdir(path, mode) == -1) && (errno != EEXIST))
 		rv = -1;
-	else 
+	else
 		rv = 0;
-	
+
 out:
+	olderrno = errno;
 	if (up)
 		free(up);
 
 	free(q);
 	free(path);
+	errno = olderrno;
 	return rv;
 }
 
@@ -77,7 +81,7 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
 	ret = pthread_mutex_trylock(mutex);
 	if (!ret)
 	{
-		pthread_mutex_unlock(mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		return 0;
 	}
 
