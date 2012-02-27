@@ -120,6 +120,24 @@ static void test_cleaner(int sig)
 	exit(EXIT_FAILURE);
 }
 
+static void decode(char **src, char *motif, char *value)
+{
+     if (*src) {
+	  char *y = strstr(*src, motif);
+	  while (y) {
+	       char *neo = malloc((strlen(*src)-strlen(motif)+strlen(value)) * sizeof(char));
+	       char *to = neo;
+
+	       to = stpncpy(to, *src, strlen(*src)-strlen(y));
+	       to = stpcpy(to, value);
+	       to = stpcpy(to, y+strlen(motif));
+
+	       *src = strdup(neo);
+	       y = strstr(*src, motif);
+	  }
+     }
+}
+
 int main(int argc, char *argv[])
 {
 	int   child_exit_status;
@@ -128,6 +146,7 @@ int main(int argc, char *argv[])
 	int   status;
 	char *launcher;
 	char *launcher_args;
+	char *top_srcdir;
 	struct sigaction sa;
 
 	test_args = NULL;
@@ -149,6 +168,8 @@ int main(int argc, char *argv[])
 	/* get launcher program */
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+	top_srcdir = getenv("top_srcdir");
+	decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))
