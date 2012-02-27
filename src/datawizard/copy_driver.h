@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,12 +33,13 @@
 #include <starpu_opencl.h>
 #endif
 
-struct starpu_data_request_s;
-struct starpu_data_replicate_s;
+struct _starpu_data_request;
+struct _starpu_data_replicate;
 
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
-typedef union {
+union _starpu_async_channel_event
+{
 	int dummy;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t cuda_event;
@@ -46,22 +47,23 @@ typedef union {
 #ifdef STARPU_USE_OPENCL
         cl_event opencl_event;
 #endif
-} starpu_async_channel_event;
+};
 
-struct starpu_async_channel {
-	starpu_async_channel_event event;
-	starpu_node_kind type;
+struct _starpu_async_channel
+{
+	union _starpu_async_channel_event event;
+	enum starpu_node_kind type;
 };
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
-int _starpu_driver_copy_data_1_to_1(starpu_data_handle handle,
-					struct starpu_data_replicate_s *src_replicate,
-					struct starpu_data_replicate_s *dst_replicate,
-					unsigned donotread,
-					struct starpu_data_request_s *req,
-					unsigned may_alloc);
+int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
+				    struct _starpu_data_replicate *src_replicate,
+				    struct _starpu_data_replicate *dst_replicate,
+				    unsigned donotread,
+				    struct _starpu_data_request *req,
+				    unsigned may_alloc);
 
-unsigned _starpu_driver_test_request_completion(struct starpu_async_channel *async_channel);
-void _starpu_driver_wait_request_completion(struct starpu_async_channel *async_channel);
+unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
+void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);
 #endif // __COPY_DRIVER_H__

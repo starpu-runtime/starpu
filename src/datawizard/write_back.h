@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
 /* If a write-through mask is associated to that data handle, this propagates
  * the the current value of the data onto the different memory nodes in the
  * write_through_mask. */
-void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
+void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node,
 					   uint32_t write_through_mask);
 
 #endif // __DW_WRITE_BACK_H__

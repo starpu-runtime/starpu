@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -25,9 +25,9 @@
  */
 void starpu_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-       starpu_matrix_interface_t *matrix_father = (starpu_matrix_interface_t *) father_interface;
-       starpu_matrix_interface_t *matrix_child = (starpu_matrix_interface_t *) child_interface;
-  
+	struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
+	struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
+
 	uint32_t nx = matrix_father->nx;
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
@@ -36,28 +36,30 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 
 	size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
 	size_t offset = (size_t)id*chunk_size*elemsize;
-	
-	uint32_t child_nx = 
+
+	uint32_t child_nx =
 	  STARPU_MIN(chunk_size, (size_t)nx - (size_t)id*chunk_size);
-	
+
 	/* update the child's interface */
 	matrix_child->nx = child_nx;
 	matrix_child->ny = ny;
 	matrix_child->elemsize = elemsize;
-	
+
 	/* is the information on this node valid ? */
-	if (matrix_father->ptr) {
-	  matrix_child->ptr = matrix_father->ptr + offset;
-	  matrix_child->ld = matrix_father->ld;
-	  matrix_child->dev_handle = matrix_father->dev_handle;
-	  matrix_child->offset = matrix_father->offset + offset;
+	if (matrix_father->dev_handle)
+	{
+		if (matrix_father->ptr)
+			matrix_child->ptr = matrix_father->ptr + offset;
+		matrix_child->ld = matrix_father->ld;
+		matrix_child->dev_handle = matrix_father->dev_handle;
+		matrix_child->offset = matrix_father->offset + offset;
 	}
 }
 
 void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-        starpu_matrix_interface_t *matrix_father = (starpu_matrix_interface_t *) father_interface;
-        starpu_matrix_interface_t *matrix_child = (starpu_matrix_interface_t *) child_interface;
+        struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
+        struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
 
 	uint32_t nx = matrix_father->nx;
 	uint32_t ny = matrix_father->ny;
@@ -66,7 +68,7 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	STARPU_ASSERT(nchunks <= ny);
 
 	size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
-	size_t child_ny = 
+	size_t child_ny =
 	  STARPU_MIN(chunk_size, (size_t)ny - (size_t)id*chunk_size);
 
 	matrix_child->nx = nx;
@@ -74,12 +76,13 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	matrix_child->elemsize = elemsize;
 
 	/* is the information on this node valid ? */
-	if (matrix_father->ptr) {
-	  size_t offset = 
-	    (size_t)id*chunk_size*matrix_father->ld*elemsize;
-	  matrix_child->ptr = matrix_father->ptr + offset;
-	  matrix_child->ld = matrix_father->ld;
-	  matrix_child->dev_handle = matrix_father->dev_handle;
-	  matrix_child->offset = matrix_father->offset + offset;
+	if (matrix_father->dev_handle)
+	{
+		size_t offset = (size_t)id*chunk_size*matrix_father->ld*elemsize;
+		if (matrix_father->ptr)
+			matrix_child->ptr = matrix_father->ptr + offset;
+		matrix_child->ld = matrix_father->ld;
+		matrix_child->dev_handle = matrix_father->dev_handle;
+		matrix_child->offset = matrix_father->offset + offset;
 	}
 }

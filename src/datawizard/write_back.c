@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,48 +17,64 @@
 
 #include <datawizard/datawizard.h>
 #include <datawizard/write_back.h>
+#include <core/dependencies/data_concurrency.h>
 
-void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
-					   uint32_t write_through_mask)
+static void wt_callback(void *arg)
 {
-	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
+	starpu_data_handle_t handle = (starpu_data_handle_t) arg;
+
+	_starpu_spin_lock(&handle->header_lock);
+	_starpu_notify_data_dependencies(handle);
+	_starpu_spin_unlock(&handle->header_lock);
+}
+
+void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node,
+				uint32_t write_through_mask)
+{
+	if ((write_through_mask & ~(1<<requesting_node)) == 0)
+	{
 		/* nothing will be done ... */
 		return;
 	}
 
 	/* first commit all changes onto the nodes specified by the mask */
-	uint32_t node;
-	for (node = 0; node < STARPU_MAXNODES; node++)
+	uint32_t node, max;
+	for (node = 0, max = starpu_memory_nodes_get_count(); node < max; node++)
 	{
-		if (write_through_mask & (1<<node)) {
+		if (write_through_mask & (1<<node))
+		{
 			/* we need to commit the buffer on that node */
-			if (node != requesting_node) 
+			if (node != requesting_node)
 			{
 				while (_starpu_spin_trylock(&handle->header_lock))
 					_starpu_datawizard_progress(requesting_node, 1);
 
-				starpu_data_request_t r;
-				r = create_request_to_fetch_data(handle, &handle->per_node[node],
-								STARPU_R, 0, NULL, NULL);
+				/* We need to keep a Read lock to avoid letting writers corrupt our copy.  */
+				STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
+				STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
+				handle->refcnt++;
+				handle->busy_count++;
+				handle->current_mode = STARPU_R;
+
+				struct _starpu_data_request *r;
+				r = _starpu_create_request_to_fetch_data(handle, &handle->per_node[node],
+									 STARPU_R, 1, 1, wt_callback, handle);
 
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */
 			        if (r)
-				{
 				        _starpu_spin_unlock(&handle->header_lock);
-        				_starpu_wait_data_request_completion(r, 1);
-				}
 			}
 		}
 	}
 }
 
-void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask)
+void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask)
 {
 	handle->wt_mask = wt_mask;
 
 	/* in case the data has some children, set their wt_mask as well */
-	if (handle->nchildren > 0) 
+	if (handle->nchildren > 0)
 	{
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)

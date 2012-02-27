@@ -22,15 +22,18 @@
 #include <common/config.h>
 
 /* Some data interfaces or filters use this interface internally */
-extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
-void _starpu_data_free_interfaces(starpu_data_handle handle)
+extern struct starpu_data_interface_ops _starpu_interface_matrix_ops;
+void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	STARPU_ATTRIBUTE_INTERNAL;
 
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
+extern void _starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL;
 extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
 
-extern void _starpu_data_register_ram_pointer(starpu_data_handle handle,
+extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,
 						void *ptr)
 	STARPU_ATTRIBUTE_INTERNAL;
+
+extern int _starpu_data_is_multiformat_handle(starpu_data_handle_t handle);
 
 #endif // __DATA_INTERFACE_H__

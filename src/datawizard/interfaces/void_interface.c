@@ -20,7 +20,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
-#include <common/hash.h>
+#include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
@@ -33,7 +33,8 @@ static int dummy_cuda_copy_async(void *src_interface, unsigned src_node, void *d
 static int dummy_opencl_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods void_copy_data_methods_s = {
+static const struct starpu_data_copy_methods void_copy_data_methods_s =
+{
 	.ram_to_ram = dummy_copy,
 	.ram_to_spu = dummy_copy,
 #ifdef STARPU_USE_CUDA
@@ -56,15 +57,16 @@ static const struct starpu_data_copy_methods void_copy_data_methods_s = {
 	.spu_to_spu = dummy_copy
 };
 
-static void register_void_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static void register_void_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
 static ssize_t allocate_void_buffer_on_node(void *data_interface_, uint32_t dst_node);
 static void free_void_buffer_on_node(void *data_interface, uint32_t node);
-static size_t void_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_void_interface_crc32(starpu_data_handle handle);
+static size_t void_interface_get_size(starpu_data_handle_t handle);
+static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
-static void display_void_interface(starpu_data_handle handle, FILE *f);
+static void display_void_interface(starpu_data_handle_t handle, FILE *f);
 
-static struct starpu_data_interface_ops_t interface_void_ops = {
+static struct starpu_data_interface_ops interface_void_ops =
+{
 	.register_data_handle = register_void_handle,
 	.allocate_data_on_node = allocate_void_buffer_on_node,
 	.free_data_on_node = free_void_buffer_on_node,
@@ -73,11 +75,11 @@ static struct starpu_data_interface_ops_t interface_void_ops = {
 	.footprint = footprint_void_interface_crc32,
 	.compare = void_compare,
 	.interfaceid = STARPU_VOID_INTERFACE_ID,
-	.interface_size = 0, 
+	.interface_size = 0,
 	.display = display_void_interface
 };
 
-static void register_void_handle(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED,
+static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
 				uint32_t home_node STARPU_ATTRIBUTE_UNUSED,
 				void *data_interface STARPU_ATTRIBUTE_UNUSED)
 {
@@ -85,13 +87,13 @@ static void register_void_handle(starpu_data_handle handle STARPU_ATTRIBUTE_UNUS
 }
 
 /* declare a new data with the void interface */
-void starpu_void_data_register(starpu_data_handle *handleptr)
+void starpu_void_data_register(starpu_data_handle_t *handleptr)
 {
-	starpu_data_register(handleptr, 0, NULL, &interface_void_ops); 
+	starpu_data_register(handleptr, 0, NULL, &interface_void_ops);
 }
 
 
-static uint32_t footprint_void_interface_crc32(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED)
+static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
@@ -104,12 +106,12 @@ static int void_compare(void *data_interface_a STARPU_ATTRIBUTE_UNUSED,
 	return 1;
 }
 
-static void display_void_interface(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED, FILE *f)
+static void display_void_interface(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, FILE *f)
 {
 	fprintf(f, "void\t");
 }
 
-static size_t void_interface_get_size(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED)
+static size_t void_interface_get_size(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }

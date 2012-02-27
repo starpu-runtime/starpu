@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -27,22 +27,19 @@
 #include <core/sched_policy.h>
 #include <core/sched_ctx.h>
 
-static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
+static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
 {
 	int ret;
 	struct timespec codelet_start, codelet_end;
 
-	unsigned calibrate_model = 0;
-	int workerid = cpu_args->workerid;
 	struct starpu_task *task = j->task;
-	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_codelet *cl = task->cl;
 
 	STARPU_ASSERT(cl);
-	STARPU_ASSERT(cl->cpu_func);
 
 	if (rank == 0)
 	{
-		ret = _starpu_fetch_task_input(task, 0);
+		ret = _starpu_fetch_task_input(j, 0);
 		if (ret != 0)
 		{
 			/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -52,7 +49,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	}
 
 	if (is_parallel_task)
-		PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
+		_STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
 
 	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank);
 
@@ -60,31 +57,27 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	 * execute the kernel at all. */
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
-		if (cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS) {
-			cl_func func = cl->cpu_func;
-			STARPU_ASSERT(func);
-			func(task->interfaces, task->cl_arg);
-		}
-		else {
-			if (cl->cpu_funcs[j->nimpl] != NULL) {
-				/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
-				cl_func func = cl->cpu_funcs[j->nimpl];
-				STARPU_ASSERT(func);
-				func(task->interfaces, task->cl_arg);
-			}
-		}
+		_starpu_cl_func_t func = _starpu_task_get_cpu_nth_implementation(cl, j->nimpl);
+		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
+			/* bind to parallel worker */
+			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
+		STARPU_ASSERT(func);
+		func(task->interfaces, task->cl_arg);
+		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
+			/* rebind to single CPU */
+			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid);
 	}
 
-	_starpu_driver_end_job(cpu_args, j, &codelet_end, rank);
+	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank);
 
 	if (is_parallel_task)
-		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		_STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
 	if (rank == 0)
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
 				perf_arch, &codelet_start, &codelet_end);
-		_starpu_push_task_output(task, 0);
+		_starpu_push_task_output(j, 0);
 	}
 
 	return 0;
@@ -92,7 +85,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 
 void *_starpu_cpu_worker(void *arg)
 {
-	struct starpu_worker_s *cpu_arg = (struct starpu_worker_s *) arg;
+	struct _starpu_worker *cpu_arg = (struct _starpu_worker *) arg;
 	unsigned memnode = cpu_arg->memory_node;
 	int workerid = cpu_arg->workerid;
 	int devid = cpu_arg->devid;
@@ -100,7 +93,7 @@ void *_starpu_cpu_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(cpu_arg->bindid);
 #endif
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, devid, memnode);
+	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CPU_KEY, devid, memnode);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
@@ -115,15 +108,15 @@ void *_starpu_cpu_worker(void *arg)
 
 	cpu_arg->status = STATUS_UNKNOWN;
 
-	STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */
-	PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
 	cpu_arg->worker_is_initialized = 1;
-	PTHREAD_COND_SIGNAL(&cpu_arg->ready_cond);
-	PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&cpu_arg->ready_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
 
-        starpu_job_t j;
+        struct _starpu_job *j;
 	struct starpu_task *task;
 
 	int res;
@@ -133,42 +126,41 @@ void *_starpu_cpu_worker(void *arg)
 
 	while (_starpu_machine_is_running())
 	{
-		STARPU_TRACE_START_PROGRESS(memnode);
+		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
-		STARPU_TRACE_END_PROGRESS(memnode);
+		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		/* take the mutex inside pop because it depends what mutex:
 		   the one of the local task or the one of one of the strategies */
 		task = _starpu_pop_task(cpu_arg);
 
-                if (!task) 
+                if (!task)
 		{
-			PTHREAD_MUTEX_LOCK(sched_mutex);
-			if (_starpu_worker_can_block(memnode)){
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, sched_cond, sched_mutex);
-			}
 
-			PTHREAD_MUTEX_UNLOCK(sched_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			continue;
 		};
 
-		STARPU_ASSERT(task);
 
+		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);
-	
+
 		/* can a cpu perform that task ? */
-		if (!STARPU_CPU_MAY_PERFORM(j)) 
+		if (!_STARPU_CPU_MAY_PERFORM(j))
 		{
 			/* put it and the end of the queue ... XXX */
-			_starpu_push_task(j, 0);
+			_starpu_push_task(j);
 			continue;
 		}
 
 		int rank = 0;
 		int is_parallel_task = (j->task_size > 1);
 
-		enum starpu_perf_archtype perf_arch; 
-	
+		enum starpu_perf_archtype perf_arch;
+
 		/* Get the rank in case it is a parallel task */
 		if (is_parallel_task)
 		{
@@ -176,11 +168,11 @@ void *_starpu_cpu_worker(void *arg)
 			STARPU_ASSERT(task != j->task);
 			free(task);
 
-			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 			rank = j->active_task_alias_count++;
-			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-			struct starpu_combined_worker_s *combined_worker;
+			struct _starpu_combined_worker *combined_worker;
 			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
 
 			cpu_arg->combined_workerid = j->combined_workerid;
@@ -188,7 +180,8 @@ void *_starpu_cpu_worker(void *arg)
 			cpu_arg->current_rank = rank;
 			perf_arch = combined_worker->perf_arch;
 		}
-		else {
+		else
+		{
 			cpu_arg->combined_workerid = cpu_arg->workerid;
 			cpu_arg->worker_size = 1;
 			cpu_arg->current_rank = 0;
@@ -196,34 +189,39 @@ void *_starpu_cpu_worker(void *arg)
 		}
 
 		_starpu_set_current_task(j->task);
+		cpu_arg->current_task = j->task;
 
-		res = execute_job_on_cpu(j, cpu_arg, is_parallel_task, rank, perf_arch);
+                res = execute_job_on_cpu(j, cpu_arg, is_parallel_task, rank, perf_arch);
 
 		_starpu_set_current_task(NULL);
+		cpu_arg->current_task = NULL;
 
-		if (res) {
-			switch (res) {
+		if (res)
+		{
+			switch (res)
+			{
 				case -EAGAIN:
-					_starpu_push_task(j, 0);
+					_starpu_push_task(j);
 					continue;
-				default: 
-					assert(0);
+				default:
+					STARPU_ASSERT(0);
 			}
 		}
 
-		if (rank == 0){
-			_starpu_handle_job_termination(j, 0, workerid);
-		}
+		if (rank == 0)
+			_starpu_handle_job_termination(j, workerid);
         }
 
-	STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START
+
+	_starpu_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
-	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
 
 	pthread_exit(NULL);
 	return NULL;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,9 +24,9 @@
 
 /* Compute the footprint that characterizes the job and cache it into the job
  * structure. */
-uint32_t _starpu_compute_buffers_footprint(struct starpu_job_s *j);
+uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j);
 
 /* Compute the footprint that characterizes the layout of the data handle. */
-uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);
+uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle);
 
 #endif // __FOOTPRINT_H__

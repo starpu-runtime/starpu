@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,10 +26,10 @@
  * them in order, so that we need a total order over data. We must also not
  * lock a child before its parent. */
 
-static void find_data_path(struct starpu_data_state_t *data, unsigned path[])
+static void find_data_path(struct _starpu_data_state *data, unsigned path[])
 {
 	unsigned depth = data->depth;
-	struct starpu_data_state_t *current = data;
+	struct _starpu_data_state *current = data;
 
 	/* Compute the path from the root to the data */
 	unsigned level; /* level is the distance between the node and the current node */
@@ -39,7 +39,7 @@ static void find_data_path(struct starpu_data_state_t *data, unsigned path[])
 		path[depth - level - 1] = current->sibling_index;
 		current = data->father_handle;
 	}
-} 
+}
 
 static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 				const unsigned pathB[], unsigned depthB)
@@ -64,12 +64,33 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 
 /* A comparision function between two handles makes it possible to use qsort to
  * sort a list of handles */
-static int _starpu_compar_handles(struct starpu_data_state_t *dataA,
-				struct starpu_data_state_t *dataB)
+static int _starpu_compar_handles(const struct starpu_buffer_descr *descrA,
+				  const struct starpu_buffer_descr *descrB)
 {
+	struct _starpu_data_state *dataA = descrA->handle;
+	struct _starpu_data_state *dataB = descrB->handle;
+
 	/* Perhaps we have the same piece of data */
 	if (dataA == dataB)
-		return 0;
+	{
+		/* Process write requests first, this is needed for proper
+		 * locking, see _submit_job_enforce_data_deps,
+		 * _starpu_fetch_task_input, and _starpu_push_task_output  */
+		if (descrA->mode & STARPU_W)
+		{
+			if (descrB->mode & STARPU_W)
+				/* Both A and B write, take the reader first */
+				if (descrA->mode & STARPU_R)
+					return -1;
+				else
+					return 1;
+			else
+				/* Only A writes, take it first */
+				return -1;
+		} else
+			/* A doesn't write, take B before */
+			return 1;
+	}
 
 	/* In case we have data/subdata from different trees */
 	if (dataA->root_handle != dataB->root_handle)
@@ -88,14 +109,14 @@ static int _starpu_compar_handles(struct starpu_data_state_t *dataA,
 
 static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)
 {
-	const starpu_buffer_descr *descrA = (const starpu_buffer_descr *) _descrA;
-	const starpu_buffer_descr *descrB = (const starpu_buffer_descr *) _descrB;
+	const struct starpu_buffer_descr *descrA = (const struct starpu_buffer_descr *) _descrA;
+	const struct starpu_buffer_descr *descrB = (const struct starpu_buffer_descr *) _descrB;
 
-	return _starpu_compar_handles(descrA->handle, descrB->handle);
+	return _starpu_compar_handles(descrA, descrB);
 }
 
 /* The descr array will be overwritten, so this must be a copy ! */
-void _starpu_sort_task_handles(starpu_buffer_descr descr[], unsigned nbuffers)
+void _starpu_sort_task_handles(struct starpu_buffer_descr descr[], unsigned nbuffers)
 {
-	qsort(descr, nbuffers, sizeof(starpu_buffer_descr), _starpu_compar_buffer_descr);
+	qsort(descr, nbuffers, sizeof(struct starpu_buffer_descr), _starpu_compar_buffer_descr);
 }
