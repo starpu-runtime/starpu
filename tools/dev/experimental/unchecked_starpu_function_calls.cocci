@@ -83,6 +83,8 @@ starpu_function_name;
 coccinelle.starpu_function_name = '"'+str(function_name)+'"'
 
 
+// In this rule, "ret" is probably a good choice. This should be checked when
+// reviewing the patches, though.
 @depends on unchecked_starpu_func_call && has_ret && patch@
 identifier unchecked_starpu_func_call.f;
 identifier has_ret.ret;
@@ -99,6 +101,8 @@ f(...)
 ...>
 }
 
+// In this rule, we use a variable called "ret" that is probably not declared.
+// Obviously, the patches should be read before being committed !
 @depends on unchecked_starpu_func_call && !has_ret && patch@
 identifier unchecked_starpu_func_call.f;
 identifier unchecked_starpu_func_call.starpu_function;
@@ -108,7 +112,7 @@ f(...)
 {
 <...
 - starpu_function(
-+ int ret = starpu_function(
++ ret = starpu_function(
 ...);
 + STARPU_CHECK_RETURN_VALUE(ret, starpu_function_name);
 ...>
