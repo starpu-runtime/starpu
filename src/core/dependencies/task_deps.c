@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,9 +26,9 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
 
-static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
+static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
-	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
+	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
@@ -41,55 +41,59 @@ static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
 	return cg;
 }
 
-/* the job lock must be taken */
-static void _starpu_task_add_succ(starpu_job_t j, starpu_cg_t *cg)
+static void _starpu_task_add_succ(struct _starpu_job *j, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(j);
 
-	_starpu_add_successor_to_cg_list(&j->job_successors, cg);
-
-	if (j->terminated) {
+	if (_starpu_add_successor_to_cg_list(&j->job_successors, cg))
 		/* the task was already completed sooner */
 		_starpu_notify_cg(cg);
-	}
 }
 
-void _starpu_notify_task_dependencies(starpu_job_t j)
+void _starpu_notify_task_dependencies(struct _starpu_job *j)
 {
 	_starpu_notify_cg_list(&j->job_successors);
 }
 
 /* task depends on the tasks in task array */
-void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[], int check)
 {
 	if (ndeps == 0)
 		return;
 
-	starpu_job_t job;
+	struct _starpu_job *job;
 
 	job = _starpu_get_job_associated_to_task(task);
 
-	PTHREAD_MUTEX_LOCK(&job->sync_mutex);
+	if (check)
+		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission");
+	else
+		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination");
 
-	starpu_cg_t *cg = create_cg_task(ndeps, job);
+	struct _starpu_cg *cg = create_cg_task(ndeps, job);
 
 	unsigned i;
 	for (i = 0; i < ndeps; i++)
 	{
 		struct starpu_task *dep_task = task_array[i];
 
-		starpu_job_t dep_job;
+		struct _starpu_job *dep_job;
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
-		STARPU_ASSERT(dep_job != job);
 
-		STARPU_TRACE_TASK_DEPS(dep_job, job);
+		STARPU_ASSERT_MSG(dep_job != job, "A task must not depend on itself.");
+		if (check)
+			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || dep_job->task->detach, "Task dependencies have to be set before submission");
+		else
+			STARPU_ASSERT_MSG(dep_job->terminated <= 1, "Task dependencies have to be set before termination");
+
+		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
 
-		PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
 		_starpu_task_add_succ(dep_job, cg);
-		PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 	}
+}
 
-	
-	PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
+void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+{
+	_starpu_task_declare_deps_array(task, ndeps, task_array, 1);
 }

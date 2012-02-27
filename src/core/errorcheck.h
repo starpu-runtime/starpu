@@ -1,8 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +21,8 @@
 #include <starpu.h>
 
 /* This type describes in which state a worker may be. */
-typedef enum {
+enum _starpu_worker_status
+{
 	/* invalid status (for instance if we request the status of some thread
 	 * that is not controlled by StarPU */
 	STATUS_INVALID,
@@ -35,20 +35,16 @@ typedef enum {
 	/* during the execution of the callback */
 	STATUS_CALLBACK,
 	/* while sleeping because there is nothing to do */
-	STATUS_SLEEPING,
-	/* changing ctx because a new one was create */
-	STATUS_CHANGING_CTX,
-	/* after having done join */
-	STATUS_JOINED
-} starpu_worker_status;
+	STATUS_SLEEPING
+};
 
 /* Specify what the local worker is currently doing (eg. executing a callback).
  * This permits to detect if this is legal to do a blocking call for instance.
  * */
-void _starpu_set_local_worker_status(starpu_worker_status st);
+void _starpu_set_local_worker_status(enum _starpu_worker_status st);
 
 /* Indicate what type of operation the worker is currently doing. */
-starpu_worker_status _starpu_get_local_worker_status(void);
+enum _starpu_worker_status _starpu_get_local_worker_status(void);
 
 /* It is forbidden to do blocking calls during some operations such as callback
  * or during the execution of a task. This function indicates whether it is

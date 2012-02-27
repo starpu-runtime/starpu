@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,54 +31,74 @@
 #define STARPU_NMAXDEPS	256
 #endif
 
-/* Completion Group list */
-struct starpu_cg_list_s {
-	unsigned nsuccs; /* how many successors ? */
+struct _starpu_job;
+
+/* Completion Group list, records both the number of expected notifications
+ * before the completion can start, and the list of successors when the
+ * completion is finished. */
+struct _starpu_cg_list
+{
+	/* Protects atomicity of the list and the terminated flag */
+	struct _starpu_spinlock lock;
+
+	/* Number of notifications to be waited for */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
+
+	/* Whether the completion is finished. */
+	unsigned terminated;
+
+	/* List of successors */
+	unsigned nsuccs; /* how many successors ? */
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	unsigned succ_list_size;
-	struct starpu_cg_s **succ;
+	struct _starpu_cg **succ;
 #else
-	struct starpu_cg_s *succ[STARPU_NMAXDEPS];
+	struct _starpu_cg *succ[STARPU_NMAXDEPS];
 #endif
 };
 
-#define STARPU_CG_APPS	(1<<0)
-#define STARPU_CG_TAG	(1<<1)
-#define STARPU_CG_TASK	(1<<2)
+enum _starpu_cg_type
+{
+	STARPU_CG_APPS=(1<<0),
+	STARPU_CG_TAG=(1<<1),
+	STARPU_CG_TASK=(1<<2)
+};
 
 /* Completion Group */
-typedef struct starpu_cg_s {
+struct _starpu_cg
+{
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
 
-	unsigned cg_type; /* STARPU_CG_APPS or STARPU_CG_TAG or STARPU_CG_TASK */
+	enum _starpu_cg_type cg_type;
 
-	union {
+	union
+	{
 		/* STARPU_CG_TAG */
-		struct starpu_tag_s *tag;
+		struct _starpu_tag *tag;
 
 		/* STARPU_CG_TASK */
-		struct starpu_job_s *job;
+		struct _starpu_job *job;
 
 		/* STARPU_CG_APPS */
 		/* in case this completion group is related to an application,
 		 * we have to explicitely wake the waiting thread instead of
 		 * reschedule the corresponding task */
-		struct {
+		struct
+		{
 			unsigned completed;
 			pthread_mutex_t cg_mutex;
 			pthread_cond_t cg_cond;
 		} succ_apps;
 	} succ;
-} starpu_cg_t;
+};
 
-void _starpu_cg_list_init(struct starpu_cg_list_s *list);
-void _starpu_cg_list_deinit(struct starpu_cg_list_s *list);
-void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg);
-void _starpu_notify_cg(starpu_cg_t *cg);
-void _starpu_notify_cg_list(struct starpu_cg_list_s *successors);
-void _starpu_notify_task_dependencies(struct starpu_job_s *j);
+void _starpu_cg_list_init(struct _starpu_cg_list *list);
+void _starpu_cg_list_deinit(struct _starpu_cg_list *list);
+int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg);
+void _starpu_notify_cg(struct _starpu_cg *cg);
+void _starpu_notify_cg_list(struct _starpu_cg_list *successors);
+void _starpu_notify_task_dependencies(struct _starpu_job *j);
 
 #endif // __CG_H__

@@ -57,7 +57,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	int new_workerid;
 
 	/* Return the number of actual workers. */
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	int basic_worker_count = (int)config->topology.nworkers;
 	int combined_worker_id = (int)config->topology.ncombinedworkers;
@@ -95,7 +95,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	fprintf(stderr, "into worker %d\n", new_workerid);
 #endif
 
-	struct starpu_combined_worker_s *combined_worker =
+	struct _starpu_combined_worker *combined_worker =
 		&config->combined_workers[combined_worker_id];
 
 	combined_worker->worker_size = nworkers;
@@ -132,7 +132,8 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 			&config->workers[id].initial_cpu_set);
 #else
 		int j;
-		for (j = 0; j < CPU_SETSIZE; j++) {
+		for (j = 0; j < CPU_SETSIZE; j++)
+		{
 			if (CPU_ISSET(j, &config->workers[id].initial_cpu_set))
 				CPU_SET(j, &combined_worker->cpu_set);
 		}
@@ -153,7 +154,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid)
 {
 	/* Check that this is the id of a combined worker */
-	struct starpu_combined_worker_s *worker;
+	struct _starpu_combined_worker *worker;
 	worker = _starpu_get_combined_worker_struct(workerid);
 	STARPU_ASSERT(worker);
 

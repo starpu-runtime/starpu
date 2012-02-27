@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,9 +23,10 @@
 #include <common/starpu_spinlock.h>
 #include <core/dependencies/cg.h>
 
-#define STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
+#define _STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
-typedef enum {
+enum _starpu_tag_state
+{
 	/* this tag is not declared by any task */
 	STARPU_INVALID_STATE,
 	/* _starpu_tag_declare was called to associate the tag to a task */
@@ -40,31 +41,34 @@ typedef enum {
 //	STARPU_SCHEDULED,
 	/* the task has been performed */
 	STARPU_DONE
-} starpu_tag_state;
+};
 
-struct starpu_job_s;
+struct _starpu_job;
 
-struct starpu_tag_s {
-	starpu_spinlock_t lock;
+struct _starpu_tag
+{
+	/* Lock for this structure. Locking order is in dependency order: a tag
+	 * must not be locked before locking a tag it depends on */
+	struct _starpu_spinlock lock;
 	starpu_tag_t id; /* an identifier for the task */
-	starpu_tag_state state;
+	enum _starpu_tag_state state;
 
-	struct starpu_cg_list_s tag_successors;
+	struct _starpu_cg_list tag_successors;
 
-	struct starpu_job_s *job; /* which job is associated to the tag if any ? */
+	struct _starpu_job *job; /* which job is associated to the tag if any ? */
 
 	unsigned is_assigned;
 	unsigned is_submitted;
 };
 
-void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+void _starpu_notify_dependencies(struct _starpu_job *j);
+void _starpu_notify_tag_dependencies(struct _starpu_tag *tag);
 
-void _starpu_notify_dependencies(struct starpu_job_s *j);
-void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag);
+void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job);
+void _starpu_tag_set_ready(struct _starpu_tag *tag);
 
-void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);
-void _starpu_tag_set_ready(struct starpu_tag_s *tag);
+unsigned _starpu_submit_job_enforce_task_deps(struct _starpu_job *j);
 
-unsigned _starpu_submit_job_enforce_task_deps(struct starpu_job_s *j);
+void _starpu_tag_clear(void);
 
 #endif // __TAGS_H__

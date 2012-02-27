@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -54,15 +54,16 @@
 
 #include <starpu_parameters.h>
 
-struct starpu_worker_s {
-	struct starpu_machine_config_s *config;
+struct _starpu_worker
+{
+	struct _starpu_machine_config *config;
         pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
-	int bindid; /* which cpu is the driver bound to ? */
+	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
@@ -72,11 +73,12 @@ struct starpu_worker_s {
 	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
-	struct starpu_worker_set_s *set; /* in case this worker belongs to a set */
-	struct starpu_job_list_s *terminated_jobs; /* list of pending jobs which were executed */
+	struct starpu_task *current_task; /* task currently executed by this worker */
+	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
+	struct _starpu_job_list *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
-	starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
+	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[48];
 	char short_name[10];
 
@@ -96,7 +98,8 @@ struct starpu_worker_s {
 #endif
 };
 
-struct starpu_combined_worker_s {
+struct _starpu_combined_worker
+{
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	uint32_t worker_mask; /* what is the type of workers ? */
 	int worker_size;
@@ -111,22 +114,23 @@ struct starpu_combined_worker_s {
 #endif
 };
 
-/* in case a single CPU worker may control multiple 
+/* in case a single CPU worker may control multiple
  * accelerators (eg. Gordon for n SPUs) */
-struct starpu_worker_set_s {
+struct _starpu_worker_set
+{
         pthread_mutex_t mutex;
 	pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
 	unsigned joined; /* only one thread may call pthread_join*/
 	void *retval;
-	struct starpu_worker_s *workers;
+	struct _starpu_worker *workers;
         pthread_cond_t ready_cond; /* indicate when the set is ready */
 	unsigned set_is_initialized;
 };
 
-struct starpu_machine_config_s {
-
-	struct starpu_machine_topology_s topology;
+struct _starpu_machine_config
+{
+	struct starpu_machine_topology topology;
 
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth;
@@ -134,20 +138,20 @@ struct starpu_machine_config_s {
 
 	/* Where to bind workers ? */
 	int current_bindid;
-	
+
 	/* Which GPU(s) do we use for CUDA ? */
 	int current_cuda_gpuid;
 
 	/* Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
-	
+
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
-	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
+	struct _starpu_worker workers[STARPU_NMAXWORKERS];
 
 	/* Combined workers: these worker are a combination of basic workers
 	 * that can run parallel tasks together. */
-	struct starpu_combined_worker_s combined_workers[STARPU_NMAX_COMBINEDWORKERS];
+	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
 	/* This bitmask indicates which kinds of worker are available. For
 	 * instance it is possible to test if there is a CUDA worker with
@@ -169,16 +173,16 @@ struct starpu_machine_config_s {
 unsigned _starpu_machine_is_running(void);
 
 /* Check if there is a worker that may execute the task. */
-uint32_t _starpu_worker_exists(uint32_t task_mask);
+uint32_t _starpu_worker_exists(struct starpu_task *);
 
 /* Is there a worker that can execute CUDA code ? */
-uint32_t _starpu_may_submit_cuda_task(void);
+uint32_t _starpu_can_submit_cuda_task(void);
 
 /* Is there a worker that can execute CPU code ? */
-uint32_t _starpu_may_submit_cpu_task(void);
+uint32_t _starpu_can_submit_cpu_task(void);
 
 /* Is there a worker that can execute OpenCL code ? */
-uint32_t _starpu_may_submit_opencl_task(void);
+uint32_t _starpu_can_submit_opencl_task(void);
 
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */
@@ -189,36 +193,37 @@ unsigned _starpu_worker_can_block(unsigned memnode);
  * */
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 
-/* The starpu_worker_s structure describes all the state of a StarPU worker.
+/* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
-void _starpu_set_local_worker_key(struct starpu_worker_s *worker);
+void _starpu_set_local_worker_key(struct _starpu_worker *worker);
 
-/* Returns the starpu_worker_s structure that describes the state of the
+/* Returns the _starpu_worker structure that describes the state of the
  * current worker. */
-struct starpu_worker_s *_starpu_get_local_worker_key(void);
+struct _starpu_worker *_starpu_get_local_worker_key(void);
 
-/* Returns the starpu_worker_s structure that describes the state of the
+/* Returns the _starpu_worker structure that describes the state of the
  * specified worker. */
-struct starpu_worker_s *_starpu_get_worker_struct(unsigned id);
+struct _starpu_worker *_starpu_get_worker_struct(unsigned id);
 
 /* Returns the starpu_sched_ctx structure that descriebes the state of the 
  * specified ctx */
 struct starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id);
 
+struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
 
-struct starpu_combined_worker_s *_starpu_get_combined_worker_struct(unsigned id);
+int _starpu_is_initialized(void);
 
 /* Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */
-struct starpu_machine_config_s *_starpu_get_machine_config(void);
+struct _starpu_machine_config *_starpu_get_machine_config(void);
 
 /* Retrieve the status which indicates what the worker is currently doing. */
-starpu_worker_status _starpu_worker_get_status(int workerid);
+enum _starpu_worker_status _starpu_worker_get_status(int workerid);
 
 /* Change the status of the worker which indicates what the worker is currently
  * doing (eg. executing a callback). */
-void _starpu_worker_set_status(int workerid, starpu_worker_status status);
+void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);

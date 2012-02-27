@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,8 @@
 
 #define NMAXHOOKS	16
 
-struct progression_hook {
+struct progression_hook
+{
 	unsigned (*func)(void *arg);
 	void *arg;
 	unsigned active;
@@ -36,7 +37,7 @@ static int active_hook_cnt = 0;
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {
 	int hook;
-	PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
 	for (hook = 0; hook < NMAXHOOKS; hook++)
 	{
 		if (!hooks[hook].active)
@@ -47,13 +48,13 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 			hooks[hook].active = 1;
 			active_hook_cnt++;
 
-			PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
-			
+			_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+
 			return hook;
 		}
 	}
 
-	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 	starpu_wake_all_blocked_workers();
 
@@ -63,22 +64,22 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 
 void starpu_progression_hook_deregister(int hook_id)
 {
-	PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
 
 	if (hooks[hook_id].active)
 		active_hook_cnt--;
 
 	hooks[hook_id].active = 0;
 
-	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 }
 
 unsigned _starpu_execute_registered_progression_hooks(void)
 {
 	/* If there is no hook registered, we short-cut loop. */
-	PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
+	_STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
 	int no_hook = (active_hook_cnt == 0);
-	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 	if (no_hook)
 		return 1;
@@ -92,9 +93,9 @@ unsigned _starpu_execute_registered_progression_hooks(void)
 	{
 		unsigned active;
 
-		PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
+		_STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
 		active = hooks[hook].active;
-		PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+		_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 		unsigned may_block_hook = 1;
 
