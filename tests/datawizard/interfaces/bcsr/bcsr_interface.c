@@ -87,7 +87,7 @@ register_data(void)
 {
 	int i;
 
-	for (i = 0; i < SIZE; i++)
+	for (i = 0; i < NNZ; i++)
 		nzval[i] = i;
 
 	colind[0] = 0;
