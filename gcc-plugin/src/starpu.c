@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,9 +64,14 @@ int plugin_is_GPL_compatible;
 /* The name of this plug-in.  */
 static const char plugin_name[] = "starpu";
 
+/* Whether to enable verbose output.  */
+static bool verbose_output_p = false;
+
 /* Names of public attributes.  */
 static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
+static const char output_attribute_name[] = "output";
+static const char heap_allocated_attribute_name[] = "heap_allocated";
 
 /* Names of attributes used internally.  */
 static const char task_codelet_attribute_name[] = ".codelet";
@@ -74,20 +79,28 @@ static const char task_implementation_list_attribute_name[] =
   ".task_implementation_list";
 static const char task_implementation_wrapper_attribute_name[] =
   ".task_implementation_wrapper";
+static const char heap_allocated_orig_type_attribute_name[] =
+  ".heap_allocated_original_type";
 
 /* Names of data structures defined in <starpu.h>.  */
-static const char codelet_struct_name[] = "starpu_codelet";
-static const char task_struct_name[] = "starpu_task";
+static const char codelet_struct_name[] = "starpu_codelet_gcc";
+
+/* Cached function declarations.  */
+static tree unpack_fn;
 
 
 /* Forward declarations.  */
 
 static tree build_codelet_declaration (tree task_decl);
-static tree build_task_body (const_tree task_decl);
+static void define_task (tree task_decl);
 static tree build_pointer_lookup (tree pointer);
 
 static bool task_p (const_tree decl);
 static bool task_implementation_p (const_tree decl);
+
+static int task_implementation_target_to_int (const_tree target);
+
+static bool heap_allocated_p (const_tree var_decl);
 
 
 /* Lookup the StarPU function NAME in the global scope and store the result
@@ -100,6 +113,13 @@ static bool task_implementation_p (const_tree decl);
       gcc_assert ((var) != NULL_TREE && TREE_CODE (var) == FUNCTION_DECL); \
     }
 
+/* Compile-time assertions.  */
+
+#if STARPU_GNUC_PREREQ (4, 6)
+# define verify(cond, msg) _Static_assert ((cond), msg)
+#else
+# define verify(cond, msg) assert (cond);
+#endif
 
 
 /* Useful code backported from GCC 4.6.  */
@@ -128,9 +148,53 @@ build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
 
 #endif
 
+#if !HAVE_DECL_BUILD_ZERO_CST
+
+static tree
+build_zero_cst (tree type)
+{
+  switch (TREE_CODE (type))
+    {
+    case INTEGER_TYPE: case ENUMERAL_TYPE: case BOOLEAN_TYPE:
+    case POINTER_TYPE: case REFERENCE_TYPE:
+    case OFFSET_TYPE:
+      return build_int_cst (type, 0);
+
+    default:
+      abort ();
+    }
+}
+
+#endif
+
+#ifndef VEC_qsort
+
+/* This macro is missing in GCC 4.5.  */
+
+# define VEC_qsort(T,V,CMP) qsort(VEC_address (T,V), VEC_length(T,V),	\
+				  sizeof (T), CMP)
+
+#endif
+
 
 /* Helpers.  */
 
+
+/* Return POINTER plus OFFSET, where OFFSET is in bytes.  */
+
+static tree
+pointer_plus (tree pointer, size_t offset)
+{
+  gcc_assert (POINTER_TYPE_P (TREE_TYPE (pointer)));
+
+  if (offset == 0)
+    return pointer;
+  else
+    return build_binary_op (UNKNOWN_LOCATION, PLUS_EXPR,
+			    pointer,
+			    build_int_cstu (integer_type_node, offset),
+			    false);
+}
 
 /* Build a reference to the INDEXth element of ARRAY.  `build_array_ref' is
    not exported, so we roll our own.
@@ -142,19 +206,37 @@ array_ref (tree array, size_t index)
 {
   gcc_assert (POINTER_TYPE_P (TREE_TYPE (array)));
 
-  tree pointer_plus_offset =
-    index > 0
-    ? build_binary_op (UNKNOWN_LOCATION, PLUS_EXPR,
-		       array,
-		       build_int_cstu (integer_type_node, index),
-		       0)
-    : array;
-
-  gcc_assert (POINTER_TYPE_P (TREE_TYPE (pointer_plus_offset)));
-
   return build_indirect_ref (UNKNOWN_LOCATION,
-			     pointer_plus_offset,
+			     pointer_plus (array, index),
 			     RO_ARRAY_INDEXING);
+}
+
+/* Return the number of elements of ARRAY_TYPE, or NULL_TREE if ARRAY_TYPE is
+   an incomplete type.  */
+
+static tree
+array_type_element_count (location_t loc, const_tree array_type)
+{
+  gcc_assert (TREE_CODE (array_type) == ARRAY_TYPE);
+
+  tree count, domain = TYPE_DOMAIN (array_type);
+
+  if (domain != NULL_TREE)
+    {
+      count = build_binary_op (loc, MINUS_EXPR,
+			       TYPE_MAX_VALUE (domain),
+			       TYPE_MIN_VALUE (domain),
+			       false);
+      count = build_binary_op (loc, PLUS_EXPR,
+			       count,
+			       build_int_cstu (integer_type_node, 1),
+			       false);
+      count = fold_convert (size_type_node, count);
+    }
+  else
+    count = NULL_TREE;
+
+  return count;
 }
 
 /* Like `build_constructor_from_list', but sort VALS according to their
@@ -200,6 +282,14 @@ void_type_p (const_tree lst)
   return VOID_TYPE_P (TREE_VALUE (lst));
 }
 
+/* Return true if LST holds a pointer type.  */
+
+bool
+pointer_type_p (const_tree lst)
+{
+  gcc_assert (TREE_CODE (lst) == TREE_LIST);
+  return POINTER_TYPE_P (TREE_VALUE (lst));
+}
 
 
 /* Debugging helpers.  */
@@ -228,6 +318,54 @@ static tree
 build_hello_world (void)
 {
   return build_printf ("Hello, StarPU!");
+}
+
+/* Given ERROR_VAR, an integer variable holding a StarPU error code, return
+   statements that print out an error message and abort.  */
+
+static tree build_error_statements (location_t, tree, const char *, ...)
+  __attribute__ ((format (printf, 3, 4)));
+
+static tree
+build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
+{
+  gcc_assert (TREE_CODE (error_var) == VAR_DECL
+	      && TREE_TYPE (error_var) == integer_type_node);
+
+  static tree strerror_fn;
+  LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
+
+  expanded_location xloc = expand_location (loc);
+
+  char *str, *fmt_long;
+  va_list args;
+
+  va_start (args, fmt);
+
+  /* Build a longer format.  Since FMT itself contains % escapes, this needs
+     to be done in two steps.  */
+
+  vasprintf (&str, fmt, args);
+  asprintf (&fmt_long, "%s:%d: error: %s: %%s\n",
+	    xloc.file, xloc.line, str);
+
+  tree error_code =
+    build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
+  tree print =
+    build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
+		     build_string_literal (strlen (fmt_long) + 1, fmt_long),
+		     build_call_expr (strerror_fn, 1, error_code));
+
+  free (fmt_long);
+  free (str);
+
+  tree stmts = NULL;
+  append_to_statement_list (print, &stmts);
+  append_to_statement_list (build_call_expr (built_in_decls[BUILT_IN_ABORT],
+					     0),
+			    &stmts);
+
+  return stmts;
 }
 
 
@@ -317,6 +455,19 @@ for_each (void (*func) (tree), tree t)
     func (TREE_VALUE (lst));
 }
 
+static size_t
+count (bool (*pred) (const_tree), const_tree t)
+{
+  size_t result;
+  const_tree lst;
+
+  for (lst = t, result = 0; lst != NULL_TREE; lst = TREE_CHAIN (lst))
+    if (pred (lst))
+      result++;
+
+  return result;
+}
+
 
 /* Pragmas.  */
 
@@ -337,10 +488,37 @@ handle_pragma_initialize (struct cpp_reader *reader)
   static tree init_fn;
   LOOKUP_STARPU_FUNCTION (init_fn, "starpu_init");
 
+  location_t loc = cpp_peek_token (reader, 0)->src_loc;
+
   /* Call `starpu_init (NULL)'.  */
   tree init = build_call_expr (init_fn, 1, build_zero_cst (ptr_type_node));
 
-  add_stmt (init);
+  /* Introduce a local variable to hold the error code.  */
+
+  tree error_var = build_decl (loc, VAR_DECL,
+  			       create_tmp_var_name (".initialize_error"),
+  			       integer_type_node);
+  DECL_CONTEXT (error_var) = current_function_decl;
+  DECL_ARTIFICIAL (error_var) = true;
+
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
+			    error_var, init);
+
+  tree cond = build3 (COND_EXPR, void_type_node,
+		      build2 (NE_EXPR, boolean_type_node,
+			      error_var, integer_zero_node),
+		      build_error_statements (loc, error_var,
+					      "failed to initialize StarPU"), 
+		      NULL_TREE);
+
+  tree stmts = NULL_TREE;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+
+  tree bind = build3 (BIND_EXPR, void_type_node, error_var, stmts,
+  		      NULL_TREE);
+
+  add_stmt (bind);
 }
 
 /* Process `#pragma starpu shutdown'.  */
@@ -404,6 +582,69 @@ read_pragma_expressions (const char *pragma, location_t loc)
   return expr;
 }
 
+/* Build a `starpu_vector_data_register' call for the COUNT elements pointed
+   to by POINTER.  */
+
+static tree
+build_data_register_call (location_t loc, tree pointer, tree count)
+{
+  tree pointer_type = TREE_TYPE (pointer);
+
+  gcc_assert ((TREE_CODE (pointer_type)  == ARRAY_TYPE
+	       && TYPE_DOMAIN (pointer_type) != NULL_TREE)
+	      || POINTER_TYPE_P (pointer_type));
+  gcc_assert (INTEGRAL_TYPE_P (TREE_TYPE (count)));
+
+  static tree register_fn;
+  LOOKUP_STARPU_FUNCTION (register_fn, "starpu_vector_data_register");
+
+  /* Introduce a local variable to hold the handle.  */
+
+  tree handle_var = build_decl (loc, VAR_DECL, create_tmp_var_name (".handle"),
+				ptr_type_node);
+  DECL_CONTEXT (handle_var) = current_function_decl;
+  DECL_ARTIFICIAL (handle_var) = true;
+  DECL_INITIAL (handle_var) = NULL_TREE;
+
+  /* If PTR is an array, take its address.  */
+  tree actual_pointer =
+    POINTER_TYPE_P (pointer_type)
+    ? pointer
+    : build_addr (pointer, current_function_decl);
+
+  /* Build `starpu_vector_data_register (&HANDLE_VAR, 0, POINTER,
+                                         COUNT, sizeof *POINTER)'  */
+  tree call =
+    build_call_expr (register_fn, 5,
+		     build_addr (handle_var, current_function_decl),
+		     build_zero_cst (uintptr_type_node), /* home node */
+		     actual_pointer, count,
+		     size_in_bytes (TREE_TYPE (pointer_type)));
+
+  return build3 (BIND_EXPR, void_type_node, handle_var, call,
+		 NULL_TREE);
+}
+
+/* Return a `starpu_data_unregister' call for VAR.  */
+
+static tree
+build_data_unregister_call (location_t loc, tree var)
+{
+  static tree unregister_fn;
+  LOOKUP_STARPU_FUNCTION (unregister_fn, "starpu_data_unregister");
+
+  /* If VAR is an array, take its address.  */
+  tree pointer =
+    POINTER_TYPE_P (TREE_TYPE (var))
+    ? var
+    : build_addr (var, current_function_decl);
+
+  /* Call `starpu_data_unregister (starpu_data_lookup (ptr))'.  */
+  return build_call_expr (unregister_fn, 1,
+			  build_pointer_lookup (pointer));
+}
+
+
 /* Process `#pragma starpu register VAR [COUNT]' and emit the corresponding
    `starpu_vector_data_register' call.  */
 
@@ -427,20 +668,49 @@ handle_pragma_register (struct cpp_reader *reader)
   if (ptr == error_mark_node)
     return;
 
-  if (!POINTER_TYPE_P (TREE_TYPE (ptr))
-      && TREE_CODE (TREE_TYPE (ptr)) != ARRAY_TYPE)
+  tree ptr_type;
+
+  if (DECL_P (ptr))
+    {
+      tree heap_attr =
+	lookup_attribute (heap_allocated_orig_type_attribute_name,
+			  DECL_ATTRIBUTES (ptr));
+
+      if (heap_attr != NULL_TREE)
+	/* PTR is `heap_allocated' so use its original array type to
+	   determine its size.  */
+	ptr_type = TREE_VALUE (heap_attr);
+      else
+	ptr_type = TREE_TYPE (ptr);
+    }
+  else
+    ptr_type = TREE_TYPE (ptr);
+
+  if (!POINTER_TYPE_P (ptr_type)
+      && TREE_CODE (ptr_type) != ARRAY_TYPE)
     {
       error_at (loc, "%qE is neither a pointer nor an array", ptr);
       return;
     }
 
+  /* Since we implicitly use sizeof (*PTR), `void *' is not allowed. */
+  if (VOID_TYPE_P (TREE_TYPE (ptr_type)))
+    {
+      error_at (loc, "pointers to %<void%> not allowed "
+		"in %<register%> pragma");
+      return;
+    }
+
   TREE_USED (ptr) = true;
+#ifdef DECL_READ_P
   if (DECL_P (ptr))
     DECL_READ_P (ptr) = true;
+#endif
 
-  if (TREE_CODE (TREE_TYPE (ptr)) == ARRAY_TYPE
+  if (TREE_CODE (ptr_type) == ARRAY_TYPE
       && !DECL_EXTERNAL (ptr)
       && !TREE_STATIC (ptr)
+      && !(TREE_CODE (ptr) == VAR_DECL && heap_allocated_p (ptr))
       && !MAIN_NAME_P (DECL_NAME (current_function_decl)))
     warning_at (loc, 0, "using an on-stack array as a task input "
 		"considered unsafe");
@@ -448,31 +718,13 @@ handle_pragma_register (struct cpp_reader *reader)
   /* Determine the number of elements in the vector.  */
   tree count = NULL_TREE;
 
-  if (TREE_CODE (TREE_TYPE (ptr)) == ARRAY_TYPE)
-    {
-      tree domain = TYPE_DOMAIN (TREE_TYPE (ptr));
-
-      if (domain != NULL_TREE)
-	{
-	  count = build_binary_op (loc, MINUS_EXPR,
-				   TYPE_MAX_VALUE (domain),
-				   TYPE_MIN_VALUE (domain),
-				   false);
-	  count = build_binary_op (loc, PLUS_EXPR,
-				   count,
-				   build_int_cstu (integer_type_node, 1),
-				   false);
-	  count = fold_convert (size_type_node, count);
-	}
-    }
+  if (TREE_CODE (ptr_type) == ARRAY_TYPE)
+    count = array_type_element_count (loc, ptr_type);
 
   /* Second argument is optional but should be an integer.  */
   count_arg = (args == NULL_TREE) ? NULL_TREE : TREE_VALUE (args);
   if (args != NULL_TREE)
-    {
-      args = TREE_CHAIN (args);
-      TREE_CHAIN (count_arg) = NULL_TREE;
-    }
+    args = TREE_CHAIN (args);
 
   if (count_arg == NULL_TREE)
     {
@@ -495,8 +747,10 @@ handle_pragma_register (struct cpp_reader *reader)
   else
     {
       TREE_USED (count_arg) = true;
+#ifdef DECL_READ_P
       if (DECL_P (count_arg))
 	DECL_READ_P (count_arg) = true;
+#endif
 
       if (count != NULL_TREE)
 	{
@@ -530,36 +784,8 @@ handle_pragma_register (struct cpp_reader *reader)
   if (args != NULL_TREE)
     error_at (loc, "junk after %<starpu register%> pragma");
 
-  /* If PTR is an array, take its address.  */
-  tree pointer =
-    POINTER_TYPE_P (TREE_TYPE (ptr))
-    ? ptr
-    : build_addr (ptr, current_function_decl);
-
-  /* Introduce a local variable to hold the handle.  */
-  tree handle_var = build_decl (loc, VAR_DECL, create_tmp_var_name (".handle"),
-				ptr_type_node);
-  DECL_CONTEXT (handle_var) = current_function_decl;
-  DECL_ARTIFICIAL (handle_var) = true;
-  DECL_INITIAL (handle_var) = NULL_TREE;
-
-  tree register_fn =
-    lookup_name (get_identifier ("starpu_vector_data_register"));
-
-  /* Build `starpu_vector_data_register (&HANDLE_VAR, 0, POINTER,
-                                         COUNT, sizeof *POINTER)'  */
-  tree call =
-    build_call_expr (register_fn, 5,
-		     build_addr (handle_var, current_function_decl),
-		     build_zero_cst (uintptr_type_node), /* home node */
-		     pointer, count,
-		     size_in_bytes (TREE_TYPE (TREE_TYPE (ptr))));
-
-  tree bind;
-  bind = build3 (BIND_EXPR, void_type_node, handle_var, call,
-		 NULL_TREE);
-
-  add_stmt (bind);
+  /* Add a data register call.  */
+  add_stmt (build_data_register_call (loc, ptr, count));
 }
 
 /* Process `#pragma starpu acquire VAR' and emit the corresponding
@@ -612,9 +838,6 @@ handle_pragma_acquire (struct cpp_reader *reader)
 static void
 handle_pragma_unregister (struct cpp_reader *reader)
 {
-  static tree unregister_fn;
-  LOOKUP_STARPU_FUNCTION (unregister_fn, "starpu_data_unregister");
-
   tree args, var;
   location_t loc;
 
@@ -637,15 +860,36 @@ handle_pragma_unregister (struct cpp_reader *reader)
   else if (TREE_CHAIN (args) != NULL_TREE)
     error_at (loc, "junk after %<starpu unregister%> pragma");
 
-  /* If VAR is an array, take its address.  */
-  tree pointer =
-    POINTER_TYPE_P (TREE_TYPE (var))
-    ? var
-    : build_addr (var, current_function_decl);
+  add_stmt (build_data_unregister_call (loc, var));
+}
 
-  /* Call `starpu_data_unregister (starpu_data_lookup (ptr))'.  */
-  add_stmt (build_call_expr (unregister_fn, 1,
-			     build_pointer_lookup (pointer)));
+/* Handle the `debug_tree' pragma (for debugging purposes.)  */
+
+static void
+handle_pragma_debug_tree (struct cpp_reader *reader)
+{
+  tree args, obj;
+  location_t loc;
+
+  loc = cpp_peek_token (reader, 0)->src_loc;
+
+  args = read_pragma_expressions ("debug_tree", loc);
+  if (args == NULL_TREE)
+    /* Parse error, presumably already handled by the parser.  */
+    return;
+
+  obj = TREE_VALUE (args);
+  args = TREE_CHAIN (args);
+
+  if (obj == error_mark_node)
+    return;
+
+  if (args != NULL_TREE)
+    warning_at (loc, 0, "extraneous arguments ignored");
+
+  inform (loc, "debug_tree:");
+  debug_tree (obj);
+  printf ("\n");
 }
 
 static void
@@ -653,6 +897,9 @@ register_pragmas (void *gcc_data, void *user_data)
 {
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "hello",
 		     handle_pragma_hello);
+  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "debug_tree",
+		     handle_pragma_debug_tree);
+
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "initialize",
 				    handle_pragma_initialize);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "wait",
@@ -696,6 +943,11 @@ handle_task_attribute (tree *node, tree name, tree args,
 	error_at (DECL_SOURCE_LOCATION (fn),
 		  "task return type must be %<void%>");
 
+      if (count (pointer_type_p, TYPE_ARG_TYPES (TREE_TYPE (fn)))
+	  > STARPU_NMAXBUFS)
+	error_at (DECL_SOURCE_LOCATION (fn),
+		  "maximum number of pointer parameters exceeded");
+
       /* This is a function declaration for something local to this
 	 translation unit, so add the `task' attribute to FN.  */
       *no_add_attrs = false;
@@ -706,7 +958,7 @@ handle_task_attribute (tree *node, tree name, tree args,
 		   NULL_TREE,
 		   NULL_TREE);
 
-      /* Push a declaration for the corresponding `starpu_codelet' object and
+      /* Push a declaration for the corresponding `struct starpu_codelet' object and
 	 add it as an attribute of FN.  */
       tree cl = build_codelet_declaration (fn);
       DECL_ATTRIBUTES (fn) =
@@ -714,6 +966,9 @@ handle_task_attribute (tree *node, tree name, tree args,
 		   DECL_ATTRIBUTES (fn));
       pushdecl (cl);
     }
+
+  /* Lookup & cache function declarations for later reuse.  */
+  LOOKUP_STARPU_FUNCTION (unpack_fn, "starpu_codelet_unpack_args");
 
   return NULL_TREE;
 }
@@ -773,14 +1028,15 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
       attr = lookup_attribute (task_implementation_list_attribute_name,
 			       DECL_ATTRIBUTES (task_decl));
       impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
-
-      DECL_ATTRIBUTES (task_decl) =
-	tree_cons (get_identifier (task_implementation_list_attribute_name),
-		   impls,
-		   remove_attribute (task_implementation_list_attribute_name,
-				     DECL_ATTRIBUTES (task_decl)));
+      TREE_VALUE (attr) = impls;
 
       TREE_USED (fn) = TREE_USED (task_decl);
+
+      /* Check the `where' argument to raise a warning if needed.  */
+      if (task_implementation_target_to_int (where) == 0)
+	warning_at (loc, 0,
+		    "unsupported target %E; task implementation won't be used",
+		    where);
 
       /* Keep the attribute.  */
       *no_add_attrs = false;
@@ -789,7 +1045,121 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
   return NULL_TREE;
 }
 
-/* Return the declaration of the `starpu_codelet' variable associated with
+/* Return true when VAR is an automatic variable with complete array type;
+   otherwise, return false, and emit error messages mentioning ATTRIBUTE.  */
+
+static bool
+automatic_array_variable_p (const char *attribute, tree var)
+{
+  gcc_assert (TREE_CODE (var) == VAR_DECL);
+
+  location_t loc;
+
+  loc = DECL_SOURCE_LOCATION (var);
+
+  if (DECL_EXTERNAL (var))
+    error_at (loc, "attribute %qs cannot be used on external declarations",
+	      attribute);
+  else if (TREE_PUBLIC (var) || TREE_STATIC (var))
+    {
+      error_at (loc, "attribute %qs cannot be used on global variables",
+		attribute);
+      TREE_TYPE (var) = error_mark_node;
+    }
+  else if (TREE_CODE (TREE_TYPE (var)) != ARRAY_TYPE)
+    {
+      error_at (loc, "variable %qE must have an array type",
+		DECL_NAME (var));
+      TREE_TYPE (var) = error_mark_node;
+    }
+  else if (TYPE_SIZE (TREE_TYPE (var)) == NULL_TREE)
+    {
+      error_at (loc, "variable %qE has an incomplete array type",
+		DECL_NAME (var));
+      TREE_TYPE (var) = error_mark_node;
+    }
+  else
+    return true;
+
+  return false;
+}
+
+/* Handle the `heap_allocated' attribute on variable *NODE.  */
+
+static tree
+handle_heap_allocated_attribute (tree *node, tree name, tree args,
+				 int flags, bool *no_add_attrs)
+{
+  tree var = *node;
+
+  if (automatic_array_variable_p (heap_allocated_attribute_name, var))
+    {
+      /* Turn VAR into a pointer that feels like an array.  This is what's
+	 done for PARM_DECLs that have an array type.  */
+
+      tree array_type = TREE_TYPE (var);
+      tree element_type = TREE_TYPE (array_type);
+      tree pointer_type = build_pointer_type (element_type);
+
+      /* Keep a copy of VAR's original type.  */
+      DECL_ATTRIBUTES (var) =
+	tree_cons (get_identifier (heap_allocated_orig_type_attribute_name),
+		   array_type, DECL_ATTRIBUTES (var));
+
+      TREE_TYPE (var) = pointer_type;
+      DECL_SIZE (var) = TYPE_SIZE (pointer_type);
+      DECL_SIZE_UNIT (var) = TYPE_SIZE_UNIT (pointer_type);
+      DECL_ALIGN (var) = TYPE_ALIGN (pointer_type);
+      DECL_USER_ALIGN (var) = false;
+      DECL_MODE (var) = TYPE_MODE (pointer_type);
+
+      tree malloc_fn = lookup_name (get_identifier ("starpu_malloc"));
+      gcc_assert (malloc_fn != NULL_TREE);
+
+      tree alloc = build_call_expr (malloc_fn, 2,
+				    build_addr (var, current_function_decl),
+				    TYPE_SIZE_UNIT (array_type));
+      TREE_SIDE_EFFECTS (alloc) = true;
+      add_stmt (alloc);
+
+      /* Add a destructor for VAR.  Instead of consing the `cleanup'
+	 attribute for VAR, directly use `push_cleanup'.  This guarantees
+	 that CLEANUP_ID is looked up in the right context, and allows us to
+	 pass VAR directly to `starpu_free', instead of `&VAR'.
+
+	 TODO: Provide a way to disable this.  */
+
+      static tree cleanup_decl;
+      LOOKUP_STARPU_FUNCTION (cleanup_decl, "starpu_free");
+
+      push_cleanup (var, build_call_expr (cleanup_decl, 1, var), false);
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle the `output' attribute on type *NODE, which should be the type of a
+   PARM_DECL of a task or task implementation.  */
+
+static tree
+handle_output_attribute (tree *node, tree name, tree args,
+			 int flags, bool *no_add_attrs)
+{
+  tree type = *node;
+
+  gcc_assert (TYPE_P (type));
+
+  if (!POINTER_TYPE_P (type) && TREE_CODE (type) != ARRAY_TYPE)
+    error ("%<output%> attribute not allowed for non-pointer types");
+  else
+    /* Keep the attribute.  */
+    *no_add_attrs = false;
+
+  return NULL_TREE;
+}
+
+
+/* Return the declaration of the `struct starpu_codelet' variable associated with
    TASK_DECL.  */
 
 static tree
@@ -841,21 +1211,42 @@ task_implementation_list (const_tree task_decl)
 static tree
 task_pointer_parameter_types (const_tree task_decl)
 {
-  bool is_pointer (const_tree item)
-  {
-    return POINTER_TYPE_P (TREE_VALUE (item));
-  }
+  return filter (pointer_type_p, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
+}
 
-  return filter (is_pointer, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
+/* Return the StarPU integer constant corresponding to string TARGET.  */
+
+static int
+task_implementation_target_to_int (const_tree target)
+{
+  gcc_assert (TREE_CODE (target) == STRING_CST);
+
+  int where_int;
+
+  if (!strncmp (TREE_STRING_POINTER (target), "cpu",
+		TREE_STRING_LENGTH (target)))
+    where_int = STARPU_CPU;
+  else if (!strncmp (TREE_STRING_POINTER (target), "opencl",
+		     TREE_STRING_LENGTH (target)))
+    where_int = STARPU_OPENCL;
+  else if (!strncmp (TREE_STRING_POINTER (target), "cuda",
+		     TREE_STRING_LENGTH (target)))
+    where_int = STARPU_CUDA;
+  else if (!strncmp (TREE_STRING_POINTER (target), "gordon",
+		     TREE_STRING_LENGTH (target)))
+    where_int = STARPU_GORDON;
+  else
+    where_int = 0;
+
+  return where_int;
 }
 
 /* Return a value indicating where TASK_IMPL should execute (`STARPU_CPU',
    `STARPU_CUDA', etc.).  */
 
 static int
-task_implementation_where (tree task_impl)
+task_implementation_where (const_tree task_impl)
 {
-  int where_int;
   tree impl_attr, args, where;
 
   gcc_assert (TREE_CODE (task_impl) == FUNCTION_DECL);
@@ -867,39 +1258,25 @@ task_implementation_where (tree task_impl)
   args = TREE_VALUE (impl_attr);
   where = TREE_VALUE (args);
 
-  if (!strncmp (TREE_STRING_POINTER (where), "cpu",
-		TREE_STRING_LENGTH (where)))
-    where_int = STARPU_CPU;
-  else if (!strncmp (TREE_STRING_POINTER (where), "opencl",
-		     TREE_STRING_LENGTH (where)))
-    where_int = STARPU_OPENCL;
-  else if (!strncmp (TREE_STRING_POINTER (where), "cuda",
-		     TREE_STRING_LENGTH (where)))
-    where_int = STARPU_CUDA;
-  else
-    {
-      static const char invalid_target_attribute_name[] = ".invalid_target";
+  return task_implementation_target_to_int (where);
+}
 
-      if (lookup_attribute (invalid_target_attribute_name,
-			    DECL_ATTRIBUTES (task_impl)) == NULL_TREE)
-	{
-	  /* This is the first time we notice that WHERE is invalid.  Emit a
-	     warning and add a special attribute to TASK_IMPL to remember
-	     that we've already reported the problem.  */
-	  warning_at (DECL_SOURCE_LOCATION (task_impl), 0,
-		      "unsupported target %E; task implementation won't be used",
-		      where);
+/* Return a bitwise-or of the supported targets of TASK_DECL.  */
 
-	  DECL_ATTRIBUTES (task_impl) =
-	    tree_cons (get_identifier (invalid_target_attribute_name),
-		       NULL_TREE, DECL_ATTRIBUTES (task_impl));
-	}
+static int
+task_where (const_tree task_decl)
+{
+  gcc_assert (task_p (task_decl));
 
-      /* TASK_IMPL won't be executed anywhere.  */
-      where_int = 0;
-    }
+  int where;
+  const_tree impl;
 
-  return where_int;
+  for (impl = task_implementation_list (task_decl), where = 0;
+       impl != NULL_TREE;
+       impl = TREE_CHAIN (impl))
+    where |= task_implementation_where (TREE_VALUE (impl));
+
+  return where;
 }
 
 /* Return the task implemented by TASK_IMPL.  */
@@ -936,6 +1313,40 @@ task_implementation_wrapper (const_tree task_impl)
   return TREE_VALUE (attr);
 }
 
+/* Return true when VAR_DECL has the `heap_allocated' attribute.  */
+
+static bool
+heap_allocated_p (const_tree var_decl)
+{
+  gcc_assert (TREE_CODE (var_decl) == VAR_DECL);
+
+  return lookup_attribute (heap_allocated_attribute_name,
+			   DECL_ATTRIBUTES (var_decl)) != NULL_TREE;
+}
+
+/* Return true if TYPE is `output'-qualified.  */
+
+static bool
+output_type_p (const_tree type)
+{
+  return (lookup_attribute (output_attribute_name,
+			    TYPE_ATTRIBUTES (type)) != NULL_TREE);
+}
+
+/* Return the access mode for POINTER, a PARM_DECL of a task.  */
+
+static enum starpu_access_mode
+access_mode (const_tree type)
+{
+  gcc_assert (POINTER_TYPE_P (type));
+
+  /* If TYPE points to a const-qualified type, then mark the data as
+     read-only; if is has the `output' attribute, then mark it as write-only;
+     otherwise default to read-write.  */
+  return ((TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
+	  ? STARPU_R
+	  : (output_type_p (type) ? STARPU_W : STARPU_RW));
+}
 
 static void
 register_task_attributes (void *gcc_data, void *user_data)
@@ -952,8 +1363,26 @@ register_task_attributes (void *gcc_data, void *user_data)
       handle_task_implementation_attribute
     };
 
+  static const struct attribute_spec heap_allocated_attr =
+    {
+      heap_allocated_attribute_name, 0, 0, true, false, false,
+      handle_heap_allocated_attribute
+    };
+
+  static const struct attribute_spec output_attr =
+    {
+      output_attribute_name, 0, 0, true, true, false,
+      handle_output_attribute,
+#if 0 /* FIXME: Check whether the `affects_type_identity' field is
+	 present.  */
+      true /* affects type identity */
+#endif
+    };
+
   register_attribute (&task_attr);
   register_attribute (&task_implementation_attr);
+  register_attribute (&heap_allocated_attr);
+  register_attribute (&output_attr);
 }
 
 
@@ -1028,14 +1457,14 @@ build_codelet_wrapper_definition (tree task_impl)
 
   tree build_body (tree wrapper_decl, tree vars)
   {
-    tree stmts = NULL, call, unpack_fndecl, v;
+    bool opencl_p;
+    tree stmts = NULL, call, v;
     VEC(tree, gc) *args;
 
-    unpack_fndecl = lookup_name (get_identifier ("starpu_unpack_cl_args"));
-    gcc_assert (unpack_fndecl != NULL_TREE
-    		&& TREE_CODE (unpack_fndecl) == FUNCTION_DECL);
+    opencl_p = (task_implementation_where (task_impl) == STARPU_OPENCL);
 
-    /* Build `var0 = STARPU_VECTOR_GET_PTR (buffers[0]); ...'.  */
+    /* Build `var0 = STARPU_VECTOR_GET_PTR (buffers[0]); ...' or
+       `var0 = STARPU_VECTOR_GET_DEV_HANDLE (buffers[0])' for OpenCL.  */
 
     size_t index = 0;
     for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
@@ -1045,17 +1474,20 @@ build_codelet_wrapper_definition (tree task_impl)
 	    /* Compute `void *VDESC = buffers[0];'.  */
 	    tree vdesc = array_ref (DECL_ARGUMENTS (wrapper_decl), index);
 
-	    /* Below we assume (1) that pointer arguments are registered as
-	       StarPU vector handles, and (2) that the `ptr' field is at
-	       offset 0 of `starpu_vector_interface_s'.  The latter allows us
-	       to use a simple pointer dereference instead of expanding
-	       `STARPU_VECTOR_GET_PTR'.  */
-	    assert (offsetof (struct starpu_vector_interface_s, ptr) == 0);
+	    /* Use the right field, depending on OPENCL_P.  */
+	    size_t offset =
+	      opencl_p
+	      ? offsetof (struct starpu_vector_interface, dev_handle)
+	      : offsetof (struct starpu_vector_interface, ptr);
+
+	    gcc_assert (POINTER_TYPE_P (TREE_TYPE (vdesc)));
 
 	    /* Compute `type *PTR = *(type **) VDESC;'.  */
-	    tree ptr = build1 (INDIRECT_REF,
-			       build_pointer_type (TREE_TYPE (v)),
-			       vdesc);
+	    tree ptr =
+	      build_indirect_ref (UNKNOWN_LOCATION,
+				  fold_convert (build_pointer_type (TREE_TYPE (v)),
+						pointer_plus (vdesc, offset)),
+				  RO_ARRAY_INDEXING);
 
 	    append_to_statement_list (build2 (MODIFY_EXPR, TREE_TYPE (v),
 					      v, ptr),
@@ -1065,7 +1497,7 @@ build_codelet_wrapper_definition (tree task_impl)
 	  }
       }
 
-    /* Build `starpu_unpack_cl_args (cl_args, &var1, &var2, ...)'.  */
+    /* Build `starpu_codelet_unpack_args (cl_args, &var1, &var2, ...)'.  */
 
     args = NULL;
     VEC_safe_push (tree, gc, args, TREE_CHAIN (DECL_ARGUMENTS (wrapper_decl)));
@@ -1077,7 +1509,7 @@ build_codelet_wrapper_definition (tree task_impl)
 
     if (VEC_length (tree, args) > 1)
       {
-	call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fndecl, args);
+	call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fn, args);
 	TREE_SIDE_EFFECTS (call) = 1;
 	append_to_statement_list (call, &stmts);
       }
@@ -1188,14 +1620,12 @@ define_codelet_wrappers (tree task)
       tree_cons (get_identifier (task_implementation_wrapper_attribute_name),
 		 wrapper_def,
 		 DECL_ATTRIBUTES (task_impl));
-
-    pushdecl (wrapper_def);
   }
 
   for_each (define, task_implementation_list (task));
 }
 
-/* Return a NODE_IDENTIFIER for the variable holding the `starpu_codelet'
+/* Return a NODE_IDENTIFIER for the variable holding the `struct starpu_codelet'
    structure associated with TASK_DECL.  */
 
 static tree
@@ -1220,18 +1650,23 @@ build_codelet_identifier (tree task_decl)
 static tree
 codelet_type (void)
 {
-  tree type_decl;
+  /* XXX: Hack to allow the type declaration to be accessible at lower
+     time.  */
+  static tree type_decl = NULL_TREE;
 
-  /* Lookup the `starpu_codelet' struct type.  This should succeed since we
-     push <starpu.h> early on.  */
+  if (type_decl == NULL_TREE)
+    {
+      /* Lookup the `struct starpu_codelet' struct type.  This should succeed since
+	 we push <starpu.h> early on.  */
 
-  type_decl = lookup_name (get_identifier (codelet_struct_name));
-  gcc_assert (type_decl != NULL_TREE && TREE_CODE (type_decl) == TYPE_DECL);
+      type_decl = lookup_name (get_identifier (codelet_struct_name));
+      gcc_assert (type_decl != NULL_TREE && TREE_CODE (type_decl) == TYPE_DECL);
+    }
 
   return TREE_TYPE (type_decl);
 }
 
-/* Return a VAR_DECL that declares a `starpu_codelet' structure for
+/* Return a VAR_DECL that declares a `struct starpu_codelet' structure for
    TASK_DECL.  */
 
 static tree
@@ -1256,7 +1691,7 @@ build_codelet_declaration (tree task_decl)
   return cl_decl;
 }
 
-/* Return a `starpu_codelet' initializer for TASK_DECL.  */
+/* Return a `struct starpu_codelet' initializer for TASK_DECL.  */
 
 static tree
 build_codelet_initializer (tree task_decl)
@@ -1290,8 +1725,12 @@ build_codelet_initializer (tree task_decl)
     field = lookup_field (name);
     init = make_node (TREE_LIST);
     TREE_PURPOSE (init) = field;
-    TREE_VALUE (init) = fold_convert (TREE_TYPE (field), value);
     TREE_CHAIN (init) = NULL_TREE;
+
+    if (TREE_CODE (TREE_TYPE (value)) != ARRAY_TYPE)
+      TREE_VALUE (init) = fold_convert (TREE_TYPE (field), value);
+    else
+      TREE_VALUE (init) = value;
 
     return init;
   }
@@ -1310,7 +1749,10 @@ build_codelet_initializer (tree task_decl)
 	impl_decl = TREE_VALUE (impl);
 	gcc_assert (TREE_CODE (impl_decl) == FUNCTION_DECL);
 
-	printf ("   `%s'\n", IDENTIFIER_POINTER (DECL_NAME (impl_decl)));
+	if (verbose_output_p)
+	  /* List the implementations of TASK_DECL.  */
+	  inform (DECL_SOURCE_LOCATION (impl_decl),
+		  "   %qE", DECL_NAME (impl_decl));
 
 	where_int |= task_implementation_where (impl_decl);
       }
@@ -1318,11 +1760,12 @@ build_codelet_initializer (tree task_decl)
     return build_int_cstu (integer_type_node, where_int);
   }
 
-  tree implementation_pointer (tree impls, int where)
+  tree implementation_pointers (tree impls, int where)
   {
-    tree impl;
+    size_t len;
+    tree impl, pointers;
 
-    for (impl = impls;
+    for (impl = impls, pointers = NULL_TREE, len = 0;
 	 impl != NULL_TREE;
 	 impl = TREE_CHAIN (impl))
       {
@@ -1334,12 +1777,27 @@ build_codelet_initializer (tree task_decl)
 	    /* Return a pointer to the wrapper of IMPL_DECL.  */
 	    tree addr = build_addr (task_implementation_wrapper (impl_decl),
 				    NULL_TREE);
-	    return addr;
+	    pointers = tree_cons (size_int (len), addr, pointers);
+	    len++;
+
+	    if (len > STARPU_MAXIMPLEMENTATIONS)
+	      error_at (DECL_SOURCE_LOCATION (impl_decl),
+			"maximum number of per-target task implementations "
+			"exceeded");
 	  }
       }
 
-    /* Default to a NULL pointer.  */
-    return build_int_cstu (build_pointer_type (void_type_node), 0);
+    /* POINTERS must be null-terminated.  */
+    pointers = tree_cons (size_int (len), build_zero_cst (ptr_type_node),
+			  pointers);
+    len++;
+
+    /* Return an array initializer.  */
+    tree index_type = build_index_type (size_int (list_length (pointers)));
+
+    return build_constructor_from_list (build_array_type (ptr_type_node,
+							  index_type),
+					nreverse (pointers));
   }
 
   tree pointer_arg_count (void)
@@ -1350,8 +1808,33 @@ build_codelet_initializer (tree task_decl)
     return build_int_cstu (integer_type_node, len);
   }
 
-  printf ("implementations for `%s':\n",
-	  IDENTIFIER_POINTER (DECL_NAME (task_decl)));
+  tree access_mode_array (void)
+  {
+    const_tree type;
+    tree modes;
+    size_t index;
+
+    for (type = task_pointer_parameter_types (task_decl),
+	   modes = NULL_TREE, index = 0;
+	 type != NULL_TREE && index < STARPU_NMAXBUFS;
+	 type = TREE_CHAIN (type), index++)
+      {
+	tree value = build_int_cst (integer_type_node,
+				    access_mode (TREE_VALUE (type)));
+
+	modes = tree_cons (size_int (index), value, modes);
+      }
+
+    tree index_type = build_index_type (size_int (list_length (modes)));
+
+    return build_constructor_from_list (build_array_type (integer_type_node,
+							  index_type),
+					nreverse (modes));
+  }
+
+  if (verbose_output_p)
+    inform (DECL_SOURCE_LOCATION (task_decl),
+	    "implementations for task %qE:", DECL_NAME (task_decl));
 
   tree impls, inits;
 
@@ -1360,42 +1843,38 @@ build_codelet_initializer (tree task_decl)
   inits =
     chain_trees (field_initializer ("where", where_init (impls)),
 		 field_initializer ("nbuffers", pointer_arg_count ()),
-		 field_initializer ("cpu_func",
-				    implementation_pointer (impls, STARPU_CPU)),
-		 field_initializer ("opencl_func",
-		 		    implementation_pointer (impls,
-		 					    STARPU_OPENCL)),
-		 field_initializer ("cuda_func",
-		 		    implementation_pointer (impls,
-		 					    STARPU_CUDA)),
+		 field_initializer ("modes", access_mode_array ()),
+		 field_initializer ("cpu_funcs",
+				    implementation_pointers (impls,
+							     STARPU_CPU)),
+		 field_initializer ("opencl_funcs",
+		 		    implementation_pointers (impls,
+							     STARPU_OPENCL)),
+		 field_initializer ("cuda_funcs",
+		 		    implementation_pointers (impls,
+							     STARPU_CUDA)),
 		 NULL_TREE);
 
   return build_constructor_from_unsorted_list (codelet_type (), inits);
 }
 
-/* Return the VAR_DECL that defines a `starpu_codelet' structure for
+/* Return the VAR_DECL that defines a `struct starpu_codelet' structure for
    TASK_DECL.  The VAR_DECL is assumed to already exists, so it must not be
    pushed again.  */
 
 static tree
-define_codelet (tree task_decl)
+declare_codelet (tree task_decl)
 {
-  /* Generate a wrapper function for each implementation of TASK_DECL that
-     does all the packing/unpacking.  */
-  define_codelet_wrappers (task_decl);
-
-  /* Retrieve the declaration of the `starpu_codelet' object.  */
-  tree cl_def;
-  cl_def = lookup_name (build_codelet_identifier (task_decl));
-  gcc_assert (cl_def != NULL_TREE && TREE_CODE (cl_def) == VAR_DECL);
+  /* Retrieve the declaration of the `struct starpu_codelet' object.  */
+  tree cl_decl;
+  cl_decl = lookup_name (build_codelet_identifier (task_decl));
+  gcc_assert (cl_decl != NULL_TREE && TREE_CODE (cl_decl) == VAR_DECL);
 
   /* Turn the codelet declaration into a definition.  */
-  TREE_PUBLIC (cl_def) = TREE_PUBLIC (task_decl);
-  TREE_STATIC (cl_def) = true;
-  DECL_EXTERNAL (cl_def) = false;
-  DECL_INITIAL (cl_def) = build_codelet_initializer (task_decl);
+  TREE_TYPE (cl_decl) = codelet_type ();
+  TREE_PUBLIC (cl_decl) = TREE_PUBLIC (task_decl);
 
-  return cl_def;
+  return cl_decl;
 }
 
 
@@ -1416,7 +1895,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 
       if (!TREE_STATIC (task))
 	{
-	  /* TASK lacks a body.  Instantiate its codelet, its codelet
+	  /* TASK lacks a body.  Declare its codelet, intantiate its codelet
 	     wrappers, and its body in this compilation unit.  */
 
 	  tree build_parameter (const_tree lst)
@@ -1433,7 +1912,9 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 	    return param;
 	  }
 
-	  define_codelet (task);
+	  /* Declare TASK's codelet.  It cannot be defined yet because the
+	     complete list of tasks isn't available at this point.  */
+	  declare_codelet (task);
 
 	  /* Set the task's parameter list.  */
 	  DECL_ARGUMENTS (task) =
@@ -1442,14 +1923,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 			      TYPE_ARG_TYPES (TREE_TYPE (task))));
 
 	  /* Build its body.  */
-	  DECL_SAVED_TREE (task) = build_task_body (task);
-	  TREE_STATIC (task) = true;
-	  DECL_EXTERNAL (task) = false;
-	  DECL_INITIAL (task) = build_block (NULL_TREE, NULL_TREE, task, NULL_TREE);
-	  DECL_RESULT (task) =
-	    build_decl (DECL_SOURCE_LOCATION (task), RESULT_DECL,
-			NULL_TREE, void_type_node);
-	  DECL_CONTEXT (DECL_RESULT (task)) = task;
+	  define_task (task);
 
 	  /* Compile TASK's body.  */
 	  rest_of_decl_compilation (task, true, 0);
@@ -1487,10 +1961,11 @@ build_pointer_lookup (tree pointer)
 
 /* Build the body of TASK_DECL, which will call `starpu_insert_task'.  */
 
-static tree
-build_task_body (const_tree task_decl)
+static void
+define_task (tree task_decl)
 {
   VEC(tree, gc) *args = NULL;
+  location_t loc = DECL_SOURCE_LOCATION (task_decl);
   tree p, params = DECL_ARGUMENTS (task_decl);
 
   /* The first argument will be a pointer to the codelet.  */
@@ -1510,15 +1985,9 @@ build_task_body (const_tree task_decl)
 	  /* A pointer: the arguments will be:
 	     `STARPU_RW, ptr' or similar.  */
 
-	  /* If TYPE points to a const-qualified type, then mark the data as
-	     read-only; otherwise default to read-write.
-	     FIXME: Add an attribute to specify write-only.  */
-	  int mode =
-	    (TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
-	    ? STARPU_R : STARPU_RW;
-
 	  VEC_safe_push (tree, gc, args,
-			 build_int_cst (integer_type_node, mode));
+			 build_int_cst (integer_type_node,
+					access_mode (type)));
 	  VEC_safe_push (tree, gc, args, build_pointer_lookup (p));
 	}
       else
@@ -1542,11 +2011,119 @@ build_task_body (const_tree task_decl)
   VEC_safe_push (tree, gc, args,
 		 build_int_cst (integer_type_node, 0));
 
+  /* Introduce a local variable to hold the error code.  */
+
+  tree error_var = build_decl (loc, VAR_DECL,
+  			       create_tmp_var_name (".insert_task_error"),
+  			       integer_type_node);
+  DECL_CONTEXT (error_var) = task_decl;
+  DECL_ARTIFICIAL (error_var) = true;
+
+  /* Build this:
+
+       err = starpu_insert_task (...);
+       if (err != 0)
+         { printf ...; abort (); }
+   */
+
   static tree insert_task_fn;
   LOOKUP_STARPU_FUNCTION (insert_task_fn, "starpu_insert_task");
 
-  return build_call_expr_loc_vec (DECL_SOURCE_LOCATION (task_decl),
-				  insert_task_fn, args);
+  tree call = build_call_expr_loc_vec (loc, insert_task_fn, args);
+
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
+  			    error_var, call);
+
+  tree name = DECL_NAME (task_decl);
+  tree cond = build3 (COND_EXPR, void_type_node,
+		      build2 (NE_EXPR, boolean_type_node,
+			      error_var, integer_zero_node),
+		      build_error_statements (loc, error_var,
+					      "failed to insert task `%s'",
+					      IDENTIFIER_POINTER (name)),
+		      NULL_TREE);
+
+  tree stmts = NULL;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+
+  tree bind = build3 (BIND_EXPR, void_type_node, error_var, stmts,
+  		      NULL_TREE);
+
+  /* Put it all together.  */
+
+  DECL_SAVED_TREE (task_decl) = bind;
+  TREE_STATIC (task_decl) = true;
+  DECL_EXTERNAL (task_decl) = false;
+  DECL_INITIAL (task_decl) =
+    build_block (error_var, NULL_TREE, task_decl, NULL_TREE);
+  DECL_RESULT (task_decl) =
+    build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
+  DECL_CONTEXT (DECL_RESULT (task_decl)) = task_decl;
+}
+
+/* Raise warnings if TASK doesn't meet the basic criteria.  */
+
+static void
+validate_task (tree task)
+{
+  gcc_assert (task_p (task));
+
+  static const int supported = 0
+#ifdef STARPU_USE_CPU
+    | STARPU_CPU
+#endif
+#ifdef STARPU_USE_CUDA
+    | STARPU_CUDA
+#endif
+#ifdef STARPU_USE_OPENCL
+    | STARPU_OPENCL
+#endif
+#ifdef STARPU_USE_GORDON
+    | STARPU_GORDON
+#endif
+    ;
+
+  int where = task_where (task);
+
+  /* If TASK has no implementations, things will barf elsewhere anyway.  */
+
+  if (task_implementation_list (task) != NULL_TREE)
+    if ((where & supported) == 0)
+      error_at (DECL_SOURCE_LOCATION (task),
+		"none of the implementations of task %qE can be used",
+		DECL_NAME (task));
+}
+
+/* Raise an error when IMPL doesn't satisfy the constraints of a task
+   implementations, such as not invoking another task.  */
+
+static void
+validate_task_implementation (tree impl)
+{
+  gcc_assert (task_implementation_p (impl));
+
+  const struct cgraph_node *cgraph;
+  const struct cgraph_edge *callee;
+
+  cgraph = cgraph_get_node (impl);
+
+  /* When a definition of IMPL is available, check its callees.  */
+  if (cgraph != NULL)
+    for (callee = cgraph->callees;
+	 callee != NULL;
+	 callee = callee->next_callee)
+      {
+	if (task_p (callee->callee->decl))
+	  {
+	    location_t loc;
+
+	    loc = gimple_location (callee->call_stmt);
+	    error_at (loc, "task %qE cannot be invoked from task implementation %qE",
+		      DECL_NAME (callee->callee->decl),
+		      DECL_NAME (impl));
+	  }
+      }
 }
 
 static unsigned int
@@ -1558,6 +2135,29 @@ lower_starpu (void)
 
   fndecl = current_function_decl;
   gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
+
+  if (task_p (fndecl))
+    {
+      /* Make sure the task and its implementations are valid.  */
+
+      validate_task (fndecl);
+
+      for_each (validate_task_implementation,
+		task_implementation_list (fndecl));
+
+      /* Generate a `struct starpu_codelet' structure and a wrapper function for
+	 each implementation of TASK_DECL.  This cannot be done earlier
+	 because we need to have a complete list of task implementations.  */
+
+      define_codelet_wrappers (fndecl);
+
+      tree cl_def = task_codelet_declaration (fndecl);
+      DECL_INITIAL (cl_def) = build_codelet_initializer (fndecl);
+      TREE_STATIC (cl_def) = true;
+      DECL_EXTERNAL (cl_def) = false;
+
+      varpool_finalize_decl (cl_def);
+    }
 
   /* This pass should occur after `build_cgraph_edges'.  */
   cgraph = cgraph_get_node (fndecl);
@@ -1595,9 +2195,10 @@ lower_starpu (void)
       if (lookup_attribute (task_attribute_name,
 			    DECL_ATTRIBUTES (callee_decl)))
 	{
-	  printf ("%s: `%s' calls task `%s'\n", __func__,
-		  IDENTIFIER_POINTER (DECL_NAME (fndecl)),
-		  IDENTIFIER_POINTER (DECL_NAME (callee_decl)));
+	  if (verbose_output_p)
+	    inform (gimple_location (callee->call_stmt),
+		    "%qE calls task %qE",
+		    DECL_NAME (fndecl), DECL_NAME (callee_decl));
 
 	  /* TODO: Insert analysis to check whether the pointer arguments
 	     need to be registered.  */
@@ -1619,11 +2220,25 @@ static struct opt_pass pass_lower_starpu =
 
 /* Initialization.  */
 
+/* Directory where to look up <starpu.h> instead of `STARPU_INCLUDE_DIR'.  */
+static const char *include_dir;
+
 static void
 define_cpp_macros (void *gcc_data, void *user_data)
 {
   cpp_define (parse_in, "STARPU_GCC_PLUGIN=0");
-  cpp_push_include (parse_in, "starpu.h");
+
+  if (include_dir)
+    {
+      /* Get the header from the user-specified directory.  This is useful
+	 when running the test suite, before StarPU is installed.  */
+      char header[strlen (include_dir) + sizeof ("/starpu.h")];
+      strcpy (header, include_dir);
+      strcat (header, "/starpu.h");
+      cpp_push_include (parse_in, header);
+    }
+  else
+    cpp_push_include (parse_in, STARPU_INCLUDE_DIR "/starpu.h");
 }
 
 int
@@ -1655,6 +2270,27 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP,
 		     NULL, &pass_info);
+
+  include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
+
+  size_t arg;
+  for (arg = 0; arg < plugin_info->argc; arg++)
+    {
+      if (strcmp (plugin_info->argv[arg].key, "include-dir") == 0)
+	{
+	  if (plugin_info->argv[arg].value == NULL)
+	    error_at (UNKNOWN_LOCATION, "missing directory name for option "
+		      "%<-fplugin-arg-starpu-include-dir%>");
+	  else
+	    /* XXX: We assume that `value' has an infinite lifetime.  */
+	    include_dir = plugin_info->argv[arg].value;
+	}
+      else if (strcmp (plugin_info->argv[arg].key, "verbose") == 0)
+	verbose_output_p = true;
+      else
+	error_at (UNKNOWN_LOCATION, "invalid StarPU plug-in argument %qs",
+		  plugin_info->argv[arg].key);
+    }
 
   return 0;
 }

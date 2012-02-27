@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,12 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret = 0;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_SLOW_MACHINE
 	niter /= 100;
@@ -51,25 +56,27 @@ int main(int argc, char **argv)
 
 	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
 
-	starpu_data_handle float_array_handle;
+	starpu_data_handle_t float_array_handle;
 	starpu_vector_data_register(&float_array_handle, 0 /* home node */,
 			(uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
+        ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-		.cpu_func = cpu_codelet,
+		.cpu_funcs = {cpu_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-		.cuda_func = cuda_codelet,
+		.cuda_funcs = {cuda_codelet, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-		.opencl_func = opencl_codelet,
+		.opencl_funcs = {opencl_codelet, NULL},
 #endif
-		.nbuffers = 1
+		.nbuffers = 1,
+		.modes = {STARPU_RW}
 	};
 
 	struct timeval start;
@@ -86,8 +93,7 @@ int main(int argc, char **argv)
 
 		task->callback_func = NULL;
 
-		task->buffers[0].handle = float_array_handle;
-		task->buffers[0].mode = STARPU_RW;
+		task->handles[0] = float_array_handle;
 
 		int ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -107,11 +113,10 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
                 float_array[1], float_array[2], float_array[3]);
 
-	STARPU_ASSERT(float_array[0] == niter);
-
-	if (float_array[0] != float_array[1] + float_array[2] + float_array[3]) {
+	if (float_array[0] != niter || float_array[0] != float_array[1] + float_array[2] + float_array[3])
+	{
 		FPRINTF(stderr, "Incorrect result\n");
-		return 1;
+		ret = 1;
 	}
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
@@ -121,5 +126,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }

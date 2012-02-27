@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,10 +46,12 @@ void callback_func(void *callback_arg)
  * DSM; the second arguments references read-only data that is passed as an
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
-struct params {
+struct params
+{
 	int i;
 	float f;
 };
+
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	struct params *params = (struct params *) cl_arg;
@@ -57,17 +59,21 @@ void cpu_func(void *buffers[], void *cl_arg)
 	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
-starpu_codelet cl = {};
+struct starpu_codelet cl = {};
 
 int main(int argc, char **argv)
 {
 	struct starpu_task *task;
 	struct params params = {1, 2.0f};
+	int ret;
 
 	/* initialize StarPU : passing a NULL argument means that we use
  	* default configuration for the scheduling policies and the number of
 	* processors/accelerators */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* create a new task that is non-blocking by default : the task is not
 	 * submitted to the scheduler until the starpu_task_submit function is
@@ -77,7 +83,7 @@ int main(int argc, char **argv)
 	/* this codelet may only be executed on a CPU, and its cpu
  	 * implementation is function "cpu_func" */
 	cl.where = STARPU_CPU;
-	cl.cpu_func = cpu_func;
+	cl.cpu_funcs[0] = cpu_func;
 	/* the codelet does not manipulate any data that is managed
 	 * by our DSM */
 	cl.nbuffers = 0;
@@ -95,7 +101,7 @@ int main(int argc, char **argv)
 	 * argument (cl_arg) is NOT a valid synchronization medium! */
 	task->cl_arg = &params;
 	task->cl_arg_size = sizeof(params);
-		
+
 	/* once the task has been executed, callback_func(0x42)
 	 * will be called on a CPU */
 	task->callback_func = callback_func;
@@ -103,13 +109,12 @@ int main(int argc, char **argv)
 
 	/* starpu_task_submit will be a blocking call */
 	task->synchronous = 1;
-	
-	/* submit the task to StarPU */
-	starpu_task_submit(task);
 
-	/* destroy the task */
-	starpu_task_destroy(task);
-	
+	/* submit the task to StarPU */
+	ret = starpu_task_submit(task);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it
 	 * is called, it is not possible to submit tasks anymore, and the user
@@ -119,4 +124,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }

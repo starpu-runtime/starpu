@@ -1,32 +1,44 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2009, 2011  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
-# StarPU is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 2.1 of the License, or (at
-# your option) any later version.
+# Permission is granted to copy, distribute and/or modify this document
+# under the terms of the GNU Free Documentation License, Version 1.3
+# or any later version published by the Free Software Foundation;
+# with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 #
-# StarPU is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+# See the GNU Free Documentation License in COPYING.GFDL for more details.
 
 info_TEXINFOS = starpu.texi
 
-starpu_TEXINFOS = c-extensions.texi
+starpu_TEXINFOS = chapters/advanced-api.texi \
+	chapters/configuration.texi \
+	chapters/perf-feedback.texi \
+	chapters/vector_scal_cpu.texi \
+	chapters/advanced-examples.texi \
+	chapters/fdl-1.3.texi \
+	chapters/perf-optimization.texi \
+	chapters/vector_scal_c.texi \
+	chapters/basic-api.texi \
+	chapters/installing.texi \
+	chapters/scaling-vector-example.texi \
+	chapters/vector_scal_cuda.texi \
+	chapters/basic-examples.texi \
+	chapters/introduction.texi \
+	chapters/tips-tricks.texi \
+	chapters/vector_scal_opencl_codelet.texi \
+	chapters/c-extensions.texi \
+	chapters/mpi-support.texi \
+	chapters/fft-support.texi \
+	chapters/using.texi \
+	chapters/vector_scal_opencl.texi \
+	chapters/socl.texi
 
 MAINTAINERCLEANFILES = starpu.pdf
 
 EXTRA_DIST = starpu.pdf \
-	starpu.css \
-	vector_scal_c.texi \
-	vector_scal_cpu.texi \
-	vector_scal_cuda.texi \
-	vector_scal_opencl_codelet.texi \
-	vector_scal_opencl.texi
+	starpu.css
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 
@@ -45,3 +57,10 @@ uninstall-local:
 #
 #CLEANFILES= \
 #	vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
+
+# Rule to update documentation on web server. Should only be used locally.
+update-web:
+	scp starpu.pdf starpu.html sync:/web/runtime/html/StarPU
+
+showcheck:
+	-cat /dev/null

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,8 @@ void cpu_func(void *buffers[], void *cl_arg)
         /* local copy of the matrix pointer */
         int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
-        for(j=0; j<ny ; j++) {
+        for(j=0; j<ny ; j++)
+	{
                 for(i=0; i<nx ; i++)
                         val[(j*ld)+i] = *factor;
         }
@@ -44,10 +45,13 @@ int main(int argc, char **argv)
 {
 	unsigned i, j, n=1;
         int matrix[NX*NY];
+	int ret;
 
         FPRINTF(stderr,"IN  Matrix: \n");
-        for(j=0 ; j<NY ; j++) {
-                for(i=0 ; i<NX ; i++) {
+        for(j=0 ; j<NY ; j++)
+	{
+                for(i=0 ; i<NX ; i++)
+		{
                         matrix[(j*NX)+i] = n++;
                         FPRINTF(stderr, "%2d ", matrix[(j*NX)+i]);
                 }
@@ -55,13 +59,19 @@ int main(int argc, char **argv)
         }
         FPRINTF(stderr,"\n");
 
-        starpu_data_handle handle;
-        starpu_codelet cl = {
+        starpu_data_handle_t handle;
+        struct starpu_codelet cl =
+	{
                 .where = STARPU_CPU,
-                .cpu_func = cpu_func,
-                .nbuffers = 1
+                .cpu_funcs = {cpu_func, NULL},
+                .nbuffers = 1,
+		.modes = {STARPU_RW}
         };
-        starpu_init(NULL);
+
+        ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
@@ -79,14 +89,15 @@ int main(int argc, char **argv)
 	{
                 struct starpu_task *task = starpu_task_create();
                 int factor = i;
-		task->buffers[0].handle = starpu_data_get_sub_data(handle, 1, i);
-		task->buffers[0].mode = STARPU_RW;
+		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
                 task->cl = &cl;
                 task->synchronous = 1;
                 task->cl_arg = &factor;
                 task->cl_arg_size = sizeof(factor);
-		starpu_task_submit(task);
-		starpu_task_destroy(task);
+
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
@@ -96,8 +107,10 @@ int main(int argc, char **argv)
 
         /* Print result matrix */
         FPRINTF(stderr,"OUT Matrix: \n");
-        for(j=0 ; j<NY ; j++) {
-                for(i=0 ; i<NX ; i++) {
+        for(j=0 ; j<NY ; j++)
+	{
+                for(i=0 ; i<NX ; i++)
+		{
                         FPRINTF(stderr, "%2d ", matrix[(j*NX)+i]);
                 }
                 FPRINTF(stderr,"\n");
@@ -105,4 +118,8 @@ int main(int argc, char **argv)
         FPRINTF(stderr,"\n");
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }

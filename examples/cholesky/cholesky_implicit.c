@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,45 +17,48 @@
  */
 
 #include "cholesky.h"
-#include "../sched_ctx_utils/sched_ctx_utils.h"
+
 /*
  *	Create the codelets
  */
 
-static starpu_codelet cl11 =
+static struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
-	.cpu_func = chol_cpu_codelet_update_u11,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u11,
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &chol_model_11
 };
 
-static starpu_codelet cl21 =
+static struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
-	.cpu_func = chol_cpu_codelet_update_u21,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u21,
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &chol_model_21
 };
 
-static starpu_codelet cl22 =
+static struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_func = chol_cpu_codelet_update_u22,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u22,
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &chol_model_22
 };
 
@@ -69,8 +72,9 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 	cl22.type = STARPU_SPMD;
 }
 
-static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
+static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
+	int ret;
 	struct timeval start;
 	struct timeval end;
 
@@ -80,46 +84,53 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 	gettimeofday(&start, NULL);
 
+	if (bound)
+		starpu_bound_start(0, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
-                starpu_data_handle sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
+                starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
-                starpu_insert_task(&cl11,
-                                   STARPU_PRIORITY, prio_level,
-                                   STARPU_RW, sdatakk,
-				   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
-                                   0);
+                ret = starpu_insert_task(&cl11,
+					 STARPU_PRIORITY, prio_level,
+					 STARPU_RW, sdatakk,
+					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 		for (j = k+1; j<nblocks; j++)
 		{
-                        starpu_data_handle sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
+                        starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
-                        starpu_insert_task(&cl21,
-                                           STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
-                                           STARPU_R, sdatakk,
-                                           STARPU_RW, sdatakj,
-                                           0);
+                        ret = starpu_insert_task(&cl21,
+						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
+						 STARPU_R, sdatakk,
+						 STARPU_RW, sdatakj,
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
                                 {
-					starpu_data_handle sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
-					starpu_data_handle sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
-					
-					starpu_insert_task(&cl22,
-                                                           STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
-                                                           STARPU_R, sdataki,
-                                                           STARPU_R, sdatakj,
-                                                           STARPU_RW, sdataij,
-                                                           0);
+					starpu_data_handle_t sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
+					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
+
+					ret = starpu_insert_task(&cl22,
+								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+								 STARPU_R, sdataki,
+								 STARPU_R, sdatakj,
+								 STARPU_RW, sdataij,
+								 0);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
                                 }
 			}
 		}
 	}
 
 	starpu_task_wait_for_all();
+	if (bound)
+		starpu_bound_stop();
 
 	starpu_data_unpartition(dataA, 0);
 
@@ -139,23 +150,31 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 		FPRINTF(stdout, "%2.2f\n", timing/1000);
 	
 		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+		if (bound)
+		{
+			double res;
+			starpu_bound_compute(&res, NULL, 0);
+			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+		}
 	}
 }
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -163,6 +182,8 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	_cholesky(dataA, nblocks);
+
+	starpu_data_unregister(dataA);
 }
 
 static void execute_cholesky(unsigned size, unsigned nblocks)
@@ -188,16 +209,19 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			}
 		}
 		FPRINTF(stdout, "\n");
 	}
 #endif
+
 	cholesky(mat, size, size, nblocks);
 
 #ifdef PRINT_OUTPUT
@@ -206,10 +230,12 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 				mat[j+i*size] = 0.0f; /* debug */
 			}
@@ -225,7 +251,8 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		{
 			for (i = 0; i < size; i++)
 			{
-				if (i > j) {
+				if (i > j)
+				{
 					mat[j+i*size] = 0.0f; /* debug */
 				}
 			}
@@ -242,10 +269,12 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		{
 			for (i = 0; i < size; i++)
 			{
-				if (i <= j) {
+				if (i <= j)
+				{
 					FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
 				}
-				else {
+				else
+				{
 					FPRINTF(stdout, ".\t");
 				}
 			}
@@ -257,17 +286,21 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		{
 			for (i = 0; i < size; i++)
 			{
-				if (i <= j) {
+				if (i <= j)
+				{
 	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
 	                                float err = abs(test_mat[j +i*size] - orig);
-	                                if (err > 0.00001) {
+	                                if (err > 0.00001)
+					{
 	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }
 			}
 	        }
+		free(test_mat);
 	}
+	starpu_free(mat);
 
 }
 

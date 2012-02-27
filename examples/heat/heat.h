@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,7 +52,8 @@
 #define NODE_TO_THICK(n)		((n) % nthick)
 #define NODE_TO_THETA(n)		((n) / nthick)
 
-typedef struct point_t {
+typedef struct point_t
+{
 	float x;
 	float y;
 } point;
@@ -61,6 +62,7 @@ extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks
 extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio);
 extern void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks);
 extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
+extern void free_system(float *A, float *B, unsigned dim, unsigned pinned);
 
 void display_stat_heat(void);
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/* This example shows how to use tags to define a grid of dependencies, shaped this way:
+ *
+ *           ...               ...
+ *            v                 v
+ * ... -> task (i,  j) --> task (i,  j+1) --> ...
+ *            v                 v
+ * ... -> task (i+1,j) --> task (i+1,j+1) --> ...
+ *            v                 v
+ *           ...               ...
  */
 
 #include <string.h>
@@ -30,7 +41,7 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
-starpu_codelet cl = {};
+struct starpu_codelet cl = {};
 
 #define Ni	64
 #define Nj	32
@@ -43,23 +54,28 @@ static unsigned iter = 0;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-iter") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 		        char *argptr;
 			nk = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 		        char *argptr;
 			ni = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-j") == 0) {
+		if (strcmp(argv[i], "-j") == 0)
+		{
 		        char *argptr;
 			nj = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-iter iter] [-i i] [-j j]\n", argv[0]);
 		}
 	}
@@ -84,6 +100,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned nj, unsigned iter)
 static void create_task_grid(unsigned iter)
 {
 	unsigned i, j;
+	int ret;
 
 /*	FPRINTF(stderr, "start iter %d...\n", iter); */
 	callback_cnt = (ni*nj);
@@ -105,7 +122,8 @@ static void create_task_grid(unsigned iter)
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */
 		express_deps(i, j, iter);
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	/* create entry tasks */
@@ -121,7 +139,8 @@ static void create_task_grid(unsigned iter)
 		/* this is an entry task */
 		task->tag_id = TAG(0, j, iter);
 
-		starpu_task_submit(task);
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 }
@@ -153,27 +172,29 @@ void cpu_codelet(void *descr[] __attribute__((unused)),
 
 static void express_deps(unsigned i, unsigned j, unsigned iter)
 {
-	if (j > 0) {
+	if (j > 0)
+	{
 		/* (i,j-1) exists */
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
 			starpu_tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
 		}
-		else 
+		else
 		{
 			/* (i,j+1) does not exist */
 			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
 		}
 	}
-	else {
+	else
+	{
 		/* (i, (j-1) does not exist */
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
 			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
 		}
-		else 
+		else
 		{
 			/* (i,j+1) does not exist */
 			STARPU_ABORT();
@@ -183,7 +204,12 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_GORDON
 	/* load an empty kernel and get its identifier */
@@ -195,8 +221,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	FPRINTF(stderr, "ITER: %u\n", nk);
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
-	cl.cpu_func = cpu_codelet;
-	cl.cuda_func = cpu_codelet;
+	cl.cpu_funcs[0] = cpu_codelet;
+	cl.cuda_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
@@ -205,6 +231,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	create_task_grid(0);
 
 	starpu_task_wait_for_all();
+
+	tag_cleanup_grid(ni, nj, nk-2);
+	tag_cleanup_grid(ni, nj, nk-1);
 
 	starpu_shutdown();
 

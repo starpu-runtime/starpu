@@ -52,13 +52,15 @@ static void generate_graph(void)
 			float colorA_G, colorB_G, colorC_G, colorD_G;
 			float colorA_B, colorB_B, colorC_B, colorD_B;
 
-			if (maxval == minval) {
+			if (maxval == minval)
+			{
 				colorA_R = 1.0f; colorA_G = 1.0f; colorA_B = 1.0f;
 				colorB_R = 1.0f; colorB_G = 1.0f; colorB_B = 1.0f;
 				colorC_R = 1.0f; colorC_G = 1.0f; colorC_B = 1.0f;
 				colorD_R = 1.0f; colorD_G = 1.0f; colorD_B = 1.0f;
 			}
-			else {
+			else
+			{
 				float amplitude = maxval - minval;
 
 				float coeffA, coeffB, coeffC, coeffD;
@@ -84,7 +86,8 @@ static void generate_graph(void)
 				colorD_G = coeffD<0.5f?1.0f:2.0*(1 - coeffD)*1.0f;
 			}
 
-			if (printmesh) {
+			if (printmesh)
+			{
 				glColor3f (0.0f, 0.0f, 0.0f);
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				glLineWidth(3.0f);
@@ -142,7 +145,8 @@ static void display(void)
 
 static void pressKey(unsigned char key, int x __attribute__ ((unused)), int y  __attribute__ ((unused)))
 {
-	switch (key) {
+	switch (key)
+	{
 		case 'q':
 			exit(0);
 		default:

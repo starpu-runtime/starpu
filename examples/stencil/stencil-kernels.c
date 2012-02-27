@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
@@ -23,10 +25,12 @@
 
 #ifndef timersub
 #define	timersub(x, y, res) \
-	do { \
+	do \
+	{						   \
 		(res)->tv_sec = (x)->tv_sec - (y)->tv_sec; \
 		(res)->tv_usec = (x)->tv_usec - (y)->tv_usec; \
-		if ((res)->tv_usec < 0) { \
+		if ((res)->tv_usec < 0) \
+		{			 \
 			(res)->tv_sec--; \
 			(res)->tv_usec += 1000000; \
 		} \
@@ -34,10 +38,12 @@
 #endif
 #ifndef timeradd
 #define	timeradd(x, y, res) \
-	do { \
+	do \
+	{						   \
 		(res)->tv_sec = (x)->tv_sec + (y)->tv_sec; \
 		(res)->tv_usec = (x)->tv_usec + (y)->tv_usec; \
-		if ((res)->tv_usec >= 1000000) { \
+		if ((res)->tv_usec >= 1000000) \
+		{			       \
 			(res)->tv_sec++; \
 			(res)->tv_usec -= 1000000; \
 		} \
@@ -138,7 +144,8 @@ static void record_who_runs_what(struct block_description *block)
 	gettimeofday(&tv, NULL);
 	timersub(&tv, &start, &tv2);
 	timersub(&tv2, &last_tick[block->bz], &diff);
-	while (timercmp(&diff, &delta, >=)) {
+	while (timercmp(&diff, &delta, >=))
+	{
 		timeradd(&last_tick[block->bz], &delta, &last_tick[block->bz]);
 		timersub(&tv2, &last_tick[block->bz], &diff);
 		if (who_runs_what_index[block->bz] < who_runs_what_len)
@@ -149,7 +156,7 @@ static void record_who_runs_what(struct block_description *block)
 		who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = global_workerid(workerid);
 }
 
-static void check_load(starpu_block_interface_t *block, starpu_block_interface_t *boundary)
+static void check_load(struct starpu_block_interface *block, struct starpu_block_interface *boundary)
 {
 	/* Sanity checks */
 	STARPU_ASSERT(block->nx == boundary->nx);
@@ -169,8 +176,8 @@ static void load_subblock_from_buffer_cpu(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -190,8 +197,8 @@ static void load_subblock_from_buffer_cuda(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -248,7 +255,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
+		struct starpu_block_interface *oldb = descr[i%2], *newb = descr[(i+1)%2];
 		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
 
 		/* Shadow data */
@@ -267,7 +274,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 	if (block->bz == 0)
-		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
+		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -275,8 +282,8 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
  * Load a neighbour's boundary into block, OpenCL version
  */
 #ifdef STARPU_USE_OPENCL
-static void load_subblock_from_buffer_opencl(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_from_buffer_opencl(struct starpu_block_interface *block,
+					struct starpu_block_interface *boundary,
 					unsigned firstz)
 {
 	check_load(block, boundary);
@@ -287,10 +294,14 @@ static void load_subblock_from_buffer_opencl(starpu_block_interface_t *block,
 	unsigned offset = firstz*block->ldz;
 	cl_mem block_data = (cl_mem)block->ptr;
 	cl_mem boundary_data = (cl_mem)boundary->ptr;
+	cl_event event;
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
-        clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, NULL);
+        clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, &event);
+
+	clWaitForEvents(1, &event);
+	clReleaseEvent(event);
 }
 
 /*
@@ -341,7 +352,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
+		struct starpu_block_interface *oldb = descr[i%2], *newb = descr[(i+1)%2];
 		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
 
 		/* Shadow data */
@@ -351,7 +362,10 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 #ifdef LIFE
 		opencl_life_update_host(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-                clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, NULL);
+		cl_event event;
+                clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
+		clWaitForEvents(1, &event);
+		clReleaseEvent(event);
 #endif /* LIFE */
 	}
 
@@ -360,7 +374,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	if (block->bz == 0)
-		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
+		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -409,7 +423,7 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = (starpu_block_interface_t *) descr[i%2], *newb = (starpu_block_interface_t *) descr[(i+1)%2];
+		struct starpu_block_interface *oldb = (struct starpu_block_interface *) descr[i%2], *newb = (struct starpu_block_interface *) descr[(i+1)%2];
 		TYPE *old = (TYPE*) oldb->ptr, *newer = (TYPE*) newb->ptr;
 
 		/* Shadow data */
@@ -435,16 +449,18 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 	}
 
 	if (block->bz == 0)
-		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
+		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 
 /* Performance model and codelet structure */
-static struct starpu_perfmodel_t cl_update_model = {
+static struct starpu_perfmodel cl_update_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "cl_update" 
 };
 
-starpu_codelet cl_update = {
+struct starpu_codelet cl_update =
+{
 	.where = 0 |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -453,15 +469,16 @@ starpu_codelet cl_update = {
                 STARPU_OPENCL|
 #endif
 		STARPU_CPU,
-	.cpu_func = update_func_cpu,
+	.cpu_funcs = {update_func_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = update_func_cuda,
+	.cuda_funcs = {update_func_cuda, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = update_func_opencl,
+	.opencl_funcs = {update_func_opencl, NULL},
 #endif
 	.model = &cl_update_model,
-	.nbuffers = 6
+	.nbuffers = 6,
+	.modes = {STARPU_RW, STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
 };
 
 /*
@@ -473,8 +490,8 @@ static void load_subblock_into_buffer_cpu(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -492,8 +509,8 @@ static void load_subblock_into_buffer_cuda(void *_block,
 					void *_boundary,
 					unsigned firstz)
 {
-	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
-	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
+	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
+	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -508,8 +525,8 @@ static void load_subblock_into_buffer_cuda(void *_block,
 
 /* OPENCL version */
 #ifdef STARPU_USE_OPENCL
-static void load_subblock_into_buffer_opencl(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_into_buffer_opencl(struct starpu_block_interface *block,
+					struct starpu_block_interface *boundary,
 					unsigned firstz)
 {
 	check_load(block, boundary);
@@ -523,8 +540,12 @@ static void load_subblock_into_buffer_opencl(starpu_block_interface_t *block,
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
+	cl_event event;
 
-        clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
+        clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, &event);
+
+	clWaitForEvents(1, &event);
+	clReleaseEvent(event);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -634,17 +655,20 @@ static void dummy_func_bottom_opencl(void *descr[] __attribute__((unused)), void
 #endif /* STARPU_USE_OPENCL */
 
 /* Performance models and codelet for save */
-static struct starpu_perfmodel_t save_cl_bottom_model = {
+static struct starpu_perfmodel save_cl_bottom_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "save_cl_bottom" 
 };
 
-static struct starpu_perfmodel_t save_cl_top_model = {
+static struct starpu_perfmodel save_cl_top_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "save_cl_top" 
 };
 
-starpu_codelet save_cl_bottom = {
+struct starpu_codelet save_cl_bottom =
+{
 	.where = 0 |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -653,18 +677,20 @@ starpu_codelet save_cl_bottom = {
 		STARPU_OPENCL|
 #endif
 		STARPU_CPU,
-	.cpu_func = dummy_func_bottom_cpu,
+	.cpu_funcs = {dummy_func_bottom_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dummy_func_bottom_cuda,
+	.cuda_funcs = {dummy_func_bottom_cuda, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = dummy_func_bottom_opencl,
+	.opencl_funcs = {dummy_func_bottom_opencl, NULL},
 #endif
 	.model = &save_cl_bottom_model,
-	.nbuffers = 4
+	.nbuffers = 4,
+	.modes = {STARPU_R, STARPU_R, STARPU_W, STARPU_W}
 };
 
-starpu_codelet save_cl_top = {
+struct starpu_codelet save_cl_top =
+{
 	.where = 0|
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
@@ -673,13 +699,14 @@ starpu_codelet save_cl_top = {
 		STARPU_OPENCL|
 #endif
 		STARPU_CPU,
-	.cpu_func = dummy_func_top_cpu,
+	.cpu_funcs = {dummy_func_top_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dummy_func_top_cuda,
+	.cuda_funcs = {dummy_func_top_cuda, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = dummy_func_top_opencl,
+	.opencl_funcs = {dummy_func_top_opencl, NULL},
 #endif
 	.model = &save_cl_top_model,
-	.nbuffers = 4
+	.nbuffers = 4,
+	.modes = {STARPU_R, STARPU_R, STARPU_W, STARPU_W}
 };

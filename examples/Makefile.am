@@ -1,9 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011  INRIA
+# Copyright (C) 2011-2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,24 +17,14 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu.la $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
+AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 AUTOMAKE_OPTIONS = subdir-objects
 
 SUBDIRS = stencil
-
-
-if STARPU_USE_SOCL
-SUBDIRS += socl
-endif
-
-if STARPU_HAVE_FFTW
-if STARPU_HAVE_FFTWF
-SUBDIRS += starpufft
-endif
-endif
 
 BUILT_SOURCES =
 
@@ -44,6 +34,8 @@ endif
 
 EXTRA_DIST = 					\
 	basic_examples/vector_scal_opencl_kernel.cl \
+	basic_examples/multiformat_opencl_kernel.cl  \
+	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
 	common/blas_model.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
@@ -61,7 +53,9 @@ EXTRA_DIST = 					\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
 	openmp/vector_scal.c			\
-	filters/fblock_opencl_kernel.cl
+	filters/fblock_opencl_kernel.cl		\
+	filters/custom_mf/conversion_opencl.cl  \
+	filters/custom_mf/custom_opencl.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
@@ -99,6 +93,12 @@ BUILT_SOURCES +=				\
 
 endif
 
+if STARPU_HAVE_ICC
+.icc.o:
+	$(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
+endif
+
 examplebindir = $(libdir)/starpu/examples/
 
 examplebin_PROGRAMS =
@@ -129,7 +129,11 @@ noinst_HEADERS = 				\
 	spmv/matrix_market/mmio.h		\
 	spmv/matrix_market/mm_to_bcsr.h		\
 	spmv/spmv.h				\
-	spmv/dw_block_spmv.h
+	spmv/dw_block_spmv.h                    \
+	basic_examples/multiformat_types.h      \
+	filters/custom_mf/custom_interface.h    \
+	filters/custom_mf/custom_types.h	\
+	interface/complex_interface.h
 
 #####################################
 # What to install and what to check #
@@ -147,9 +151,10 @@ endif
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
+loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
-TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" $(LOADER_BIN)
 endif
 
 examplebin_PROGRAMS +=				\
@@ -158,17 +163,21 @@ examplebin_PROGRAMS +=				\
 	basic_examples/mult			\
 	basic_examples/block			\
 	basic_examples/variable			\
-	basic_examples/mult_impl                \
+	basic_examples/multiformat              \
+	cpp/incrementer_cpp			\
+	filters/custom_mf/custom_mf_filter      \
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
 	tag_example/tag_example			\
-	tag_example/tag_example3		\
 	tag_example/tag_example2		\
+	tag_example/tag_example3		\
+	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	reductions/dot_product			\
@@ -218,16 +227,20 @@ STARPU_EXAMPLES +=				\
 	basic_examples/mult			\
 	basic_examples/block			\
 	basic_examples/variable			\
+	basic_examples/multiformat              \
+	cpp/incrementer_cpp			\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
 	tag_example/tag_example			\
-	tag_example/tag_example3		\
 	tag_example/tag_example2		\
+	tag_example/tag_example3		\
+	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
@@ -277,6 +290,12 @@ basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal.c		\
 	basic_examples/vector_scal_cpu.c
 
+if STARPU_HAVE_ICC
+basic_examples_vector_scal_SOURCES +=		\
+	basic_examples/vector_scal_cpu_icc.icc
+basic_examples/vector_scal_cpu_icc.o: CFLAGS += -Dscal_cpu_func=scal_cpu_func_icc -Dscal_sse_func=scal_sse_func_icc
+endif
+
 if STARPU_USE_CUDA
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cuda.cu
@@ -301,6 +320,29 @@ basic_examples_vector_scal_fortran_SOURCES +=	\
 basic_examples_vector_scal_fortran_LDADD =	\
 	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
+endif
+
+#######################
+# Multiformat example #
+#######################
+basic_examples_multiformat_SOURCES =                                    \
+	basic_examples/multiformat.c                                    \
+	basic_examples/multiformat_conversion_codelets.c
+
+if STARPU_USE_CUDA
+basic_examples_multiformat_SOURCES+=                                     \
+	basic_examples/multiformat_cuda.cu                               \
+	basic_examples/multiformat_conversion_codelets_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+basic_examples_multiformat_SOURCES+=                                     \
+	basic_examples/multiformat_opencl.c                              \
+	basic_examples/multiformat_conversion_codelets_opencl.c          
+
+nobase_STARPU_OPENCL_DATA_DATA+=                                         \
+	basic_examples/multiformat_opencl_kernel.cl                      \
+	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl
 endif
 
 #################
@@ -360,6 +402,30 @@ filters_fblock_SOURCES +=			\
 	filters/fblock_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
+endif
+
+
+#############################
+# Custom multiformat filter #
+#############################
+filters_custom_mf_custom_mf_filter_SOURCES=\
+	filters/custom_mf/custom_mf_filter.c \
+	filters/custom_mf/custom_interface.c   \
+	filters/custom_mf/custom_conversion_codelets.c
+
+if STARPU_USE_CUDA
+filters_custom_mf_custom_mf_filter_SOURCES+=\
+	filters/custom_mf/conversion.cu \
+	filters/custom_mf/cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+filters_custom_mf_custom_mf_filter_SOURCES+=\
+	filters/custom_mf/conversion_opencl.c \
+	filters/custom_mf/custom_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	filters/custom_mf/conversion_opencl.cl \
+	filters/custom_mf/custom_opencl.cl
 endif
 
 ################
@@ -606,10 +672,21 @@ spmv_dw_block_spmv_LDADD =			\
 	$(STARPU_BLAS_LDFLAGS)
 endif
 
+###########################
+# C++ Incrementer example #
+###########################
+
+cpp_incrementer_cpp_SOURCES	=	\
+	cpp/incrementer_cpp.cpp
+
+#if STARPU_USE_CUDA
+#cpp_incrementer_cpp_SOURCES +=	\
+#	incrementer/incrementer_kernels.cu
+#endif
+
 #######################
 # Incrementer example #
 #######################
-
 
 incrementer_incrementer_SOURCES =	\
 	incrementer/incrementer.c
@@ -622,6 +699,18 @@ incrementer_incrementer_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_kernel.cl
+endif
+
+#####################
+# interface example #
+#####################
+
+interface_complex_SOURCES	=	\
+	interface/complex.c		\
+	interface/complex_interface.c
+if STARPU_USE_CUDA
+interface_complex_SOURCES	+=	\
+	interface/complex_kernels.cu
 endif
 
 ######################
@@ -651,7 +740,7 @@ endif
 mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
 if HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
-mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) -lX11
 endif
 
 ################
@@ -663,3 +752,9 @@ examplebin_PROGRAMS +=				\
 
 top_hello_world_top_SOURCES =			\
 	top/hello_world_top.c
+
+showcheck:
+	-cat $(TEST_LOGS) /dev/null
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

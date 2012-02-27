@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,13 +46,14 @@ static unsigned usecpu = 0;
 static unsigned blocks = 512;
 static unsigned grids  = 8;
 
-struct cg_problem {
-	starpu_data_handle ds_matrixA;
-	starpu_data_handle ds_vecx;
-	starpu_data_handle ds_vecb;
-	starpu_data_handle ds_vecr;
-	starpu_data_handle ds_vecd;
-	starpu_data_handle ds_vecq;
+struct cg_problem
+{
+	starpu_data_handle_t ds_matrixA;
+	starpu_data_handle_t ds_vecx;
+	starpu_data_handle_t ds_vecb;
+	starpu_data_handle_t ds_vecr;
+	starpu_data_handle_t ds_vecd;
+	starpu_data_handle_t ds_vecq;
 
 	sem_t *sem;
 	
@@ -71,23 +72,28 @@ struct cg_problem {
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-block") == 0) {
+		if (strcmp(argv[i], "-block") == 0)
+		{
 			char *argptr;
 			blocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-grid") == 0) {
+		if (strcmp(argv[i], "-grid") == 0)
+		{
 			char *argptr;
 			grids = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-cpu") == 0) {
+		if (strcmp(argv[i], "-cpu") == 0)
+		{
 			usecpu = 1;
 		}
 	}

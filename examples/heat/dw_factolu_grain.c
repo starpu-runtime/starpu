@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,17 +42,19 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static starpu_codelet cl11 = {
+static struct starpu_codelet cl11 =
+{
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u11,
+	.cpu_funcs = {dw_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u11,
+	.cuda_funcs = {dw_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &model_11
 };
 
-static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, unsigned tag_prefix)
+static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned tag_prefix)
 {
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
@@ -61,32 +63,36 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, 
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
 	/* this is an important task */
 	task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k, tag_prefix), 1, TAG22(k-1, k, k, tag_prefix));
 	}
 
 	return task;
 }
 
-static starpu_codelet cl12 = {
+static struct starpu_codelet cl12 =
+{
+	.modes = { STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u12,
+	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u12,
+	.cuda_funcs = {dw_cublas_codelet_update_u12, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &model_12
 };
 
-static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, unsigned tag_prefix)
+static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned tag_prefix)
 {
+	int ret;
+
 /*	FPRINTF(stdout, "task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
 	struct starpu_task *task = create_task(TAG12(k, i, tag_prefix));
@@ -94,75 +100,85 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, i, k);
 
-	if (i == k+1) {
+	if (i == k+1)
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, i, k, tag_prefix));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static starpu_codelet cl21 = {
+static struct starpu_codelet cl21 =
+{
+	.modes = { STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u21,
+	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u21,
+	.cuda_funcs = {dw_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &model_21
 };
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, unsigned tag_prefix)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned tag_prefix)
 {
+	int ret;
 	struct starpu_task *task = create_task(TAG21(k, j, tag_prefix));
 
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
 
-	if (j == k+1) {
+	if (j == k+1)
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, k, j, tag_prefix));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static starpu_codelet cl22 = {
+static struct starpu_codelet cl22 =
+{
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dw_cpu_codelet_update_u22,
+	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dw_cublas_codelet_update_u22,
+	.cuda_funcs = {dw_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &model_22
 };
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
 {
+	int ret;
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j, tag_prefix));
@@ -170,35 +186,37 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, i, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
+	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if ( (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 3, TAG22(k-1, i, j, tag_prefix), TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_size,
 				unsigned ld, unsigned blocksize, unsigned tag_prefix)
 {
+	int ret;
 	/*
 	 * (re)partition data
 	 */
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	STARPU_ASSERT((size % blocksize) == 0);
@@ -207,12 +225,14 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	unsigned nblocks = size / blocksize;
 	unsigned maxk = inner_size / blocksize;
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -235,11 +255,14 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		struct starpu_task *task = create_task_11(dataA, k, tag_prefix);
 
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
-			starpu_task_submit(task);
+		else
+		{
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 		
 		for (i = k+1; i<nblocks; i++)
@@ -257,7 +280,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		}
 	}
 
-	int ret = starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		FPRINTF(stderr, "No worker may execute this task\n");
@@ -272,7 +295,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		starpu_data_unpartition(dataA, 0);		
 		return;
 	}
-	else {
+	else
+	{
 		/*
 		 * call dw_factoLU_grain_inner recursively in the remaining blocks
 		 */
@@ -301,7 +325,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		{
 			dw_factoLU_grain_inner(newmatA, size-inner_size, (size-inner_size)/2, ld, blocksize/2, tag_prefix+1);
 		}
-		else { */
+		else
+		{ */
 			dw_factoLU_grain_inner(newmatA, size-inner_size, size-inner_size, ld, blocksize/2, tag_prefix+1);
 /*		} */
 	}

@@ -42,8 +42,10 @@ life_update(int bz, __global const TYPE *old, __global TYPE *newp, int nx, int n
 	unsigned num, alive;\n\
 \n\
 	for (z = iter + idz; z < nz - iter; z += stepz)\n\
-		for (y = K + idy; y < ny - K; y += stepy) {\n\
-			for (x = K + idx; x < nx - K; x += stepx) {\n\
+		for (y = K + idy; y < ny - K; y += stepy) \n\
+		{\n									\
+			for (x = K + idx; x < nx - K; x += stepx) \
+			{\n					\
 				unsigned index = x + y*ldy + z*ldz;\n\
 				num = 0\n\
                                         + old[index+1*ldy+0*ldz]\n\
@@ -66,11 +68,13 @@ static const char * src = clsrc(TYPE,K);
 static struct starpu_opencl_program program;
 
 void
-opencl_life_init(void) {
+opencl_life_init(void)
+{
   starpu_opencl_load_opencl_from_string(src, &program, NULL);
 }
 
-void opencl_life_free(void) {
+void opencl_life_free(void)
+{
   starpu_opencl_unload_opencl(&program);
 }
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,10 +32,15 @@ void sleep_codelet(__attribute__ ((unused)) void *descr[],
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	if (argc == 2)
 		niter = atoi(argv[1]);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Enable profiling */
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
@@ -44,12 +49,12 @@ int main(int argc, char **argv)
 	 * worker. */
 	usleep(500000);
 
-	starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-		.cpu_func = sleep_codelet,
-		.cuda_func = sleep_codelet,
-		.opencl_func = sleep_codelet,
+		.cpu_funcs = {sleep_codelet, NULL},
+		.cuda_funcs = {sleep_codelet, NULL},
+		.opencl_funcs = {sleep_codelet, NULL},
 		.nbuffers = 0
 	};
 

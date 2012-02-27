@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)((iter)%Nrolls))<<32 | (i)) )
 
-starpu_codelet cl = {};
+struct starpu_codelet cl = {};
 
 #define Ni	64
 #define Nk	256
@@ -46,18 +46,22 @@ struct starpu_task **tasks[Nrolls];
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-iter") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-iter") == 0)
+		{
 		        char *argptr;
 			nk = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 		        char *argptr;
 			ni = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-iter iter] [-i i]\n", argv[0]);
 		}
 	}
@@ -94,11 +98,14 @@ static void create_task_grid(unsigned iter)
 static void start_task_grid(unsigned iter)
 {
 	unsigned i;
+	int ret;
 
 	/* FPRINTF(stderr, "start grid %d ni %d...\n", iter, ni); */
 
-	for (i = 0; i < ni; i++)
-		starpu_task_submit(tasks[iter][i]);
+	for (i = 0; i < ni; i++) {
+		ret = starpu_task_submit(tasks[iter][i]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
 }
 
 void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
@@ -113,8 +120,12 @@ void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
 	unsigned i;
+	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_GORDON
 	/* load an empty kernel and get its identifier */
@@ -123,8 +134,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	cl.cpu_func = cpu_codelet;
-	cl.cuda_func = cpu_codelet;
+	cl.cpu_funcs[0] = cpu_codelet;
+	cl.cuda_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
@@ -133,7 +144,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	FPRINTF(stderr, "ITER : %u\n", nk);
 
-	for (i = 0; i < Nrolls; i++) {
+	for (i = 0; i < Nrolls; i++)
+	{
 		tasks[i] = (struct starpu_task **) malloc(ni * sizeof(*tasks[i]));
 
 		create_task_grid(i);

@@ -20,14 +20,15 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#include <starpu_cuda.h>
 #endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static float *x;
 static float *y;
-static starpu_data_handle *x_handles;
-static starpu_data_handle *y_handles;
+static starpu_data_handle_t *x_handles;
+static starpu_data_handle_t *y_handles;
 
 static unsigned nblocks = 4096;
 static unsigned entries_per_block = 1024;
@@ -35,7 +36,23 @@ static unsigned entries_per_block = 1024;
 #define DOT_TYPE double
 
 static DOT_TYPE dot = 0.0f;
-static starpu_data_handle dot_handle;
+static starpu_data_handle_t dot_handle;
+
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+		return 1;
+#ifdef STARPU_USE_CUDA
+	/* Cuda device */
+	const struct cudaDeviceProp *props;
+	props = starpu_cuda_get_device_properties(workerid);
+	if (props->major >= 2 || props->minor >= 3)
+		/* At least compute capability 1.3, supports doubles */
+		return 1;
+#endif
+	/* Old card, does not support doubles */
+	return 0;
+}
 
 /*
  *	Codelet to create a neutral element
@@ -56,11 +73,13 @@ void init_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet_t init_codelet = {
+static struct starpu_codelet init_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = init_cpu_func,
+	.can_execute = can_execute,
+	.cpu_funcs = {init_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = init_cuda_func,
+	.cuda_funcs = {init_cuda_func, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -81,11 +100,13 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 extern void redux_cuda_func(void *descr[], void *_args);
 #endif
 
-static struct starpu_codelet_t redux_codelet = {
+static struct starpu_codelet redux_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = redux_cpu_func,
+	.can_execute = can_execute,
+	.cpu_funcs = {redux_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = redux_cuda_func,
+	.cuda_funcs = {redux_cuda_func, NULL},
 #endif
 	.nbuffers = 2
 };
@@ -142,13 +163,16 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet_t dot_codelet = {
+static struct starpu_codelet dot_codelet =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = dot_cpu_func,
+	.can_execute = can_execute,
+	.cpu_funcs = {dot_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dot_cuda_func,
+	.cuda_funcs = {dot_cuda_func, NULL},
 #endif
-	.nbuffers = 3
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_REDUX}
 };
 
 /*
@@ -157,7 +181,12 @@ static struct starpu_codelet_t dot_codelet = {
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
 
@@ -167,8 +196,8 @@ int main(int argc, char **argv)
 	x = (float *) malloc(size);
 	y = (float *) malloc(size);
 
-	x_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
-	y_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
+	x_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
+	y_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
 
 	assert(x && y);
 
@@ -208,12 +237,9 @@ int main(int argc, char **argv)
 		task->cl = &dot_codelet;
 		task->destroy = 1;
 
-		task->buffers[0].handle = x_handles[block];
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = y_handles[block];
-		task->buffers[1].mode = STARPU_R;
-		task->buffers[2].handle = dot_handle;
-		task->buffers[2].mode = STARPU_REDUX;
+		task->handles[0] = x_handles[block];
+		task->handles[1] = y_handles[block];
+		task->handles[2] = dot_handle;
 
 		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;

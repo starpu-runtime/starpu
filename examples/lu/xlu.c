@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
+static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k)
 {
 /*	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
@@ -57,23 +57,25 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
 	/* this is an important task */
 	if (!no_prio)
 		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
 	return task;
 }
 
-static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
+static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j)
 {
+	int ret;
+
 /*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
 	struct starpu_task *task = create_task(TAG12(k, j));
@@ -81,55 +83,62 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, j, k); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k); 
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k); 
 
-	if (!no_prio && (j == k+1)) {
+	if (!no_prio && (j == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG12(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i)
 {
+	int ret;
 	struct starpu_task *task = create_task(TAG21(k, i));
 
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, i); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k); 
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, i); 
 
-	if (!no_prio && (i == k+1)) {
+	if (!no_prio && (i == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), TAG22(k-1, i, k));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, i), 1, TAG11(k));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j)
 {
+	int ret;
+
 /*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
@@ -137,34 +146,36 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, i); /* produced by TAG21(k, i) */ 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, j, k); /* produced by TAG12(k, j) */
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, j, i); /* produced by TAG22(k-1, i, j) */
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i); /* produced by TAG21(k, i) */ 
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k); /* produced by TAG12(k, j) */
+	task->handles[2] = starpu_data_get_sub_data(dataA, 2, j, i); /* produced by TAG22(k-1, i, j) */
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
+	if (!no_prio &&  (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG12(k, j), TAG21(k, i));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 /*
  *	code to bootstrap the factorization 
  */
 
-static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
+static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 {
+	int ret;
 	struct timeval start;
 	struct timeval end;
 
@@ -178,11 +189,14 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 		struct starpu_task *task = create_task_11(dataA, k);
 
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
-			starpu_task_submit(task);
+		else
+		{
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 		
 		for (i = k+1; i<nblocks; i++)
@@ -202,7 +216,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	int ret = starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		FPRINTF(stderr, "No worker may execute this task\n");
@@ -227,7 +241,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 
 void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
@@ -236,12 +250,14 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 	/* We already enforce deps by hand */
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -252,4 +268,5 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, 0);
+	starpu_data_unregister(dataA);
 }

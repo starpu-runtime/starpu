@@ -16,3 +16,8 @@
 SUBDIRS = src tests examples
 
 EXTRA_DIST = COPYING README
+
+showcheck:
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,8 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 	cudaError_t cures;
 #endif
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			CPU_GEMM("N", "N", dy, dx, dz, 
 				(TYPE)-1.0, right, ld21, left, ld12,
@@ -59,7 +60,8 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 			break;
 
 #ifdef STARPU_USE_CUDA
-		case 1: {
+		case 1:
+		{
 			CUBLAS_GEMM('n', 'n', dx, dy, dz,
 				*(CUBLAS_TYPE*)&m1, (CUBLAS_TYPE *)right, ld21, (CUBLAS_TYPE *)left, ld12,
 				*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE *)center, ld22);
@@ -92,7 +94,8 @@ void STARPU_LU(cublas_u22)(void *descr[], void *_args)
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel_t STARPU_LU(model_22) = {
+static struct starpu_perfmodel STARPU_LU(model_22) =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_22_atlas)
@@ -103,13 +106,15 @@ static struct starpu_perfmodel_t STARPU_LU(model_22) = {
 #endif
 };
 
-starpu_codelet cl22 = {
+struct starpu_codelet cl22 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u22),
+	.cpu_funcs = {STARPU_LU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u22),
+	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &STARPU_LU(model_22)
 };
 
@@ -138,7 +143,8 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 #endif
 
 	/* solve L11 U12 = A12 (find U12) */
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			CPU_TRSM("L", "L", "N", "N", nx12, ny12,
 					(TYPE)1.0, sub11, ld11, sub12, ld12);
@@ -175,7 +181,8 @@ void STARPU_LU(cublas_u12)(void *descr[], void *_args)
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel_t STARPU_LU(model_12) = {
+static struct starpu_perfmodel STARPU_LU(model_12) =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_12_atlas)
@@ -186,13 +193,15 @@ static struct starpu_perfmodel_t STARPU_LU(model_12) = {
 #endif
 };
 
-starpu_codelet cl12 = {
+struct starpu_codelet cl12 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u12),
+	.cpu_funcs = {STARPU_LU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u12),
+	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &STARPU_LU(model_12)
 };
 
@@ -219,7 +228,8 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 	cublasStatus status;
 #endif
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			CPU_TRSM("R", "U", "N", "U", nx21, ny21,
 					(TYPE)1.0, sub11, ld11, sub21, ld21);
@@ -255,7 +265,8 @@ void STARPU_LU(cublas_u21)(void *descr[], void *_args)
 }
 #endif 
 
-static struct starpu_perfmodel_t STARPU_LU(model_21) = {
+static struct starpu_perfmodel STARPU_LU(model_21) =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_21_atlas)
@@ -266,13 +277,15 @@ static struct starpu_perfmodel_t STARPU_LU(model_21) = {
 #endif
 };
 
-starpu_codelet cl21 = {
+struct starpu_codelet cl21 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u21),
+	.cpu_funcs = {STARPU_LU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u21),
+	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
 #endif
 	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
 	.model = &STARPU_LU(model_21)
 };
 
@@ -292,13 +305,14 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 
 	unsigned long z;
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
 				pivot = sub11[z+z*ld];
-				STARPU_ASSERT(pivot != 0.0);
+				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 		
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
 		
@@ -317,7 +331,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
 				cudaStreamSynchronize(0);
 
-				STARPU_ASSERT(pivot != 0.0);
+				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 				
 				inv_pivot = 1.0/pivot;
 				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
@@ -350,7 +364,8 @@ void STARPU_LU(cublas_u11)(void *descr[], void *_args)
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel_t STARPU_LU(model_11) = {
+static struct starpu_perfmodel STARPU_LU(model_11) =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_11_atlas)
@@ -361,13 +376,15 @@ static struct starpu_perfmodel_t STARPU_LU(model_11) = {
 #endif
 };
 
-starpu_codelet cl11 = {
+struct starpu_codelet cl11 =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u11),
+	.cpu_funcs = {STARPU_LU(cpu_u11), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u11),
+	.cuda_funcs = {STARPU_LU(cublas_u11), NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &STARPU_LU(model_11)
 };
 
@@ -391,7 +408,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 	unsigned *ipiv = piv->piv;
 	unsigned first = piv->first;
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			for (z = 0; z < nx; z++)
 			{
@@ -486,7 +504,8 @@ void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args)
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel_t STARPU_LU(model_11_pivot) = {
+static struct starpu_perfmodel STARPU_LU(model_11_pivot) =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_11_pivot_atlas)
@@ -497,13 +516,15 @@ static struct starpu_perfmodel_t STARPU_LU(model_11_pivot) = {
 #endif
 };
 
-starpu_codelet cl11_pivot = {
+struct starpu_codelet cl11_pivot =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_u11_pivot),
+	.cpu_funcs = {STARPU_LU(cpu_u11_pivot), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_u11_pivot),
+	.cuda_funcs = {STARPU_LU(cublas_u11_pivot), NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &STARPU_LU(model_11_pivot)
 };
 
@@ -526,7 +547,8 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 	unsigned *ipiv = piv->piv;
 	unsigned first = piv->first;
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			for (row = 0; row < nx; row++)
 			{
@@ -571,7 +593,8 @@ void STARPU_LU(cublas_pivot)(void *descr[], void *_args)
 
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel_t STARPU_LU(model_pivot) = {
+static struct starpu_perfmodel STARPU_LU(model_pivot) =
+{
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_pivot_atlas)
@@ -582,12 +605,14 @@ static struct starpu_perfmodel_t STARPU_LU(model_pivot) = {
 #endif
 };
 
-starpu_codelet cl_pivot = {
+struct starpu_codelet cl_pivot =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = STARPU_LU(cpu_pivot),
+	.cpu_funcs = {STARPU_LU(cpu_pivot), NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = STARPU_LU(cublas_pivot),
+	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
 #endif
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.model = &STARPU_LU(model_pivot)
 };

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@
 TYPE *vec_x, *vec_y;
 
 /* descriptors for StarPU */
-starpu_data_handle handle_y, handle_x;
+starpu_data_handle_t handle_y, handle_x;
 
 void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
@@ -70,28 +70,35 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 }
 #endif
 
-static starpu_codelet axpy_cl = {
+static struct starpu_codelet axpy_cl =
+{
         .where =
 #ifdef STARPU_USE_CUDA
                 STARPU_CUDA|
 #endif
                 STARPU_CPU,
 
-	.cpu_func = axpy_cpu,
+	.cpu_funcs = {axpy_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = axpy_gpu,
+	.cuda_funcs = {axpy_gpu, NULL},
 #endif
-	.nbuffers = 2
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW}
 };
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	/* Initialize StarPU */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
 
-	/* This is equivalent to 
+	/* This is equivalent to
 		vec_a = malloc(N*sizeof(TYPE));
 		vec_b = malloc(N*sizeof(TYPE));
 	*/
@@ -116,7 +123,8 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle_y, 0, (uintptr_t)vec_y, N, sizeof(TYPE));
 
 	/* Divide the vector into blocks */
-	struct starpu_data_filter block_filter = {
+	struct starpu_data_filter block_filter =
+	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = NBLOCKS
 	};
@@ -128,7 +136,7 @@ int main(int argc, char **argv)
 
 	struct timeval start;
 	struct timeval end;
-	
+
 	gettimeofday(&start, NULL);
 
 	unsigned b;
@@ -140,13 +148,11 @@ int main(int argc, char **argv)
 
 		task->cl_arg = &alpha;
 
-		task->buffers[0].handle = starpu_data_get_sub_data(handle_x, 1, b);
-		task->buffers[0].mode = STARPU_R;
-		
-		task->buffers[1].handle = starpu_data_get_sub_data(handle_y, 1, b);
-		task->buffers[1].mode = STARPU_RW;
-		
-		starpu_task_submit(task);
+		task->handles[0] = starpu_data_get_sub_data(handle_x, 1, b);
+		task->handles[1] = starpu_data_get_sub_data(handle_y, 1, b);
+
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_task_wait_for_all();

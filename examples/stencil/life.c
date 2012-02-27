@@ -22,9 +22,12 @@ void life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, in
 {
 	unsigned x, y, z, num, alive;
 
-	for (z = iter; z < nz - iter; z++) {
-		for (y = K; y < ny - K; y++) {
-			for (x = K; x < nx - K; x++) {
+	for (z = iter; z < nz - iter; z++)
+	{
+		for (y = K; y < ny - K; y++)
+		{
+			for (x = K; x < nx - K; x++)
+			{
 				num = 0
                                         + old[x+(y+1)*ldy+(z+0)*ldz]
                                         + old[x+(y+1)*ldy+(z+1)*ldz]

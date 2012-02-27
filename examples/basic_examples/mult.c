@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@
  *  - how to unpartition data (starpu_data_unpartition) and how to stop
  *    monitoring data (starpu_data_unregister)
  *  - how to manipulate subsets of data (starpu_data_get_sub_data)
- *  - how to construct an autocalibrated performance model (starpu_perfmodel_t)
+ *  - how to construct an autocalibrated performance model (starpu_perfmodel)
  *  - how to submit asynchronous tasks
  */
 
@@ -41,7 +41,7 @@
 #include <starpu.h>
 
 static float *A, *B, *C;
-static starpu_data_handle A_handle, B_handle, C_handle;
+static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
@@ -133,20 +133,26 @@ static void init_problem_data(void)
 
 	/* fill the A and B matrices */
 	srand(2009);
-	for (j=0; j < ydim; j++) {
-		for (i=0; i < zdim; i++) {
+	for (j=0; j < ydim; j++)
+	{
+		for (i=0; i < zdim; i++)
+		{
 			A[j+i*ydim] = (float)(starpu_drand48());
 		}
 	}
 
-	for (j=0; j < zdim; j++) {
-		for (i=0; i < xdim; i++) {
+	for (j=0; j < zdim; j++)
+	{
+		for (i=0; i < xdim; i++)
+		{
 			B[j+i*zdim] = (float)(starpu_drand48());
 		}
 	}
 
-	for (j=0; j < ydim; j++) {
-		for (i=0; i < xdim; i++) {
+	for (j=0; j < ydim; j++)
+	{
+		for (i=0; i < xdim; i++)
+		{
 			C[j+i*ydim] = (float)(0);
 		}
 	}
@@ -186,16 +192,18 @@ static void partition_mult_data(void)
 	/* StarPU supplies some basic filters such as the partition of a matrix
 	 * into blocks, note that we are using a FORTRAN ordering so that the
 	 * name of the filters are a bit misleading */
-	struct starpu_data_filter vert = {
+	struct starpu_data_filter vert =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nslicesx
 	};
-		
-	struct starpu_data_filter horiz = {
+
+	struct starpu_data_filter horiz =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nslicesy
 	};
-		
+
 /*
  *	Illustration with nslicex = 4 and nslicey = 2, it is possible to access
  *	sub-data by using the "starpu_data_get_sub_data" method, which takes a data handle,
@@ -246,25 +254,29 @@ static void partition_mult_data(void)
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
 }
 
-static struct starpu_perfmodel_t mult_perf_model = {
+static struct starpu_perfmodel mult_perf_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "mult_perf_model"
 };
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
         /* we can only execute that kernel on a CPU yet */
         .where = STARPU_CPU,
         /* CPU implementation of the codelet */
-        .cpu_func = cpu_mult,
+        .cpu_funcs = {cpu_mult, NULL},
         /* the codelet manipulates 3 buffers that are managed by the
          * DSM */
         .nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_W},
         /* in case the scheduling policy may use performance models */
         .model = &mult_perf_model
 };
 
-static void launch_tasks(void)
+static int launch_tasks(void)
 {
+	int ret;
 	/* partition the work into slices */
 	unsigned taskx, tasky;
 
@@ -301,10 +313,8 @@ static void launch_tasks(void)
 			 * identified by "tasky" (respectively "taskx). The "1"
 			 * tells StarPU that there is a single argument to the
 			 * variable-arity function starpu_data_get_sub_data */
-			task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, tasky);
-			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = starpu_data_get_sub_data(B_handle, 1, taskx);
-			task->buffers[1].mode = STARPU_R;
+			task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tasky);
+			task->handles[1] = starpu_data_get_sub_data(B_handle, 1, taskx);
 
 			/* 2 filters were applied on matrix C, so we give
 			 * starpu_data_get_sub_data 2 arguments. The order of the arguments
@@ -315,20 +325,27 @@ static void launch_tasks(void)
 			 * NB2: starpu_data_get_sub_data(C_handle, 2, taskx, tasky) is
 			 * equivalent to
 			 * starpu_data_get_sub_data(starpu_data_get_sub_data(C_handle, 1, taskx), 1, tasky)*/
-			task->buffers[2].handle = starpu_data_get_sub_data(C_handle, 2, taskx, tasky);
-			task->buffers[2].mode = STARPU_W;
+			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, taskx, tasky);
 
 			/* this is not a blocking call since task->synchronous = 0 */
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			if (ret == -ENODEV) return ret;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
+	return 0;
 }
 
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
 {
+	int ret;
+
 	/* start the runtime */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize matrices A, B and C and register them to StarPU */
 	init_problem_data();
@@ -338,7 +355,8 @@ int main(__attribute__ ((unused)) int argc,
 	partition_mult_data();
 
 	/* submit all tasks in an asynchronous fashion */
-	launch_tasks();
+	ret = launch_tasks();
+	if (ret == -ENODEV) goto enodev;
 
 	/* wait for termination */
         starpu_task_wait_for_all();
@@ -367,4 +385,9 @@ int main(__attribute__ ((unused)) int argc,
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }
+

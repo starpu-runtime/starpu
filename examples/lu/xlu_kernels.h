@@ -36,11 +36,11 @@ void STARPU_LU(cublas_u21)(void *descr[], void *_args);
 void STARPU_LU(cublas_u22)(void *descr[], void *_args);
 #endif
 
-extern starpu_codelet cl11;
-extern starpu_codelet cl11_pivot;
-extern starpu_codelet cl12;
-extern starpu_codelet cl21;
-extern starpu_codelet cl22;
-extern starpu_codelet cl_pivot;
+extern struct starpu_codelet cl11;
+extern struct starpu_codelet cl11_pivot;
+extern struct starpu_codelet cl12;
+extern struct starpu_codelet cl21;
+extern struct starpu_codelet cl22;
+extern struct starpu_codelet cl_pivot;
 
 #endif /* __XLU_KERNELS_H__ */

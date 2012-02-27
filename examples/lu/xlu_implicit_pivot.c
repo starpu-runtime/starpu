@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,18 +25,19 @@ static unsigned no_prio = 0;
  *	Construct the DAG
  */
 
-static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
+static void create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 					struct piv_s *piv_description,
 					unsigned k, unsigned i,
-					starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
+					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl_pivot;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, i);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, i);
 
 	task->cl_arg = &piv_description[k];
 
@@ -44,13 +45,16 @@ static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_11_pivot(starpu_data_handle *dataAp, unsigned nblocks,
+static void create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 					unsigned k, struct piv_s *piv_description,
-					starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
+					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
+
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl11_pivot;
@@ -58,83 +62,82 @@ static void create_task_11_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 	task->cl_arg = &piv_description[k];
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, k);
 
 	/* this is an important task */
 	if (!no_prio)
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned j,
-		starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
+static void create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
+		starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
-	
+
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, k);
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_block(dataAp, nblocks, j, k);
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, k);
+	task->handles[1] = get_block(dataAp, nblocks, j, k);
 
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned i,
-				starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
+static void create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
+				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_block(dataAp, nblocks, k, i); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, k); 
+	task->handles[1] = get_block(dataAp, nblocks, k, i); 
 
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
-				starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
+static void create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
+				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_block(dataAp, nblocks, k, i);
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_block(dataAp, nblocks, j, k);
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = get_block(dataAp, nblocks, j, i);
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = get_block(dataAp, nblocks, k, i);
+	task->handles[1] = get_block(dataAp, nblocks, j, k);
+	task->handles[2] = get_block(dataAp, nblocks, j, i);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 /*
  *	code to bootstrap the factorization 
  */
 
-static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
+static double dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 					struct piv_s *piv_description,
 					unsigned nblocks,
-					starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
+					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
 {
 	struct timeval start;
 	struct timeval end;
@@ -173,7 +176,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 	return timing;
 }
 
-starpu_data_handle get_block_with_striding(starpu_data_handle *dataAp,
+starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp,
 			unsigned nblocks __attribute__((unused)), unsigned j, unsigned i)
 {
 	/* we use filters */
@@ -183,18 +186,20 @@ starpu_data_handle get_block_with_striding(starpu_data_handle *dataAp,
 
 void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -226,10 +231,13 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, 0);
+	starpu_data_unregister(dataA);
+
+	free(piv_description);
 }
 
 
-starpu_data_handle get_block_with_no_striding(starpu_data_handle *dataAp, unsigned nblocks, unsigned j, unsigned i)
+starpu_data_handle_t get_block_with_no_striding(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned j, unsigned i)
 {
 	/* dataAp is an array of data handle */
 	return dataAp[i+j*nblocks];
@@ -237,7 +245,7 @@ starpu_data_handle get_block_with_no_striding(starpu_data_handle *dataAp, unsign
 
 void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle *dataAp = malloc(nblocks*nblocks*sizeof(starpu_data_handle));
+	starpu_data_handle_t *dataAp = malloc(nblocks*nblocks*sizeof(starpu_data_handle_t));
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
@@ -278,4 +286,5 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	{
 		starpu_data_unregister(dataAp[bi+nblocks*bj]);
 	}
+	free(dataAp);
 }

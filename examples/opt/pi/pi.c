@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,11 +61,19 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 	free(random_numbers);
 }
 
+/* The amount of work does not depend on the data size at all :) */
+static size_t size_base(struct starpu_task *task, unsigned nimpl)
+{
+	return NSHOT_PER_TASK;
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-ntasks") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-ntasks") == 0)
+		{
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
 		}
@@ -75,10 +83,12 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	unsigned i;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Initialize the random number generator */
 	unsigned *sobol_qrng_directions = malloc(n_dimensions*n_directions*sizeof(unsigned));
@@ -87,13 +97,13 @@ int main(int argc, char **argv)
 	initSobolDirectionVectors(n_dimensions, sobol_qrng_directions);
 
 	/* Any worker may use that array now */
-	starpu_data_handle sobol_qrng_direction_handle;
+	starpu_data_handle_t sobol_qrng_direction_handle;
 	starpu_vector_data_register(&sobol_qrng_direction_handle, 0,
 		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
 
 	unsigned *cnt_array = malloc(ntasks*sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
-	starpu_data_handle cnt_array_handle;
+	starpu_data_handle_t cnt_array_handle;
 	starpu_vector_data_register(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
 
 	/* Use a write-through policy : when the data is modified on an
@@ -101,25 +111,30 @@ int main(int argc, char **argv)
 	 * accessed by the CPU later on */
 	starpu_data_set_wt_mask(cnt_array_handle, (1<<0));
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = ntasks
 	};
 	
 	starpu_data_partition(cnt_array_handle, &f);
 
-	static struct starpu_perfmodel_t model = {
+	static struct starpu_perfmodel model =
+	{
 		.type = STARPU_HISTORY_BASED,
+		.size_base = size_base,
 		.symbol = "monte_carlo_pi"
 	};
 
-	struct starpu_codelet_t cl = {
+	struct starpu_codelet cl =
+	{
 		.where = STARPU_CPU|STARPU_CUDA,
-		.cpu_func = cpu_kernel,
+		.cpu_funcs = {cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
-		.cuda_func = cuda_kernel,
+		.cuda_funcs = {cuda_kernel, NULL},
 #endif
 		.nbuffers = 2,
+		.modes = {STARPU_R, STARPU_W},
 		.model = &model
 	};
 
@@ -136,10 +151,8 @@ int main(int argc, char **argv)
 
 		STARPU_ASSERT(starpu_data_get_sub_data(cnt_array_handle, 1, i));
 
-		task->buffers[0].handle = sobol_qrng_direction_handle;
-		task->buffers[0].mode   = STARPU_R;
-		task->buffers[1].handle = starpu_data_get_sub_data(cnt_array_handle, 1, i);
-		task->buffers[1].mode   = STARPU_W;
+		task->handles[0] = sobol_qrng_direction_handle;
+		task->handles[1] = starpu_data_get_sub_data(cnt_array_handle, 1, i);
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
@@ -150,6 +163,7 @@ int main(int argc, char **argv)
 	/* Get the cnt_array back in main memory */
 	starpu_data_unpartition(cnt_array_handle, 0);
 	starpu_data_unregister(cnt_array_handle);
+	starpu_data_unregister(sobol_qrng_direction_handle);
 
 	/* Count the total number of entries */
 	unsigned long total_cnt = 0;

@@ -1,25 +1,38 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
- * StarPU is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2.1 of the License, or (at
- * your option) any later version.
+ * Redistribution  and  use  in  source and binary forms, with or without
+ * modification,  are  permitted  provided  that the following conditions
+ * are met:
  *
- * StarPU is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * * Redistributions  of  source  code  must  retain  the above copyright
+ *   notice,  this  list  of  conditions  and  the  following  disclaimer.
+ * * Redistributions  in  binary  form must reproduce the above copyright
+ *   notice,  this list of conditions and the following disclaimer in the
+ *   documentation  and/or other materials provided with the distribution.
+ * * The name of the author may not be used to endorse or promote products
+ *   derived from this software without specific prior written permission.
  *
- * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ * THIS  SOFTWARE  IS  PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS''  AND  ANY  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A  PARTICULAR  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL
+ * SPECIAL,  EXEMPLARY,  OR  CONSEQUENTIAL  DAMAGES  (INCLUDING,  BUT NOT
+ * LIMITED  TO,  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE
+ * DATA,  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY  OF  LIABILITY,  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF  THIS  SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /*
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
  *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
- *  2- how to describe which data are accessed by a task (task->buffers[0])
+ *  2- how to describe which data are accessed by a task (task->handle[0])
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 #include <starpu.h>
@@ -31,19 +44,20 @@ extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl = {
     .where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
     /* CPU implementation of the codelet */
-    .cpu_func = scal_cpu_func,
+    .cpu_funcs = {scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
     /* CUDA implementation of the codelet */
-    .cuda_func = scal_cuda_func,
+    .cuda_funcs = {scal_cuda_func, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
     /* OpenCL implementation of the codelet */
-    .opencl_func = scal_opencl_func,
+    .opencl_funcs = {scal_opencl_func, NULL},
 #endif
-    .nbuffers = 1
+    .nbuffers = 1,
+    .modes = {STARPU_RW}
 };
 
 #ifdef STARPU_USE_OPENCL
@@ -81,7 +95,7 @@ int main(int argc, char **argv)
      *  - the fourth argument is the number of elements in the vector
      *  - the fifth argument is the size of each element.
      */
-    starpu_data_handle vector_handle;
+    starpu_data_handle_t vector_handle;
     starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
                                 NX, sizeof(vector[0]));
 
@@ -95,8 +109,7 @@ int main(int argc, char **argv)
     task->cl = &cl;
 
     /* the codelet manipulates one buffer in RW mode */
-    task->buffers[0].handle = vector_handle;
-    task->buffers[0].mode = STARPU_RW;
+    task->handles[0] = vector_handle;
 
     /* an argument is passed to the codelet, beware that this is a
      * READ-ONLY buffer and that the codelet may be given a pointer to a

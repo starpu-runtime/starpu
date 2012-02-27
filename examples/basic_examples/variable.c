@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,10 +38,13 @@ int main(int argc, char **argv)
 {
 	unsigned i;
         float foo;
-	starpu_data_handle float_array_handle;
-	starpu_codelet cl = {};
+	starpu_data_handle_t float_array_handle;
+	struct starpu_codelet cl = {};
+	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_SLOW_MACHINE
 	niter /= 100;
@@ -53,18 +56,20 @@ int main(int argc, char **argv)
                                       (uintptr_t)&foo, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/basic_examples/variable_kernels_opencl_kernel.cl", &opencl_program, NULL);
+        ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/variable_kernels_opencl_kernel.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL;
-        cl.cpu_func = cpu_codelet;
+        cl.cpu_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_CUDA
-        cl.cuda_func = cuda_codelet;
+        cl.cuda_funcs[0] = cuda_codelet;
 #endif
 #ifdef STARPU_USE_OPENCL
-        cl.opencl_func = opencl_codelet;
+        cl.opencl_funcs[0] = opencl_codelet;
 #endif
         cl.nbuffers = 1;
+	cl.modes[0] = STARPU_RW;
         cl.model = NULL;
 
 	for (i = 0; i < niter; i++)
@@ -76,8 +81,7 @@ int main(int argc, char **argv)
 
 		task->callback_func = NULL;
 
-		task->buffers[0].handle = float_array_handle;
-		task->buffers[0].mode = STARPU_RW;
+		task->handles[0] = float_array_handle;
 
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -97,4 +101,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }

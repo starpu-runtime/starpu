@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,9 +29,9 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err, n;
-	cl_mem matrix = (cl_mem)STARPU_MATRIX_GET_PTR(descr[0]);
-	cl_mem vector = (cl_mem)STARPU_VECTOR_GET_PTR(descr[1]);
-	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_PTR(descr[2]);
+	cl_mem matrix = (cl_mem)STARPU_MATRIX_GET_DEV_HANDLE(descr[0]);
+	cl_mem vector = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[1]);
+	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	int nx = STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 	cl_event event;
@@ -64,27 +64,34 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 }
 #endif
 
-void fillArray(float* pfData, int iSize) {
+void fillArray(float* pfData, int iSize)
+{
     int i;
     const float fScale = 1.0f / (float)RAND_MAX;
-    for (i = 0; i < iSize; ++i) {
+    for (i = 0; i < iSize; ++i)
+    {
             pfData[i] = fScale * rand();
     }
 }
 
-void printArray(float* pfData, int iSize) {
+void printArray(float* pfData, int iSize)
+{
     int i;
-    for (i = 0; i < iSize; ++i) {
+    for (i = 0; i < iSize; ++i)
+    {
             FPRINTF(stderr, "%f ", pfData[i]);
     }
     FPRINTF(stderr, "\n");
 }
 
-void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult) {
+void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult)
+{
     int i, j;
-    for (i = 0; i < height; ++i) {
+    for (i = 0; i < height; ++i)
+    {
         double sum = 0;
-        for (j = 0; j < width; ++j) {
+        for (j = 0; j < width; ++j)
+	{
             double a = matrix[i * width + j];
             double b = vector[j];
             sum += a * b;
@@ -93,12 +100,14 @@ void matVecMult(const float *matrix, const float *vector, int width, int height,
     }
 }
 
-int compareL2fe(const float* reference, const float* data, const unsigned int len, const float epsilon) {
+int compareL2fe(const float* reference, const float* data, const unsigned int len, const float epsilon)
+{
     float error = 0;
     float ref = 0;
     unsigned int i;
 
-    for(i = 0; i < len; ++i) {
+    for(i = 0; i < len; ++i)
+    {
         float diff = reference[i] - data[i];
         error += diff * diff;
         ref += reference[i] * reference[i];
@@ -115,9 +124,10 @@ int compareL2fe(const float* reference, const float* data, const unsigned int le
 
 int main(int argc, char **argv)
 {
-	starpu_codelet cl = {};
+	struct starpu_codelet cl = {};
 
-	struct starpu_conf conf = {
+	struct starpu_conf conf =
+	{
 		.ncpus = 0,
 		.ncuda = 0,
                 .nopencl = 1,
@@ -132,11 +142,12 @@ int main(int argc, char **argv)
         float *correctResult;
         unsigned int mem_size_matrix, mem_size_vector, mem_size_mult;
 
-	starpu_data_handle matrix_handle, vector_handle, mult_handle;
+	starpu_data_handle_t matrix_handle, vector_handle, mult_handle;
 	int ret, submit;
 
         ret = starpu_init(&conf);
-	if (STARPU_UNLIKELY(ret == -ENODEV)) {
+	if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "This application requires an OpenCL worker.\n");
 		starpu_shutdown();
 		return 77;
@@ -165,31 +176,34 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&mult_handle, 0, (uintptr_t)mult, height, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/matvecmult/matvecmult_kernel.cl", &opencl_code, NULL);
+        ret = starpu_opencl_load_opencl_from_file("examples/matvecmult/matvecmult_kernel.cl", &opencl_code, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
 	cl.where = STARPU_OPENCL;
 #ifdef STARPU_USE_OPENCL
-        cl.opencl_func = opencl_codelet;
+        cl.opencl_funcs[0] = opencl_codelet;
 #endif
         cl.nbuffers = 3;
+	cl.modes[0] = STARPU_R;
+	cl.modes[1] = STARPU_R;
+	cl.modes[2] = STARPU_RW;
         cl.model = NULL;
 
         struct starpu_task *task = starpu_task_create();
         task->cl = &cl;
         task->callback_func = NULL;
-        task->buffers[0].handle = matrix_handle;
-        task->buffers[0].mode = STARPU_R;
-        task->buffers[1].handle = vector_handle;
-        task->buffers[1].mode = STARPU_R;
-        task->buffers[2].handle = mult_handle;
-        task->buffers[2].mode = STARPU_RW;
+        task->handles[0] = matrix_handle;
+        task->handles[1] = vector_handle;
+        task->handles[2] = mult_handle;
 
         submit = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(submit == -ENODEV)) {
+        if (STARPU_UNLIKELY(submit == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task. This application requires an OpenCL worker.\n");
 	}
-	else {
+	else
+	{
 		starpu_task_wait_for_all();
 	}
 
@@ -197,7 +211,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handle);
 	starpu_data_unregister(mult_handle);
 
-        if (STARPU_LIKELY(submit != -ENODEV)) {
+        if (STARPU_LIKELY(submit != -ENODEV))
+	{
 		int res = compareL2fe(correctResult, mult, height, 1e-6f);
 		FPRINTF(stdout, "TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
 	}
@@ -209,5 +224,5 @@ int main(int argc, char **argv)
 #endif
         starpu_shutdown();
 
-	return 0;
+	return (submit == -ENODEV) ? 77 : 0;
 }

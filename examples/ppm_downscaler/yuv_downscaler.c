@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,11 +38,13 @@ char filename_out[1024];
 
 void parse_args(int argc, char **argv)
 {
-	if (argc == 3) {
+	if (argc == 3)
+	{
 		strcpy(filename_in, argv[1]);
 		strcpy(filename_out, argv[2]);
 	}
-	else {
+	else
+	{
 		sprintf(filename_in, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
 		sprintf(filename_out, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
 	}
@@ -82,26 +84,32 @@ static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 	}
 }
 
-static struct starpu_codelet_t ds_codelet = {
+static struct starpu_codelet ds_codelet =
+{
 	.where = STARPU_CPU,
-	.cpu_func = ds_kernel_cpu,
+	.cpu_funcs = {ds_kernel_cpu, NULL},
 	.nbuffers = 2, /* input -> output */
+	.modes = {STARPU_R, STARPU_W},
 	.model = NULL
 };
 
 /* each block contains BLOCK_HEIGHT consecutive lines */
-static struct starpu_data_filter filter_y = {
+static struct starpu_data_filter filter_y =
+{
 	.filter_func = starpu_block_filter_func,
 	.nchildren= HEIGHT/BLOCK_HEIGHT
 };
-	
-static struct starpu_data_filter filter_uv = {
+
+static struct starpu_data_filter filter_uv =
+{
 	.filter_func = starpu_block_filter_func,
 	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT
 };
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	assert(HEIGHT % (2*BLOCK_HEIGHT) == 0);
 	assert(HEIGHT % FACTOR == 0);
 	
@@ -119,30 +127,33 @@ int main(int argc, char **argv)
 /*	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes); */
 	assert((filesize % sizeof(struct yuv_frame)) == 0);
 
-	/* fetch input data */
-	FILE *f_in = fopen(filename_in, "r");
-	assert(f_in);
-
 	struct yuv_frame *yuv_in_buffer = (struct yuv_frame *) malloc(nframes*FRAMESIZE);
-	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
-
-	/* allocate room for an output buffer */
-	FILE *f_out = fopen(filename_out, "w+");
-	assert(f_out);
+	assert(yuv_in_buffer);
 
 /*	fprintf(stderr, "Alloc output file ...\n"); */
 	struct yuv_new_frame *yuv_out_buffer = (struct yuv_new_frame *) calloc(nframes, NEW_FRAMESIZE);
 	assert(yuv_out_buffer);
 
-	starpu_data_handle *frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *frame_v_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	/* fetch input data */
+	FILE *f_in = fopen(filename_in, "r");
+	assert(f_in);
 
-	starpu_data_handle *new_frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *new_frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *new_frame_v_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	/* allocate room for an output buffer */
+	FILE *f_out = fopen(filename_out, "w+");
+	assert(f_out);
 
-	starpu_init(NULL);
+	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
+
+	starpu_data_handle_t *frame_y_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *frame_v_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+
+	starpu_data_handle_t *new_frame_y_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *new_frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *new_frame_v_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* register and partition all layers */
 	unsigned frame;
@@ -205,51 +216,48 @@ int main(int argc, char **argv)
 		for (blocky = 0; blocky < nblocks_y; blocky++)
 		{
 			struct starpu_task *task = starpu_task_create();
-				task->cl = &ds_codelet;
+			task->cl = &ds_codelet;
 
-				/* input */
-				task->buffers[0].handle = starpu_data_get_sub_data(frame_y_handle[frame], 1, blocky);
-				task->buffers[0].mode = STARPU_R;
+			/* input */
+			task->handles[0] = starpu_data_get_sub_data(frame_y_handle[frame], 1, blocky);
 
-				/* output */
-				task->buffers[1].handle = starpu_data_get_sub_data(new_frame_y_handle[frame], 1, blocky);
-				task->buffers[1].mode = STARPU_W;
+			/* output */
+			task->handles[1] = starpu_data_get_sub_data(new_frame_y_handle[frame], 1, blocky);
 
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		unsigned blocku;
 		for (blocku = 0; blocku < nblocks_uv; blocku++)
 		{
 			struct starpu_task *task = starpu_task_create();
-				task->cl = &ds_codelet;
+			task->cl = &ds_codelet;
 
-				/* input */
-				task->buffers[0].handle = starpu_data_get_sub_data(frame_u_handle[frame], 1, blocku);
-				task->buffers[0].mode = STARPU_R;
+			/* input */
+			task->handles[0] = starpu_data_get_sub_data(frame_u_handle[frame], 1, blocku);
 
-				/* output */
-				task->buffers[1].handle = starpu_data_get_sub_data(new_frame_u_handle[frame], 1, blocku);
-				task->buffers[1].mode = STARPU_W;
+			/* output */
+			task->handles[1] = starpu_data_get_sub_data(new_frame_u_handle[frame], 1, blocku);
 
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		unsigned blockv;
 		for (blockv = 0; blockv < nblocks_uv; blockv++)
 		{
 			struct starpu_task *task = starpu_task_create();
-				task->cl = &ds_codelet;
+			task->cl = &ds_codelet;
 
-				/* input */
-				task->buffers[0].handle = starpu_data_get_sub_data(frame_v_handle[frame], 1, blockv);
-				task->buffers[0].mode = STARPU_R;
+			/* input */
+			task->handles[0] = starpu_data_get_sub_data(frame_v_handle[frame], 1, blockv);
 
-				/* output */
-				task->buffers[1].handle = starpu_data_get_sub_data(new_frame_v_handle[frame], 1, blockv);
-				task->buffers[1].mode = STARPU_W;
+			/* output */
+			task->handles[1] = starpu_data_get_sub_data(new_frame_v_handle[frame], 1, blockv);
 
-			starpu_task_submit(task);
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
@@ -278,6 +286,12 @@ int main(int argc, char **argv)
 
 	/* partition the layers into smaller parts */
 	starpu_shutdown();
+
+	if (fclose(f_in) != 0)
+		fprintf(stderr, "Could not close %s properly\n", filename_in);
+
+	if (fclose(f_out) != 0)
+		fprintf(stderr, "Could not close %s properly\n", filename_out);
 
 	return 0;
 }

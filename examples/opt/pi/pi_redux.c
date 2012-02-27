@@ -64,7 +64,8 @@ static void init_rng(void *arg __attribute__((unused)))
 
 	int workerid = starpu_worker_get_id();
 
-	switch (starpu_worker_get_type(workerid)) {
+	switch (starpu_worker_get_type(workerid))
+	{
 		case STARPU_CPU_WORKER:
 			/* create a seed */
 			starpu_srand48_r((long int)workerid, &randbuffer[PADDING*workerid]);
@@ -96,22 +97,27 @@ static void init_rng(void *arg __attribute__((unused)))
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-ntasks") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-ntasks") == 0)
+		{
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-noredux") == 0) {
+		if (strcmp(argv[i], "-noredux") == 0)
+		{
 			use_redux = 0;
 		}
 
-		if (strcmp(argv[i], "-warmup") == 0) {
+		if (strcmp(argv[i], "-warmup") == 0)
+		{
 			do_warmup = 1;
 			ntasks_warmup = 8; /* arbitrary number of warmup tasks */
 		}
 
-		if (strcmp(argv[i], "-h") == 0) {
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			fprintf(stderr, "Usage: %s [-ntasks n] [-noredux] [-warmup] [-h]\n", argv[0]);
 			exit(-1);
 		}
@@ -161,16 +167,13 @@ extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *
 #ifdef STARPU_HAVE_CURAND
 static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 {
-	cudaError_t cures;
 	curandStatus_t res;	
 
 	int workerid = starpu_worker_get_id();
 
 	/* CURAND is a bit silly: it assumes that any error is fatal. Calling
 	 * cudaGetLastError resets the last error value. */
-	cures = cudaGetLastError();
-/*	if (cures)
-		STARPU_CUDA_REPORT_ERROR(cures); */
+	(void) cudaGetLastError();
 
 	/* Fill the scratchpad with random numbers. Note that both x and y
 	 * arrays are in stored the same vector. */
@@ -186,17 +189,48 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 }
 #endif
 
-static struct starpu_codelet_t pi_cl = {
+/* The amount of work does not depend on the data size at all :) */
+static size_t size_base(struct starpu_task *task, unsigned nimpl)
+{
+	return NSHOT_PER_TASK;
+}
+
+static struct starpu_perfmodel model =
+{
+	.type = STARPU_HISTORY_BASED,
+	.size_base = size_base,
+	.symbol = "monte_carlo_pi_redux"
+};
+
+static struct starpu_codelet pi_cl =
+{
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-	.cpu_func = pi_func_cpu,
+	.cpu_funcs = {pi_func_cpu, NULL},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_func = pi_func_cuda,
+	.cuda_funcs = {pi_func_cuda, NULL},
 #endif
 	.nbuffers = 2,
+	.modes    = {STARPU_SCRATCH, STARPU_RW},
+	.model = NULL
+};
+
+static struct starpu_codelet pi_cl_redux =
+{
+	.where =
+#ifdef STARPU_HAVE_CURAND
+		STARPU_CUDA|
+#endif
+		STARPU_CPU,
+	.cpu_funcs = {pi_func_cpu, NULL},
+#ifdef STARPU_HAVE_CURAND
+	.cuda_funcs = {pi_func_cuda, NULL},
+#endif
+	.nbuffers = 2,
+	.modes    = {STARPU_SCRATCH, STARPU_REDUX},
 	.model = NULL
 };
 
@@ -219,15 +253,16 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static struct starpu_codelet_t init_codelet = {
+static struct starpu_codelet init_codelet =
+{
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-        .cpu_func = init_cpu_func,
+        .cpu_funcs = {init_cpu_func, NULL},
 #ifdef STARPU_HAVE_CURAND
-        .cuda_func = init_cuda_func,
+        .cuda_funcs = {init_cuda_func, NULL},
 #endif
         .nbuffers = 1
 };
@@ -258,15 +293,16 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 	*a = *a + *b;
 };
 
-static struct starpu_codelet_t redux_codelet = {
+static struct starpu_codelet redux_codelet =
+{
 	.where =
 #ifdef STARPU_HAVE_CURAND
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-	.cpu_func = redux_cpu_func,
+	.cpu_funcs = {redux_cpu_func, NULL},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_func = redux_cuda_func,
+	.cuda_funcs = {redux_cuda_func, NULL},
 #endif
 	.nbuffers = 2
 };
@@ -278,16 +314,18 @@ static struct starpu_codelet_t redux_codelet = {
 int main(int argc, char **argv)
 {
 	unsigned i;
+	int ret;
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Launch a Random Number Generator (RNG) on each worker */
 	starpu_execute_on_each_worker(init_rng, NULL, STARPU_CPU|STARPU_CUDA);
 
 	/* Create a scratchpad data */
-	starpu_data_handle xy_scratchpad_handle;
+	starpu_data_handle_t xy_scratchpad_handle;
 	starpu_vector_data_register(&xy_scratchpad_handle, -1, (uintptr_t)NULL,
 		2*NSHOT_PER_TASK, sizeof(float));
 
@@ -295,7 +333,7 @@ int main(int argc, char **argv)
 	 * that actually hit the unit circle when shooting randomly in
 	 * [-1,1]^2. */
 	unsigned long shot_cnt = 0;
-	starpu_data_handle shot_cnt_handle;
+	starpu_data_handle_t shot_cnt_handle;
 	starpu_variable_data_register(&shot_cnt_handle, 0,
 			(uintptr_t)&shot_cnt, sizeof(shot_cnt));
 
@@ -309,12 +347,10 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &pi_cl;
+		task->cl = use_redux?&pi_cl_redux:&pi_cl;
 
-		task->buffers[0].handle = xy_scratchpad_handle;
-		task->buffers[0].mode   = STARPU_SCRATCH;
-		task->buffers[1].handle = shot_cnt_handle;
-		task->buffers[1].mode   = use_redux?STARPU_REDUX:STARPU_RW;
+		task->handles[0] = xy_scratchpad_handle;
+		task->handles[1] = shot_cnt_handle;
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
@@ -327,18 +363,17 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &pi_cl;
+		task->cl = use_redux?&pi_cl_redux:&pi_cl;
 
-		task->buffers[0].handle = xy_scratchpad_handle;
-		task->buffers[0].mode   = STARPU_SCRATCH;
-		task->buffers[1].handle = shot_cnt_handle;
-		task->buffers[1].mode   = use_redux?STARPU_REDUX:STARPU_RW;
+		task->handles[0] = xy_scratchpad_handle;
+		task->handles[1] = shot_cnt_handle;
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 
 	starpu_data_unregister(shot_cnt_handle);
+	starpu_data_unregister(xy_scratchpad_handle);
 
 	gettimeofday(&end, NULL);
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));

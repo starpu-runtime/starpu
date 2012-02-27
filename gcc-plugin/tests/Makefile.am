@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,8 @@
 gcc_tests =					\
   base.c					\
   pointers.c					\
+  output-pointer.c				\
+  output-pointer-errors.c			\
   register.c					\
   register-errors.c				\
   acquire.c					\
@@ -26,31 +28,45 @@ gcc_tests =					\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\
+  external-task-impl.c				\
   no-initialize.c				\
   lib-user.c					\
   wait-errors.c					\
+  heap-allocated.c				\
+  heap-allocated-errors.c			\
+  verbose.c					\
+  debug-tree.c					\
   shutdown-errors.c
 
 dist_noinst_HEADERS = mocks.h
 
-CLEANFILES = *.gimple				\
+CLEANFILES = *.gimple *.o			\
   base						\
   pointers					\
   register					\
   scalar-tasks					\
-  pointer-tasks
+  pointer-tasks					\
+  lib-user					\
+  output-pointer				\
+  unregister					\
+  heap-allocated				\
+  acquire
+
 
 EXTRA_DIST = ./run-test.in			\
-  my-lib.h my-lib.c
+  my-lib.h my-lib.c				\
+  $(gcc_tests)
 
-if HAVE_GUILE
+# The test suite assumes that the CPU back-end is available.
+if STARPU_USE_CPU
 
 TESTS = $(gcc_tests)
+
+endif
+
 TESTS_ENVIRONMENT = ./run-test
 
-else !HAVE_GUILE
-
-EXTRA_DIST += $(gcc_tests)
+if !HAVE_GUILE
 
 check-hook:
 	-@echo "GNU Guile not available, test suite not run."

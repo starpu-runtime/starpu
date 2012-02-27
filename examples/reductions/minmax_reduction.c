@@ -29,11 +29,11 @@ static unsigned entries_per_bock = 1024;
 #define TYPE_MIN	DBL_MIN
 
 static TYPE *x;
-static starpu_data_handle *x_handles;
+static starpu_data_handle_t *x_handles;
 
 /* The first element (resp. second) stores the min element (resp. max). */
 static TYPE minmax[2];
-static starpu_data_handle minmax_handle;
+static starpu_data_handle_t minmax_handle;
 
 /*
  *	Codelet to create a neutral element
@@ -50,9 +50,10 @@ static void minmax_neutral_cpu_func(void *descr[], void *cl_arg)
 	array[1] = TYPE_MIN;
 }
 
-static struct starpu_codelet_t minmax_init_codelet = {
+static struct starpu_codelet minmax_init_codelet =
+{
 	.where = STARPU_CPU,
-	.cpu_func = minmax_neutral_cpu_func,
+	.cpu_funcs = {minmax_neutral_cpu_func, NULL},
 	.nbuffers = 1
 };
 
@@ -76,9 +77,10 @@ void minmax_redux_cpu_func(void *descr[], void *cl_arg)
 	array_dst[1] = STARPU_MAX(max_dst, max_src);
 }
 
-static struct starpu_codelet_t minmax_redux_codelet = {
+static struct starpu_codelet minmax_redux_codelet =
+{
 	.where = STARPU_CPU,
-	.cpu_func = minmax_redux_cpu_func,
+	.cpu_funcs = {minmax_redux_cpu_func, NULL},
 	.nbuffers = 2
 };
 
@@ -110,10 +112,12 @@ void minmax_cpu_func(void *descr[], void *cl_arg)
 	minmax[1] = local_max;
 }
 
-static struct starpu_codelet_t minmax_codelet = {
+static struct starpu_codelet minmax_codelet =
+{
 	.where = STARPU_CPU,
-	.cpu_func = minmax_cpu_func,
-	.nbuffers = 2
+	.cpu_funcs = {minmax_cpu_func, NULL},
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_REDUX}
 };
 
 /*
@@ -123,14 +127,18 @@ static struct starpu_codelet_t minmax_codelet = {
 int main(int argc, char **argv)
 {
 	unsigned long i;
+	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned long nelems = nblocks*entries_per_bock;
 	size_t size = nelems*sizeof(TYPE);
 
 	x = (TYPE *) malloc(size);
-	x_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
+	x_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
 	
 	assert(x && x_handles);
 
@@ -164,17 +172,15 @@ int main(int argc, char **argv)
 
 		task->cl = &minmax_codelet;
 
-		task->buffers[0].handle = x_handles[block];
-		task->buffers[0].mode = STARPU_R;
-		task->buffers[1].handle = minmax_handle;
-		task->buffers[1].mode = STARPU_REDUX;
+		task->handles[0] = x_handles[block];
+		task->handles[1] = minmax_handle;
 
 		int ret = starpu_task_submit(task);
 		if (ret)
 		{
 			STARPU_ASSERT(ret == -ENODEV);
 			FPRINTF(stderr, "This test can only run on CPUs, but there are no CPU workers (this is not a bug).\n");
-			return 0;
+			return 77;
 		}
 	}
 
@@ -189,6 +195,8 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(minmax[0] <= minmax[1]);
 
+	free(x);
+	free(x_handles);
 	starpu_shutdown();
 
 	return 0;

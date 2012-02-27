@@ -41,8 +41,9 @@
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
-typedef struct {
-	starpu_data_handle dataA;
+typedef struct
+{
+	starpu_data_handle_t dataA;
 	unsigned i;
 	unsigned j;
 	unsigned k;
@@ -89,10 +90,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-/*			if (i <= j) { */
+/*			if (i <= j)
+			{ */
 				FPRINTF(stdout, "%2.2f\t", LU[j +i*size]);
 /*			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -107,10 +110,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-/*			if (i <= j) { */
+/*			if (i <= j)
+			{ */
 				FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
 /*			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -123,10 +128,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-/*			if (i <= j) { */
+/*			if (i <= j)
+			{ */
 				FPRINTF(stdout, "%2.2f\t", U[j +i*size]);
 /*			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -155,10 +162,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-	/*		if (i <= j) { */
+	/*		if (i <= j)
+			{ */
 	      			FPRINTF(stdout, "%2.2f\t", A[j +i*size]);
 	/*		}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -172,10 +181,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-	/*		if (i <= j) { */
+	/*		if (i <= j)
+			{ */
 	      			FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
 	/*		}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			} */
 		}
@@ -208,9 +219,9 @@ void dw_callback_v2_codelet_update_u12(void *);
 void dw_callback_v2_codelet_update_u21(void *);
 void dw_callback_v2_codelet_update_u22(void *);
 
-extern struct starpu_perfmodel_t model_11;
-extern struct starpu_perfmodel_t model_12;
-extern struct starpu_perfmodel_t model_21;
-extern struct starpu_perfmodel_t model_22;
+extern struct starpu_perfmodel model_11;
+extern struct starpu_perfmodel model_12;
+extern struct starpu_perfmodel model_21;
+extern struct starpu_perfmodel model_22;
 
 #endif /* __DW_FACTO_LU_H__ */

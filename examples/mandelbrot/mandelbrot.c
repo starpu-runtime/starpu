@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -155,7 +155,8 @@ static int handle_events(void)
 			topY -= 0.25*heightY;
 			bottomY -= 0.25*heightY;
 		}
-		else {
+		else
+		{
 			double widthX = rightX - leftX;
 			double heightY = topY - bottomY;
 
@@ -177,13 +178,15 @@ static int handle_events(void)
 			}
 		}
 
-		if (text[0]=='q') {
+		if (text[0]=='q')
+		{
 			return -1;
 		}
 	}
 
-	if (event.type==ButtonPress) {
-	/* tell where the mouse Button was Pressed */
+	if (event.type==ButtonPress)
+	{
+		/* tell where the mouse Button was Pressed */
 		printf("You pressed a button at (%i,%i)\n",
 			event.xbutton.x,event.xbutton.y);
 	}
@@ -235,9 +238,9 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt; /* unused for CUDA tasks */
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
+	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
-	cl_mem data = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
+	cl_mem data = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 
 	cl_kernel kernel;
 	cl_command_queue queue;
@@ -280,7 +283,7 @@ static void compute_block(void *descr[], void *cl_arg)
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt; /* unused for sequential tasks */
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
+	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -324,7 +327,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
+	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -371,23 +374,25 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 
 
-static starpu_codelet spmd_mandelbrot_cl = {
+static struct starpu_codelet spmd_mandelbrot_cl =
+{
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
-	.cpu_func = compute_block_spmd,
+	.cpu_funcs = {compute_block_spmd, NULL},
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = compute_block_opencl,
+	.opencl_funcs = {compute_block_opencl, NULL},
 #endif
 	.nbuffers = 1
 };
 
-static starpu_codelet mandelbrot_cl = {
+static struct starpu_codelet mandelbrot_cl =
+{
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SEQ,
-	.cpu_func = compute_block,
+	.cpu_funcs = {compute_block, NULL},
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = compute_block_opencl,
+	.opencl_funcs = {compute_block_opencl, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -395,38 +400,46 @@ static starpu_codelet mandelbrot_cl = {
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-h") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy] [-niter 1000] [-spmd] [-demo] [-demozoom 0.2]\n", argv[0]);
 			exit(-1);
 		}
 
-		if (strcmp(argv[i], "-width") == 0) {
+		if (strcmp(argv[i], "-width") == 0)
+		{
 			char *argptr;
 			width = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-height") == 0) {
+		if (strcmp(argv[i], "-height") == 0)
+		{
 			char *argptr;
 			height = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-niter") == 0) {
+		if (strcmp(argv[i], "-niter") == 0)
+		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pos") == 0) {
+		if (strcmp(argv[i], "-pos") == 0)
+		{
 			int ret = sscanf(argv[++i], "%lf:%lf:%lf:%lf", &leftX, &rightX, &bottomY, &topY);
 			assert(ret == 4);
 		}
 
-		if (strcmp(argv[i], "-demo") == 0) {
+		if (strcmp(argv[i], "-demo") == 0)
+		{
 			demo = 1;
 			leftX = -50.22749575062760;
 			rightX = 48.73874621262927;
@@ -435,18 +448,21 @@ static void parse_args(int argc, char **argv)
 
 		}
 
-		if (strcmp(argv[i], "-demozoom") == 0) {
+		if (strcmp(argv[i], "-demozoom") == 0)
+		{
 			char *argptr;
 			demozoom = strtof(argv[++i], &argptr);
 		}
 
-		if (strcmp(argv[i], "-no-x11") == 0) {
+		if (strcmp(argv[i], "-no-x11") == 0)
+		{
 #ifdef STARPU_HAVE_X11
 			use_x11 = 0;
 #endif
 		}
 
-		if (strcmp(argv[i], "-spmd") == 0) {
+		if (strcmp(argv[i], "-spmd") == 0)
+		{
 			use_spmd = 1;
 		}
 	}
@@ -454,6 +470,8 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	parse_args(argc, argv);
 
 	/* We don't use CUDA in that example */
@@ -464,7 +482,8 @@ int main(int argc, char **argv)
 	if (use_spmd)
 		conf.sched_policy_name = "pgreedy";
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned *buffer;
 	starpu_malloc((void **)&buffer, height*width*sizeof(unsigned));
@@ -481,7 +500,7 @@ int main(int argc, char **argv)
 	starpu_opencl_load_opencl_from_string(mandelbrot_opencl_src, &opencl_programs, NULL);
 #endif
 
-	starpu_data_handle block_handles[nblocks];
+	starpu_data_handle_t block_handles[nblocks];
 	
 	int iby;
 	for (iby = 0; iby < nblocks; iby++)
@@ -500,6 +519,7 @@ int main(int argc, char **argv)
 
 	while (niter-- != 0)
 	{
+		int ret;
 		double stepX = (rightX - leftX)/width;
 		double stepY = (topY - bottomY)/height;
 
@@ -514,14 +534,15 @@ int main(int argc, char **argv)
 			per_block_cnt[iby] = 0;
 			int *pcnt = &per_block_cnt[iby];
 
-			starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
-				STARPU_VALUE, &iby, sizeof(iby),
-				STARPU_VALUE, &block_size, sizeof(block_size),
-				STARPU_VALUE, &stepX, sizeof(stepX),
-				STARPU_VALUE, &stepY, sizeof(stepY),
-				STARPU_W, block_handles[iby],
-				STARPU_VALUE, &pcnt, sizeof(int *),
-				0);
+			ret = starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
+						 STARPU_VALUE, &iby, sizeof(iby),
+						 STARPU_VALUE, &block_size, sizeof(block_size),
+						 STARPU_VALUE, &stepX, sizeof(stepX),
+						 STARPU_VALUE, &stepY, sizeof(stepY),
+						 STARPU_W, block_handles[iby],
+						 STARPU_VALUE, &pcnt, sizeof(int *),
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 		}
 
 		for (iby = 0; iby < nblocks; iby++)
@@ -567,7 +588,8 @@ int main(int argc, char **argv)
 				iter = 0;
 				gettimeofday(&start, NULL);
 			}
-			else {
+			else
+			{
 				leftX += (zoom_factor/2)*widthX;
 				rightX -= (zoom_factor/2)*widthX;
 				topY -= (zoom_factor/2)*heightY;

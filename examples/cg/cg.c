@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,22 +72,22 @@ static int long long n = 1024;
 static int nblocks = 8;
 static int use_reduction = 1;
 
-static starpu_data_handle A_handle, b_handle, x_handle;
+static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
 static int i_max = 4000;
 static double eps = (10e-14);
 
-static starpu_data_handle r_handle, d_handle, q_handle;
+static starpu_data_handle_t r_handle, d_handle, q_handle;
 static TYPE *r, *d, *q;
 
-static starpu_data_handle dtq_handle, rtr_handle;
+static starpu_data_handle_t dtq_handle, rtr_handle;
 static TYPE dtq, rtr;
 
-extern starpu_codelet accumulate_variable_cl;
-extern starpu_codelet accumulate_vector_cl;
-extern starpu_codelet bzero_variable_cl;
-extern starpu_codelet bzero_vector_cl;
+extern struct starpu_codelet accumulate_variable_cl;
+extern struct starpu_codelet accumulate_vector_cl;
+extern struct starpu_codelet bzero_variable_cl;
+extern struct starpu_codelet bzero_vector_cl;
 
 /*
  *	Generate Input data
@@ -125,6 +125,16 @@ static void generate_random_problem(void)
 	memset(q, 0, n*sizeof(TYPE));
 }
 
+static void free_data(void)
+{
+	starpu_free(A);
+	starpu_free(b);
+	starpu_free(x);
+	starpu_free(r);
+	starpu_free(d);
+	starpu_free(q);
+}
+
 static void register_data(void)
 {
 	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, n, n, n, sizeof(TYPE));
@@ -146,6 +156,28 @@ static void register_data(void)
 		starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
 		starpu_data_set_reduction_methods(rtr_handle, &accumulate_variable_cl, &bzero_variable_cl);
 	}
+}
+
+static void unregister_data(void)
+{
+	starpu_data_unpartition(A_handle, 0);
+	starpu_data_unpartition(b_handle, 0);
+	starpu_data_unpartition(x_handle, 0);
+
+	starpu_data_unpartition(r_handle, 0);
+	starpu_data_unpartition(d_handle, 0);
+	starpu_data_unpartition(q_handle, 0);
+
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(b_handle);
+	starpu_data_unregister(x_handle);
+
+	starpu_data_unregister(r_handle);
+	starpu_data_unregister(d_handle);
+	starpu_data_unregister(q_handle);
+
+	starpu_data_unregister(dtq_handle);
+	starpu_data_unregister(rtr_handle);
 }
 
 /*
@@ -194,7 +226,7 @@ static void partition_data(void)
  */
 
 #if 0
-static void display_vector(starpu_data_handle handle, TYPE *ptr)
+static void display_vector(starpu_data_handle_t handle, TYPE *ptr)
 {
 	unsigned block_size = n / nblocks;
 
@@ -230,24 +262,29 @@ static void display_matrix(void)
  *	Main loop
  */
 
-static void cg(void)
+static int cg(void)
 {
 	double delta_new, delta_old, delta_0;
 	double alpha, beta;
 
 	int i = 0;
+	int ret;
 
 	/* r <- b */
-	copy_handle(r_handle, b_handle, nblocks);
+	ret = copy_handle(r_handle, b_handle, nblocks);
+	if (ret == -ENODEV) return ret;
 
 	/* r <- r - A x */
-	gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
+	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
+	if (ret == -ENODEV) return ret;
 
 	/* d <- r */
-	copy_handle(d_handle, r_handle, nblocks);
+	ret = copy_handle(d_handle, r_handle, nblocks);
+	if (ret == -ENODEV) return ret;
 
 	/* delta_new = dot(r,r) */
-	dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+	ret = dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+	if (ret == -ENODEV) return ret;
 
 	starpu_data_acquire(rtr_handle, STARPU_R);
 	delta_new = rtr;
@@ -285,7 +322,8 @@ static void cg(void)
 			/* r <- r - A x */
 			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
 		}
-		else {
+		else
+		{
 			/* r <- r - alpha q */
 			axpy_kernel(r_handle, q_handle, -alpha, nblocks);
 		}
@@ -318,6 +356,7 @@ static void cg(void)
 	double timing = (double)(((double)end.tv_sec - (double)start.tv_sec)*10e6 + ((double)end.tv_usec - (double)start.tv_usec));
 	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
 	FPRINTF(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
+	return 0;
 }
 
 static int check(void)
@@ -328,28 +367,34 @@ static int check(void)
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-	        if (strcmp(argv[i], "-n") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+	        if (strcmp(argv[i], "-n") == 0)
+		{
 			n = (int long long)atoi(argv[++i]);
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-maxiter") == 0) {
+	        if (strcmp(argv[i], "-maxiter") == 0)
+		{
 			i_max = atoi(argv[++i]);
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-nblocks") == 0) {
+	        if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			nblocks = atoi(argv[++i]);
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-no-reduction") == 0) {
+	        if (strcmp(argv[i], "-no-reduction") == 0)
+		{
 			use_reduction = 0;
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-h") == 0) {
+	        if (strcmp(argv[i], "-h") == 0)
+		{
 			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
 			continue;
@@ -361,21 +406,37 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+#ifdef STARPU_SLOW_MACHINE
+	i_max = 16;
+#endif
+
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_helper_cublas_init();
 
 	generate_random_problem();
 	register_data();
 	partition_data();
 
-	cg();
+	ret = cg();
+	if (ret == -ENODEV) goto enodev;
 
 	ret = check();
 
+	starpu_task_wait_for_all();
+	unregister_data();
+	free_data();
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
 	return ret;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }

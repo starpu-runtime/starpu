@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,19 +21,22 @@
 unsigned nblocks = 4;
 uint32_t size = 4*1024*1024;
 
-starpu_data_handle sparse_matrix;
-starpu_data_handle vector_in, vector_out;
+starpu_data_handle_t sparse_matrix;
+starpu_data_handle_t vector_in, vector_out;
 
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
@@ -44,8 +47,8 @@ static void parse_args(int argc, char **argv)
  * same number of non-zero entries. */
 static void csr_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 {
-	starpu_csr_interface_t *csr_father = (starpu_csr_interface_t *) father_interface;
-	starpu_csr_interface_t *csr_child = (starpu_csr_interface_t *) child_interface;
+	struct starpu_csr_interface *csr_father = (struct starpu_csr_interface *) father_interface;
+	struct starpu_csr_interface *csr_child = (struct starpu_csr_interface *) child_interface;
 
 	uint32_t nrow = csr_father->nrow;
 	size_t elemsize = csr_father->elemsize;
@@ -66,7 +69,8 @@ static void csr_filter_func(void *father_interface, void *child_interface, struc
 	csr_child->firstentry = local_firstentry;
 	csr_child->elemsize = elemsize;
 	
-	if (csr_father->nzval) {
+	if (csr_father->nzval)
+	{
 		csr_child->rowptr = &csr_father->rowptr[first_index];
 		csr_child->colind = &csr_father->colind[local_firstentry];
 		csr_child->nzval = csr_father->nzval + local_firstentry * elemsize;
@@ -74,29 +78,33 @@ static void csr_filter_func(void *father_interface, void *child_interface, struc
 }
 
 /* partition the CSR matrix along a block distribution */
-static struct starpu_data_filter csr_f = {
+static struct starpu_data_filter csr_f =
+{
 	.filter_func = csr_filter_func,
 	/* This value is defined later on */
 	.nchildren = -1,
 	/* the children also use a csr interface */
 };
 
-static struct starpu_data_filter vector_f = {
+static struct starpu_data_filter vector_f =
+{
 	.filter_func = starpu_block_filter_func_vector,
 	/* This value is defined later on */
 	.nchildren = -1,
 };
 
-static starpu_codelet spmv_cl = {
+static struct starpu_codelet spmv_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = spmv_kernel_cpu,
+	.cpu_funcs = {spmv_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = spmv_kernel_cuda,
+	.cuda_funcs = {spmv_kernel_cuda, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-        .opencl_func = spmv_kernel_opencl,
+        .opencl_funcs = {spmv_kernel_opencl, NULL},
 #endif
 	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.model = NULL
 };
 
@@ -127,7 +135,10 @@ int main(int argc, char **argv)
 	/*
 	 *	Launch StarPU
 	 */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/*
 	 *	Create a 3-band sparse matrix as input example
@@ -143,7 +154,8 @@ int main(int argc, char **argv)
 	{
 		rowptr[row] = pos;
 
-		if (row > 0) {
+		if (row > 0)
+		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row-1;
 			pos++;
@@ -153,7 +165,8 @@ int main(int argc, char **argv)
 		colind[pos] = row;
 		pos++;
 
-		if (row < size - 1) {
+		if (row < size - 1)
+		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row+1;
 			pos++;
@@ -208,12 +221,9 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &spmv_cl;
 	
-		task->buffers[0].handle = starpu_data_get_sub_data(sparse_matrix, 1, part);
-		task->buffers[0].mode  = STARPU_R;
-		task->buffers[1].handle = vector_in;
-		task->buffers[1].mode = STARPU_R;
-		task->buffers[2].handle = starpu_data_get_sub_data(vector_out, 1, part);
-		task->buffers[2].mode = STARPU_W;
+		task->handles[0] = starpu_data_get_sub_data(sparse_matrix, 1, part);
+		task->handles[1] = vector_in;
+		task->handles[2] = starpu_data_get_sub_data(vector_out, 1, part);
 	
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))

@@ -242,7 +242,7 @@ void assign_blocks_to_mpi_nodes(int world_size)
 
 static size_t allocated = 0;
 
-static void allocate_block_on_node(starpu_data_handle *handleptr, TYPE **ptr, unsigned nx, unsigned ny, unsigned nz)
+static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, unsigned nx, unsigned ny, unsigned nz)
 {
 	int ret;
 	size_t block_size = nx*ny*nz*sizeof(TYPE);

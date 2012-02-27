@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,17 +49,13 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, unsigned 
 	save_task->cl_arg = descr;
 
 	/* Saving our border... */
-	save_task->buffers[0].handle = descr->layers_handle[0];
-	save_task->buffers[0].mode = STARPU_R;
-	save_task->buffers[1].handle = descr->layers_handle[1];
-	save_task->buffers[1].mode = STARPU_R;
+	save_task->handles[0] = descr->layers_handle[0];
+	save_task->handles[1] = descr->layers_handle[1];
 
 	/* ... to the neighbour's copy */
 	struct block_description *neighbour = descr->boundary_blocks[(1+dir)/2];
-	save_task->buffers[2].handle = neighbour->boundaries_handle[(1-dir)/2][0];
-	save_task->buffers[2].mode = STARPU_W;
-	save_task->buffers[3].handle = neighbour->boundaries_handle[(1-dir)/2][1];
-	save_task->buffers[3].mode = STARPU_W;
+	save_task->handles[2] = neighbour->boundaries_handle[(1-dir)/2][0];
+	save_task->handles[3] = neighbour->boundaries_handle[(1-dir)/2][1];
 
 	/* Bind */
 	if (iter <= BIND_LAST)
@@ -76,7 +73,8 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, unsigned 
 /* R(z) = local & R(z+d) != local */
 /* We need to send our save over MPI */
 
-static void send_done(void *arg) {
+static void send_done(void *arg)
+{
 	uintptr_t z = (uintptr_t) arg;
 	DEBUG("DO SEND %d\n", (int)z);
 }
@@ -93,8 +91,8 @@ static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, unsign
 	STARPU_ASSERT(neighbour->mpi_node != local_rank);
 
 	/* Send neighbour's border copy to the neighbour */
-	starpu_data_handle handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
-	starpu_data_handle handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
+	starpu_data_handle_t handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
+	starpu_data_handle_t handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
 
 	starpu_mpi_isend_detached(handle0, dest, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
 	starpu_mpi_isend_detached(handle1, dest, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
@@ -103,7 +101,8 @@ static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, unsign
 /* R(z) != local & R(z+d) = local */
 /* We need to receive over MPI */
 
-static void recv_done(void *arg) {
+static void recv_done(void *arg)
+{
 	uintptr_t z = (uintptr_t) arg;
 	DEBUG("DO RECV %d\n", (int)z);
 }
@@ -119,8 +118,8 @@ static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, unsign
 	STARPU_ASSERT(neighbour->mpi_node == local_rank);
 
 	/* Receive our neighbour's border in our neighbour copy */
-	starpu_data_handle handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
-	starpu_data_handle handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
+	starpu_data_handle_t handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
+	starpu_data_handle_t handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
 
 	starpu_mpi_irecv_detached(handle0, source, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
 	starpu_mpi_irecv_detached(handle1, source, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
@@ -146,12 +145,14 @@ void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank)
 		}
 
 	}
-	else {	/* node_z != local_rank, this MPI node doesn't have the saved data */
+	else
+	{	/* node_z != local_rank, this MPI node doesn't have the saved data */
 		if (node_z_and_d == local_rank)
 		{
 			create_task_save_mpi_recv(iter, z, dir, local_rank);
 		}
-		else { /* R(z) != local & R(z+d) != local We don't have
+		else
+		{ /* R(z) != local & R(z+d) != local We don't have
 			      the saved data and don't need it, we shouldn't
 			      even have been called! */
 			STARPU_ASSERT(0);
@@ -176,7 +177,8 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 	unsigned niter = get_niter();
 
 	/* We are going to synchronize with the last tasks */
-	if (iter == niter) {
+	if (iter == niter)
+	{
 		task->detach = 0;
 		task->use_tag = 1;
 		task->tag_id = TAG_FINISH(z);
@@ -186,20 +188,14 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 	unsigned new_layer = (old_layer + 1) % 2;
 
 	struct block_description *descr = get_block_description(z);
-	task->buffers[0].handle = descr->layers_handle[new_layer];
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = descr->layers_handle[old_layer];
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = descr->layers_handle[new_layer];
+	task->handles[1] = descr->layers_handle[old_layer];
 
-	task->buffers[2].handle = descr->boundaries_handle[T][new_layer];
-	task->buffers[2].mode = STARPU_R;
-	task->buffers[3].handle = descr->boundaries_handle[T][old_layer];
-	task->buffers[3].mode = STARPU_R;
+	task->handles[2] = descr->boundaries_handle[T][new_layer];
+	task->handles[3] = descr->boundaries_handle[T][old_layer];
 
-	task->buffers[4].handle = descr->boundaries_handle[B][new_layer];
-	task->buffers[4].mode = STARPU_R;
-	task->buffers[5].handle = descr->boundaries_handle[B][old_layer];
-	task->buffers[5].mode = STARPU_R;
+	task->handles[4] = descr->boundaries_handle[B][new_layer];
+	task->handles[5] = descr->boundaries_handle[B][old_layer];
 
 	task->cl = &cl_update;
 	task->cl_arg = descr;
@@ -218,15 +214,18 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 
 /* Dummy empty codelet taking one buffer */
 static void null_func(void *descr[] __attribute__((unused)), void *arg __attribute__((unused))) { }
-static starpu_codelet null = {
+static struct starpu_codelet null =
+{
+	.modes = { STARPU_W, STARPU_W },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = null_func,
-	.cuda_func = null_func,
-	.opencl_func = null_func,
+	.cpu_funcs = {null_func, NULL},
+	.cuda_funcs = {null_func, NULL},
+	.opencl_funcs = {null_func, NULL},
 	.nbuffers = 2
 };
 
-void create_start_task(int z, int dir) {
+void create_start_task(int z, int dir)
+{
 	/* Dumb task depending on the init task and simulating writing the
 	   neighbour buffers, to avoid communications and computation running
 	   before we start measuring time */
@@ -236,10 +235,8 @@ void create_start_task(int z, int dir) {
 	wait_init->cl = &null;
 	wait_init->use_tag = 1;
 	wait_init->tag_id = TAG_START(z, dir);
-	wait_init->buffers[0].handle = descr->boundaries_handle[(1+dir)/2][0];
-	wait_init->buffers[0].mode = STARPU_W;
-	wait_init->buffers[1].handle = descr->boundaries_handle[(1+dir)/2][1];
-	wait_init->buffers[1].mode = STARPU_W;
+	wait_init->handles[0] = descr->boundaries_handle[(1 + dir) / 2][0];
+	wait_init->handles[1] = descr->boundaries_handle[(1 + dir) / 2][1];
 	starpu_tag_declare_deps_array(wait_init->tag_id, 1, &tag_init);
 
 	int ret = starpu_task_submit(wait_init);
@@ -261,7 +258,8 @@ void create_tasks(int rank)
 	int niter = get_niter();
 	int nbz = get_nbz();
 
-	for (bz = 0; bz < nbz; bz++) {
+	for (bz = 0; bz < nbz; bz++)
+	{
 		if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz+1) == rank))
 			create_start_task(bz, +1);
 		if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz-1) == rank))

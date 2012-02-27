@@ -35,10 +35,10 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
 	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	cl_mem vecin = (cl_mem)STARPU_VECTOR_GET_PTR(descr[1]);
+	cl_mem vecin = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[1]);
 	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
 
-	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_PTR(descr[2]);
+	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
 
         id = starpu_worker_get_id();
@@ -47,19 +47,46 @@ void spmv_kernel_opencl(void *descr[], void *args)
         err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_codelet, "spmv", devid);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = 0;
         n=0;
 	err = clSetKernelArg(kernel, n++, sizeof(nnz), &nnz);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(nrow), &nrow);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(nzval), &nzval);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(colind), &colind);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(rowptr), &rowptr);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(firstentry), &firstentry);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(vecin), &vecin);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(nx_in), &nx_in);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(vecout), &vecout);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
 	err = clSetKernelArg(kernel, n++, sizeof(nx_out), &nx_out);
-        if (err) STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
                 size_t global=nrow;

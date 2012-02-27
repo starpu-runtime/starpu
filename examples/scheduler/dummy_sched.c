@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010-2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,6 @@
 #include <starpu.h>
 
 #define NTASKS	32000
-//#define NTASKS	20
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 typedef struct dummy_sched_data {
@@ -120,7 +119,8 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	return starpu_task_list_pop_back(&data->sched_list);
 }
 
-static struct starpu_sched_policy_s dummy_sched_policy = {
+static struct starpu_sched_policy dummy_sched_policy =
+{
 	.init_sched = init_dummy_sched,
 	.init_sched_for_workers = init_dummy_sched_for_workers,
 	.deinit_sched = deinit_dummy_sched,
@@ -132,7 +132,8 @@ static struct starpu_sched_policy_s dummy_sched_policy = {
 	.policy_description = "dummy scheduling strategy"
 };
 
-static struct starpu_conf conf = {
+static struct starpu_conf conf =
+{
 	.sched_policy_name = NULL,
 	.sched_policy = &dummy_sched_policy,
 	.ncpus = -1,
@@ -149,12 +150,12 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = dummy_func,
-	.cuda_func = dummy_func,
-        .opencl_func = dummy_func,
+	.cpu_funcs = {dummy_func, NULL},
+	.cuda_funcs = {dummy_func, NULL},
+        .opencl_funcs = {dummy_func, NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -163,8 +164,12 @@ static starpu_codelet dummy_codelet =
 int main(int argc, char **argv)
 {
 	int ntasks = NTASKS;
+	int ret;
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_SLOW_MACHINE
 	ntasks /= 100;
@@ -177,8 +182,9 @@ int main(int argc, char **argv)
 	
 		task->cl = &dummy_codelet;
 		task->cl_arg = NULL;
-
-		starpu_task_submit(task);
+	
+		ret = starpu_task_submit(task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_task_wait_for_all();

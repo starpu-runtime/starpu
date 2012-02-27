@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <sys/time.h>
 #include "dw_block_spmv.h"
 #include "matrix_market/mm_to_bcsr.h"
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -30,8 +31,8 @@ unsigned r = 256;
 
 unsigned remainingtasks = -1;
 
-starpu_data_handle sparse_matrix;
-starpu_data_handle vector_in, vector_out;
+starpu_data_handle_t sparse_matrix;
+starpu_data_handle_t vector_in, vector_out;
 
 uint32_t size;
 char *inputfile;
@@ -72,6 +73,13 @@ void create_data(void)
 	starpu_vector_data_register(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
 }
 
+void unregister_data(void)
+{
+	starpu_data_unregister(sparse_matrix);
+	starpu_data_unregister(vector_in);
+	starpu_data_unregister(vector_out);
+}
+
 void init_problem_callback(void *arg)
 {
 	unsigned *remaining = arg;
@@ -93,12 +101,12 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f, starpu_data_handle handle)
+unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f, starpu_data_handle_t handle)
 {
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
+struct starpu_data_interface_ops *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
 {
   return &_starpu_interface_matrix_ops;
 }
@@ -133,19 +141,22 @@ void call_filters(void)
 #define NSPMV	32
 unsigned totaltasks;
 
-starpu_codelet cl = {
+struct starpu_codelet cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func =  cpu_block_spmv,
+	.cpu_funcs = { cpu_block_spmv, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cublas_block_spmv,
+	.cuda_funcs = {cublas_block_spmv, NULL},
 #endif
-	.nbuffers = 3
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW}
 };
 
 void launch_spmv_codelets(void)
 {
 	struct starpu_task *task_tab;
 	uint8_t *is_entry_tab;
+	int ret;
 
 	/* we call one codelet per block */
 	unsigned nblocks = starpu_bcsr_get_nnz(sparse_matrix); 
@@ -156,7 +167,7 @@ void launch_spmv_codelets(void)
 
 	unsigned taskid = 0;
 
-	task_tab = malloc(totaltasks*sizeof(struct starpu_task));
+	task_tab = calloc(totaltasks, sizeof(struct starpu_task));
 	STARPU_ASSERT(task_tab);
 
 	is_entry_tab = calloc(totaltasks, sizeof(uint8_t));
@@ -188,6 +199,7 @@ void launch_spmv_codelets(void)
 			for (index = rowptr[row]; index < rowptr[row+1]; index++, part++)
 			{
 				struct starpu_task *task = &task_tab[taskid];
+				starpu_task_init(task);
 
 				task->use_tag = 1;
 				task->tag_id = taskid;
@@ -199,13 +211,10 @@ void launch_spmv_codelets(void)
 
 				unsigned i = colind[index];
 				unsigned j = row;
-		
-				task->buffers[0].handle = starpu_data_get_sub_data(sparse_matrix, 1, part);
-				task->buffers[0].mode  = STARPU_R;
-				task->buffers[1].handle = starpu_data_get_sub_data(vector_in, 1, i);
-				task->buffers[1].mode = STARPU_R;
-				task->buffers[2].handle = starpu_data_get_sub_data(vector_out, 1, j);
-				task->buffers[2].mode = STARPU_RW;
+
+				task->handles[0] = starpu_data_get_sub_data(sparse_matrix, 1, part);
+				task->handles[1] = starpu_data_get_sub_data(vector_in, 1, i);
+				task->handles[2] = starpu_data_get_sub_data(vector_out, 1, j);
 
 				/* all tasks in the same row are dependant so that we don't wait too much for data 
 				 * we need to wait on the previous task if we are not the first task of a row */
@@ -216,7 +225,8 @@ void launch_spmv_codelets(void)
 
 					is_entry_tab[taskid] = 0;
 				}
-				else {
+				else
+				{
 					/* this is an entry task */
 					is_entry_tab[taskid] = 1;
 				}
@@ -233,11 +243,13 @@ void launch_spmv_codelets(void)
 	unsigned task;
 	for (task = 0; task < totaltasks; task++)
 	{
-		if (is_entry_tab[task]) {
+		if (is_entry_tab[task])
+		{
 			nchains++;
 		}
 
-		starpu_task_submit(&task_tab[task]);
+		ret = starpu_task_submit(&task_tab[task]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);
@@ -265,6 +277,8 @@ void print_results(void)
 int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
 {
+	int ret;
+
 	if (argc < 2)
 	{
 		FPRINTF(stderr, "usage : %s filename [tile size]\n", argv[0]);
@@ -282,7 +296,8 @@ int main(__attribute__ ((unused)) int argc,
 	inputfile = argv[1];
 
 	/* start the runtime */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	sem_init(&sem, 0, 0U);
 
@@ -293,6 +308,7 @@ int main(__attribute__ ((unused)) int argc,
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
+	unregister_data();
 	print_results();
 
 	double totalflop = 2.0*c*r*totaltasks;

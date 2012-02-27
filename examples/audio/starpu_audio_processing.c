@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ unsigned length_data;
 /* buffer containing input WAV data */
 float *A;
 
-starpu_data_handle A_handle;
+starpu_data_handle_t A_handle;
 
 /* For performance evaluation */
 static struct timeval start;
@@ -101,7 +101,8 @@ void read_16bit_wav(FILE *infile, unsigned size, float *arrayout, FILE *save_fil
 	/* we skip the header to only keep the data */
 	fseek(infile, headersize, SEEK_SET);
 	
-	for (v=0;v<size;v++) {
+	for (v=0;v<size;v++)
+	{
 		signed char val = (signed char)fgetc(infile);
 		signed char val2 = (signed char)fgetc(infile);
 
@@ -124,7 +125,8 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
 	/* we assume that the header is copied using copy_wav_header */
 	fseek(outfile, headersize, SEEK_SET);
 	
-	for (v=0;v<size;v++) {
+	for (v=0;v<size;v++)
+	{
 		signed char val = ((int)arrayin[v]) % 256; 
 		signed char val2  = ((int)arrayin[v]) / 256;
 
@@ -146,7 +148,8 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
  */
 
 /* we don't reinitialize the CUFFT plan for every kernel, so we "cache" it */
-typedef struct {
+typedef struct
+{
 	unsigned is_initialized;
 #ifdef STARPU_USE_CUDA
 	cufftHandle plan;
@@ -268,17 +271,20 @@ static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *
 		localA[i] /= nsamples;
 }
 
-struct starpu_perfmodel_t band_filter_model = {
+struct starpu_perfmodel band_filter_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "FFT_band_filter"
 };
 
-static starpu_codelet band_filter_cl = {
+static struct starpu_codelet band_filter_cl =
+{
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = band_filter_kernel_gpu,
+	.cuda_funcs = {band_filter_kernel_gpu, NULL},
 #endif
-	.cpu_func = band_filter_kernel_cpu,
+	.cpu_funcs = {band_filter_kernel_cpu, NULL},
 	.model = &band_filter_model,
 	.nbuffers = 1
 };
@@ -292,17 +298,18 @@ void callback(void *arg)
 
 void create_starpu_task(unsigned iter)
 {
+	int ret;
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &band_filter_cl;
 
-	task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, iter);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(A_handle, 1, iter);
 
 	task->callback_func = callback;
 	task->callback_arg = NULL;
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void init_problem(void)
@@ -330,7 +337,8 @@ static void init_problem(void)
 	{
 		starpu_malloc((void **)&A, length_data*sizeof(float));
 	}
-	else {
+	else
+	{
 		A = malloc(length_data*sizeof(float));
 	}
 
@@ -344,31 +352,38 @@ static void init_problem(void)
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-h") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			fprintf(stderr, "Usage: %s [-pin] [-nsamples block_size] [-i input.wav] [-o output.wav | -no-output] [-h]\n", argv[0]);
 			exit(-1);
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 			inputfilename = argv[++i];;
 		}
 
-		if (strcmp(argv[i], "-o") == 0) {
+		if (strcmp(argv[i], "-o") == 0)
+		{
 			outputfilename = argv[++i];;
 		}
 
-		if (strcmp(argv[i], "-no-output") == 0) {
+		if (strcmp(argv[i], "-no-output") == 0)
+		{
 			outputfilename = NULL;;
 		}
 
 		/* block size */
-		if (strcmp(argv[i], "-nsamples") == 0) {
+		if (strcmp(argv[i], "-nsamples") == 0)
+		{
 			char *argptr;
 			nsamples = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0) {
+		if (strcmp(argv[i], "-pin") == 0)
+		{
 			use_pin = 1;
 		}
 	}
@@ -377,6 +392,7 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	unsigned iter;
+	int ret;
 
 	parse_args(argc, argv);
 
@@ -389,11 +405,12 @@ int main(int argc, char **argv)
 	fprintf(stderr, "input: %s\noutput: %s\n#chunks %d\n", inputfilename, outputfilename, niter);
 
 	/* launch StarPU */
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
-	struct starpu_data_filter f = 
+	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = niter

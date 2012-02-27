@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,41 +46,51 @@ TYPE **A_blocks;
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-piv") == 0) {
+		if (strcmp(argv[i], "-piv") == 0)
+		{
 			pivot = 1;
 		}
 
-		if (strcmp(argv[i], "-no-stride") == 0) {
+		if (strcmp(argv[i], "-no-stride") == 0)
+		{
 			no_stride = 1;
 		}
 
-		if (strcmp(argv[i], "-profile") == 0) {
+		if (strcmp(argv[i], "-profile") == 0)
+		{
 			profile = 1;
 		}
 
-		if (strcmp(argv[i], "-bound") == 0) {
+		if (strcmp(argv[i], "-bound") == 0)
+		{
 			bound = 1;
 		}
-		if (strcmp(argv[i], "-bounddeps") == 0) {
+		if (strcmp(argv[i], "-bounddeps") == 0)
+		{
 			bound = 1;
 			bounddeps = 1;
 		}
-		if (strcmp(argv[i], "-bounddepsprio") == 0) {
+		if (strcmp(argv[i], "-bounddepsprio") == 0)
+		{
 			bound = 1;
 			bounddeps = 1;
 			boundprio = 1;
@@ -122,7 +132,7 @@ void copy_blocks_into_matrix(void)
 				A_blocks[bi+nblocks*bj][i + j * blocksize];
 		}
 
-		/* free(A_blocks[bi+nblocks*bj]); */
+		starpu_free(A_blocks[bi+nblocks*bj]);
 	}
 }
 
@@ -275,19 +285,28 @@ static void check_result(void)
 
 	if (residual/(matnorm*size) > 1e-5)
 		exit(-1);
+
+	free(L);
+	free(U);
+	free(A_saved);
 }
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
 
 	init_matrix();
 
-	unsigned *ipiv;
+	unsigned *ipiv = NULL;
 	if (check)
 		save_matrix();
 
@@ -340,18 +359,33 @@ int main(int argc, char **argv)
 
 	if (profile)
 	{
+		FPRINTF(stderr, "Setting profile\n");
 		starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
 		starpu_bus_profiling_helper_display_summary();
 	}
 
-	if (bound) {
+	if (bound)
+	{
 		double min;
+		FPRINTF(stderr, "Setting bound\n");
 		starpu_bound_stop();
-		if (bounddeps) {
+		if (bounddeps)
+		{
 			FILE *f = fopen("lu.pl", "w");
 			starpu_bound_print_lp(f);
 			FPRINTF(stderr,"system printed to lu.pl\n");
-		} else {
+			fclose(f);
+			f = fopen("lu.mps", "w");
+			starpu_bound_print_mps(f);
+			FPRINTF(stderr,"system printed to lu.mps\n");
+			fclose(f);
+			f = fopen("lu.dot", "w");
+			starpu_bound_print_dot(f);
+			FPRINTF(stderr,"system printed to lu.mps\n");
+			fclose(f);
+		}
+		else
+		{
 			starpu_bound_compute(&min, NULL, 0);
 			if (min != 0.)
 				FPRINTF(stderr, "theoretical min: %f ms\n", min);
@@ -360,12 +394,18 @@ int main(int argc, char **argv)
 
 	if (check)
 	{
-		if (pivot)
+		FPRINTF(stderr, "Checking result\n");
+		if (pivot) {
 			pivot_saved_matrix(ipiv);
+			free(ipiv);
+		}
 
 		check_result();
 	}
 
+	starpu_free(A);
+
+	FPRINTF(stderr, "Shutting down\n");
 	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
