@@ -109,7 +109,6 @@ starpu_machine_display_SOURCES	=	../tools/starpu_machine_display.c
 
 noinst_PROGRAMS =				\
 	starpu_machine_display			\
-	main/dependency_on_destroyed_task       \
 	main/deprecated_func			\
 	main/deprecated_buffer			\
 	main/restart				\
