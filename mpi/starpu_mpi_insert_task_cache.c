@@ -89,6 +89,7 @@ void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank,
 
         task->callback_func = _starpu_mpi_clear_cache_callback;
         task->callback_arg = clear_cache;
-        starpu_task_submit(task);
+        int ret = starpu_task_submit(task);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 

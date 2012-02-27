@@ -287,7 +287,8 @@ static void create_task_11_real(unsigned k)
 		starpu_tag_declare_deps(TAG11(k), 1, STARPU_TAG_INIT);
 	}
 
-	starpu_task_submit(task);
+	int ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_11(unsigned k)
@@ -459,7 +460,8 @@ static void create_task_12_real(unsigned k, unsigned j)
 		starpu_tag_declare_deps(TAG12(k, j), 1, tag_11_dep);
 	}
 
-	starpu_task_submit(task);
+	int ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_12(unsigned k, unsigned j)
@@ -628,7 +630,8 @@ static void create_task_21_real(unsigned k, unsigned i)
 		starpu_tag_declare_deps(TAG21(k, i), 1, tag_11_dep);
 	}
 
-	starpu_task_submit(task);
+	int ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_21(unsigned k, unsigned i)
@@ -745,7 +748,8 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, tag_12_dep, tag_21_dep);
 	}
 
-	starpu_task_submit(task);
+	int ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 static void create_task_22(unsigned k, unsigned i, unsigned j)

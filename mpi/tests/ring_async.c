@@ -52,7 +52,8 @@ void increment_token(void)
 	task->handles[0] = token_handle;
 	task->synchronous = 1;
 
-	starpu_task_submit(task);
+	int ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 int main(int argc, char **argv)
