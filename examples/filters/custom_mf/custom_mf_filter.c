@@ -311,7 +311,7 @@ main(void)
 	print_it();
 #endif
 
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 	if (nopencl > 0)
 	{
         	err = starpu_opencl_unload_opencl(&opencl_program);

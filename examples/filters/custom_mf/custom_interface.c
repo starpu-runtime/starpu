@@ -197,7 +197,7 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t nod
 #endif /* !STARPU_USE_OPENCL */
 			
 		break;
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_RAM:
 	{
 		cudaError_t err;
