@@ -265,7 +265,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	return 0;
 }
 
-static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned pinned)
+static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
 
@@ -354,7 +354,7 @@ int main(int argc, char **argv)
 #endif
 
 
-	cholesky(mat, size, size, nblocks, pinned);
+	cholesky(mat, size, size, nblocks);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");
