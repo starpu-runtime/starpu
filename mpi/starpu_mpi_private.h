@@ -26,7 +26,7 @@
 #include <common/utils.h>
 #include <pthread.h>
 
-#define STARPU_MPI_VERBOSE	1
+//#define STARPU_MPI_VERBOSE	1
 
 #ifdef STARPU_MPI_VERBOSE
 #  define _STARPU_MPI_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
