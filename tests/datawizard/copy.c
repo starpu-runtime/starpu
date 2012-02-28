@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,7 @@
  */
 
 #include <starpu.h>
-
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#include "../helper.h"
 
 static unsigned nloops = 1000;
 
@@ -25,37 +24,41 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static starpu_codelet cpu_codelet =
+static struct starpu_codelet cpu_codelet =
 {
         .where = STARPU_CPU,
-        .cpu_func = dummy_func,
+        .cpu_funcs = {dummy_func, NULL},
         .model = NULL,
-        .nbuffers = 1
+        .nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
-static starpu_codelet gpu_codelet =
+static struct starpu_codelet gpu_codelet =
 {
         .where = STARPU_CUDA|STARPU_OPENCL,
-        .cuda_func = dummy_func,
-        .opencl_func = dummy_func,
+        .cuda_funcs = {dummy_func, NULL},
+        .opencl_funcs = {dummy_func, NULL},
         .model = NULL,
-        .nbuffers = 1
+        .nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 
 int main(int argc, char **argv)
 {
         float foo;
-	starpu_data_handle float_array_handle;
-        int i;
+	starpu_data_handle_t float_array_handle;
+        int i, ret;
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER) == 0)
 	{
 		FPRINTF(stderr, "This application requires a CUDA or OpenCL Worker\n");
 		starpu_shutdown();
-		return 77;
+		return STARPU_TEST_SKIPPED;
 	}
 
         foo = 0.0f;
@@ -71,32 +74,33 @@ int main(int argc, char **argv)
 
 		task_cpu->cl = &cpu_codelet;
 		task_cpu->callback_func = NULL;
-		task_cpu->buffers[0].handle = float_array_handle;
-		task_cpu->buffers[0].mode = STARPU_RW;
+		task_cpu->handles[0] = float_array_handle;
 
 		task_gpu->cl = &gpu_codelet;
 		task_gpu->callback_func = NULL;
-		task_gpu->buffers[0].handle = float_array_handle;
-		task_gpu->buffers[0].mode = STARPU_RW;
+		task_gpu->handles[0] = float_array_handle;
 
 		ret = starpu_task_submit(task_cpu);
-		if (STARPU_UNLIKELY(ret == -ENODEV))
-		{
-			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
-		}
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_submit(task_gpu);
-		if (STARPU_UNLIKELY(ret == -ENODEV))
-		{
-			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
-		}
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
         }
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	starpu_data_unregister(float_array_handle);
         starpu_shutdown();
 
-        return 0;
+        return EXIT_SUCCESS;
+
+enodev:
+	starpu_data_unregister(float_array_handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

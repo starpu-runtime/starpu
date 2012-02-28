@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,25 +56,25 @@ void send_data(unsigned src, unsigned dst)
 #ifdef DO_TRANSFER_GPU_TO_RAM
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost, stream[src]);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 
 	cures = cudaStreamSynchronize(stream[src]);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 
 	cures = cudaThreadSynchronize();
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #endif
 #endif
 
 	/* Tell the other GPU that data is in RAM */
-	pthread_mutex_lock(&mutex_gpu);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex_gpu);
 	data_is_available[src] = 0;
 	data_is_available[dst] = 1;
-	pthread_cond_signal(&cond_gpu);
-	pthread_mutex_unlock(&mutex_gpu);
+	_STARPU_PTHREAD_COND_SIGNAL(&cond_gpu);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_gpu);
 	//fprintf(stderr, "SEND on %d\n", src);
 }
 
@@ -83,27 +83,27 @@ void recv_data(unsigned src, unsigned dst)
 	cudaError_t cures;
 
 	/* Wait for the data to be in RAM */
-	pthread_mutex_lock(&mutex_gpu);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex_gpu);
 	while (!data_is_available[dst])
 	{
-		pthread_cond_wait(&cond_gpu, &mutex_gpu);
+		_STARPU_PTHREAD_COND_WAIT(&cond_gpu, &mutex_gpu);
 	}
-	pthread_mutex_unlock(&mutex_gpu);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_gpu);
 	//fprintf(stderr, "RECV on %d\n", dst);
 
 	/* Upload data */
 #ifdef DO_TRANSFER_RAM_TO_GPU
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice, stream[dst]);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 	cures = cudaThreadSynchronize();
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 
 	cures = cudaThreadSynchronize();
-	assert(!cures);
+	STARPU_ASSERT(!cures);
 #endif
 #endif
 }
@@ -119,42 +119,44 @@ void *launch_gpu_thread(void *arg)
 	cudaMalloc(&gpu_buffer[id], buffer_size);
 	cudaStreamCreate(&stream[id]);
 
-	pthread_mutex_lock(&mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	thread_is_initialized[id] = 1;
-	pthread_cond_signal(&cond);
+	_STARPU_PTHREAD_COND_SIGNAL(&cond);
 
 	if (id == 0)
 	{
 		cudaError_t cures;
 		cures = cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
-		assert(!cures);
+		STARPU_ASSERT(!cures);
 		cudaThreadSynchronize();
 	}
 
 	nready_gpu++;
 
 	while (!ready)
-		pthread_cond_wait(&cond_go, &mutex);
+		_STARPU_PTHREAD_COND_WAIT(&cond_go, &mutex);
 
-	pthread_mutex_unlock(&mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	unsigned iter;
 	for (iter = 0; iter < niter; iter++)
 	{
-		if (id == 0) {
+		if (id == 0)
+		{
 			send_data(0, 1);
 			recv_data(1, 0);
 		}
-		else {
+		else
+		{
 			recv_data(0, 1);
 			send_data(1, 0);
 		}
 	}
 
-	pthread_mutex_lock(&mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nready_gpu--;
-	pthread_cond_signal(&cond_go);
-	pthread_mutex_unlock(&mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&cond_go);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	return NULL;
 }
@@ -162,9 +164,9 @@ void *launch_gpu_thread(void *arg)
 int main(int argc, char **argv)
 {
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
-	pthread_cond_init(&cond_go, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&cond, NULL);
+	_STARPU_PTHREAD_COND_INIT(&cond_go, NULL);
 
 	unsigned id;
 	for (id = 0; id < 2; id++)
@@ -172,12 +174,12 @@ int main(int argc, char **argv)
 		thread_is_initialized[id] = 0;
 		pthread_create(&thread[0], NULL, launch_gpu_thread, &id);
 
-		pthread_mutex_lock(&mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		while (!thread_is_initialized[id])
 		{
-			 pthread_cond_wait(&cond, &mutex);
+			 _STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 		}
-		pthread_mutex_unlock(&mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 
 	struct timeval start;
@@ -186,18 +188,18 @@ int main(int argc, char **argv)
 	/* Start the ping pong */
 	gettimeofday(&start, NULL);
 
-	pthread_mutex_lock(&mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	ready = 1;
-	pthread_cond_broadcast(&cond_go);
-	pthread_mutex_unlock(&mutex);
+	_STARPU_PTHREAD_COND_BROADCAST(&cond_go);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	/* Wait for the end of the ping pong */
-	pthread_mutex_lock(&mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (nready_gpu > 0)
 	{
-		pthread_cond_wait(&cond_go, &mutex);
+		_STARPU_PTHREAD_COND_WAIT(&cond_go, &mutex);
 	}
-	pthread_mutex_unlock(&mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	gettimeofday(&end, NULL);
 	
@@ -207,5 +209,5 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Took %.0f ms for %d iterations\n", timing/1000, niter);
 	fprintf(stderr, "Latency: %.2f us\n", timing/(2*niter));
 
-	return 0;
+	return EXIT_SUCCESS;
 }

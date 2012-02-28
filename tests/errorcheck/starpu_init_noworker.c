@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,12 +21,30 @@
 #include <starpu.h>
 #include <stdlib.h>
 
+#if !defined(STARPU_HAVE_UNSETENV)
+#warning unsetenv is not defined. Skipping test
+#include "../helper.h"
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+static void unset_env_variables(void)
+{
+	(void) unsetenv("STARPU_NCPUS");
+	(void) unsetenv("STARPU_NCUDA");
+	(void) unsetenv("STARPU_NNOPENCL");
+}
+
 int main(int argc, char **argv)
 {
 	int ret;	
 
+	unset_env_variables();
+
 	/* We try to initialize StarPU without any worker */
-	struct starpu_conf conf = {
+	struct starpu_conf conf =
+	{
 		.sched_policy_name = NULL, /* default */
 		.ncpus = 0,
 		.ncuda = 0,
@@ -41,7 +59,8 @@ int main(int argc, char **argv)
 	/* starpu_init should return -ENODEV */
 	ret = starpu_init(&conf);
 	if (ret != -ENODEV)
-		return -1;
+		return EXIT_FAILURE;
 
-	return 0;
+	return EXIT_SUCCESS;
 }
+#endif

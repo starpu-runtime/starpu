@@ -1,3 +1,19 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2010  Université de Bordeaux 1
+# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
 max <- 30
 
 sizelist <- seq(64, max*1024, 64);
@@ -45,7 +61,8 @@ handle_grain <- function(grain)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size(size, grain);
 
 		if (!is.na(list))
@@ -65,7 +82,8 @@ handle_grain_mean <- function(grain)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, grain));
 
 		if (!is.na(list))
@@ -123,7 +141,8 @@ handle_grain_nm <- function(grain)
 	gflopstab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- handle_size_nm(size, grain);
 
 		if (!is.na(list))
@@ -143,7 +162,8 @@ handle_grain_mean_nm <- function(grain)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size_nm(size, grain));
 
 		if (!is.na(list))
@@ -164,7 +184,8 @@ handle_grain_mean <- function(grain)
 	meantab <- NULL;
 	sizetab <- NULL;
 
-	for (size in sizelist) {
+	for (size in sizelist)
+	{
 		list <- mean(handle_size(size, grain));
 
 		if (!is.na(list))
@@ -207,7 +228,8 @@ display_grain <- function()
 
 	colarray <- c("magenta", "blue", "peru", "green3", "navy", "red", "green2", "black", "orange");
 
-	for (grain in grainlist) {
+	for (grain in grainlist)
+	{
 		trace_grain(grain, colarray[i+1], -1);
 		i <- i + 1;
 	}

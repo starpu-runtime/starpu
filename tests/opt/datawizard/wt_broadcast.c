@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <starpu.h>
+#include "../../helper.h"
 
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
@@ -23,9 +25,8 @@
 #include <starpu_opencl.h>
 #endif
 
-
 static unsigned var = 0;
-static starpu_data_handle handle;
+static starpu_data_handle_t handle;
 /*
  *	Increment codelet
  */
@@ -34,6 +35,8 @@ static starpu_data_handle handle;
 /* dummy OpenCL implementation */
 static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_token;
 
@@ -42,7 +45,7 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
-	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL); 
+	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 }
 #endif
 
@@ -50,6 +53,8 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 #ifdef STARPU_USE_CUDA
 static void increment_cuda_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned host_token;
 
@@ -66,42 +71,39 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 
 static void increment_cpu_kernel(void *descr[], void *arg)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*tokenptr = *tokenptr + 1;
 }
 
-static starpu_codelet increment_cl = {
+static struct starpu_codelet increment_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = increment_cuda_kernel,
+	.cuda_funcs = {increment_cuda_kernel, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = increment_opencl_kernel,
+	.opencl_funcs = {increment_opencl_kernel, NULL},
 #endif
-	.cpu_func = increment_cpu_kernel,
-	.nbuffers = 1
+	.cpu_funcs = {increment_cpu_kernel, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
 };
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
 
-	unsigned nworkers = starpu_worker_get_count();
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)&var, sizeof(unsigned));
 
 	/* Create a mask with all the memory nodes, so that we can ask StarPU
 	 * to broadcast the handle whenever it is modified. */
-	uint32_t wt_mask = 0;
-
-	int id;
-	for (id = 0; id < nworkers; id++)
-	{
-		unsigned node = starpu_worker_get_memory_node(id);
-		wt_mask |= (1<<node);
-	}
-
-	starpu_data_set_wt_mask(handle, wt_mask);
+	starpu_data_set_wt_mask(handle, ~0);
 
 	unsigned ntasks = 1024;
 	unsigned nloops = 16;
@@ -114,22 +116,32 @@ int main(int argc, char **argv)
 		for (t = 0; t < ntasks; t++)
 		{
 			struct starpu_task *task = starpu_task_create();
-	
-			task->cl = &increment_cl;
-	
-			task->buffers[0].mode = STARPU_RW;
-			task->buffers[0].handle = handle;
-	
-			int ret = starpu_task_submit(task);
-			STARPU_ASSERT(!ret);
 
+			task->cl = &increment_cl;
+			task->handles[0] = handle;
+
+			int ret = starpu_task_submit(task);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
 	starpu_data_unregister(handle);
+
+	if (var != ntasks*nloops)
+		fprintf(stderr, "VAR is %d should be %d\n", var, ntasks);
+
 	STARPU_ASSERT(var == ntasks*nloops);
-	
+
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
+
+enodev:
+	starpu_data_unregister(handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

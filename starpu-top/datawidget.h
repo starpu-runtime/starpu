@@ -31,7 +31,7 @@ class WidgetWindowsManager;
 class QwtPlotCurve;
 class QwtPlot;
 
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 #include "abstractwidgetwindow.h"
 
 class DataWidget : public AbstractWidgetWindow

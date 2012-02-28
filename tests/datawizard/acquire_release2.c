@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,9 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <starpu.h>
+#include "../helper.h"
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#warning memory leak
 
 static unsigned ntasks = 40000;
 
@@ -26,30 +28,33 @@ extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 
 void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	(*tokenptr)++;
 }
 
-static starpu_codelet increment_cl = {
+static struct starpu_codelet increment_cl =
+{
+	.modes = { STARPU_RW },
         .where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = increment_cpu,
+	.cpu_funcs = {increment_cpu, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = increment_cuda,
+	.cuda_funcs = {increment_cuda, NULL},
 #endif
 	.nbuffers = 1
 };
 
 unsigned token = 0;
-starpu_data_handle token_handle;
+starpu_data_handle_t token_handle;
 
-void increment_token(int synchronous)
+int increment_token(int synchronous)
 {
 	struct starpu_task *task = starpu_task_create();
         task->synchronous = synchronous;
 	task->cl = &increment_cl;
-	task->buffers[0].handle = token_handle;
-	task->buffers[0].mode = STARPU_RW;
-	starpu_task_submit(task);
+	task->handles[0] = token_handle;
+	return starpu_task_submit(task);
 }
 
 void callback(void *arg __attribute__ ((unused)))
@@ -62,8 +67,12 @@ void callback(void *arg __attribute__ ((unused)))
 int main(int argc, char **argv)
 {
 	int i;
+	int ret;
 
-        starpu_init(NULL);
+        ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
         FPRINTF(stderr, "Token: %u\n", token);
@@ -74,16 +83,33 @@ int main(int argc, char **argv)
 
 	for(i=0; i<ntasks; i++)
 	{
-                starpu_data_acquire_cb(token_handle, STARPU_W, callback, NULL);  // recv
-                increment_token(0);
+                ret = starpu_data_acquire_cb(token_handle, STARPU_W, callback, NULL);  // recv
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
+
+                ret = increment_token(0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
                 starpu_data_acquire_cb(token_handle, STARPU_R, callback, NULL);  // send
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 	}
 
 	starpu_data_unregister(token_handle);
-        FPRINTF(stderr, "Token: %u\n", token);
-        assert(token==ntasks);
 
 	starpu_shutdown();
 
-	return 0;
+        FPRINTF(stderr, "Token: %u\n", token);
+	if (token == ntasks)
+		ret = EXIT_SUCCESS;
+	else
+		ret = EXIT_FAILURE;
+	STARPU_RETURN(ret);
+
+enodev:
+	starpu_data_unregister(token_handle);
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

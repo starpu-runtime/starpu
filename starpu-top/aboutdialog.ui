@@ -112,7 +112,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/starputop.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/starpu_top.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>

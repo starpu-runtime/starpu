@@ -469,7 +469,7 @@ void GanttWidget::drawFromTime(QPainter *painter, qlonglong timestamp)
         borneBefore = 0;
     }
     _tasks = _taskManager->tasks(borneBefore, _timePresent);
-    foreach(StarputopTask t, _tasks)
+    foreach(starpu_top_task t, _tasks)
     {
 	drawWorkPU(painter,t);
     }
@@ -526,7 +526,7 @@ void GanttWidget::drawIdlePU(QPainter *painter)
 }
 
 /* draw forecasted working time for each processor */
-void GanttWidget::drawPrevWorkPU(QPainter *painter, StarputopTask t)
+void GanttWidget::drawPrevWorkPU(QPainter *painter, starpu_top_task t)
 {
     int starty = HEIGHT_TIME_AXIS + MARGIN;
     int widthAllowed = size().width() - WIDTH_PROGRAM - MARGIN
@@ -623,7 +623,7 @@ void GanttWidget::drawPrevWorkPU(QPainter *painter, StarputopTask t)
  we haven't to test if they are displayable or not. We just have to calculate
  which part of time is displayable.
  The task t has its begin or its end between time Before and timePresent */
-void GanttWidget::drawWorkPU(QPainter *painter, StarputopTask t)
+void GanttWidget::drawWorkPU(QPainter *painter, starpu_top_task t)
 {
     int starty = HEIGHT_TIME_AXIS + MARGIN;
     int widthAllowed = size().width() - WIDTH_PROGRAM - MARGIN
@@ -783,12 +783,12 @@ void GanttWidget::countPUs()
     _numPUs = length;
     delete _PUsByDevice;
     delete _PUsByPos;
-    _PUsByDevice = new StarputopDevice[length];
-    _PUsByPos = new StarputopDevice[length];
+    _PUsByDevice = new starpu_top_device[length];
+    _PUsByPos = new starpu_top_device[length];
     int pos = 0;
 
     /* CPUs */
-    foreach(StarputopDevice sD,*_mainWindow->serverDevices())
+    foreach(starpu_top_device sD,*_mainWindow->serverDevices())
     {
 	if(sD.type == 0)
 	{
@@ -806,7 +806,7 @@ void GanttWidget::countPUs()
     }
 
     /* GPUs */
-    foreach (StarputopDevice sD , *_mainWindow->serverDevices())
+    foreach (starpu_top_device sD , *_mainWindow->serverDevices())
     {
 	if(sD.type == 1 || sD.type == 2)
 	{
@@ -855,7 +855,7 @@ void GanttWidget::paint(QPainter *painter, QPaintEvent *event)
             }
 
             _tasks = _taskManager->tasks(borneBefore, _timePresent);
-            foreach (StarputopTask t, _tasks)
+            foreach (starpu_top_task t, _tasks)
             {
                 drawWorkPU(painter,t);
             }
@@ -863,7 +863,7 @@ void GanttWidget::paint(QPainter *painter, QPaintEvent *event)
             /* Future past */
             qlonglong borneAfter = _timePresent + _timeAfter;
             _tasks = _taskManager->prevTasks(_timePresent, borneAfter);
-            foreach		(StarputopTask t, _tasks)
+            foreach		(starpu_top_task t, _tasks)
             {
                 drawPrevWorkPU(painter,t);
             }

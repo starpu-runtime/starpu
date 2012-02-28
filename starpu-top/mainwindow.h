@@ -49,7 +49,7 @@ class TaskManager;
 #include <QAbstractSocket>
 #include <QTime>
 #include <QSpinBox>
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 
 namespace Ui
 {
@@ -79,7 +79,7 @@ public:
     const QList<ParamDescription*> *paramDescriptions() const;
     DataDescription *dataDescriptionFromId(int dataId);
     ParamDescription *paramDescriptionFromId(int interactiveId);
-    const QList<StarputopDevice> *serverDevices() const;
+    const QList<starpu_top_device> *serverDevices() const;
     // Get different widgets metadata
     const QHash<DataWidgetType, QString> *dataWidgetNames() const;
     const QHash<DataType, QSet<DataWidgetType> >
@@ -166,7 +166,7 @@ private:
     // Different descriptions
     QList<DataDescription*> *_dataDescriptions;
     QList<ParamDescription*> *_paramDescriptions;
-    QList<StarputopDevice> *_serverDevices;
+    QList<starpu_top_device> *_serverDevices;
     int _nbDataWidgets;
     int _nbDataAggregatorWidgets;
     int _nbInteractiveWidgets;
@@ -233,7 +233,7 @@ public slots:
     void initClient(QString serverID,
                     QList<DataDescription*> *dataDescriptions,
                     QList<ParamDescription*> *paramDescriptions,
-                    QList<StarputopDevice> *serverDevices);
+                    QList<starpu_top_device> *serverDevices);
     // Connection events handlers
     void connectionSucceeded();
     void connectionAborted(QString message);

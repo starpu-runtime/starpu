@@ -15,11 +15,10 @@
  */
 
 #include <starpu.h>
-
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#include "../helper.h"
 
 unsigned token = 0;
-starpu_data_handle token_handle;
+starpu_data_handle_t token_handle;
 
 void callback(void *arg __attribute__ ((unused)))
 {
@@ -29,7 +28,11 @@ void callback(void *arg __attribute__ ((unused)))
 
 int main(int argc, char **argv)
 {
-        starpu_init(NULL);
+	int ret;
+
+        ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
         starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
@@ -41,5 +44,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

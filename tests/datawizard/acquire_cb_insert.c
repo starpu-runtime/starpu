@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,30 +14,38 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <starpu.h>
+#include "../helper.h"
+
+#warning memory leak
 
 #define N 16
 #define M 4
 #define X 2
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
-
 void which_index_cpu(void *descr[], void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* A real case would actually compute something */
 	*x0 = X;
 }
 
-starpu_codelet which_index = {
+struct starpu_codelet which_index =
+{
 	.where = STARPU_CPU,
-	.cpu_func = which_index_cpu,
-        .nbuffers = 1
+	.cpu_funcs = {which_index_cpu, NULL},
+        .nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 void work_cpu(void *descr[], void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	int i, n = STARPU_VECTOR_GET_NX(descr[0]);
 	float *x0 = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -45,16 +53,19 @@ void work_cpu(void *descr[], void *_args)
 		x0[i] = i + 1;
 }
 
-starpu_codelet work = {
+struct starpu_codelet work =
+{
 	.where = STARPU_CPU,
-	.cpu_func = work_cpu,
-        .nbuffers = 1
+	.cpu_funcs = {work_cpu, NULL},
+        .nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 static int x;
-static starpu_data_handle x_handle, f_handle;
+static starpu_data_handle_t x_handle, f_handle;
 
-void callback(void *arg) {
+void callback(void *arg)
+{
 	starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);
 	starpu_data_release(x_handle);
 }
@@ -64,18 +75,22 @@ int main(int argc, char **argv)
         int i, ret;
 	float *f;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare x */
 	starpu_variable_data_register(&x_handle, 0, (uintptr_t)&x, sizeof(x));
 
 	/* Allocate and Declare f */
-	starpu_malloc((void**)&f, N * sizeof(*f));
+	ret = starpu_malloc((void**)&f, N * sizeof(*f));
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 	memset(f, 0, N * sizeof(*f));
 	starpu_vector_data_register(&f_handle, 0, (uintptr_t)f, N, sizeof(*f));
 
 	/* Partition f */
-	struct starpu_data_filter filter = {
+	struct starpu_data_filter filter =
+	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = M,
 	};
@@ -84,6 +99,7 @@ int main(int argc, char **argv)
 	/* Compute which portion we will work on */
         ret = starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
 	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	/* And submit the corresponding task */
 #ifdef __GCC__
@@ -96,30 +112,32 @@ int main(int argc, char **argv)
 	starpu_data_acquire_cb(x_handle, STARPU_W, callback, NULL);
 #endif
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	starpu_data_unpartition(f_handle, 0);
 	starpu_data_unregister(f_handle);
 	starpu_data_unregister(x_handle);
 
         FPRINTF(stderr, "VALUES: %d", x);
-
-        for(i=0 ; i<N ; i++) {
+        for(i=0 ; i<N ; i++)
+	{
 		FPRINTF(stderr, " %f", f[i]);
         }
-
-	STARPU_ASSERT(f[X*(N/M)] == 1);
-	STARPU_ASSERT(f[X*(N/M)+1] == 2);
-	STARPU_ASSERT(f[X*(N/M)+2] == 3);
-	STARPU_ASSERT(f[X*(N/M)+3] == 4);
-
 	FPRINTF(stderr, "\n");
 
+	ret = EXIT_SUCCESS;
+	if (f[X*(N/M)] != 1 || f[X*(N/M)+1] != 2 ||
+	    f[X*(N/M)+2] != 3 || f[X*(N/M)+3] != 4)
+		ret = EXIT_FAILURE;
+
+	starpu_free(f);
 	starpu_shutdown();
-	return 0;
+	STARPU_RETURN(ret);
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
-	return 77;
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

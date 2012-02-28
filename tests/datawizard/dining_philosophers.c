@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,28 +16,29 @@
  */
 
 #include <starpu.h>
+#include "../helper.h"
 
 /* number of philosophers */
 #define N	16
 
-starpu_data_handle fork_handles[N];
+starpu_data_handle_t fork_handles[N];
 unsigned forks[N];
-
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static void eat_kernel(void *descr[], void *arg)
 {
 }
 
-static starpu_codelet eating_cl = {
+static struct starpu_codelet eating_cl =
+{
+	.modes = { STARPU_RW, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cuda_func = eat_kernel,
-	.cpu_func = eat_kernel,
-        .opencl_func = eat_kernel,
+	.cuda_funcs = {eat_kernel, NULL},
+	.cpu_funcs = {eat_kernel, NULL},
+        .opencl_funcs = {eat_kernel, NULL},
 	.nbuffers = 2
 };
 
-void submit_one_task(unsigned p)
+int submit_one_task(unsigned p)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -46,18 +47,20 @@ void submit_one_task(unsigned p)
 	unsigned left = p;
 	unsigned right = (p+1)%N;
 
-	task->buffers[0].handle = fork_handles[left];
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = fork_handles[right];
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = fork_handles[left];
+	task->handles[1] = fork_handles[right];
 
 	int ret = starpu_task_submit(task);
-	STARPU_ASSERT(!ret);
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize the forks */
 	unsigned f;
@@ -75,10 +78,13 @@ int main(int argc, char **argv)
 	{
 		/* select one philosopher randomly */
 		unsigned philosopher = rand() % N;
-		submit_one_task(philosopher);
+		ret = submit_one_task(philosopher);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	FPRINTF(stderr, "waiting done\n");
 	for (f = 0; f < N; f++)
@@ -88,5 +94,16 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
+
+enodev:
+	for (f = 0; f < N; f++)
+	{
+		starpu_data_unregister(fork_handles[f]);
+	}
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

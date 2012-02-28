@@ -28,7 +28,7 @@ SOURCES += $$SRCDIR/main.cpp \
     $$SRCDIR/aboutdialog.cpp
 HEADERS += $$SRCDIR/mainwindow.h \
 #STARPU-TOP
-    $$SRCDIR/starputoptypes.h \
+    $$SRCDIR/starpu_top_types.h \
     $$SRCDIR/widgetwindowsmanager.h \
     $$SRCDIR/configurationmanager.h \
     $$SRCDIR/communicationthread.h \

@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "configurationmanager.h"
 #include "mainwindow.h"
 #include "communicationmanager.h"
-#include "starputoptypes.h"
+#include "starpu_top_types.h"
 
 const int MAX_CONNECTION_ATTEMPTS = 10;
 
@@ -103,12 +103,12 @@ void CommunicationThread::createNewCommunicationManager(void)
                      SIGNAL(serverInitCompleted(QString,
                                                 QList<DataDescription*>*,
                                                 QList<ParamDescription*>*,
-                                                QList<StarputopDevice>*)),
+                                                QList<Starpu_TopDevice>*)),
                      _mainWindow, SLOT(initClient(
                              QString,
                              QList<DataDescription*>*,
                              QList<ParamDescription*>*,
-                             QList<StarputopDevice>*)));
+                             QList<Starpu_TopDevice>*)));
     // Output data
     QObject::connect(_mainWindow, SIGNAL(clientLaunched()),
                      _communicationManager, SLOT(sendGoMessage()));

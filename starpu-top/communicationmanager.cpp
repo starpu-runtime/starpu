@@ -70,7 +70,7 @@ void CommunicationManager::initializeSession()
 {
     _dataDescriptions = new QList<DataDescription*> ();
     _paramDescriptions = new QList<ParamDescription*> ();
-    _serverDevices = new QList<StarputopDevice> ;
+    _serverDevices = new QList<starpu_top_device> ;
 
     _serverInfoMsgCount = 0;
     _state = COM_STATE_INIT;
@@ -665,7 +665,7 @@ void CommunicationManager::parseInitDevMessage(QString messageString)
         Q_ASSERT_X(ok == true, "CommunicationManager::parseInitDevMessage()",
                    "Bogus message received in INIT DEV");
 
-        StarputopDeviceType deviceType;
+        starpu_top_device_type deviceType;
 
         Q_ASSERT_X(
                 deviceTypeString.compare(
@@ -701,7 +701,7 @@ void CommunicationManager::parseInitDevMessage(QString messageString)
             deviceType = SERVERDEVICE_GORDON;
         }
 
-        StarputopDevice device;
+        starpu_top_device device;
         device.id = deviceId;
         device.type = deviceType;
         device.name = deviceNameString;

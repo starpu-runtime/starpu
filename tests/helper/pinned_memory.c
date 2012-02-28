@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <starpu.h>
+#include "../helper.h"
 
 #define NITER	10
 #define SIZE	(4*1024*1024*sizeof(float))
@@ -25,16 +26,21 @@ static float *data = NULL;
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned iter;
 	for (iter = 0; iter < NITER; iter++)
 	{
-		starpu_malloc((void **)&data, SIZE);
+		ret = starpu_malloc((void **)&data, SIZE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_free(data);
 	}
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

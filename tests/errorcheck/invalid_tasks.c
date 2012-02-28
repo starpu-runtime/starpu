@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,15 +16,24 @@
  */
 
 #include <starpu.h>
+#include "../helper.h"
+
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
+#warning unsetenv is not defined or no cpu are available. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 
 static void dummy_func(void *descr[], void *arg)
 {
 }
 
-static starpu_codelet cuda_only_cl = 
+static struct starpu_codelet cuda_only_cl =
 {
 	.where = STARPU_CUDA,
-	.cuda_func = dummy_func,
+	.cuda_funcs = {dummy_func, NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -34,11 +43,16 @@ int main(int argc, char **argv)
 	int ret;
 
 	/* We force StarPU to use 1 CPU only */
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NCPUS");
 	struct starpu_conf conf;
 	memset(&conf, 0, sizeof(conf));
 	conf.ncpus = 1;
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cuda_only_cl;
@@ -46,6 +60,9 @@ int main(int argc, char **argv)
 	/* Only a CUDA device could execute that task ! */
 	ret = starpu_task_submit(task);
 	STARPU_ASSERT(ret == -ENODEV);
+
+	task->destroy = 0;
+	starpu_task_destroy(task);
 
 	struct starpu_task *task_specific = starpu_task_create();
 	task_specific->cl = &cuda_only_cl;
@@ -56,7 +73,11 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(task_specific);
 	STARPU_ASSERT(ret == -ENODEV);
 
+	task_specific->destroy = 0;
+	starpu_task_destroy(task_specific);
+
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 }
+#endif

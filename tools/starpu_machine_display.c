@@ -13,9 +13,11 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-
+#include <config.h>
 #include <stdio.h>
 #include <starpu.h>
+
+#define PROGNAME "starpu_machine_display"
 
 static void display_worker_names(enum starpu_archtype type)
 {
@@ -70,8 +72,46 @@ static void display_all_combined_workers(void)
 		display_combined_worker(nworkers + i);
 }
 
+static void parse_args(int argc, char **argv)
+{
+	if (argc == 1)
+		return;
+
+	if (argc > 2 || /* Argc should be either 1 or 2 */
+	    strncmp(argv[1], "--help", 6) == 0 ||
+	    strncmp(argv[1], "-h", 2) == 0)
+	{
+		(void) fprintf(stderr, "\
+Show the processing units that StarPU can use, and the \
+bandwitdh measured between the memory nodes.                  \n\
+                                                              \n\
+Usage: %s [OPTION]                                            \n\
+                                                              \n\
+Options:                                                      \n\
+	-h, --help       display this help and exit           \n\
+	-v, --version    output version information and exit  \n\
+                                                              \n\
+Report bugs to <" PACKAGE_BUGREPORT ">.",
+PROGNAME);
+	}
+	else if (strncmp(argv[1], "--version", 9) == 0 ||
+		 strncmp(argv[1], "-v", 2) == 0)
+	{
+		(void) fprintf(stderr, "%s %d.%d\n",
+			PROGNAME, STARPU_MAJOR_VERSION, STARPU_MINOR_VERSION);
+	}
+	else
+	{
+		fprintf(stderr, "Unknown arg %s\n", argv[1]);
+	}
+
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char **argv)
 {
+	parse_args(argc, argv);
+
 	starpu_init(NULL);
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
@@ -91,7 +131,7 @@ int main(int argc, char **argv)
 
 	display_all_combined_workers();
 
-	starpu_print_bus_bandwidth(stdout);
+	starpu_bus_print_bandwidth(stdout);
 
 	starpu_shutdown();
 

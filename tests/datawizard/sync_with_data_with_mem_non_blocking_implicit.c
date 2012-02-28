@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,49 +21,51 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../helper.h"
 
-#define NBUFFERS	64
-#define NITER		128
-#define VECTORSIZE	1024
+#warning memory leak
 
-float *buffer[NBUFFERS];
+#define NBUFFERS_DEF	64
+#define NITER_DEF	128
+#define VECTORSIZE_DEF	1024
 
-starpu_data_handle v_handle[NBUFFERS];
+static int nbuffers = NBUFFERS_DEF;
+static int niter = NITER_DEF;
+static int vectorsize = VECTORSIZE_DEF;
+
+float *buffer[NBUFFERS_DEF];
+
+starpu_data_handle_t v_handle[NBUFFERS_DEF];
 
 static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
-static starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = dummy_codelet,
+	.cpu_funcs = {dummy_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = dummy_codelet,
+	.cuda_funcs = {dummy_codelet, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_func = dummy_codelet,
+	.opencl_funcs = {dummy_codelet, NULL},
 #endif
 	.nbuffers = 1
 };
 
-void use_handle(starpu_data_handle handle)
+int use_handle(starpu_data_handle_t handle)
 {
 	int ret;
 	struct starpu_task *task;
 
 	task = starpu_task_create();
 		task->cl = &cl;
-		task->buffers[0].handle = handle;
-		task->buffers[0].mode = STARPU_RW;
-		task->detach = 0;
+		task->handles[0] = handle;
 
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-	{
-		/* No one can execute such a task, but that's not a failure
-		 * of the test either. */
-		exit(0);
-	}
+	return ret;
 }
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -72,70 +74,95 @@ static unsigned n_synced_buffers;
 
 void callback_sync_data(void *arg __attribute__ ((unused)))
 {
-	pthread_mutex_lock(&mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	n_synced_buffers++;
 
-	if (n_synced_buffers == NBUFFERS)
-		pthread_cond_signal(&cond);
+	if (n_synced_buffers == nbuffers)
+		_STARPU_PTHREAD_COND_SIGNAL(&cond);
 
-	pthread_mutex_unlock(&mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+#ifdef STARPU_SLOW_MACHINE
+	nbuffers /= 4;
+	niter /= 4;
+	vectorsize /= 8;
+#endif
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Allocate all buffers and register them to StarPU */
 	unsigned b;
-	for (b = 0; b < NBUFFERS; b++)
+	for (b = 0; b < nbuffers; b++)
 	{
-		starpu_malloc((void **)&buffer[b], VECTORSIZE);
+		ret = starpu_malloc((void **)&buffer[b], vectorsize);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 		starpu_vector_data_register(&v_handle[b], 0,
-				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
+				(uintptr_t)buffer[b], vectorsize, sizeof(char));
 	}
 
 	unsigned iter;
-	for (iter = 0; iter < NITER; iter++)
+	for (iter = 0; iter < niter; iter++)
 	{
 		/* Use the buffers on the different workers so that it may not
 		 * be in main memory anymore */
-		for (b = 0; b < NBUFFERS; b++)
-			use_handle(v_handle[b]);
-	
-		pthread_mutex_lock(&mutex);
+		for (b = 0; b < nbuffers; b++)
+		{
+			ret = use_handle(v_handle[b]);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		}
+
+		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		n_synced_buffers = 0;
-		pthread_mutex_unlock(&mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 		/* Grab the different pieces of data into main memory */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 		{
-			starpu_data_acquire_cb(v_handle[b], STARPU_RW,
-					callback_sync_data, NULL);
+			ret = starpu_data_acquire_cb(v_handle[b], STARPU_RW,
+						     callback_sync_data, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 		}
 
 		/* Wait for all buffers to be available */
-		pthread_mutex_lock(&mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
-		while (n_synced_buffers != NBUFFERS)
-			pthread_cond_wait(&cond, &mutex);
+		while (n_synced_buffers != nbuffers)
+			_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 
-		pthread_mutex_unlock(&mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 		/* Release them */
-		for (b = 0; b < NBUFFERS; b++)
+		for (b = 0; b < nbuffers; b++)
 			starpu_data_release(v_handle[b]);
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	/* do some cleanup */
-	for (b = 0; b < NBUFFERS; b++) {
+	for (b = 0; b < nbuffers; b++)
+	{
 		starpu_data_unregister(v_handle[b]);
 		starpu_free(buffer[b]);
 	}
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

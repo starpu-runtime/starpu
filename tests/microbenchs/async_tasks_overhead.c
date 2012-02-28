@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,7 @@
 
 #include <starpu.h>
 #include <starpu_profiling.h>
+#include "../helper.h"
 
 static unsigned ntasks = 65536;
 
@@ -35,12 +36,12 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet = 
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
-	.cpu_func = dummy_func,
-	.cuda_func = dummy_func,
-        .opencl_func = dummy_func,
+	.cpu_funcs = {dummy_func, NULL},
+	.cuda_funcs = {dummy_func, NULL},
+        .opencl_funcs = {dummy_func, NULL},
 #ifdef STARPU_USE_GORDON
 	.gordon_func = 0, /* this will be defined later */
 #endif
@@ -75,7 +76,8 @@ static void init_gordon_kernel(void)
 //	STARPU_ASSERT(!ret);
 //}
 
-static struct starpu_conf conf = {
+static struct starpu_conf conf =
+{
 	.sched_policy_name = NULL,
 	.ncpus = -1,
 	.ncuda = -1,
@@ -97,7 +99,8 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:p:h")) != -1)
-	switch(c) {
+	switch(c)
+	{
 		case 'i':
 			ntasks = atoi(optarg);
 			break;
@@ -112,6 +115,7 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int ret;
 	unsigned i;
 	double timing;
 	struct timeval start;
@@ -119,7 +123,9 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	init_gordon_kernel();
 
@@ -143,10 +149,12 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 	{
 		int ret = starpu_task_submit(tasks[i]);
-		STARPU_ASSERT(!ret);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	gettimeofday(&end, NULL);
 
@@ -160,6 +168,7 @@ int main(int argc, char **argv)
 		double length = starpu_timing_timespec_delay_us(&info->submit_time, &info->end_time);
 		double push_duration = starpu_timing_timespec_delay_us(&info->push_start_time, &info->push_end_time);
 		double pop_duration = starpu_timing_timespec_delay_us(&info->pop_start_time, &info->pop_end_time);
+		starpu_task_destroy(tasks[i]);
 		cumulated += (length - queued);
 		cumulated_push += push_duration;
 		cumulated_pop += pop_duration;
@@ -177,7 +186,8 @@ int main(int argc, char **argv)
                 char *output_dir = getenv("STARPU_BENCH_DIR");
                 char *bench_id = getenv("STARPU_BENCH_ID");
 
-                if (output_dir && bench_id) {
+                if (output_dir && bench_id)
+		{
                         char file[1024];
                         FILE *f;
 
@@ -196,5 +206,12 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 	free(tasks);
 
-	return 0;
+	return EXIT_SUCCESS;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }

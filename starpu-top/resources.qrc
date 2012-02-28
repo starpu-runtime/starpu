@@ -13,7 +13,7 @@
         <file>images/add.png</file>
         <file>images/remove.png</file>
         <file>images/widget.png</file>
-        <file>images/starputop.png</file>
+        <file>images/starpu_top.png</file>
         <file>images/windows.png</file>
         <file>images/lock.png</file>
     </qresource>

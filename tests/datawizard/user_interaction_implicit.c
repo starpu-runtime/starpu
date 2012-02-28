@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,14 +21,16 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../helper.h"
 
 #define NBUFFERS	16
 #define NITER		128
 
-struct data {
+struct data
+{
 	unsigned index;
 	unsigned val;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 };
 
 struct data buffers[NBUFFERS];
@@ -44,7 +46,11 @@ void callback_sync_data(void *arg)
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned b;
 	for (b = 0; b < NBUFFERS; b++)
@@ -57,11 +63,13 @@ int main(int argc, char **argv)
 	for (iter = 0; iter < NITER; iter++)
 	for (b = 0; b < NBUFFERS; b++)
 	{
-		starpu_data_acquire_cb(buffers[b].handle, STARPU_RW,
-							callback_sync_data, &buffers[b]);
+		ret = starpu_data_acquire_cb(buffers[b].handle, STARPU_RW,
+					     callback_sync_data, &buffers[b]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 	}
 
-	starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	/* do some cleanup */
 	for (b = 0; b < NBUFFERS; b++)
@@ -78,5 +86,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,13 +17,17 @@
 SUBDIRS =
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
+LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
 
 bin_PROGRAMS =
 dist_bin_SCRIPTS =
 
 dist_pkgdata_DATA = gdbinit
+
+EXTRA_DIST =					\
+  dev/rename.sed				\
+  dev/rename.sh
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
@@ -47,4 +51,32 @@ bin_PROGRAMS += \
 noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=	\
-	starpu_top
+	starpu_workers_activity
+
+
+if STARPU_HAVE_HELP2MAN
+starpu_calibrate_bus.1: starpu_calibrate_bus$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./starpu_calibrate_bus$(EXEEXT)
+starpu_machine_display.1: starpu_machine_display$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./starpu_machine_display$(EXEEXT)
+starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./starpu_perfmodel_display$(EXEEXT)
+starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./starpu_perfmodel_plot$(EXEEXT)
+starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
+	chmod +x starpu_workers_activity$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./starpu_workers_activity$(EXEEXT)
+
+clean-local:
+	$(RM) starpu_calibrate_bus.1 starpu_machine_display.1 starpu_perfmodel_display.1 starpu_perfmodel_plot.1 starpu_workers_activity.1
+
+dist_man1_MANS =\
+	starpu_calibrate_bus.1 \
+	starpu_machine_display.1 \
+	starpu_perfmodel_display.1 \
+	starpu_perfmodel_plot.1	\
+	starpu_workers_activity.1
+endif
+
+showcheck:
+	-cat /dev/null

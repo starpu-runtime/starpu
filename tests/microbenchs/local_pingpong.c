@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <debug/starpu_debug_helpers.h>
+#include "../helper.h"
 
 static size_t vector_size = 1;
 
@@ -30,7 +31,7 @@ static int niter = 1000;
 
 //static unsigned finished = 0;
 
-starpu_data_handle v_handle;
+starpu_data_handle_t v_handle;
 static unsigned *v;
 
 static char worker_0_name[128];
@@ -43,10 +44,15 @@ struct timeval end;
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Create a piece of data */
-	starpu_malloc((void **)&v, vector_size);
+	ret = starpu_malloc((void **)&v, vector_size);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, vector_size, 1);
 
 	/* Find a pair of memory nodes */
@@ -68,7 +74,8 @@ int main(int argc, char **argv)
 					starpu_worker_get_name(w, worker_0_name, 128);
 					found_node_0 = 1;
 				}
-				else {
+				else
+				{
 					memory_node_1 = starpu_worker_get_memory_node(w);
 					starpu_worker_get_name(w, worker_1_name, 128);
 					break;
@@ -98,8 +105,9 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Took %f ms\n", timing/1000);
 	fprintf(stderr, "Avg. transfer time : %f us\n", timing/(2*niter));
 
+	starpu_data_unregister(v_handle);
 	starpu_free(v);
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

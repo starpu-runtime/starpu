@@ -1,9 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011  INRIA
+# Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,20 +16,51 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU],0.9.2, [starpu-bugs@lists.gforge.inria.fr], starpu)
+AC_INIT([StarPU],1.0.0rc2, [starpu-devel@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
+
+dnl Versioning.
+
+STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
+STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
+AC_SUBST([STARPU_MAJOR_VERSION])
+AC_SUBST([STARPU_MINOR_VERSION])
+AC_SUBST([STARPU_EFFECTIVE_VERSION])
+AC_DEFINE_UNQUOTED([STARPU_MAJOR_VERSION], [$STARPU_MAJOR_VERSION],
+  [Major version number of StarPU.])
+AC_DEFINE_UNQUOTED([STARPU_MINOR_VERSION], [$STARPU_MINOR_VERSION],
+  [Major version number of StarPU.])
+
+. "$srcdir/STARPU-VERSION"
+AC_SUBST([LIBSTARPU_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPU_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPU_INTERFACE_AGE])
+AC_SUBST([LIBSTARPUMPI_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPUMPI_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPUMPI_INTERFACE_AGE])
+AC_SUBST([LIBSTARPUFFT_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPUFFT_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPUFFT_INTERFACE_AGE])
+AC_SUBST([LIBSOCL_INTERFACE_CURRENT])
+AC_SUBST([LIBSOCL_INTERFACE_REVISION])
+AC_SUBST([LIBSOCL_INTERFACE_AGE])
+
 AC_CANONICAL_SYSTEM
 
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign silent-rules color-tests])],
+  [AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign silent-rules color-tests parallel-tests])],
   [AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])])
+
+m4_ifdef([AM_SILENT_RULES],
+  [AM_SILENT_RULES(yes)])
 
 AC_PREREQ(2.60)
 
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
@@ -61,13 +92,18 @@ AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
 SIZEOF_VOID_P=$ac_cv_sizeof_void_p
-if test x$SIZEOF_VOID_P = x4; then
-	case "$target" in
-	i386-*darwin*) CFLAGS+=" -march=i686 " ;;
-	esac
-fi
-
-
+case $SIZEOF_VOID_P in
+	4)
+		case "$target" in
+		i386-*darwin*) CFLAGS+=" -march=i686 " ;;
+		esac
+		STARPU_MS_LIB_ARCH=X86
+		;;
+	8)
+		STARPU_MS_LIB_ARCH=X64
+		;;
+esac
+AC_SUBST(STARPU_MS_LIB_ARCH)
 
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
@@ -122,8 +158,14 @@ else
   AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[do {*(result) = ((double)(rand()) / RAND_MAX);} while (0);],[erand48_r equivalent function])
 fi
 
+# Some systems do not define strerror_r
+AC_CHECK_FUNC([strerror_r], [AC_DEFINE([STARPU_HAVE_STRERROR_R], [1], [Define to 1 if the function strerro_r is available.])])
+
+# Some systems do not define unsetenv
+AC_CHECK_FUNC([unsetenv], [AC_DEFINE([STARPU_HAVE_UNSETENV], [1], [Define to 1 if the function unsetenv is available.])])
+
 # Define slow machine
-AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--disable-slow-machine],
+AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--enable-slow-machine],
 				   [Lower default values for the testcases run by make check])],
 				   enable_slow_machine=$enableval, enable_slow_machine=false)
 if  test x$enable_slow_machine = xyes; then
@@ -131,6 +173,8 @@ if  test x$enable_slow_machine = xyes; then
 fi
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
+
+AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
@@ -198,7 +242,7 @@ AM_CONDITIONAL([STARPU_USE_SCHED_CTX_HYPERVISOR], [test "x$build_sched_ctx_hyper
 AC_MSG_CHECKING(maximum number of CPUs)
 AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			[maximum number of CPUs])],
-			maxcpus=$enableval, maxcpus=16)
+			maxcpus=$enableval, maxcpus=64)
 AC_MSG_RESULT($maxcpus)
 AC_DEFINE_UNQUOTED(STARPU_MAXCPUS, [$maxcpus], [Maximum number of CPUs supported])
 
@@ -312,7 +356,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     __cuda_include_dir=$2
     __cuda_lib_dir=$3
 
-    if test "$__cuda_dir" != "no" ; then
+    if test "$__cuda_dir" != "no" -a "$__cuda_dir" != "" ; then
 	AC_MSG_CHECKING(whether CUDA RT is available in $__cuda_dir)
     else
 	AC_MSG_CHECKING(whether CUDA RT is available)
@@ -349,8 +393,8 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
         if test "$have_valid_cuda" = "no" ; then
             if test "$3" = "no" -a "$__cuda_dir" != "no" ; then
                 __cuda_lib_dir="$__cuda_dir/lib64"
+		LDFLAGS="${SAVED_LDFLAGS} -L$__cuda_lib_dir"
 	        STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS} -L$__cuda_lib_dir"
-	        LDFLAGS="${SAVED_LDFLAGS} -L$__cuda_lib_dir"
 	        AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
                 unset ac_cv_lib_cudart_main
             fi
@@ -359,6 +403,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
 
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
+	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
 	# we also check that CUBLAS is available
 	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
         unset ac_cv_lib_cublas_main
@@ -379,7 +424,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     STARPU_CHECK_CUDA($cuda_dir, $cuda_lib_dir)
     if test "$have_valid_cuda" = "no" ; then
-        for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH"; do
+        for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
             STARPU_CHECK_CUDA($f, "no")
             if test "$have_valid_cuda" = "yes" ; then
                 break
@@ -390,7 +435,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CHECK_CUDA_RUNTIME($cuda_dir, $cuda_include_dir, $cuda_lib_dir)
         if test "$have_valid_cuda" = "no" ; then
-            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH"; do
+            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
                 STARPU_CHECK_CUDA_RUNTIME($f, "no", "no")
                 if test "$have_valid_cuda" = "yes" ; then
                     break
@@ -399,8 +444,24 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
         fi
     fi
 
+    # Check cuda is compatible with the C compiler
+    AC_MSG_CHECKING(whether CUDA is working)
+    if test "$have_valid_cuda" = "yes" ; then
+        SAVED_CPPFLAGS="${CPPFLAGS}"
+        CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+		[[#include <cuda.h>]],
+		[[]]
+		),
+	    [have_valid_cuda="yes"],
+	    [have_valid_cuda="no"]
+	])
+        CPPFLAGS="${SAVED_CPPFLAGS}"
+    fi
+    AC_MSG_RESULT($have_valid_cuda)
+
     # in case CUDA was explicitely required, but is not available, this is an error
-    if test x$enable_cuda = xyes -a x$have_valid_cuda = no; then
+    if test x$enable_cuda = xyes -a x$have_valid_cuda = xno; then
 	AC_MSG_ERROR([cannot find CUDA])
     fi
     # now we enable CUDA if and only if a proper setup is available
@@ -609,21 +670,28 @@ AC_ARG_WITH(opencl-lib-dir,
 		enable_opencl=yes
 	], [opencl_lib_dir=no])
 
-if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
-    	STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
-        if test "$have_valid_opencl" = "no" ; then
-            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH" ; do
-                if test -n $f ; then
-    	            STARPU_CHECK_OPENCL($f, "no", "no")
-                    if test "$have_valid_opencl" = "yes" ; then
-                        break
-                    fi
-                fi
-            done
-        fi
+AC_DEFUN([STARPU_LOOK_FOR_OPENCL],
+[
+    	if test "x$has_opencl_being_checked" != "xyes" ; then
+    	    STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
+	    if test "$have_valid_opencl" = "no" ; then
+            	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+		    if test -n $f ; then
+    			STARPU_CHECK_OPENCL($f, "no", "no")
+			if test "$have_valid_opencl" = "yes" ; then
+			    break
+			fi
+		    fi
+		done
+	    fi
+	    has_opencl_being_checked=yes
+	fi
+])
 
+if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
+	STARPU_LOOK_FOR_OPENCL()
 	# in case OpenCL was explicitely required, but is not available, this is an error
-	if test x$enable_opencl = xyes -a x$have_valid_opencl = no; then
+	if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
 	    AC_MSG_ERROR([cannot find OpenCL])
 	fi
 
@@ -684,7 +752,7 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 	# AC_CHECK_FUNC(gordon_init, [gordon], [have_valid_gordon=no])
 
 	# in case Gordon was explicitely required, but is not available, this is an error
-	if test x$enable_gordon = xyes -a x$have_valid_gordon = no; then
+	if test x$enable_gordon = xyes -a x$have_valid_gordon = xno; then
 		AC_MSG_ERROR([cannot find Gordon])
 	fi
 
@@ -727,6 +795,7 @@ AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
+	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
 	CFLAGS="$CFLAGS -O3"
 fi
@@ -741,6 +810,14 @@ if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
 fi
 
+AC_MSG_CHECKING(whether memory status should be displayed)
+AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
+			     [display memory status at the end of execution])],
+			     enable_memory_status=$enableval, enable_memory_status=no)
+AC_MSG_RESULT($enable_memory_status)
+if test x$enable_memory_status = xyes; then
+        AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
+fi
 
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
@@ -927,7 +1004,7 @@ AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of worker
 AC_MSG_CHECKING(maximum number of implementations)
 AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
 		[maximum number of implementations])],
-		maximplementations=$enableval, maximplementations=1)
+		maximplementations=$enableval, maximplementations=4)
 AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
@@ -1031,43 +1108,61 @@ fi
 #                                                                             #
 ###############################################################################
 
-build_starpu_top=no
-AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
-if test x$QMAKE != xnot-found; then
-	QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
-	if test $QMAKE_VERSION -ge 2 ; then
-		PKG_CHECK_EXISTS([QtGui QtNetwork QtOpenGL QtSql], [
-			QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
-			QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
-			if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
-				build_starpu_top=yes
-			fi
-			QWT_PRI=embed
-			AC_ARG_WITH(qwt-include-dir,
-				[AS_HELP_STRING([--with-qwt-include-dir=<path>],
-				[specify installed libqwt include path])],
-				[
-					STARPU_QWT_CPPFLAGS="-I$withval"
-					AC_SUBST(STARPU_QWT_CPPFLAGS)
-					QWT_PRI=system
-				])
-			AC_ARG_WITH(qwt-lib-dir,
-				[AS_HELP_STRING([--with-qwt-lib-dir=<path>],
-				[specify installed libqwt library path])],
-				[
-					STARPU_QWT_LDFLAGS="-L$withval"
-					QWT_PRI=system
-				])
-			AC_ARG_WITH(qwt-lib,
-				[AS_HELP_STRING([--with-qwt-lib=<path>],
-				[specify installed libqwt library name])],
-				[
-					STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
-					QWT_PRI=system
-				])
-			AC_SUBST(QWT_PRI)
-		])
+AC_ARG_ENABLE([starpu-top],
+  [AS_HELP_STRING([--disable-starpu-top],
+    [build StarPU-Top])],
+  [enable_starpu_top="no"],
+  [enable_starpu_top="maybe"])
+
+# Check whether StarPU-Top can be built
+AC_MSG_CHECKING(for StarPU-Top)
+
+if test "x$enable_starpu_top" = "xmaybe" ; then
+	can_build_starpu_top=no
+	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
+	if test x$QMAKE != xnot-found; then
+		QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
+		if test $QMAKE_VERSION -ge 2 ; then
+			PKG_CHECK_EXISTS([QtGui QtNetwork QtOpenGL QtSql], [
+				QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
+				QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
+				if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
+					can_build_starpu_top=yes
+				fi
+				QWT_PRI=embed
+				AC_ARG_WITH(qwt-include-dir,
+					[AS_HELP_STRING([--with-qwt-include-dir=<path>],
+					[specify installed libqwt include path])],
+					[
+						STARPU_QWT_INCLUDE="$withval"
+						AC_SUBST(STARPU_QWT_INCLUDE)
+						QWT_PRI=system
+					])
+				AC_ARG_WITH(qwt-lib-dir,
+					[AS_HELP_STRING([--with-qwt-lib-dir=<path>],
+					[specify installed libqwt library path])],
+					[
+						STARPU_QWT_LDFLAGS="-L$withval"
+						QWT_PRI=system
+					])
+				AC_ARG_WITH(qwt-lib,
+					[AS_HELP_STRING([--with-qwt-lib=<name>],
+					[specify installed libqwt library name])],
+					[
+						STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
+						QWT_PRI=system
+					])
+				AC_SUBST(STARPU_QWT_LDFLAGS)
+				AC_SUBST(QWT_PRI)
+			])
+		fi
 	fi
+fi
+
+if test "x$enable_starpu_top" = "xmaybe" ; then
+  build_starpu_top=$can_build_starpu_top
+else
+  build_starpu_top=no
 fi
 
 AM_CONDITIONAL(BUILD_STARPU_TOP, test x$build_starpu_top = xyes)
@@ -1088,7 +1183,7 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 	AC_MSG_CHECKING([whether compiler support $1])
 
 	SAVED_CFLAGS="$CFLAGS"
-	CFLAGS="$1 -we10006"
+	CFLAGS="$1" # -we10006"
 
 	AC_COMPILE_IFELSE(
 		AC_LANG_PROGRAM(
@@ -1117,6 +1212,11 @@ if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
 fi
 
+# Same value as Automake's, for use in other places.
+pkglibdir="\${libdir}/$PACKAGE"
+AC_SUBST([pkglibdir])
+
+
 ###############################################################################
 #                                                                             #
 #                               GCC extensions                                #
@@ -1127,58 +1227,111 @@ AC_ARG_ENABLE([gcc-extensions],
   [AS_HELP_STRING([--enable-gcc-extensions],
     [build the GCC plug-in that provides C language extensions (experimental)])],
   [enable_gcc_plugin="$enableval"],
-  [enable_gcc_plugin="no"])
+  [enable_gcc_plugin="maybe"])
 
-if test "x$enable_gcc_plugin" = "xyes"; then
-   STARPU_GCC_PLUGIN_SUPPORT
+if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; then
+    STARPU_GCC_PLUGIN_SUPPORT
 
-   if test "x$ac_cv_have_gcc_plugins" != "xyes"; then
-     AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
-   fi
+    if test "x$ac_cv_have_gcc_plugins" = "xno" ; then
+        if test "x$enable_gcc_plugin" = "xyes" ; then
+    	    # Since this was explicitly asked for, error out.
+            AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
+	else
+	    AC_MSG_WARN([GCC plug-ins not supported; StarPU's GCC plug-in will not be built])
+        fi
+    else
+        # What GCC version are we using?
+        STARPU_GCC_VERSION
 
-   build_gcc_plugin="yes"
+        # The `.so' itself cannot be called `starpu-gcc.so' (because
+	# `-fplugin-arg-' option names and such must match the `.so'
+	# name), so use a meaningful directory name.
+	gccplugindir="\${pkglibdir}/${STARPU_EFFECTIVE_VERSION}/gcc/${STARPU_GCC_VERSION_MAJOR}.${STARPU_GCC_VERSION_MINOR}"
+	AC_SUBST([gccplugindir])
 
-   # GNU Guile 1.8/2.0 is used to run the test suite.
-   AC_PATH_PROG([GUILE], [guile])
-   if test "x$GUILE" != "x"; then
-      run_gcc_plugin_test_suite="yes"
-   else
-      run_gcc_plugin_test_suite="no"
-   fi
+	# Lines to be inserted in the `.pc' file.
+	GCC_PLUGIN_DIR_PKGCONFIG="gccplugindir=$gccplugindir"
+	GCC_PLUGIN_PKGCONFIG="gccplugin=\${gccplugindir}/starpu.so"
+	AC_SUBST([GCC_PLUGIN_DIR_PKGCONFIG])
+	AC_SUBST([GCC_PLUGIN_PKGCONFIG])
+    fi
+fi
+
+
+if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
+    build_gcc_plugin="yes"
+
+    # GNU Guile 1.8/2.0 is used to run the test suite.
+    AC_PATH_PROG([GUILE], [guile])
+    if test "x$GUILE" != "x"; then
+        if test "x$enable_cpu" = "xyes"; then
+	   run_gcc_plugin_test_suite="yes"
+	else
+	   AC_MSG_WARN([CPU back-end disabled; GCC plug-in test suite will not be run])
+	   run_gcc_plugin_test_suite="no"
+	fi
+    else
+	run_gcc_plugin_test_suite="no"
+    fi
 else
-   build_gcc_plugin="no"
-   run_gcc_plugin_test_suite="no"
+    build_gcc_plugin="no"
+    run_gcc_plugin_test_suite="no"
 fi
 
 # Bison is used to generate the C expression parser.  The generated
 # parser is part of the distribution, though.
-AC_PROG_YACC
+AM_MISSING_PROG([YACC], [bison])
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
 AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
 
 ###############################################################################
 #                                                                             #
-#                               OpenCL interface                              #
+#                               SOCL interface                                #
 #                                                                             #
 ###############################################################################
 
 AC_ARG_ENABLE([socl],
   [AS_HELP_STRING([--enable-socl],
-    [build the OpenCL interface (SOCL)])],
+    [build the OpenCL interface (experimental)])],
   [enable_socl="$enableval"],
-  [enable_socl="no"])
+  [enable_socl="maybe"])
 
-if test "x$enable_socl" = "xyes"; then
-   STARPU_SOCL_SUPPORT
-   build_socl="yes"
-else
-   build_socl="no"
-   run_socl_test_suite="no"
+AC_MSG_CHECKING(for SOCL)
+
+if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
+    if test "$have_valid_opencl" = "no" ; then
+	STARPU_LOOK_FOR_OPENCL()
+    fi
 fi
 
+# in case SOCL was explicitely required, but is not available, this is an error
+if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
+    AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
+fi
+
+# now we enable SOCL if and only if a proper setup is available
+if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
+   build_socl=$have_valid_opencl
+else
+   build_socl=no
+fi
+
+AC_MSG_RESULT($build_socl)
 AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
+
+###############################################################################
+#                                                                             #
+#                                 Debugging                                   #
+#                                                                             #
+###############################################################################
+
+AC_PATH_PROG([GDB], [gdb], [not-found])
+if test "x$GDB" != "xnot-found"; then
+   AC_DEFINE_UNQUOTED([STARPU_GDB_PATH], ["$GDB"],
+     [Path to the GNU debugger.])
+fi
 
 ###############################################################################
 #                                                                             #
@@ -1203,10 +1356,10 @@ AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
 AC_PATH_XTRA
-if test "x$x_includes" != "xNONE"; then
+if test "x$no_x" != "xyes"; then
 	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
 fi
-AM_CONDITIONAL([HAVE_X11], [test "x$x_includes" != "xNONE"])
+AM_CONDITIONAL([HAVE_X11], [test "x$no_x" != "xyes"])
 
 # In case there are BLAS kernels that are used by the example applications
 # we may specify which library to use. Note that this is not used for StarPU
@@ -1330,6 +1483,11 @@ AC_SUBST(BLAS_LIB,$blas_lib)
 have_fftw=no
 have_fftwf=no
 have_fftwl=no
+fft_support=no
+
+AC_ARG_ENABLE(starpufft, [AS_HELP_STRING([--disable-starpufft],
+			[Disable build of StarPU-FFT])],
+			enable_starpufft=$enableval,enable_starpufft=yes)
 
 PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   AC_DEFINE([STARPU_HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
@@ -1337,7 +1495,7 @@ PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   have_fftw=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTW, [test x$have_fftw = xyes])
- 
+
 PKG_CHECK_MODULES([FFTWF], [fftw3f], [
   AC_DEFINE([STARPU_HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
   AC_SUBST([STARPU_HAVE_FFTWF], [1])
@@ -1351,6 +1509,11 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
   have_fftwl=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
+
+if test x$enable_starpufft = xyes -a \( \( x$enable_cpu = xyes -a x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes \); then
+   fft_support=yes
+fi
+AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 
 ##########################################
 # hwloc                                  #
@@ -1407,10 +1570,56 @@ AC_ARG_ENABLE(optional_tests, [AS_HELP_STRING([--optional-tests],
 AC_MSG_RESULT($want_optional_tests)
 AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
 
+# Check if icc is available
+AC_CHECK_PROGS([ICC], [icc])
+
+# If cuda and icc are both available, check they are compatible
+if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
+   AC_MSG_CHECKING(whether CUDA and ICC are compatible)
+   OLD_CC="$CC"
+   CC="$ICC"
+   AC_COMPILE_IFELSE(
+       AC_LANG_PROGRAM(
+	   [[#include <cuda.h>]],
+	   [[]]
+	   ),
+       AC_MSG_RESULT(yes),
+       [ICC=""
+           AC_MSG_RESULT(no)]
+   )
+   CC="$OLD_CC"
+fi
+
+# Disable ICC on windows
+if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
+    ICC=""
+fi
+if test "x$ICC" != "x"; then
+  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
+fi
+AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
+
+# Do not generate manpages for the tools if we do not have help2man
+AC_CHECK_PROGS([HELP2MAN], [help2man])
+# Disable on windows
+if test "$starpu_windows" = "yes" ; then
+    HELP2MAN=""
+fi
+AM_CONDITIONAL([STARPU_HAVE_HELP2MAN], [test "x$HELP2MAN" != "x"])
+
+AC_CHECK_MEMBER([struct cudaDeviceProp.pciDomainID],
+  AC_DEFINE([STARPU_HAVE_DOMAINID],[1],[Define to 1 if CUDA device properties include DomainID]),
+  , [[#include <cuda_runtime_api.h>]])
+
+AC_CHECK_MEMBER([struct cudaDeviceProp.pciBusID],
+  AC_DEFINE([STARPU_HAVE_BUSID],[1],[Define to 1 if CUDA device properties include BusID]),
+  , [[#include <cuda_runtime_api.h>]])
+
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x gcc-plugin/tests/run-test
+  chmod +x tools/starpu_workers_activity
 ])
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
@@ -1420,19 +1629,27 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	tools/starpu_workers_activity
 	socl/Makefile
 	socl/src/Makefile
+	socl/examples/Makefile
+        socl/socl-1.0.pc
 	libstarpu.pc
+	starpu-1.0.pc
+	mpi/libstarpumpi.pc
+	mpi/starpumpi-1.0.pc
+	starpufft/Makefile
+	starpufft/libstarpufft.pc
+	starpufft/starpufft-1.0.pc
 	examples/Makefile
         examples/opt/Makefile
-	examples/starpufft/Makefile
 	examples/stencil/Makefile
-	examples/socl/Makefile
 	tests/Makefile
         tests/opt/Makefile
 	doc/Makefile
 	mpi/Makefile
 	starpu-top/StarPU-Top.pro
+	starpu-top/StarPU-Top-qwt-system.pri
         gcc-plugin/Makefile
 	gcc-plugin/src/Makefile
 	gcc-plugin/tests/Makefile
@@ -1450,9 +1667,6 @@ AC_MSG_NOTICE([
 	OpenCL enabled: $enable_opencl
 	Cell   enabled: $enable_gordon
 
-	GCC plug-in: $build_gcc_plugin
-	GCC plug-in test suite: $run_gcc_plugin_test_suite
-
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
 	--enable-maxopencldev, --enable-maxbuffers)
@@ -1466,12 +1680,17 @@ AC_MSG_NOTICE([
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
 
-	MPI enabled:   $use_mpi
-	SOCL enabled:  $build_socl
 	Magma enabled: $have_magma
 	BLAS library:  $blas_lib
 	hwloc:         $have_valid_hwloc
-
 	FxT trace enabled: $use_fxt
 	StarPU-Top:        $build_starpu_top
+
+	StarPU Extensions:
+	       MPI enabled:   $use_mpi
+	       MPI test suite: $running_mpi_check
+	       FFT Support: $fft_support
+	       GCC plug-in: $build_gcc_plugin
+	       GCC plug-in test suite: $run_gcc_plugin_test_suite
+	       SOCL enabled:  $build_socl
 ])

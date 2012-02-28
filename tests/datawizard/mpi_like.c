@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,21 +15,25 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <starpu.h>
 #include <errno.h>
 #include <pthread.h>
+#include "../helper.h"
 
 #define NTHREADS	4
-#define NITER		128
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define NITER		2
+
+#warning memory leak
 
 //static pthread_cond_t cond;
 //static pthread_mutex_t mutex;
 
-struct thread_data {
+struct thread_data
+{
 	unsigned index;
 	unsigned val;
-	starpu_data_handle handle;
+	starpu_data_handle_t handle;
 	pthread_t thread;
 
 	pthread_cond_t recv_cond;
@@ -50,15 +54,19 @@ void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_
 
 static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 }
 
-static starpu_codelet increment_handle_cl = {
+static struct starpu_codelet increment_handle_cl =
+{
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = increment_handle_cpu_kernel,
+	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_codelet_unsigned_inc,
+	.cuda_funcs = {cuda_codelet_unsigned_inc, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -68,8 +76,7 @@ static void increment_handle(struct thread_data *thread_data)
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &increment_handle_cl;
 
-	task->buffers[0].handle = thread_data->handle;
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = thread_data->handle;
 
 	task->cl_arg = thread_data;
 
@@ -77,6 +84,8 @@ static void increment_handle(struct thread_data *thread_data)
 	task->detach = 0;
 
 	int ret = starpu_task_submit(task);
+	if (ret == -ENODEV)
+		exit(STARPU_TEST_SKIPPED);
 	STARPU_ASSERT(!ret);
 
 	ret = starpu_task_wait(task);
@@ -88,22 +97,22 @@ static void increment_handle(struct thread_data *thread_data)
 static void recv_handle(struct thread_data *thread_data)
 {
 	starpu_data_acquire(thread_data->handle, STARPU_W);
-	pthread_mutex_lock(&thread_data->recv_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&thread_data->recv_mutex);
 
 	/* We wait for the previous thread to notify that the data is available */
 	while (!thread_data->recv_flag)
-		pthread_cond_wait(&thread_data->recv_cond, &thread_data->recv_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&thread_data->recv_cond, &thread_data->recv_mutex);
 
 	/* We overwrite thread's data with the received value */
 	thread_data->val = thread_data->recv_buf;
 
 	/* Notify that we read the value */
 	thread_data->recv_flag = 0;
-	pthread_cond_signal(&thread_data->recv_cond);
+	_STARPU_PTHREAD_COND_SIGNAL(&thread_data->recv_cond);
 
 //	FPRINTF(stderr, "Thread %d received value %d from thread %d\n", thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
 
-	pthread_mutex_unlock(&thread_data->recv_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&thread_data->recv_mutex);
 	starpu_data_release(thread_data->handle);
 }
 
@@ -115,16 +124,16 @@ static void send_handle(struct thread_data *thread_data)
 
 //	FPRINTF(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
 	/* send the message */
-	pthread_mutex_lock(&neighbour_data->recv_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
 	neighbour_data->recv_buf = thread_data->val;
 	neighbour_data->recv_flag = 1;
-	pthread_cond_signal(&neighbour_data->recv_cond);
+	_STARPU_PTHREAD_COND_SIGNAL(&neighbour_data->recv_cond);
 
 	/* wait until it's received (ie. neighbour's recv_flag is set back to 0) */
 	while (neighbour_data->recv_flag)
-		pthread_cond_wait(&neighbour_data->recv_cond, &neighbour_data->recv_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&neighbour_data->recv_cond, &neighbour_data->recv_mutex);
 	
-	pthread_mutex_unlock(&neighbour_data->recv_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
 
 	starpu_data_release(thread_data->handle);
 }
@@ -160,15 +169,17 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned t;
 	for (t = 0; t < NTHREADS; t++)
 	{
 		problem_data[t].index = t;
 		problem_data[t].val = 0;
-		pthread_cond_init(&problem_data[t].recv_cond, NULL);
-		pthread_mutex_init(&problem_data[t].recv_mutex, NULL);
+		_STARPU_PTHREAD_COND_INIT(&problem_data[t].recv_cond, NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&problem_data[t].recv_mutex, NULL);
 		problem_data[t].recv_flag = 0;
 		problem_data[t].neighbour = &problem_data[(t+1)%NTHREADS];
 	}
@@ -183,20 +194,28 @@ int main(int argc, char **argv)
 	{
 		void *retval;
 		ret = pthread_join(problem_data[t].thread, &retval);
+		STARPU_ASSERT(!ret);
 		STARPU_ASSERT(retval == NULL);
 	}
 
 	/* We check that the value in the "last" thread is valid */
-	starpu_data_handle last_handle = problem_data[NTHREADS - 1].handle;
+	starpu_data_handle_t last_handle = problem_data[NTHREADS - 1].handle;
 	starpu_data_acquire(last_handle, STARPU_R);
-	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
-	{
-		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
-		STARPU_ABORT();
-	}
 	starpu_data_release(last_handle);
+
+	for (t = 0; t < NTHREADS; t++)
+	{
+		starpu_data_unregister(problem_data[t].handle);
+	}
 
 	starpu_shutdown();
 
-	return 0;
+	ret = EXIT_SUCCESS;
+	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
+	{
+		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
+		ret = EXIT_FAILURE;
+	}
+
+	STARPU_RETURN(ret);
 }

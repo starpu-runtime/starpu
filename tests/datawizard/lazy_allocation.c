@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,17 +14,18 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <stdlib.h>
+#include "../helper.h"
 
 #define VECTORSIZE	1024
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
-static starpu_data_handle v_handle;
+static starpu_data_handle_t v_handle;
 
 /*
  *	Memset
@@ -33,6 +34,8 @@ static starpu_data_handle v_handle;
 #ifdef STARPU_USE_CUDA
 static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -43,19 +46,23 @@ static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_a
 
 static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	memset(buf, 42, length);
 }
 
-static starpu_codelet memset_cl = {
+static struct starpu_codelet memset_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = cpu_memset_codelet,
+	.cpu_funcs = {cpu_memset_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_memset_codelet,
+	.cuda_funcs = {cuda_memset_codelet, NULL},
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_W}
 };
 
 /*
@@ -64,6 +71,8 @@ static starpu_codelet memset_cl = {
 
 static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -81,6 +90,8 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 #ifdef STARPU_USE_CUDA
 static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
+	STARPU_SKIP_IF_VALGRIND;
+
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -98,28 +109,44 @@ static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) v
 }
 #endif
 
-static starpu_codelet check_content_cl = {
+static struct starpu_codelet check_content_cl =
+{
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = cpu_check_content_codelet,
+	.cpu_funcs = {cpu_check_content_codelet, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = cuda_check_content_codelet,
+	.cuda_funcs = {cuda_check_content_codelet, NULL},
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
-	starpu_insert_task(&memset_cl, STARPU_W, v_handle, 0);
-        starpu_task_wait_for_all();
+	ret = starpu_insert_task(&memset_cl, STARPU_W, v_handle, 0);
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	starpu_insert_task(&check_content_cl, STARPU_R, v_handle, 0);
-        starpu_task_wait_for_all();
+        ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
+	ret = starpu_insert_task(&check_content_cl, STARPU_R, v_handle, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+
+        ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_data_unregister(v_handle);
+
 	starpu_shutdown();
-	return 0;
+	return EXIT_SUCCESS;
 }

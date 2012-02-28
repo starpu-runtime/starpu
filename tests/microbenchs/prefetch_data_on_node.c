@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,38 +21,25 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../helper.h"
 
-#define N	1000
+#ifdef STARPU_SLOW_MACHINE
+#define N		100
+#else
+#define N		1000
+#endif
 
 #define VECTORSIZE	1024
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
-static unsigned finished = 0;
-
-static unsigned cnt;
-
-starpu_data_handle v_handle;
+starpu_data_handle_t v_handle;
 static unsigned *v;
 
 static void callback(void *arg)
 {
-	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
+	unsigned node = (unsigned)(uintptr_t) arg;
 
-	//fprintf(stderr, "res ...%d\n", res);
-	//fflush(stderr);
-
-	if (res == 0)
-	{
-		pthread_mutex_lock(&mutex);
-		finished = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
-	}
+	starpu_data_prefetch_on_node(v_handle, node, 1);
 }
-
-
 
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -60,42 +47,64 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 //	fflush(stderr);
 }
 
-static starpu_access_mode select_random_mode(void)
+static struct starpu_codelet cl_r =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null, NULL},
+	.opencl_funcs = {codelet_null, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_R}
+};
+
+static struct starpu_codelet cl_w =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null, NULL},
+	.opencl_funcs = {codelet_null, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_W}
+};
+
+static struct starpu_codelet cl_rw =
+{
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null, NULL},
+	.opencl_funcs = {codelet_null, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
+};
+
+static struct starpu_codelet *select_codelet_with_random_mode(void)
 {
 	int r = rand();
 
-	switch (r % 3) {
+	switch (r % 3)
+	{
 		case 0:
-			return STARPU_R;
+			return &cl_r;
 		case 1:
-			return STARPU_RW;
-			//return STARPU_W;
+			return &cl_w;
 		case 2:
-			return STARPU_RW;
+			return &cl_rw;
 	};
-	return STARPU_RW;
+	return &cl_rw;
 }
-
-
-static starpu_codelet cl = {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
-	.cpu_func = codelet_null,
-	.cuda_func = codelet_null,
-	.opencl_func = codelet_null,
-	.nbuffers = 1
-};
-
 
 int main(int argc, char **argv)
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned nworker = starpu_worker_get_count();
-
-	cnt = nworker*N;
 
 	unsigned iter, worker;
 	for (iter = 0; iter < N; iter++)
@@ -104,40 +113,61 @@ int main(int argc, char **argv)
 		{
 			/* synchronous prefetch */
 			unsigned node = starpu_worker_get_memory_node(worker);
-			starpu_data_prefetch_on_node(v_handle, node, 0);
+			ret = starpu_data_prefetch_on_node(v_handle, node, 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_prefetch_on_node");
 
 			/* execute a task */
 			struct starpu_task *task = starpu_task_create();
-			task->cl = &cl;
 
-			task->buffers[0].handle = v_handle;
-			task->buffers[0].mode = select_random_mode();
-
-			task->callback_func = callback;
-			task->callback_arg = NULL;
-
+			task->handles[0] = v_handle;
+			task->cl = select_codelet_with_random_mode();
 			task->synchronous = 1;
 
 			int ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-				goto enodev;
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 
-	pthread_mutex_lock(&mutex);
-	if (!finished)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	for (iter = 0; iter < N; iter++)
+	{
+		for (worker = 0; worker < nworker; worker++)
+		{
+			/* asynchronous prefetch */
+			unsigned node = starpu_worker_get_memory_node(worker);
+			ret = starpu_data_prefetch_on_node(v_handle, node, 1);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_prefetch_on_node");
 
+			/* execute a task */
+			struct starpu_task *task = starpu_task_create();
+
+			task->handles[0] = v_handle;
+			task->cl = select_codelet_with_random_mode();
+			task->callback_func = callback;
+			task->callback_arg = (void*)(uintptr_t) starpu_worker_get_memory_node((worker+1)%nworker);
+
+			task->synchronous = 0;
+
+			int ret = starpu_task_submit(task);
+			if (ret == -ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		}
+	}
+
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
+	starpu_data_unregister(v_handle);
 	starpu_free(v);
 	starpu_shutdown();
 
-	return 0;
+	return EXIT_SUCCESS;
 
 enodev:
 	starpu_free(v);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
-	return 77;
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }
