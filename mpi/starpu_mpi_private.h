@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,13 +26,12 @@
 #include <common/utils.h>
 #include <pthread.h>
 
-//#define STARPU_MPI_VERBOSE	1
+#define STARPU_MPI_VERBOSE	1
 
 #ifdef STARPU_MPI_VERBOSE
 #  define _STARPU_MPI_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
     						int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);       \
-                                                int yyy; for(yyy=0 ; yyy<=_debug_rank ; yyy++) fprintf(stderr, "    ");    \
-                                                fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , _debug_rank, __func__ ,##args); \
+                                                fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __func__ ,##args); \
                                                 fflush(stderr); }} while(0);
 #else
 #  define _STARPU_MPI_DEBUG(fmt, args ...)
@@ -41,13 +40,11 @@
 #ifdef STARPU_MPI_VERBOSE0
 #  define _STARPU_MPI_LOG_IN()             do { if (!getenv("STARPU_SILENT")) { \
                                                int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
-                                               int yyy; for(yyy=0 ; yyy<=_debug_rank ; yyy++) fprintf(stderr, "    ");      \
-                                               fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", _debug_rank, __func__ ); \
+                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s] -->\n", (_debug_rank+1)*4, "", _debug_rank, __func__ ); \
                                                fflush(stderr); }} while(0)
 #  define _STARPU_MPI_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) { \
                                                int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
-                                               int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
-                                               fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", _debug_rank, __func__ ); \
+                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s] <--\n", (_debug_rank+1)*4, "", _debug_rank, __func__ ); \
                                                fflush(stderr); }} while(0)
 #else
 #  define _STARPU_MPI_LOG_IN()
