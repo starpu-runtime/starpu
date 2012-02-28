@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
         for(i=0 ; i<2 ; i++)
 	{
-                starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[i], 0);
+                starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], 0, NULL, NULL);
 		if (rank == 0) {
 			starpu_data_acquire(data_handles[i], STARPU_R);
 			values[i] = *((int *)starpu_mpi_handle_to_ptr(data_handles[i]));
