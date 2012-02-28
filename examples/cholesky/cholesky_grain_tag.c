@@ -267,6 +267,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 
 		cholesky_grain_rec(newmatA, size/nblocks*(nblocks - nbigblocks), ld, (nblocks - nbigblocks)*2, (nblocks - nbigblocks)*2, reclevel+1);
 	}
+	starpu_data_unregister(dataA);
 }
 
 static void initialize_system(float **A, unsigned dim, unsigned pinned)
@@ -416,5 +417,6 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
+	free(mat);
 	return 0;
 }

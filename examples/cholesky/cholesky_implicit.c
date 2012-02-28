@@ -268,10 +268,10 @@ int main(int argc, char **argv)
 		}
 		float *test_mat = malloc(size*size*sizeof(float));
 		STARPU_ASSERT(test_mat);
-	
+
 		SSYRK("L", "N", size, size, 1.0f,
 					mat, size, 0.0f, test_mat, size);
-	
+
 		FPRINTF(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
 		for (j = 0; j < size; j++)
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 			FPRINTF(stdout, "\n");
 		}
 #endif
-	
+
 		for (j = 0; j < size; j++)
 		{
 			for (i = 0; i < size; i++)
