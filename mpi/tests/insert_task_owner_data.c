@@ -60,22 +60,19 @@ int main(int argc, char **argv)
 	{
 		x[0] = 11;
 		starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x[0], sizeof(x[0]));
-		starpu_data_set_rank(data_handles[0], 0);
-		starpu_data_set_tag(data_handles[0], 0);
 		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
-		starpu_data_set_rank(data_handles[1], 1);
-		starpu_data_set_tag(data_handles[1],10);
         }
         else if (rank == 1)
 	{
 		x[1] = 12;
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
-		starpu_data_set_rank(data_handles[0], 0);
-		starpu_data_set_tag(data_handles[0], 0);
 		starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&x[1], sizeof(x[1]));
-		starpu_data_set_rank(data_handles[1], 1);
-		starpu_data_set_tag(data_handles[1], 1);
         }
+
+	starpu_data_set_rank(data_handles[0], 0);
+	starpu_data_set_tag(data_handles[0], 0);
+	starpu_data_set_rank(data_handles[1], 1);
+	starpu_data_set_tag(data_handles[1], 1);
 
         err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
                                      STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
