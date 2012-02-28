@@ -267,7 +267,6 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 
 		cholesky_grain_rec(newmatA, size/nblocks*(nblocks - nbigblocks), ld, (nblocks - nbigblocks)*2, (nblocks - nbigblocks)*2, reclevel+1);
 	}
-	starpu_data_unregister(dataA);
 }
 
 static void initialize_system(float **A, unsigned dim, unsigned pinned)
@@ -311,13 +310,12 @@ void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 
 	if (pinned)
 	{
-		starpu_free(matA);
+	     starpu_free(matA);
 	}
 	else
 	{
-		free(matA);
+	     free(matA);
 	}
-
 	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
@@ -333,8 +331,6 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	float *mat;
-
-	mat = malloc(size*size*sizeof(float));
 	initialize_system(&mat, size, pinned);
 
 	unsigned i,j;
@@ -367,7 +363,6 @@ int main(int argc, char **argv)
 		FPRINTF(stdout, "\n");
 	}
 #endif
-
 
 	cholesky_grain(mat, size, size, nblocks, nbigblocks, pinned);
 
