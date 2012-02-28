@@ -401,6 +401,5 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
-	free(mat);
 	return 0;
 }
