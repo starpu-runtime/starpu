@@ -412,20 +412,21 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 {
-        int me, rank;
+        int me, rank, tag;
 
         rank = starpu_data_get_rank(data_handle);
+        tag = starpu_data_get_tag(data_handle);
 	MPI_Comm_rank(comm, &me);
 
         if (node == rank) return;
 
         if (me == node)
         {
-                starpu_mpi_irecv_detached(data_handle, rank, 42, comm, NULL, NULL);
+                starpu_mpi_irecv_detached(data_handle, rank, tag, comm, NULL, NULL);
         }
         else if (me == rank)
         {
-                starpu_mpi_isend_detached(data_handle, node, 42, comm, NULL, NULL);
+                starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
         }
 #ifdef STARPU_DEVEL
 #warning TODO: wait for completion of these communication only instead
