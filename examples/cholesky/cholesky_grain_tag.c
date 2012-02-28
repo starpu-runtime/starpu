@@ -308,16 +308,20 @@ void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 	double flop = (1.0f*size*size*size)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
+}
+
+static void shutdown_system(float **matA, unsigned pinned)
+{
 	if (pinned)
 	{
-	     starpu_free(matA);
+	     starpu_free(*matA);
 	}
 	else
 	{
-	     free(matA);
+	     free(*matA);
 	}
-	starpu_helper_cublas_shutdown();
 
+	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 }
 
@@ -412,6 +416,6 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
-	free(mat);
+	shutdown_system(&mat, pinned);
 	return 0;
 }

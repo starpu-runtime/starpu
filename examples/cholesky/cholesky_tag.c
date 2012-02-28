@@ -292,19 +292,20 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks, 
 	_cholesky(dataA, nblocks);
 
 	starpu_data_unregister(dataA);
+}
 
+static void shutdown_system(float **matA, unsigned pinned)
+{
 	if (pinned)
 	{
-		starpu_free(matA);
+		starpu_free(*matA);
 	}
 	else
 	{
-		free(matA);
+		free(*matA);
 	}
 
-
 	starpu_helper_cublas_shutdown();
-
 	starpu_shutdown();
 }
 
@@ -401,5 +402,6 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
+	shutdown_system(&mat, pinned);
 	return 0;
 }
