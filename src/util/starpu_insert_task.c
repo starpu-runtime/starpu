@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@
 #include <stdarg.h>
 #include <util/starpu_insert_task_utils.h>
 
-void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...)
+void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...)
 {
 	va_list varg_list;
 
@@ -32,16 +32,16 @@ void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...)
         *arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
 	va_start(varg_list, arg_buffer_size);
-	_starpu_pack_cl_args(*arg_buffer_size, arg_buffer, varg_list);
+	_starpu_codelet_pack_args(*arg_buffer_size, arg_buffer, varg_list);
 }
 
-void starpu_unpack_cl_args(void *_cl_arg, ...)
+void starpu_codelet_unpack_args(void *_cl_arg, ...)
 {
 	unsigned char *cl_arg = (unsigned char *) _cl_arg;
 	unsigned current_arg_offset = 0;
 	va_list varg_list;
 
-	assert(cl_arg);
+	STARPU_ASSERT(cl_arg);
 	va_start(varg_list, _cl_arg);
 
 	/* We fill the different pointers with the appropriate arguments */
@@ -55,14 +55,15 @@ void starpu_unpack_cl_args(void *_cl_arg, ...)
 		size_t arg_size = *(size_t *)&cl_arg[current_arg_offset];
 		current_arg_offset += sizeof(size_t);
 
-		memcpy(argptr, &cl_arg[current_arg_offset], arg_size); 
+		memcpy(argptr, &cl_arg[current_arg_offset], arg_size);
 		current_arg_offset += arg_size;
 	}
 
 	va_end(varg_list);
+	free(cl_arg);
 }
 
-int starpu_insert_task(starpu_codelet *cl, ...)
+int starpu_insert_task(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
 
@@ -73,7 +74,7 @@ int starpu_insert_task(starpu_codelet *cl, ...)
 
 	va_start(varg_list, cl);
 	char *arg_buffer;
-	_starpu_pack_cl_args(arg_buffer_size, &arg_buffer, varg_list);
+	_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
 
 	va_start(varg_list, cl);
         struct starpu_task *task = starpu_task_create();

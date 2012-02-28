@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012  Université Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,16 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_INSERT_TASK_UTILS_H__
-#define __STARPU_INSERT_TASK_UTILS_H__
+#ifndef __STARPU_DATA_CPY_H__
+#define __STARPU_DATA_CPY_H__
 
-#include <stdlib.h>
-#include <stdarg.h>
 #include <starpu.h>
 
-size_t _starpu_insert_task_get_arg_size(va_list varg_list);
-int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list);
-int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list);
+int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
+			int asynchronous, void (*callback_func)(void*), void *callback_arg,
+			int reduction, struct starpu_task *reduction_dep_task);
 
-#endif // __STARPU_INSERT_TASK_UTILS_H__
+#endif // __STARPU_DATA_CPY_H__
 

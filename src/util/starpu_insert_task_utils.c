@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,13 +19,14 @@
 #include <common/config.h>
 #include <common/utils.h>
 
-typedef void (*callback_func_t)(void *);
+typedef void (*_starpu_callback_func_t)(void *);
 
 /* Deal with callbacks. The unpack function may be called multiple times when
  * we have a parallel task, and we should not free the cl_arg parameter from
  * the callback function. */
-struct insert_task_cb_wrapper {
-	callback_func_t callback_func;
+struct insert_task_cb_wrapper
+{
+	_starpu_callback_func_t callback_func;
 	void *callback_arg;
 	void *arg_stack;
 };
@@ -39,8 +40,7 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 	if (cl_arg_wrapper->callback_func)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
 
-	/* Free the stack of arguments */
-	free(cl_arg_wrapper->arg_stack);
+	free(cl_arg_wrapper);
 }
 
 size_t _starpu_insert_task_get_arg_size(va_list varg_list)
@@ -52,31 +52,44 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 
 	arg_buffer_size += sizeof(char);
 
-	while ((arg_type = va_arg(varg_list, int)) != 0) {
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX) {
-			va_arg(varg_list, starpu_data_handle);
+	while ((arg_type = va_arg(varg_list, int)) != 0)
+	{
+		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		{
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_VALUE) {
-			va_arg(varg_list, void *);
+		else if (arg_type==STARPU_VALUE)
+		{
+			(void)va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
 			arg_buffer_size += sizeof(size_t);
 			arg_buffer_size += cst_size;
 		}
-		else if (arg_type==STARPU_CALLBACK) {
-			va_arg(varg_list, callback_func_t);
+		else if (arg_type==STARPU_CALLBACK)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
-		else if (arg_type==STARPU_PRIORITY) {
-			va_arg(varg_list, int);
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
-			va_arg(varg_list, int);
+		else if (arg_type==STARPU_PRIORITY)
+		{
+			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
 
@@ -84,7 +97,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
         return arg_buffer_size;
 }
 
-int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list)
+int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list)
 {
         int arg_type;
 	unsigned current_arg_offset = 0;
@@ -101,7 +114,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 	{
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
 		{
-			va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -120,29 +133,47 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list, callback_func_t);
+			(void)va_arg(varg_list, _starpu_callback_func_t);
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
-			va_arg(varg_list, int);
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
+			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 	}
 
-	(*arg_buffer)[0] = nargs;
+	if (nargs)
+	{
+		(*arg_buffer)[0] = nargs;
+	}
+	else
+	{
+		free(*arg_buffer);
+		*arg_buffer = NULL;
+	}
+
 	va_end(varg_list);
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {
+int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+{
         int arg_type;
 	unsigned current_buffer = 0;
 
@@ -157,41 +188,59 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
 		{
 			/* We have an access mode : we expect to find a handle */
-			starpu_data_handle handle = va_arg(varg_list, starpu_data_handle);
+			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
 
-			starpu_access_mode mode = arg_type;
+			enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
 
-			(*task)->buffers[current_buffer].handle = handle;
-			(*task)->buffers[current_buffer].mode = mode;
+			(*task)->handles[current_buffer] = handle;
+			if (cl->modes[current_buffer])
+				STARPU_ASSERT(cl->modes[current_buffer] == mode);
+			else
+#ifdef STARPU_DEVEL
+#  warning shall we print a warning to the user
+#endif
+				cl->modes[current_buffer] = mode;
 
 			current_buffer++;
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
-			va_arg(varg_list, void *);
-			va_arg(varg_list, size_t);
+			(void)va_arg(varg_list, void *);
+			(void)va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			void (*callback_func)(void *);
-			callback_func = va_arg(varg_list, callback_func_t);
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
 			cl_arg_wrapper->callback_func = callback_func;
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG) {
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			void (*callback_func)(void *);
+			void *callback_arg;
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			callback_arg = va_arg(varg_list, void *);
+			cl_arg_wrapper->callback_func = callback_func;
+			cl_arg_wrapper->callback_arg = callback_arg;
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
 			void *callback_arg = va_arg(varg_list, void *);
 			cl_arg_wrapper->callback_arg = callback_arg;
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			/* Followed by a priority level */
-			int prio = va_arg(varg_list, int); 
+			int prio = va_arg(varg_list, int);
 			(*task)->priority = prio;
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
-			va_arg(varg_list, int);
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
+			(void)va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
+			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG) {
 			int hypervisor_tag = va_arg(varg_list, int);
@@ -211,10 +260,17 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 	(*task)->callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->callback_arg = cl_arg_wrapper;
 
-	 int ret = starpu_task_submit(*task);
+	int ret = starpu_task_submit(*task);
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
-          fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s')\n", *task, (*task)->cl, ((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
+	{
+		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s')\n",
+			*task, (*task)->cl,
+			(*task)->cl->name ? (*task)->cl->name :
+			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
+		free(cl_arg_wrapper->arg_stack);
+		free(cl_arg_wrapper);
+	}
 
         return ret;
 }

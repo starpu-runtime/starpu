@@ -15,30 +15,32 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPUTOP_CONNECTION_H__
-#define __STARPUTOP_CONNECTION_H__
+#ifndef __STARPU_TOP_CONNECTION_H__
+#define __STARPU_TOP_CONNECTION_H__
 
 #include <stdlib.h>
-#include <top/starputop_message_queue.h>
+#include <top/starpu_top_message_queue.h>
 #include <starpu_top.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-  extern starputop_message_queue_t*  starputop_mt;
+
+extern struct _starpu_top_message_queue* _starpu_top_mt;
 
 /*
  * This function initialize the two communications threads.
  * It initializes the connection and then launches the threads.
  * The function wait the UI connection before launching the threads.
- * About mt : mt MUST be allocated before call. 
- * All messages in the queue are freed after used. 
+ * About mt : mt MUST be allocated before call.
+ * All messages in the queue are freed after used.
  */
-  void starputop_communications_threads_launcher();
+void _starpu_top_communications_threads_launcher();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPUTOP_CONNECTION_H__
+#endif // __STARPU_TOP_CONNECTION_H__
 

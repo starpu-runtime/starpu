@@ -10,6 +10,8 @@
  * StarPU is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 #ifndef _STARPU_PARAMETERS_H
@@ -25,19 +27,19 @@
  * Here are the default values of alpha, beta, gamma
  */
 
-#define STARPU_DEFAULT_ALPHA 1.0
-#define STARPU_DEFAULT_BETA 1.0
-#define STARPU_DEFAULT_GAMMA 1000.0
+#define _STARPU_DEFAULT_ALPHA 1.0
+#define _STARPU_DEFAULT_BETA 1.0
+#define _STARPU_DEFAULT_GAMMA 1000.0
 
 /* How many executions a codelet will have to be measured before we
  * consider that calibration will provide a value good enough for scheduling */
-#define STARPU_CALIBRATION_MINIMUM 10
+#define _STARPU_CALIBRATION_MINIMUM 10
 
 /* Assumed relative performance ratios */
 /* TODO: benchmark a bit instead */
-#define STARPU_CPU_ALPHA	1.0f
-#define STARPU_CUDA_ALPHA	13.33f
-#define STARPU_OPENCL_ALPHA	12.22f
-#define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
+#define _STARPU_CPU_ALPHA	1.0f
+#define _STARPU_CUDA_ALPHA	13.33f
+#define _STARPU_OPENCL_ALPHA	12.22f
+#define _STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
 #endif /* _STARPU_PARAMETERS_H */

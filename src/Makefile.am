@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -28,30 +28,31 @@ if STARPU_HAVE_WINDOWS
 LC_MESSAGES=C
 export LC_MESSAGES
 
-ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu.def
+ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def
 
 if STARPU_HAVE_MS_LIB
-.libs/libstarpu.lib: libstarpu.la dolib
-	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu.def libstarpu-0 .libs/libstarpu.lib
-all-local: .libs/libstarpu.lib
+.libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib: libstarpu-@STARPU_EFFECTIVE_VERSION@.la dolib
+	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def libstarpu-0 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
+all-local: .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 endif STARPU_HAVE_MS_LIB
 
 install-exec-hook:
-	$(INSTALL) .libs/libstarpu.def $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def $(DESTDIR)$(libdir)
 if STARPU_HAVE_MS_LIB
-	$(INSTALL) .libs/libstarpu.lib $(DESTDIR)$(libdir)
-	$(INSTALL) .libs/libstarpu.exp $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.exp $(DESTDIR)$(libdir)
 endif STARPU_HAVE_MS_LIB
 
 endif STARPU_HAVE_WINDOWS
 
-lib_LTLIBRARIES = libstarpu.la
+lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU
 
-libstarpu_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
-libstarpu_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
-libstarpu_la_LDFLAGS = $(ldflags) -version-number 0:0:0 -no-undefined
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined									\
+  -version-info $(LIBSTARPU_INTERFACE_CURRENT):$(LIBSTARPU_INTERFACE_REVISION):$(LIBSTARPU_INTERFACE_AGE)
 
 noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\
@@ -69,6 +70,10 @@ noinst_HEADERS = 						\
 	core/topology.h						\
 	core/debug.h						\
 	core/errorcheck.h					\
+	core/combined_workers.h					\
+	core/parallel_task.h					\
+	core/task_bundle.h					\
+	sched_policies/detect_combined_workers.h		\
 	sched_policies/fifo_queues.h				\
 	sched_policies/deque_queues.h				\
 	sched_policies/stack_queues.h				\
@@ -85,7 +90,6 @@ noinst_HEADERS = 						\
 	datawizard/memory_nodes.h				\
 	datawizard/interfaces/data_interface.h			\
 	common/barrier.h					\
-	common/hash.h						\
 	common/timing.h						\
 	common/htable32.h					\
 	common/list.h						\
@@ -108,11 +112,13 @@ noinst_HEADERS = 						\
 	profiling/bound.h					\
 	profiling/profiling.h					\
 	util/starpu_insert_task_utils.h				\
+	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
-	top/starputop_message_queue.h				\
-	top/starputop_connection.h
+	top/starpu_top_message_queue.h				\
+	top/starpu_top_connection.h				\
+	top/starpu_top_core.h
 
-libstarpu_la_SOURCES = 						\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
 	common/barrier_counter.c					\
 	common/hash.c 						\
@@ -178,6 +184,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/interfaces/vector_filters.c			\
 	datawizard/interfaces/variable_interface.c		\
 	datawizard/interfaces/void_interface.c			\
+	datawizard/interfaces/multiformat_interface.c           \
 	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
@@ -197,9 +204,9 @@ libstarpu_la_SOURCES = 						\
 	profiling/bound.c					\
 	profiling/profiling_helpers.c				\
 	top/starpu_top.c					\
-	top/starputop_task.c					\
-	top/starputop_message_queue.c				\
-	top/starputop_connection.c				\
+	top/starpu_top_task.c					\
+	top/starpu_top_message_queue.c				\
+	top/starpu_top_connection.c
 	worker_collection/worker_list.c				
 #	sched_policies/eager_central_policy.c			
 #	sched_policies/eager_central_priority_policy.c		
@@ -210,18 +217,21 @@ libstarpu_la_SOURCES = 						\
 #	sched_policies/parallel_greedy.c			
 
 if STARPU_USE_CPU
-libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
 
 if STARPU_USE_CUDA
-libstarpu_la_SOURCES += drivers/cuda/driver_cuda.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
 
 if STARPU_USE_GORDON
-libstarpu_la_SOURCES += drivers/gordon/driver_gordon.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/gordon/driver_gordon.c
 endif
 
 if STARPU_USE_OPENCL
-libstarpu_la_SOURCES += drivers/opencl/driver_opencl.c
-libstarpu_la_SOURCES += drivers/opencl/driver_opencl_utils.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
 endif
+
+showcheck:
+	-cat /dev/null

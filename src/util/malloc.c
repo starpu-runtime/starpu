@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,11 +20,13 @@
 #include <core/workers.h>
 #include <common/config.h>
 #include <starpu.h>
+#include <starpu_data.h>
 #include <starpu_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-struct malloc_pinned_codelet_struct {
+struct malloc_pinned_codelet_struct
+{
 	void **ptr;
 	size_t dim;
 };
@@ -35,7 +37,7 @@ struct malloc_pinned_codelet_struct {
 //{
 //	struct malloc_pinned_codelet_struct *s = arg;
 //        //        *(s->ptr) = malloc(s->dim);
-//        _starpu_opencl_allocate_memory((void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
+//        starpu_opencl_allocate_memory((void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
 //}
 //#endif
 
@@ -52,15 +54,17 @@ static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, 
 #endif
 
 #if defined(STARPU_USE_CUDA)// || defined(STARPU_USE_OPENCL)
-static struct starpu_perfmodel_t malloc_pinned_model = {
+static struct starpu_perfmodel malloc_pinned_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "malloc_pinned"
 };
 
-static starpu_codelet malloc_pinned_cl = {
-	.cuda_func = malloc_pinned_cuda_codelet,
+static struct starpu_codelet malloc_pinned_cl =
+{
+	.cuda_funcs = {malloc_pinned_cuda_codelet, NULL},
 //#ifdef STARPU_USE_OPENCL
-//	.opencl_func = malloc_pinned_opencl_codelet,
+//	.opencl_funcs = {malloc_pinned_opencl_codelet, NULL},
 //#endif
 	.nbuffers = 0,
 	.model = &malloc_pinned_model
@@ -74,12 +78,17 @@ int starpu_malloc(void **A, size_t dim)
 
 	STARPU_ASSERT(A);
 
-	if (_starpu_may_submit_cuda_task())
+	if (_starpu_can_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
 		int push_res;
 
-		struct malloc_pinned_codelet_struct s = {
+#ifdef STARPU_DEVEL
+#warning TODO: CUDA4 is able to directly allocate from any thread without having to launch a task
+#endif
+
+		struct malloc_pinned_codelet_struct s =
+		{
 			.ptr = A,
 			.dim = dim
 		};
@@ -94,16 +103,17 @@ int starpu_malloc(void **A, size_t dim)
 
 		_starpu_exclude_task_from_dag(task);
 
-		push_res = _starpu_task_submit_internal(task);
+		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 	}
-//	else if (_starpu_may_submit_opencl_task())
+//	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
 //
-//		struct malloc_pinned_codelet_struct s = {
+//		struct malloc_pinned_codelet_struct s =
+//		{
 //			.ptr = A,
 //			.dim = dim
 //		};
@@ -118,11 +128,12 @@ int starpu_malloc(void **A, size_t dim)
 //
 //		_starpu_exclude_task_from_dag(task);
 //
-//		push_res = _starpu_task_submit_internal(task);
+//		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //        }
-        else {
+        else
+	{
 		*A = malloc(dim);
 	}
 
@@ -151,15 +162,17 @@ static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, vo
 //#endif
 
 #if defined(STARPU_USE_CUDA) // || defined(STARPU_USE_OPENCL)
-static struct starpu_perfmodel_t free_pinned_model = {
+static struct starpu_perfmodel free_pinned_model =
+{
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "free_pinned"
 };
 
-static starpu_codelet free_pinned_cl = {
-	.cuda_func = free_pinned_cuda_codelet,
+static struct starpu_codelet free_pinned_cl =
+{
+	.cuda_funcs = {free_pinned_cuda_codelet, NULL},
 //#ifdef STARPU_USE_OPENCL
-//	.opencl_func = free_pinned_opencl_codelet,
+//	.opencl_funcs = {free_pinned_opencl_codelet, NULL},
 //#endif
 	.nbuffers = 0,
 	.model = &free_pinned_model
@@ -171,9 +184,18 @@ int starpu_free(void *A)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	if (_starpu_may_submit_cuda_task())
-	{
 #ifdef STARPU_USE_CUDA
+	if (!_starpu_is_initialized())
+	{
+		/* This is especially useful when starpu_free is called from
+ 		 * the GCC-plugin. starpu_shutdown will probably have already
+		 * been called, so we will not be able to submit a task. */
+		cudaError_t err = cudaFreeHost(A);
+		if (STARPU_UNLIKELY(err))
+			STARPU_CUDA_REPORT_ERROR(err);
+	}
+	else if (_starpu_can_submit_cuda_task())
+	{
 		int push_res;
 
                 free_pinned_cl.where = STARPU_CUDA;
@@ -186,11 +208,10 @@ int starpu_free(void *A)
 
 		_starpu_exclude_task_from_dag(task);
 
-		push_res = _starpu_task_submit_internal(task);
+		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
-#endif
 	}
-//	else if (_starpu_may_submit_opencl_task())
+//	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
@@ -205,11 +226,13 @@ int starpu_free(void *A)
 //
 //		_starpu_exclude_task_from_dag(task);
 //
-//		push_res = _starpu_task_submit_internal(task);
+//		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //	}
-	else {
+	else
+#endif
+	{
 		free(A);
 	}
 
