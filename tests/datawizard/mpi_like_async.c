@@ -359,10 +359,11 @@ int main(int argc, char **argv)
 	/* We check that the value in the "last" thread is valid */
 	starpu_data_handle_t last_handle = problem_data[nthreads - 1].handle;
 	starpu_data_acquire(last_handle, STARPU_R);
+	ret = EXIT_SUCCESS;
 	if (problem_data[nthreads - 1].val != (nthreads * niter))
 	{
 		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[nthreads - 1].val, (nthreads * niter));
-		STARPU_ABORT();
+		ret = EXIT_FAILURE;
 	}
 	starpu_data_release(last_handle);
 
@@ -373,5 +374,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	STARPU_RETURN(ret);
 }
