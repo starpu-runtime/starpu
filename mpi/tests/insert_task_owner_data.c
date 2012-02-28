@@ -49,13 +49,6 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_initialize_extended(&rank, &size);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
 
-        if (rank > 1)
-	{
-                starpu_mpi_shutdown();
-                starpu_shutdown();
-                return STARPU_TEST_SKIPPED;
-        }
-
         if (rank == 0)
 	{
 		x[0] = 11;
@@ -67,6 +60,11 @@ int main(int argc, char **argv)
 		x[1] = 12;
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
 		starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&x[1], sizeof(x[1]));
+        }
+	else
+	{
+		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
+		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
         }
 
 	starpu_data_set_rank(data_handles[0], 0);
@@ -84,15 +82,19 @@ int main(int argc, char **argv)
         for(i=0 ; i<2 ; i++)
 	{
                 starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[i], 0);
-                starpu_data_acquire(data_handles[i], STARPU_R);
-                values[i] = *((int *)starpu_mpi_handle_to_ptr(data_handles[i]));
+		if (rank == 0) {
+			starpu_data_acquire(data_handles[i], STARPU_R);
+			values[i] = *((int *)starpu_mpi_handle_to_ptr(data_handles[i]));
+		}
         }
-	assert(values[0] == 12 && values[1] == 144);
         FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d\n", rank, values[0], values[1]);
+	ret = 0;
+	if (rank == 0 && (values[0] != 12 || values[1] != 144))
+		ret = EXIT_FAILURE;
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }
 
