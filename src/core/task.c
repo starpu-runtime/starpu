@@ -721,6 +721,8 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 		default:
 			STARPU_ASSERT(0);
 	}
+	/* that instruction should never be reached */
+	return -EINVAL;
 }
 
 starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)

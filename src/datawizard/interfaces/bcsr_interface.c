@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -261,8 +261,8 @@ static size_t bcsr_interface_get_size(starpu_data_handle_t handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	uintptr_t addr_nzval;
-	uint32_t *addr_colind, *addr_rowptr;
+	uintptr_t addr_nzval = 0;
+	uint32_t *addr_colind = NULL, *addr_rowptr = NULL;
 	ssize_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */

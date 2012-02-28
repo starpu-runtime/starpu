@@ -20,10 +20,10 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include "../helper.h"
 
 #if !defined(STARPU_HAVE_UNSETENV)
 #warning unsetenv is not defined. Skipping test
-#include "../helper.h"
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
@@ -38,7 +38,7 @@ static void unset_env_variables(void)
 
 int main(int argc, char **argv)
 {
-	int ret;	
+	int ret;
 
 	unset_env_variables();
 

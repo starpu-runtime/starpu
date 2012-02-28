@@ -18,6 +18,8 @@
 #include "generic.h"
 #include "../../../../helper.h"
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
+
 extern struct stats global_stats;
 static int vector[NX];
 static starpu_data_handle_t handle;
@@ -36,7 +38,6 @@ static starpu_data_handle_t handle;
  * StarPU assumes that the data structures used on CUDA and OpenCL devices are
  * the same.
  */
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
 static int
 test(void)
 {
@@ -56,7 +57,7 @@ test(void)
 	task_cuda->handles[0] = handle;
 	ret = starpu_task_submit(task_cuda);
 	if (ret != 0)
-		return 1; 
+		return 1;
 
 	static struct starpu_codelet cl_opencl =
 	{
@@ -82,7 +83,6 @@ test(void)
 
 	return 0;
 }
-#endif /* !(STARPU_USE_CUDA && STARPU_USE_OPENCL) */
 
 static void
 register_handle(void)
@@ -98,6 +98,7 @@ unregister_handle(void)
 {
 	starpu_data_unregister(handle);
 }
+#endif /* !(STARPU_USE_CUDA && STARPU_USE_OPENCL) */
 
 int
 main(void)
@@ -126,9 +127,6 @@ main(void)
 
 	struct stats expected_stats =
 	{
-#ifdef STARPU_USE_CPU
-		.cpu           = 0,
-#endif
 #ifdef STARPU_USE_CUDA
 		.cuda          = 2,
 		.cpu_to_cuda   = 1,
@@ -140,7 +138,7 @@ main(void)
 		.opencl_to_cpu = 0
 #endif
 	};
-	
+
 	ret = compare_stats(&global_stats, &expected_stats);
 	if (ret != 0)
 	{

@@ -277,8 +277,10 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		else if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
 			node = opencl_node;
 #endif
-		else
+		else {
+			node = -EINVAL;
 			STARPU_ASSERT(0);
+		}
 
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;

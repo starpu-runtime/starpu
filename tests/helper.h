@@ -40,7 +40,7 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_HAVE_VALGRIND_H
-static int _starpu_valgrind_print_once = 0;
+static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 
 #  define STARPU_SKIP_IF_VALGRIND \
 	do \

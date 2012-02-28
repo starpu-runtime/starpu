@@ -129,6 +129,7 @@ static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t
 		default:
 			STARPU_ASSERT(0);
 	}
+	return NULL;
 }
 
 static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
@@ -288,7 +289,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface_;
 	unsigned fail = 0;
 	uintptr_t addr = 0;
-	ssize_t allocated_memory;
+	ssize_t allocated_memory = 0;
 
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
