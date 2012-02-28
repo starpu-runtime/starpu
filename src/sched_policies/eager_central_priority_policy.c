@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,8 +32,9 @@
 
 #define NPRIO_LEVELS	(MAX_LEVEL - MIN_LEVEL + 1)
 
-struct starpu_priority_taskq_s {
-	/* the actual lists 
+struct starpu_priority_taskq_s
+{
+	/* the actual lists
 	 *	taskq[p] is for priority [p - STARPU_MIN_PRIO] */
 	struct starpu_task_list taskq[NPRIO_LEVELS];
 	unsigned ntasks[NPRIO_LEVELS];
@@ -42,19 +43,19 @@ struct starpu_priority_taskq_s {
 };
 
 typedef struct eager_central_prio_data{
-	struct starpu_priority_taskq_s *taskq;
+	struct _starpu_priority_taskq *taskq;
 	pthread_mutex_t sched_mutex;
 	pthread_cond_t sched_cond;
 } eager_central_prio_data;
 
 /*
- * Centralized queue with priorities 
+ * Centralized queue with priorities
  */
 
 static struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
 {
 	struct starpu_priority_taskq_s *central_queue;
-	
+
 	central_queue = (struct starpu_priority_taskq_s *) malloc(sizeof(struct starpu_priority_taskq_s));
 	central_queue->total_ntasks = 0;
 
@@ -152,24 +153,25 @@ static int _starpu_priority_push_task(struct starpu_task *task, unsigned sched_c
 	struct starpu_priority_taskq_s *taskq = data->taskq;
 
 	/* wake people waiting for a task */
-	PTHREAD_MUTEX_LOCK(&data->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&data->sched_mutex);
 
-	STARPU_TRACE_JOB_PUSH(task, 1);
-	
+	_STARPU_TRACE_JOB_PUSH(task, 1);
+
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
 	starpu_task_list_push_front(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 
-	PTHREAD_COND_SIGNAL(&data->sched_cond);
-	PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&data->sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
 
 	return 0;
 }
 
 static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 {
+	/* XXX FIXME: should call starpu_worker_can_execute_task!! */
 	struct starpu_task *task = NULL;
 
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -183,39 +185,45 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	if ((taskq->total_ntasks == 0) && _starpu_machine_is_running())
 	{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
 		return NULL;
 #else
-		PTHREAD_COND_WAIT(&data->sched_cond, &data->sched_mutex);
+		_STARPU_PTHREAD_COND_WAIT(&data->sched_cond, &data->sched_mutex);
 #endif
 	}
 
 	if (taskq->total_ntasks > 0)
 	{
 		unsigned priolevel = NPRIO_LEVELS - 1;
-		do {
-			if (taskq->ntasks[priolevel] > 0) {
+		do
+		{
+			if (taskq->ntasks[priolevel] > 0)
+			{
 				/* there is some task that we can grab */
 				task = starpu_task_list_pop_back(&taskq->taskq[priolevel]);
 				taskq->ntasks[priolevel]--;
 				taskq->total_ntasks--;
-				STARPU_TRACE_JOB_POP(task, 0);
+				_STARPU_TRACE_JOB_POP(task, 0);
 			}
-		} while (!task && priolevel-- > 0);
+		}
+		while (!task && priolevel-- > 0);
 	}
+	STARPU_ASSERT_MSG(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0), "prio does not support \"can_execute\"");
 
-	PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
 
 	return task;
 }
 
-struct starpu_sched_policy_s _starpu_sched_prio_policy = {
+struct starpu_sched_policy _starpu_sched_prio_policy =
+{
 	.init_sched = initialize_eager_center_priority_policy,
 	.init_sched_for_workers = initialize_eager_center_priority_policy_for_workers,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
 	/* we always use priorities in that policy */
 	.push_task = _starpu_priority_push_task,
 	.pop_task = _starpu_priority_pop_task,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "prio",

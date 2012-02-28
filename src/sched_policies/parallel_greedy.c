@@ -19,10 +19,11 @@
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <common/barrier.h>
+#include <sched_policies/detect_combined_workers.h>
 
 typedef struct pgreedy_data {
-	struct starpu_fifo_taskq_s *fifo;
-	struct starpu_fifo_taskq_s *local_fifo[STARPU_NMAXWORKERS];
+	struct _starpu_fifo_taskq *fifo;
+	struct _starpu_fifo_taskq *local_fifo[STARPU_NMAXWORKERS];
 
 	int master_id[STARPU_NMAXWORKERS];
 
@@ -60,7 +61,7 @@ static void initialize_pgreedy_policy(unsigned sched_ctx_id)
 
 	for (workerid_ctx = 0; workerid_ctx < nworkers_ctx; workerid_ctx++)
 	{
-    	        workerid = sched_ctx->workerids[workerid_ctx];
+		workerid = sched_ctx->workerids[workerid_ctx];
 		
 		int cnt = possible_combinations_cnt[workerid]++;
 		possible_combinations[workerid][cnt] = workerid;
@@ -94,15 +95,15 @@ static void initialize_pgreedy_policy(unsigned sched_ctx_id)
 		}
 	}
 
-	PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
-	PTHREAD_COND_INIT(&data->sched_cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&data->sched_cond, NULL);
 
 	for (workerid_ctx = 0; workerid_ctx < nworkers_ctx; workerid_ctx++)
 	{
 		workerid = sched_ctx->workerids[workerid_ctx];
 
-		PTHREAD_MUTEX_INIT(sched_ctx->sched_mutex[workerid], NULL);
-		PTHREAD_COND_INIT(sched_ctx->sched_cond[workerid], NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(sched_ctx->sched_mutex[workerid], NULL);
+		_STARPU_PTHREAD_COND_INIT(sched_ctx->sched_cond[workerid], NULL);
 	}
 
 	for (workerid_ctx = 0; workerid_ctx < nworkers_ctx; workerid_ctx++)
@@ -204,20 +205,20 @@ static struct starpu_task *pop_task_pgreedy_policy(unsigned sched_ctx_id)
 			if (possible_combinations_size[workerid][i] > best_size)
 			{
 				int combined_worker = possible_combinations[workerid][i];
-				if (starpu_combined_worker_may_execute_task(combined_worker, task, 0))
+				if (starpu_combined_worker_can_execute_task(combined_worker, task, 0))
 				{
 					best_size = possible_combinations_size[workerid][i];
 					best_workerid = combined_worker;
 				}
 			}
-		} 
+		}
 
 		/* In case nobody can execute this task, we let the master
 		 * worker take it anyway, so that it can discard it afterward.
 		 * */
 		if (best_workerid == -1)
 			return task;
-		
+
 		/* Is this a basic worker or a combined worker ? */
 		int nbasic_workers = (int)starpu_worker_get_count();
 		int is_basic_worker = (best_workerid < nbasic_workers);
@@ -227,23 +228,24 @@ static struct starpu_task *pop_task_pgreedy_policy(unsigned sched_ctx_id)
 			/* The master is alone */
 			return task;
 		}
-		else {
+		else
+		{
 			/* The master needs to dispatch the task between the
 			 * different combined workers */
-			struct starpu_combined_worker_s *combined_worker;
+			struct _starpu_combined_worker *combined_worker;
 			combined_worker = _starpu_get_combined_worker_struct(best_workerid);
 			int worker_size = combined_worker->worker_size;
 			int *combined_workerid = combined_worker->combined_workerid;
 
-			starpu_job_t j = _starpu_get_job_associated_to_task(task);
+			struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 			j->task_size = worker_size;
 			j->combined_workerid = best_workerid;
 			j->active_task_alias_count = 0;
 
 			//fprintf(stderr, "POP -> size %d best_size %d\n", worker_size, best_size);
 
-			PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-			PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+			_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+			_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 			/* Dispatch task aliases to the different slaves */
 			for (i = 1; i < worker_size; i++)
@@ -261,17 +263,20 @@ static struct starpu_task *pop_task_pgreedy_policy(unsigned sched_ctx_id)
 			return master_alias;
 		}
 	}
-	else {
+	else
+	{
 		/* The worker is a slave */
 		return _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
 	}
 }
 
-struct starpu_sched_policy_s _starpu_sched_pgreedy_policy = {
+struct starpu_sched_policy _starpu_sched_pgreedy_policy =
+{
 	.init_sched = initialize_pgreedy_policy,
 	.deinit_sched = deinitialize_pgreedy_policy,
 	.push_task = push_task_pgreedy_policy,
 	.pop_task = pop_task_pgreedy_policy,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "pgreedy",

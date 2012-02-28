@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 #include <sched_policies/fifo_queues.h>
 
 typedef struct eager_center_policy_data {
-	struct starpu_fifo_taskq_s *fifo;
+	struct _starpu_fifo_taskq *fifo;
 	pthread_mutex_t sched_mutex;
 	pthread_cond_t sched_cond;
 } eager_center_policy_data;
@@ -109,7 +109,7 @@ static int push_task_eager_policy(struct starpu_task *task, unsigned sched_ctx_i
 		_starpu_increment_nsubmitted_tasks_of_worker(workerid);
 	}
 
-	struct starpu_fifo_taskq_s *fifo = data->fifo;
+	struct _starpu_fifo_taskq *fifo = data->fifo;
 	return _starpu_fifo_push_task(fifo, &data->sched_mutex, &data->sched_cond, task);
 }
 
@@ -118,17 +118,17 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	struct eager_center_policy_data *data = (struct eager_center_policy_data*)sched_ctx->policy_data;
 
-	struct starpu_fifo_taskq_s *fifo = data->fifo;
+	static struct _starpu_fifo_taskq *fifo = data->fifo;
 	return _starpu_fifo_pop_every_task(fifo, &data->sched_mutex, starpu_worker_get_id());
 }
 
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
-        unsigned workerid = starpu_worker_get_id();
+    unsigned workerid = starpu_worker_get_id();
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	struct eager_center_policy_data *data = (struct eager_center_policy_data*)sched_ctx->policy_data;
 
-	struct starpu_fifo_taskq_s *fifo = data->fifo;
+	static struct _starpu_fifo_taskq *fifo = data->fifo;
 	struct starpu_task *task =  _starpu_fifo_pop_task(fifo, workerid);
 
 	if(task)
@@ -144,12 +144,14 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	return task;
 }
 
-struct starpu_sched_policy_s _starpu_sched_eager_policy = {
+struct starpu_sched_policy _starpu_sched_eager_policy =
+{
 	.init_sched = initialize_eager_center_policy,
 	.init_sched_for_workers = initialize_eager_center_policy_for_workers,
 	.deinit_sched = deinitialize_eager_center_policy,
 	.push_task = push_task_eager_policy,
 	.pop_task = pop_task_eager_policy,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",

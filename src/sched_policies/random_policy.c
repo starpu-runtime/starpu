@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,7 +52,8 @@ static int _random_push_task(struct starpu_task *task, unsigned prio, struct sta
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
 
-		if (alpha + worker_alpha > random) {
+		if (alpha + worker_alpha > random && starpu_worker_can_execute_task(worker, task, 0))
+		{
 			/* we found the worker */
 			selected = worker;
 			break;
@@ -72,7 +73,7 @@ static int random_push_task(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-    return _random_push_task(task, 0, sched_ctx);
+    return _random_push_task(task, !!task->priority, sched_ctx);
 }
 
 static void initialize_random_policy_for_workers(unsigned sched_ctx_id, int *workerids, unsigned nnew_workers) 
@@ -109,12 +110,14 @@ static void initialize_random_policy(unsigned sched_ctx_id)
 	}
 }
 
-struct starpu_sched_policy_s _starpu_sched_random_policy = {
+struct starpu_sched_policy _starpu_sched_random_policy =
+{
 	.init_sched = initialize_random_policy,
 	.init_sched_for_workers = initialize_random_policy_for_workers,
 	.deinit_sched = NULL,
 	.push_task = random_push_task,
 	.pop_task = NULL,
+	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "random",

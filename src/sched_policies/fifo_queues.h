@@ -22,7 +22,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
-struct starpu_fifo_taskq_s {
+struct _starpu_fifo_taskq
+{
 	/* the actual list */
 	struct starpu_task_list taskq;
 
@@ -38,12 +39,14 @@ struct starpu_fifo_taskq_s {
 	double exp_len; /* Expected duration of the set of tasks in the queue */
 };
 
-struct starpu_fifo_taskq_s*_starpu_create_fifo(void);
-void _starpu_destroy_fifo(struct starpu_fifo_taskq_s *fifo);
+struct _starpu_fifo_taskq*_starpu_create_fifo(void);
+void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo);
 
-int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task);
+int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo);
 
-struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo, int workerid);
-struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo, pthread_mutex_t *sched_mutex, int workerid);
+int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task);
+
+struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo, int workerid);
+struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo, pthread_mutex_t *sched_mutex, int workerid);
 
 #endif // __FIFO_QUEUES_H__

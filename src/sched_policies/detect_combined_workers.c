@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2011, 2012       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,12 +19,14 @@
 #include <starpu.h>
 #include <common/utils.h>
 #include <core/workers.h>
+#include <math.h>
+#include <sched_policies/detect_combined_workers.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 
-/* tree_t
- * ======
+/* struct _starpu_tree
+ * ==================
  * Purpose
  * =======
  * Structure representing a tree (which can be a sub-tree itself) whose root is an hwloc
@@ -39,12 +42,12 @@
  * workers		CPU-workers found by recursion in all the sub-trees and in this very one, represented as leaves in hwloc.
  */
 
-typedef struct tree_s{
+struct _starpu_tree
+{
     hwloc_obj_t obj;
     unsigned nb_workers;
     int *workers;
-} tree_t;
-
+};
 
 /* gather_trees
  * ============
@@ -65,7 +68,7 @@ typedef struct tree_s{
  *			Number of trees we want to combine (size of the array).
  */
 
-static void gather_trees(tree_t *target_tree, tree_t *source_trees, unsigned nb_source_trees)
+static void gather_trees(struct _starpu_tree *target_tree, struct _starpu_tree *source_trees, unsigned nb_source_trees)
 {
     unsigned tree_id, worker_id, index = 0;
     for(tree_id = 0; tree_id < nb_source_trees; ++tree_id)
@@ -99,7 +102,7 @@ static void gather_trees(tree_t *target_tree, tree_t *source_trees, unsigned nb_
  *			Maximum size of a combined worker.
  */
 
-static unsigned assign_multiple_trees(tree_t *trees, unsigned nb_trees, int min_size, int max_size)
+static unsigned assign_multiple_trees(struct _starpu_tree *trees, unsigned nb_trees, unsigned int min_size, unsigned int max_size)
 {
     unsigned short complete = 0;
     unsigned tree_id, tree_id2, nb_workers_tree, nb_workers_tree2, worker_id, nb_workers_total = 0, nb_workers_assigned = 0;
@@ -197,19 +200,19 @@ static unsigned assign_multiple_trees(tree_t *trees, unsigned nb_trees, int min_
  *			Maximum size of a combined worker.
  */
 
-static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, int min_size, int max_size)
+static unsigned find_and_assign_combinations_with_hwloc_recursive(struct _starpu_tree *tree, unsigned int min_size, unsigned int max_size)
 {
     unsigned subtree_id, nb_workers = 0;
 
     hwloc_obj_t obj = tree->obj;
     int *workers = tree->workers;
 
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     /* Is this a leaf ? (eg. a PU for hwloc) */
     if (!hwloc_compare_types(config->cpu_depth, obj->depth))
     {
-	struct starpu_worker_s *worker = obj->userdata;
+	struct _starpu_worker *worker = obj->userdata;
 
 	/* If this is a CPU worker add it at the beginning
 	 * of the array , write 1 in the field nb_workers and
@@ -229,7 +232,7 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
     /* If there is only one child, we go to the next level right away */
     if (obj->arity == 1)
     {
-	tree_t subtree = *tree;
+	struct _starpu_tree subtree = *tree;
 	subtree.obj = obj->children[0];
 	nb_workers = find_and_assign_combinations_with_hwloc_recursive(&subtree, min_size, max_size);
 	tree->nb_workers = nb_workers;
@@ -240,12 +243,12 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
      * CPU leaves that fits between min and max. */
 
     /* We allocate an array of tree structures which will contain the current node's subtrees data */
-    tree_t *subtrees = (tree_t *) malloc(obj->arity * sizeof(tree_t));
+    struct _starpu_tree *subtrees = (struct _starpu_tree *) malloc(obj->arity * sizeof(struct _starpu_tree));
 
     /* We allocate the array containing the workers of each subtree and initialize the fields left */
     for(subtree_id = 0; subtree_id < obj->arity; ++subtree_id)
     {
-	tree_t *subtree = subtrees + subtree_id;
+	struct _starpu_tree *subtree = subtrees + subtree_id;
 
 	subtree->obj = obj->children[subtree_id];
 	subtree->nb_workers = 0;
@@ -317,7 +320,7 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(tree_t *tree, 
  *			Topology of the machine : used to know the number of cpus.
  */
 
-static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machine_topology_s *topology)
+static void get_min_max_sizes(unsigned int *min_size, unsigned int *max_size, struct starpu_machine_topology *topology)
 {
     int _min_size, _max_size;
 
@@ -330,8 +333,8 @@ static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machin
     {
 
 	int nb_cpus = topology->nhwcpus;
-	int sqrt_nb_cpus = sqrt(nb_cpus);
-	short exact = (sqrt_nb_cpus * sqrt_nb_cpus == nb_cpus);
+	int sqrt_nb_cpus = (int)sqrt((double)nb_cpus);
+	int exact = (sqrt_nb_cpus * sqrt_nb_cpus == nb_cpus);
 
 	    if(_min_size == -1)
 	    {
@@ -373,19 +376,19 @@ static void get_min_max_sizes(int *min_size, int *max_size, struct starpu_machin
  *			to get the hwloc tree.
  */
 
-static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology_s *topology)
+static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology *topology)
 {
     unsigned nb_workers;
-    int min_size, max_size;
+    unsigned int min_size, max_size;
 
     get_min_max_sizes(&min_size, &max_size, topology);
 
     STARPU_ASSERT(min_size <= max_size);
 
-    tree_t tree;
+    struct _starpu_tree tree;
 
     /* Of course we start from the root */
-    tree.obj = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0); 
+    tree.obj = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0);
     tree.nb_workers = 0;
     tree.workers = (int *) malloc(topology->nhwcpus * sizeof(int));
 
@@ -399,7 +402,7 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
     {
 	/* find_and_assign_combinations_with_hwloc_recursive shouldn't return
 	 * while there are enough workers to assign regarding the min_size value */
-	STARPU_ASSERT(nb_workers < max_size);
+	STARPU_ASSERT(nb_workers <= max_size);
 
 	int ret = starpu_combined_worker_assign_workerid(nb_workers, tree.workers);
 	STARPU_ASSERT(ret >= 0);
@@ -410,9 +413,9 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
 
 #else /* STARPU_HAVE_HWLOC */
 
-static void find_and_assign_combinations_without_hwloc(struct starpu_machine_topology_s *topology)
+static void find_and_assign_combinations_without_hwloc(struct starpu_machine_topology *topology)
 {
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     /* We put the id of all CPU workers in this array */
     int cpu_workers[STARPU_NMAXWORKERS];
@@ -440,7 +443,7 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 
 		/* We register this combination */
 		int ret;
-		ret = starpu_combined_worker_assign_workerid(size, workerids); 
+		ret = starpu_combined_worker_assign_workerid(size, workerids);
 		STARPU_ASSERT(ret >= 0);
 	    }
 	}
@@ -449,9 +452,9 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 
 #endif /* STARPU_HAVE_HWLOC */
 
-static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
+static void combine_all_cpu_workers(struct starpu_machine_topology *topology)
 {
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
     int cpu_workers[STARPU_NMAXWORKERS];
     unsigned ncpus = 0;
@@ -463,21 +466,22 @@ static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
 	    cpu_workers[ncpus++] = i;
     }
 
-    if (ncpus > 0)
+    for (i = 1; i <= ncpus; i++)
     {
 	int ret;
-	ret = starpu_combined_worker_assign_workerid(ncpus, cpu_workers);
+	ret = starpu_combined_worker_assign_workerid(i, cpu_workers);
 	STARPU_ASSERT(ret >= 0);
     }
 }
 
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
+void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topology)
 {
-    struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-    if (config->user_conf && config->user_conf->single_combined_worker > 0 || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
+    if ((config->user_conf && config->user_conf->single_combined_worker > 0) || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
 	combine_all_cpu_workers(topology);
-    else {
+    else
+    {
 #ifdef STARPU_HAVE_HWLOC
 	find_and_assign_combinations_with_hwloc(topology);
 #else
