@@ -21,6 +21,7 @@
    "vector scaling" task with multiple CPU implementations, an OpenCL
    implementation, and a CUDA implementation.   */
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
