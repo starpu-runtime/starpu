@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -69,6 +69,7 @@ advantage of their specificities in a portable fashion.
    * autoconf (version >= 2.60)
    * automake
    * makeinfo
+   * libtool (version >= 2)
 
  * Remark: It is strongly recommanded that you also install the hwloc library
    before installing StarPU. This permits StarPU to actually map the processing
