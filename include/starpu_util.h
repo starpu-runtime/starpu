@@ -36,8 +36,8 @@ extern "C"
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
 
 #ifdef STARPU_NO_ASSERT
-#define STARPU_ASSERT(x)		do {} while(0)
-#define STARPU_ASSERT_MSG(x, msg)	do {} while(0)
+#define STARPU_ASSERT(x)		do { (void) (x);} while(0)
+#define STARPU_ASSERT_MSG(x, msg)	do { (void) (x);} while(0)
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (!(x)) *(int*)NULL = 0; } while(0)

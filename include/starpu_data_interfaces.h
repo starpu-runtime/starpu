@@ -350,27 +350,19 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 struct starpu_multiformat_data_interface_ops
 {
 	size_t cpu_elemsize;
-#ifdef STARPU_USE_OPENCL
 	size_t opencl_elemsize;
 	struct starpu_codelet *cpu_to_opencl_cl;
 	struct starpu_codelet *opencl_to_cpu_cl;
-#endif
-#ifdef STARPU_USE_CUDA
 	size_t cuda_elemsize;
 	struct starpu_codelet *cpu_to_cuda_cl;
 	struct starpu_codelet *cuda_to_cpu_cl;
-#endif
 };
 
 struct starpu_multiformat_interface
 {
 	void *cpu_ptr;
-#ifdef STARPU_USE_CUDA
 	void *cuda_ptr;
-#endif
-#ifdef STARPU_USE_OPENCL
 	void *opencl_ptr;
-#endif
 	uint32_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
 };
@@ -378,15 +370,8 @@ struct starpu_multiformat_interface
 void starpu_multiformat_data_register(starpu_data_handle_t *handle, uint32_t home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
 
 #define STARPU_MULTIFORMAT_GET_CPU_PTR(interface)  (((struct starpu_multiformat_interface *)(interface))->cpu_ptr)
-
-#ifdef STARPU_USE_CUDA
 #define STARPU_MULTIFORMAT_GET_CUDA_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->cuda_ptr)
-#endif
-
-#ifdef STARPU_USE_OPENCL
 #define STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->opencl_ptr)
-#endif
-
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
