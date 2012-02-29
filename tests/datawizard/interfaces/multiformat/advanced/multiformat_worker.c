@@ -18,8 +18,10 @@
 #include "generic.h"
 #include "../../../../helper.h"
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 extern struct stats global_stats;
 static int vector[NX]; static starpu_data_handle_t handle;
+#endif
 
 #ifdef STARPU_USE_CUDA
 static int ncuda;
@@ -30,6 +32,7 @@ static int nopencl;
 static int opencl_worker;
 #endif
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static struct starpu_codelet cl =
 {
 	.where = STARPU_CUDA|STARPU_OPENCL,
@@ -88,6 +91,7 @@ create_and_submit_tasks(void)
 
 	return starpu_task_submit(task);
 }
+#endif
 
 int
 main(void)

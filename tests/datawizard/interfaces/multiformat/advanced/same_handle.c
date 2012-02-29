@@ -22,6 +22,7 @@
  * A single handle can be given twice to a given kernel. In this case, it
  * should only be converted once.
  */
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 extern struct stats global_stats;
 static int vector[NX]; static starpu_data_handle_t handle;
 
@@ -77,6 +78,7 @@ create_and_submit_tasks(void)
 
 	return 0;
 }
+#endif
 
 int
 main(void)
