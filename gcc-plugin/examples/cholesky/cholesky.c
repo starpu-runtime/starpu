@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,9 @@ static void dw_cholesky(unsigned nblocks, unsigned size, unsigned ld, float *mat
 
 	for (k = 0; k < nblocks; k++)
         {
-#warning deal with prio and models
+#ifdef STARPU_DEVEL
+#  warning deal with prio and models
+#endif
 //                int prio = STARPU_DEFAULT_PRIO;
 //                if (!noprio) prio = STARPU_MAX_PRIO;
 
@@ -99,7 +101,9 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-#warning todo
+#ifdef STARPU_DEVEL
+#  warning todo
+#endif
 //	struct starpu_conf conf;
 //	starpu_conf_init(&conf);
 //	conf.sched_policy_name = "heft";
