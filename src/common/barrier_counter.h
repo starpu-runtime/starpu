@@ -17,11 +17,11 @@
 #include <common/barrier.h>
 
 struct _starpu_barrier_counter_t {
-	_starpu_barrier_t barrier;
+	_starpu_barrier barrier;
 	pthread_cond_t cond2;
 };
 
-int _starpu_barrier_counter_init(struct _starpu_barrier_counter_t *barrier_c, int count);
+int _starpu_barrier_counter_init(struct _starpu_barrier_counter_ *barrier_c, int count);
 
 int _starpu_barrier_counter_update(struct _starpu_barrier_counter_t *barrier_c, int count);
 
