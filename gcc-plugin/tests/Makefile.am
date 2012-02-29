@@ -72,3 +72,6 @@ check-hook:
 	-@echo "GNU Guile not available, test suite not run."
 
 endif !HAVE_GUILE
+
+showcheck:
+	-cat $(TEST_LOGS) /dev/null
