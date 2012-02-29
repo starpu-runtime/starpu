@@ -26,8 +26,6 @@
 #include <starpu_opencl.h>
 #endif
 
-#warning memory leak
-
 static unsigned var = 0;
 static starpu_data_handle_t handle;
 

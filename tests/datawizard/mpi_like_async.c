@@ -26,8 +26,6 @@
 static int nthreads = NTHREADS_DEFAULT;
 static int niter = NITER_DEFAULT;
 
-#warning memory leaks
-
 //#define DEBUG_MESSAGES	1
 
 //static pthread_cond_t cond;

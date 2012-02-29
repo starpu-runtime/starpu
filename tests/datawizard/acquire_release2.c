@@ -18,8 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#warning memory leak
-
 static unsigned ntasks = 40000;
 
 #ifdef STARPU_USE_CUDA
@@ -62,7 +60,9 @@ void callback(void *arg __attribute__ ((unused)))
         starpu_data_release(token_handle);
 }
 
-#warning TODO add threads
+#ifdef STARPU_DEVEL
+#  warning TODO add threads
+#endif
 
 int main(int argc, char **argv)
 {

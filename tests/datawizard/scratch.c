@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#warning memory leaks
-
 #define NLOOPS		128
 #define VECTORSIZE	1024
 

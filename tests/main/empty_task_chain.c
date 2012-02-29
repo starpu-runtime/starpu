@@ -20,8 +20,6 @@
 
 #define N	4
 
-#warning memory leaks
-
 int main(int argc, char **argv)
 {
 	int i, ret;
