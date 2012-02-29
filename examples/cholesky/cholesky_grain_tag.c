@@ -238,6 +238,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		/* stall the application until the end of computations */
 		starpu_tag_wait(TAG11_AUX(nblocks-1, reclevel));
 		starpu_data_unpartition(dataA, 0);
+		starpu_data_unregister(dataA);
 		return;
 	}
 	else
