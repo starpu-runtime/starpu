@@ -426,7 +426,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
         }
         else if (me == rank)
         {
-		starpu_mpi_isend_detached(data_handle, node, tag, comm, callback, arg);
+		starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
         }
 }
 
