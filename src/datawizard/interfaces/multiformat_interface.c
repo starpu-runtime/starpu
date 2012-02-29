@@ -174,24 +174,16 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
 {
-#ifdef STARPU_USE_OPENCL
 	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_opencl_cl);
 	_starpu_codelet_check_deprecated_fields(format_ops->opencl_to_cpu_cl);
-#endif
-#ifdef STARPU_USE_CUDA
 	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_cuda_cl);
 	_starpu_codelet_check_deprecated_fields(format_ops->cuda_to_cpu_cl);
-#endif
 
 	struct starpu_multiformat_interface multiformat =
 	{
 		.cpu_ptr    = ptr,
-#ifdef STARPU_USE_CUDA
 		.cuda_ptr   = NULL,
-#endif
-#ifdef STARPu_USE_OPENCL
 		.opencl_ptr = NULL,
-#endif
 		.nx         = nobjects,
 		.ops        = format_ops
 	};
