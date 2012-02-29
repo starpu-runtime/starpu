@@ -32,6 +32,7 @@
 
 extern struct stats global_stats;
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 {
@@ -104,6 +105,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	FPRINTF(stderr, "***** End of all tasks\n");
 	return;
 }
+#endif
 
 /* XXX Just a little bit of copy/pasta here... */
 #ifdef STARPU_USE_CUDA

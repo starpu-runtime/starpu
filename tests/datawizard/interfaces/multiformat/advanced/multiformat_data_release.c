@@ -43,6 +43,7 @@ unregister_handle(void)
 	starpu_data_unregister(handle);
 }
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 create_and_submit(int where)
 {
@@ -68,6 +69,7 @@ create_and_submit(int where)
 	task->synchronous = 1;
 	starpu_task_submit(task);
 }
+#endif
 
 static int
 test(void)
