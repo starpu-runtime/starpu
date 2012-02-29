@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,10 @@ static unsigned check = 0;
 static unsigned p = 1;
 static unsigned q = 1;
 static unsigned display = 0;
+
+#ifdef STARPU_HAVE_LIBNUMA
 static unsigned numa = 0;
+#endif
 
 static size_t allocated_memory = 0;
 static size_t allocated_memory_extra = 0;
@@ -449,7 +452,7 @@ int main(int argc, char **argv)
 
 	display_grid(rank, nblocks);
 
-	TYPE *a_r;
+	TYPE *a_r = NULL;
 //	STARPU_PLU(display_data_content)(a_r, size);
 
 	TYPE *x, *y;
