@@ -475,7 +475,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
 			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
-			struct starpu_codelet *cl;
+			struct starpu_codelet *cl = NULL;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);
 
 			struct starpu_multiformat_data_interface_ops *mf_ops;
