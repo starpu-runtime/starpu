@@ -35,7 +35,7 @@ struct starpu_sched_ctx {
 	const char *name;
 
 	/* policy of the context */
-	struct starpu_sched_policy_s *sched_policy;
+	struct starpu_sched_policy *sched_policy;
 
 	/* data necessary for the policy */
 	void *policy_data;

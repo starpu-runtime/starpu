@@ -19,7 +19,7 @@
 int _starpu_barrier_counter_init(struct _starpu_barrier_counter_t *barrier_c, int count)
 {
 	_starpu_barrier_init(&barrier_c->barrier, count);
-	pthread_cond_init(&barrier_c->cond2, NULL);
+	_STARPU_PTHREAD_COND_INIT(&barrier_c->cond2, NULL);
 	return 0;
 }
 
@@ -33,67 +33,67 @@ int _starpu_barrier_counter_update(struct _starpu_barrier_counter_t *barrier_c, 
 int _starpu_barrier_counter_destroy(struct _starpu_barrier_counter_t *barrier_c)
 {
 	_starpu_barrier_destroy(&barrier_c->barrier);
-	pthread_cond_destroy(&barrier_c->cond2);
+	_STARPU_PTHREAD_COND_DESTROY(&barrier_c->cond2);
 	return 0;
 }
 
 
 int _starpu_barrier_counter_wait_for_empty_counter(struct _starpu_barrier_counter_t *barrier_c)
 {
-	_starpu_barrier *barrier = &barrier_c->barrier;
-	PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
 	while (barrier->reached_start > 0)
-		PTHREAD_COND_WAIT(&barrier->cond, &barrier->mutex);
+		_STARPU_PTHREAD_COND_WAIT(&barrier->cond, &barrier->mutex);
 
-	PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }
 
 int _starpu_barrier_counter_wait_for_full_counter(struct _starpu_barrier_counter_t *barrier_c)
 {
-	_starpu_barrier *barrier = &barrier_c->barrier;
-	PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
 	while (barrier->reached_start < barrier->count)
-		PTHREAD_COND_WAIT(&barrier_c->cond2, &barrier->mutex);
+		_STARPU_PTHREAD_COND_WAIT(&barrier_c->cond2, &barrier->mutex);
 
-	PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }
 
 int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier_counter_t *barrier_c)
 {
-	_starpu_barrier *barrier = &barrier_c->barrier;
-	PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
 	if (--barrier->reached_start == 0)
-		PTHREAD_COND_BROADCAST(&barrier->cond);
+		_STARPU_PTHREAD_COND_BROADCAST(&barrier->cond);
 
-	PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }
 
 int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_counter_t *barrier_c)
 {
-	_starpu_barrier *barrier = &barrier_c->barrier;
-	PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 	
 	if(++barrier->reached_start == barrier->count)
-		PTHREAD_COND_BROADCAST(&barrier_c->cond2);
+		_STARPU_PTHREAD_COND_BROADCAST(&barrier_c->cond2);
 
-	PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }
 
 int _starpu_barrier_counter_increment(struct _starpu_barrier_counter_t *barrier_c)
 {
-	_starpu_barrier *barrier = &barrier_c->barrier;
-	PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
 	barrier->reached_start++;
 	
-	PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }
 

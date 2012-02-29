@@ -228,7 +228,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	j->submitted = 1;
 
 	int ret = _starpu_enforce_deps_and_schedule(j);
-	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
         _STARPU_LOG_OUT();
         return ret;
@@ -443,7 +443,7 @@ int starpu_task_submit(struct starpu_task *task)
 	return ret;
 }
 
-int _starpu_task_submit_internal(struct starpu_task *task)
+int _starpu_task_submit_internally(struct starpu_task *task)
 {
 	task->control_task = 1;
 	return starpu_task_submit(task);

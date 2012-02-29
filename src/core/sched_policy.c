@@ -48,7 +48,7 @@ int starpu_get_prefetch_flag(void)
 /* extern struct starpu_sched_policy _starpu_sched_pgreedy_policy; */
 extern struct starpu_sched_policy heft_policy;
 
-static struct starpu_sched_policy_s *predefined_policies[] = {
+static struct starpu_sched_policy *predefined_policies[] = {
 	/* &_starpu_sched_ws_policy, */
 	/* &_starpu_sched_prio_policy, */
 	/* &_starpu_sched_dm_policy, */
@@ -85,7 +85,7 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct s
 
 	}
 #endif
-        struct starpu_sched_policy_s *policy = sched_ctx->sched_policy;
+        struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 
 	policy->init_sched = sched_policy->init_sched;
 	policy->deinit_sched = sched_policy->deinit_sched;
@@ -143,13 +143,16 @@ static void display_sched_help_message(void)
 	 }
 }
 
-static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config)
+static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config, char *required_policy)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->user_conf;
 
+	if(required_policy)
+		selected_policy = find_sched_policy_from_name(required_policy);
+
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
-	if (user_conf && (user_conf->sched_policy))
+	if (!selected_policy && user_conf && (user_conf->sched_policy))
 		return user_conf->sched_policy;
 
 	/* Otherwise, we look if the application specified the name of a policy to load */
@@ -158,7 +161,7 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 	if (sched_pol_name == NULL && user_conf && user_conf->sched_policy_name)
 		sched_pol_name = user_conf->sched_policy_name;
 
-	if (sched_pol_name)
+	if (!selected_policy && sched_pol_name)
 		selected_policy = find_sched_policy_from_name(sched_pol_name);
 
 	/* Perhaps there was no policy that matched the name */
@@ -170,7 +173,7 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 	return &heft_policy;
 }
 
-void _starpu_init_sched_policy(struct starpu_machine_config *config, struct starpu_sched_ctx *sched_ctx)
+void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct starpu_sched_ctx *sched_ctx, const char *required_policy)
 {
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -191,7 +194,7 @@ void _starpu_init_sched_policy(struct starpu_machine_config *config, struct star
 	_starpu_set_calibrate_flag(do_calibrate);
 
 	struct starpu_sched_policy *selected_policy;
-	selected_policy = select_sched_policy(config);
+	selected_policy = select_sched_policy(config, required_policy);
 
 	load_sched_policy(selected_policy, sched_ctx);
 
@@ -200,7 +203,7 @@ void _starpu_init_sched_policy(struct starpu_machine_config *config, struct star
 
 void _starpu_deinit_sched_policy(struct starpu_sched_ctx *sched_ctx)
 {
-	struct starpu_sched_policy_s *policy = sched_ctx->sched_policy;
+	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 	if (policy->deinit_sched)
 		policy->deinit_sched(sched_ctx->id);
 }
@@ -311,7 +314,7 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
   while(workers->has_next(workers))
     {
       worker = workers->get_next(workers);
-      if (starpu_worker_may_execute_task(worker, task, 0))
+      if (starpu_worker_can_execute_task(worker, task, 0))
 		  nworkers++;
     }
   
@@ -339,17 +342,17 @@ int _starpu_push_task(struct _starpu_job *j)
 		{
 			if(workerid == -1)
 			{
-				PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
-				PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
-				PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
+				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
+				_STARPU_PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
 				nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
-				if(nworkers == 0) return _starpu_push_task(j, job_is_already_locked);
+				if(nworkers == 0) return _starpu_push_task(j);
 			}
 			else
 			{
-				PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-				PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 				return 0;
 			}
 		}
@@ -573,7 +576,6 @@ profiling:
 	}
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	unsigned i;
 	struct starpu_sched_ctx *sched_ctx = NULL;
 	struct starpu_performance_counters **perf_counters = NULL;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -630,7 +632,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -642,7 +644,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so

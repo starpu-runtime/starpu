@@ -302,7 +302,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task) {
-			int ret = starpu_task_submit_internal(new_task);
+			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
 	}
@@ -455,7 +455,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 			/* There is no need to depend on that task now, since it was already unlocked */
 			_starpu_release_data_enforce_sequential_consistency(link->task, handle);
 
-			int ret = starpu_task_submit_internal(link->task);
+			int ret = _starpu_task_submit_internally(link->task);
 			STARPU_ASSERT(!ret);
 			struct _starpu_task_wrapper_list *tmp = link;
 			link = link->next;
@@ -487,12 +487,12 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task) {
-			int ret = starpu_task_submit_internal(new_task);
+			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
 
 		/* TODO detect if this is superflous */
-		int ret = starpu_task_submit_internal(sync_task);
+		int ret = _starpu_task_submit_internally(sync_task);
 		STARPU_ASSERT(!ret);
 		starpu_task_wait(sync_task);
 	}

@@ -784,6 +784,12 @@ struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &config.workers[id];
 }
 
+struct starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
+{
+        STARPU_ASSERT(id >= 0 && id <= STARPU_NMAX_SCHED_CTXS);
+	return &config.sched_ctxs[id];
+}
+
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();

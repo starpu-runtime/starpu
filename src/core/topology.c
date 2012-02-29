@@ -700,7 +700,7 @@ void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATT
 #endif
 }
 
-static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
+static void _starpu_init_workers_binding(struct _starpu_machine_config *config)
 {
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;

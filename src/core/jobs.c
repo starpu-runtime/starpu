@@ -243,7 +243,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 		STARPU_ASSERT(detach && !destroy && !task->synchronous);
 
 		/* We reuse the same job structure */
-		int ret = _starpu_submit_job(j, 1);
+		int ret = _starpu_submit_job(j);
 		STARPU_ASSERT(!ret);
 	}
 	_starpu_decrement_nsubmitted_tasks();
@@ -397,15 +397,15 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	if (back)
 		starpu_task_list_push_back(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
-	_STARPU_PTHREAD_COND_BROADCAST(worker->sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 	return 0;
 }
