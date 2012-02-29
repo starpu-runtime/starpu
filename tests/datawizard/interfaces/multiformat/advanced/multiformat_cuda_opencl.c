@@ -127,6 +127,9 @@ main(void)
 
 	struct stats expected_stats =
 	{
+#ifdef STARPU_USE_CPU
+		.cpu           = 0,
+#endif
 #ifdef STARPU_USE_CUDA
 		.cuda          = 2,
 		.cpu_to_cuda   = 1,
