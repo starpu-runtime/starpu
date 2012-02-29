@@ -188,6 +188,12 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected conversion time in ms (multiformat interface only) */
 double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+/* Return the expected duration of the entire task bundle in µs. */
+double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
+/* Return the time (in Âµs) expected to transfer all data used within the bundle */
+double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
+/* Return the expected power consumption of the entire task bundle in J. */
+double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
 
 #ifdef __cplusplus
 }

@@ -276,9 +276,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (bundle)
 			{
 				/* TODO : conversion time */
-				local_task_length[worker][nimpl] = _starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
-				local_data_penalty[worker][nimpl] = _starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
-				local_power[worker][nimpl] = _starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
+				local_task_length[worker][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
+				local_data_penalty[worker][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+				local_power[worker][nimpl] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
 				//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
 
 			}
