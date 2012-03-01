@@ -2,7 +2,7 @@
    config.running is not racy from starpu_shutdown
    Helgrind:Race
    fun:starpu_shutdown
-   fun:main
+   ...
 }
 
 {
@@ -23,5 +23,16 @@
    don't care about cache miss stats
    Helgrind:Race
    fun:_starpu_msi_cache_miss
+   ...
+}
+
+{
+   known race, but not problematic in practice, see comment in _starpu_tag_clear()
+   Helgrind:Race
+   fun:_starpu_tag_free
+   fun:_starpu_htbl_clear_tags
+   ...
+   fun:_starpu_tag_clear
+   fun:starpu_shutdown
    ...
 }
