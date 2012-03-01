@@ -121,7 +121,7 @@ do
 		scripts_dir=$OPTARG;
 		;;
 	t)
-		target=$OPTARG;
+		target="$target $OPTARG";
 		;;
 	\?)
 		echo "Invalid option -$OPTARG"
