@@ -237,8 +237,8 @@ struct starpu_task
 	.magic = 42,                  			\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
-	.hypervisor_tag = 0,			\
-	.flops = 0.0			\
+		.hypervisor_tag = 0,			\
+		.flops = 0.0				\
 };
 
 /*
