@@ -234,7 +234,7 @@ struct starpu_task
 	.predicted = -1.0,				\
 	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
-	.magic = 42                  			\
+	.magic = 42,                  			\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
 	.hypervisor_tag = 0,			\
