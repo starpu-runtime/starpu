@@ -28,7 +28,7 @@
 
 {
    known race, but not problematic in practice, see comment in _starpu_tag_clear()
-   Helgrind:Race
+   Helgrind:LockOrder
    fun:_starpu_tag_free
    fun:_starpu_htbl_clear_tags
    ...
