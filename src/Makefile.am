@@ -118,9 +118,9 @@ noinst_HEADERS = 						\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
-	common/barrier_counter.c					\
+	common/barrier_counter.c				\
 	common/hash.c 						\
 	common/htable32.c					\
 	common/rwlock.c						\
@@ -206,8 +206,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	top/starpu_top.c					\
 	top/starpu_top_task.c					\
 	top/starpu_top_message_queue.c				\
-	top/starpu_top_connection.c
-	worker_collection/worker_list.c				
+	top/starpu_top_connection.c                          	\
+	worker_collection/worker_list.c
 #	sched_policies/eager_central_policy.c			
 #	sched_policies/eager_central_priority_policy.c		
 #	sched_policies/work_stealing_policy.c			
