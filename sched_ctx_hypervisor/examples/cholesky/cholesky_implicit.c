@@ -17,7 +17,7 @@
  */
 
 #include "cholesky.h"
-
+#include "../sched_ctx_utils/sched_ctx_utils.h"
 /*
  *	Create the codelets
  */
@@ -72,6 +72,7 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 	cl22.type = STARPU_SPMD;
 }
 
+int hypervisor_tag = 1;
 static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;

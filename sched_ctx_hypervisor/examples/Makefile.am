@@ -23,7 +23,7 @@ noinst_HEADERS = 				\
 	sched_ctx_utils/sched_ctx_utils.h
 endif
 
-AM_LDFLAGS = $(top_builddir)/src/libstarpu.la 
+AM_LDFLAGS = $(top_builddir)/src/libstarpu-1.0.la 
 
 LIBS = $(top_srcdir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
 

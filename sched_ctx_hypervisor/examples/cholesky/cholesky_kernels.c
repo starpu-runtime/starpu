@@ -17,7 +17,7 @@
 
 #include <starpu_config.h>
 #include "cholesky.h"
-#include "../common/blas.h"
+//#include "../common/blas.h"
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
 #ifdef STARPU_HAVE_MAGMA
