@@ -60,6 +60,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
                 FPRINTF(stderr, "No worker may execute this task\n");
+                starpu_task_destroy(task);
                 return 1;
 	}
 
