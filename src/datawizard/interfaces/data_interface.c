@@ -520,6 +520,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (handle->busy_count)
 		_STARPU_PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
@@ -535,6 +536,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
+
+	_starpu_spin_unlock(&handle->header_lock);
 
 	free(handle);
 }
