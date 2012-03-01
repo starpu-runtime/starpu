@@ -211,9 +211,9 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 			 * _starpu_compar_handles.  */
 			continue;
 
+                j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
                 if (attempt_to_submit_data_request_from_job(j, buf))
 		{
-                        j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 			return 1;
                 }
 	}
