@@ -238,8 +238,8 @@ static size_t csr_interface_get_size(starpu_data_handle_t handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	uintptr_t addr_nzval;
-	uint32_t *addr_colind, *addr_rowptr;
+	uintptr_t addr_nzval = 0;
+	uint32_t *addr_colind = NULL, *addr_rowptr = NULL;
 	ssize_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */

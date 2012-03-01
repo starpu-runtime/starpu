@@ -277,8 +277,10 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		else if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
 			node = opencl_node;
 #endif
-		else
+		else {
+			node = -EINVAL;
 			STARPU_ASSERT(0);
+		}
 
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
@@ -337,7 +339,7 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 }
 
 /* Return the expected duration of the entire task bundle in µs */
-double _starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
+double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	double expected_length = 0.0;
 
@@ -365,7 +367,7 @@ double _starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum sta
 }
 
 /* Return the expected power consumption of the entire task bundle in J */
-double _starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
+double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	double expected_power = 0.0;
 
@@ -393,7 +395,7 @@ double _starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum star
 }
 
 /* Return the time (in µs) expected to transfer all data used within the bundle */
-double _starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node)
+double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 

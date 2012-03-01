@@ -152,6 +152,10 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 			tag_cleanup_grid(ni, i-1);
 	}
 
+	starpu_task_wait_for_all();
+
+	tag_cleanup_grid(ni, nk-1);
+
 	starpu_shutdown();
 
 	FPRINTF(stderr, "TEST DONE ...\n");

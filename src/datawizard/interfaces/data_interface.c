@@ -475,7 +475,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
 			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
-			struct starpu_codelet *cl;
+			struct starpu_codelet *cl = NULL;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);
 
 			struct starpu_multiformat_data_interface_ops *mf_ops;
@@ -520,6 +520,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (handle->busy_count)
 		_STARPU_PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
@@ -535,6 +536,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
+
+	_starpu_spin_unlock(&handle->header_lock);
 
 	free(handle);
 }

@@ -75,8 +75,12 @@ void create_data(void)
 
 void unregister_data(void)
 {
+	starpu_data_unpartition(sparse_matrix, 0);
 	starpu_data_unregister(sparse_matrix);
+
+	starpu_data_unpartition(vector_in, 0);
 	starpu_data_unregister(vector_in);
+
 	starpu_data_unregister(vector_out);
 }
 

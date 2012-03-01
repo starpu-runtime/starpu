@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -410,24 +410,45 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
         return 0;
 }
 
-void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
+void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
-        int me, rank;
+        int me, rank, tag;
 
         rank = starpu_data_get_rank(data_handle);
+        tag = starpu_data_get_tag(data_handle);
 	MPI_Comm_rank(comm, &me);
 
         if (node == rank) return;
 
         if (me == node)
         {
-                starpu_mpi_irecv_detached(data_handle, rank, 42, comm, NULL, NULL);
+		starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
         }
         else if (me == rank)
         {
-                starpu_mpi_isend_detached(data_handle, node, 42, comm, NULL, NULL);
+		starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
         }
-        starpu_task_wait_for_all();
+}
+
+void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
+{
+        int me, rank, tag;
+
+        rank = starpu_data_get_rank(data_handle);
+        tag = starpu_data_get_tag(data_handle);
+	MPI_Comm_rank(comm, &me);
+
+        if (node == rank) return;
+
+        if (me == node)
+        {
+                MPI_Status status;
+                starpu_mpi_recv(data_handle, rank, tag, comm, &status);
+        }
+        else if (me == rank)
+        {
+                starpu_mpi_send(data_handle, node, tag, comm);
+        }
 }
 
 void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)

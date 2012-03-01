@@ -66,6 +66,8 @@ by calling @code{starpu_mpi_initialize_extended}.
 
 @subsection Communication
 
+TODO
+
 @deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 @end deftypefun
 

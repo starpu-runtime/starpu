@@ -194,6 +194,8 @@ get_field(struct data_interface_test_summary *s, int async, enum operation op)
 		default:
 			STARPU_ASSERT(0);
 	}
+	/* that instruction should never be reached */
+	return NULL;
 }
 
 static void

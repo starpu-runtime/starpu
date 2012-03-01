@@ -228,7 +228,6 @@ int _starpu_submit_job(struct _starpu_job *j)
 	j->submitted = 1;
 
 	int ret = _starpu_enforce_deps_and_schedule(j);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
         _STARPU_LOG_OUT();
         return ret;
@@ -733,6 +732,8 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 		default:
 			STARPU_ASSERT(0);
 	}
+	/* that instruction should never be reached */
+	return -EINVAL;
 }
 
 starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)

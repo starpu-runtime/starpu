@@ -18,8 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#warning memory leak
-
 #define N 16
 #define M 4
 #define X 2

@@ -23,8 +23,6 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#warning memory leak
-
 #define NBUFFERS_DEF	64
 #define NITER_DEF	128
 #define VECTORSIZE_DEF	1024

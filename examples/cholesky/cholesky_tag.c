@@ -53,7 +53,7 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11(k));
-	
+
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
@@ -88,7 +88,7 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 {
 	struct starpu_task *task = create_task(TAG21(k, j));
 
-	task->cl = &cl21;	
+	task->cl = &cl21;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -169,7 +169,7 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  *	and construct the DAG
  */
 
@@ -203,7 +203,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         }
 
 		}
-		
+
 		for (j = k+1; j<nblocks; j++)
 		{
 			create_task_21(dataA, k, j);
@@ -257,7 +257,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	if (pinned)
 	{
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
-	} 
+	}
 	else
 	{
 		*A = malloc(dim*dim*sizeof(float));
@@ -265,7 +265,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	return 0;
 }
 
-static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned pinned)
+static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
 
@@ -292,18 +292,20 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks, 
 	_cholesky(dataA, nblocks);
 
 	starpu_data_unregister(dataA);
+}
 
+static void shutdown_system(float **matA, unsigned pinned)
+{
 	if (pinned)
 	{
-		starpu_free(matA);
+		starpu_free(*matA);
 	}
 	else
 	{
-		free(matA);
+		free(*matA);
 	}
 
 	starpu_helper_cublas_shutdown();
-
 	starpu_shutdown();
 }
 
@@ -317,11 +319,8 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	float *mat;
-
-	mat = malloc(size*size*sizeof(float));
 	int ret = initialize_system(&mat, size, pinned);
-	if (ret)
-		return ret;
+	if (ret) return ret;
 
 	unsigned i,j;
 	for (i = 0; i < size; i++)
@@ -355,7 +354,7 @@ int main(int argc, char **argv)
 #endif
 
 
-	cholesky(mat, size, size, nblocks, pinned);
+	cholesky(mat, size, size, nblocks);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");
@@ -381,7 +380,7 @@ int main(int argc, char **argv)
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
-	SSYRK("L", "N", size, size, 1.0f, 
+	SSYRK("L", "N", size, size, 1.0f,
 				mat, size, 0.0f, test_mat, size);
 
 	FPRINTF(stderr, "comparing results ...\n");
@@ -399,9 +398,10 @@ int main(int argc, char **argv)
 			}
 		}
 		FPRINTF(stdout, "\n");
-		free(test_mat);
 	}
+	free(test_mat);
 #endif
 
+	shutdown_system(&mat, pinned);
 	return 0;
 }

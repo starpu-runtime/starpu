@@ -56,13 +56,14 @@ int main(int argc, char **argv)
 {
         int my_rank, size, x, y;
         long int *vector;
-	long int dot, sum;
+	long int dot, sum=0;
         starpu_data_handle_t *handles;
 	starpu_data_handle_t dot_handle;
 
 	int nb_elements, step;
 
-	starpu_init(NULL);
+	int ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	starpu_mpi_initialize_extended(&my_rank, &size);
 
 	nb_elements = size*8000;

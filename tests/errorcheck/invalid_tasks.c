@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include "../helper.h"
+#include <common/config.h>
 
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
 #warning unsetenv is not defined or no cpu are available. Skipping test

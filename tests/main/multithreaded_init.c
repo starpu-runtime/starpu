@@ -22,8 +22,6 @@
 
 #define NUM_THREADS 5
 
-#warning memory leaks
-
 void *launch_starpu(void *id)
 {
 	int ret;

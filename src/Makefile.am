@@ -118,7 +118,7 @@ noinst_HEADERS = 						\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
 	common/barrier_counter.c				\
 	common/hash.c 						\

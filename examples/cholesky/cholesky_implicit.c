@@ -259,10 +259,10 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		}
 		float *test_mat = malloc(size*size*sizeof(float));
 		STARPU_ASSERT(test_mat);
-	
+
 		SSYRK("L", "N", size, size, 1.0f,
 					mat, size, 0.0f, test_mat, size);
-	
+
 		FPRINTF(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
 		for (j = 0; j < size; j++)
@@ -281,7 +281,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 			FPRINTF(stdout, "\n");
 		}
 #endif
-	
+
 		for (j = 0; j < size; j++)
 		{
 			for (i = 0; i < size; i++)
@@ -300,8 +300,6 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	        }
 		free(test_mat);
 	}
-	starpu_free(mat);
-
 }
 
 int main(int argc, char **argv)
@@ -335,6 +333,7 @@ int main(int argc, char **argv)
 		execute_cholesky(size, nblocks);
 
 	starpu_helper_cublas_shutdown();
+	starpu_free(mat);
 	starpu_shutdown();
 
 	return 0;

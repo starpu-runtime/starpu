@@ -1,0 +1,27 @@
+{
+   config.running is not racy from starpu_shutdown
+   Helgrind:Race
+   fun:starpu_shutdown
+   fun:main
+}
+
+{
+   config.running is not racy from _starpu_machine_is_running
+   Helgrind:Race
+   fun:_starpu_machine_is_running
+   ...
+}
+
+{
+   don't care about cache hit stats
+   Helgrind:Race
+   fun:_starpu_msi_cache_hit
+   ...
+}
+
+{
+   don't care about cache miss stats
+   Helgrind:Race
+   fun:_starpu_msi_cache_miss
+   ...
+}
