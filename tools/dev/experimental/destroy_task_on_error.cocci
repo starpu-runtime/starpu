@@ -95,10 +95,18 @@ f(...)
 {
 <+...
 if@p (...)
+(
+{
+...
++ starpu_task_destroy(t);
+return ...;
+}
+|
 {
 ...
 + starpu_task_destroy(t);
 }
+)
 ...+>
 }
 
