@@ -98,12 +98,14 @@ if@p (...)
 (
 {
 ...
++ t->destroy = 0;
 + starpu_task_destroy(t);
 return ...;
 }
 |
 {
 ...
++ t->destroy = 0;
 + starpu_task_destroy(t);
 }
 )
