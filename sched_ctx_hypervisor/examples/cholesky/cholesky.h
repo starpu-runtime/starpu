@@ -30,6 +30,7 @@
 
 #include <common/blas.h>
 #include <starpu.h>
+#include <starpu_bound.h>
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define NMAXBLOCKS	32
@@ -61,6 +62,7 @@ static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
 static unsigned noprio = 0;
 static unsigned check = 0;
+static unsigned bound = 0;
 static unsigned with_ctxs = 0;
 static unsigned with_noctxs = 0;
 static unsigned chole1 = 0;
@@ -76,64 +78,81 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
-extern struct starpu_perfmodel_t chol_model_11;
-extern struct starpu_perfmodel_t chol_model_21;
-extern struct starpu_perfmodel_t chol_model_22;
+extern struct starpu_perfmodel chol_model_11;
+extern struct starpu_perfmodel chol_model_21;
+extern struct starpu_perfmodel chol_model_22;
 
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-with_ctxs") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-with_ctxs") == 0) 
+		{
 			with_ctxs = 1;
 			break;
 		}
-		if (strcmp(argv[i], "-with_noctxs") == 0) {
+		if (strcmp(argv[i], "-with_noctxs") == 0) 
+		{
 			with_noctxs = 1;
 			break;
 		}
 		
-		if (strcmp(argv[i], "-chole1") == 0) {
+		if (strcmp(argv[i], "-chole1") == 0) 
+		{
 			chole1 = 1;
 			break;
 		}
 
-		if (strcmp(argv[i], "-chole2") == 0) {
+		if (strcmp(argv[i], "-chole2") == 0) 
+		{
 			chole2 = 1;
 			break;
 		}
 
-		if (strcmp(argv[i], "-size") == 0) {
-			char *argptr;
+		if (strcmp(argv[i], "-size") == 0)
+		{
+		        char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
-		
-		if (strcmp(argv[i], "-nblocks") == 0) {
-			char *argptr;
+
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
+		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
-		
-		if (strcmp(argv[i], "-nbigblocks") == 0) {
-			char *argptr;
+
+		if (strcmp(argv[i], "-nbigblocks") == 0)
+		{
+		        char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
-		
-		if (strcmp(argv[i], "-pin") == 0) {
+
+		if (strcmp(argv[i], "-pin") == 0)
+		{
 			pinned = 1;
 		}
-		
-		if (strcmp(argv[i], "-no-prio") == 0) {
+
+		if (strcmp(argv[i], "-no-prio") == 0)
+		{
 			noprio = 1;
 		}
-		
-		if (strcmp(argv[i], "-check") == 0) {
+
+		if (strcmp(argv[i], "-bound") == 0)
+		{
+			bound = 1;
+		}
+
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
-		
-		if (strcmp(argv[i], "-h") == 0) {
+
+		if (strcmp(argv[i], "-h") == 0)
+		{
 			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
-		}	
-	}	
+		}
+	}
 }
 
 #endif /* __DW_CHOLESKY_H__ */

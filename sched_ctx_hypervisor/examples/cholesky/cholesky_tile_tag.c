@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 
 /* A [ y ] [ x ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
-starpu_data_handle A_state[NMAXBLOCKS][NMAXBLOCKS];
+starpu_data_handle_t A_state[NMAXBLOCKS][NMAXBLOCKS];
 
 /*
  *	Some useful functions
@@ -39,12 +39,13 @@ static struct starpu_task *create_task(starpu_tag_t id)
  *	Create the codelets
  */
 
-static starpu_codelet cl11 =
+static struct starpu_codelet cl11 =
 {
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
-	.cpu_func = chol_cpu_codelet_update_u11,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u11,
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 #ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_POTRF
@@ -66,26 +67,27 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = A_state[k][k];
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = A_state[k][k];
 
 	/* this is an important task */
 	task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
 	return task;
 }
 
-static starpu_codelet cl21 =
+static struct starpu_codelet cl21 =
 {
+	.modes = { STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
-	.cpu_func = chol_cpu_codelet_update_u21,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u21,
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 #ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_STRSM
@@ -100,37 +102,42 @@ static starpu_codelet cl21 =
 
 static void create_task_21(unsigned k, unsigned j)
 {
+	int ret;
+
 	struct starpu_task *task = create_task(TAG21(k, j));
 
 	task->cl = &cl21;	
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = A_state[k][k]; 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = A_state[j][k]; 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = A_state[k][k];
+	task->handles[1] = A_state[j][k];
 
-	if (j == k+1) {
+	if (j == k+1)
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static starpu_codelet cl22 =
+static struct starpu_codelet cl22 =
 {
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
-	.cpu_func = chol_cpu_codelet_update_u22,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u22,
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 #ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_SGEMM
@@ -145,6 +152,8 @@ static starpu_codelet cl22 =
 
 static void create_task_22(unsigned k, unsigned i, unsigned j)
 {
+	int ret;
+
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
@@ -152,26 +161,27 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = A_state[i][k]; 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = A_state[j][k]; 
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = A_state[j][i]; 
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = A_state[i][k];
+	task->handles[1] = A_state[j][k];
+	task->handles[2] = A_state[j][i];
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if ( (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
-	starpu_task_submit(task);
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 
@@ -183,6 +193,8 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 static void cholesky_no_stride(void)
 {
+	int ret;
+
 	struct timeval start;
 	struct timeval end;
 
@@ -195,11 +207,14 @@ static void cholesky_no_stride(void)
 	{
 		struct starpu_task *task = create_task_11(k, nblocks);
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
-			starpu_task_submit(task);
+		else
+		{
+			ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 		
 		for (j = k+1; j<nblocks; j++)
@@ -216,7 +231,8 @@ static void cholesky_no_stride(void)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	starpu_task_submit(entry_task);
+	ret = starpu_task_submit(entry_task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
@@ -235,13 +251,17 @@ int main(int argc, char **argv)
 {
 	unsigned x, y;
 	unsigned i, j;
+	int ret;
 
 	parse_args(argc, argv);
 	assert(nblocks <= NMAXBLOCKS);
 
 	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Disable sequential consistency */
 	starpu_data_set_default_sequential_consistency_flag(0);
@@ -251,17 +271,8 @@ int main(int argc, char **argv)
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
-		if (x <= y) {
-			A[y][x] = malloc(BLOCKSIZE*BLOCKSIZE*sizeof(float));
-			assert(A[y][x]);
-		}
-	}
-
-
-	for (y = 0; y < nblocks; y++)
-	for (x = 0; x < nblocks; x++)
-	{
-		if (x <= y) {
+		if (x <= y)
+		{
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&A[y][x], 128, BLOCKSIZE*BLOCKSIZE*sizeof(float));
 #else
@@ -277,7 +288,8 @@ int main(int argc, char **argv)
 	 * */
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
-	if (x <= y) {
+	if (x <= y)
+	{
 		for (i = 0; i < BLOCKSIZE; i++)
 		for (j = 0; j < BLOCKSIZE; j++)
 		{
@@ -290,18 +302,27 @@ int main(int argc, char **argv)
 		}
 	}
 
-
-
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
-		if (x <= y) {
+		if (x <= y)
+		{
 			starpu_matrix_data_register(&A_state[y][x], 0, (uintptr_t)A[y][x], 
 				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
 	}
 
 	cholesky_no_stride();
+
+	for (y = 0; y < nblocks; y++)
+	for (x = 0; x < nblocks; x++)
+	{
+		if (x <= y)
+		{
+			starpu_data_unregister(A_state[y][x]);
+			free(A[y][x]);
+		}
+	}
 
 	starpu_helper_cublas_shutdown();
 

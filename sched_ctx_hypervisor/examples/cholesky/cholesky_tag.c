@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,96 +36,101 @@ static struct starpu_task *create_task(starpu_tag_t id)
  *	Create the codelets
  */
 
-static starpu_codelet cl11 =
+static struct starpu_codelet cl11 =
 {
+	.modes = { STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u11,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u11,
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
 };
 
-static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k)
+static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned k)
 {
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11(k));
-	
+
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
-	task->buffers[0].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
 	/* this is an important task */
 	if (!noprio)
 		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
 	return task;
 }
 
-static starpu_codelet cl21 =
+static struct starpu_codelet cl21 =
 {
+	.modes = { STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u21,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u21,
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
 };
 
-static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 {
 	struct starpu_task *task = create_task(TAG21(k, j));
 
-	task->cl = &cl21;	
+	task->cl = &cl21;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
 
-	if (!noprio && (j == k+1)) {
+	if (!noprio && (j == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
 	int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 exit(0);
         }
 
 }
 
-static starpu_codelet cl22 =
+static struct starpu_codelet cl22 =
 {
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = chol_cpu_codelet_update_u22,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
-	.cuda_func = chol_cublas_codelet_update_u22,
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22
 };
 
-static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
+static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j)
 {
 /*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
@@ -134,27 +139,28 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, i); 
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
-	task->buffers[2].mode = STARPU_RW;
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
+	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
 
-	if (!noprio && (i == k + 1) && (j == k +1) ) {
+	if (!noprio && (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
 	int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 exit(0);
         }
@@ -163,11 +169,11 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  *	and construct the DAG
  */
 
-static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
+static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	struct timeval start;
 	struct timeval end;
@@ -183,18 +189,21 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	{
 		struct starpu_task *task = create_task_11(dataA, k);
 		/* we defer the launch of the first task */
-		if (k == 0) {
+		if (k == 0)
+		{
 			entry_task = task;
 		}
-		else {
+		else
+		{
 			int ret = starpu_task_submit(task);
-                        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+                        if (STARPU_UNLIKELY(ret == -ENODEV))
+			{
                                 FPRINTF(stderr, "No worker may execute this task\n");
                                 exit(0);
                         }
 
 		}
-		
+
 		for (j = k+1; j<nblocks; j++)
 		{
 			create_task_21(dataA, k, j);
@@ -209,7 +218,8 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	int ret = starpu_task_submit(entry_task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
                 FPRINTF(stderr, "No worker may execute this task\n");
                 exit(0);
         }
@@ -233,24 +243,31 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-static void initialize_system(float **A, unsigned dim, unsigned pinned)
+static int initialize_system(float **A, unsigned dim, unsigned pinned)
 {
-	starpu_init(NULL);
-	
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 	starpu_helper_cublas_init();
 
 	if (pinned)
 	{
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
-	} 
-	else {
+	}
+	else
+	{
 		*A = malloc(dim*dim*sizeof(float));
 	}
+	return 0;
 }
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
-	starpu_data_handle dataA;
+	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
@@ -258,12 +275,14 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
-	struct starpu_data_filter f = {
+	struct starpu_data_filter f =
+	{
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nblocks
 	};
 
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter f2 =
+	{
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nblocks
 	};
@@ -272,8 +291,21 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	_cholesky(dataA, nblocks);
 
-	starpu_helper_cublas_shutdown();
+	starpu_data_unregister(dataA);
+}
 
+static void shutdown_system(float **matA, unsigned pinned)
+{
+	if (pinned)
+	{
+		starpu_free(*matA);
+	}
+	else
+	{
+		free(*matA);
+	}
+
+	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 }
 
@@ -287,9 +319,8 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	float *mat;
-
-	mat = malloc(size*size*sizeof(float));
-	initialize_system(&mat, size, pinned);
+	int ret = initialize_system(&mat, size, pinned);
+	if (ret) return ret;
 
 	unsigned i,j;
 	for (i = 0; i < size; i++)
@@ -309,10 +340,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			}
 		}
@@ -330,10 +363,12 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 				mat[j+i*size] = 0.0f; /* debug */
 			}
@@ -345,7 +380,7 @@ int main(int argc, char **argv)
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
-	SSYRK("L", "N", size, size, 1.0f, 
+	SSYRK("L", "N", size, size, 1.0f,
 				mat, size, 0.0f, test_mat, size);
 
 	FPRINTF(stderr, "comparing results ...\n");
@@ -353,16 +388,20 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < size; i++)
 		{
-			if (i <= j) {
+			if (i <= j)
+			{
 				FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
 			}
-			else {
+			else
+			{
 				FPRINTF(stdout, ".\t");
 			}
 		}
 		FPRINTF(stdout, "\n");
 	}
+	free(test_mat);
 #endif
 
+	shutdown_system(&mat, pinned);
 	return 0;
 }

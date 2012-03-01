@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 
 #include <starpu_config.h>
 #include "cholesky.h"
-//#include "../common/blas.h"
+#include "../common/blas.h"
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
 #ifdef STARPU_HAVE_MAGMA
@@ -55,7 +55,8 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21, 
 				right, ld12, 1.0f, center, ld22);
 		}
-		else {
+		else
+		{
 			/* Parallel CPU kernel */
 			int rank = starpu_combined_worker_get_rank();
 
@@ -113,7 +114,8 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 	unsigned nx21 = STARPU_MATRIX_GET_NY(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 			STRSM("R", "L", "T", "N", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -157,7 +159,8 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 
 	unsigned z;
 
-	switch (s) {
+	switch (s)
+	{
 		case 0:
 
 			/*
@@ -188,7 +191,8 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			int ret;
 			int info;
 			ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
-			if (ret != MAGMA_SUCCESS) {
+			if (ret != MAGMA_SUCCESS)
+			{
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
