@@ -62,19 +62,20 @@ static struct starpu_codelet dummy_codelet =
 
 static void callback_task_D(void *arg __attribute__((unused)))
 {
+	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	loop_cnt++;
 
 	if (loop_cnt == niter)
 	{
 		/* We are done */
 		taskD.regenerate = 0;
-		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		_STARPU_PTHREAD_COND_SIGNAL(&cond);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 	else
 	{
 		int ret;
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		/* Let's go for another iteration */
 		ret = starpu_task_submit(&taskA);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
