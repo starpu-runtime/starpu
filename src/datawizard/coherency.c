@@ -443,8 +443,10 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 		if (hop != nhops - 1)
 		{
-			if (!reused_requests[hop + 1])
+			if (!reused_requests[hop + 1]) {
 				r->next_req[r->next_req_count++] = requests[hop + 1];
+				STARPU_ASSERT(r->next_req_count <= STARPU_MAXNODES);
+			}
 		}
 		else
 			_starpu_data_request_append_callback(r, callback_func, callback_arg);
