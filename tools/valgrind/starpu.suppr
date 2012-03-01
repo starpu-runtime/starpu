@@ -11,3 +11,17 @@
    fun:_starpu_machine_is_running
    ...
 }
+
+{
+   don't care about cache hit stats
+   Helgrind:Race
+   fun:_starpu_msi_cache_hit
+   ...
+}
+
+{
+   don't care about cache miss stats
+   Helgrind:Race
+   fun:_starpu_msi_cache_miss
+   ...
+}
