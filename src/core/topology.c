@@ -700,6 +700,33 @@ void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATT
 #endif
 }
 
+
+void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, struct _starpu_combined_worker *combined_worker)
+{
+#ifdef STARPU_HAVE_HWLOC
+	const struct hwloc_topology_support *support;
+
+	_starpu_init_topology(config);
+
+	support = hwloc_topology_get_support(config->topology.hwtopology);
+	if (support->cpubind->set_thisthread_cpubind)
+	{
+		hwloc_cpuset_t set = combined_worker->hwloc_cpu_set;
+		int ret;
+
+		ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
+		if (ret)
+		{
+			perror("binding thread");
+			STARPU_ABORT();
+		}
+	}
+#else
+#warning no parallel worker CPU binding support
+#endif
+}
+
+
 static void _starpu_init_workers_binding(struct _starpu_machine_config *config)
 {
 	/* launch one thread per CPU */
