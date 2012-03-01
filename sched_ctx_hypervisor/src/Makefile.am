@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu.la
+LIBS = $(top_builddir)/src/libstarpu-1.0.la
 
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_builddir)/src/ -I$(top_srcdir)/sched_ctx_hypervisor/include/
 
@@ -23,7 +23,7 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 lib_LTLIBRARIES = libsched_ctx_hypervisor.la
 
-libsched_ctx_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu.la
+libsched_ctx_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu-1.0.la
 
 libsched_ctx_hypervisor_la_SOURCES = 			\
 	sched_ctx_hypervisor.c				\

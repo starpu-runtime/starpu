@@ -300,6 +300,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	        }
 		free(test_mat);
 	}
+	starpu_free(mat);
 }
 
 int main(int argc, char **argv)
@@ -333,7 +334,6 @@ int main(int argc, char **argv)
 		execute_cholesky(size, nblocks);
 
 	starpu_helper_cublas_shutdown();
-	starpu_free(mat);
 	starpu_shutdown();
 
 	return 0;

@@ -38,12 +38,12 @@ if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
 endif
 
-if BUILD_SCHED_CTX_HYPERVISOR
-SUBDIRS += sched_ctx_hypervisor
-endif
-
 if BUILD_STARPUFFT
 SUBDIRS += starpufft
+endif
+
+if BUILD_SCHED_CTX_HYPERVISOR
+SUBDIRS += sched_ctx_hypervisor
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig

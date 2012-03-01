@@ -8,8 +8,8 @@ struct sched_ctx_hypervisor {
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
 	int min_tasks;
 	struct hypervisor_policy policy;
-	struct starpu_htbl32_node_s *configurations[STARPU_NMAX_SCHED_CTXS];
-	struct starpu_htbl32_node_s *resize_requests[STARPU_NMAX_SCHED_CTXS];
+	struct starpu_htbl32_node *configurations[STARPU_NMAX_SCHED_CTXS];
+	struct starpu_htbl32_node *resize_requests[STARPU_NMAX_SCHED_CTXS];
 };
 
 struct sched_ctx_hypervisor_adjustment {

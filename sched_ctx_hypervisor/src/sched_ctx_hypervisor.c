@@ -182,8 +182,8 @@ void sched_ctx_hypervisor_shutdown(void)
 /* the hypervisor is in charge only of the contexts registered to it*/
 void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 {	
-	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
-	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node_s*)malloc(sizeof(struct starpu_htbl32_node_s));
+	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node));
+	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node));
 
 	_add_config(sched_ctx);
 	hypervisor.sched_ctx_w[sched_ctx].sched_ctx = sched_ctx;
@@ -459,7 +459,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 
 		if(hypervisor.resize[sched_ctx])
 		{
-			struct starpu_htbl32_node_s* resize_requests = hypervisor.resize_requests[sched_ctx];
+			struct starpu_htbl32_node* resize_requests = hypervisor.resize_requests[sched_ctx];
 
 			if(hypervisor.policy.handle_post_exec_hook)
 				hypervisor.policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);

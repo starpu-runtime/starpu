@@ -78,7 +78,7 @@ struct hypervisor_policy {
 	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
 	void (*handle_poped_task)(unsigned sched_ctx, int worker);
 	void (*handle_idle_end)(unsigned sched_ctx, int worker);
-	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node_s* resize_requests, int task_tag);
+	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node* resize_requests, int task_tag);
 };
 
 
