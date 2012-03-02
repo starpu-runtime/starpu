@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -630,8 +630,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 		else
 		{
 			/* Are all plans contiguous */
-                        /* XXX non contiguous buffers are not properly supported yet. (TODO) */
-                        STARPU_ASSERT(0);
+                        STARPU_ASSERT_MSG(0, "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
                 }
         }
 	else
@@ -697,8 +696,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
                 else
 		{
 			/* Are all plans contiguous */
-                        /* XXX non contiguous buffers are not properly supported yet. (TODO) */
-                        STARPU_ASSERT(0);
+                        STARPU_ASSERT_MSG(0, "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
                 }
         }
 	else

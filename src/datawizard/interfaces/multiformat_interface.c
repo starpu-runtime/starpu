@@ -267,7 +267,7 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			/* TODO */
+			STARPU_ASSERT_MSG(0, "XXX multiformat not supported on OpenCL yet (TODO)");
 			break;
 #endif
 		default:
@@ -711,7 +711,8 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 	(void) dst_interface;
 	(void) src_node;
 	(void) dst_node;
-/* TODO */
+
+	STARPU_ASSERT_MSG(0, "XXX multiformat copy OpenCL-OpenCL not supported yet (TODO)");
 	return 0;
 }
 #endif
