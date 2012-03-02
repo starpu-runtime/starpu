@@ -34,6 +34,8 @@ virtual report
 
 @initialize:python depends on report || org@
 msg="Function call in the termination condition of a for loop"
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @r@
 type t;
@@ -62,7 +64,7 @@ expression r.E1;
 @script:python depends on r && org@
 p << r.p;
 @@
-coccilib.org.print_todo(p[0], msg)
+coccilib.org.print_todo(p[0], orgmsg)
 
 @depends on r && patch@
 type r.t;

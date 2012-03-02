@@ -27,6 +27,8 @@ virtual report
 
 @initialize:python depends on report || org@
 msg = "Unchecked call to %s"
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @unchecked_starpu_func_call@
 identifier f;
@@ -59,7 +61,7 @@ f(...)
 f << unchecked_starpu_func_call.starpu_function;
 p << unchecked_starpu_func_call.p;
 @@
-coccilib.org.print_todo(p[0], msg % f)
+coccilib.org.print_todo(p[0], orgmsg % f)
 
 // Patch mode.
 @has_ret depends on unchecked_starpu_func_call@

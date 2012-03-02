@@ -24,6 +24,8 @@ virtual report
 @initialize:python depends on report || org@
 d = { 'abort':'STARPU_ABORT', 'assert':'STARPU_ASSERT'}
 msg = "Please use %s rather than %s."
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @r@
 identifier f =~ "abort|assert";
@@ -88,7 +90,7 @@ expression E1, E2;
 p << r.p;
 f << r.f;
 @@
-coccilib.org.print_todo(p[0], msg % (d[str(f)], f))
+coccilib.org.print_todo(p[0], orgmsg % (d[str(f)], f))
 
 @script:python depends on min && org@
 p << min.p;

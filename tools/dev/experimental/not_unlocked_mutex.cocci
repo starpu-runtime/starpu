@@ -21,6 +21,8 @@ virtual report
 
 @initialize:python depends on report || org@
 msg="The mutex \"%s\" is not unlocked when leaving \"%s\""
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @r@
 expression E;
@@ -53,7 +55,7 @@ f << r.func;
 E << r.E;
 @@
 for p in ps:
-	coccilib.org.print_todo(p, msg % (E, f))
+	coccilib.org.print_todo(p, orgmsg % (E, f))
 
 
 @depends on r && patch@

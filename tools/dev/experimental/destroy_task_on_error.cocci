@@ -31,6 +31,8 @@ virtual report
 @initialize:python depends on org || report@
 msg = "Warning: in %s(): "
 msg+= "\"%s\" should probably be destroyed in the body of the if statement"
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @r@
 local idexpression t;
@@ -78,7 +80,7 @@ p << r.p;
 t << r.t;
 f << r.f;
 @@
-coccilib.org.print_todo(p[0], msg % (f,t))
+coccilib.org.print_todo(p[0], orgmsg % (f,t))
 
 // Patch mode.
 // XXX: Instead of "..." we could use a statement list (statement list SS). But
