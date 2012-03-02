@@ -74,7 +74,7 @@ position r.p;
 @@
 -for@p(it = E1; it < E3; E2) 
 +t max = E3;
-+for(it = E1; i < max; E2) 
++for(it = E1; it < max; E2)
 {
 ...
 }
