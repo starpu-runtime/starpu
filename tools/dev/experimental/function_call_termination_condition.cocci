@@ -67,13 +67,12 @@ p << r.p;
 coccilib.org.print_todo(p[0], orgmsg)
 
 @depends on r && patch@
-type r.t;
 expression r.E1, E2, E3;
 identifier r.it;
 position r.p;
 @@
 -for@p(it = E1; it < E3; E2) 
-+t max = E3;
++max = E3;
 +for(it = E1; it < max; E2)
 {
 ...
