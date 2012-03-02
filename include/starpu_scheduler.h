@@ -92,13 +92,13 @@ struct starpu_sched_policy
 
 	/* Get a task from the scheduler. The mutex associated to the worker is
 	 * already taken when this method is called. */
-	struct starpu_task *(*pop_task)(void);
+	struct starpu_task *(*pop_task)(unsigned sched_ctx);
 
 	 /* Remove all available tasks from the scheduler (tasks are chained by
 	  * the means of the prev and next fields of the starpu_task
 	  * structure). The mutex associated to the worker is already taken
 	  * when this method is called. */
-	struct starpu_task *(*pop_every_task)(void);
+	struct starpu_task *(*pop_every_task)(unsigned sched_ctx);
 
 	/* This method is called every time a task is starting. (optional) */
 	void (*pre_exec_hook)(struct starpu_task *);

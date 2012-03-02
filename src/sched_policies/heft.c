@@ -65,11 +65,11 @@ static void param_modified(struct starpu_top_param* d)
 }
 
 
-static void heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nnew_workers)
+static void heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	int workerid;
 	unsigned i;
-	for (i = 0; i < nnew_workers; i++)
+	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
@@ -160,16 +160,6 @@ static void heft_pre_exec_hook(struct starpu_task *task)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-static void heft_post_exec_hook(struct starpu_task *task)
-{
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	unsigned sched_ctx_id = task->sched_ctx;
-	int workerid = starpu_worker_get_id();
-
-	starpu_call_poped_task_cb(workerid, sched_ctx_id, task->flops);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
-}
-
 static void heft_push_task_notify(struct starpu_task *task, int workerid)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
@@ -185,9 +175,6 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	starpu_call_pushed_task_cb(workerid, sched_ctx_id);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	/* Update the predictions */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -328,6 +315,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
+				worker_ctx++;
 				continue;
 			}
 
@@ -442,12 +430,12 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 	return 0;
 }
 
-
+/* TODO: factorize with dmda */
 static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
 	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	unsigned worker, nimpl, worker_ctx = 0;
-	int best = -1, best_id_ctx = -1;
+	int best = -1, best_in_ctx = -1;
 	int selected_impl= -1;
 
 	/* this flag is set if the corresponding worker is selected because
@@ -471,6 +459,9 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	 */
 
 	starpu_task_bundle_t bundle = task->bundle;
+
+	if(workers->init_cursor)
+		workers->init_cursor(workers);
 
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					&max_exp_end, &best_exp_end,
@@ -512,8 +503,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		{
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
-				worker_ctx++;
 				/* no one on that queue may execute this task */
+				worker_ctx++;
 				continue;
 			}
 
@@ -533,7 +524,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 				/* we found a better solution */
 				best_fitness = fitness[worker_ctx][nimpl];
 				best = worker;
-				best_id_ctx = worker_ctx;
+				best_in_ctx = worker_ctx;
 				selected_impl = nimpl;
 			}
 		}
@@ -562,8 +553,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	}
 	else 
 	{
-		model_best = local_task_length[best_id_ctx][selected_impl];
-		transfer_model_best = local_data_penalty[best_id_ctx][selected_impl];
+		model_best = local_task_length[best_in_ctx][selected_impl];
+		transfer_model_best = local_data_penalty[best_in_ctx][selected_impl];
 	}
 
 	if(workers->init_cursor)
@@ -623,7 +614,8 @@ static void heft_deinit(unsigned sched_ctx_id)
 	free(ht);
 }
 
-struct starpu_sched_policy heft_policy = {
+struct starpu_sched_policy heft_policy = 
+{
 	.init_sched = heft_init,
 	.deinit_sched = heft_deinit,
 	.push_task = heft_push_task,
@@ -631,7 +623,7 @@ struct starpu_sched_policy heft_policy = {
 	.pop_task = NULL,
 	.pop_every_task = NULL,
 	.pre_exec_hook = heft_pre_exec_hook,
-	.post_exec_hook = heft_post_exec_hook,
+	.post_exec_hook = NULL,
 	.add_workers = heft_add_workers	,
 	.remove_workers = heft_remove_workers,
 	.policy_name = "heft",

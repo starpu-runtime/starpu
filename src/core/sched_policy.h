@@ -24,18 +24,18 @@
 #include <starpu_scheduler.h>
 
 struct starpu_machine_config;
-struct starpu_sched_policy *_starpu_get_sched_policy( struct starpu_sched_ctx *sched_ctx);
+struct starpu_sched_policy *_starpu_get_sched_policy( struct _starpu_sched_ctx *sched_ctx);
 
 void _starpu_init_sched_policy(struct _starpu_machine_config *config, 
-			       struct starpu_sched_ctx *sched_ctx, const char *required_policy);
+			       struct _starpu_sched_ctx *sched_ctx, const char *required_policy);
 
-void _starpu_deinit_sched_policy(struct starpu_sched_ctx *sched_ctx);
+void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx);
 
 int _starpu_push_task(struct _starpu_job *task);
 /* pop a task that can be executed on the worker */
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker);
 /* pop every task that can be executed on the worker */
-struct starpu_task *_starpu_pop_every_task(struct starpu_sched_ctx *sched_ctx);
+struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx);
 void _starpu_sched_post_exec_hook(struct starpu_task *task);
 
 void _starpu_wait_on_sched_event(void);
