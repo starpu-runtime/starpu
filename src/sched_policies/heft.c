@@ -149,14 +149,7 @@ static void heft_pre_exec_hook(struct starpu_task *task)
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
-	/* the tasks concerning changings of the the ctxs were not executed in order */
-	if(!sched_mutex)
-	{
-		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		sched_mutex = &workerarg->sched_mutex;
-		sched_cond = &workerarg->sched_cond;
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, sched_mutex, sched_cond);
-	}
+
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -191,14 +184,6 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
-	/* the tasks concerning changings of the the ctxs were not executed in order */
-	if(!sched_mutex)
-	{
-		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		sched_mutex = &workerarg->sched_mutex;
-		sched_cond = &workerarg->sched_cond;
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, sched_mutex, sched_cond);
-	}
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(workerid, sched_ctx_id);
@@ -253,14 +238,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
-	/* the tasks concerning changings of the the ctxs were not executed in order */
-	if(!sched_mutex)
-	{
-		struct _starpu_worker *workerarg = _starpu_get_worker_struct(best_workerid);
-		sched_mutex = &workerarg->sched_mutex;
-		sched_cond = &workerarg->sched_cond;
-		starpu_worker_set_sched_condition(sched_ctx_id, best_workerid, sched_mutex, sched_cond);
-	}
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(best_workerid, sched_ctx_id);
@@ -435,15 +412,6 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 	pthread_mutex_t *sched_mutex;
         pthread_cond_t *sched_cond;
         starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
-        /* the tasks concerning changings of the the ctxs were not executed in order */
-        if(!sched_mutex)
-        {
-                struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-                sched_mutex = &workerarg->sched_mutex;
-                sched_cond = &workerarg->sched_cond;
-                starpu_worker_set_sched_condition(sched_ctx_id, workerid, sched_mutex, sched_cond);
-        }
-
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 	for (i = 0; i < task->cl->nbuffers; i++)

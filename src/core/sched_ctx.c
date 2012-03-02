@@ -584,6 +584,16 @@ void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, pthr
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	*sched_mutex = sched_ctx->sched_mutex[workerid];
 	*sched_cond = sched_ctx->sched_cond[workerid];
+
+	/* the tasks concerning changings of the the ctxs were not executed in order */
+	if(!*sched_mutex)
+	{
+		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
+		*sched_mutex = &workerarg->sched_mutex;
+		*sched_cond = &workerarg->sched_cond;
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, *sched_mutex, *sched_cond);
+	}
+
 }
 
 void starpu_worker_init_sched_condition(unsigned sched_ctx_id, int workerid)
