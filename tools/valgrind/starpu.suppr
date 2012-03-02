@@ -40,13 +40,12 @@
 
 
 {
-   Does not happen in practice.
+   There is actually no race on current_mode, because the mode can not change unexpectedly, until _starpu_notify_data_dependencies() is called further down. Valgrind can not know about such software rwlock.
    Helgrind:Race
    fun:_starpu_release_data_on_node
    fun:_starpu_push_task_output
    fun:execute_job_on_cpu
    fun:_starpu_cpu_worker
-   obj:/usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so
-   fun:start_thread
+   ...
 }
 
