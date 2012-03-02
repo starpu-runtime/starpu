@@ -468,7 +468,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_initialize_current_task_key();
 
 
-	struct starpu_sched_ctx *sched_ctx;
+	struct _starpu_sched_ctx *sched_ctx;
 	if(user_conf == NULL)
 		sched_ctx = _starpu_create_sched_ctx(NULL, NULL, -1, 1, "init");
 	else
@@ -784,7 +784,7 @@ struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &config.workers[id];
 }
 
-struct starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
+struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
         STARPU_ASSERT(id >= 0 && id <= STARPU_NMAX_SCHED_CTXS);
 	return &config.sched_ctxs[id];
@@ -845,6 +845,6 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 	config.workers[workerid].status = status;
 }
 
-struct starpu_sched_ctx* _starpu_get_initial_sched_ctx(void){
+struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void){
 	return &config.sched_ctxs[0];
 }

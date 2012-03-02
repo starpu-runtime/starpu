@@ -27,7 +27,7 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
-struct starpu_sched_ctx {
+struct _starpu_sched_ctx {
 	/* id of the context used in user mode*/
 	unsigned id;
 
@@ -49,7 +49,7 @@ struct starpu_sched_ctx {
 	unsigned is_initial_sched; 
 
 	/* wait for the tasks submitted to the context to be executed */
-	struct _starpu_barrier_counter_t tasks_barrier;
+	struct _starpu_barrier_counter tasks_barrier;
 
 	/* table of sched cond corresponding to each worker in this ctx */
 	pthread_cond_t **sched_cond;
@@ -75,10 +75,10 @@ struct starpu_sched_ctx {
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 };
 
-struct starpu_machine_config_s;
+struct _starpu_machine_config;
 
 /* init sched_ctx_id of all contextes*/
-void _starpu_init_all_sched_ctxs(struct starpu_machine_config_s *config);
+void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 
 /* init the list of contextes of the worker */
 void _starpu_init_sched_ctx_for_worker(unsigned workerid);

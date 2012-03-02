@@ -82,9 +82,9 @@ struct _starpu_worker
 	char name[48];
 	char short_name[10];
 
-	struct starpu_sched_ctx **sched_ctx;
+	struct _starpu_sched_ctx **sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
-	struct _starpu_barrier_counter_t tasks_barrier; /* wait for the tasks submitted */
+	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
 	struct starpu_task *tasks[STARPU_NMAX_SCHED_CTXS];
        
 	unsigned has_prev_init; /* had already been inited in another ctx */
@@ -166,7 +166,7 @@ struct _starpu_machine_config
 	unsigned running;
 	
 	/* all the sched ctx of the current instance of starpu */
-	struct starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 };
 
 /* Has starpu_shutdown already been called ? */
@@ -208,7 +208,7 @@ struct _starpu_worker *_starpu_get_worker_struct(unsigned id);
 
 /* Returns the starpu_sched_ctx structure that descriebes the state of the 
  * specified ctx */
-struct starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id);
+struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id);
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
 
@@ -229,6 +229,6 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 unsigned _starpu_execute_registered_progression_hooks(void);
 
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
-struct starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
+struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
 #endif // __WORKERS_H__
