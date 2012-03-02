@@ -19,6 +19,7 @@
 
 #include <starpu.h>
 #include <starpu_cuda.h>
+#include <starpu_profiling.h>
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
@@ -196,6 +197,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 
 	struct timespec codelet_start, codelet_end;
 
+	int profiling = starpu_profiling_status_get();
 	unsigned calibrate_model = 0;
 
 	STARPU_ASSERT(task);
@@ -221,7 +223,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	_starpu_driver_start_job(args, j, &codelet_start, 0);
+	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	/* We make sure we do manipulate the proper device */
@@ -234,9 +236,9 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	STARPU_ASSERT(func);
 	func(task->interfaces, task->cl_arg);
 
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0);
+	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end);
+	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j, mask);
 
