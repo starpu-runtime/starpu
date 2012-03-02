@@ -37,3 +37,16 @@
    fun:starpu_shutdown
    ...
 }
+
+
+{
+   Does not happen in practice.
+   Helgrind:Race
+   fun:_starpu_release_data_on_node
+   fun:_starpu_push_task_output
+   fun:execute_job_on_cpu
+   fun:_starpu_cpu_worker
+   obj:/usr/lib/valgrind/vgpreload_helgrind-amd64-linux.so
+   fun:start_thread
+}
+
