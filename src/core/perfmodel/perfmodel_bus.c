@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -498,8 +498,10 @@ static void benchmark_all_gpu_devices(void)
 	hwloc_topology_load(hwtopology);
 #endif
 
-	/* TODO: use hwloc */
-#ifdef __linux__
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_cpuset_t former_cpuset = hwloc_bitmap_alloc();
+	hwloc_get_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
+#elif __linux__
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
 	int ret;
@@ -545,8 +547,9 @@ static void benchmark_all_gpu_devices(void)
 	}
 #endif
 
-	/* FIXME: use hwloc */
-#ifdef __linux__
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
+#elif __linux__
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)
