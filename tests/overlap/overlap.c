@@ -25,7 +25,11 @@
 #include <pthread.h>
 #include "../helper.h"
 
+#ifdef STARPU_SLOW_MACHINE
+#define NTASKS	1000
+#else
 #define NTASKS	10000
+#endif
 #define VECTORSIZE	1024
 #define TASKDURATION	24U
 
