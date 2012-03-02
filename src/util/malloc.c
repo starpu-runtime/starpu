@@ -24,7 +24,7 @@
 #include <starpu_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
 struct malloc_pinned_codelet_struct
 {
 	void **ptr;
@@ -41,7 +41,7 @@ struct malloc_pinned_codelet_struct
 //}
 //#endif
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)
 static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct malloc_pinned_codelet_struct *s = arg;
@@ -53,7 +53,7 @@ static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, 
 }
 #endif
 
-#if defined(STARPU_USE_CUDA)// || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
 static struct starpu_perfmodel malloc_pinned_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -81,11 +81,13 @@ int starpu_malloc(void **A, size_t dim)
 	if (_starpu_can_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		cudaError_t cures;
+		cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
+#else
 		int push_res;
-
-#ifdef STARPU_DEVEL
-#warning TODO: CUDA4 is able to directly allocate from any thread without having to launch a task
-#endif
 
 		struct malloc_pinned_codelet_struct s =
 		{
@@ -105,6 +107,7 @@ int starpu_malloc(void **A, size_t dim)
 
 		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
+#endif
 #endif
 	}
 //	else if (_starpu_can_submit_opencl_task())
@@ -142,7 +145,7 @@ int starpu_malloc(void **A, size_t dim)
 	return 0;
 }
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)
 static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	cudaError_t cures;
@@ -161,7 +164,7 @@ static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, vo
 //}
 //#endif
 
-#if defined(STARPU_USE_CUDA) // || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)) // || defined(STARPU_USE_OPENCL)
 static struct starpu_perfmodel free_pinned_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -185,16 +188,21 @@ int starpu_free(void *A)
 		return -EDEADLK;
 
 #ifdef STARPU_USE_CUDA
+	if (_starpu_can_submit_cuda_task())
+	{
+#ifndef HAVE_CUDA_MEMCPY_PEER
 	if (!_starpu_is_initialized())
 	{
+#endif
 		/* This is especially useful when starpu_free is called from
  		 * the GCC-plugin. starpu_shutdown will probably have already
 		 * been called, so we will not be able to submit a task. */
 		cudaError_t err = cudaFreeHost(A);
 		if (STARPU_UNLIKELY(err))
 			STARPU_CUDA_REPORT_ERROR(err);
+#ifndef HAVE_CUDA_MEMCPY_PEER
 	}
-	else if (_starpu_can_submit_cuda_task())
+	else
 	{
 		int push_res;
 
@@ -211,6 +219,7 @@ int starpu_free(void *A)
 		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 	}
+#endif
 //	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
@@ -230,7 +239,7 @@ int starpu_free(void *A)
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //	}
-	else
+	} else
 #endif
 	{
 		free(A);
