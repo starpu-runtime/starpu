@@ -53,13 +53,14 @@ static struct starpu_codelet cl =
 	.model = &vector_scal_model
 };
 
-void compute_(int *F_NX, float *vector)
+int compute_(int *F_NX, float *vector)
 {
         int NX = *F_NX;
 	int ret;
 
 	/* Initialize StarPU with default configuration */
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
@@ -98,7 +99,7 @@ void compute_(int *F_NX, float *vector)
 
 	/* execute the task on any eligible computational ressource */
 	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
@@ -106,4 +107,6 @@ void compute_(int *F_NX, float *vector)
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
+
+	return ret;
 }
