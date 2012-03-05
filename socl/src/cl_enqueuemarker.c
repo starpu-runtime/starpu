@@ -36,5 +36,5 @@ cl_int command_marker_submit(command_marker cmd) {
 	struct starpu_task *task;
 	task = task_create(CL_COMMAND_MARKER);
 
-	task_submit(task, cmd);
+	return task_submit(task, cmd);
 }
