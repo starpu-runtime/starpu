@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,6 +74,21 @@ main (int argc, char *argv[])
 
   y = malloc (sizeof *y);
   *y = 77;
+
+  /* Register X and Y (don't use the pragma, to avoid mixing concerns in this
+     test.)  */
+
+  starpu_data_handle_t handle;
+
+  expected_register_arguments.pointer = x;
+  expected_register_arguments.elements = 1;
+  expected_register_arguments.element_size = sizeof x[0];
+  starpu_vector_data_register (&handle, 0, (uintptr_t) x, 1, sizeof x[0]);
+
+  expected_register_arguments.pointer = y;
+  expected_register_arguments.elements = 1;
+  expected_register_arguments.element_size = sizeof *y;
+  starpu_vector_data_register (&handle, 0, (uintptr_t) y, 1, sizeof *y);
 
   struct insert_task_argument expected_pointer_task[] =
     {
