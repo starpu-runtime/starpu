@@ -114,6 +114,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 				task_A->tag_id = TAG(0, i);
 
 				ret = starpu_task_submit(task_A);
+				if (ret == -ENODEV) goto enodev;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 
@@ -127,6 +128,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 				starpu_tag_declare_deps(TAG(j, i), 1, TAG(0, i));
 
 				ret = starpu_task_submit(task_B);
+				if (ret == -ENODEV) goto enodev;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -140,9 +142,10 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 			starpu_tag_remove(TAG(j, i));
 	}
 
+enodev:
 	starpu_shutdown();
 
 	FPRINTF(stderr, "TEST DONE ...\n");
 
-	return 0;
+	return ret;
 }

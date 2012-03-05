@@ -95,7 +95,7 @@ static void create_task_grid(unsigned iter)
 
 }
 
-static void start_task_grid(unsigned iter)
+static int start_task_grid(unsigned iter)
 {
 	unsigned i;
 	int ret;
@@ -104,6 +104,7 @@ static void start_task_grid(unsigned iter)
 
 	for (i = 0; i < ni; i++) {
 		ret = starpu_task_submit(tasks[iter][i]);
+		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 }
@@ -153,16 +154,18 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	for (i = 0; i < nk; i++)
 	{
-		start_task_grid(i % Nrolls);
+	     ret = start_task_grid(i % Nrolls);
+	     if (ret == 77) goto enodev;
 
-		if (i+1 >= Nrolls)
+	     if (i+1 >= Nrolls)
 			/* Wait before re-using same tasks & tags */
-			starpu_tag_wait(TAG(ni-1, i + 1));
+		  starpu_tag_wait(TAG(ni-1, i + 1));
 	}
 
+enodev:
 	starpu_shutdown();
 
 	FPRINTF(stderr, "TEST DONE ...\n");
 
-	return 0;
+	return 77;
 }
