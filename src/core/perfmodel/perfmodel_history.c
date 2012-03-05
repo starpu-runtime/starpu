@@ -966,10 +966,11 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	{
 		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
-		struct starpu_htbl32_node *history = per_arch_model->history;
+		struct starpu_htbl32_node *history;
 		struct starpu_history_entry *entry;
 
 		_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
+		history = per_arch_model->history;
 		entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
@@ -997,11 +998,13 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 
-	history = per_arch_model->history;
-	if (!history)
-		return NAN;
-
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
+	history = per_arch_model->history;
+	if (!history) {
+		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+		return NAN;
+	}
+
 	entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
