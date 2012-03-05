@@ -84,7 +84,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 void _starpu_init_sched_ctx_for_worker(unsigned workerid);
 
 /* allocate all structures belonging to a context */
-struct starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name);
+struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name);
 
 /* delete all sched_ctx */
 void _starpu_delete_all_sched_ctxs();

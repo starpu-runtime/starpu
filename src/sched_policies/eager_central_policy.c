@@ -147,8 +147,9 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 struct starpu_sched_policy _starpu_sched_eager_policy =
 {
 	.init_sched = initialize_eager_center_policy,
-	.init_sched_for_workers = initialize_eager_center_policy_for_workers,
 	.deinit_sched = deinitialize_eager_center_policy,
+	.add_workers = eager_add_workers ,
+	.remove_workers = eager_remove_workers,
 	.push_task = push_task_eager_policy,
 	.pop_task = pop_task_eager_policy,
 	.pre_exec_hook = NULL,
