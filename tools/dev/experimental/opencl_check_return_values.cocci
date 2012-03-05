@@ -51,5 +51,5 @@ coccilib.report.print_report(p[0], msg)
 p << ignored_return_value.p;
 func << ignored_return_value.opencl_func;
 @@
-msg = "Ignoring the return value of %s." % func
+msg = "Ignoring the return value of =%s=." % func
 coccilib.org.print_todo(p[0], msg)

@@ -290,7 +290,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 	_starpu_initialize_workers_bindid(config);
 
 #ifdef STARPU_USE_CUDA
-	int ncuda = -1;
+	int ncuda;
 	ncuda = starpu_get_env_number("STARPU_NCUDA");
 
 	/* STARPU_NCUDA is not set. Did the user specify anything ? */
@@ -303,14 +303,30 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 		/* The user did not disable CUDA. We need to initialize CUDA
  		 * early to count the number of devices */
 		_starpu_init_cuda();
+		int nb_devices = _starpu_get_cuda_device_count();
 
 		if (ncuda == -1)
 		{
 			/* Nothing was specified, so let's choose ! */
-			ncuda = STARPU_MIN(_starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
+			ncuda = nb_devices;
+			if (ncuda > STARPU_MAXCUDADEVS)
+			{
+				fprintf(stderr,
+					"# Warning: %d CUDA devices available. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n",
+					nb_devices, STARPU_MAXCUDADEVS);
+				ncuda = STARPU_MAXCUDADEVS;
+			}
 		}
 		else
 		{
+			if (ncuda > nb_devices)
+			{
+				/* The user requires more CUDA devices than there is available */
+				fprintf(stderr,
+					"# Warning: %d CUDA devices requested. Only %d available.\n",
+					ncuda, nb_devices);
+				ncuda = nb_devices;
+			}
 			/* Let's make sure this value is OK. */
 			if (ncuda > STARPU_MAXCUDADEVS)
 			{
@@ -318,14 +334,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 					"# Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n",
 					ncuda, STARPU_MAXCUDADEVS);
 				ncuda = STARPU_MAXCUDADEVS;
-			}
-
-			if ((unsigned) ncuda > _starpu_get_cuda_device_count())
-			{
-				fprintf(stderr,
-					"# Warning: %d CUDA devices requested. Only %d available.\n",
-					ncuda, _starpu_get_cuda_device_count());
-				ncuda = _starpu_get_cuda_device_count();
 			}
 		}
 	}
@@ -369,12 +377,19 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
  		 * early to count the number of devices */
 		_starpu_opencl_init();
 		int nb_devices;
-		nb_devices = STARPU_MIN(_starpu_opencl_get_device_count(), STARPU_MAXOPENCLDEVS);
+		nb_devices = _starpu_opencl_get_device_count();
 
 		if (nopencl == -1)
 		{
 			/* Nothing was specified, so let's choose ! */
 			nopencl = nb_devices;
+			if (nopencl > STARPU_MAXOPENCLDEVS)
+			{
+				fprintf(stderr,
+					"# Warning: %d OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldadev=xxx to update the maximum value of supported OpenCL devices.\n",
+					nb_devices, STARPU_MAXOPENCLDEVS);
+				nopencl = STARPU_MAXOPENCLDEVS;
+			}
 		}
 		else
 		{
@@ -385,8 +400,9 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 				fprintf(stderr,
 					"# Warning: %d OpenCL devices requested. Only %d available.\n",
 					nopencl, nb_devices);
-					topology->nopenclgpus = nb_devices;
+				nopencl = nb_devices;
 			}
+			/* Let's make sure this value is OK. */
 			if (nopencl > STARPU_MAXOPENCLDEVS)
 			{
 				fprintf(stderr,

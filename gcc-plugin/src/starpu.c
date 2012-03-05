@@ -1735,6 +1735,12 @@ build_codelet_initializer (tree task_decl)
     return init;
   }
 
+  tree codelet_name ()
+  {
+    const char *name = IDENTIFIER_POINTER (DECL_NAME (task_decl));
+    return build_string_literal (strlen (name) + 1, name);
+  }
+
   tree where_init (tree impls)
   {
     tree impl;
@@ -1841,7 +1847,8 @@ build_codelet_initializer (tree task_decl)
   impls = task_implementation_list (task_decl);
 
   inits =
-    chain_trees (field_initializer ("where", where_init (impls)),
+    chain_trees (field_initializer ("name", codelet_name ()),
+		 field_initializer ("where", where_init (impls)),
 		 field_initializer ("nbuffers", pointer_arg_count ()),
 		 field_initializer ("modes", access_mode_array ()),
 		 field_initializer ("cpu_funcs",

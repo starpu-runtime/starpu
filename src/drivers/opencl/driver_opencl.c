@@ -20,6 +20,7 @@
 
 #include <math.h>
 #include <starpu.h>
+#include <starpu_profiling.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/debug.h>
@@ -579,6 +580,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
+	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_start, codelet_end;
 
 	STARPU_ASSERT(task);
@@ -594,16 +596,16 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &codelet_start, 0);
+	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT(func);
 	func(task->interfaces, task->cl_arg);
 
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0);
+	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
 
 	_starpu_driver_update_job_feedback(j, args, args->perf_arch,
-							&codelet_start, &codelet_end);
+					   &codelet_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j, mask);
 

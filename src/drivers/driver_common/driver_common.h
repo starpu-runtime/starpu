@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,12 +24,12 @@
 #include <common/utils.h>
 
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j,
-			      struct timespec *codelet_start, int rank);
+			      struct timespec *codelet_start, int rank, int profiling);
 void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perf_archtype perf_arch,
-			    struct timespec *codelet_end, int rank);
+			    struct timespec *codelet_end, int rank, int profiling);
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
 					enum starpu_perf_archtype perf_arch,
-					struct timespec *codelet_start, struct timespec *codelet_end);
+					struct timespec *codelet_start, struct timespec *codelet_end, int profiling);
 
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 

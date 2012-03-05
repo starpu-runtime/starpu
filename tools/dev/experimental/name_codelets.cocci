@@ -31,6 +31,8 @@ virtual report
 
 @initialize:python depends on org || report@
 msg = "Warning: %s has no attribute name"
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @found@
 identifier cl;
@@ -61,7 +63,7 @@ position found.p;
 cl << found.cl;
 p << found.p;
 @@
-coccilib.org.print_todo(p[0], msg % cl)
+coccilib.org.print_todo(p[0], orgmsg % cl)
 
 // Patch mode.
 @script:python stringify depends on found && !named && patch@

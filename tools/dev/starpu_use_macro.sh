@@ -15,4 +15,4 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-find . -type f -name "*.c" -not -path "*svn*" -exec sed -i -f $(dirname $0)/starpu_use_macro.sed {} \;
+find . -type f -name "*.c" -not -path "*svn*" -exec sed -i 's/^#if STARPU_USE_/#ifdef STARPU_USE_/' {} \;

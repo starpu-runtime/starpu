@@ -21,6 +21,8 @@ virtual report
 
 @initialize:python depends on report || org@
 msg="Should you add STARPU_SKIP_IF_VALGRIND; at the beginning of this function ?"
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @find_codelet@
 identifier a, b;
@@ -66,7 +68,7 @@ position find_codelet.p;
 @script:python depends on find_codelet && !is_empty_codelet && !is_already_ok && org@
 p << find_codelet.p;
 @@
-coccilib.org.print_todo(p[0], msg)
+coccilib.org.print_todo(p[0], orgmsg)
 
 @depends on find_codelet && !is_empty_codelet && !is_already_ok && patch@
 identifier find_codelet.a, find_codelet.b;

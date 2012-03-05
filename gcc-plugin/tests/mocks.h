@@ -57,6 +57,7 @@ const struct insert_task_argument *expected_insert_task_arguments;
 int
 starpu_insert_task (struct starpu_codelet *cl, ...)
 {
+  assert (cl->name != NULL && strlen (cl->name) > 0);
   assert (cl->where == (STARPU_CPU | STARPU_OPENCL));
 
   /* TODO: Call `cpu_func' & co. and check whether they do the right

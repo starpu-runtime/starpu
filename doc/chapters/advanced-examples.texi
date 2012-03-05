@@ -597,7 +597,8 @@ parallel CPU implementation of the computation to be achieved. This can also be
 useful to improve the load balance between slow CPUs and fast GPUs: since CPUs
 work collectively on a single task, the completion time of tasks on CPUs become
 comparable to the completion time on GPUs, thus relieving from granularity
-discrepancy concerns.
+discrepancy concerns. Hwloc support needs to be enabled to get good performance,
+otherwise StarPU will not know how to better group cores.
 
 Two modes of execution exist to accomodate with existing usages.
 

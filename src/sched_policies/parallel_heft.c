@@ -34,8 +34,6 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
-static pthread_mutex_t big_lock;
-
 static unsigned nworkers, ncombinedworkers;
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
@@ -93,18 +91,18 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	int ret = 0;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
-
 	if (is_basic_worker)
 	{
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx->sched_mutex[best_workerid]);
 		worker_exp_len[best_workerid] += task->predicted;
 		worker_exp_end[best_workerid] = exp_end_predicted;
 		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
 
 		ntasks[best_workerid]++;
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx->sched_mutex[best_workerid]);
 
 		ret = starpu_push_local_task(best_workerid, task, prio);
 	}
@@ -135,18 +133,18 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			/* TODO */
 			alias->predicted_transfer = 0;
 
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx->sched_mutex[local_worker]);
 			worker_exp_len[local_worker] += alias->predicted;
 			worker_exp_end[local_worker] = exp_end_predicted;
 			worker_exp_start[local_worker] = exp_end_predicted - worker_exp_len[local_worker];
 
 			ntasks[local_worker]++;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx->sched_mutex[local_worker]);
 
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
 
 	}
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
 	return ret;
 }
@@ -245,10 +243,12 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	{
 		worker = sched_ctx->workerids[worker_ctx];
 		/* Sometimes workers didn't take the tasks as early as we expected */
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx->sched_mutex[worker]);
 		worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
 		worker_exp_end[worker] = worker_exp_start[worker] + worker_exp_len[worker];
 		if (worker_exp_end[worker] > max_exp_end)
 			max_exp_end = worker_exp_end[worker];
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx->sched_mutex[worker]);
 	}
 
 	unsigned nimpl;
@@ -325,8 +325,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		} //end for
 	}
 
-	if (unknown)
-	{
+	if (unknown) {
 		forced_best = ntasks_best;
 		forced_best_ctx = ntasks_best_ctx;
 		forced_nimpl = nimpl_best;
@@ -483,7 +482,6 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 		_STARPU_PTHREAD_COND_INIT(sched_ctx->sched_cond[workerid], NULL);
 	}
 
-	_STARPU_PTHREAD_MUTEX_INIT(&big_lock, NULL);
 
 	/* We pre-compute an array of all the perfmodel archs that are applicable */
 	unsigned total_worker_count = nworkers_ctx + ncombinedworkers;

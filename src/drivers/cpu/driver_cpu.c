@@ -20,6 +20,7 @@
 
 #include <math.h>
 #include <starpu.h>
+#include <starpu_profiling.h>
 #include <drivers/driver_common/driver_common.h>
 #include <common/utils.h>
 #include <core/debug.h>
@@ -30,6 +31,7 @@
 static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
 {
 	int ret;
+	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_start, codelet_end;
 
 	struct starpu_task *task = j->task;
@@ -51,7 +53,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	if (is_parallel_task)
 		_STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
 
-	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank);
+	/* Give profiling variable */
+	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank, profiling);
 
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */
@@ -68,7 +71,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid);
 	}
 
-	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank);
+	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank, profiling);
 
 	if (is_parallel_task)
 		_STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
@@ -76,7 +79,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	if (rank == 0)
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
-				perf_arch, &codelet_start, &codelet_end);
+				perf_arch, &codelet_start, &codelet_end, profiling);
 		_starpu_push_task_output(j, 0);
 	}
 

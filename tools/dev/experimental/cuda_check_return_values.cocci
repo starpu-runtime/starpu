@@ -51,7 +51,9 @@ E@p = cuda_func(...);
 
 
 @initialize:python depends on report || org@
+from re import sub
 msg = "Ignoring the return value of %s."
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @no_assignment@
 identifier cuda_func =~ "^cuda";
@@ -70,7 +72,7 @@ position no_assignment.p;
 p << no_assignment.p;
 func << no_assignment.cuda_func;
 @@
-coccilib.org.print_todo(p[0], msg % func)
+coccilib.org.print_todo(p[0], orgmsg % func)
 
 @depends on no_assignment && patch@
 identifier no_assignment.cuda_func;

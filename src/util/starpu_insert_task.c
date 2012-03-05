@@ -78,5 +78,12 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 
 	va_start(varg_list, cl);
         struct starpu_task *task = starpu_task_create();
-        return _starpu_insert_task_create_and_submit(arg_buffer, cl, &task, varg_list);
+	int ret = _starpu_insert_task_create_and_submit(arg_buffer, cl, &task, varg_list);
+
+	if (ret == -ENODEV)
+	{
+		task->destroy = 0;
+		starpu_task_destroy(task);
+	}
+        return ret;
 }

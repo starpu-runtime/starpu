@@ -43,6 +43,8 @@ d = {
 'pthread_spin_unlock'     : '_STARPU_PTHREAD_SPIN_UNLOCK'
 }
 msg = "Use %s instead of %s."
+from re import sub
+orgmsg = sub(r'(%[a-z])', r'=\1=', msg)
 
 @r@
 identifier f =~ "^pthread_";
@@ -66,9 +68,9 @@ p << r.p;
 f << r.f;
 @@
 if str(f) in d.keys():
-	coccilib.org.print_todo(p[0], msg % (d[str(f)], f))
+	coccilib.org.print_todo(p[0], orgmsg % (d[str(f)], f))
 else:
-	coccilib.org.print_todo(p[0], "Shouldn't %s be wrapped in a macro ?" % str(f))
+	coccilib.org.print_todo(p[0], "Shouldn't =%s= be wrapped in a macro ?" % str(f))
 
 
 //

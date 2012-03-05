@@ -297,6 +297,11 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+#ifdef STARPU_SLOW_MACHINE
+	size /= 4;
+	nblocks /= 4;
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;

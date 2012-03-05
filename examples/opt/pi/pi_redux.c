@@ -189,19 +189,6 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 }
 #endif
 
-/* The amount of work does not depend on the data size at all :) */
-static size_t size_base(struct starpu_task *task, unsigned nimpl)
-{
-	return NSHOT_PER_TASK;
-}
-
-static struct starpu_perfmodel model =
-{
-	.type = STARPU_HISTORY_BASED,
-	.size_base = size_base,
-	.symbol = "monte_carlo_pi_redux"
-};
-
 static struct starpu_codelet pi_cl =
 {
 	.where =
@@ -319,6 +306,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Launch a Random Number Generator (RNG) on each worker */

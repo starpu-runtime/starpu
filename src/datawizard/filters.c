@@ -382,6 +382,12 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 			still_valid[node]?newstate:STARPU_INVALID;
 	}
 
+	for (child = 0; child < root_handle->nchildren; child++)
+	{
+		struct _starpu_data_state *child_handle = &root_handle->children[child];
+		_starpu_spin_unlock(&child_handle->header_lock);
+	}
+
 	/* there is no child anymore */
 	free(root_handle->children);
 	root_handle->children = NULL;

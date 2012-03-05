@@ -106,6 +106,7 @@ static void _starpu_tag_free(void *_tag)
 #endif
 
 		_starpu_spin_unlock(&tag->lock);
+		_starpu_spin_destroy(&tag->lock);
 
 		free(tag);
 	}
@@ -128,6 +129,10 @@ void _starpu_tag_clear(void)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
+	/* XXX: _starpu_tag_free takes the tag spinlocks while we are keeping
+	 * the global rwlock. This contradicts the lock order of
+	 * starpu_tag_wait_array. Should not be a problem in practice since
+	 * _starpu_tag_clear is called at shutdown only. */
 	_starpu_htbl_clear_tags(&tag_htbl, 0, _starpu_tag_free);
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);

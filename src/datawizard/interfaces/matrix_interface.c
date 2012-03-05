@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -605,8 +605,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
         int err,ret;
 
-	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
-	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
+	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
 	err = starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
@@ -625,8 +624,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
         int err, ret;
 
-	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
-	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
+	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
         err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
