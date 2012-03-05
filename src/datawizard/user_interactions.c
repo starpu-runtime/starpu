@@ -282,6 +282,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 		while (!wrapper.finished)
 			_STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
 	}
 
 	/* At that moment, the caller holds a reference to the piece of data.

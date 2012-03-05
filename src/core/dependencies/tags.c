@@ -106,6 +106,7 @@ static void _starpu_tag_free(void *_tag)
 #endif
 
 		_starpu_spin_unlock(&tag->lock);
+		_starpu_spin_destroy(&tag->lock);
 
 		free(tag);
 	}
