@@ -246,14 +246,10 @@ unsigned starpu_create_sched_ctx_with_perf_counters(const char *policy_name, int
 /* free all structures for the context */
 static void free_sched_ctx_mem(struct _starpu_sched_ctx *sched_ctx)
 {
-	sched_ctx->workers->deinit(sched_ctx->workers);
-
-	free(sched_ctx->workers);
 	free(sched_ctx->sched_policy);
 	free(sched_ctx->sched_mutex);
 	free(sched_ctx->sched_cond);
 
-	sched_ctx->workers = NULL;
 	sched_ctx->sched_policy = NULL;
 	sched_ctx->sched_mutex = NULL;
 	sched_ctx->sched_cond = NULL;
@@ -635,6 +631,14 @@ void starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int wo
 	}
 
 	return;
+}
+
+void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->workers->deinit(sched_ctx->workers);
+
+	free(sched_ctx->workers);
 }
 
 struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id)

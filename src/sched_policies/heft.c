@@ -616,6 +616,7 @@ static void heft_deinit(unsigned sched_ctx_id)
 {
 	heft_data *ht = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	free(ht);
+	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }
 
 struct starpu_sched_policy heft_policy = 

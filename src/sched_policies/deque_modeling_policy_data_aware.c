@@ -738,10 +738,10 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 
 static void deinitialize_dmda_policy(unsigned sched_ctx_id) 
 {
-
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	free(dt->queue_array);
 	free(dt);
+	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 
 	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", dt->total_task_cnt, dt->ready_task_cnt, (100.0f*dt->ready_task_cnt)/dt->total_task_cnt);
 }

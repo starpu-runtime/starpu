@@ -171,6 +171,8 @@ void starpu_worker_init_sched_condition(unsigned sched_ctx, int workerid);
 void starpu_worker_deinit_sched_condition(unsigned sched_ctx, int workerid);
 
 void starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
+	
+void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id); 
 
 struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id);
 
