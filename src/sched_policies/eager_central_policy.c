@@ -32,7 +32,7 @@ typedef struct {
 
 static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
 {
-	eager_center_policy_data *data = (eager_center_policy_data*)malloc(sizeof(eager_center_policy_data));
+	eager_center_policy_data *data = (eager_center_policy_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	unsigned i;
 	int workerid;
 	for (i = 0; i < nworkers; i++)
