@@ -76,9 +76,9 @@ void command_graph_dump_ex(cl_command cmd) {
 	for (i=0; i<cmd->num_events; i++)
 		command_graph_dump_ex(cmd->events[i]->command);
 
-	printf("CMD %lx TYPE %d DEPS", cmd, cmd->typ);
+	printf("CMD %p TYPE %d DEPS", cmd, cmd->typ);
 	for (i=0; i<cmd->num_events; i++)
-		printf(" %lx", cmd->events[i]->command);
+		printf(" %p", cmd->events[i]->command);
 	printf("\n");
 
 }
