@@ -149,8 +149,10 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    err = clEnqueueReadBuffer(cq, dm, CL_FALSE, 0, REALSIZE, d, 0, NULL, &eventR);
    check(err, "clEnqueueReadBuffer");
 
+   printf("Finishing queue...\n");
    clFinish(cq);
 
+   printf("Data...\n");
    {
       int i;
       for (i=0; i<SIZE; i++) {
@@ -175,7 +177,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    DURATION(eventR, "result buffer reading");
 #endif
 
-   
+
    printf("Releasing events...\n");
    err = clReleaseEvent(eventW1);
    err |= clReleaseEvent(eventW2);
