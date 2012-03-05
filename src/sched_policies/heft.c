@@ -259,10 +259,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
 			/* Sometimes workers didn't take the tasks as early as we expected */
+			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
 			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker];
 			if (exp_end[worker][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker][nimpl];
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
 
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
