@@ -406,6 +406,8 @@ int main(int argc, char **argv)
 
 	/* launch StarPU */
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
