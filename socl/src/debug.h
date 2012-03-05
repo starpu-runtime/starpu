@@ -22,9 +22,9 @@
 #ifdef STARPU_VERBOSE
 #define DEBUG
 #include <stdio.h>
-   #define DEBUG_MSG(...) do { fprintf(stderr, "[SOCL] [%s] ", __func__); fprintf(stderr, __VA_ARGS__);} while (0);
-   #define DEBUG_MSG_NOHEAD(...) fprintf(stderr, __VA_ARGS__)
-   #define DEBUG_ERROR(...) do { fprintf(stderr, "[SOCL] ERROR: "__VA_ARGS__); exit(1); } while (0);
+  #define DEBUG_MSG(...) do { if (!getenv("STARPU_SILENT")) { fprintf(stderr, "[SOCL] [%s] ", __func__); fprintf(stderr, __VA_ARGS__);}} while (0);
+  #define DEBUG_MSG_NOHEAD(...) do { if (!getenv("STARPU_SILENT")) { fprintf(stderr, __VA_ARGS__);}} while (0);
+  #define DEBUG_ERROR(...) do { if (!getenv("STARPU_SILENT")) { fprintf(stderr, "[SOCL] ERROR: "__VA_ARGS__); } exit(1); } while (0);
 #else
    #define DEBUG_MSG(...) while(0);
    #define DEBUG_MSG_NOHEAD(...) while(0);
