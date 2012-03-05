@@ -22,18 +22,18 @@
  * Initialize SOCL
  */
 __attribute__((constructor)) static void socl_init() {
-  
+
   struct starpu_conf conf;
   starpu_conf_init(&conf);
   conf.ncuda = 0;
   putenv("STARPU_NCUDA=0");
   putenv("STARPU_NOPENCL=1");
-  putenv("STARPU_NCPUS=0");
+  putenv("STARPU_NCPUS=1");
 
   mem_object_init();
 
   starpu_init(&conf);
-  
+
   /* Disable dataflow implicit dependencies */
   starpu_data_set_default_sequential_consistency_flag(0);
 
@@ -54,7 +54,7 @@ __attribute__((destructor)) static void socl_shutdown() {
   int active_entities = gc_active_entity_count();
 
   if (active_entities != 0)
-    fprintf(stderr, "Unreleased entities: %d\n", active_entities);
+    DEBUG_MSG("Unreleased entities: %d\n", active_entities);
 
   starpu_shutdown();
 }
