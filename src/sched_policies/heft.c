@@ -309,7 +309,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			pthread_mutex_t *sched_mutex;
 			pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
 			exp_end[worker_ctx][nimpl] = exp_start[worker] + exp_len[worker];
