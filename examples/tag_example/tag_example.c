@@ -43,9 +43,15 @@
 
 struct starpu_codelet cl = {};
 
+#ifdef STARPU_SLOW_MACHINE
+#define Ni	32
+#define Nj	32
+#define Nk	32
+#else
 #define Ni	64
 #define Nj	32
 #define Nk	128
+#endif
 
 static unsigned ni = Ni, nj = Nj, nk = Nk;
 static unsigned callback_cnt;
