@@ -30,6 +30,7 @@ int plugin_is_GPL_compatible;
 #include <cpplib.h>
 #include <tree.h>
 #include <tree-iterator.h>
+#include <langhooks.h>
 
 #ifdef HAVE_C_FAMILY_C_COMMON_H
 # include <c-family/c-common.h>
@@ -1001,15 +1002,81 @@ handle_task_attribute (tree *node, tree name, tree args,
 static void
 validate_opencl_argument_type (location_t loc, const_tree type)
 {
-  if (INTEGRAL_TYPE_P (type))
+  /* When TYPE is a pointer type, get to the base element type.  */
+  for (; POINTER_TYPE_P (type); type = TREE_TYPE (type));
+
+  if (!RECORD_OR_UNION_TYPE_P (type) && !VOID_TYPE_P (type))
     {
       tree decl = TYPE_NAME (type);
 
-      if (DECL_P (decl)
-	  && DECL_IN_SYSTEM_HEADER (decl)
-	  && DECL_NAME (decl) == get_identifier ("size_t"))
-	/* Check for the use of a literal `size_t'.  */
-	error_at (loc, "%<size_t%> is not a valid OpenCL type");
+      if (DECL_P (decl))
+	{
+	  static const struct { const char *c; const char *cl; }
+	  type_map[] =
+	    {
+	      { "char", "cl_char" },
+	      { "unsigned char", "cl_uchar" },
+	      { "short", "cl_short" },
+	      { "unsigned short", "cl_ushort" },
+	      { "int", "cl_int" },
+	      { "unsigned int", "cl_uint" },
+	      { "long int", "cl_long" },
+	      { "long unsigned int", "cl_ulong" },
+	      { "float", "cl_float" },
+	      { "double", "cl_double" },
+	      { NULL, NULL }
+	    };
+
+	  const char *c_name = IDENTIFIER_POINTER (DECL_NAME (decl));
+	  const char *cl_name =
+	    ({
+	      size_t i;
+	      for (i = 0; type_map[i].c != NULL; i++)
+		{
+		  if (strcmp (type_map[i].c, c_name) == 0)
+		    break;
+		}
+	      type_map[i].cl;
+	    });
+
+	  if (cl_name != NULL)
+	    {
+	      tree cl_type = lookup_name (get_identifier (cl_name));
+
+	      if (cl_type != NULL_TREE)
+		{
+		  if (DECL_P (cl_type))
+		    cl_type = TREE_TYPE (cl_type);
+
+		  if (!lang_hooks.types_compatible_p ((tree) type, cl_type))
+		    {
+		      tree st, sclt;
+
+		      st = c_common_signed_type ((tree) type);
+		      sclt = c_common_signed_type (cl_type);
+
+		      if (st == sclt)
+			warning_at (loc, 0, "C type %qE differs in signedness "
+				    "from the same-named OpenCL type",
+				    DECL_NAME (decl));
+		      else
+			/* TYPE should be avoided because the it differs from
+			   CL_TYPE, and thus cannot be used safely in
+			   `clSetKernelArg'.  */
+			warning_at (loc, 0, "C type %qE differs from the "
+				    "same-named OpenCL type",
+				    DECL_NAME (decl));
+		    }
+		}
+
+	      /* Otherwise we can't conclude.  It could be that <CL/cl.h>
+		 wasn't included in the program, for instance.  */
+	    }
+	  else
+	    /* Recommend against use of `size_t', etc.  */
+	    warning_at (loc, 0, "%qE does not correspond to a known "
+			"OpenCL type", DECL_NAME (decl));
+	}
     }
 }
 

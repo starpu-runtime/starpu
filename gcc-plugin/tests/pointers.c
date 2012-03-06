@@ -21,42 +21,42 @@
 
 /* The tasks under test.  */
 
-static void my_pointer_task (const int *x, long long *y) __attribute__ ((task));
+static void my_pointer_task (const int *x, long *y) __attribute__ ((task));
 
-static void my_pointer_task_cpu (const int *, long long *)
+static void my_pointer_task_cpu (const int *, long *)
   __attribute__ ((task_implementation ("cpu", my_pointer_task)));
-static void my_pointer_task_opencl (const int *, long long *)
+static void my_pointer_task_opencl (const int *, long *)
   __attribute__ ((task_implementation ("opencl", my_pointer_task)));
 
 static void
-my_pointer_task_cpu (const int *x, long long *y)
+my_pointer_task_cpu (const int *x, long *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
 }
 
 static void
-my_pointer_task_opencl (const int *x, long long *y)
+my_pointer_task_opencl (const int *x, long *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
 }
 
 
 
-static void my_mixed_task (int *x, char z, const long long *y)
+static void my_mixed_task (int *x, unsigned char z, const long *y)
   __attribute__ ((task));
-static void my_mixed_task_cpu (int *, char, const long long *)
+static void my_mixed_task_cpu (int *, unsigned char, const long *)
   __attribute__ ((task_implementation ("cpu", my_mixed_task)));
-static void my_mixed_task_opencl (int *, char, const long long *)
+static void my_mixed_task_opencl (int *, unsigned char, const long *)
   __attribute__ ((task_implementation ("opencl", my_mixed_task)));
 
 static void
-my_mixed_task_cpu (int *x, char z, const long long *y)
+my_mixed_task_cpu (int *x, unsigned char z, const long *y)
 {
   printf ("%s: x = %p, y = %p, z = %i\n", __func__, x, y, (int) z);
 }
 
 static void
-my_mixed_task_opencl (int *x, char z, const long long *y)
+my_mixed_task_opencl (int *x, unsigned char z, const long *y)
 {
   printf ("%s: x = %p, y = %p, z = %i\n", __func__, x, y, (int) z);
 }
@@ -68,9 +68,9 @@ main (int argc, char *argv[])
 {
 #pragma starpu initialize
 
-  static const char z = 0x77;
+  static const unsigned char z = 0x77;
   int x[] = { 42 };
-  long long *y;
+  long *y;
 
   y = malloc (sizeof *y);
   *y = 77;

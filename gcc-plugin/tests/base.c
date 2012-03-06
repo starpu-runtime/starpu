@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,21 +21,21 @@
 
 /* The task under test.  */
 
-static void my_scalar_task (int x, char y, int z) __attribute__ ((task));
+static void my_scalar_task (int x, unsigned char y, int z) __attribute__ ((task));
 
-static void my_scalar_task_cpu (int, char, int)
+static void my_scalar_task_cpu (int, unsigned char, int)
   __attribute__ ((task_implementation ("cpu", my_scalar_task)));
-static void my_scalar_task_opencl (int, char, int)
+static void my_scalar_task_opencl (int, unsigned char, int)
   __attribute__ ((task_implementation ("opencl", my_scalar_task)));
 
 static void
-my_scalar_task_cpu (int x, char y, int z)
+my_scalar_task_cpu (int x, unsigned char y, int z)
 {
   printf ("%s: x = %i, y = %i, z = %i\n", __func__, x, (int) y, z);
 }
 
 static void
-my_scalar_task_opencl (int x, char y, int z)
+my_scalar_task_opencl (int x, unsigned char y, int z)
 {
   printf ("%s: x = %i, y = %i, z = %i\n", __func__, x, (int) y, z);
 }
@@ -84,7 +84,7 @@ main (int argc, char *argv[])
 #pragma starpu hello
 
   int x = 42, z = 99;
-  char y = 77;
+  unsigned char y = 77;
   long y_as_long_int = 77;
 
   struct insert_task_argument expected[] =
