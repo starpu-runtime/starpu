@@ -1604,10 +1604,8 @@ AC_OUTPUT([
 	starpufft/libstarpufft.pc
 	starpufft/starpufft-1.0.pc
 	examples/Makefile
-        examples/opt/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
-        tests/opt/Makefile
 	doc/Makefile
 	mpi/Makefile
 	starpu-top/StarPU-Top.pro
