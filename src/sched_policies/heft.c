@@ -304,22 +304,26 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
+		unsigned incremented = 0;
 		for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) 
 		{
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			pthread_mutex_t *sched_mutex;
 			pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
-			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
 			exp_end[worker_ctx][nimpl] = exp_start[worker] + exp_len[worker];
 			if (exp_end[worker_ctx][nimpl] > max_exp_end)
  				max_exp_end = exp_end[worker_ctx][nimpl];
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				worker_ctx++;
+
+				if(!incremented)
+					worker_ctx++;
+				incremented = 1;
 				continue;
 			}
 
@@ -385,7 +389,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_power[worker_ctx][nimpl] = 0.;
 
 		}
-		worker_ctx++;
+		if(!incremented)
+			worker_ctx++;
 	}
 
 	*forced_worker = unknown?ntasks_best:-1;
@@ -503,12 +508,14 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
+		unsigned incremented = 0;
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				worker_ctx++;
+				if(!incremented)
+					worker_ctx++;
 				continue;
 			}
 
@@ -532,7 +539,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 				selected_impl = nimpl;
 			}
 		}
-		worker_ctx++;
+		if(!incremented)
+			worker_ctx++;
 	}
 
 	/* By now, we must have found a solution */
