@@ -33,7 +33,7 @@ typedef struct{
 	pthread_mutex_t sched_mutex;
 	pthread_cond_t sched_cond;
 	unsigned last_pop_worker;
-	static unsigned last_push_worker;
+	unsigned last_push_worker;
 } work_stealing_data;
 
 #ifdef USE_OVERLOAD
