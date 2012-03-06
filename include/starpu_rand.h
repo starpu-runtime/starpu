@@ -18,6 +18,7 @@
 #define __STARPU_RAND_H__
 
 #include <stdlib.h>
+#include <starpu_config.h>
 
 #ifdef STARPU_USE_DRAND48
 typedef struct drand48_data starpu_drand48_data;
