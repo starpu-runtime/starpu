@@ -130,6 +130,7 @@ noinst_HEADERS = 				\
 	filters/custom_mf/custom_interface.h    \
 	filters/custom_mf/custom_types.h	\
 	interface/complex_interface.h		\
+	pi/pi.h					\
 	pi/SobolQRNG/sobol.h			\
 	pi/SobolQRNG/sobol_gold.h		\
 	pi/SobolQRNG/sobol_gpu.h		\
