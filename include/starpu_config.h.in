@@ -92,5 +92,6 @@ typedef ssize_t starpu_ssize_t;
 #endif
 
 #undef STARPU_SLOW_MACHINE
+#undef STARPU_USE_DRAND48
 
 #endif

@@ -145,17 +145,7 @@ AC_ARG_ENABLE(default-drand48, [AS_HELP_STRING([--disable-default-drand48],
 				   [Do not use the default version of drand48])],
 				   enable_default_drand48=$enableval, enable_default_drand48=yes)
 if test x$have_drand48 = xyes -a x$enable_default_drand48 = xyes ; then
-  AC_DEFINE([starpu_srand48(seed)],[srand48(seed)],[srand48 equivalent function])
-  AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function])
-  AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function])
-  AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand48_r(seed, buffer)],[srand48_r equivalent function])
-  AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[erand48_r(xsubi, buffer, result)],[erand48_r equivalent function])
-else
-  AC_DEFINE([starpu_srand48(seed)],[srand(seed)],[srand48 equivalent function])
-  AC_DEFINE([starpu_drand48()],[((double)(rand()) / RAND_MAX)],[drand48 equivalent function])
-  AC_DEFINE([starpu_erand48(xsubi)],[starpu_drand48()],[erand48 equivalent function])
-  AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand((unsigned int)seed)],[srand48_r equivalent function])
-  AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[do {*(result) = ((double)(rand()) / RAND_MAX);} while (0);],[erand48_r equivalent function])
+   AC_DEFINE([STARPU_USE_DRAND48], [1], [Define to 1 if drandr48 is available and should be used])
 fi
 
 # Some systems do not define strerror_r

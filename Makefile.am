@@ -61,7 +61,8 @@ versinclude_HEADERS = 				\
 	include/starpu_scheduler.h		\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
-	include/starpu_hash.h
+	include/starpu_hash.h			\
+	include/starpu_rand.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
