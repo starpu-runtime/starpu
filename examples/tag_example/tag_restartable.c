@@ -107,6 +107,7 @@ static int start_task_grid(unsigned iter)
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
+	return 0;
 }
 
 void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
