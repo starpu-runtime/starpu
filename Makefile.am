@@ -30,10 +30,6 @@ endif
 
 SUBDIRS += examples
 
-if COND_OPT
-SUBDIRS += tests/opt examples/opt
-endif
-
 if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
 endif
