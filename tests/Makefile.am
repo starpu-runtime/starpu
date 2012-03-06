@@ -186,6 +186,8 @@ noinst_PROGRAMS =				\
 	datawizard/in_place_partition   	\
 	datawizard/partition_lazy		\
 	datawizard/gpu_register   		\
+	datawizard/wt_host			\
+	datawizard/wt_broadcast			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -311,6 +313,11 @@ if STARPU_USE_OPENCL
 datawizard_gpu_register_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
+
+datawizard_wt_host_SOURCES =			\
+	datawizard/wt_host.c
+datawizard_wt_broadcast_SOURCES =		\
+	datawizard/wt_broadcast.c
 
 if STARPU_USE_GORDON
 datawizard_sync_and_notify_data_SOURCES +=	\
