@@ -134,7 +134,7 @@ static void pgreedy_remove_workers(unsigned sched_ctx_id, int *workerids, unsign
 		if(workerid != master)
 			starpu_worker_deinit_sched_condition(sched_ctx_id, workerid);
 		else
-			starpu_woker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+			starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
 	}
 }
 
@@ -290,6 +290,8 @@ struct starpu_sched_policy _starpu_sched_pgreedy_policy =
 {
 	.init_sched = initialize_pgreedy_policy,
 	.deinit_sched = deinitialize_pgreedy_policy,
+	.add_workers = pgreedy_add_workers,
+	.remove_workers = pgreedy_remove_workers,
 	.push_task = push_task_pgreedy_policy,
 	.pop_task = pop_task_pgreedy_policy,
 	.pre_exec_hook = NULL,
