@@ -129,7 +129,11 @@ noinst_HEADERS = 				\
 	basic_examples/multiformat_types.h      \
 	filters/custom_mf/custom_interface.h    \
 	filters/custom_mf/custom_types.h	\
-	interface/complex_interface.h
+	interface/complex_interface.h		\
+	pi/SobolQRNG/sobol.h			\
+	pi/SobolQRNG/sobol_gold.h		\
+	pi/SobolQRNG/sobol_gpu.h		\
+	pi/SobolQRNG/sobol_primitives.h
 
 #####################################
 # What to install and what to check #
@@ -748,6 +752,39 @@ examplebin_PROGRAMS +=				\
 
 top_hello_world_top_SOURCES =			\
 	top/hello_world_top.c
+
+######
+# Pi #
+######
+
+check_PROGRAMS +=				\
+	pi/pi					\
+	pi/pi_redux
+
+examplebin_PROGRAMS +=				\
+	pi/pi					\
+	pi/pi_redux
+
+pi_pi_SOURCES =					\
+	pi/pi.c					\
+	pi/SobolQRNG/sobol_gold.c		\
+	pi/SobolQRNG/sobol_primitives.c
+
+if STARPU_USE_CUDA
+pi_pi_SOURCES +=				\
+	pi/pi_kernel.cu				\
+	pi/SobolQRNG/sobol_gpu.cu
+endif
+
+pi_pi_redux_SOURCES =				\
+	pi/pi_redux.c
+
+if STARPU_USE_CUDA
+pi_pi_redux_SOURCES +=				\
+	pi/pi_redux_kernel.cu
+pi_pi_redux_LDADD =				\
+	$(STARPU_CURAND_LDFLAGS)
+endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
