@@ -134,10 +134,10 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	cl.cpu_funcs[0] = cpu_codelet;
 	cl.cuda_funcs[0] = cpu_codelet;
+	cl.opencl_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
-	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.nbuffers = 0;
 
 	FPRINTF(stderr, "ITER : %u\n", nk);
