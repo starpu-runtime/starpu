@@ -83,7 +83,7 @@ static struct starpu_codelet cl21 =
 	.model = &chol_model_21
 };
 
-static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
+static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
 {
 	int ret;
 
@@ -111,7 +111,8 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 	}
 
 	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 }
 
 static struct starpu_codelet cl22 =
@@ -126,7 +127,7 @@ static struct starpu_codelet cl22 =
 	.model = &chol_model_22
 };
 
-static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
+static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {
 	int ret;
 
@@ -157,7 +158,8 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	}
 
 	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 }
 
 
@@ -167,7 +169,7 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
  *	and construct the DAG
  */
 
-static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned reclevel)
+static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned reclevel)
 {
 	int ret;
 
@@ -210,17 +212,22 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		else
 		{
 			ret = starpu_task_submit(task);
+			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		for (j = k+1; j<nblocks; j++)
 		{
-			create_task_21(dataA, k, j, reclevel);
+		     	ret = create_task_21(dataA, k, j, reclevel);
+			if (ret == -ENODEV) return 77;
 
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
-					create_task_22(dataA, k, i, j, reclevel);
+				{
+				     ret = create_task_22(dataA, k, i, j, reclevel);
+				     if (ret == -ENODEV) return 77;
+				}
 			}
 		}
 	}
@@ -230,7 +237,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		FPRINTF(stderr, "No worker may execute this task\n");
-		exit(-1);
+		return 77;
 	}
 
 	if (nblocks == nbigblocks)
@@ -239,7 +246,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		starpu_tag_wait(TAG11_AUX(nblocks-1, reclevel));
 		starpu_data_unpartition(dataA, 0);
 		starpu_data_unregister(dataA);
-		return;
+		return 0;
 	}
 	else
 	{
@@ -266,7 +273,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 
 		float *newmatA = &matA[nbigblocks*(size/nblocks)*(ld+1)];
 
-		cholesky_grain_rec(newmatA, size/nblocks*(nblocks - nbigblocks), ld, (nblocks - nbigblocks)*2, (nblocks - nbigblocks)*2, reclevel+1);
+		return cholesky_grain_rec(newmatA, size/nblocks*(nblocks - nbigblocks), ld, (nblocks - nbigblocks)*2, (nblocks - nbigblocks)*2, reclevel+1);
 	}
 }
 
@@ -291,14 +298,15 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	}
 }
 
-void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
+int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
 {
 	struct timeval start;
 	struct timeval end;
+	int ret;
 
 	gettimeofday(&start, NULL);
 
-	cholesky_grain_rec(matA, size, ld, nblocks, nbigblocks, 0);
+	ret = cholesky_grain_rec(matA, size, ld, nblocks, nbigblocks, 0);
 
 	gettimeofday(&end, NULL);
 
@@ -308,7 +316,7 @@ void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 
 	double flop = (1.0f*size*size*size)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
-
+	return ret;
 }
 
 static void shutdown_system(float **matA, unsigned pinned)
@@ -332,6 +340,8 @@ int main(int argc, char **argv)
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */
+
+     	int ret;
 
 	parse_args(argc, argv);
 
@@ -369,7 +379,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	cholesky_grain(mat, size, size, nblocks, nbigblocks, pinned);
+	ret = cholesky_grain(mat, size, size, nblocks, nbigblocks, pinned);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");
@@ -418,5 +428,5 @@ int main(int argc, char **argv)
 #endif
 
 	shutdown_system(&mat, pinned);
-	return 0;
+	return ret;
 }

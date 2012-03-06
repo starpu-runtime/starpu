@@ -306,7 +306,12 @@ int main(int argc, char **argv)
 			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
 
 			int ret = starpu_task_submit(task);
-			STARPU_ASSERT(!ret);
+			if (ret == -ENODEV)
+			{
+			     ret = 77;
+			     goto enodev;
+			}
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		starpu_task_wait_for_all();
@@ -322,6 +327,7 @@ int main(int argc, char **argv)
 				*((unsigned long)ydim)*((unsigned long)zdim);
 	FPRINTF(stderr, "GFlop/s: %.2f\n", flops/timing/1000.0);
 
+enodev:
 	starpu_data_unpartition(C_handle, 0);
 	starpu_data_unpartition(B_handle, 0);
 	starpu_data_unpartition(A_handle, 0);
@@ -340,5 +346,5 @@ int main(int argc, char **argv)
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }

@@ -72,7 +72,7 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 	cl22.type = STARPU_SPMD;
 }
 
-static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
+static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
 	struct timeval start;
@@ -96,6 +96,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 0);
+		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 		for (j = k+1; j<nblocks; j++)
@@ -107,6 +108,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
 						 0);
+			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 			for (i = k+1; i<nblocks; i++)
@@ -122,6 +124,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 STARPU_R, sdatakj,
 								 STARPU_RW, sdataij,
 								 0);
+					if (ret == -ENODEV) return 77;
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
                                 }
 			}
@@ -131,8 +134,6 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	starpu_task_wait_for_all();
 	if (bound)
 		starpu_bound_stop();
-
-	starpu_data_unpartition(dataA, 0);
 
 	gettimeofday(&end, NULL);
 
@@ -150,9 +151,10 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_bound_compute(&res, NULL, 0);
 		FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
 	}
+	return 0;
 }
 
-static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
 
@@ -174,9 +176,12 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	_cholesky(dataA, nblocks);
+	int ret = _cholesky(dataA, nblocks);
 
+	starpu_data_unpartition(dataA, 0);
 	starpu_data_unregister(dataA);
+
+	return ret;
 }
 
 int main(int argc, char **argv)
@@ -231,7 +236,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	cholesky(mat, size, size, nblocks);
+	ret = cholesky(mat, size, size, nblocks);
 
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
@@ -314,5 +319,5 @@ int main(int argc, char **argv)
 	starpu_free(mat);
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }

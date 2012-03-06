@@ -152,11 +152,17 @@ int main(int argc, char **argv)
 		task->handles[1] = starpu_data_get_sub_data(handle_y, 1, b);
 
 		ret = starpu_task_submit(task);
+		if (ret == -ENODEV)
+		{
+		     ret = 77;
+		     goto enodev;
+		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_task_wait_for_all();
 
+enodev:
 	starpu_data_unpartition(handle_x, 0);
 	starpu_data_unpartition(handle_y, 0);
 	starpu_data_unregister(handle_x);
@@ -176,5 +182,5 @@ int main(int argc, char **argv)
 	/* Stop StarPU */
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }
