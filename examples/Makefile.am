@@ -52,7 +52,8 @@ EXTRA_DIST = 					\
 	openmp/vector_scal.c			\
 	filters/fblock_opencl_kernel.cl		\
 	filters/custom_mf/conversion_opencl.cl  \
-	filters/custom_mf/custom_opencl.cl
+	filters/custom_mf/custom_opencl.cl \
+	interface/complex_kernels.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
@@ -712,6 +713,13 @@ interface_complex_SOURCES	=	\
 if STARPU_USE_CUDA
 interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
+endif
+
+if STARPU_USE_OPENCL
+interface_complex_SOURCES +=\
+	interface/complex_kernels_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	interface/complex_kernels.cl
 endif
 
 ######################
