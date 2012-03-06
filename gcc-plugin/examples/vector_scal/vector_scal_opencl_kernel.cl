@@ -28,7 +28,7 @@
  * OF  THIS  SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-__kernel void vector_mult_opencl(__global float* val, int nx, float factor)
+__kernel void vector_mult_opencl(__global float* val, unsigned int nx, float factor)
 {
         const int i = get_global_id(0);
         if (i < nx) {

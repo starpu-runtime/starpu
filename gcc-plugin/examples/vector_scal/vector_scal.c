@@ -29,16 +29,16 @@
 
 /* Declare and define the standard CPU implementation.  */
 
-static void vector_scal (size_t size, float vector[size], float factor)
+static void vector_scal (unsigned int size, float vector[size], float factor)
   __attribute__ ((task));
 
-static void vector_scal_cpu (size_t size, float vector[size], float factor)
+static void vector_scal_cpu (unsigned int size, float vector[size], float factor)
   __attribute__ ((task_implementation ("cpu", vector_scal)));
 
 static void
-vector_scal_cpu (size_t size, float vector[size], float factor)
+vector_scal_cpu (unsigned int size, float vector[size], float factor)
 {
-  size_t i;
+  unsigned int i;
   for (i = 0; i < size; i++)
     vector[i] *= factor;
 }
@@ -49,11 +49,11 @@ vector_scal_cpu (size_t size, float vector[size], float factor)
 
 #include <xmmintrin.h>
 
-static void vector_scal_sse (size_t size, float vector[size], float factor)
+static void vector_scal_sse (unsigned int size, float vector[size], float factor)
   __attribute__ ((task_implementation ("cpu", vector_scal)));
 
 static void
-vector_scal_sse (size_t size, float vector[size], float factor)
+vector_scal_sse (unsigned int size, float vector[size], float factor)
 {
   unsigned int n_iterations = size / 4;
 
@@ -85,11 +85,11 @@ vector_scal_sse (size_t size, float vector[size], float factor)
 /* The OpenCL programs, loaded from `main'.  */
 static struct starpu_opencl_program cl_programs;
 
-static void vector_scal_opencl (size_t size, float vector[size], float factor)
+static void vector_scal_opencl (unsigned int size, float vector[size], float factor)
   __attribute__ ((task_implementation ("opencl", vector_scal)));
 
 static void
-vector_scal_opencl (size_t size, float vector[size], float factor)
+vector_scal_opencl (unsigned int size, float vector[size], float factor)
 {
   int id, devid, err;
   cl_kernel kernel;
@@ -108,15 +108,13 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
   if (err != CL_SUCCESS)
     STARPU_OPENCL_REPORT_ERROR (err);
 
-  /* XXX : clSetKernelArg will not work with a size_t ... */
-  int _size = size;
   err = clSetKernelArg (kernel, 0, sizeof (val), &val);
-  err |= clSetKernelArg (kernel, 1, sizeof (_size), &_size);
+  err |= clSetKernelArg (kernel, 1, sizeof (size), &size);
   err |= clSetKernelArg (kernel, 2, sizeof (factor), &factor);
   if (err)
     STARPU_OPENCL_REPORT_ERROR (err);
 
-  size_t global = _size, local = 1;
+  size_t global = 1, local = 1;
   err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global, &local, 0,
 				NULL, &event);
   if (err != CL_SUCCESS)
@@ -137,7 +135,7 @@ vector_scal_opencl (size_t size, float vector[size], float factor)
 /* Declaration of the CUDA implementation.  The definition itself is in the
    `.cu' file itself.  */
 
-extern void vector_scal_cuda (size_t size, float vector[size], float factor)
+extern void vector_scal_cuda (unsigned int size, float vector[size], float factor)
   __attribute__ ((task_implementation ("cuda", vector_scal)));
 
 #endif

@@ -22,46 +22,46 @@
 
 /* The tasks under test.  */
 
-static void my_pointer_task (size_t size, __output int *x)
+static void my_pointer_task (int size, __output int *x)
   __attribute__ ((task));
 
-static void my_pointer_task_cpu (size_t size, __output int *x)
+static void my_pointer_task_cpu (int size, __output int *x)
   __attribute__ ((task_implementation ("cpu", my_pointer_task)));
-static void my_pointer_task_opencl (size_t size, __output int *x)
+static void my_pointer_task_opencl (int size, __output int *x)
   __attribute__ ((task_implementation ("opencl", my_pointer_task)));
 
 static void
-my_pointer_task_cpu (size_t size, __output int *x)
+my_pointer_task_cpu (int size, __output int *x)
 {
-  printf ("%s: x = %p, size = %zi\n", __func__, x, size);
+  printf ("%s: x = %p, size = %i\n", __func__, x, size);
 }
 
 static void
-my_pointer_task_opencl (size_t size, int *x)
+my_pointer_task_opencl (int size, int *x)
 {
-  printf ("%s: x = %p, size = %zi\n", __func__, x, size);
+  printf ("%s: x = %p, size = %i\n", __func__, x, size);
 }
 
 
 
-static void my_array_task (size_t size, __output int x[size])
+static void my_array_task (int size, __output int x[size])
   __attribute__ ((task));
 
-static void my_array_task_cpu (size_t size, __output int x[size])
+static void my_array_task_cpu (int size, __output int x[size])
   __attribute__ ((task_implementation ("cpu", my_array_task)));
-static void my_array_task_opencl (size_t size, __output int x[size])
+static void my_array_task_opencl (int size, __output int x[size])
   __attribute__ ((task_implementation ("opencl", my_array_task)));
 
 static void
-my_array_task_cpu (size_t size, __output int x[size])
+my_array_task_cpu (int size, __output int x[size])
 {
-  printf ("%s: x = %p, size = %zi\n", __func__, x, size);
+  printf ("%s: x = %p, size = %i\n", __func__, x, size);
 }
 
 static void
-my_array_task_opencl (size_t size, __output int x[size])
+my_array_task_opencl (int size, __output int x[size])
 {
-  printf ("%s: x = %p, size = %zi\n", __func__, x, size);
+  printf ("%s: x = %p, size = %i\n", __func__, x, size);
 }
 
 
@@ -71,7 +71,7 @@ main (int argc, char *argv[])
 {
 #pragma starpu initialize
 
-  size_t size = 42;
+  int size = 42;
   int x[size];
 
   /* Register X (don't use the pragma, to avoid mixing concerns in this

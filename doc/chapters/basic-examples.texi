@@ -68,7 +68,8 @@ has a single implementation for CPU:
 static void my_task (int x) __attribute__ ((task));
 
 /* Declaration of the CPU implementation of `my_task'.  */
-static void my_task_cpu (int x) __attribute__ ((task_implementation ("cpu", my_task)));
+static void my_task_cpu (int x)
+   __attribute__ ((task_implementation ("cpu", my_task)));
 
 /* Definition of said CPU implementation.  */
 static void my_task_cpu (int x)
@@ -327,20 +328,20 @@ has to be defined:
 @smallexample
 /* Declare the `vector_scal' task.  */
 
-static void vector_scal (size_t size, float vector[size],
+static void vector_scal (unsigned size, float vector[size],
                          float factor)
   __attribute__ ((task));
 
 /* Declare and define the standard CPU implementation.  */
 
-static void vector_scal_cpu (size_t size, float vector[size],
+static void vector_scal_cpu (unsigned size, float vector[size],
                              float factor)
   __attribute__ ((task_implementation ("cpu", vector_scal)));
 
 static void
-vector_scal_cpu (size_t size, float vector[size], float factor)
+vector_scal_cpu (unsigned size, float vector[size], float factor)
 @{
-  size_t i;
+  unsigned i;
   for (i = 0; i < size; i++)
     vector[i] *= factor;
 @}
@@ -447,13 +448,12 @@ in our C file like this:
 /* The OpenCL programs, loaded from `main' (see below).  */
 static struct starpu_opencl_program cl_programs;
 
-static void vector_scal_opencl (size_t size, float vector[size],
+static void vector_scal_opencl (unsigned size, float vector[size],
                                 float factor)
   __attribute__ ((task_implementation ("opencl", vector_scal)));
 
-@c TODO This example will not work : size cannot be a size_t in clSetKernelArg, and global should not be 1. Do we want to document the ugly hach we use, though ?
 static void
-vector_scal_opencl (size_t size, float vector[size], float factor)
+vector_scal_opencl (unsigned size, float vector[size], float factor)
 @{
   int id, devid, err;
   cl_kernel kernel;
@@ -523,7 +523,7 @@ declaration for the task implementation:
 
 @cartouche
 @smallexample
-extern void vector_scal_cuda (size_t size, float vector[size],
+extern void vector_scal_cuda (unsigned size, float vector[size],
                               float factor)
   __attribute__ ((task_implementation ("cuda", vector_scal)));
 @end smallexample

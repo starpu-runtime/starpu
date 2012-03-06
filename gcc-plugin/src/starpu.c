@@ -995,6 +995,24 @@ handle_task_attribute (tree *node, tree name, tree args,
   return NULL_TREE;
 }
 
+/* Diagnose use of C types that are either nonexistent or different in
+   OpenCL.  */
+
+static void
+validate_opencl_argument_type (location_t loc, const_tree type)
+{
+  if (INTEGRAL_TYPE_P (type))
+    {
+      tree decl = TYPE_NAME (type);
+
+      if (DECL_P (decl)
+	  && DECL_IN_SYSTEM_HEADER (decl)
+	  && DECL_NAME (decl) == get_identifier ("size_t"))
+	/* Check for the use of a literal `size_t'.  */
+	error_at (loc, "%<size_t%> is not a valid OpenCL type");
+    }
+}
+
 /* Handle the `task_implementation (WHERE, TASK)' attribute.  WHERE is a
    string constant ("cpu", "cuda", etc.), and TASK is the identifier of a
    function declared with the `task' attribute.  */
@@ -1059,6 +1077,15 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
 	warning_at (loc, 0,
 		    "unsupported target %E; task implementation won't be used",
 		    where);
+      else if (task_implementation_target_to_int (where) == STARPU_OPENCL)
+	{
+	  void validate (tree t)
+	  {
+	    validate_opencl_argument_type (loc, t);
+	  }
+
+	  for_each (validate, TYPE_ARG_TYPES (TREE_TYPE (fn)));
+	}
 
       /* Keep the attribute.  */
       *no_add_attrs = false;
