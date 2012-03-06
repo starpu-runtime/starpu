@@ -52,14 +52,14 @@ void cpu_codelet_B(void *descr[], void *_args)
 struct starpu_codelet cl_A = {
 	.cpu_funcs = { cpu_codelet_A, NULL},
 	.cuda_funcs = { cpu_codelet_A, NULL},
-	.where = STARPU_CPU|STARPU_CUDA,
+	.opencl_funcs = { cpu_codelet_A, NULL},
 	.nbuffers = 0,
 };
 
 struct starpu_codelet cl_B = {
 	.cpu_funcs = { cpu_codelet_B, NULL},
 	.cuda_funcs = { cpu_codelet_B, NULL},
-	.where = STARPU_CPU|STARPU_CUDA,
+	.opencl_funcs = { cpu_codelet_B, NULL},
 	.nbuffers = 0,
 };
 
