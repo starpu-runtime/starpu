@@ -284,14 +284,14 @@ struct starpu_task *starpu_task_create(void);
  * structure (default behaviour). Calling this function on a statically
  * allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
-int starpu_task_submit(struct starpu_task *task);
+int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
 /* This function blocks until the task was executed. It is not possible to
  * synchronize with a task more than once. It is not possible to wait
  * synchronous or detached tasks.
  * Upon successful completion, this function returns 0. Otherwise, -EINVAL
  * indicates that the waited task was either synchronous or detached. */
-int starpu_task_wait(struct starpu_task *task);
+int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
 /* This function waits until all the tasks that were already submitted have
  * been executed. */
