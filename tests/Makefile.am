@@ -27,6 +27,7 @@ EXTRA_DIST =					\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
+	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
 	coverage/coverage.sh			\
 	datawizard/acquire_release_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
@@ -263,6 +264,12 @@ datawizard_mpi_like_SOURCES =		\
 if STARPU_USE_CUDA
 datawizard_mpi_like_SOURCES +=			\
 	datawizard/cuda_codelet_unsigned_inc.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_mpi_like_SOURCES +=			\
+	datawizard/opencl_codelet_unsigned_inc.c
+nobase_STARPU_OPENCL_DATA_DATA+= \
+	datawizard/opencl_codelet_unsigned_inc_kernel.cl
 endif
 
 datawizard_mpi_like_async_SOURCES =		\
