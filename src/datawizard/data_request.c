@@ -28,8 +28,6 @@ static pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
 static struct _starpu_data_request_list *data_requests_pending[STARPU_MAXNODES];
 static pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
 
-int starpu_memstrategy_drop_prefetch[STARPU_MAXNODES];
-
 void _starpu_init_data_request_lists(void)
 {
 	unsigned i;
@@ -41,8 +39,6 @@ void _starpu_init_data_request_lists(void)
 
 		data_requests_pending[i] = _starpu_data_request_list_new();
 		_STARPU_PTHREAD_MUTEX_INIT(&data_requests_pending_list_mutex[i], NULL);
-
-		starpu_memstrategy_drop_prefetch[i]=0;
 	}
 }
 
@@ -434,8 +430,6 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 
 void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc)
 {
-	starpu_memstrategy_drop_prefetch[src_node]=0;
-
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 	struct _starpu_data_request_list *new_prefetch_requests;
@@ -472,7 +466,6 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 		res = starpu_handle_data_request(r, may_alloc);
 		if (res == -ENOMEM )
 		{
-			starpu_memstrategy_drop_prefetch[src_node]=1;
 			if (r->prefetch)
 				_starpu_data_request_list_push_back(new_prefetch_requests, r);
 			else
@@ -484,12 +477,13 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 		}
 	}
 
-	while(!_starpu_data_request_list_empty(local_list) && starpu_memstrategy_drop_prefetch[src_node])
+	while(!_starpu_data_request_list_empty(local_list))
 	{
 		r = _starpu_data_request_list_pop_front(local_list);
 		if (r->prefetch)
 			_starpu_data_request_list_push_back(new_prefetch_requests, r);
 		else
+			/* Prefetch request promoted while in tmp list*/
 			_starpu_data_request_list_push_back(new_data_requests, r);
 	}
 
