@@ -78,8 +78,8 @@ install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
 	$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top $(DESTDIR)$(bindir)
 uninstall-local:
-	$(RM) $(DESTDIR)$(bindir)/StarPU-Top
-	$(RM) starpu-top/StarPU-Top
+	$(RM) $(DESTDIR)$(bindir)/starpu_top
+	$(RM) starpu-top/starpu_top
 	$(RM) starpu-top/Makefile
 
 if STARPU_HAVE_HELP2MAN
