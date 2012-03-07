@@ -31,6 +31,7 @@ nobase_STARPU_OPENCL_DATA_DATA =
 endif
 
 EXTRA_DIST = 					\
+	axpy/axpy_opencl_kernel.cl \
 	basic_examples/vector_scal_opencl_kernel.cl \
 	basic_examples/multiformat_opencl_kernel.cl  \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
@@ -102,6 +103,7 @@ examplebindir = $(libdir)/starpu/examples/
 examplebin_PROGRAMS =
 
 noinst_HEADERS = 				\
+	axpy/axpy.h                             \
 	cg/cg.h					\
 	heat/lu_kernels_model.h			\
 	heat/dw_sparse_cg.h			\
@@ -439,6 +441,12 @@ if !NO_BLAS_LIB
 axpy_axpy_SOURCES =				\
 	axpy/axpy.c				\
 	common/blas.c
+if STARPU_USE_OPENCL
+axpy_axpy_SOURCES+=\
+	axpy/axpy_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA+=
+	axpy/axpy_opencl_kernel.cl
+endif
 
 axpy_axpy_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)

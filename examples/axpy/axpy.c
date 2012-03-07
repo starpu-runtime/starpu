@@ -27,8 +27,12 @@
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 
-#define TYPE	float
+#include "axpy.h"
+
 #define AXPY	SAXPY
 #define CUBLASAXPY	cublasSaxpy
 
@@ -73,17 +77,18 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+extern void axpy_opencl(void *buffers[], void *args);
+#endif
+
 static struct starpu_codelet axpy_cl =
 {
-        .where =
-#ifdef STARPU_USE_CUDA
-                STARPU_CUDA|
-#endif
-                STARPU_CPU,
-
 	.cpu_funcs = {axpy_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {axpy_gpu, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {axpy_opencl, NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW}
@@ -103,6 +108,10 @@ check(void)
 	return EXIT_SUCCESS;
 }
 
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+#endif
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -112,6 +121,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("examples/axpy/axpy_opencl_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 
 	starpu_helper_cublas_init();
 
@@ -197,6 +212,9 @@ enodev:
 	starpu_free((void *)vec_x);
 	starpu_free((void *)vec_y);
 
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	/* Stop StarPU */
 	starpu_shutdown();
 
