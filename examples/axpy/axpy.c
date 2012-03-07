@@ -38,7 +38,10 @@
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
+#define EPSILON 1e-6
+
 TYPE *vec_x, *vec_y;
+TYPE alpha = 3.41;
 
 /* descriptors for StarPU */
 starpu_data_handle_t handle_y, handle_x;
@@ -86,6 +89,20 @@ static struct starpu_codelet axpy_cl =
 	.modes = {STARPU_R, STARPU_RW}
 };
 
+static int
+check(void)
+{
+	int i;
+	for (i = 0; i < N; i++)
+	{
+		TYPE expected_value = alpha * vec_x[i] + 4.0;
+		if (fabs(vec_y[i] - expected_value) > EPSILON)
+			return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -132,8 +149,6 @@ int main(int argc, char **argv)
 	starpu_data_partition(handle_x, &block_filter);
 	starpu_data_partition(handle_y, &block_filter);
 
-	TYPE alpha = 3.41;
-
 	struct timeval start;
 	struct timeval end;
 
@@ -175,6 +190,9 @@ enodev:
 	FPRINTF(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(TYPE)/timing);
 
 	FPRINTF(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", vec_y[0], alpha);
+
+	if (ret != 77)
+		ret = check();
 
 	starpu_free((void *)vec_x);
 	starpu_free((void *)vec_y);
