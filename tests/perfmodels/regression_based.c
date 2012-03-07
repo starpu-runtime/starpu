@@ -39,7 +39,7 @@ static void memset_cpu(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	memset(ptr, 42, n);
+	memset(ptr, 42, n * sizeof(*ptr));
 }
 
 static struct starpu_perfmodel model =

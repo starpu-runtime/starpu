@@ -84,7 +84,7 @@ static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_ar
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
-	memset(buf, 42, length);
+	memset(buf, 42, length * sizeof(*buf));
 }
 
 static struct starpu_codelet memset_cl =
