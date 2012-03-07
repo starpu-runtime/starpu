@@ -68,6 +68,8 @@ nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
 
 if BUILD_STARPU_TOP
+starpu-top/starpu_top$(EXEEXT):
+	cd starpu-top ; $(QMAKE) ; $(MAKE)
 all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
