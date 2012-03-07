@@ -27,6 +27,7 @@ EXTRA_DIST =					\
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
+	datawizard/acquire_release_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl \
@@ -225,12 +226,22 @@ if STARPU_USE_CUDA
 datawizard_acquire_release_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
 endif
+if STARPU_USE_OPENCL
+datawizard_acquire_release_SOURCES +=		\
+	datawizard/acquire_release_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/acquire_release_opencl_kernel.cl
+endif
 
 datawizard_acquire_release2_SOURCES =		\
 	datawizard/acquire_release2.c
 if STARPU_USE_CUDA
 datawizard_acquire_release2_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_acquire_release2_SOURCES +=		\
+	datawizard/acquire_release_opencl.c
 endif
 
 datawizard_scratch_SOURCES =			\

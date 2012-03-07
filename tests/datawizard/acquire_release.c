@@ -17,6 +17,9 @@
 
 #include <config.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include "../helper.h"
 
 #ifdef STARPU_SLOW_MACHINE
@@ -27,6 +30,9 @@ static unsigned ntasks = 10000;
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
+#ifdef STARPU_USE_OPENCL
+extern void increment_opencl(void *buffers[], void *args);
 #endif
 
 void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
@@ -40,10 +46,12 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 static struct starpu_codelet increment_cl =
 {
 	.modes = { STARPU_RW },
-        .where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {increment_opencl, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -67,6 +75,9 @@ void callback(void *arg __attribute__ ((unused)))
         starpu_data_release(token_handle);
 }
 
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+#endif
 int main(int argc, char **argv)
 {
 	int i;
@@ -76,6 +87,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/acquire_release_opencl_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
         FPRINTF(stderr, "Token: %u\n", token);
@@ -99,6 +115,9 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(token_handle);
 
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 
         FPRINTF(stderr, "Token: %u\n", token);
@@ -113,6 +132,9 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }
