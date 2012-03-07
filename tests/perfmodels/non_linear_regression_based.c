@@ -27,7 +27,7 @@ static void memset_cuda(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cudaMemset(ptr, 42, n);
+	cudaMemset(ptr, 42, n * sizeof(*ptr));
 	cudaThreadSynchronize();
 }
 #endif
