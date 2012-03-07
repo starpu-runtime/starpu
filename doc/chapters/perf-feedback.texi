@@ -93,7 +93,7 @@ Calling @code{starpu_worker_get_profiling_info} resets the profiling
 information associated to a worker.
 
 When an FxT trace is generated (see @ref{Generating traces}), it is also
-possible to use the @code{starpu_top} script (described in @ref{starpu-top}) to
+possible to use the @code{starpu_workers_activity} script (described in @ref{starpu-workers-activity}) to
 generate a graphic showing the evolution of these values during the time, for
 the different workers.
 
@@ -218,7 +218,7 @@ and "localhost" should be used as IP Address to connect to.
 * Generating traces::           Generating traces with FxT
 * Gantt diagram::               Creating a Gantt Diagram
 * DAG::                         Creating a DAG with graphviz
-* starpu-top::                  Monitoring activity
+* starpu-workers-activity::     Monitoring activity
 @end menu
 
 @node Generating traces
@@ -301,7 +301,7 @@ graphical output of the graph by using the graphviz library:
 $ dot -Tpdf dag.dot -o output.pdf
 @end example
 
-@node starpu-top
+@node starpu-workers-activity
 @subsection Monitoring activity
 
 When the FxT trace file @code{filename} has been generated, it is possible to
@@ -314,7 +314,7 @@ This will create an @code{activity.data} file in the current
 directory. A profile of the application showing the activity of StarPU
 during the execution of the program can be generated:
 @example
-$ starpu_top activity.data
+$ starpu_workers_activity activity.data
 @end example
 
 This will create a file named @code{activity.eps} in the current directory.
