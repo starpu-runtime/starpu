@@ -72,14 +72,22 @@ all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
+	$(RM) starpu_top.1
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
-	$(INSTALL_STRIP_PROGRAM) starpu-top/StarPU-Top $(DESTDIR)$(bindir)
+	$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top $(DESTDIR)$(bindir)
 uninstall-local:
 	$(RM) $(DESTDIR)$(bindir)/StarPU-Top
 	$(RM) starpu-top/StarPU-Top
 	$(RM) starpu-top/Makefile
+
+if STARPU_HAVE_HELP2MAN
+starpu_top.1: starpu-top/starpu_top$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ starpu-top/starpu_top$(EXEEXT)
+dist_man1_MANS =\
+	starpu_top.1
+endif
 endif
 
 if STARPU_HAVE_WINDOWS
