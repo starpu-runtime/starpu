@@ -186,7 +186,8 @@ starpu_top_task_prevision(task, workerid, begin, end);
 @end smallexample
 @end cartouche
 
-Starting StarPU-Top and the application can be done two ways:
+Starting StarPU-Top@footnote{StarPU-Top is started via the binary
+@code{starpu_top}.} and the application can be done two ways:
 
 @itemize
 @item The application is started by hand on some machine (and thus already
