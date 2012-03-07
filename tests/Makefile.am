@@ -24,6 +24,7 @@ EXTRA_DIST =					\
 	helper.h				\
 	datawizard/scal.h			\
 	microbenchs/null_kernel_gordon.c	\
+	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
@@ -249,6 +250,12 @@ datawizard_scratch_SOURCES =			\
 if STARPU_USE_CUDA
 datawizard_scratch_SOURCES +=		\
 	datawizard/scratch_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_scratch_SOURCES += \
+	datawizard/scratch_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/scratch_opencl_kernel.cl
 endif
 
 datawizard_mpi_like_SOURCES =		\
