@@ -40,7 +40,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl \
 	datawizard/interfaces/multiformat/advanced/generic.h \
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
-	datawizard/interfaces/block/block_opencl_kernel.cl
+	datawizard/interfaces/block/block_opencl_kernel.cl \
+	perfmodels/opencl_memset_kernel.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
@@ -520,6 +521,27 @@ endif
 datawizard_interfaces_void_void_interface_SOURCES=\
 	datawizard/interfaces/test_interfaces.c        \
 	datawizard/interfaces/void/void_interface.c
+
+
+perfmodels_regression_based_SOURCES=\
+	perfmodels/regression_based.c
+
+if STARPU_USE_OPENCL
+perfmodels_regression_based_SOURCES+=\
+	perfmodels/opencl_memset.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	perfmodels/opencl_memset_kernel.cl
+endif
+
+perfmodels_non_linear_regression_based_SOURCES=\
+	perfmodels/non_linear_regression_based.c
+
+if STARPU_USE_OPENCL
+perfmodels_non_linear_regression_based_SOURCES+=\
+	perfmodels/opencl_memset.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	perfmodels/opencl_memset_kernel.cl
+endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

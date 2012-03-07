@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +18,9 @@
 
 #include <config.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include "../helper.h"
 
 #ifdef STARPU_USE_CUDA
@@ -30,6 +34,10 @@ static void memset_cuda(void *descr[], void *arg)
 	cudaMemset(ptr, 42, n * sizeof(*ptr));
 	cudaThreadSynchronize();
 }
+#endif
+
+#ifdef STARPU_USE_OPENCL
+extern void memset_opencl(void *buffers[], void *args);
 #endif
 
 static void memset_cpu(void *descr[], void *arg)
@@ -56,9 +64,11 @@ static struct starpu_perfmodel nl_model =
 
 static struct starpu_codelet memset_cl =
 {
-	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {memset_cuda, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {memset_opencl, NULL},
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.model = &model,
@@ -68,9 +78,11 @@ static struct starpu_codelet memset_cl =
 
 static struct starpu_codelet nl_memset_cl =
 {
-	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {memset_cuda, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {memset_opencl, NULL},
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.model = &nl_model,
@@ -118,6 +130,10 @@ static void show_task_perfs(int size, struct starpu_task *task)
 	}
 }
 
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+#endif
+
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
@@ -132,6 +148,12 @@ int main(int argc, char **argv)
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/perfmodels/opencl_memset_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 
 	int size;
 	for (size = 1024; size < 16777216; size *= 2)
@@ -167,6 +189,9 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(handle);
 
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
