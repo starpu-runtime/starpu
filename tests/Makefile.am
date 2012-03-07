@@ -278,6 +278,12 @@ if STARPU_USE_CUDA
 datawizard_mpi_like_async_SOURCES +=		\
 	datawizard/cuda_codelet_unsigned_inc.cu
 endif
+if STARPU_USE_OPENCL
+datawizard_mpi_like_async_SOURCES +=			\
+	datawizard/opencl_codelet_unsigned_inc.c
+nobase_STARPU_OPENCL_DATA_DATA+= \
+	datawizard/opencl_codelet_unsigned_inc_kernel.cl
+endif
 
 datawizard_sync_and_notify_data_SOURCES =	\
 	datawizard/sync_and_notify_data.c

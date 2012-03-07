@@ -17,6 +17,9 @@
 
 #include <config.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include <pthread.h>
 #include "../helper.h"
 
@@ -65,6 +68,9 @@ static struct thread_data problem_data[NTHREADS_DEFAULT];
 #ifdef STARPU_USE_CUDA
 void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_arg);
 #endif
+#ifdef STARPU_USE_OPENCL
+void opencl_codelet_unsigned_inc(void *buffers[], void *args);
+#endif
 
 static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
@@ -79,10 +85,12 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 static struct starpu_codelet increment_handle_cl =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_codelet_unsigned_inc, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = { opencl_codelet_unsigned_inc, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -295,6 +303,10 @@ static void *thread_func(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+#endif
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -308,6 +320,13 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/opencl_codelet_unsigned_inc_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
+
 	/* Create a thread to perform blocking calls */
 	pthread_t progress_thread;
 	_STARPU_PTHREAD_MUTEX_INIT(&data_req_mutex, NULL);
@@ -370,6 +389,9 @@ int main(int argc, char **argv)
 		starpu_data_unregister(problem_data[t].handle);
 	}
 
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 
 	STARPU_RETURN(ret);
