@@ -219,7 +219,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
  {
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
-
 	_starpu_increment_nsubmitted_tasks_of_worker(best_workerid);
 
 	pthread_mutex_t *sched_mutex;
@@ -296,7 +295,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
-	unsigned worker, worker_ctx = 0;
+	int worker, worker_ctx = 0;
 	unsigned nimpl;
 
 	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
@@ -304,7 +303,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
-		unsigned incremented = 0;
 		for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) 
 		{
 			/* Sometimes workers didn't take the tasks as early as we expected */
@@ -320,10 +318,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-
-				if(!incremented)
-					worker_ctx++;
-				incremented = 1;
+//				worker_ctx++;
 				continue;
 			}
 
@@ -389,8 +384,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_power[worker_ctx][nimpl] = 0.;
 
 		}
-		if(!incremented)
-			worker_ctx++;
+		worker_ctx++;
 	}
 
 	*forced_worker = unknown?ntasks_best:-1;
@@ -443,7 +437,8 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
 	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	unsigned worker, nimpl, worker_ctx = 0;
+	int worker, worker_ctx = 0;
+	unsigned nimpl;
 	int best = -1, best_in_ctx = -1;
 	int selected_impl= -1;
 
@@ -467,7 +462,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	 *	and detect if there is some calibration that needs to be done.
 	 */
 
-	starpu_task_bundle_t bundle = task->bundle;
+	starpu_task_bundle_t bundle = NULL; //task->bundle;
 
 	if(workers->init_cursor)
 		workers->init_cursor(workers);
@@ -492,7 +487,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 			push_conversion_tasks(task, forced_worker);
 			prio = 0;
 		}
-
 		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0, prio, sched_ctx_id);
 	}
 
@@ -508,14 +502,12 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
-		unsigned incremented = 0;
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				if(!incremented)
-					worker_ctx++;
+				//worker_ctx++;
 				continue;
 			}
 
@@ -539,8 +531,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 				selected_impl = nimpl;
 			}
 		}
-		if(!incremented)
-			worker_ctx++;
+		worker_ctx++;
 	}
 
 	/* By now, we must have found a solution */

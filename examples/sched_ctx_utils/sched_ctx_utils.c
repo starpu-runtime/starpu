@@ -27,7 +27,7 @@ typedef struct {
 	double avg_timing;
 } retvals;
 
-#define NSAMPLES 3
+#define NSAMPLES 1
 int first = 1;
 pthread_mutex_t mut;
 retvals rv[2];
@@ -92,7 +92,6 @@ void* start_bench(void *val){
 
 	rv[p->id].flops /= NSAMPLES;
 	rv[p->id].avg_timing /= NSAMPLES;
-	
 }
 
 void start_2benchs(void (*bench)(unsigned, unsigned))

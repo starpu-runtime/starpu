@@ -150,8 +150,6 @@ void _starpu_wait_job(struct _starpu_job *j)
 void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 {
 	struct starpu_task *task = j->task;
-	unsigned sched_ctx = task->sched_ctx;
-
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
@@ -210,7 +208,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 	{
 	  _starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	  starpu_call_poped_task_cb(workerid, sched_ctx, task->flops);
+	  starpu_call_poped_task_cb(workerid, task->sched_ctx, task->flops);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 	}
 
@@ -255,7 +253,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 	_starpu_decrement_nsubmitted_tasks();
 	_starpu_decrement_nready_tasks();
 
-	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(task->sched_ctx);
 
 	if(workerid >= 0)
 		_starpu_decrement_nsubmitted_tasks_of_worker(workerid);

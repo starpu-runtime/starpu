@@ -71,7 +71,7 @@ struct _starpu_sched_ctx {
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */
-	struct starpu_performance_counters **perf_counters;
+	struct starpu_performance_counters *perf_counters;
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 };
 

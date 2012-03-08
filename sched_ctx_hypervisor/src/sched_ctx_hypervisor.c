@@ -97,7 +97,7 @@ static struct hypervisor_policy *_select_hypervisor_policy(struct hypervisor_pol
 
 
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
-struct starpu_performance_counters** sched_ctx_hypervisor_init(struct hypervisor_policy *hypervisor_policy)
+struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_policy *hypervisor_policy)
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;

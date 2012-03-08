@@ -17,7 +17,7 @@
  */
 
 #include "cholesky.h"
-
+#include "../sched_ctx_utils/sched_ctx_utils.h"
 /*
  *	Create the codelets
  */
@@ -193,6 +193,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 static void execute_cholesky(unsigned size, unsigned nblocks)
 {
+	int ret;
 	float *mat;
 	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 
@@ -320,7 +321,12 @@ int main(int argc, char **argv)
 	if(with_ctxs || with_noctxs || chole1 || chole2)
 		parse_args_ctx(argc, argv);
 
-	starpu_init(NULL);
+	int ret;
+	ret = starpu_init(NULL);
+
+	if (ret == -ENODEV)
+                return 77;
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_helper_cublas_init();
 

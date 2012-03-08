@@ -168,8 +168,9 @@ static void deinitialize_pgreedy_policy(unsigned sched_ctx_id)
 	free(data);	
 }
 
-static int push_task_pgreedy_policy(struct starpu_task *task, unsigned sched_ctx_id)
+static int push_task_pgreedy_policy(struct starpu_task *task)
 {
+	unsigned sched_ctx_id = task->sched_ctx;
 	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
         int ret_val = -1;
