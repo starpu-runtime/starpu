@@ -444,7 +444,7 @@ axpy_axpy_SOURCES =				\
 if STARPU_USE_OPENCL
 axpy_axpy_SOURCES += \
 	axpy/axpy_opencl.c
-nobase_STARPU_OPENCL_DATA_DATA +=
+nobase_STARPU_OPENCL_DATA_DATA +=		\
 	axpy/axpy_opencl_kernel.cl
 endif
 
