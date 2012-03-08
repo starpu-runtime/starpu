@@ -466,7 +466,6 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
-//	_starpu_increment_nsubmitted_tasks_of_sched_ctx(task->sched_ctx);
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	j->submitted = 1;
@@ -508,7 +507,6 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
-//	_starpu_increment_nsubmitted_tasks_of_sched_ctx(task->sched_ctx);
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
@@ -579,7 +577,7 @@ int starpu_task_wait_for_all(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned sched_ctx = nsched_ctxs == 1 ? 0 : starpu_get_sched_ctx();
-	starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 	return 0;
 }
 

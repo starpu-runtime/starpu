@@ -87,8 +87,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
-	_starpu_increment_nsubmitted_tasks_of_worker(best_workerid);
-
 	/* Is this a basic worker or a combined worker ? */
 	int nbasic_workers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 	int is_basic_worker = (best_workerid < nbasic_workers);

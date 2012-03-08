@@ -214,7 +214,6 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
  * each worker of the combination. */
 static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int workerid)
 {
-	_starpu_increment_nsubmitted_tasks_of_worker(task->workerid);
 	int nbasic_workers = (int)starpu_worker_get_count();
 
 	/* Is this a basic worker or a combined worker ? */

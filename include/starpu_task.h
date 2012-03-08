@@ -316,10 +316,6 @@ int starpu_task_wait_for_all(void);
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);
 
-/* This function waits until all the tasks that were already submitted to a specific
- * context have been executed. */
-int starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id);
-
 void starpu_codelet_init(struct starpu_codelet *cl);
 
 void starpu_display_codelet_stats(struct starpu_codelet *cl);

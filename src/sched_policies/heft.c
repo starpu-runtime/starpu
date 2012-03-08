@@ -219,7 +219,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
  {
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
-	_starpu_increment_nsubmitted_tasks_of_worker(best_workerid);
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;

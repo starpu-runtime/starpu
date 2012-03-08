@@ -289,7 +289,7 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 		starpu_add_workers_to_sched_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, inheritor_sched_ctx_id);
 	}
 
-	if(!starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
+	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
 		_starpu_delete_sched_ctx(sched_ctx);
 	return;	
 }
@@ -303,8 +303,11 @@ void _starpu_delete_all_sched_ctxs()
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(i);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
-			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
-			_starpu_delete_sched_ctx(sched_ctx);
+			if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx->id))
+			{
+				_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
+				_starpu_delete_sched_ctx(sched_ctx);
+			}
 		}
 	}
 	return;
@@ -446,56 +449,7 @@ static unsigned _starpu_worker_get_sched_ctx_id(struct _starpu_worker *worker, u
 	return STARPU_NMAX_SCHED_CTXS;
 }
 
-int starpu_wait_for_all_tasks_of_worker(int workerid)
-{
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
-
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	
-	_starpu_barrier_counter_wait_for_empty_counter(&worker->tasks_barrier);
-	
-	return 0;
-}
-
-int starpu_wait_for_all_tasks_of_workers(int *workerids, int nworkers_ctx){
-	int ret_val = 0;
-	
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	int nworkers = nworkers_ctx == -1 ? (int)config->topology.nworkers : nworkers_ctx;
-	
-	int workerid = -1;
-	int i, n;
-	
-	for(i = 0; i < nworkers; i++)
-	  {
-		workerid = workerids == NULL ? i : workerids[i];
-		n = starpu_wait_for_all_tasks_of_worker(workerid);
-		ret_val = (ret_val && n);
-	  }
-	
-	return ret_val;
-}
-
-void _starpu_decrement_nsubmitted_tasks_of_worker(int workerid)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	
-	_starpu_barrier_counter_decrement_until_empty_counter(&worker->tasks_barrier);
-
-	return;
-}
-
-void _starpu_increment_nsubmitted_tasks_of_worker(int workerid)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-
-	_starpu_barrier_counter_increment(&worker->tasks_barrier);
-
-	return;
-}
-
-int starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
+int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	

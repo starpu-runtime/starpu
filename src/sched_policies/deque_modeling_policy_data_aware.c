@@ -409,8 +409,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		best = ntasks_best;
 		model_best = 0.0;
 	}
-	
-	_starpu_increment_nsubmitted_tasks_of_worker(best);
 
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 

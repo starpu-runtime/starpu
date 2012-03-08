@@ -89,9 +89,9 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 /* delete all sched_ctx */
 void _starpu_delete_all_sched_ctxs();
 
-/* Keeps track of the number of tasks currently submitted to a worker */
-void _starpu_decrement_nsubmitted_tasks_of_worker(int workerid);
-void _starpu_increment_nsubmitted_tasks_of_worker(int workerid);
+/* This function waits until all the tasks that were already submitted to a specific
+ * context have been executed. */
+int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id);
 
 /* In order to implement starpu_wait_for_all_tasks_of_ctx, we keep track of the number of 
  * task currently submitted to the context */

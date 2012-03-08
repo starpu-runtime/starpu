@@ -150,6 +150,7 @@ void _starpu_wait_job(struct _starpu_job *j)
 void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 {
 	struct starpu_task *task = j->task;
+	unsigned sched_ctx = task->sched_ctx;
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
@@ -212,7 +213,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 	}
 
-
 	_STARPU_TRACE_TASK_DONE(j);
 
 	/* NB: we do not save those values before the callback, in case the
@@ -253,10 +253,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 	_starpu_decrement_nsubmitted_tasks();
 	_starpu_decrement_nready_tasks();
 
-	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(task->sched_ctx);
-
-	if(workerid >= 0)
-		_starpu_decrement_nsubmitted_tasks_of_worker(workerid);
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
 }
 
 /* This function is called when a new task is submitted to StarPU

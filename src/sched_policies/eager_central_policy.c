@@ -109,7 +109,6 @@ static int push_task_eager_policy(struct starpu_task *task)
         while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
-		_starpu_increment_nsubmitted_tasks_of_worker(worker);
 	}
 
 	if(workers->init_cursor)
@@ -143,7 +142,6 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		while(workers->has_next(workers))
 		{
 			worker = workers->get_next(workers);
-			_starpu_decrement_nsubmitted_tasks_of_worker(workerid);
 		}
 		
 		if(workers->init_cursor)

@@ -263,10 +263,10 @@ double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starp
 }
 #endif
 
-/* Waits until all the tasks of a worker, already submitted, have been executed */
-int starpu_wait_for_all_tasks_of_worker(int workerid);
+/* /\* Waits until all the tasks of a worker, already submitted, have been executed *\/ */
+/* int starpu_wait_for_all_tasks_of_worker(int workerid); */
 
-/* Waits until all the tasks of a bunch of workers have been executed */
-int starpu_wait_for_all_tasks_of_workers(int *workerids_ctx, int nworkers_ctx);
+/* /\* Waits until all the tasks of a bunch of workers have been executed *\/ */
+/* int starpu_wait_for_all_tasks_of_workers(int *workerids_ctx, int nworkers_ctx); */
 
 #endif /* __STARPU_SCHEDULER_H__ */
