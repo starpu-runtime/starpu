@@ -53,7 +53,7 @@ static curandGenerator_t curandgens[STARPU_NMAXWORKERS];
 /* state for the erand48 function : note the huge padding to avoid false-sharing */
 #define PADDING	1024
 static unsigned short xsubi[STARPU_NMAXWORKERS*PADDING];
-static struct drand48_data randbuffer[STARPU_NMAXWORKERS*PADDING];
+static starpu_drand48_data randbuffer[STARPU_NMAXWORKERS*PADDING];
 
 /* Function to initialize the random number generator in the current worker */
 static void init_rng(void *arg __attribute__((unused)))

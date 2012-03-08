@@ -33,6 +33,7 @@ nobase_STARPU_OPENCL_DATA_DATA =
 endif
 
 EXTRA_DIST = 					\
+	axpy/axpy_opencl_kernel.cl		\
 	basic_examples/vector_scal_opencl_kernel.cl \
 	basic_examples/multiformat_opencl_kernel.cl  \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
@@ -55,7 +56,8 @@ EXTRA_DIST = 					\
 	openmp/vector_scal.c			\
 	filters/fblock_opencl_kernel.cl		\
 	filters/custom_mf/conversion_opencl.cl  \
-	filters/custom_mf/custom_opencl.cl
+	filters/custom_mf/custom_opencl.cl \
+	interface/complex_kernels.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
@@ -104,6 +106,7 @@ examplebindir = $(libdir)/starpu/examples/
 examplebin_PROGRAMS =
 
 noinst_HEADERS = 				\
+	axpy/axpy.h                             \
 	cg/cg.h					\
 	heat/lu_kernels_model.h			\
 	heat/dw_sparse_cg.h			\
@@ -133,7 +136,12 @@ noinst_HEADERS = 				\
 	basic_examples/multiformat_types.h      \
 	filters/custom_mf/custom_interface.h    \
 	filters/custom_mf/custom_types.h	\
-	interface/complex_interface.h
+	interface/complex_interface.h		\
+	pi/pi.h					\
+	pi/SobolQRNG/sobol.h			\
+	pi/SobolQRNG/sobol_gold.h		\
+	pi/SobolQRNG/sobol_gpu.h		\
+	pi/SobolQRNG/sobol_primitives.h
 
 #####################################
 # What to install and what to check #
@@ -330,17 +338,17 @@ basic_examples_multiformat_SOURCES =                                    \
 	basic_examples/multiformat_conversion_codelets.c
 
 if STARPU_USE_CUDA
-basic_examples_multiformat_SOURCES+=                                     \
+basic_examples_multiformat_SOURCES +=                                    \
 	basic_examples/multiformat_cuda.cu                               \
 	basic_examples/multiformat_conversion_codelets_cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-basic_examples_multiformat_SOURCES+=                                     \
+basic_examples_multiformat_SOURCES +=                                    \
 	basic_examples/multiformat_opencl.c                              \
-	basic_examples/multiformat_conversion_codelets_opencl.c          
+	basic_examples/multiformat_conversion_codelets_opencl.c
 
-nobase_STARPU_OPENCL_DATA_DATA+=                                         \
+nobase_STARPU_OPENCL_DATA_DATA +=                                        \
 	basic_examples/multiformat_opencl_kernel.cl                      \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl
 endif
@@ -414,13 +422,13 @@ filters_custom_mf_custom_mf_filter_SOURCES=\
 	filters/custom_mf/custom_conversion_codelets.c
 
 if STARPU_USE_CUDA
-filters_custom_mf_custom_mf_filter_SOURCES+=\
+filters_custom_mf_custom_mf_filter_SOURCES += \
 	filters/custom_mf/conversion.cu \
 	filters/custom_mf/cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-filters_custom_mf_custom_mf_filter_SOURCES+=\
+filters_custom_mf_custom_mf_filter_SOURCES += \
 	filters/custom_mf/conversion_opencl.c \
 	filters/custom_mf/custom_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
@@ -436,6 +444,12 @@ if !NO_BLAS_LIB
 axpy_axpy_SOURCES =				\
 	axpy/axpy.c				\
 	common/blas.c
+if STARPU_USE_OPENCL
+axpy_axpy_SOURCES += \
+	axpy/axpy_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA +=		\
+	axpy/axpy_opencl_kernel.cl
+endif
 
 axpy_axpy_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
@@ -713,6 +727,13 @@ interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
 endif
 
+if STARPU_USE_OPENCL
+interface_complex_SOURCES +=\
+	interface/complex_kernels_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	interface/complex_kernels.cl
+endif
+
 ######################
 # matVecMult example #
 ######################
@@ -752,6 +773,39 @@ examplebin_PROGRAMS +=				\
 
 top_hello_world_top_SOURCES =			\
 	top/hello_world_top.c
+
+######
+# Pi #
+######
+
+check_PROGRAMS +=				\
+	pi/pi					\
+	pi/pi_redux
+
+examplebin_PROGRAMS +=				\
+	pi/pi					\
+	pi/pi_redux
+
+pi_pi_SOURCES =					\
+	pi/pi.c					\
+	pi/SobolQRNG/sobol_gold.c		\
+	pi/SobolQRNG/sobol_primitives.c
+
+if STARPU_USE_CUDA
+pi_pi_SOURCES +=				\
+	pi/pi_kernel.cu				\
+	pi/SobolQRNG/sobol_gpu.cu
+endif
+
+pi_pi_redux_SOURCES =				\
+	pi/pi_redux.c
+
+if STARPU_USE_CUDA
+pi_pi_redux_SOURCES +=				\
+	pi/pi_redux_kernel.cu
+pi_pi_redux_LDADD =				\
+	$(STARPU_CURAND_LDFLAGS)
+endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

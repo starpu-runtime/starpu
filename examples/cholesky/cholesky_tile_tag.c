@@ -100,7 +100,7 @@ static struct starpu_codelet cl21 =
 	.model = &chol_model_21
 };
 
-static void create_task_21(unsigned k, unsigned j)
+static int create_task_21(unsigned k, unsigned j)
 {
 	int ret;
 
@@ -128,7 +128,8 @@ static void create_task_21(unsigned k, unsigned j)
 	}
 
 	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 }
 
 static struct starpu_codelet cl22 =
@@ -150,7 +151,7 @@ static struct starpu_codelet cl22 =
 	.model = &chol_model_22
 };
 
-static void create_task_22(unsigned k, unsigned i, unsigned j)
+static int create_task_22(unsigned k, unsigned i, unsigned j)
 {
 	int ret;
 
@@ -181,17 +182,16 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 	}
 
 	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 }
-
-
 
 /*
  *	code to bootstrap the factorization 
  *	and construct the DAG
  */
 
-static void cholesky_no_stride(void)
+static int cholesky_no_stride(void)
 {
 	int ret;
 
@@ -219,12 +219,16 @@ static void cholesky_no_stride(void)
 		
 		for (j = k+1; j<nblocks; j++)
 		{
-			create_task_21(k, j);
+			ret = create_task_21(k, j);
+			if (ret == -ENODEV) return 77;
 
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
-					create_task_22(k, i, j);
+				{
+				     ret = create_task_22(k, i, j);
+				     if (ret == -ENODEV) return 77;
+				}
 			}
 		}
 	}
@@ -232,6 +236,7 @@ static void cholesky_no_stride(void)
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
 	ret = starpu_task_submit(entry_task);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
@@ -245,6 +250,8 @@ static void cholesky_no_stride(void)
 
 	double flop = (1.0f*size*size*size)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -312,7 +319,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	cholesky_no_stride();
+	ret = cholesky_no_stride();
 
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
@@ -327,7 +334,7 @@ int main(int argc, char **argv)
 	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
-	return 0;
+	return ret;
 }
 
 

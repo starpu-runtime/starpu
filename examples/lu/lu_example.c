@@ -262,7 +262,7 @@ static void check_result(void)
 	/* compute "LU - A" in L*/
 	CPU_AXPY(size*size, -1.0, A_saved, 1, L, 1);
 	display_matrix(L, size, size, "Residuals");
-	
+
 #ifdef COMPLEX_LU
 	double err = CPU_ASUM(size*size, L, 1);
 	int max = CPU_IAMAX(size*size, L, 1);
@@ -333,24 +333,24 @@ int main(int argc, char **argv)
 			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE **));
 			copy_matrix_into_blocks();
 
-			STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks);
+			ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks);
 
 			copy_blocks_into_matrix();
 			free(A_blocks);
 		}
-		else 
+		else
 		{
 			struct timeval start;
 			struct timeval end;
 
 			gettimeofday(&start, NULL);
 
-			STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks);
-	
+			ret = STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks);
+
 			gettimeofday(&end, NULL);
 
 			double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-			
+
 			unsigned n = size;
 			double flop = (2.0f*n*n*n)/3.0f;
 			FPRINTF(stderr, "Synthetic GFlops (TOTAL) : \n");
@@ -359,7 +359,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		STARPU_LU(lu_decomposition)(A, size, size, nblocks);
+		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks);
 	}
 
 	if (profile)
@@ -415,5 +415,5 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	if (ret == -ENODEV) return 77; else return 0;
 }

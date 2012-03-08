@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <starpu_cuda.h>
+#include <starpu_opencl.h>
 #include <starpu_hash.h>
 
 #include "complex_interface.h"
@@ -109,7 +110,30 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, uint32
 #ifdef STARPU_USE_OPENCL
 	        case STARPU_OPENCL_RAM:
 		{
-			STARPU_ASSERT(0);
+			int ret;
+			cl_mem real, imaginary;
+			ret = starpu_opencl_allocate_memory(&real, requested_memory, CL_MEM_READ_WRITE);
+			if (ret != CL_SUCCESS)
+			{
+				fail = 1;
+				break;
+			}
+			else
+			{
+				addr_real = (double *) real;
+			}
+
+			ret = starpu_opencl_allocate_memory(&imaginary, requested_memory, CL_MEM_READ_WRITE);
+			if (ret != CL_SUCCESS)
+			{
+				fail = 1;
+				break;
+			}
+			else
+			{
+				addr_imaginary = (double *) imaginary;
+			}
+			break;
 		}
 #endif
 		default:
@@ -171,11 +195,81 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_in
 #endif
 
 
+#ifdef STARPU_USE_OPENCL
+static int copy_ram_to_opencl(void *src_interface, unsigned src_node,
+                              void *dst_interface, unsigned dst_node)
+{
+	struct starpu_complex_interface *src_complex = src_interface;
+	struct starpu_complex_interface *dst_complex = dst_interface;
+
+	cl_int err;
+
+	err = starpu_opencl_copy_ram_to_opencl(
+		src_complex->real,
+		src_node,
+		(cl_mem) dst_complex->real,
+		dst_node,
+		src_complex->nx * sizeof(src_complex->real[0]),
+		0,
+		NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = starpu_opencl_copy_ram_to_opencl(
+		src_complex->imaginary,
+		src_node,
+		(cl_mem) dst_complex->imaginary,
+		dst_node,
+		src_complex->nx * sizeof(src_complex->imaginary[0]),
+		0,
+		NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	return 0;
+}
+
+static int copy_opencl_to_ram(void *src_interface, unsigned src_node,
+			      void *dst_interface, unsigned dst_node)
+{
+	struct starpu_complex_interface *src_complex = src_interface;
+	struct starpu_complex_interface *dst_complex = dst_interface;
+
+	cl_int err;
+	err = starpu_opencl_copy_opencl_to_ram(
+		(cl_mem) src_complex->real,
+		src_node,
+		dst_complex->real,
+		dst_node,
+		src_complex->nx * sizeof(src_complex->real[0]),
+		0,
+		NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = starpu_opencl_copy_opencl_to_ram(
+		(cl_mem) src_complex->imaginary,
+		src_node,
+		dst_complex->imaginary,
+		dst_node,
+		src_complex->nx * sizeof(src_complex->imaginary[0]),
+		0,
+		NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	return 0;
+}
+#endif
 static const struct starpu_data_copy_methods complex_copy_methods =
 {
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.ram_to_opencl = copy_ram_to_opencl,
+	.opencl_to_ram = copy_opencl_to_ram,
 #endif
 };
 

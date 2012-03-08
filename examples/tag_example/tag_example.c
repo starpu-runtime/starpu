@@ -43,9 +43,15 @@
 
 struct starpu_codelet cl = {};
 
+#ifdef STARPU_SLOW_MACHINE
+#define Ni	32
+#define Nj	32
+#define Nk	32
+#else
 #define Ni	64
 #define Nj	32
 #define Nk	128
+#endif
 
 static unsigned ni = Ni, nj = Nj, nk = Nk;
 static unsigned callback_cnt;
@@ -97,7 +103,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned nj, unsigned iter)
 
 } 
 
-static void create_task_grid(unsigned iter)
+static int create_task_grid(unsigned iter)
 {
 	unsigned i, j;
 	int ret;
@@ -123,6 +129,7 @@ static void create_task_grid(unsigned iter)
 		express_deps(i, j, iter);
 
 		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -140,9 +147,10 @@ static void create_task_grid(unsigned iter)
 		task->tag_id = TAG(0, j, iter);
 
 		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
-
+	return 0;
 }
 
 
@@ -220,17 +228,17 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	FPRINTF(stderr, "ITER: %u\n", nk);
 
-	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.cpu_funcs[0] = cpu_codelet;
 	cl.cuda_funcs[0] = cpu_codelet;
+	cl.opencl_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
 	cl.nbuffers = 0;
 
-	create_task_grid(0);
-
-	starpu_task_wait_for_all();
+	ret = create_task_grid(0);
+	if (ret == 0)
+	     starpu_task_wait_for_all();
 
 	tag_cleanup_grid(ni, nj, nk-2);
 	tag_cleanup_grid(ni, nj, nk-1);
@@ -239,5 +247,5 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	FPRINTF(stderr, "TEST DONE ...\n");
 
-	return 0;
+	return ret;
 }

@@ -80,7 +80,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned iter)
 		starpu_tag_remove(TAG(i,iter));
 } 
 
-static void create_task_grid(unsigned iter)
+static int create_task_grid(unsigned iter)
 {
 	int i;
 	int ret;
@@ -102,9 +102,10 @@ static void create_task_grid(unsigned iter)
 			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
 
 		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
-
+	return 0;
 }
 
 void cpu_codelet(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
@@ -135,17 +136,18 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	cl.cpu_funcs[0] = cpu_codelet;
 	cl.cuda_funcs[0] = cpu_codelet;
+	cl.opencl_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
-	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.nbuffers = 0;
 
 	FPRINTF(stderr, "ITER : %u\n", nk);
 
 	for (i = 0; i < nk; i++)
 	{
-		create_task_grid(i);
+		ret = create_task_grid(i);
+		if (ret == 77) goto enodev;
 
 		starpu_tag_wait(TAG(ni-1, i));
 
@@ -154,9 +156,10 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 			tag_cleanup_grid(ni, i-1);
 	}
 
+enodev:
 	starpu_shutdown();
 
 	FPRINTF(stderr, "TEST DONE ...\n");
 
-	return 0;
+	return ret;
 }
