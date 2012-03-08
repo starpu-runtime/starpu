@@ -21,42 +21,42 @@
 
 /* The tasks under test.  */
 
-static void my_pointer_task (const int *x, long *y) __attribute__ ((task));
+static void my_pointer_task (const int *x, short *y) __attribute__ ((task));
 
-static void my_pointer_task_cpu (const int *, long *)
+static void my_pointer_task_cpu (const int *, short *)
   __attribute__ ((task_implementation ("cpu", my_pointer_task)));
-static void my_pointer_task_opencl (const int *, long *)
+static void my_pointer_task_opencl (const int *, short *)
   __attribute__ ((task_implementation ("opencl", my_pointer_task)));
 
 static void
-my_pointer_task_cpu (const int *x, long *y)
+my_pointer_task_cpu (const int *x, short *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
 }
 
 static void
-my_pointer_task_opencl (const int *x, long *y)
+my_pointer_task_opencl (const int *x, short *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
 }
 
 
 
-static void my_mixed_task (int *x, unsigned char z, const long *y)
+static void my_mixed_task (int *x, unsigned char z, const short *y)
   __attribute__ ((task));
-static void my_mixed_task_cpu (int *, unsigned char, const long *)
+static void my_mixed_task_cpu (int *, unsigned char, const short *)
   __attribute__ ((task_implementation ("cpu", my_mixed_task)));
-static void my_mixed_task_opencl (int *, unsigned char, const long *)
+static void my_mixed_task_opencl (int *, unsigned char, const short *)
   __attribute__ ((task_implementation ("opencl", my_mixed_task)));
 
 static void
-my_mixed_task_cpu (int *x, unsigned char z, const long *y)
+my_mixed_task_cpu (int *x, unsigned char z, const short *y)
 {
   printf ("%s: x = %p, y = %p, z = %i\n", __func__, x, y, (int) z);
 }
 
 static void
-my_mixed_task_opencl (int *x, unsigned char z, const long *y)
+my_mixed_task_opencl (int *x, unsigned char z, const short *y)
 {
   printf ("%s: x = %p, y = %p, z = %i\n", __func__, x, y, (int) z);
 }
@@ -70,7 +70,7 @@ main (int argc, char *argv[])
 
   static const unsigned char z = 0x77;
   int x[] = { 42 };
-  long *y;
+  short *y;
 
   y = malloc (sizeof *y);
   *y = 77;

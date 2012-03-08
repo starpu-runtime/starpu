@@ -1016,7 +1016,7 @@ validate_opencl_argument_type (location_t loc, const_tree type)
 	    {
 	      { "char", "cl_char" },
 	      { "unsigned char", "cl_uchar" },
-	      { "short", "cl_short" },
+	      { "short int", "cl_short" },
 	      { "unsigned short", "cl_ushort" },
 	      { "int", "cl_int" },
 	      { "unsigned int", "cl_uint" },
