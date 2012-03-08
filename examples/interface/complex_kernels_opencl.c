@@ -31,12 +31,12 @@ void copy_complex_codelet_opencl(void *buffers[], void *_args)
 	cl_event event;
 
 	/* length of the vector */
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	unsigned n = STARPU_COMPLEX_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
-	cl_mem *i_real      = (cl_mem *) STARPU_COMPLEX_GET_REAL(buffers[0]);
-	cl_mem *i_imaginary = (cl_mem *) STARPU_COMPLEX_GET_IMAGINARY(buffers[0]);
-	cl_mem *o_real      = (cl_mem *) STARPU_COMPLEX_GET_REAL(buffers[1]);
-	cl_mem *o_imaginary = (cl_mem *) STARPU_COMPLEX_GET_IMAGINARY(buffers[1]);
+	cl_mem i_real      = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[0]);
+	cl_mem i_imaginary = (cl_mem) STARPU_COMPLEX_GET_IMAGINARY(buffers[0]);
+	cl_mem o_real      = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[1]);
+	cl_mem o_imaginary = (cl_mem) STARPU_COMPLEX_GET_IMAGINARY(buffers[1]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
