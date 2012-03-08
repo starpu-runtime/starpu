@@ -72,6 +72,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	/* do some cleanup */
+	ret = EXIT_SUCCESS;
 	for (b = 0; b < NBUFFERS; b++)
 	{
 		starpu_data_unregister(buffers[b].handle);
@@ -79,12 +80,12 @@ int main(int argc, char **argv)
 		/* check result */
 		if (buffers[b].val != NITER)
 		{
-			fprintf(stderr, "buffer[%u] = %u should be %d\n", b, buffers[b].val, NITER);
-			STARPU_ABORT();
+			FPRINTF(stderr, "buffer[%u] = %u should be %d\n", b, buffers[b].val, NITER);
+			ret = EXIT_FAILURE;
 		}
 	}
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	return ret;
 }

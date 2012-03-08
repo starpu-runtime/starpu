@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < size; i++) {
 		if (foo[i] != i*2) {
-			fprintf(stderr,"value %d is %d instead of %d\n", i, foo[i], 2*i);
+			FPRINTF(stderr,"value %d is %d instead of %d\n", i, foo[i], 2*i);
 			return EXIT_FAILURE;
 		}
 	}

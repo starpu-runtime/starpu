@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 		if (host_ptr_array[i] == NULL)
 		{
 			mb = i;
-			fprintf(stderr, "Cannot allocate more than %d buffers\n", mb);
+			FPRINTF(stderr, "Cannot allocate more than %d buffers\n", mb);
 			break;
 		}
 		starpu_variable_data_register(&handle_array[i], 0, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);

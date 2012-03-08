@@ -72,7 +72,7 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	if (*buf != 42)
 	{
-		fprintf(stderr, "Value = %c (should be %c)\n", *buf, 42);
+		FPRINTF(stderr, "Value = %c (should be %c)\n", *buf, 42);
 		exit(-1);
 	}
 }

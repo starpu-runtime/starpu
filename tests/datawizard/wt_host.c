@@ -128,14 +128,16 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(handle);
 
+	ret = EXIT_SUCCESS;
 	if (var != ntasks*nloops)
-		fprintf(stderr, "VAR is %d should be %d\n", var, ntasks);
-
-	STARPU_ASSERT(var == ntasks*nloops);
+	{
+		ret = EXIT_FAILURE;
+		FPRINTF(stderr, "VAR is %d should be %d\n", var, ntasks);
+	}
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	return ret;
 
 enodev:
 	starpu_data_unregister(handle);
