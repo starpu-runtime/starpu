@@ -1599,6 +1599,7 @@ AC_OUTPUT([
 	doc/Makefile
 	mpi/Makefile
 	starpu-top/StarPU-Top.pro
+	starpu-top/StarPU-Top-qwt-embed.pri
 	starpu-top/StarPU-Top-qwt-system.pri
         gcc-plugin/Makefile
 	gcc-plugin/src/Makefile
