@@ -18,12 +18,8 @@ __kernel void increment_vector_opencl(__global unsigned *val,
 				      __global unsigned *tmp,
 				      unsigned nx)
 {
-        const int tid = get_global_id(0);
-	const uint nthreads = get_local_size(0);
+        const int id = get_global_id(0);
 
-	int i;
-	for (i = tid; i < nx; i += nthreads)
-	{
-		val[i] = tmp[i] + 1;
-	}
+	if (id < nx)
+		val[id] = tmp[id] + 1;
 }
