@@ -44,6 +44,7 @@ typedef unsigned long long uint64_t;
 #include <starpu_task_list.h>
 #include <starpu_scheduler.h>
 #include <starpu_expert.h>
+#include <starpu_rand.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -87,7 +88,7 @@ int starpu_conf_init(struct starpu_conf *conf);
 /* Initialization method: it must be called prior to any other StarPU call
  * Default configuration is used if NULL is passed as argument.
  */
-int starpu_init(struct starpu_conf *conf);
+int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
 /* Shutdown method: note that statistics are only generated once StarPU is
  * shutdown */

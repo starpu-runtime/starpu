@@ -36,6 +36,7 @@ gcc_tests =					\
   heap-allocated-errors.c			\
   verbose.c					\
   debug-tree.c					\
+  opencl-types.c				\
   shutdown-errors.c
 
 dist_noinst_HEADERS = mocks.h

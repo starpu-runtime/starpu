@@ -30,10 +30,6 @@ endif
 
 SUBDIRS += examples
 
-if COND_OPT
-SUBDIRS += tests/opt examples/opt
-endif
-
 if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
 endif
@@ -69,24 +65,35 @@ versinclude_HEADERS = 				\
 	include/starpu_scheduler.h		\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
-	include/starpu_hash.h
+	include/starpu_hash.h			\
+	include/starpu_rand.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
 
 if BUILD_STARPU_TOP
+starpu-top/starpu_top$(EXEEXT):
+	cd starpu-top ; $(QMAKE) ; $(MAKE)
 all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
+	$(RM) starpu_top.1
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
-	$(INSTALL_STRIP_PROGRAM) starpu-top/StarPU-Top $(DESTDIR)$(bindir)
+	$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top $(DESTDIR)$(bindir)
 uninstall-local:
-	$(RM) $(DESTDIR)$(bindir)/StarPU-Top
-	$(RM) starpu-top/StarPU-Top
+	$(RM) $(DESTDIR)$(bindir)/starpu_top
+	$(RM) starpu-top/starpu_top
 	$(RM) starpu-top/Makefile
+
+if STARPU_HAVE_HELP2MAN
+starpu_top.1: starpu-top/starpu_top$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ starpu-top/starpu_top$(EXEEXT)
+dist_man1_MANS =\
+	starpu_top.1
+endif
 endif
 
 if STARPU_HAVE_WINDOWS

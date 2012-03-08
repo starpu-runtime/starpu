@@ -54,21 +54,24 @@ int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_
 	{
 		sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
+		if (access(located_file_name, R_OK) == 0)
+			ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE)
 	{
 		sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
+		if (access(located_file_name, R_OK) == 0)
+			ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE)
 	{
 		sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-		if (access(located_file_name, R_OK) == 0) ret = EXIT_SUCCESS;
+		if (access(located_file_name, R_OK) == 0)
+			ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE)
@@ -80,7 +83,11 @@ int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_
 	else
 	{
 		char *last = strrchr(located_file_name, '/');
-		if (!last) strcpy(located_dir_name, "");
+
+		if (!last)
+		{
+			strcpy(located_dir_name, "");
+		}
 		else
 		{
 			sprintf(located_dir_name, "%s", located_file_name);
@@ -112,7 +119,8 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
 
         // Create the compute kernel in the program we wish to run
         *kernel = clCreateKernel(program, kernel_name, &err);
-	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	return CL_SUCCESS;
 }
@@ -122,7 +130,8 @@ cl_int starpu_opencl_release_kernel(cl_kernel kernel)
 	cl_int err;
 
 	err = clReleaseKernel(kernel);
-	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
 }

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2011  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +18,9 @@
 
 #include <config.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include "../helper.h"
 
 #ifdef STARPU_USE_CUDA
@@ -27,7 +31,7 @@ static void memset_cuda(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cudaMemset(ptr, 42, n);
+	cudaMemset(ptr, 42, n * sizeof(*ptr));
 	cudaThreadSynchronize();
 }
 #endif
@@ -39,7 +43,7 @@ static void memset_cpu(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	memset(ptr, 42, n);
+	memset(ptr, 42, n * sizeof(*ptr));
 }
 
 static struct starpu_perfmodel model =
@@ -48,11 +52,17 @@ static struct starpu_perfmodel model =
 	.symbol = "non_linear_memset_regression_based"
 };
 
+#ifdef STARPU_USE_OPENCL
+extern void memset_opencl(void *buffers[], void *args);
+#endif
+
 static struct starpu_codelet memset_cl =
 {
-	.where = STARPU_CUDA|STARPU_CPU,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {memset_cuda, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {memset_opencl, NULL},
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.model = &model,
@@ -84,6 +94,10 @@ static void test_memset(int nelems)
 	starpu_data_unregister(handle);
 }
 
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+#endif
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -98,12 +112,22 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/perfmodels/opencl_memset_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
+
 	int slog;
 	for (slog = 8; slog < 25; slog++)
 	{
 		int size = 1 << slog;
 		test_memset(size);
 	}
+
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 
 	starpu_shutdown();
 

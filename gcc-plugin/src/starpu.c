@@ -30,6 +30,7 @@ int plugin_is_GPL_compatible;
 #include <cpplib.h>
 #include <tree.h>
 #include <tree-iterator.h>
+#include <langhooks.h>
 
 #ifdef HAVE_C_FAMILY_C_COMMON_H
 # include <c-family/c-common.h>
@@ -86,7 +87,7 @@ static const char heap_allocated_orig_type_attribute_name[] =
 static const char codelet_struct_name[] = "starpu_codelet_gcc";
 
 /* Cached function declarations.  */
-static tree unpack_fn;
+static tree unpack_fn, data_lookup_fn;
 
 
 /* Forward declarations.  */
@@ -329,14 +330,9 @@ static tree build_error_statements (location_t, tree, const char *, ...)
 static tree
 build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
 {
-  gcc_assert (TREE_CODE (error_var) == VAR_DECL
-	      && TREE_TYPE (error_var) == integer_type_node);
-
-  static tree strerror_fn;
-  LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
-
   expanded_location xloc = expand_location (loc);
 
+  tree print;
   char *str, *fmt_long;
   va_list args;
 
@@ -346,18 +342,44 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
      to be done in two steps.  */
 
   vasprintf (&str, fmt, args);
-  asprintf (&fmt_long, "%s:%d: error: %s: %%s\n",
-	    xloc.file, xloc.line, str);
 
-  tree error_code =
-    build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
-  tree print =
-    build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
-		     build_string_literal (strlen (fmt_long) + 1, fmt_long),
-		     build_call_expr (strerror_fn, 1, error_code));
+  if (error_var != NULL_TREE)
+    {
+      /* ERROR_VAR is an error code.  */
+
+      static tree strerror_fn;
+      LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
+
+      gcc_assert (TREE_CODE (error_var) == VAR_DECL
+		  && TREE_TYPE (error_var) == integer_type_node);
+
+      asprintf (&fmt_long, "%s:%d: error: %s: %%s\n",
+		xloc.file, xloc.line, str);
+
+      tree error_code =
+	build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
+      print =
+	build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
+			 build_string_literal (strlen (fmt_long) + 1,
+					       fmt_long),
+			 build_call_expr (strerror_fn, 1, error_code));
+    }
+  else
+    {
+      /* No error code provided.  */
+
+      asprintf (&fmt_long, "%s:%d: error: %s\n",
+		xloc.file, xloc.line, str);
+
+      print =
+	build_call_expr (built_in_decls[BUILT_IN_PUTS], 1,
+			 build_string_literal (strlen (fmt_long) + 1,
+					       fmt_long));
+    }
 
   free (fmt_long);
   free (str);
+  va_end (args);
 
   tree stmts = NULL;
   append_to_statement_list (print, &stmts);
@@ -969,8 +991,93 @@ handle_task_attribute (tree *node, tree name, tree args,
 
   /* Lookup & cache function declarations for later reuse.  */
   LOOKUP_STARPU_FUNCTION (unpack_fn, "starpu_codelet_unpack_args");
+  LOOKUP_STARPU_FUNCTION (data_lookup_fn, "starpu_data_lookup");
 
   return NULL_TREE;
+}
+
+/* Diagnose use of C types that are either nonexistent or different in
+   OpenCL.  */
+
+static void
+validate_opencl_argument_type (location_t loc, const_tree type)
+{
+  /* When TYPE is a pointer type, get to the base element type.  */
+  for (; POINTER_TYPE_P (type); type = TREE_TYPE (type));
+
+  if (!RECORD_OR_UNION_TYPE_P (type) && !VOID_TYPE_P (type))
+    {
+      tree decl = TYPE_NAME (type);
+
+      if (DECL_P (decl))
+	{
+	  static const struct { const char *c; const char *cl; }
+	  type_map[] =
+	    {
+	      { "char", "cl_char" },
+	      { "unsigned char", "cl_uchar" },
+	      { "short int", "cl_short" },
+	      { "unsigned short", "cl_ushort" },
+	      { "int", "cl_int" },
+	      { "unsigned int", "cl_uint" },
+	      { "long int", "cl_long" },
+	      { "long unsigned int", "cl_ulong" },
+	      { "float", "cl_float" },
+	      { "double", "cl_double" },
+	      { NULL, NULL }
+	    };
+
+	  const char *c_name = IDENTIFIER_POINTER (DECL_NAME (decl));
+	  const char *cl_name =
+	    ({
+	      size_t i;
+	      for (i = 0; type_map[i].c != NULL; i++)
+		{
+		  if (strcmp (type_map[i].c, c_name) == 0)
+		    break;
+		}
+	      type_map[i].cl;
+	    });
+
+	  if (cl_name != NULL)
+	    {
+	      tree cl_type = lookup_name (get_identifier (cl_name));
+
+	      if (cl_type != NULL_TREE)
+		{
+		  if (DECL_P (cl_type))
+		    cl_type = TREE_TYPE (cl_type);
+
+		  if (!lang_hooks.types_compatible_p ((tree) type, cl_type))
+		    {
+		      tree st, sclt;
+
+		      st = c_common_signed_type ((tree) type);
+		      sclt = c_common_signed_type (cl_type);
+
+		      if (st == sclt)
+			warning_at (loc, 0, "C type %qE differs in signedness "
+				    "from the same-named OpenCL type",
+				    DECL_NAME (decl));
+		      else
+			/* TYPE should be avoided because the it differs from
+			   CL_TYPE, and thus cannot be used safely in
+			   `clSetKernelArg'.  */
+			warning_at (loc, 0, "C type %qE differs from the "
+				    "same-named OpenCL type",
+				    DECL_NAME (decl));
+		    }
+		}
+
+	      /* Otherwise we can't conclude.  It could be that <CL/cl.h>
+		 wasn't included in the program, for instance.  */
+	    }
+	  else
+	    /* Recommend against use of `size_t', etc.  */
+	    warning_at (loc, 0, "%qE does not correspond to a known "
+			"OpenCL type", DECL_NAME (decl));
+	}
+    }
 }
 
 /* Handle the `task_implementation (WHERE, TASK)' attribute.  WHERE is a
@@ -1037,6 +1144,15 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
 	warning_at (loc, 0,
 		    "unsupported target %E; task implementation won't be used",
 		    where);
+      else if (task_implementation_target_to_int (where) == STARPU_OPENCL)
+	{
+	  void validate (tree t)
+	  {
+	    validate_opencl_argument_type (loc, t);
+	  }
+
+	  for_each (validate, TYPE_ARG_TYPES (TREE_TYPE (fn)));
+	}
 
       /* Keep the attribute.  */
       *no_add_attrs = false;
@@ -1930,7 +2046,9 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 			      TYPE_ARG_TYPES (TREE_TYPE (task))));
 
 	  /* Build its body.  */
+	  current_function_decl = task;
 	  define_task (task);
+	  current_function_decl = fn;
 
 	  /* Compile TASK's body.  */
 	  rest_of_decl_compilation (task, true, 0);
@@ -1947,23 +2065,45 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 static tree
 build_pointer_lookup (tree pointer)
 {
-#if 0
-  gimple emit_error_message (void)
-  {
-    static const char msg[] =
-      "starpu: task called with unregistered pointer, aborting\n";
-
-    return gimple_build_call (built_in_decls[BUILT_IN_PUTS], 1,
-			      build_string_literal (strlen (msg) + 1, msg));
-  }
-#endif
-
-  static tree data_lookup_fn;
+  /* Make sure DATA_LOOKUP_FN is valid.  */
   LOOKUP_STARPU_FUNCTION (data_lookup_fn, "starpu_data_lookup");
 
-  return build_call_expr (data_lookup_fn, 1, pointer);
+  location_t loc;
 
-  /* FIXME: Add `if (VAR == NULL) abort ();'.  */
+  if (DECL_P (pointer))
+    loc = DECL_SOURCE_LOCATION (pointer);
+  else
+    loc = UNKNOWN_LOCATION;
+
+  /* Introduce a local variable to hold the handle.  */
+
+  tree result_var = build_decl (loc, VAR_DECL,
+  				create_tmp_var_name (".data_lookup_result"),
+  				ptr_type_node);
+  DECL_CONTEXT (result_var) = current_function_decl;
+  DECL_ARTIFICIAL (result_var) = true;
+  DECL_SOURCE_LOCATION (result_var) = loc;
+
+  tree call = build_call_expr (data_lookup_fn, 1, pointer);
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (result_var),
+  			    result_var, call);
+
+  /* Build `if (RESULT_VAR == NULL) error ();'.  */
+
+  tree cond = build3 (COND_EXPR, void_type_node,
+		      build2 (EQ_EXPR, boolean_type_node,
+			      result_var, null_pointer_node),
+		      build_error_statements (loc, NULL_TREE,
+					      "attempt to use unregistered "
+					      "pointer"),
+		      NULL_TREE);
+
+  tree stmts = NULL;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+  append_to_statement_list (result_var, &stmts);
+
+  return build4 (TARGET_EXPR, ptr_type_node, result_var, stmts, NULL_TREE, NULL_TREE);
 }
 
 /* Build the body of TASK_DECL, which will call `starpu_insert_task'.  */

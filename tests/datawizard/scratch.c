@@ -20,6 +20,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include <stdlib.h>
 #include "../helper.h"
 
@@ -33,6 +36,9 @@ starpu_data_handle_t A_handle, B_handle;
 
 #ifdef STARPU_USE_CUDA
 extern void cuda_f(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
+#ifdef STARPU_USE_OPENCL
+extern void opencl_f(void *buffers[], void *args);
 #endif
 
 static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
@@ -56,14 +62,20 @@ static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_f =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {cpu_f, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_f, NULL},
 #endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {opencl_f, NULL},
+#endif
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_SCRATCH}
 };
+
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program opencl_program;
+#endif
 
 int main(int argc, char **argv)
 {
@@ -73,6 +85,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/scratch_opencl_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 	A = (unsigned *) calloc(VECTORSIZE, sizeof(unsigned));
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
@@ -96,6 +113,9 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 
 	/* Check result */
@@ -116,6 +136,9 @@ int main(int argc, char **argv)
 enodev:
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

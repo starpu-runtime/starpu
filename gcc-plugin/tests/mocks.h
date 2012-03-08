@@ -28,9 +28,33 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 #include <common/uthash.h>
+#include <stdint.h>
+
+
+/* Typedefs as found in <CL/cl_platform.h>.  */
+
+typedef int8_t         cl_char;
+typedef uint8_t        cl_uchar;
+typedef int16_t        cl_short;
+typedef uint16_t       cl_ushort;
+typedef int32_t        cl_int;
+typedef uint32_t       cl_uint;
+#ifdef BREAK_CL_LONG
+/* Make `cl_long' different from `long' for test purposes.  */
+typedef int16_t        cl_long;
+typedef uint16_t       cl_ulong;
+#else
+typedef int64_t        cl_long;
+typedef uint64_t       cl_ulong;
+#endif
+
+typedef uint16_t       cl_half;
+typedef float          cl_float;
+typedef double         cl_double;
 
 
 /* Stub used for testing purposes.  */

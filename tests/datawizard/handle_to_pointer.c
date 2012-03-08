@@ -18,6 +18,9 @@
 #include <assert.h>
 
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include <stdlib.h>
 #include "../helper.h"
 
@@ -53,12 +56,42 @@ static void cuda_task(void **buffers, void *args)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+static void opencl_task(void *buffers[], void *args)
+{
+	cl_command_queue queue;
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+	starpu_opencl_get_queue(devid, &queue);
+
+	cl_mem numbers = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
+	unsigned size = STARPU_VECTOR_GET_NX(buffers[0]);
+
+	unsigned i;
+	for (i = 0; i < size; i++)
+	{
+		clEnqueueWriteBuffer(queue,
+				numbers,
+				CL_TRUE,
+				i*sizeof(int),  /* offset */
+				sizeof(int),
+				&i,
+				0,              /* num_events_in_wait_list */
+				NULL,           /* event_wait_list */
+				NULL            /* event */);
+	}
+			
+}
+#endif
+
 static struct starpu_codelet cl =
 {
-	.where = STARPU_CPU | STARPU_CUDA,
 	.cpu_funcs = {cpu_task, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_task, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {opencl_task, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_W}

@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 		starpu_data_unpartition(v_handle, 0);
 
 		tasks[2] = create_task(v_handle);
-		starpu_task_submit(tasks[2]);
+		ret = starpu_task_submit(tasks[2]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 

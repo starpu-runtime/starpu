@@ -16,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU],1.0.0rc2, [starpu-devel@lists.gforge.inria.fr], starpu)
+AC_INIT([StarPU],1.0.0rc3, [starpu-devel@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -145,17 +145,7 @@ AC_ARG_ENABLE(default-drand48, [AS_HELP_STRING([--disable-default-drand48],
 				   [Do not use the default version of drand48])],
 				   enable_default_drand48=$enableval, enable_default_drand48=yes)
 if test x$have_drand48 = xyes -a x$enable_default_drand48 = xyes ; then
-  AC_DEFINE([starpu_srand48(seed)],[srand48(seed)],[srand48 equivalent function])
-  AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function])
-  AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function])
-  AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand48_r(seed, buffer)],[srand48_r equivalent function])
-  AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[erand48_r(xsubi, buffer, result)],[erand48_r equivalent function])
-else
-  AC_DEFINE([starpu_srand48(seed)],[srand(seed)],[srand48 equivalent function])
-  AC_DEFINE([starpu_drand48()],[((double)(rand()) / RAND_MAX)],[drand48 equivalent function])
-  AC_DEFINE([starpu_erand48(xsubi)],[starpu_drand48()],[erand48 equivalent function])
-  AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand((unsigned int)seed)],[srand48_r equivalent function])
-  AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[do {*(result) = ((double)(rand()) / RAND_MAX);} while (0);],[erand48_r equivalent function])
+   AC_DEFINE([STARPU_USE_DRAND48], [1], [Define to 1 if drandr48 is available and should be used])
 fi
 
 # Some systems do not define strerror_r
@@ -1562,14 +1552,6 @@ if test x$have_f77_h = xyes; then
         AC_DEFINE([STARPU_HAVE_F77_H], [1], [Define to 1 if you have the <f77.h> header file.])
 fi
 
-# Do we want to run optional tests
-AC_MSG_CHECKING(whether optional tests should be run)
-AC_ARG_ENABLE(optional_tests, [AS_HELP_STRING([--optional-tests],
-			[run optional tests])],
-			want_optional_tests=$enableval, want_optional_tests=no)
-AC_MSG_RESULT($want_optional_tests)
-AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
-
 # Check if icc is available
 AC_CHECK_PROGS([ICC], [icc])
 
@@ -1623,7 +1605,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
 ])
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/src/starpu-gcc-config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/src/starpu-gcc-config.h starpu-top/config.h)
 
 AC_OUTPUT([
 	Makefile
@@ -1642,10 +1624,8 @@ AC_OUTPUT([
 	starpufft/libstarpufft.pc
 	starpufft/starpufft-1.0.pc
 	examples/Makefile
-        examples/opt/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
-        tests/opt/Makefile
 	doc/Makefile
 	mpi/Makefile
 	starpu-top/StarPU-Top.pro

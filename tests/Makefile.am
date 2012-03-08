@@ -24,9 +24,12 @@ EXTRA_DIST =					\
 	helper.h				\
 	datawizard/scal.h			\
 	microbenchs/null_kernel_gordon.c	\
+	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
+	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
 	coverage/coverage.sh			\
+	datawizard/acquire_release_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl \
@@ -37,7 +40,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl \
 	datawizard/interfaces/multiformat/advanced/generic.h \
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
-	datawizard/interfaces/block/block_opencl_kernel.cl
+	datawizard/interfaces/block/block_opencl_kernel.cl \
+	perfmodels/opencl_memset_kernel.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
@@ -186,6 +190,8 @@ noinst_PROGRAMS =				\
 	datawizard/in_place_partition   	\
 	datawizard/partition_lazy		\
 	datawizard/gpu_register   		\
+	datawizard/wt_host			\
+	datawizard/wt_broadcast			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -223,12 +229,22 @@ if STARPU_USE_CUDA
 datawizard_acquire_release_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
 endif
+if STARPU_USE_OPENCL
+datawizard_acquire_release_SOURCES +=		\
+	datawizard/acquire_release_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/acquire_release_opencl_kernel.cl
+endif
 
 datawizard_acquire_release2_SOURCES =		\
 	datawizard/acquire_release2.c
 if STARPU_USE_CUDA
 datawizard_acquire_release2_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_acquire_release2_SOURCES +=		\
+	datawizard/acquire_release_opencl.c
 endif
 
 datawizard_scratch_SOURCES =			\
@@ -237,6 +253,12 @@ if STARPU_USE_CUDA
 datawizard_scratch_SOURCES +=		\
 	datawizard/scratch_cuda.cu
 endif
+if STARPU_USE_OPENCL
+datawizard_scratch_SOURCES += \
+	datawizard/scratch_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/scratch_opencl_kernel.cl
+endif
 
 datawizard_mpi_like_SOURCES =		\
 	datawizard/mpi_like.c
@@ -244,12 +266,24 @@ if STARPU_USE_CUDA
 datawizard_mpi_like_SOURCES +=			\
 	datawizard/cuda_codelet_unsigned_inc.cu
 endif
+if STARPU_USE_OPENCL
+datawizard_mpi_like_SOURCES +=			\
+	datawizard/opencl_codelet_unsigned_inc.c
+nobase_STARPU_OPENCL_DATA_DATA+= \
+	datawizard/opencl_codelet_unsigned_inc_kernel.cl
+endif
 
 datawizard_mpi_like_async_SOURCES =		\
 	datawizard/mpi_like_async.c
 if STARPU_USE_CUDA
 datawizard_mpi_like_async_SOURCES +=		\
 	datawizard/cuda_codelet_unsigned_inc.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_mpi_like_async_SOURCES +=			\
+	datawizard/opencl_codelet_unsigned_inc.c
+nobase_STARPU_OPENCL_DATA_DATA+= \
+	datawizard/opencl_codelet_unsigned_inc_kernel.cl
 endif
 
 datawizard_sync_and_notify_data_SOURCES =	\
@@ -311,6 +345,11 @@ if STARPU_USE_OPENCL
 datawizard_gpu_register_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
+
+datawizard_wt_host_SOURCES =			\
+	datawizard/wt_host.c
+datawizard_wt_broadcast_SOURCES =		\
+	datawizard/wt_broadcast.c
 
 if STARPU_USE_GORDON
 datawizard_sync_and_notify_data_SOURCES +=	\
@@ -482,6 +521,27 @@ endif
 datawizard_interfaces_void_void_interface_SOURCES=\
 	datawizard/interfaces/test_interfaces.c        \
 	datawizard/interfaces/void/void_interface.c
+
+
+perfmodels_regression_based_SOURCES=\
+	perfmodels/regression_based.c
+
+if STARPU_USE_OPENCL
+perfmodels_regression_based_SOURCES+=\
+	perfmodels/opencl_memset.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	perfmodels/opencl_memset_kernel.cl
+endif
+
+perfmodels_non_linear_regression_based_SOURCES=\
+	perfmodels/non_linear_regression_based.c
+
+if STARPU_USE_OPENCL
+perfmodels_non_linear_regression_based_SOURCES+=\
+	perfmodels/opencl_memset.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	perfmodels/opencl_memset_kernel.cl
+endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

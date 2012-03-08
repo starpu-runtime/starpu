@@ -42,9 +42,9 @@ static void check_task_callback(void *arg)
 
 static struct starpu_codelet dummy_cl =
 {
-	.where = STARPU_CUDA|STARPU_CPU,
 	.cuda_funcs = {check_task_func, NULL},
 	.cpu_funcs = {check_task_func, NULL},
+	.opencl_funcs = {check_task_func, NULL},
 	.model = NULL,
 	.nbuffers = 0
 };

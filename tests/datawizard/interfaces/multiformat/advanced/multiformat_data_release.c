@@ -67,7 +67,8 @@ create_and_submit(int where)
 	/* We need to be sure the data has been copied to the GPU at the end 
 	 * of this function */
 	task->synchronous = 1;
-	starpu_task_submit(task);
+	if (starpu_task_submit(task) == -ENODEV)
+		exit(STARPU_TEST_SKIPPED);
 }
 #endif
 

@@ -1104,7 +1104,8 @@ void starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 	{
 		distrib_time = fopen(options->distrib_time_path, "w+");
 	}
-	else {
+	else
+	{
 		distrib_time = NULL;
 	}
 }

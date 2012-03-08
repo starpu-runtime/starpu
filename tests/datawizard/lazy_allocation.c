@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2012       inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +20,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include <starpu_cuda.h>
 #include <stdlib.h>
 #include "../helper.h"
@@ -44,6 +48,35 @@ static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_a
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+static void opencl_memset_codelet(void *buffers[], void *args)
+{
+	(void) args;
+
+	cl_command_queue queue;
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+	starpu_opencl_get_queue(devid, &queue);
+
+	cl_mem buffer = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
+	unsigned length = STARPU_VECTOR_GET_NX(buffers[0]);
+	char *v = malloc(length);
+	STARPU_ASSERT(v != NULL);
+	memset(v, 42, length);
+
+	clEnqueueWriteBuffer(queue,
+			buffer,
+			CL_TRUE,
+			0,      /* offset */
+			length, /* sizeof (char) */
+			v,
+			0,      /* num_events_in_wait_list */
+			NULL,   /* event_wait_list */
+			NULL    /* event */);
+			
+}
+#endif
+
 static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -51,15 +84,17 @@ static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_ar
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
-	memset(buf, 42, length);
+	memset(buf, 42, length * sizeof(*buf));
 }
 
 static struct starpu_codelet memset_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {cpu_memset_codelet, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_memset_codelet, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {opencl_memset_codelet, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -108,13 +143,50 @@ static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) v
 	}
 }
 #endif
+#ifdef STARPU_USE_OPENCL
+static void opencl_check_content_codelet(void *buffers[], void *args)
+{
+	STARPU_SKIP_IF_VALGRIND;
+
+	cl_command_queue queue;
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+	starpu_opencl_get_queue(devid, &queue);
+
+	cl_mem buf = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
+	unsigned length = STARPU_VECTOR_GET_NX(buffers[0]);
+
+	unsigned i;
+	for (i = 0; i < length; i++)
+	{
+		char dst;
+		clEnqueueReadBuffer(
+			queue,
+			buf,
+			CL_TRUE,
+			i * sizeof(dst),
+			sizeof(dst),
+			&dst,
+			0,      /* num_events_in_wait_list */
+			NULL,   /* event_wait_list */
+			NULL    /* event */);
+		if (dst != 42)
+		{
+			FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i, dst, 42);
+			exit(-1);
+		}
+	}
+}
+#endif
 
 static struct starpu_codelet check_content_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {cpu_check_content_codelet, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_check_content_codelet, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {opencl_check_content_codelet, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_R}

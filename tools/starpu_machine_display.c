@@ -112,7 +112,9 @@ int main(int argc, char **argv)
 {
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	/* Even if starpu_init returns -ENODEV, we should go on : we will just
+	 * print that we found no device. */
+	(void) starpu_init(NULL);
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
 	unsigned ncuda = starpu_cuda_worker_get_count();

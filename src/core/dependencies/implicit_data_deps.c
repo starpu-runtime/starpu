@@ -494,7 +494,8 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 		/* TODO detect if this is superflous */
 		int ret = _starpu_task_submit_internally(sync_task);
 		STARPU_ASSERT(!ret);
-		starpu_task_wait(sync_task);
+		ret = starpu_task_wait(sync_task);
+		STARPU_ASSERT(ret == 0);
 	}
 	else
 	{

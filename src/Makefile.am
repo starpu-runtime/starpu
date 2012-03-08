@@ -152,18 +152,18 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/sched_ctx.c					\
 	core/priorities.c					\
 	core/parallel_task.c					\
+	sched_policies/eager_central_policy.c			\
+	sched_policies/eager_central_priority_policy.c		\
+	sched_policies/work_stealing_policy.c			\
+	sched_policies/deque_modeling_policy_data_aware.c	\
 	sched_policies/heft.c					\
+	sched_policies/random_policy.c				\
 	sched_policies/stack_queues.c				\
 	sched_policies/deque_queues.c				\
 	sched_policies/fifo_queues.c				\
-	sched_policies/eager_central_policy.c			\
-	sched_policies/deque_modeling_policy_data_aware.c	\
-	sched_policies/eager_central_priority_policy.c		\
-	sched_policies/random_policy.c				\
-	sched_policies/work_stealing_policy.c			\
-	sched_policies/parallel_greedy.c			\
-	sched_policies/parallel_heft.c				\
 	sched_policies/detect_combined_workers.c		\
+	sched_policies/parallel_heft.c				\
+	sched_policies/parallel_greedy.c			\
 	drivers/driver_common/driver_common.c			\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\

@@ -5,7 +5,7 @@ QT += network
 QT += opengl
 QT += sql
 
-TARGET = StarPU-Top
+TARGET = starpu_top
 TEMPLATE = app
 SOURCES += $$SRCDIR/main.cpp \
 #STARPU-TOP
