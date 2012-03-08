@@ -31,7 +31,7 @@ nobase_STARPU_OPENCL_DATA_DATA =
 endif
 
 EXTRA_DIST = 					\
-	axpy/axpy_opencl_kernel.cl \
+	axpy/axpy_opencl_kernel.cl		\
 	basic_examples/vector_scal_opencl_kernel.cl \
 	basic_examples/multiformat_opencl_kernel.cl  \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
@@ -335,17 +335,17 @@ basic_examples_multiformat_SOURCES =                                    \
 	basic_examples/multiformat_conversion_codelets.c
 
 if STARPU_USE_CUDA
-basic_examples_multiformat_SOURCES+=                                     \
+basic_examples_multiformat_SOURCES +=                                    \
 	basic_examples/multiformat_cuda.cu                               \
 	basic_examples/multiformat_conversion_codelets_cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-basic_examples_multiformat_SOURCES+=                                     \
+basic_examples_multiformat_SOURCES +=                                    \
 	basic_examples/multiformat_opencl.c                              \
-	basic_examples/multiformat_conversion_codelets_opencl.c          
+	basic_examples/multiformat_conversion_codelets_opencl.c
 
-nobase_STARPU_OPENCL_DATA_DATA+=                                         \
+nobase_STARPU_OPENCL_DATA_DATA +=                                        \
 	basic_examples/multiformat_opencl_kernel.cl                      \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl
 endif
@@ -419,13 +419,13 @@ filters_custom_mf_custom_mf_filter_SOURCES=\
 	filters/custom_mf/custom_conversion_codelets.c
 
 if STARPU_USE_CUDA
-filters_custom_mf_custom_mf_filter_SOURCES+=\
+filters_custom_mf_custom_mf_filter_SOURCES += \
 	filters/custom_mf/conversion.cu \
 	filters/custom_mf/cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-filters_custom_mf_custom_mf_filter_SOURCES+=\
+filters_custom_mf_custom_mf_filter_SOURCES += \
 	filters/custom_mf/conversion_opencl.c \
 	filters/custom_mf/custom_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
@@ -442,9 +442,9 @@ axpy_axpy_SOURCES =				\
 	axpy/axpy.c				\
 	common/blas.c
 if STARPU_USE_OPENCL
-axpy_axpy_SOURCES+=\
+axpy_axpy_SOURCES += \
 	axpy/axpy_opencl.c
-nobase_STARPU_OPENCL_DATA_DATA+=
+nobase_STARPU_OPENCL_DATA_DATA +=
 	axpy/axpy_opencl_kernel.cl
 endif
 
