@@ -129,6 +129,11 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_SLOW_MACHINE
+	ni /= 4;
+	nk /= 16;
+#endif
+
 #ifdef STARPU_USE_GORDON
 	/* load an empty kernel and get its identifier */
 	unsigned gordon_null_kernel = load_gordon_null_kernel();
