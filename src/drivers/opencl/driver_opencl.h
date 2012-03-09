@@ -39,6 +39,8 @@ int _starpu_opencl_deinit_context(int devid);
 extern
 unsigned _starpu_opencl_get_device_count(void);
 
+extern
+cl_device_type _starpu_opencl_get_device_type(int devid);
 
 #if 0
 extern
