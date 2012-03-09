@@ -88,6 +88,8 @@ starpu_top.1: starpu-top/starpu_top$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ starpu-top/starpu_top$(EXEEXT)
 dist_man1_MANS =\
 	starpu_top.1
+clean-local:
+	$(RM) starpu_top.1
 endif
 endif
 
