@@ -696,8 +696,6 @@ endif
 if STARPU_USE_OPENCL
 cpp_incrementer_cpp_SOURCES += \
 	incrementer/incrementer_kernels_opencl.c
-nobase_STARPU_OPENCL_DATA_DATA+=
-	incrementer/incrementer_kernels_opencl_kernel.cl
 endif
 
 #######################
