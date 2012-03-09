@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <assert.h>
+#include <math.h>
 
 #include <reductions/dot_product.h>
 
@@ -420,7 +421,10 @@ int main(int argc, char **argv)
 	free(x_handles);
 	free(y_handles);
 
-	return 0;
+	if (fabs(reference_dot - dot) < 1e-4)
+		return EXIT_SUCCESS;
+	else
+		return EXIT_FAILURE;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
