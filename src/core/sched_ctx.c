@@ -650,7 +650,7 @@ void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
-		   && sched_ctx->perf_counters != NULL)
+	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_poped_task(sched_ctx_id, workerid, flops);
 }
 
@@ -658,10 +658,9 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-	if(sched_ctx != NULL && sched_ctx_id != 0)
-		if(sched_ctx->perf_counters != NULL)
-			sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
-
+	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
+	   && sched_ctx->perf_counters != NULL)
+		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
 }
 
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR

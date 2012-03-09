@@ -15,7 +15,7 @@
 
 SUBDIRS = src examples
 
-libsched_ctx_hypervisor_la_includedir=$(includedir)
+versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 
-include_HEADERS = include/sched_ctx_hypervisor.h
+versinclude_HEADERS = include/sched_ctx_hypervisor.h
 

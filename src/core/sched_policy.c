@@ -246,12 +246,13 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		if (sched_ctx != NULL && sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
 		{
 			sched_ctx->sched_policy->push_task_notify(task, workerid);
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-			starpu_call_pushed_task_cb(workerid, sched_ctx->id);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 		}
 
 	}
+
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	starpu_call_pushed_task_cb(workerid, task->sched_ctx);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 	
 	if (is_basic_worker)
 	{
@@ -312,21 +313,21 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
 {
-  int worker = -1, nworkers = 0;
-  struct worker_collection *workers = sched_ctx->workers;
-  if(workers->init_cursor)
-    workers->init_cursor(workers);
-  
-  while(workers->has_next(workers))
-    {
-      worker = workers->get_next(workers);
-      if (starpu_worker_can_execute_task(worker, task, 0))
-		  nworkers++;
-    }
-  
-  if(workers->init_cursor)
-    workers->deinit_cursor(workers);
-  return nworkers;
+	int worker = -1, nworkers = 0;
+	struct worker_collection *workers = sched_ctx->workers;
+	if(workers->init_cursor)
+		workers->init_cursor(workers);
+	
+	while(workers->has_next(workers))
+	{
+		worker = workers->get_next(workers);
+		if (starpu_worker_can_execute_task(worker, task, 0))
+			nworkers++;
+	}
+	
+	if(workers->init_cursor)
+		workers->deinit_cursor(workers);
+	return nworkers;
 }
 
 /* the generic interface that call the proper underlying implementation */
