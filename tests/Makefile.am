@@ -537,8 +537,6 @@ perfmodels_non_linear_regression_based_SOURCES=\
 if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
-nobase_STARPU_OPENCL_DATA_DATA += \
-	perfmodels/opencl_memset_kernel.cl
 endif
 
 showcheck:
