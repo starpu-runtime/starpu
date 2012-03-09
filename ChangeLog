@@ -18,6 +18,9 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Update OpenCL driver to enable CPU devices (the environment variable
+	STARPU_OPENCL_ON_CPUS must be set to a positive value when
+	executing an application)
   * struct starpu_data_interface_ops --- operations on a data
         interface --- define a new function pointer allocate_new_data
         which creates a new data interface of the given type based on
