@@ -51,7 +51,7 @@ static double worker_exp_end[STARPU_NMAXWORKERS];
 static double worker_exp_len[STARPU_NMAXWORKERS];
 static int ntasks[STARPU_NMAXWORKERS];
 
-static void parallel_heft_post_exec_hook(struct starpu_task *task)
+static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 {
 	if (!task->cl || task->execute_on_a_specific_worker)
 		return;
@@ -67,7 +67,7 @@ static void parallel_heft_post_exec_hook(struct starpu_task *task)
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 	worker_exp_len[workerid] -= model + transfer_model;
-	worker_exp_start[workerid] = starpu_timing_now();
+	worker_exp_start[workerid] = starpu_timing_now() + model;
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
@@ -95,12 +95,14 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
+
 		_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[best_workerid]);
+
+		worker_exp_start[best_workerid] = STARPU_MAX(worker_exp_start[best_workerid], starpu_timing_now());
 		worker_exp_len[best_workerid] += task->predicted;
 		worker_exp_end[best_workerid] = exp_end_predicted;
-		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
-
 		ntasks[best_workerid]++;
+
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
 
 		ret = starpu_push_local_task(best_workerid, task, prio);
@@ -133,15 +135,17 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			alias->predicted_transfer = 0;
 
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[local_worker]);
+
+			worker_exp_start[local_worker] = STARPU_MAX(worker_exp_start[local_worker], starpu_timing_now());
 			worker_exp_len[local_worker] += alias->predicted;
 			worker_exp_end[local_worker] = exp_end_predicted;
-			worker_exp_start[local_worker] = exp_end_predicted - worker_exp_len[local_worker];
-
 			ntasks[local_worker]++;
+
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[local_worker]);
 
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
+		//TODO : free task
 
 	}
 
@@ -461,8 +465,8 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.deinit_sched = NULL,
 	.push_task = parallel_heft_push_task,
 	.pop_task = NULL,
-	.pre_exec_hook = NULL,
-	.post_exec_hook = parallel_heft_post_exec_hook,
+	.pre_exec_hook = parallel_heft_pre_exec_hook,
+	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "pheft",
 	.policy_description = "parallel HEFT"
