@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,22 +20,22 @@
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
-#warning todo: fix cuda and opencl
-//#ifdef STARPU_USE_CUDA
-//extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
-//#endif
+#ifdef STARPU_USE_CUDA
+extern "C" void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
 
-//#ifdef STARPU_USE_OPENCL
-//#include <starpu_opencl.h>
-//extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
-//struct starpu_opencl_program opencl_program;
-//#endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+extern "C" void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
+struct starpu_opencl_program opencl_program;
+#endif
 
 void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	val[0] += 1.0f; val[1] += 1.0f;
+	val[0] += 1.0f;
+	val[1] += 1.0f;
 }
 
 int main(int argc, char **argv)
@@ -52,20 +53,19 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&float_array_handle, 0, (uintptr_t)&float_array, 4, sizeof(float));
 
-//#ifdef STARPU_USE_OPENCL
-//        ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
-//	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-//#endif
+#ifdef STARPU_USE_OPENCL
+        ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 
         starpu_codelet_init(&cl);
-        cl.where = STARPU_CPU;//|STARPU_CUDA;//|STARPU_OPENCL,
         cl.cpu_funcs[0] = cpu_codelet;
-//#ifdef STARPU_USE_CUDA
-//        cl.cuda_funcs[0] = cuda_codelet;
-//#endif
-//#ifdef STARPU_USE_OPENCL
-//	cl.opencl_funcs[0] = opencl_codelet;
-//#endif
+#ifdef STARPU_USE_CUDA
+        cl.cuda_funcs[0] = cuda_codelet;
+#endif
+#ifdef STARPU_USE_OPENCL
+	cl.opencl_funcs[0] = opencl_codelet;
+#endif
         cl.nbuffers = 1;
         cl.modes[0] = STARPU_RW;
 

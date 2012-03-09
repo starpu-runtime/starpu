@@ -689,10 +689,16 @@ endif
 cpp_incrementer_cpp_SOURCES	=	\
 	cpp/incrementer_cpp.cpp
 
-#if STARPU_USE_CUDA
-#cpp_incrementer_cpp_SOURCES +=	\
-#	incrementer/incrementer_kernels.cu
-#endif
+if STARPU_USE_CUDA
+cpp_incrementer_cpp_SOURCES +=	\
+	incrementer/incrementer_kernels.cu
+endif
+if STARPU_USE_OPENCL
+cpp_incrementer_cpp_SOURCES += \
+	incrementer/incrementer_kernels_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA+=
+	incrementer/incrementer_kernels_opencl_kernel.cl
+endif
 
 #######################
 # Incrementer example #
