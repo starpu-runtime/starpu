@@ -54,7 +54,8 @@ EXTRA_DIST = 					\
 	filters/fblock_opencl_kernel.cl		\
 	filters/custom_mf/conversion_opencl.cl  \
 	filters/custom_mf/custom_opencl.cl \
-	interface/complex_kernels.cl
+	interface/complex_kernels.cl \
+	reductions/dot_product_opencl_kernels.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
@@ -137,7 +138,8 @@ noinst_HEADERS = 				\
 	pi/SobolQRNG/sobol.h			\
 	pi/SobolQRNG/sobol_gold.h		\
 	pi/SobolQRNG/sobol_gpu.h		\
-	pi/SobolQRNG/sobol_primitives.h
+	pi/SobolQRNG/sobol_primitives.h         \
+	reductions/dot_product.h
 
 #####################################
 # What to install and what to check #
@@ -752,6 +754,10 @@ reductions_dot_product_SOURCES =		\
 if STARPU_USE_CUDA
 reductions_dot_product_SOURCES +=		\
 	reductions/dot_product_kernels.cu
+endif
+if STARPU_USE_OPENCL
+nobase_STARPU_OPENCL_DATA_DATA += \
+	reductions/dot_product_opencl_kernels.cl
 endif
 
 ##################

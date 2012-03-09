@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,10 +18,16 @@
 #include <starpu.h>
 #include <assert.h>
 
+#include <reductions/dot_product.h>
+
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
 #include <starpu_cuda.h>
+#endif
+
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
 #endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -29,19 +36,22 @@ static float *x;
 static float *y;
 static starpu_data_handle_t *x_handles;
 static starpu_data_handle_t *y_handles;
+#ifdef STARPU_USE_OPENCL
+static struct starpu_opencl_program opencl_program;
+#endif
 
 static unsigned nblocks = 4096;
 static unsigned entries_per_block = 1024;
-
-#define DOT_TYPE double
 
 static DOT_TYPE dot = 0.0f;
 static starpu_data_handle_t dot_handle;
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+	enum starpu_archtype type = starpu_worker_get_type(workerid);
+	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER)
 		return 1;
+
 #ifdef STARPU_USE_CUDA
 	/* Cuda device */
 	const struct cudaDeviceProp *props;
@@ -73,13 +83,40 @@ void init_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+void init_opencl_func(void *buffers[], void *args)
+{
+        cl_int err;
+	cl_command_queue queue;
+
+	cl_mem dot = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[0]);
+	starpu_opencl_get_current_queue(&queue);
+	DOT_TYPE zero = (DOT_TYPE) 0.0;
+
+	err = clEnqueueWriteBuffer(queue,
+			dot,
+			CL_TRUE,
+			0,
+			sizeof(DOT_TYPE),
+			&zero,
+			0,
+			NULL,
+			NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+}
+#endif
+
 static struct starpu_codelet init_codelet =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.can_execute = can_execute,
 	.cpu_funcs = {init_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {init_cuda_func, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {init_opencl_func, NULL},
 #endif
 	.nbuffers = 1
 };
@@ -100,13 +137,66 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 extern void redux_cuda_func(void *descr[], void *_args);
 #endif
 
+#ifdef STARPU_USE_OPENCL
+void redux_opencl_func(void *buffers[], void *args)
+{
+	int id, devid;
+        cl_int err;
+	cl_kernel kernel;
+	cl_command_queue queue;
+	cl_event event;
+
+	cl_mem dota = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[0]);
+	cl_mem dotb = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[1]);
+
+	id = starpu_worker_get_id();
+	devid = starpu_worker_get_devid(id);
+
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_redux_opencl", devid);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = clSetKernelArg(kernel, 0, sizeof(dota), &dota);
+	err|= clSetKernelArg(kernel, 1, sizeof(dotb), &dotb);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	{
+		size_t global=1;
+		size_t local;
+                size_t s;
+                cl_device_id device;
+
+                starpu_opencl_get_device(devid, &device);
+
+                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+                if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
+                if (local > global)
+			local=global;
+
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
+	}
+
+	clFinish(queue);
+	starpu_opencl_collect_stats(event);
+	clReleaseEvent(event);
+
+	starpu_opencl_release_kernel(kernel);
+}
+#endif
+
 static struct starpu_codelet redux_codelet =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.can_execute = can_execute,
 	.cpu_funcs = {redux_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {redux_cuda_func, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {redux_opencl_func, NULL},
 #endif
 	.nbuffers = 2
 };
@@ -163,13 +253,70 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+void dot_opencl_func(void *buffers[], void *args)
+{
+	int id, devid;
+        cl_int err;
+	cl_kernel kernel;
+	cl_command_queue queue;
+	cl_event event;
+
+	cl_mem x = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
+	cl_mem y = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[1]);
+	cl_mem dot = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[2]);
+	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+
+	id = starpu_worker_get_id();
+	devid = starpu_worker_get_devid(id);
+
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_dot_opencl", devid);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = clSetKernelArg(kernel, 0, sizeof(x), &x);
+	err|= clSetKernelArg(kernel, 1, sizeof(y), &y);
+	err|= clSetKernelArg(kernel, 2, sizeof(dot), &dot);
+	err|= clSetKernelArg(kernel, 3, sizeof(n), &n);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	{
+		size_t global=1;
+		size_t local;
+                size_t s;
+                cl_device_id device;
+
+                starpu_opencl_get_device(devid, &device);
+
+                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+                if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
+                if (local > global)
+			local=global;
+
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
+	}
+
+	clFinish(queue);
+	starpu_opencl_collect_stats(event);
+	clReleaseEvent(event);
+
+	starpu_opencl_release_kernel(kernel);
+}
+#endif
+
 static struct starpu_codelet dot_codelet =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.can_execute = can_execute,
 	.cpu_funcs = {dot_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dot_cuda_func, NULL},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {dot_opencl_func, NULL},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_REDUX}
@@ -187,6 +334,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("examples/reductions/dot_product_opencl_kernels.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 
 	starpu_helper_cublas_init();
 
@@ -257,6 +410,9 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_shutdown();
 
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_unload_opencl(&opencl_program);
+#endif
 	starpu_shutdown();
 
 	free(x);
