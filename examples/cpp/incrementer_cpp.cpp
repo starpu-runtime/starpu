@@ -95,6 +95,10 @@ int main(int argc, char **argv)
 		ret = 1;
 	}
 
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+#endif
 	starpu_shutdown();
 
 	return ret;
