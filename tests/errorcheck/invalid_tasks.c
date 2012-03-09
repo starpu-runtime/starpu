@@ -33,7 +33,6 @@ static void dummy_func(void *descr[], void *arg)
 
 static struct starpu_codelet gpu_only_cl =
 {
-	.where = STARPU_CUDA,
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
 	.model = NULL,
