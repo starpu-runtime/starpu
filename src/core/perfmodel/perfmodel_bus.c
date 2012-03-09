@@ -541,6 +541,12 @@ static void benchmark_all_gpu_devices(void)
         nopencl = _starpu_opencl_get_device_count();
 	for (i = 0; i < nopencl; i++)
 	{
+		if (_starpu_opencl_get_device_type(i) == CL_DEVICE_TYPE_CPU)
+		{
+			_STARPU_DEBUG("Skipping OpenCL #%d : it is a CPU.\n", i);
+			continue;
+		}
+
 		fprintf(stderr," OpenCL %d...", i);
 		/* measure bandwith between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_timing_dtoh, opencldev_timing_per_cpu, 'O');
