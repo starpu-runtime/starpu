@@ -200,17 +200,26 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 
                 // Build the program executable
                 err = clBuildProgram(program, 1, &device, build_options, NULL, NULL);
-                if (err != CL_SUCCESS)
+
+		// Get the status
 		{
-                        size_t len;
-                        static char buffer[4096];
+		     cl_build_status status;
+		     size_t len;
+		     static char buffer[4096] = "";
 
-                        _STARPU_DISP("Error: Failed to build program executable!\n");
-                        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+		     if (len > 2)
+			  _STARPU_DISP("Compilation output\n%s\n", buffer);
 
-                        _STARPU_DISP("<%s>\n", buffer);
-                        return EXIT_FAILURE;
-                }
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
+		     if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
+		     {
+			  _STARPU_DISP("Error: Failed to build program executable!\n");
+			  _STARPU_DISP("clBuildProgram: %d - clGetProgramBuildInfo: %d\n", err, status);
+			  return EXIT_FAILURE;
+		     }
+
+		}
 
                 // Store program
                 opencl_programs->programs[dev] = program;
