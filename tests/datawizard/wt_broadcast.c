@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	STARPU_RETURRN(ret);
+	STARPU_RETURN(ret);
 
 enodev:
 	starpu_data_unregister(handle);
