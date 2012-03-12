@@ -303,11 +303,8 @@ void _starpu_delete_all_sched_ctxs()
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(i);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
-			if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx->id))
-			{
-				_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
-				_starpu_delete_sched_ctx(sched_ctx);
-			}
+			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
+			_starpu_delete_sched_ctx(sched_ctx);
 		}
 	}
 	return;

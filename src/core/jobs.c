@@ -250,6 +250,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 		int ret = _starpu_submit_job(j);
 		STARPU_ASSERT(!ret);
 	}
+
 	_starpu_decrement_nsubmitted_tasks();
 	_starpu_decrement_nready_tasks();
 

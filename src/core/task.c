@@ -219,7 +219,6 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
-
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	/* Need to atomically set submitted to 1 and check dependencies, since
@@ -466,6 +465,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	j->submitted = 1;
@@ -507,6 +507,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
