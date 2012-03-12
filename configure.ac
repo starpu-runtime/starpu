@@ -140,12 +140,16 @@ AC_CHECK_FUNCS([memalign], [AC_DEFINE([STARPU_HAVE_MEMALIGN], [1], [Define to 1 
 
 # Some systems don't have drand48
 AC_CHECK_FUNC([drand48], have_drand48=yes, have_drand48=no)
+AC_CHECK_FUNC([erand48_r], have_erand48_r=yes, have_erand48_r=no)
 # Maybe the user still does not want to use the provided drand48
 AC_ARG_ENABLE(default-drand48, [AS_HELP_STRING([--disable-default-drand48],
 				   [Do not use the default version of drand48])],
 				   enable_default_drand48=$enableval, enable_default_drand48=yes)
 if test x$have_drand48 = xyes -a x$enable_default_drand48 = xyes ; then
    AC_DEFINE([STARPU_USE_DRAND48], [1], [Define to 1 if drandr48 is available and should be used])
+fi
+if test x$have_erand48_r = xyes ; then
+   AC_DEFINE([STARPU_USE_ERAND48_R], [1], [Define to 1 if erandr48_r is available])
 fi
 
 # Some systems do not define strerror_r

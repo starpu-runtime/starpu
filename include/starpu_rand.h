@@ -21,12 +21,18 @@
 #include <starpu_config.h>
 
 #ifdef STARPU_USE_DRAND48
-typedef struct drand48_data starpu_drand48_data;
 #  define starpu_srand48(seed)				srand48(seed)
 #  define starpu_drand48()				drand48()
 #  define starpu_erand48(xsubi)				erand48(xsubi)
-#  define starpu_srand48_r(seed, buffer)		srand48_r(seed, buffer)
-#  define starpu_erand48_r(xsubi, buffer, result)	erand48_r(xsubi, buffer, result)
+#  ifdef STARPU_USE_ERAND48_R
+typedef struct drand48_data starpu_drand48_data;
+#    define starpu_srand48_r(seed, buffer)		srand48_r(seed, buffer)
+#    define starpu_erand48_r(xsubi, buffer, result)	erand48_r(xsubi, buffer, result)
+#else
+typedef int starpu_drand48_data;
+#    define starpu_srand48_r(seed, buffer)		srand48(seed)
+#    define starpu_erand48_r(xsubi, buffer, result)	do {*(result) = erand48(xsubi); } while (0)
+#  endif
 #else
 typedef int starpu_drand48_data;
 #  define starpu_srand48(seed)				srand(seed)
