@@ -421,7 +421,7 @@ int main(int argc, char **argv)
 	free(x_handles);
 	free(y_handles);
 
-	if (fabs(reference_dot - dot) < 1e-4)
+	if (fabs(reference_dot - dot) < reference_dot * 1e-6)
 		return EXIT_SUCCESS;
 	else
 		return EXIT_FAILURE;
