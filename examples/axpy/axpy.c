@@ -101,7 +101,7 @@ check(void)
 	for (i = 0; i < N; i++)
 	{
 		TYPE expected_value = alpha * vec_x[i] + 4.0;
-		if (fabs(vec_y[i] - expected_value) > EPSILON) {
+		if (fabs(vec_y[i] - expected_value) > expected_value * EPSILON) {
 			FPRINTF(stderr,"at %d, %f*%f+%f=%f, expected %f\n", i, alpha, vec_x[i], 4.0, vec_y[i], expected_value);
 			return EXIT_FAILURE;
 		}

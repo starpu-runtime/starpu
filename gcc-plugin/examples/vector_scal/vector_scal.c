@@ -148,9 +148,13 @@ check (size_t size, float vector[size], float factor)
   size_t i;
 
   for (i = 0; i < size; i++)
-    if (fabs(vector[i] - i * factor) > EPSILON)
-      return false;
-
+    {
+      if (fabs(vector[i] - i * factor) > i*factor*EPSILON)
+        {
+          fprintf(stderr, "%.2f != %.2f\n", vector[i], i*factor);
+          return false;
+        }
+    }
   return true;
 }
 
