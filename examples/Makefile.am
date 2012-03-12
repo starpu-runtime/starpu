@@ -188,12 +188,12 @@ examplebin_PROGRAMS +=				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
+	scheduler/dummy_sched			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	mandelbrot/mandelbrot			\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
-#	scheduler/dummy_sched			
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
 	basic_examples/vector_scal_fortran

@@ -27,22 +27,33 @@ typedef struct dummy_sched_data {
 	pthread_cond_t sched_cond;
 } dummy_sched_data;
 
-static void init_dummy_sched_for_workers(unsigned sched_ctx_id, int *workerids, unsigned nnew_workers)
+static void dummy_sched_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	
 	unsigned i;
 	int workerid;
-	for(i = 0; i < nnew_workers; i++)
+	for(i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
 		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->sched_mutex,  &data->sched_cond);
 	}
 }
 
+static void dummy_sched_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+{
+	unsigned i;
+	int workerid;
+	for(i = 0; i < nworkers; i++)
+	{
+		workerid = workerids[i];
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL,  NULL);
+	}
+}
+
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
-	unsigned nworkers_ctx = starpu_get_nworkers_of_ctx(sched_ctx_id);
+	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
 
 	struct dummy_sched_data *data = (struct dummy_sched_data*)malloc(sizeof(struct dummy_sched_data));
 	
@@ -53,17 +64,7 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 	pthread_mutex_init(&data->sched_mutex, NULL);
 	pthread_cond_init(&data->sched_cond, NULL);
 
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)data);
-
-	int *workerids = starpu_get_workers_of_ctx(sched_ctx_id);
-	int workerid;
-	unsigned workerid_ctx;
-	for (workerid_ctx = 0; workerid_ctx < nworkers_ctx; workerid_ctx++)
-	{
-		workerid = workerids[workerid_ctx];
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->sched_mutex,  &data->sched_cond);
-	}
-		
+	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)data);		
 
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
@@ -74,26 +75,19 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(starpu_task_list_empty(&data->sched_list));
 
-	unsigned nworkers_ctx = starpu_get_nworkers_of_ctx(sched_ctx_id);
-	int *workerids = starpu_get_workers_of_ctx(sched_ctx_id);
-	int workerid;
-	unsigned workerid_ctx;
-	for (workerid_ctx = 0; workerid_ctx < nworkers_ctx; workerid_ctx++)
-	{
-		workerid = workerids[workerid_ctx];
-
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
-	}
-
 	pthread_cond_destroy(&data->sched_cond);
 	pthread_mutex_destroy(&data->sched_mutex);
+
+	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+
 	free(data);
 	
 	FPRINTF(stderr, "Destroying Dummy scheduler\n");
 }
 
-static int push_task_dummy(struct starpu_task *task, unsigned sched_ctx_id)
+static int push_task_dummy(struct starpu_task *task)
 {
+	unsigned sched_ctx_id = task->sched_ctx;
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
 	pthread_mutex_lock(&data->sched_mutex);
@@ -122,7 +116,8 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 static struct starpu_sched_policy dummy_sched_policy =
 {
 	.init_sched = init_dummy_sched,
-	.init_sched_for_workers = init_dummy_sched_for_workers,
+	.add_workers = dummy_sched_add_workers,
+	.remove_workers = dummy_sched_remove_workers,
 	.deinit_sched = deinit_dummy_sched,
 	.push_task = push_task_dummy,
 	.pop_task = pop_task_dummy,
