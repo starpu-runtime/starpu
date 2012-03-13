@@ -448,7 +448,11 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	if (user_conf)
 	{
-	     config.disable_asynchronous_copy = (user_conf->disable_asynchronous_copy == 1);
+	     int disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
+	     if (disable_asynchronous_copy == 1)
+		  config.disable_asynchronous_copy = 1;
+	     else
+		  config.disable_asynchronous_copy = (user_conf->disable_asynchronous_copy == 1);
 	}
 	else
 	{
