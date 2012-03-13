@@ -209,6 +209,8 @@ void *_starpu_cpu_worker(void *arg)
 
 		if (rank == 0)
 			_starpu_handle_job_termination(j);
+		else
+			_starpu_sched_post_exec_hook(j->task);
         }
 
 	_STARPU_TRACE_WORKER_DEINIT_START

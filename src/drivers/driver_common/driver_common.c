@@ -39,8 +39,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	if (rank == 0)
-		_starpu_sched_pre_exec_hook(task);
+	_starpu_sched_pre_exec_hook(task);
 
 	args->status = STATUS_EXECUTING;
 	task->status = STARPU_TASK_RUNNING;
