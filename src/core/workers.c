@@ -368,6 +368,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
 
+	conf->disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
+
 	return 0;
 }
 
@@ -443,6 +445,16 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	config.user_conf = user_conf;
+
+	if (user_conf)
+	{
+	     config.disable_asynchronous_copy = (user_conf->disable_asynchronous_copy == 1);
+	}
+	else
+	{
+	     int disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
+	     config.disable_asynchronous_copy = (disable_asynchronous_copy == 1);
+	}
 
 	ret = _starpu_build_topology(&config);
 	if (ret)
@@ -687,6 +699,11 @@ unsigned starpu_opencl_worker_get_count(void)
 unsigned starpu_spu_worker_get_count(void)
 {
 	return config.topology.ngordon_spus;
+}
+
+int starpu_disable_asynchronous_copy()
+{
+	return config.disable_asynchronous_copy;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit
