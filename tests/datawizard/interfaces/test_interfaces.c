@@ -589,6 +589,11 @@ out:
 static void
 run_async(void)
 {
+	int async = starpu_disable_asynchronous_copy();
+	if (async == 1) {
+		FPRINTF(stderr, "Asynchronous copies have been disabled\n");
+		return;
+	}
 #ifdef STARPU_USE_CUDA
 	run_cuda(1);
 #endif /* !STARPU_USE_CUDA */
