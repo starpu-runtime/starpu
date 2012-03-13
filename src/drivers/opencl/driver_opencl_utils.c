@@ -260,13 +260,13 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
         return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs, new_build_options);
 }
 
-cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
+int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
         unsigned int nb_devices;
 
 	if (!starpu_opencl_worker_get_count())
-		return CL_SUCCESS;
+		return 0;
 
         nb_devices = _starpu_opencl_get_device_count();
         // Iterate over each device
@@ -275,7 +275,7 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
                 if (opencl_programs->programs[dev])
                         clReleaseProgram(opencl_programs->programs[dev]);
         }
-        return CL_SUCCESS;
+        return 0;
 }
 
 int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
