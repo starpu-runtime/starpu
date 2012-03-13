@@ -192,6 +192,7 @@ noinst_PROGRAMS =				\
 	datawizard/gpu_register   		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
+	datawizard/readonly			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
