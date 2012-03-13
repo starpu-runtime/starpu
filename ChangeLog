@@ -18,6 +18,8 @@ StarPU 1.0 (svn revision xxxx)
 ==============================================
 The extensions-again release
 
+  * Allow users to disable asynchronous data transfers between CPUs and
+	GPUs.
   * Update OpenCL driver to enable CPU devices (the environment variable
 	STARPU_OPENCL_ON_CPUS must be set to a positive value when
 	executing an application)
