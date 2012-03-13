@@ -215,7 +215,8 @@ enodev:
 	starpu_free((void *)vec_y);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	/* Stop StarPU */
 	starpu_shutdown();

@@ -114,7 +114,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 
@@ -138,7 +139,8 @@ enodev:
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 	/* yes, we do not perform the computation but we did detect that no one

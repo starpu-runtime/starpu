@@ -116,5 +116,6 @@ test_block_opencl_func(void *buffers[], void *args)
 	clReleaseEvent(event);
 
 	starpu_opencl_release_kernel(kernel);
-        starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 }
