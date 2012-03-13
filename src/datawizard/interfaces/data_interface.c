@@ -292,14 +292,20 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 	if (STARPU_UNLIKELY(disable_asynchronous_copy))
 	{
 #ifdef STARPU_USE_CUDA
-	     ((struct starpu_data_copy_methods *)ops->copy_methods)->ram_to_cuda_async = NULL;
-	     ((struct starpu_data_copy_methods *)ops->copy_methods)->cuda_to_ram_async = NULL;
-	     ((struct starpu_data_copy_methods *)ops->copy_methods)->cuda_to_cuda_async = NULL;
+	     if (ops->copy_methods->ram_to_cuda_async)
+		  ((struct starpu_data_copy_methods *)ops->copy_methods)->ram_to_cuda_async = NULL;
+	     if (ops->copy_methods->cuda_to_ram_async)
+		  ((struct starpu_data_copy_methods *)ops->copy_methods)->cuda_to_ram_async = NULL;
+	     if (ops->copy_methods->cuda_to_cuda_async)
+		  ((struct starpu_data_copy_methods *)ops->copy_methods)->cuda_to_cuda_async = NULL;
 #endif
 #ifdef STARPU_USE_OPENCL
-	     ((struct starpu_data_copy_methods *)ops->copy_methods)->ram_to_opencl_async = NULL;
-	     ((struct starpu_data_copy_methods *)ops->copy_methods)->opencl_to_ram_async = NULL;
-	     ((struct starpu_data_copy_methods *)ops->copy_methods)->opencl_to_opencl_async = NULL;
+	     if (ops->copy_methods->ram_to_opencl_async)
+		  ((struct starpu_data_copy_methods *)ops->copy_methods)->ram_to_opencl_async = NULL;
+	     if (ops->copy_methods->opencl_to_ram_async)
+		  ((struct starpu_data_copy_methods *)ops->copy_methods)->opencl_to_ram_async = NULL;
+	     if (ops->copy_methods->opencl_to_opencl_async)
+		  ((struct starpu_data_copy_methods *)ops->copy_methods)->opencl_to_opencl_async = NULL;
 #endif
 	}
 
