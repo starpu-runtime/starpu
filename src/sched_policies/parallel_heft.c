@@ -41,6 +41,10 @@ static unsigned nworkers, ncombinedworkers;
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
+/* When we push a task on a combined worker we need all the cpu workers it contains
+ * to be locked at once */
+static pthread_mutex_t global_push_mutex;
+
 static double alpha = _STARPU_DEFAULT_ALPHA;
 static double beta = _STARPU_DEFAULT_BETA;
 static double _gamma = _STARPU_DEFAULT_GAMMA;
@@ -105,7 +109,13 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
 
+		/* We don't want it to interlace its task with a combined
+		 * worker's one */
+		_STARPU_PTHREAD_MUTEX_LOCK(&global_push_mutex);
+
 		ret = starpu_push_local_task(best_workerid, task, prio);
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_push_mutex);
 	}
 	else
 	{
@@ -123,6 +133,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+
+		/* All cpu workers must be locked at once */
+		_STARPU_PTHREAD_MUTEX_LOCK(&global_push_mutex);
 
 		int i;
 		for (i = 0; i < worker_size; i++)
@@ -145,6 +158,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_push_mutex);
+
 		//TODO : free task
 
 	}
