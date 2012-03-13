@@ -272,8 +272,13 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
         // Iterate over each device
         for(dev = 0; dev < nb_devices; dev ++)
 	{
-                if (opencl_programs->programs[dev])
-                        clReleaseProgram(opencl_programs->programs[dev]);
+		if (opencl_programs->programs[dev])
+		{
+			cl_int err;
+			err = clReleaseProgram(opencl_programs->programs[dev]);
+			if (err != CL_SUCCESS)
+				STARPU_OPENCL_REPORT_ERROR(err);
+		}
         }
         return 0;
 }
