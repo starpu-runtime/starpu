@@ -57,7 +57,9 @@ static void limit_gpu_mem_if_needed(int devid)
 
 	/* Request the size of the current device's memory */
 	cl_ulong totalGlobalMem;
-	clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* How much memory to waste ? */
 	size_t to_waste = (size_t)totalGlobalMem - (size_t)limit*1024*1024;
@@ -75,17 +77,22 @@ static void unlimit_gpu_mem_if_needed(int devid)
 {
 	if (wasted_memory[devid])
 	{
-		clReleaseMemObject(wasted_memory[devid]);
+		cl_int err = clReleaseMemObject(wasted_memory[devid]);
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
 		wasted_memory[devid] = NULL;
 	}
 }
 
 size_t starpu_opencl_get_global_mem_size(int devid)
 {
+	cl_int err;
 	cl_ulong totalGlobalMem;
 
 	/* Request the size of the current device's memory */
-	clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	return (size_t)totalGlobalMem;
 }
@@ -138,7 +145,9 @@ cl_int _starpu_opencl_init_context(int devid)
 
         // Create transfer queue for the given device
         cl_command_queue_properties props;
-        clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
+        err = clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
         props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
