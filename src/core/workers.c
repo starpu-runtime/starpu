@@ -368,7 +368,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
 
-	conf->disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
+	conf->asynchronous_copy_disabled = starpu_get_env_number("STARPU_ASYNCHRONOUS_COPY_DISABLED");
 
 	return 0;
 }
@@ -448,16 +448,16 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	if (user_conf)
 	{
-	     int disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
-	     if (disable_asynchronous_copy == 1)
-		  config.disable_asynchronous_copy = 1;
+	     int asynchronous_copy_disabled = starpu_get_env_number("STARPU_ASYNCHRONOUS_COPY_DISABLED");
+	     if (asynchronous_copy_disabled == 1)
+		  config.asynchronous_copy_disabled = 1;
 	     else
-		  config.disable_asynchronous_copy = (user_conf->disable_asynchronous_copy == 1);
+		  config.asynchronous_copy_disabled = (user_conf->asynchronous_copy_disabled == 1);
 	}
 	else
 	{
-	     int disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
-	     config.disable_asynchronous_copy = (disable_asynchronous_copy == 1);
+	     int asynchronous_copy_disabled = starpu_get_env_number("STARPU_ASYNCHRONOUS_COPY_DISABLED");
+	     config.asynchronous_copy_disabled = (asynchronous_copy_disabled == 1);
 	}
 
 	ret = _starpu_build_topology(&config);
@@ -705,9 +705,9 @@ unsigned starpu_spu_worker_get_count(void)
 	return config.topology.ngordon_spus;
 }
 
-int starpu_disable_asynchronous_copy()
+int starpu_asynchronous_copy_disabled()
 {
-	return config.disable_asynchronous_copy;
+	return config.asynchronous_copy_disabled;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit

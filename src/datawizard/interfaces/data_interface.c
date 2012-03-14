@@ -288,8 +288,8 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 	*handleptr = handle;
 	handle->mf_node = home_node;
 
-	int disable_asynchronous_copy = starpu_disable_asynchronous_copy();
-	if (STARPU_UNLIKELY(disable_asynchronous_copy))
+	int asynchronous_copy_disabled = starpu_asynchronous_copy_disabled();
+	if (STARPU_UNLIKELY(asynchronous_copy_disabled))
 	{
 #ifdef STARPU_USE_CUDA
 	     if (ops->copy_methods->ram_to_cuda_async)
