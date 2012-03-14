@@ -115,10 +115,10 @@ not support concurrent calls to parallel code. In such case, setting this flag
 makes StarPU only start one parallel task at a time.
 This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environment variable.
 
-@item @code{int asynchronous_copy_disabled} (default = 0)
+@item @code{int disable_asynchronous_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
 CPUs and accelerators. This can also be specified with the
-@code{STARPU_ASYNCHRONOUS_COPY_DISABLED} environment variable.
+@code{DISABLE_STARPU_ASYNCHRONOUS_COPY} environment variable.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.

@@ -159,7 +159,7 @@ struct _starpu_machine_config
 	unsigned running;
 
         /* indicate if the asynchronous copies should be disabled */
-        int asynchronous_copy_disabled;
+        int disable_asynchronous_copy;
 };
 
 /* Has starpu_shutdown already been called ? */

@@ -82,7 +82,7 @@ struct starpu_conf
 	int single_combined_worker;
 
         /* indicate if the asynchronous copies should be disabled */
-	int asynchronous_copy_disabled;
+	int disable_asynchronous_copy;
 };
 
 /* Initialize a starpu_conf structure with default values. */
