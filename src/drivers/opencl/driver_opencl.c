@@ -347,13 +347,15 @@ void _starpu_opencl_init(void)
 	{
                 cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
-                cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
                 cl_int err;
                 unsigned int i;
+                cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
 
                 _STARPU_DEBUG("Initialising OpenCL\n");
 
                 // Get Platforms
+		if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+		     device_type |= CL_DEVICE_TYPE_CPU;
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (err != CL_SUCCESS) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %d\n", nb_platforms);
@@ -570,6 +572,21 @@ unsigned _starpu_opencl_get_device_count(void)
                 _starpu_opencl_init();
         }
 	return nb_devices;
+}
+
+cl_device_type _starpu_opencl_get_device_type(int devid)
+{
+	int err;
+	cl_device_type type;
+
+	if (!init_done)
+		_starpu_opencl_init();
+
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	return type;
 }
 
 static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args)

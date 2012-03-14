@@ -113,7 +113,7 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
         program = opencl_programs->programs[devid];
         if (!program)
 	{
-                _STARPU_DISP("Program not available\n");
+                _STARPU_DISP("Program not available for device <%d>\n", devid);
                 return CL_INVALID_PROGRAM;
         }
 
@@ -200,17 +200,26 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 
                 // Build the program executable
                 err = clBuildProgram(program, 1, &device, build_options, NULL, NULL);
-                if (err != CL_SUCCESS)
+
+		// Get the status
 		{
-                        size_t len;
-                        static char buffer[4096];
+		     cl_build_status status;
+		     size_t len;
+		     static char buffer[4096] = "";
 
-                        _STARPU_DISP("Error: Failed to build program executable!\n");
-                        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+		     if (len > 2)
+			  _STARPU_DISP("Compilation output\n%s\n", buffer);
 
-                        _STARPU_DISP("<%s>\n", buffer);
-                        return EXIT_FAILURE;
-                }
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
+		     if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
+		     {
+			  _STARPU_DISP("Error: Failed to build program executable!\n");
+			  _STARPU_DISP("clBuildProgram: %d - clGetProgramBuildInfo: %d\n", err, status);
+			  return EXIT_FAILURE;
+		     }
+
+		}
 
                 // Store program
                 opencl_programs->programs[dev] = program;
@@ -251,22 +260,27 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
         return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs, new_build_options);
 }
 
-cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
+int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
         unsigned int nb_devices;
 
 	if (!starpu_opencl_worker_get_count())
-		return CL_SUCCESS;
+		return 0;
 
         nb_devices = _starpu_opencl_get_device_count();
         // Iterate over each device
         for(dev = 0; dev < nb_devices; dev ++)
 	{
-                if (opencl_programs->programs[dev])
-                        clReleaseProgram(opencl_programs->programs[dev]);
+		if (opencl_programs->programs[dev])
+		{
+			cl_int err;
+			err = clReleaseProgram(opencl_programs->programs[dev]);
+			if (err != CL_SUCCESS)
+				STARPU_OPENCL_REPORT_ERROR(err);
+		}
         }
-        return CL_SUCCESS;
+        return 0;
 }
 
 int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
