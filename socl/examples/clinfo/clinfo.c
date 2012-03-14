@@ -54,23 +54,23 @@ main(void) {
       unsigned int i;
       for (i=0; i<num_platforms; i++) {
          char str[256];
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, 256, str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_PROFILE)");
          printf("  Plaform Profile:\t\t\t\t %s\n", str);
 
-         err= clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, 256, str, NULL);
+         err= clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_VERSION)");
          printf("  Plaform Version:\t\t\t\t %s\n", str);
 
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 256, str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_NAME)");
          printf("  Plaform Name:\t\t\t\t\t %s\n", str);
 
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, 256, str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_VENDOR)");
          printf("  Plaform Vendor:\t\t\t\t %s\n", str);
 
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, 256, str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_EXTENSIONS)");
          printf("  Plaform Extensions:\t\t\t %s\n", str);
       }
@@ -165,7 +165,7 @@ main(void) {
 
 #define GET_STRING(CL_D,str,size) { \
    char val[size]; \
-   err = clGetDeviceInfo(devices[j], CL_D, size, val, NULL); \
+   err = clGetDeviceInfo(devices[j], CL_D, sizeof(val), val, NULL);	\
    checkErr(err, "clGetDeviceInfo(" #CL_D ")"); \
    printf(str, val); \
 }
