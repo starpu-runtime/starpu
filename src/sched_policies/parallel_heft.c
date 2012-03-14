@@ -280,25 +280,27 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	}
 
 	unsigned nimpl;
-	while(workers->has_next(workers) || worker_ctx < (nworkers_ctx + ncombinedworkers))
+	worker_ctx = 0;
+	while((workers->has_next(workers) && worker_ctx < nworkers_ctx) || 
+	      (worker_ctx >= nworkers_ctx && worker_ctx < (nworkers_ctx + ncombinedworkers)))
 	{
-                worker = workers->has_next(workers) ? workers->get_next(workers) : worker_ctx;
-		unsigned incremented = 0;
+                worker = (workers->has_next(workers) && worker_ctx < nworkers_ctx) ? 
+			workers->get_next(workers) : worker_ctx;
+
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
 			if (!starpu_combined_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				skip_worker[worker][nimpl] = 1;
-				if(!incremented)
-					worker_ctx++;
+				skip_worker[worker_ctx][nimpl] = 1;
 				continue;
 			}
 			else
 			{
-				skip_worker[worker][nimpl] = 0;
+				skip_worker[worker_ctx][nimpl] = 0;
 			}
 
+       
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
@@ -354,8 +356,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				local_power[worker_ctx][nimpl] = 0.;
 
 		}
-		if(!incremented)
-			worker_ctx++;
+		worker_ctx++;
 	}
 
 	if (unknown) {
@@ -369,9 +370,12 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	if (forced_best == -1)
 	{
 		worker_ctx = 0;
-		while(workers->has_next(workers) || worker_ctx < (nworkers_ctx + ncombinedworkers))
+		while((workers->has_next(workers) && worker_ctx < nworkers_ctx) || 
+		      (worker_ctx >= nworkers_ctx && worker_ctx < (nworkers_ctx + ncombinedworkers)))
 		{
-			worker = workers->has_next(workers) ? workers->get_next(workers) : worker_ctx;
+			worker = (workers->has_next(workers) && worker_ctx < nworkers_ctx) ? 
+				workers->get_next(workers) : worker_ctx;
+			
 
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
@@ -402,7 +406,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 			//	fprintf(stderr, "FITNESS worker %d -> %e local_exp_end %e - local_data_penalty %e\n", worker, fitness[worker][nimpl], local_exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl]);
 			}
+<<<<<<< .mine
+			worker_ctx++;
+=======
 				worker_ctx++;
+>>>>>>> .r6169
 		}
 	}
 
@@ -424,7 +432,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		//penality_best = local_data_penalty[best_id_ctx][nimpl_best];
 		best_exp_end = local_exp_end[best_id_ctx][nimpl_best];
 	}
-
 
 	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", nimpl_best);
 	_starpu_get_job_associated_to_task(task)->nimpl = nimpl_best;
