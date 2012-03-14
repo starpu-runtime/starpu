@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,18 +28,18 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	cl_event event;
 	int id, devid, err, n;
 
-	uint32_t nnz = STARPU_CSR_GET_NNZ(descr[0]);
-	uint32_t nrow = STARPU_CSR_GET_NROW(descr[0]);
+	int nnz = (int) STARPU_CSR_GET_NNZ(descr[0]);
+	int nrow = (int) STARPU_CSR_GET_NROW(descr[0]);
 	cl_mem nzval = (cl_mem)STARPU_CSR_GET_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
-	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
+	cl_mem colind = (cl_mem)STARPU_CSR_GET_COLIND(descr[0]);
+	cl_mem rowptr = (cl_mem)STARPU_CSR_GET_ROWPTR(descr[0]);
+	int firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
 	cl_mem vecin = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[1]);
-	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
+	int nx_in = (int)STARPU_VECTOR_GET_NX(descr[1]);
 
 	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
-	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
+	int nx_out = (int)STARPU_VECTOR_GET_NX(descr[2]);
 
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
