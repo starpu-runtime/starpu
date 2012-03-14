@@ -353,6 +353,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
+				nimpl_best = nimpl;
 			}
 
 			if (isnan(local_task_length[worker_ctx][nimpl]))
@@ -417,12 +418,10 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 		conversion_task->execute_on_a_specific_worker = 1;
 		conversion_task->workerid = workerid;
 		conversion_task->mf_skip = 1;
+		handle->mf_node = node;
 		ret = _starpu_task_submit_conversion_task(conversion_task, workerid);
 		STARPU_ASSERT(ret == 0);
 	}
-
-	for (i = 0; i < task->cl->nbuffers; i++)
-		task->handles[i]->mf_node = node;
 
 	task->execute_on_a_specific_worker = 1;
 	task->workerid = workerid;

@@ -118,7 +118,7 @@ This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environ
 @item @code{int disable_asynchronous_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
 CPUs and accelerators. This can also be specified with the
-@code{STARPU_DISABLE_ASYNCHRONOUS_COPY} environment variable.
+@code{DISABLE_STARPU_ASYNCHRONOUS_COPY} environment variable.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.

@@ -79,6 +79,7 @@ static void redux_opencl_kernel(void *descr[], void *arg)
 	h_dst += h_src;
 
 	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
+	clFinish(queue);
 }
 
 static void neutral_opencl_kernel(void *descr[], void *arg)
@@ -90,6 +91,7 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 	starpu_opencl_get_current_queue(&queue);
 
 	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
+	clFinish(queue);
 }
 #endif
 
@@ -151,6 +153,7 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
 	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
+	clFinish(queue);
 }
 #endif
 

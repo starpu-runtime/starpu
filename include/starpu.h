@@ -107,7 +107,7 @@ unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_spu_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 
-int starpu_disable_asynchronous_copy();
+int starpu_asynchronous_copy_disabled();
 
 /* Return the identifier of the thread in case this is associated to a worker.
  * This will return -1 if this function is called directly from the application

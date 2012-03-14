@@ -29,6 +29,18 @@
 #define INFO_CASE(param, var) case param: \
    INFO_CASE_EX2(var)
 
+#define INFO_CASE_STRING_EX2(var) if (param_value != NULL) { \
+      if (param_value_size < strlen(var)) \
+         return CL_INVALID_VALUE; \
+      strcpy(param_value, var); \
+   } \
+   if (param_value_size_ret != NULL) \
+      *param_value_size_ret = strlen(var); \
+   break;
+
+#define INFO_CASE_STRING(param, var) case param: \
+   INFO_CASE_STRING_EX2(var)
+
 #define INFO_CASE_VALUE(param, type, value) case param: {\
       type tmp = (value);\
       INFO_CASE_EX2(tmp);\

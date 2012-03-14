@@ -58,7 +58,9 @@ static void limit_gpu_mem_if_needed(int devid)
 
 	/* Request the size of the current device's memory */
 	cl_ulong totalGlobalMem;
-	clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* How much memory to waste ? */
 	size_t to_waste = (size_t)totalGlobalMem - (size_t)limit*1024*1024;
@@ -76,7 +78,9 @@ static void unlimit_gpu_mem_if_needed(int devid)
 {
 	if (wasted_memory[devid])
 	{
-		clReleaseMemObject(wasted_memory[devid]);
+		cl_int err = clReleaseMemObject(wasted_memory[devid]);
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
 		wasted_memory[devid] = NULL;
 	}
 }

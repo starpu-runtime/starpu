@@ -45,7 +45,7 @@ int main(int argc, char **argv)
      if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
      STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-     int copy = starpu_disable_asynchronous_copy();
+     int copy = starpu_asynchronous_copy_disabled();
      FPRINTF(stderr, "copy %d\n", copy);
 
      starpu_variable_data_register(&handle, 0, (uintptr_t)&var, sizeof(var));

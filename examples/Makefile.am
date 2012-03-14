@@ -38,6 +38,7 @@ EXTRA_DIST = 					\
 	basic_examples/multiformat_opencl_kernel.cl  \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
 	common/blas_model.c			\
+	spmd/vector_scal_spmd.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
 	gordon/null_kernel_gordon.c		\
@@ -184,6 +185,7 @@ examplebin_PROGRAMS +=				\
 	tag_example/tag_example3		\
 	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
+	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
@@ -248,6 +250,7 @@ STARPU_EXAMPLES +=				\
 	tag_example/tag_example3		\
 	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
+	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
@@ -664,6 +667,13 @@ cg_cg_LDADD =					\
 	$(STARPU_BLAS_LDFLAGS)
 
 endif
+
+################
+# SPMD example #
+################
+
+spmd_vector_scal_spmd_SOURCES =			\
+	spmd/vector_scal_spmd.c
 
 ################
 # SpMV example #

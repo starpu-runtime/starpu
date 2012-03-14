@@ -130,6 +130,11 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		j->task_size = worker_size;
 		j->combined_workerid = best_workerid;
 		j->active_task_alias_count = 0;
+
+		/* This task doesn't belong to an actual worker, it belongs
+		 * to a combined worker and thus the scheduler doesn't care
+		 * of its predicted values which are insignificant */
+		task->predicted = 0;
 		task->predicted_transfer = 0;
 
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
@@ -368,16 +373,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		{
 			worker = workers->has_next(workers) ? workers->get_next(workers) : worker_ctx;
 
-			unsigned incremented = 0;
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (skip_worker[worker_ctx][nimpl])
 				{
 					/* no one on that queue may execute this task */
-					if(!incremented)
-						worker_ctx++;
-
-					incremented = 1;
 					continue;
 				}
 
@@ -402,7 +402,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 			//	fprintf(stderr, "FITNESS worker %d -> %e local_exp_end %e - local_data_penalty %e\n", worker, fitness[worker][nimpl], local_exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl]);
 			}
-			if(!incremented)
 				worker_ctx++;
 		}
 	}

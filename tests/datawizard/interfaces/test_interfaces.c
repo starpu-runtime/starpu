@@ -589,7 +589,7 @@ out:
 static void
 run_async(void)
 {
-	int async = starpu_disable_asynchronous_copy();
+	int async = starpu_asynchronous_copy_disabled();
 	if (async == 1) {
 		FPRINTF(stderr, "Asynchronous copies have been disabled\n");
 		return;

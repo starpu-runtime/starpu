@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,15 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void spmv(unsigned nnz, unsigned nrow,
+__kernel void spmv(int nnz, int nrow,
                    __global float* nzval, __global unsigned* colind,
-                   __global unsigned* rowptr, unsigned firstentry,
-                   __global float *vecin, unsigned nx_in,
-                   __global float *vecout, unsigned nx_out)
+                   __global unsigned* rowptr, int firstentry,
+                   __global float *vecin, int nx_in,
+                   __global float *vecout, int nx_out)
 {
-	unsigned row;
-	// for (row = 0; row < nrow; row++)
-	row = get_global_id(0);
+	const int row = get_global_id(0);
 	if (row < nrow)
 	{
 		float tmp = 0.0f;

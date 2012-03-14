@@ -20,7 +20,7 @@
 
 #include <CL/cl.h>
 
-static inline void 
+static inline void
 checkErr(cl_int err, const char * name) {
     if (err != CL_SUCCESS) {
         fprintf(stderr, "ERROR: %s (%d)\n", name, err);
@@ -45,8 +45,8 @@ main(void) {
    platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id)*num_platforms);
    err = clGetPlatformIDs(num_platforms, platforms, NULL);
    checkErr(err, "Unable to get platform list");
-   
-   
+
+
    // Iteratate over platforms
    printf("Number of platforms:\t\t\t\t %d\n", num_platforms);
 
@@ -54,25 +54,25 @@ main(void) {
       unsigned int i;
       for (i=0; i<num_platforms; i++) {
          char str[256];
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, sizeof(str), &str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_PROFILE)");
-         printf("  Plaform Profile:\t\t\t\t %s\n", str);    
+         printf("  Plaform Profile:\t\t\t\t %s\n", str);
 
-         err= clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(str), &str, NULL);
+         err= clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_VERSION)");
-         printf("  Plaform Version:\t\t\t\t %s\n", str);    
+         printf("  Plaform Version:\t\t\t\t %s\n", str);
 
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), &str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_NAME)");
-         printf("  Plaform Name:\t\t\t\t\t %s\n", str);    
+         printf("  Plaform Name:\t\t\t\t\t %s\n", str);
 
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(str), &str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_VENDOR)");
-         printf("  Plaform Vendor:\t\t\t\t %s\n", str);    
+         printf("  Plaform Vendor:\t\t\t\t %s\n", str);
 
-         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(str), &str, NULL);
+         err = clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_EXTENSIONS)");
-         printf("  Plaform Extensions:\t\t\t %s\n", str);    
+         printf("  Plaform Extensions:\t\t\t %s\n", str);
       }
    }
 
@@ -88,12 +88,12 @@ main(void) {
 
          err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), &str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_NAME)");
-         printf("  Plaform Name:\t\t\t\t\t %s\n", str);    
+         printf("  Plaform Name:\t\t\t\t\t %s\n", str);
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
          checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
          devices = (cl_device_id*)malloc(sizeof(cl_device_id)*num_devices);
-         
+
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
          checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
 
@@ -103,7 +103,7 @@ main(void) {
             for (j=0; j<num_devices; j++) {
                cl_device_type dev_type;
                printf("\n  DEVICE %d\n", j);
-               
+
                err = clGetDeviceInfo(devices[j], CL_DEVICE_TYPE, sizeof(dev_type), &dev_type, NULL);
                checkErr(err, "clGetDeviceInfo(CL_DEVICE_TYPE)");
 
@@ -123,13 +123,13 @@ main(void) {
                   cl_uint vendor_id;
                   err = clGetDeviceInfo(devices[j], CL_DEVICE_VENDOR_ID, sizeof(vendor_id), &vendor_id, NULL);
                   checkErr(err, "clGetDeviceInfo(CL_DEVICE_VENDOR_ID)");
-                  printf("  Device ID:\t\t\t\t\t %d\n", vendor_id); 
+                  printf("  Device ID:\t\t\t\t\t %d\n", vendor_id);
                }
                {
                   cl_uint units;
                   err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(units), &units, NULL);
                   checkErr(err, "clGetDeviceInfo(CL_DEVICE_MAX_COMPUTE_UNITS)");
-                  printf("  Max compute units:\t\t\t\t %d\n", units); 
+                  printf("  Max compute units:\t\t\t\t %d\n", units);
                }
 
                {
@@ -137,12 +137,12 @@ main(void) {
                   size_t *sizes;
                   err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(dims), &dims, NULL);
                   checkErr(err, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS)");
-                  printf("  Max work item dimensions:\t\t\t %d\n", dims); 
+                  printf("  Max work item dimensions:\t\t\t %d\n", dims);
 
                   sizes = (size_t*)malloc(dims * sizeof(size_t));
                   err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(size_t)*dims, sizes, NULL);
                   checkErr(err, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES)");
-                  printf("  Max work item dimensions:\t\t\t %d\n", dims); 
+                  printf("  Max work item dimensions:\t\t\t %d\n", dims);
 
                   {
                      unsigned int k;
@@ -165,7 +165,7 @@ main(void) {
 
 #define GET_STRING(CL_D,str,size) { \
    char val[size]; \
-   err = clGetDeviceInfo(devices[j], CL_D, sizeof(val), &val, NULL); \
+   err = clGetDeviceInfo(devices[j], CL_D, sizeof(val), val, NULL);	\
    checkErr(err, "clGetDeviceInfo(" #CL_D ")"); \
    printf(str, val); \
 }
@@ -204,9 +204,9 @@ main(void) {
    checkErr(err, "clGetDeviceInfo(" #CL_D ")"); \
    printf(str, ((val & test) == CL_TRUE ? "Yes" : "No")); \
 }
-      
+
                GET_SIZET(CL_DEVICE_MAX_WORK_GROUP_SIZE, "  Max work group size:\t\t\t\t %u\n")
-               
+
                GET_UINT(CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, "  Preferred vector width char:\t\t\t %u\n")
                GET_UINT(CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, "  Preferred vector width short:\t\t\t %u\n")
                GET_UINT(CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, "  Preferred vector width int:\t\t\t %u\n")
@@ -291,7 +291,7 @@ main(void) {
                GET_STRING(CL_DEVICE_PROFILE, "  Profile:\t\t\t\t\t %s\n", 30);
                GET_STRING(CL_DEVICE_VERSION, "  Version:\t\t\t\t\t %s\n", 50);
                GET_STRING(CL_DEVICE_EXTENSIONS, "  Extensions:\t\t\t\t\t %s\n", 4096);
-            
+
                printf("\n");
             }
          }
