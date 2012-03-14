@@ -127,6 +127,10 @@ int main(int argc, char **argv)
 		task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) {
+		     ret = 77;
+		     break;
+		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -138,5 +142,5 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
-	return 0;
+	return ret;
 }
