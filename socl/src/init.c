@@ -18,6 +18,8 @@
 #include "gc.h"
 #include "mem_objects.h"
 
+int _starpu_init_failed;
+
 /**
  * Initialize SOCL
  */
@@ -32,7 +34,23 @@ __attribute__((constructor)) static void socl_init() {
 
   mem_object_init();
 
-  starpu_init(&conf);
+  _starpu_init_failed = starpu_init(&conf);
+  if (_starpu_init_failed != 0)
+  {
+       DEBUG_MSG("Error when calling starpu_init: %d\n", _starpu_init_failed);
+  }
+  else {
+       if (starpu_cpu_worker_get_count() == 0)
+       {
+	    DEBUG_MSG("StarPU did not find any CPU device. SOCL needs at least 1 CPU.\n");
+	    _starpu_init_failed = -ENODEV;
+       }
+       if (starpu_opencl_worker_get_count() == 0)
+       {
+	    DEBUG_MSG("StarPU didn't find any OpenCL device. Try disabling CUDA support in StarPU (export STARPU_NCUDA=0).\n");
+	    _starpu_init_failed = -ENODEV;
+       }
+  }
 
   /* Disable dataflow implicit dependencies */
   starpu_data_set_default_sequential_consistency_flag(0);
