@@ -80,7 +80,7 @@ static void opencl_task(void *buffers[], void *args)
 				NULL,           /* event_wait_list */
 				NULL            /* event */);
 	}
-			
+	clFinish(queue);
 }
 #endif
 
@@ -146,12 +146,24 @@ int main(int argc, char *argv[])
 	starpu_data_acquire(handle, STARPU_R);
 
 	/* Make sure we have a local pointer to it.  */
+	ret = EXIT_SUCCESS;
 	pointer = (int *) starpu_handle_to_pointer(handle, 0);
-	STARPU_ASSERT(pointer != NULL);
-	for(i = 0; i < count; i++)
+	if (pointer == NULL)
 	{
-		int *numbers = (int *)pointer;
-		STARPU_ASSERT(numbers[i] == i);
+	     FPRINTF(stderr, "pointer should be non NULL\n");
+	     ret = EXIT_FAILURE;
+	}
+	else
+	{
+	     for(i = 0; i < count; i++)
+	     {
+		  int *numbers = (int *)pointer;
+		  if (numbers[i] != i)
+		  {
+		       FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", i, numbers[i], i);
+		       ret = EXIT_FAILURE;
+		  }
+	     }
 	}
 	starpu_data_release(handle);
 
@@ -159,5 +171,5 @@ int main(int argc, char *argv[])
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	return ret;
 }
