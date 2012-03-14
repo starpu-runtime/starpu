@@ -26,9 +26,14 @@
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 
-static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
+/* Actually launch the job on a cpu worker.
+ * Handle binding CPUs on cores.
+ * In the case of a combined worker WORKER_TASK != J->TASK */
+
+static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *cpu_args, int rank, enum starpu_perf_archtype perf_arch)
 {
 	int ret;
+	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_start, codelet_end;
 
@@ -49,7 +54,13 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct _starpu_worker *cpu_
 	}
 
 	if (is_parallel_task)
+	{
 		_STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
+
+		/* In the case of a combined worker, the scheduler needs to know
+		 * when each actual worker begins the execution */
+		_starpu_sched_pre_exec_hook(worker_task);
+	}
 
 	/* Give profiling variable */
 	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank, profiling);
@@ -163,10 +174,6 @@ void *_starpu_cpu_worker(void *arg)
 		/* Get the rank in case it is a parallel task */
 		if (is_parallel_task)
 		{
-			/* We can release the fake task */
-			STARPU_ASSERT(task != j->task);
-			free(task);
-
 			_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 			rank = j->active_task_alias_count++;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
@@ -190,7 +197,7 @@ void *_starpu_cpu_worker(void *arg)
 		_starpu_set_current_task(j->task);
 		cpu_arg->current_task = j->task;
 
-                res = execute_job_on_cpu(j, cpu_arg, is_parallel_task, rank, perf_arch);
+                res = execute_job_on_cpu(j, task, cpu_arg, rank, perf_arch);
 
 		_starpu_set_current_task(NULL);
 		cpu_arg->current_task = NULL;
@@ -207,10 +214,17 @@ void *_starpu_cpu_worker(void *arg)
 			}
 		}
 
+		/* In the case of combined workers, we need to inform the
+		 * scheduler each worker's execution is over.
+		 * Then we free the workers' task alias */
+		if (is_parallel_task)
+		{
+			_starpu_sched_post_exec_hook(task);
+			free(task);
+		}
+
 		if (rank == 0)
 			_starpu_handle_job_termination(j);
-		else
-			_starpu_sched_post_exec_hook(j->task);
         }
 
 	_STARPU_TRACE_WORKER_DEINIT_START

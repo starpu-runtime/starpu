@@ -203,7 +203,11 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_clock_gettime(&task->profiling_info->callback_end_time);
 	}
 
-	_starpu_sched_post_exec_hook(task);
+	/* If the job was executed on a combined worker there is no need for the
+	 * scheduler to process it : the task structure doesn't contain any valuable
+	 * data as it's not linked to an actual worker */
+	if (j->task_size == 1)
+		_starpu_sched_post_exec_hook(task);
 
 	_STARPU_TRACE_TASK_DONE(j);
 
