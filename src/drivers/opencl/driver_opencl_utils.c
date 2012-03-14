@@ -113,7 +113,7 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
         program = opencl_programs->programs[devid];
         if (!program)
 	{
-                _STARPU_DISP("Program not available\n");
+                _STARPU_DISP("Program not available for device <%d>\n", devid);
                 return CL_INVALID_PROGRAM;
         }
 
