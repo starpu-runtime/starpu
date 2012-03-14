@@ -406,11 +406,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 			//	fprintf(stderr, "FITNESS worker %d -> %e local_exp_end %e - local_data_penalty %e\n", worker, fitness[worker][nimpl], local_exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl]);
 			}
-<<<<<<< .mine
 			worker_ctx++;
-=======
-				worker_ctx++;
->>>>>>> .r6169
 		}
 	}
 
