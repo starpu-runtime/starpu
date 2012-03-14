@@ -46,6 +46,7 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((u
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
 	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
+	clFinish(queue);
 }
 #endif
 
