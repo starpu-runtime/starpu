@@ -14,9 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <stdint.h>
-
-__kernel void block(__global float *b, uint32_t nx, uint32_t ny, uint32_t nz, uint32_t ldy, uint32_t ldz, float multiplier)
+__kernel void block(__global float *b, int nx, int ny, int nz, int ldy, int ldz, float multiplier)
 {
      const int i = get_global_id(0);
      if (i < (nz*ldz)+(ny*ldy)+nx)
