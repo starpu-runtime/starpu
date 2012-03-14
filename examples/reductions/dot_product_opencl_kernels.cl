@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,27 +14,27 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "socl.h"
+#include "dot_product.h"
 
-CL_API_ENTRY cl_int CL_API_CALL
-soclEnqueueMarker(cl_command_queue  cq,
-                cl_event *          event) CL_API_SUFFIX__VERSION_1_0
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
+__kernel void _redux_opencl(__global DOT_TYPE *dota,
+			    __global DOT_TYPE *dotb)
 {
-	if (event == NULL)
-		return CL_INVALID_VALUE;
-	
-	command_marker cmd = command_marker_create();
-
-	command_queue_enqueue(cq, cmd, 0, NULL);
-
-	RETURN_EVENT(cmd, event);
-
-	return CL_SUCCESS;
+        const int i = get_global_id(0);
+	*dota += *dotb;
 }
 
-cl_int command_marker_submit(command_marker cmd) {
-	struct starpu_task *task;
-	task = task_create(CL_COMMAND_MARKER);
-
-	return task_submit(task, cmd);
+__kernel void _dot_opencl(__global float *x,
+			  __global float *y,
+			  __global DOT_TYPE *dot,
+			  unsigned n)
+{
+	unsigned i;
+	__local double tmp;
+	tmp = 0.0;
+	for (i = 0; i < n ; i++)
+		tmp += x[i]*y[i];
+		
+	*dot += tmp;
 }

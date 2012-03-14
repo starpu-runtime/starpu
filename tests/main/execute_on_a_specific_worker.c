@@ -55,7 +55,7 @@ static void callback(void *arg)
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 //	int id = starpu_worker_get_id();
-//	fprintf(stderr, "worker #%d\n", id);
+//	FPRINTF(stderr, "worker #%d\n", id);
 }
 
 static struct starpu_codelet cl_r =

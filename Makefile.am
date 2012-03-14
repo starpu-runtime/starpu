@@ -72,13 +72,12 @@ nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
 
 if BUILD_STARPU_TOP
-starpu-top/starpu_top$(EXEEXT):
-	cd starpu-top ; $(QMAKE) ; $(MAKE)
+starpu-top/starpu_top$(EXEEXT): all-local
 all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
-	$(RM) starpu_top.1
+	$(RM) starpu_top.1 starpu-top/starpu_top
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)

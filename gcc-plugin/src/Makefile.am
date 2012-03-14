@@ -28,3 +28,6 @@ AM_CPPFLAGS =						\
   -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1
 
 AM_LDFLAGS = -module
+
+showcheck:
+	-cat $(TEST_LOGS) /dev/null

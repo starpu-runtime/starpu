@@ -120,20 +120,20 @@ Here is an example:
 
 static void matmul (const float *A, const float *B,
                     __output float *C,
-                    size_t nx, size_t ny, size_t nz)
+                    unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task));
 
 static void matmul_cpu (const float *A, const float *B,
                         __output float *C,
-                        size_t nx, size_t ny, size_t nz)
+                        unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("cpu", matmul)));
 
 
 static void
 matmul_cpu (const float *A, const float *B, __output float *C,
-            size_t nx, size_t ny, size_t nz)
+            unsigned nx, unsigned ny, unsigned nz)
 @{
-  size_t i, j, k;
+  unsigned i, j, k;
 
   for (j = 0; j < ny; j++)
     for (i = 0; i < nx; i++)
@@ -156,11 +156,11 @@ CUDA and OpenCL implementations can be declared in a similar way:
 @cartouche
 @smallexample
 static void matmul_cuda (const float *A, const float *B, float *C,
-                         size_t nx, size_t ny, size_t nz)
+                         unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("cuda", matmul)));
 
 static void matmul_opencl (const float *A, const float *B, float *C,
-                           size_t nx, size_t ny, size_t nz)
+                           unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("opencl", matmul)));
 @end smallexample
 @end cartouche
@@ -175,7 +175,7 @@ OpenCL under the hood, such as CUBLAS functions:
 @smallexample
 static void
 matmul_cuda (const float *A, const float *B, float *C,
-             size_t nx, size_t ny, size_t nz)
+             unsigned nx, unsigned ny, unsigned nz)
 @{
   cublasSgemm ('n', 'n', nx, ny, nz,
                1.0f, A, 0, B, 0,
@@ -356,12 +356,12 @@ in a way that allows it to be compiled without the GCC plug-in:
 #include <stdlib.h>
 
 static void matmul (const float *A, const float *B, float *C,
-                    size_t nx, size_t ny, size_t nz) __task;
+                    unsigned nx, unsigned ny, unsigned nz) __task;
 
 #ifdef STARPU_GCC_PLUGIN
 
 static void matmul_cpu (const float *A, const float *B, float *C,
-                        size_t nx, size_t ny, size_t nz)
+                        unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("cpu", matmul)));
 
 #endif
@@ -369,7 +369,7 @@ static void matmul_cpu (const float *A, const float *B, float *C,
 
 static void
 CPU_TASK_IMPL (matmul) (const float *A, const float *B, float *C,
-                        size_t nx, size_t ny, size_t nz)
+                        unsigned nx, unsigned ny, unsigned nz)
 @{
   /* Code of the CPU kernel here...  */
 @}

@@ -16,12 +16,13 @@
 
 #include <starpu.h>
 #include <starpu_opencl.h>
+#include "axpy.h"
 
 extern struct starpu_opencl_program opencl_program;
 
 void axpy_opencl(void *buffers[], void *_args)
 {
-	float *alpha = _args;
+	TYPE *alpha = _args;
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;

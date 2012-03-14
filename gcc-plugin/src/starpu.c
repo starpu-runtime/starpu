@@ -177,6 +177,19 @@ build_zero_cst (tree type)
 
 #endif
 
+#if !HAVE_DECL_BUILTIN_DECL_EXPLICIT
+
+/* This function was introduced in GCC 4.7 as a replacement for the
+   `built_in_decls' array.  */
+
+static inline tree
+builtin_decl_explicit (enum built_in_function fncode)
+{
+  return built_in_decls[fncode];
+}
+
+#endif
+
 
 /* Helpers.  */
 
@@ -307,7 +320,7 @@ build_printf (const char *fmt, ...)
 
   va_start (args, fmt);
   vasprintf (&str, fmt, args);
-  call = build_call_expr (built_in_decls[BUILT_IN_PUTS], 1,
+  call = build_call_expr (builtin_decl_explicit (BUILT_IN_PUTS), 1,
 	 		  build_string_literal (strlen (str) + 1, str));
   free (str);
   va_end (args);
@@ -359,7 +372,7 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
       tree error_code =
 	build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
       print =
-	build_call_expr (built_in_decls[BUILT_IN_PRINTF], 2,
+	build_call_expr (builtin_decl_explicit (BUILT_IN_PRINTF), 2,
 			 build_string_literal (strlen (fmt_long) + 1,
 					       fmt_long),
 			 build_call_expr (strerror_fn, 1, error_code));
@@ -372,7 +385,7 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
 		xloc.file, xloc.line, str);
 
       print =
-	build_call_expr (built_in_decls[BUILT_IN_PUTS], 1,
+	build_call_expr (builtin_decl_explicit (BUILT_IN_PUTS), 1,
 			 build_string_literal (strlen (fmt_long) + 1,
 					       fmt_long));
     }
@@ -383,8 +396,8 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
 
   tree stmts = NULL;
   append_to_statement_list (print, &stmts);
-  append_to_statement_list (build_call_expr (built_in_decls[BUILT_IN_ABORT],
-					     0),
+  append_to_statement_list (build_call_expr
+			    (builtin_decl_explicit (BUILT_IN_ABORT), 0),
 			    &stmts);
 
   return stmts;

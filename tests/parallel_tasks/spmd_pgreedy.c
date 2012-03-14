@@ -33,14 +33,14 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 	int worker_size = starpu_combined_worker_get_size();
 	STARPU_ASSERT(worker_size > 0);
 
-//	fprintf(stderr, "WORKERSIZE : %d\n", worker_size);
+//	FPRINTF(stderr, "WORKERSIZE : %d\n", worker_size);
 
 	usleep(1000/worker_size);
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
 	int rank = starpu_combined_worker_get_rank();
-	fprintf(stderr, "worker id %d - combined id %d - worker size %d - SPMD rank %d\n", id, combined_id, worker_size, rank);
+	FPRINTF(stderr, "worker id %d - combined id %d - worker size %d - SPMD rank %d\n", id, combined_id, worker_size, rank);
 #endif
 }
 

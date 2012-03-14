@@ -157,7 +157,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handle);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 
 	/* terminate StarPU, no task can be submitted after */

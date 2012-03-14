@@ -31,10 +31,10 @@ static void dummy_func(void *descr[], void *arg)
 {
 }
 
-static struct starpu_codelet cuda_only_cl =
+static struct starpu_codelet gpu_only_cl =
 {
-	.where = STARPU_CUDA,
 	.cuda_funcs = {dummy_func, NULL},
+	.opencl_funcs = {dummy_func, NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	struct starpu_task *task = starpu_task_create();
-	task->cl = &cuda_only_cl;
+	task->cl = &gpu_only_cl;
 
 	/* Only a CUDA device could execute that task ! */
 	ret = starpu_task_submit(task);
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	starpu_task_destroy(task);
 
 	struct starpu_task *task_specific = starpu_task_create();
-	task_specific->cl = &cuda_only_cl;
+	task_specific->cl = &gpu_only_cl;
 	task_specific->execute_on_a_specific_worker = 1;
 	task_specific->workerid = 0;
 

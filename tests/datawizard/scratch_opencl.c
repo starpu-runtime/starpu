@@ -29,6 +29,7 @@ void opencl_f(void *buffers[], void *args)
 	cl_event event;
 
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	unsigned elemsize = STARPU_VECTOR_GET_ELEMSIZE(buffers[0]);
 	cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	cl_mem tmp = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[1]);
 
@@ -36,6 +37,18 @@ void opencl_f(void *buffers[], void *args)
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "increment_vector_opencl", devid);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = clEnqueueCopyBuffer(queue,
+		val,
+		tmp,
+		0,           /* offset in val */
+		0,           /* offset in tmp */
+		n * elemsize,
+		0,           /* num_events_in_wait_list */
+		NULL,        /* event_wait_list */
+		NULL);       /* event */
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 

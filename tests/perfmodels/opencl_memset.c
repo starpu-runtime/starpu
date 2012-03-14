@@ -21,7 +21,7 @@ extern struct starpu_opencl_program opencl_program;
 
 void memset_opencl(void *buffers[], void *args)
 {
-	(void) *args;
+	(void) args;
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;
@@ -39,6 +39,7 @@ void memset_opencl(void *buffers[], void *args)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
+	err|= clSetKernelArg(kernel, 1, sizeof(n), &n);
 	if (err)
 		STARPU_OPENCL_REPORT_ERROR(err);
 

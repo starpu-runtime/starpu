@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -164,7 +164,10 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
-	
+
+        /* indicate if the asynchronous copies should be disabled */
+        int disable_asynchronous_copy;
+
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 };

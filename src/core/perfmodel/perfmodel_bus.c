@@ -254,6 +254,13 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
         if (size > (size_t)maxMemAllocSize/4) size = maxMemAllocSize/4;
 
+	if (_starpu_opencl_get_device_type(dev) == CL_DEVICE_TYPE_CPU)
+	{
+		/* Let's not use too much RAM when running OpenCL on a CPU: it
+		 * would make the OS swap like crazy. */
+		size /= 2;
+	}
+
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 

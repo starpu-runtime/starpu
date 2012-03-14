@@ -34,7 +34,7 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
-	fprintf(stderr, "worker id %d - combined id %d - worker size %d\n", id, combined_id, worker_size);
+	FPRINTF(stderr, "worker id %d - combined id %d - worker size %d\n", id, combined_id, worker_size);
 #endif
 }
 

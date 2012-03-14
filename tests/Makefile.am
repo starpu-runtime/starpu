@@ -192,6 +192,7 @@ noinst_PROGRAMS =				\
 	datawizard/gpu_register   		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
+	datawizard/readonly			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -282,8 +283,6 @@ endif
 if STARPU_USE_OPENCL
 datawizard_mpi_like_async_SOURCES +=			\
 	datawizard/opencl_codelet_unsigned_inc.c
-nobase_STARPU_OPENCL_DATA_DATA+= \
-	datawizard/opencl_codelet_unsigned_inc_kernel.cl
 endif
 
 datawizard_sync_and_notify_data_SOURCES =	\
@@ -539,8 +538,6 @@ perfmodels_non_linear_regression_based_SOURCES=\
 if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
-nobase_STARPU_OPENCL_DATA_DATA += \
-	perfmodels/opencl_memset_kernel.cl
 endif
 
 showcheck:

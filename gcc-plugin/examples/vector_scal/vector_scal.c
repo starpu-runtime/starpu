@@ -114,7 +114,7 @@ vector_scal_opencl (unsigned int size, float vector[size], float factor)
   if (err)
     STARPU_OPENCL_REPORT_ERROR (err);
 
-  size_t global = 1, local = 1;
+  size_t global = size, local = 1;
   err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global, &local, 0,
 				NULL, &event);
   if (err != CL_SUCCESS)
@@ -148,9 +148,13 @@ check (size_t size, float vector[size], float factor)
   size_t i;
 
   for (i = 0; i < size; i++)
-    if (fabs(vector[i] - i * factor) > EPSILON)
-      return false;
-
+    {
+      if (fabs(vector[i] - i * factor) > i*factor*EPSILON)
+        {
+          fprintf(stderr, "%.2f != %.2f\n", vector[i], i*factor);
+          return false;
+        }
+    }
   return true;
 }
 

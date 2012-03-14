@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -101,8 +101,10 @@ check(void)
 	for (i = 0; i < N; i++)
 	{
 		TYPE expected_value = alpha * vec_x[i] + 4.0;
-		if (fabs(vec_y[i] - expected_value) > EPSILON)
+		if (fabs(vec_y[i] - expected_value) > expected_value * EPSILON) {
+			FPRINTF(stderr,"at %d, %f*%f+%f=%f, expected %f\n", i, alpha, vec_x[i], 4.0, vec_y[i], expected_value);
 			return EXIT_FAILURE;
+		}
 	}
 
 	return EXIT_SUCCESS;
@@ -213,7 +215,8 @@ enodev:
 	starpu_free((void *)vec_y);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	/* Stop StarPU */
 	starpu_shutdown();

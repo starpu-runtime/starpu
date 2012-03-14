@@ -76,13 +76,6 @@
 
 #undef STARPU_HAVE_WINDOWS
 
-#undef starpu_drand48
-#undef starpu_srand48
-#undef starpu_erand48
-
-#undef starpu_srand48_r
-#undef starpu_erand48_r
-
 #ifdef _MSC_VER
 typedef long starpu_ssize_t;
 #define __starpu_func__ __FUNCTION__
@@ -94,5 +87,6 @@ typedef ssize_t starpu_ssize_t;
 
 #undef STARPU_SLOW_MACHINE
 #undef STARPU_USE_DRAND48
+#undef STARPU_USE_ERAND48_R
 
 #endif

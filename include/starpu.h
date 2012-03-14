@@ -80,6 +80,9 @@ struct starpu_conf
 
 	/* Create only one combined worker, containing all CPU workers */
 	int single_combined_worker;
+
+        /* indicate if the asynchronous copies should be disabled */
+	int disable_asynchronous_copy;
 };
 
 /* Initialize a starpu_conf structure with default values. */
@@ -103,6 +106,8 @@ unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_spu_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
+
+int starpu_disable_asynchronous_copy();
 
 /* Return the identifier of the thread in case this is associated to a worker.
  * This will return -1 if this function is called directly from the application

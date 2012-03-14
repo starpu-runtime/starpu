@@ -197,7 +197,7 @@ Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
 default, it is enabled when an OpenCL implementation is found.
 
 @item --disable-starpu-top
-Disable the StarPU-Top interface (@pxref{starpu-top}).  By default, it
+Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
 is enabled when the required dependencies are found.
 
 @end table

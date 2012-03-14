@@ -228,20 +228,32 @@ int main(int argc, char **argv)
 		ret = starpu_data_acquire(handle, STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		var = (unsigned*) starpu_variable_get_local_ptr(handle);
-		STARPU_ASSERT(*var == ntasks*(loop + 1));
 		starpu_data_release(handle);
+
+		if (*var != ntasks*(loop + 1))
+		{
+			ret = EXIT_FAILURE;
+			FPRINTF(stderr, "[end of loop] Value %u != Expected value %u\n", *var, ntasks * (loop+1));
+			goto err;
+		}
 	}
 
 	ret = starpu_data_acquire(handle, STARPU_R);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 	var = (unsigned*) starpu_variable_get_local_ptr(handle);
-	STARPU_ASSERT(*var == ntasks*nloops);
 	starpu_data_release(handle);
 	starpu_data_unregister(handle);
 
-	starpu_shutdown();
+	if (*var != ntasks*nloops)
+	{
+		ret = EXIT_FAILURE;
+		FPRINTF(stderr, "Value %u != Expected value %u\n", *var, ntasks * (loop+1));
+		goto err;
+	}
 
-	STARPU_RETURN(EXIT_SUCCESS);
+err:
+	starpu_shutdown();
+	STARPU_RETURN(ret);
 
 enodev:
 	starpu_data_unregister(handle);
