@@ -110,6 +110,7 @@ int main(int argc, char **argv)
 	conf.sched_policy_name = "pheft";
 
 	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_data_handle_t vector_handle;
