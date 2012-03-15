@@ -335,13 +335,15 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
  * 		    else (invalid,owner->shared)
  */
 
-/* This function is called with handle's header lock taken */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
 								  enum starpu_access_mode mode, unsigned is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg)
 {
+	/* This function is called with handle's header lock taken */
+	_starpu_spin_checklocked(&handle->header_lock);
+
 	unsigned requesting_node = dst_replicate->memory_node;
 
 	if (dst_replicate->state != STARPU_INVALID)
