@@ -263,6 +263,7 @@ static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 /* The header lock must already be taken by the caller */
 void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 {
+	_starpu_spin_checklocked(&handle->header_lock);
 	/* A data access has finished so we remove a reference. */
 	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;

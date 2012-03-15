@@ -282,6 +282,8 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 	if (r)
 	{
+		_starpu_spin_checklocked(&r->handle->header_lock);
+
 		_starpu_spin_lock(&r->lock);
 
                 /* perhaps we need to "upgrade" the request */

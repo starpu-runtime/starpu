@@ -216,6 +216,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	{
 		struct starpu_task *task = _starpu_create_conversion_task(handle, 0);
 		int ret;
+		_starpu_spin_checklocked(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
 		handle->mf_node = 0;

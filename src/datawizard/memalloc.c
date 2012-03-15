@@ -158,6 +158,7 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 #endif
 			/* TODO use request !! */
 			/* Take temporary references on the replicates */
+			_starpu_spin_checklocked(&handle->header_lock);
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 			handle->busy_count+=2;
@@ -751,6 +752,8 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 {
 	unsigned attempts = 0;
 	ssize_t allocated_memory;
+
+	_starpu_spin_checklocked(&handle->header_lock);
 
 	_starpu_data_allocation_inc_stats(dst_node);
 
