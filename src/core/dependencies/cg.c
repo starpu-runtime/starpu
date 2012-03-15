@@ -152,6 +152,8 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				unsigned ndeps_completed =
 					STARPU_ATOMIC_ADD(&job_successors->ndeps_completed, 1);
 
+				STARPU_ASSERT(job_successors->ndeps >= ndeps_completed);
+
 				/* Need to atomically test submitted and check
 				 * dependencies, since this is concurrent with
 				 * _starpu_submit_job */
@@ -183,7 +185,7 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 	unsigned succ;
 
 	_starpu_spin_lock(&successors->lock);
-	successors->terminated = 1;
+	STARPU_ASSERT(!successors->terminated);
 	/* Note: some thread might be concurrently adding other items */
 	for (succ = 0; succ < successors->nsuccs; succ++)
 	{
@@ -216,5 +218,6 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 
 		_starpu_spin_lock(&successors->lock);
 	}
+	successors->terminated = 1;
 	_starpu_spin_unlock(&successors->lock);
 }
