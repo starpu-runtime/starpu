@@ -32,12 +32,16 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node)
 
 	STARPU_ASSERT(handle);
 
-	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, 0);
+	_starpu_spin_lock(&handle->header_lock);
+
+	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, 1);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
 
 	_starpu_post_data_request(r, node);
+
+	_starpu_spin_unlock(&handle->header_lock);
 
 	return 0;
 }
