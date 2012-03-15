@@ -362,15 +362,47 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->nspus = starpu_get_env_number("STARPU_NGORDON");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 
+	if (conf->calibrate == -1)
+	     conf->calibrate = 0;
+
 	conf->use_explicit_workers_bindid = 0; /* TODO */
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
+	if (conf->single_combined_worker == -1)
+	     conf->single_combined_worker = 0;
 
 	conf->disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
 
 	return 0;
+}
+
+static void _starpu_conf_set_value_against_environment(char *name, int *value)
+{
+	int number;
+	number = starpu_get_env_number(name);
+	if (number != -1)
+	{
+		*value = number;
+	}
+}
+
+static void _starpu_conf_check_environment(struct starpu_conf *conf)
+{
+	char *sched = getenv("STARPU_SCHED");
+	if (sched)
+	{
+		conf->sched_policy_name = sched;
+	}
+
+	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
+	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
+	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
+	_starpu_conf_set_value_against_environment("STARPU_NGORDON", &conf->nspus);
+	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
+	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy);
 }
 
 int starpu_init(struct starpu_conf *user_conf)
@@ -444,21 +476,17 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
-	config.user_conf = user_conf;
-
-	if (user_conf)
+	if (user_conf == NULL)
 	{
-	     int asynchronous_copy_disabled = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
-	     if (asynchronous_copy_disabled == 1)
-		  config.disable_asynchronous_copy = 1;
-	     else
-		  config.disable_asynchronous_copy = (user_conf->disable_asynchronous_copy == 1);
+	     struct starpu_conf conf;
+	     starpu_conf_init(&conf);
+	     config.conf = &conf;
 	}
 	else
 	{
-	     int asynchronous_copy_disabled = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
-	     config.disable_asynchronous_copy = (asynchronous_copy_disabled == 1);
+	     config.conf = user_conf;
 	}
+	_starpu_conf_check_environment(config.conf);
 
 	ret = _starpu_build_topology(&config);
 	if (ret)
@@ -707,7 +735,7 @@ unsigned starpu_spu_worker_get_count(void)
 
 int starpu_asynchronous_copy_disabled()
 {
-	return config.disable_asynchronous_copy;
+	return config.conf->disable_asynchronous_copy;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit

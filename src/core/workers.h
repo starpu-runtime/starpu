@@ -151,15 +151,11 @@ struct _starpu_machine_config
 	 * the result of (worker_mask & STARPU_CUDA). */
 	uint32_t worker_mask;
 
-	/* in case the user gives an explicit configuration, this is only valid
-	 * during starpu_init. */
-	struct starpu_conf *user_conf;
+        /* either the user given configuration passed to starpu_init or a default configuration */
+	struct starpu_conf *conf;
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
-
-        /* indicate if the asynchronous copies should be disabled */
-        int disable_asynchronous_copy;
 };
 
 /* Has starpu_shutdown already been called ? */

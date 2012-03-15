@@ -54,7 +54,7 @@ static struct starpu_htbl32_node *devices_using_cuda = NULL;
 #  ifdef STARPU_USE_OPENCL
 static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_config *config);
 #  endif
-static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int *explicit_workers_gpuid,
+static void _starpu_initialize_workers_gpuid(int *explicit_workers_gpuid,
                                              int *current, int *workers_gpuid, const char *varname, unsigned nhwgpus);
 static unsigned may_bind_automatically = 0;
 #endif
@@ -68,8 +68,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 {
 	struct starpu_machine_topology *topology = &config->topology;
 
-        _starpu_initialize_workers_gpuid(config->user_conf==NULL?0:config->user_conf->use_explicit_workers_cuda_gpuid,
-                                         config->user_conf==NULL?NULL:(int *)config->user_conf->workers_cuda_gpuid,
+        _starpu_initialize_workers_gpuid(config->conf->use_explicit_workers_cuda_gpuid==0?NULL:(int *)config->conf->workers_cuda_gpuid,
                                          &(config->current_cuda_gpuid), (int *)topology->workers_cuda_gpuid, "STARPU_WORKERS_CUDAID",
                                          topology->nhwcudagpus);
 }
@@ -80,8 +79,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 {
 	struct starpu_machine_topology *topology = &config->topology;
 
-        _starpu_initialize_workers_gpuid(config->user_conf==NULL?0:config->user_conf->use_explicit_workers_opencl_gpuid,
-                                         config->user_conf==NULL?NULL:(int *)config->user_conf->workers_opencl_gpuid,
+        _starpu_initialize_workers_gpuid(config->conf->use_explicit_workers_opencl_gpuid==0?NULL:(int *)config->conf->workers_opencl_gpuid,
                                          &(config->current_opencl_gpuid), (int *)topology->workers_opencl_gpuid, "STARPU_WORKERS_OPENCLID",
                                          topology->nhwopenclgpus);
 
@@ -129,7 +127,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int *explicit_workers_gpuid,
+static void _starpu_initialize_workers_gpuid(int *explicit_workers_gpuid,
                                              int *current, int *workers_gpuid, const char *varname, unsigned nhwgpus)
 {
 	char *strval;
@@ -184,7 +182,7 @@ static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int
 			}
 		}
 	}
-	else if (use_explicit_workers_gpuid)
+	else if (explicit_workers_gpuid)
 	{
 		/* we use the explicit value from the user */
 		memcpy(workers_gpuid,
@@ -195,8 +193,8 @@ static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int
 	{
 		/* by default, we take a round robin policy */
 		if (nhwgpus > 0)
-		for (i = 0; i < STARPU_NMAXWORKERS; i++)
-			workers_gpuid[i] = (unsigned)(i % nhwgpus);
+		     for (i = 0; i < STARPU_NMAXWORKERS; i++)
+			  workers_gpuid[i] = (unsigned)(i % nhwgpus);
 
 		/* StarPU can use sampling techniques to bind threads correctly */
 		may_bind_automatically = 1;
@@ -272,8 +270,7 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 	return config->topology.nhwcpus;
 }
 
-static int _starpu_init_machine_config(struct _starpu_machine_config *config,
-				struct starpu_conf *user_conf)
+static int _starpu_init_machine_config(struct _starpu_machine_config *config)
 {
 	int i;
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -288,14 +285,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 	_starpu_initialize_workers_bindid(config);
 
 #ifdef STARPU_USE_CUDA
-	int ncuda;
-	ncuda = starpu_get_env_number("STARPU_NCUDA");
+	int ncuda = config->conf->ncuda;
 
-	/* STARPU_NCUDA is not set. Did the user specify anything ? */
-	if (ncuda == -1 && user_conf)
-		ncuda = user_conf->ncuda;
-
-	
 	if (ncuda != 0)
 	{
 		/* The user did not disable CUDA. We need to initialize CUDA
@@ -361,12 +352,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 #endif
 
 #ifdef STARPU_USE_OPENCL
-	int nopencl;
-	nopencl = starpu_get_env_number("STARPU_NOPENCL");
-
-	/* STARPU_NOPENCL is not set. Did the user specify anything ? */
-	if (nopencl == -1 && user_conf)
-		nopencl = user_conf->nopencl;
+	int nopencl = config->conf->nopencl;
 
 	if (nopencl != 0)
 	{
@@ -436,12 +422,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 #endif
 
 #ifdef STARPU_USE_GORDON
-	int ngordon;
-	ngordon = starpu_get_env_number("STARPU_NGORDON");
-
-	/* STARPU_NGORDON is not set. Did the user specify anything ? */
-	if (ngordon == -1 && user_conf)
-		ngordon = user_conf->ngordon;
+	int ngordon = config->conf->ngordon;
 
 	if (ngordon != 0)
 	{
@@ -483,12 +464,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config,
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
 #ifdef STARPU_USE_CPU
-	int ncpu;
-	ncpu = starpu_get_env_number("STARPU_NCPUS");
-
-	/* STARPU_NCPUS is not set. Did the user specify anything ? */
-	if (ncpu == -1 && user_conf)
-		ncpu = user_conf->ncpus;
+	int ncpu = config->conf->ncpus;
 
 	if (ncpu != 0)
 	{
@@ -597,11 +573,11 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 			}
 		}
 	}
-	else if (config->user_conf && config->user_conf->use_explicit_workers_bindid)
+	else if (config->conf->use_explicit_workers_bindid)
 	{
 		/* we use the explicit value from the user */
 		memcpy(topology->workers_bindid,
-			config->user_conf->workers_bindid,
+			config->conf->workers_bindid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
 	else
@@ -873,9 +849,7 @@ int _starpu_build_topology(struct _starpu_machine_config *config)
 {
 	int ret;
 
-	struct starpu_conf *user_conf = config->user_conf;
-
-	ret = _starpu_init_machine_config(config, user_conf);
+	ret = _starpu_init_machine_config(config);
 	if (ret)
 		return ret;
 

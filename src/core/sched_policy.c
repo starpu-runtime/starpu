@@ -144,20 +144,14 @@ static void display_sched_help_message(void)
 static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
-	struct starpu_conf *user_conf = config->user_conf;
 
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
-	if (user_conf && (user_conf->sched_policy))
-		return user_conf->sched_policy;
+	if (config->conf->sched_policy)
+		return config->conf->sched_policy;
 
 	/* Otherwise, we look if the application specified the name of a policy to load */
-	const char *sched_pol_name;
-	sched_pol_name = getenv("STARPU_SCHED");
-	if (sched_pol_name == NULL && user_conf && user_conf->sched_policy_name)
-		sched_pol_name = user_conf->sched_policy_name;
-
-	if (sched_pol_name)
-		selected_policy = find_sched_policy_from_name(sched_pol_name);
+	if (config->conf->sched_policy_name)
+		selected_policy = find_sched_policy_from_name(config->conf->sched_policy_name);
 
 	/* Perhaps there was no policy that matched the name */
 	if (selected_policy)
@@ -177,15 +171,8 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config)
 	if (use_prefetch == -1)
 		use_prefetch = 1;
 
-	/* By default, we don't calibrate */
-	unsigned do_calibrate = 0;
-	int res = starpu_get_env_number("STARPU_CALIBRATE");
-	if (res == -1 && config->user_conf)
-		res = config->user_conf->calibrate;
-
-	do_calibrate = (res < 0)?0:(unsigned)res;
-
-	_starpu_set_calibrate_flag(do_calibrate);
+	/* Set calibrate flag */
+	_starpu_set_calibrate_flag(config->conf->calibrate);
 
 	struct starpu_sched_policy *selected_policy;
 	selected_policy = select_sched_policy(config);
