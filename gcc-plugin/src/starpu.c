@@ -1027,14 +1027,19 @@ validate_opencl_argument_type (location_t loc, const_tree type)
 	  static const struct { const char *c; const char *cl; }
 	  type_map[] =
 	    {
+	      /* Scalar types defined in OpenCL 1.2.  See
+		 <http://www.khronos.org/files/opencl-1-2-quick-reference-card.pdf>.  */
 	      { "char", "cl_char" },
 	      { "unsigned char", "cl_uchar" },
+	      { "uchar", "cl_uchar" },
 	      { "short int", "cl_short" },
 	      { "unsigned short", "cl_ushort" },
 	      { "int", "cl_int" },
 	      { "unsigned int", "cl_uint" },
+	      { "uint", "cl_uint" },
 	      { "long int", "cl_long" },
 	      { "long unsigned int", "cl_ulong" },
+	      { "ulong", "cl_ulong" },
 	      { "float", "cl_float" },
 	      { "double", "cl_double" },
 	      { NULL, NULL }
