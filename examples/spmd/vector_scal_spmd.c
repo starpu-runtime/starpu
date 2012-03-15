@@ -143,5 +143,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
+	free(vector);
+
 	return ret;
 }
