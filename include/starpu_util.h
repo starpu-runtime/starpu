@@ -96,6 +96,12 @@ extern "C"
 #define STARPU_DEPRECATED
 #endif /* __GNUC__ */
 
+#if STARPU_GNUC_PREREQ(3,3)
+#define STARPU_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
+#else
+#define STARPU_WARN_UNUSED_RESULT
+#endif /* __GNUC__ */
+
 #if defined(__i386__) || defined(__x86_64__)
 
 static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)

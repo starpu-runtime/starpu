@@ -16,6 +16,8 @@
 
 #include "socl.h"
 
+extern int _starpu_init_failed;
+
 /**
  * \brief Get StarPU platform ID
  */
@@ -24,24 +26,24 @@ soclGetPlatformIDs(cl_uint          num_entries,
                  cl_platform_id * platforms,
                  cl_uint *        num_platforms) CL_API_SUFFIX__VERSION_1_0
 {
-   if ((num_entries == 0 && platforms != NULL)
-       || (num_platforms == NULL && platforms == NULL))
-	   return CL_INVALID_VALUE;
+     if (_starpu_init_failed)
+     {
+	  if (num_platforms != NULL)
+	       *num_platforms = 0;
+	  return CL_SUCCESS;
+     }
 
-   if (starpu_opencl_worker_get_count() == 0) {
-      DEBUG_MSG("StarPU didn't find any OpenCL device. Try disabling CUDA support in StarPU (export STARPU_NCUDA=0).\n")
+     if ((num_entries == 0 && platforms != NULL)
+	 || (num_platforms == NULL && platforms == NULL))
+	  return CL_INVALID_VALUE;
 
-      if (num_platforms != NULL)
-         *num_platforms = 0;
-   }
-   else {
+     else {
+	  if (platforms != NULL)
+	       platforms[0] = &socl_platform;
 
-      if (platforms != NULL)
-         platforms[0] = &socl_platform;
-
-      if (num_platforms != NULL)
-         *num_platforms = 1;
-   }
+	  if (num_platforms != NULL)
+	       *num_platforms = 1;
+     }
 
    return CL_SUCCESS;
 }

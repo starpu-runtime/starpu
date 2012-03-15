@@ -71,7 +71,7 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 	ret = successors->terminated;
 
 	/* where should that cg should be put in the array ? */
-	unsigned index = STARPU_ATOMIC_ADD(&successors->nsuccs, 1) - 1;
+	unsigned index = successors->nsuccs++;
 
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	if (index >= successors->succ_list_size)
@@ -82,7 +82,6 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 		else
 			successors->succ_list_size = 4;
 
-		/* NB: this is thread safe as the tag->lock is taken */
 		successors->succ = (struct _starpu_cg **) realloc(successors->succ,
 			successors->succ_list_size*sizeof(struct _starpu_cg *));
 	}

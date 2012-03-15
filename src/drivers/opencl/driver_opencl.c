@@ -87,10 +87,13 @@ static void unlimit_gpu_mem_if_needed(int devid)
 
 size_t starpu_opencl_get_global_mem_size(int devid)
 {
+	cl_int err;
 	cl_ulong totalGlobalMem;
 
 	/* Request the size of the current device's memory */
-	clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	return (size_t)totalGlobalMem;
 }
@@ -143,7 +146,9 @@ cl_int _starpu_opencl_init_context(int devid)
 
         // Create transfer queue for the given device
         cl_command_queue_properties props;
-        clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
+        err = clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
         props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
@@ -190,6 +195,20 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flag
 	memory = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	/*
+	 * OpenCL uses lazy memory allocation: we will only know if the
+	 * allocation failed when trying to copy data onto the device. But we
+	 * want to know this __now__, so we just perform a dummy copy.
+	 */
+	char dummy = 0;
+	err = clEnqueueWriteBuffer(queues[worker->devid], memory, CL_TRUE,
+				0, sizeof(dummy), &dummy,
+				0, NULL, NULL);
+	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+		return err;
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
 
         *mem = memory;
         return CL_SUCCESS;
