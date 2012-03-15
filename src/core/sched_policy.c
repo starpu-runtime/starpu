@@ -332,9 +332,10 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 	node_kind = starpu_node_get_kind(node);
 
-	_starpu_spin_checklocked(&handle->header_lock);
+	_starpu_spin_lock(&handle->header_lock);
 	handle->refcnt++;
 	handle->busy_count++;
+	_starpu_spin_unlock(&handle->header_lock);
 
 	struct starpu_multiformat_data_interface_ops *mf_ops;
 	mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
