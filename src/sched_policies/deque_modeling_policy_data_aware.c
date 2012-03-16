@@ -426,7 +426,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	/* find the queue */
 	struct _starpu_fifo_taskq *fifo;
-	unsigned worker, worker_ctx;
+	unsigned worker, worker_ctx = 0;
 	int best = -1, best_in_ctx = -1;
 	
 	/* this flag is set if the corresponding worker is selected because
@@ -436,7 +436,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
 	unsigned nworkers_ctx = workers->nworkers;
-
 	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
@@ -462,7 +461,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	if(workers->init_cursor)
 		workers->init_cursor(workers);
 
-
 	while(workers->has_next(workers))
         {
                 worker = workers->get_next(workers);
@@ -479,7 +477,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				worker_ctx++;
 				continue;
 			}
 
@@ -552,7 +549,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))
 				{
 					/* no one on that queue may execute this task */
-					worker_ctx++;
 					continue;
 				}
 				
@@ -665,6 +661,7 @@ static int dmda_push_task(struct starpu_task *task)
 		return ret_val;
 	}
 
+	STARPU_ASSERT(task);
 	ret_val = _dmda_push_task(task, 0, sched_ctx_id);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 	return ret_val;

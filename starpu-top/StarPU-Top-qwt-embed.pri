@@ -1,3 +1,4 @@
+SRCDIR=.
 SOURCES += \
     $$SRCDIR/qwt/qwt_thermo.cpp \
     $$SRCDIR/qwt/qwt_math.cpp \
