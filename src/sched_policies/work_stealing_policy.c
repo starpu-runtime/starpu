@@ -260,14 +260,11 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	q = ws->queue_array[workerid];
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&ws->sched_mutex);
-
 	task = _starpu_deque_pop_task(q, workerid);
 	if (task)
 	{
 		/* there was a local task */
 		ws->performed_total++;
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&ws->sched_mutex);
 		q->nprocessed++;
 		q->njobs--;
 		return task;
@@ -398,10 +395,10 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 static void deinit_ws_policy(unsigned sched_ctx_id)
 {
 	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_DESTROY(&ws->sched_mutex);
-	_STARPU_PTHREAD_COND_DESTROY(&ws->sched_cond);
 
 	free(ws->queue_array);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&ws->sched_mutex);
+	_STARPU_PTHREAD_COND_DESTROY(&ws->sched_cond);
         free(ws);
         starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }

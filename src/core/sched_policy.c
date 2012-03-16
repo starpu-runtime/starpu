@@ -388,7 +388,6 @@ int _starpu_push_task(struct _starpu_job *j)
 	else
 	{
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
-
 		ret = sched_ctx->sched_policy->push_task(task);
 		if(ret == -1)
 		{
