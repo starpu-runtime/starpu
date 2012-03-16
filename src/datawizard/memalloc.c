@@ -709,11 +709,12 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-#ifdef STARPU_DEVEL
-#warning to be fixed
-#endif
-			global_mem_size = 64*1024*1024;
-			break;
+		{
+			/* We should probably never get here : if there is no
+ 			 * space left in RAM, the operating system should swap
+			 * to disk for us. */
+			STARPU_ABORT();
+		}
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
