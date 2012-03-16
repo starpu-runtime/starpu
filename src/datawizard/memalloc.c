@@ -732,7 +732,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 		}
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 	return global_mem_size;
 }
