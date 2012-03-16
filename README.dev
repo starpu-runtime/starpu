@@ -20,6 +20,7 @@ Contents
 - Developer Warnings
 - Naming Conventions
 - Coding Style
+- Error handling
 
 Developer Warnings
 ------------------
@@ -51,3 +52,27 @@ Coding Style
 ------------
 
 * Curly braces always go on a new line
+
+
+
+Error handling
+--------------
+* Use STARPU_ABORT() for catastrophic errors, from which StarPU will never
+  recover.
+
+	switch (node_kind)
+	{
+		case STARPU_CPU_RAM:
+			do_stg();
+			break;
+		...
+		default:
+			/* We cannot be here */
+			STARPU_ABORT();
+	}
+
+* Use STARPU_ASSERT() to run checks that are very likely to succeed, but still
+  are useful for debugging purposes. It should be OK to disable them with
+  --enable-fast.
+
+	STARPU_ASSERT(j->terminated != 0)
