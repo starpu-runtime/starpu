@@ -478,13 +478,15 @@ int starpu_init(struct starpu_conf *user_conf)
 	 * initialization */
 	if (user_conf == NULL)
 	{
-	     struct starpu_conf conf;
-	     starpu_conf_init(&conf);
-	     config.conf = &conf;
+	     struct starpu_conf *conf = malloc(sizeof(struct starpu_conf));
+	     starpu_conf_init(conf);
+	     config.conf = conf;
+	     config.default_conf = 1;
 	}
 	else
 	{
 	     config.conf = user_conf;
+	     config.default_conf = 0;
 	}
 	_starpu_conf_check_environment(config.conf);
 
@@ -678,6 +680,10 @@ void starpu_shutdown(void)
 	/* Let someone else that wants to initialize it again do it */
 	_STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+	/* Clear memory if it was allocated by StarPU */
+	if (config.default_conf)
+	     free(config.conf);
 
 	_STARPU_DEBUG("Shutdown finished\n");
 }
