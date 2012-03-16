@@ -48,7 +48,7 @@ extern "C"
 #  endif
 #endif
 
-#define STARPU_ABORT()		abort()
+#define STARPU_ABORT()		assert(0)
 
 #if defined(STARPU_HAVE_STRERROR_R)
 #  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { \
