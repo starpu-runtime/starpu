@@ -240,7 +240,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	if (regenerate)
 	{
-		STARPU_ASSERT(detach && !destroy && !task->synchronous);
+		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached, and not have detroy=1 or synchronous=1");
 
 		/* We reuse the same job structure */
 		int ret = _starpu_submit_job(j);
@@ -277,7 +277,8 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	else
 	{
 		/* existing deps (if any) are fulfilled */
-		tag->state = STARPU_READY;
+		if (tag->state != STARPU_DONE)
+			tag->state = STARPU_READY;
 		/* already prepare for next run */
 		tag_successors->ndeps_completed = 0;
 		ret = 0;

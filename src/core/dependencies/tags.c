@@ -233,7 +233,8 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 
 	/* the tag is now associated to a job */
 	_starpu_spin_lock(&tag->lock);
-	tag->state = STARPU_ASSOCIATED;
+	if (tag->state != STARPU_DONE)
+		tag->state = STARPU_ASSOCIATED;
 	_starpu_spin_unlock(&tag->lock);
 }
 
