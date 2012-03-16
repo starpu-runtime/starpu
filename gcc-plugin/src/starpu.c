@@ -19,8 +19,6 @@
 
 #include <starpu-gcc-config.h>
 
-int plugin_is_GPL_compatible;
-
 /* #define ENABLE_TREE_CHECKING 1 */
 
 #include <gcc-plugin.h>
@@ -61,6 +59,13 @@ int plugin_is_GPL_compatible;
 
 #include <starpu.h>  /* for `STARPU_CPU' & co.  */
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Declared with `C' linkage in <gcc-plugin.h>.  */
+int plugin_is_GPL_compatible;
 
 /* The name of this plug-in.  */
 static const char plugin_name[] = "starpu";
@@ -2459,3 +2464,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif
