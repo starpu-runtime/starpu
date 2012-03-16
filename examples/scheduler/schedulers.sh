@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
