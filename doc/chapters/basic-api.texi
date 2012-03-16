@@ -143,6 +143,11 @@ application: statistics and other post-mortem debugging information are not
 guaranteed to be available until this method has been called.
 @end deftypefun
 
+@deftypefun int starpu_asynchronous_copy_disabled ()
+Return 1 if asynchronous data transfers between CPU and accelerators
+are disabled.
+@end deftypefun
+
 @node Workers' Properties
 @section Workers' Properties
 
@@ -239,6 +244,24 @@ function on an invalid identifier results in an unspecified behaviour.
 @deftypefun unsigned starpu_worker_get_memory_node (unsigned @var{workerid})
 This function returns the identifier of the memory node associated to the
 worker identified by @var{workerid}.
+@end deftypefun
+
+@deftp {Data Type} {enum starpu_node_kind}
+todo
+@table @asis
+@item @code{STARPU_UNUSED}
+@item @code{STARPU_CPU_RAM}
+@item @code{STARPU_CUDA_RAM}
+@item @code{STARPU_OPENCL_RAM}
+@item @code{STARPU_SPU_LS}
+@end table
+@end deftp
+
+@deftypefun {enum starpu_node_kind} starpu_node_get_kind (uint32_t @var{node})
+Returns the type of the given node as defined by @code{enum
+starpu_node_kind}. For example, when defining a new data interface,
+this function should be used in the allocation function to determine
+on which device the memory needs to be allocated.
 @end deftypefun
 
 @node Data Library
@@ -1312,6 +1335,16 @@ State of a task, can be either of
 @end table
 @end deftp
 
+@deftp {Data Type} {struct starpu_buffer_descr}
+This type is used to describe a data handle along with an
+access mode.
+@table @asis
+@item @code{starpu_data_handle_t handle} describes a data,
+@item @code{enum starpu_access_mode mode} describes its access mode
+@end table
+@end deftp
+
+
 @deftp {Data Type} {struct starpu_task}
 The @code{starpu_task} structure describes a task that can be offloaded on the various
 processing units managed by StarPU. It instantiates a codelet. It can either be
@@ -1757,6 +1790,24 @@ Whether the performance model is still being calibrated.
 Lock to protect concurrency between loading from disk (W), updating the values
 (W), and making a performance estimation (R).
 
+@end table
+@end deftp
+
+@deftp {Data Type} {struct starpu_regression_model}
+TODO
+@table @asis
+@item @code{double sumlny} sum of ln(measured)
+@item @code{double sumlnx} sum of ln(size)
+@item @code{double sumlnx2}
+@item @code{unsigned long minx} minimum size
+@item @code{unsigned long maxx} maximum size
+@item @code{double sumlnxlny} sum of ln(size) ln(measured)
+@item @code{double alpha} 	 y = alpha size ^ beta
+@item @code{double beta}
+@item @code{unsigned valid}
+@item @code{double a, b, c} y = a size ^b + c
+@item @code{unsigned nl_valid}
+@item @code{unsigned nsample}
 @end table
 @end deftp
 
