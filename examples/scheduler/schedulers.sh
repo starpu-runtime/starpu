@@ -18,12 +18,12 @@
 check_success()
 {
     if [ $1 != 0 ] ; then
-	echo "failure"
+	echo "failure" >&2
         exit $1
     fi
 }
 
-SCHEDULERS=$(STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/->/ {print $1}')
+SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/->/ {print $1}'`
 
 for sched in $SCHEDULERS
 do
@@ -31,5 +31,3 @@ do
     STARPU_SCHED=$sched ./cholesky/cholesky_tag
     check_success $?
 done
-
-exit 1
