@@ -1794,20 +1794,19 @@ Lock to protect concurrency between loading from disk (W), updating the values
 @end deftp
 
 @deftp {Data Type} {struct starpu_regression_model}
-TODO
 @table @asis
 @item @code{double sumlny} sum of ln(measured)
 @item @code{double sumlnx} sum of ln(size)
-@item @code{double sumlnx2}
+@item @code{double sumlnx2} sum of ln(size)^2
 @item @code{unsigned long minx} minimum size
 @item @code{unsigned long maxx} maximum size
-@item @code{double sumlnxlny} sum of ln(size) ln(measured)
-@item @code{double alpha} 	 y = alpha size ^ beta
+@item @code{double sumlnxlny} sum of ln(size)*ln(measured)
+@item @code{double alpha} 	 estimated = alpha * size ^ beta
 @item @code{double beta}
-@item @code{unsigned valid}
-@item @code{double a, b, c} y = a size ^b + c
-@item @code{unsigned nl_valid}
-@item @code{unsigned nsample}
+@item @code{unsigned valid} whether the linear regression model is valid (i.e. enough measures)
+@item @code{double a, b, c} estimaed = a size ^b + c
+@item @code{unsigned nl_valid} whether the non-linear regression model is valid (i.e. enough measures)
+@item @code{unsigned nsample} number of sample values for non-linear regression
 @end table
 @end deftp
 
