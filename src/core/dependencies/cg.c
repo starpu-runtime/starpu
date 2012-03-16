@@ -185,7 +185,6 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 	unsigned succ;
 
 	_starpu_spin_lock(&successors->lock);
-	STARPU_ASSERT(!successors->terminated);
 	/* Note: some thread might be concurrently adding other items */
 	for (succ = 0; succ < successors->nsuccs; succ++)
 	{
