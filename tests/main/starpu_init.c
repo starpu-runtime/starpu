@@ -31,6 +31,8 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 {
 	int ret;
 
+	FPRINTF(stderr, "Testing with env=%d - conf=%d\n", env_cpu, conf_cpu);
+
 	if (env_cpu != -1)
 	{
 		char string[50];
@@ -40,7 +42,10 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 
 	struct starpu_conf user_conf;
 	starpu_conf_init(&user_conf);
-	user_conf.ncpus = conf_cpu;
+	if (conf_cpu != -1)
+	{
+	     user_conf.ncpus = conf_cpu;
+	}
 	ret = starpu_init(&user_conf);
 
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
