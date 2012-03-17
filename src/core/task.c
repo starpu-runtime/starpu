@@ -215,7 +215,10 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* Need to atomically set submitted to 1 and check dependencies, since
 	 * this is concucrent with _starpu_notify_cg */
 	j->terminated = 0;
-	j->submitted = 1;
+	if (!j->submitted)
+		j->submitted = 1;
+	else
+		j->submitted = 2;
 
 	int ret = _starpu_enforce_deps_and_schedule(j);
 

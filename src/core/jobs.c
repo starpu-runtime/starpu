@@ -277,7 +277,10 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	else
 	{
 		/* existing deps (if any) are fulfilled */
-		if (tag->state != STARPU_DONE)
+		/* If the same tag is being signaled by several tasks, do not
+		 * clear a DONE state. If it's the same job submitted several
+		 * times with the same tag, we have to do it */
+		if (j->submitted == 2 || tag->state != STARPU_DONE)
 			tag->state = STARPU_READY;
 		/* already prepare for next run */
 		tag_successors->ndeps_completed = 0;

@@ -91,7 +91,9 @@ LIST_TYPE(_starpu_job,
 	uint32_t footprint;
 
 	/* Indicates whether the task associated to that job has already been
-	 * submitted to StarPU or not (using starpu_task_submit). */
+	 * submitted to StarPU (1) or not (0) (using starpu_task_submit).
+	 * Becomes and stays 2 when the task is submitted several times.
+	 */
 	unsigned submitted;
 
 	/* Indicates whether the task associated to this job is terminated or

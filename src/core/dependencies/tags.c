@@ -233,7 +233,12 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 
 	/* the tag is now associated to a job */
 	_starpu_spin_lock(&tag->lock);
-	if (tag->state != STARPU_DONE)
+	/* When the same tag may be signaled several times by different tasks,
+	 * and it's already done, we should not reset the "done" state.
+	 * When the tag is simply used by the same task several times, we have
+	 * to do so. */
+	if (job->task->regenerate || job->submitted == 2 ||
+			tag->state != STARPU_DONE)
 		tag->state = STARPU_ASSOCIATED;
 	_starpu_spin_unlock(&tag->lock);
 }
