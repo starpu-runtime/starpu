@@ -288,9 +288,10 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 
 		conversion_task = _starpu_create_conversion_task(handle, node);
 		sum += starpu_task_expected_length(conversion_task, arch, nimpl);
-		_starpu_spin_checklocked(&handle->header_lock);
+		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
+		_starpu_spin_unlock(&handle->header_lock);
 		starpu_task_deinit(conversion_task);
 		free(conversion_task);
 	}
