@@ -225,7 +225,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	unsigned i;
 	int err;
 	double sum = 0.0;
-	unsigned int node, cpu_node;
+	int node, cpu_node;
 
 	/* We need to get one node per archtype. This is kinda ugly,
 	 * but it does the job.
