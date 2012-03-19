@@ -147,7 +147,7 @@ static void display_sched_help_message(void)
 static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config, const char *required_policy)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
-	struct starpu_conf *user_conf = config->user_conf;
+	struct starpu_conf *user_conf = config->conf;
 
 	if(required_policy)
 		selected_policy = find_sched_policy_from_name(required_policy);
