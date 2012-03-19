@@ -71,7 +71,7 @@ static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	
 	for (i = 0; i < ncombinedworkers; i++)
 	{
-		int workerid = nworkers + i;
+		workerid = nworkers + i;
 
 		/* Note that we ASSUME that the workers are sorted by size ! */
 		int *workers;
@@ -118,7 +118,6 @@ static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 		fprintf(stderr, "MASTER of %d = %d\n", workerid, master_id[workerid]);
 	}
 #endif
-
 }
 
 static void pgreedy_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -173,16 +172,16 @@ static int push_task_pgreedy_policy(struct starpu_task *task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
-        int ret_val = -1;
+    int ret_val = -1;
 
 	/* if the context has no workers return */
-        _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-        nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
-        if(nworkers == 0)
-        {
-                _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-                return ret_val;
-        }
+    _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+    nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+   	if(nworkers == 0)
+    {
+   		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+        return ret_val;
+    }
 	struct pgreedy_data *data = (struct pgreedy_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
 	ret_val = _starpu_fifo_push_task(data->fifo, &data->sched_mutex, &data->sched_cond, task);
