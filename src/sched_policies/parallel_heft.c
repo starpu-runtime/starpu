@@ -469,6 +469,8 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology *topo
 		used_perf_archtypes[perf_archtype] = 1;
 	}
 
+	_STARPU_PTHREAD_MUTEX_INIT(&global_push_mutex, NULL);
+
 //	napplicable_perf_archtypes = 0;
 
 //	int arch;
