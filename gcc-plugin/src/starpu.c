@@ -1523,27 +1523,35 @@ register_task_attributes (void *gcc_data, void *user_data)
     {
       task_attribute_name, 0, 0, true, false, false,
       handle_task_attribute
+#ifdef HAVE_ATTRIBUTE_SPEC_AFFECTS_TYPE_IDENTITY
+      , false
+#endif
     };
 
   static const struct attribute_spec task_implementation_attr =
     {
       task_implementation_attribute_name, 2, 2, true, false, false,
       handle_task_implementation_attribute
+#ifdef HAVE_ATTRIBUTE_SPEC_AFFECTS_TYPE_IDENTITY
+      , false
+#endif
     };
 
   static const struct attribute_spec heap_allocated_attr =
     {
       heap_allocated_attribute_name, 0, 0, true, false, false,
       handle_heap_allocated_attribute
+#ifdef HAVE_ATTRIBUTE_SPEC_AFFECTS_TYPE_IDENTITY
+      , false
+#endif
     };
 
   static const struct attribute_spec output_attr =
     {
       output_attribute_name, 0, 0, true, true, false,
-      handle_output_attribute,
-#if 0 /* FIXME: Check whether the `affects_type_identity' field is
-	 present.  */
-      true /* affects type identity */
+      handle_output_attribute
+#ifdef HAVE_ATTRIBUTE_SPEC_AFFECTS_TYPE_IDENTITY
+      , true /* affects type identity */
 #endif
     };
 

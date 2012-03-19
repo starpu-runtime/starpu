@@ -149,6 +149,7 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     dnl   build_array_ref           -- present but undeclared in 4.6.1
     dnl   build_zero_cst            -- not in GCC 4.5.x; appears in 4.6
     dnl   builtin_decl_explicit     -- new in 4.7, replaces `built_in_decls'
+    dnl   .affects_type_identity    -- new field in 4.7
     _STARPU_WITH_GCC_PLUGIN_API([
       AC_CHECK_DECLS([build_call_expr_loc_array, build_call_expr_loc_vec,
                       build_array_ref, build_zero_cst,
@@ -161,6 +162,14 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
       AC_CHECK_HEADERS([c-common.h c-pragma.h c-family/c-common.h c-family/c-pragma.h],
         [], [], [#include <gcc-plugin.h>
 	         #include <tree.h>])
+
+      AC_CHECK_MEMBER([struct attribute_spec.affects_type_identity],
+        [AC_DEFINE([HAVE_ATTRIBUTE_SPEC_AFFECTS_TYPE_IDENTITY], [1],
+	  [Define to 1 when `struct attribute_spec' has the `affects_type_identity' field.])],
+	[],
+	[#include <gcc-plugin.h>
+	 #include <tree.h>])
+
     ])
 
 
