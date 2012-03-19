@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -105,7 +105,6 @@ static void deinitialize_eager_center_priority_policy(struct starpu_machine_topo
 static int _starpu_priority_push_task(struct starpu_task *task)
 {
 	/* wake people waiting for a task */
-	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	_STARPU_TRACE_JOB_PUSH(task, 1);
 
@@ -116,7 +115,6 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	taskq->total_ntasks++;
 
 	_STARPU_PTHREAD_COND_SIGNAL(&global_sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
 	return 0;
 }
@@ -127,12 +125,10 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 	struct starpu_task *task = NULL;
 
 	/* block until some event happens */
-	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	if ((taskq->total_ntasks == 0) && _starpu_machine_is_running())
 	{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 		return NULL;
 #else
 		_STARPU_PTHREAD_COND_WAIT(&global_sched_cond, &global_sched_mutex);
@@ -155,9 +151,8 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 		}
 		while (!task && priolevel-- > 0);
 	}
-	STARPU_ASSERT_MSG(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0), "prio does not support \"can_execute\"");
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+	if (task)
+		STARPU_ASSERT_MSG(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0), "prio does not support \"can_execute\"");
 
 	return task;
 }
