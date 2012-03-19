@@ -88,6 +88,12 @@
 
 #endif	/* !__cplusplus */
 
+
+/* C expression parser, possibly with C++ linkage.  */
+
+extern int yyparse (location_t, const char *, tree *);
+extern int yydebug;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -632,9 +638,6 @@ handle_pragma_wait (struct cpp_reader *reader)
 }
 
 /* The minimal C expression parser.  */
-
-extern int yyparse (location_t, const char *, tree *);
-extern int yydebug;
 
 /* Parse expressions from the CPP reader for PRAGMA, which is located at LOC.
    Return a TREE_LIST of C expressions.  */
