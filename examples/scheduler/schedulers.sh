@@ -17,7 +17,7 @@
 
 check_success()
 {
-    if [ $1 != 0 ] ; then
+    if [ $1 -ne 0 ] ; then
 	echo "failure" >&2
         exit $1
     fi
