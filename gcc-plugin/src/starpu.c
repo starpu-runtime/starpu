@@ -60,6 +60,35 @@
 #include <starpu.h>  /* for `STARPU_CPU' & co.  */
 
 
+/* GCC 4.7 requires compilation with `g++', and C++ lacks a number of GNU C
+   features, so work around that.  */
+
+#ifdef __cplusplus
+
+/* G++ doesn't implement nested functions, so use C++11 lambdas instead.  */
+
+# include <functional>
+
+# define local_define(ret, name, parms)     auto name = [=]parms
+# define function_parm(ret, name, parms)    std::function<ret parms> name
+
+/* G++ lacks designated initializers.  */
+# define designated_field_init(name, value) value /* XXX: cross fingers */
+
+#else  /* !__cplusplus */
+
+/* GNU C nested functions.  */
+
+# define local_define(ret, name, parms)	    ret name parms
+# define function_parm(ret, name, parms)    ret (*name) parms
+
+/* Designated field initializer.  */
+
+# define designated_field_init(name, value) .name = value
+
+#endif	/* !__cplusplus */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -264,7 +293,7 @@ array_type_element_count (location_t loc, const_tree array_type)
 static tree
 build_constructor_from_unsorted_list (tree type, tree vals)
 {
-  int compare_elmt_bitpos (const void *rt1, const void *rt2)
+  local_define (int, compare_elmt_bitpos, (const void *rt1, const void *rt2))
   {
     const constructor_elt *elmt1 = (constructor_elt *) rt1;
     const constructor_elt *elmt2 = (constructor_elt *) rt2;
@@ -274,7 +303,7 @@ build_constructor_from_unsorted_list (tree type, tree vals)
       = tree_int_cst_compare (bit_position (field1), bit_position (field2));
 
     return ret ? ret : (int) (DECL_UID (field1) - DECL_UID (field2));
-  }
+  };
 
   tree t;
   VEC(constructor_elt,gc) *v = NULL;
@@ -433,7 +462,7 @@ chain_trees (tree t, ...)
 }
 
 static tree
-filter (bool (*pred) (const_tree), tree t)
+filter (function_parm (bool, pred, (const_tree)), tree t)
 {
   tree result, lst;
 
@@ -451,12 +480,12 @@ filter (bool (*pred) (const_tree), tree t)
 }
 
 static tree
-list_remove (bool (*pred) (const_tree), tree t)
+list_remove (function_parm (bool, pred, (const_tree)), tree t)
 {
-  bool opposite (const_tree t)
+  local_define (bool, opposite, (const_tree t))
   {
     return !pred (t);
-  }
+  };
 
   return filter (opposite, t);
 }
@@ -465,7 +494,7 @@ list_remove (bool (*pred) (const_tree), tree t)
    chain of arbitrary tree objects.  */
 
 static tree
-map (tree (*func) (const_tree), tree t)
+map (function_parm (tree, func, (const_tree)), tree t)
 {
   tree result, tail, lst;
 
@@ -485,7 +514,7 @@ map (tree (*func) (const_tree), tree t)
 }
 
 static void
-for_each (void (*func) (tree), tree t)
+for_each (function_parm (void, func, (tree)), tree t)
 {
   tree lst;
 
@@ -496,7 +525,7 @@ for_each (void (*func) (tree), tree t)
 }
 
 static size_t
-count (bool (*pred) (const_tree), const_tree t)
+count (function_parm (bool, pred, (const_tree)), const_tree t)
 {
   size_t result;
   const_tree lst;
@@ -1169,10 +1198,10 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
 		    where);
       else if (task_implementation_target_to_int (where) == STARPU_OPENCL)
 	{
-	  void validate (tree t)
+	  local_define (void, validate, (tree t))
 	  {
 	    validate_opencl_argument_type (loc, t);
-	  }
+	  };
 
 	  for_each (validate, TYPE_ARG_TYPES (TREE_TYPE (fn)));
 	}
@@ -1556,7 +1585,7 @@ build_codelet_wrapper_identifier (tree task_impl)
   id = DECL_NAME (task_impl);
   task_name = IDENTIFIER_POINTER (id);
 
-  cl_name = alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
+  cl_name = (char *) alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
   memcpy (cl_name, task_name, IDENTIFIER_LENGTH (id));
   strcpy (&cl_name[IDENTIFIER_LENGTH (id)], suffix);
 
@@ -1576,7 +1605,7 @@ build_codelet_wrapper_definition (tree task_impl)
   loc = DECL_SOURCE_LOCATION (task_impl);
   task_decl = task_implementation_task (task_impl);
 
-  tree build_local_var (const_tree type)
+  local_define (tree, build_local_var, (const_tree type))
   {
     tree var, t;
     const char *seed;
@@ -1589,12 +1618,12 @@ build_codelet_wrapper_definition (tree task_impl)
     DECL_ARTIFICIAL (var) = true;
 
     return var;
-  }
+  };
 
   /* Return the body of the wrapper, which unpacks `cl_args' and calls the
      user-defined task implementation.  */
 
-  tree build_body (tree wrapper_decl, tree vars)
+  local_define (tree, build_body, (tree wrapper_decl, tree vars))
   {
     bool opencl_p;
     tree stmts = NULL, call, v;
@@ -1669,12 +1698,12 @@ build_codelet_wrapper_definition (tree task_impl)
     TREE_TYPE (bind) = TREE_TYPE (TREE_TYPE (wrapper_decl));
 
     return bind;
-  }
+  };
 
   /* Return the parameter list of the wrapper:
      `(void **BUFFERS, void *CL_ARGS)'.  */
 
-  tree build_parameters (tree wrapper_decl)
+  local_define (tree, build_parameters, (tree wrapper_decl))
   {
     tree param1, param2;
 
@@ -1693,7 +1722,7 @@ build_codelet_wrapper_definition (tree task_impl)
     TREE_USED (param2) = true;
 
     return chainon (param1, param2);
-  }
+  };
 
   tree wrapper_name, vars, result;
 
@@ -1749,7 +1778,7 @@ build_codelet_wrapper_definition (tree task_impl)
 static void
 define_codelet_wrappers (tree task)
 {
-  void define (tree task_impl)
+  local_define (void, define, (tree task_impl))
   {
     tree wrapper_def;
 
@@ -1759,7 +1788,7 @@ define_codelet_wrappers (tree task)
       tree_cons (get_identifier (task_implementation_wrapper_attribute_name),
 		 wrapper_def,
 		 DECL_ATTRIBUTES (task_impl));
-  }
+  };
 
   for_each (define, task_implementation_list (task));
 }
@@ -1779,7 +1808,7 @@ build_codelet_identifier (tree task_decl)
   id = DECL_NAME (task_decl);
   task_name = IDENTIFIER_POINTER (id);
 
-  cl_name = alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
+  cl_name = (char *) alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
   memcpy (cl_name, task_name, IDENTIFIER_LENGTH (id));
   strcpy (&cl_name[IDENTIFIER_LENGTH (id)], suffix);
 
@@ -1840,7 +1869,7 @@ build_codelet_initializer (tree task_decl)
   fields = TYPE_FIELDS (codelet_type ());
   gcc_assert (TREE_CODE (fields) == FIELD_DECL);
 
-  tree lookup_field (const char *name)
+  local_define (tree, lookup_field, (const char *name))
   {
     tree fdecl, fname;
 
@@ -1855,9 +1884,9 @@ build_codelet_initializer (tree task_decl)
 
     /* Field NAME wasn't found.  */
     gcc_assert (false);
-  }
+  };
 
-  tree field_initializer (const char *name, tree value)
+  local_define (tree, field_initializer, (const char *name, tree value))
   {
     tree field, init;
 
@@ -1872,15 +1901,15 @@ build_codelet_initializer (tree task_decl)
       TREE_VALUE (init) = value;
 
     return init;
-  }
+  };
 
-  tree codelet_name ()
+  local_define (tree, codelet_name, ())
   {
     const char *name = IDENTIFIER_POINTER (DECL_NAME (task_decl));
     return build_string_literal (strlen (name) + 1, name);
-  }
+  };
 
-  tree where_init (tree impls)
+  local_define (tree, where_init, (tree impls))
   {
     tree impl;
     int where_int = 0;
@@ -1903,9 +1932,9 @@ build_codelet_initializer (tree task_decl)
       }
 
     return build_int_cstu (integer_type_node, where_int);
-  }
+  };
 
-  tree implementation_pointers (tree impls, int where)
+  local_define (tree, implementation_pointers, (tree impls, int where))
   {
     size_t len;
     tree impl, pointers;
@@ -1943,17 +1972,17 @@ build_codelet_initializer (tree task_decl)
     return build_constructor_from_list (build_array_type (ptr_type_node,
 							  index_type),
 					nreverse (pointers));
-  }
+  };
 
-  tree pointer_arg_count (void)
+  local_define (tree, pointer_arg_count, (void))
   {
     size_t len;
 
     len = list_length (task_pointer_parameter_types (task_decl));
     return build_int_cstu (integer_type_node, len);
-  }
+  };
 
-  tree access_mode_array (void)
+  local_define (tree, access_mode_array, (void))
   {
     const_tree type;
     tree modes;
@@ -1975,7 +2004,7 @@ build_codelet_initializer (tree task_decl)
     return build_constructor_from_list (build_array_type (integer_type_node,
 							  index_type),
 					nreverse (modes));
-  }
+  };
 
   if (verbose_output_p)
     inform (DECL_SOURCE_LOCATION (task_decl),
@@ -2044,7 +2073,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 	  /* TASK lacks a body.  Declare its codelet, intantiate its codelet
 	     wrappers, and its body in this compilation unit.  */
 
-	  tree build_parameter (const_tree lst)
+	  local_define (tree, build_parameter, (const_tree lst))
 	  {
 	    tree param, type;
 
@@ -2056,7 +2085,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 	    DECL_CONTEXT (param) = task;
 
 	    return param;
-	  }
+	  };
 
 	  /* Declare TASK's codelet.  It cannot be defined yet because the
 	     complete list of tasks isn't available at this point.  */
@@ -2380,9 +2409,10 @@ lower_starpu (void)
 
 static struct opt_pass pass_lower_starpu =
   {
-    .type = GIMPLE_PASS,
-    .name = "pass_lower_starpu",
-    .execute = lower_starpu,
+    designated_field_init (type, GIMPLE_PASS),
+    designated_field_init (name, "pass_lower_starpu"),
+    designated_field_init (gate, NULL),
+    designated_field_init (execute, lower_starpu)
 
     /* The rest is zeroed.  */
   };
@@ -2432,10 +2462,10 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   struct register_pass_info pass_info =
     {
-      .pass = &pass_lower_starpu,
-      .reference_pass_name = "*build_cgraph_edges",
-      .ref_pass_instance_number = 1,
-      .pos_op = PASS_POS_INSERT_AFTER
+      designated_field_init (pass, &pass_lower_starpu),
+      designated_field_init (reference_pass_name, "*build_cgraph_edges"),
+      designated_field_init (ref_pass_instance_number, 1),
+      designated_field_init (pos_op, PASS_POS_INSERT_AFTER)
     };
 
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP,
@@ -2443,7 +2473,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
 
-  size_t arg;
+  int arg;
   for (arg = 0; arg < plugin_info->argc; arg++)
     {
       if (strcmp (plugin_info->argv[arg].key, "include-dir") == 0)

@@ -175,6 +175,9 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     dnl Determine the corresponding Libtool tag.
     if test "$GCC_FOR_PLUGIN" = "$CXX"; then
       GCC_FOR_PLUGIN_LIBTOOL_TAG="CXX"
+
+      # Require C++11, for lambdas and `auto'.
+      GCC_FOR_PLUGIN="$GCC_FOR_PLUGIN -std=c++11"
     else
       GCC_FOR_PLUGIN_LIBTOOL_TAG="CC"
     fi
