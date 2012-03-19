@@ -1611,10 +1611,14 @@ static tree
 build_codelet_wrapper_definition (tree task_impl)
 {
   location_t loc;
-  tree task_decl, decl;
+  tree task_decl, wrapper_name, decl;
 
   loc = DECL_SOURCE_LOCATION (task_impl);
   task_decl = task_implementation_task (task_impl);
+
+  wrapper_name = build_codelet_wrapper_identifier (task_impl);
+  decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
+		     build_codelet_wrapper_type ());
 
   local_define (tree, build_local_var, (const_tree type))
   {
@@ -1735,11 +1739,7 @@ build_codelet_wrapper_definition (tree task_impl)
     return chainon (param1, param2);
   };
 
-  tree wrapper_name, vars, result;
-
-  wrapper_name = build_codelet_wrapper_identifier (task_impl);
-  decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
-		     build_codelet_wrapper_type ());
+  tree vars, result;
 
   vars = map (build_local_var,
 	      list_remove (void_type_p,
