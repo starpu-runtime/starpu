@@ -10,10 +10,11 @@
 * Using multiple implementations of a codelet::
 * Enabling implementation according to capabilities::
 * Task and Worker Profiling::   
-* Partitioning Data::           Partitioning Data
+* Partitioning Data::
 * Performance model example::   
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
+* Data reduction::  
 * Parallel Tasks::
 * Debugging::
 * The multiformat interface::
@@ -586,6 +587,86 @@ portion of code passed as third parameter of @code{STARPU_DATA_ACQUIRE_CB} will
 be executed, and is allowed to read from @code{i} to use it e.g. as an
 index. Note that this macro is only avaible when compiling StarPU with
 the compiler @code{gcc}.
+
+@node Data reduction
+@section Data reduction
+
+In various cases, some piece of data is used to accumulate intermediate
+results. For instances, the dot product of a vector, maximum/minimum finding,
+the histogram of a photograph, etc. When these results are produced along the
+whole machine, it would not be efficient to accumulate them in only one place,
+incurring data transmission each and access concurrency.
+
+StarPU provides a @code{STARPU_REDUX} mode, which permits to optimize
+that case: it will allocate a buffer on each memory node, and accumulate
+intermediate results there. When the data is eventually accessed in the normal
+@code{STARPU_R} mode, StarPU will collect the intermediate results in just one
+buffer.
+
+For this to work, the user has to use the
+@code{starpu_data_set_reduction_methods} to declare how to initialize these
+buffers, and how to assemble partial results.
+
+For instance, @code{cg} uses that to optimize its dot product: it first defines
+the codelets for initialization and reduction:
+
+@smallexample
+struct starpu_codelet bzero_variable_cl =
+@{
+        .cpu_funcs = @{ bzero_variable_cpu, NULL @},
+        .cuda_funcs = @{ bzero_variable_cuda, NULL @},
+        .nbuffers = 1,
+@}
+
+static void accumulate_variable_cpu(void *descr[], void *cl_arg)
+@{
+        double *v_dst = (double *)STARPU_VARIABLE_GET_PTR(descr[0]);
+        double *v_src = (double *)STARPU_VARIABLE_GET_PTR(descr[1]);
+        *v_dst = *v_dst + *v_src;
+@}
+
+static void accumulate_variable_cuda(void *descr[], void *cl_arg)
+@{
+        double *v_dst = (double *)STARPU_VARIABLE_GET_PTR(descr[0]);
+        double *v_src = (double *)STARPU_VARIABLE_GET_PTR(descr[1]);
+        cublasaxpy(1, (double)1.0, v_src, 1, v_dst, 1);
+        cudaStreamSynchronize(starpu_cuda_get_local_stream());
+@}
+
+struct starpu_codelet accumulate_variable_cl =
+@{
+        .cpu_funcs = @{ accumulate_variable_cpu, NULL @},
+        .cuda_funcs = @{ accumulate_variable_cuda, NULL @},
+        .nbuffers = 1,
+@}
+@end smallexample
+
+and attaches them as reduction methods for its dtq handle:
+
+@smallexample
+starpu_data_set_reduction_methods(dtq_handle,
+        &accumulate_variable_cl, &bzero_variable_cl);
+@end smallexample
+
+and dtq_handle can now be used in @code{STARPU_REDUX} mode for the dot products
+with partitioned vectors:
+
+@smallexample
+int dots(starpu_data_handle v1, starpu_data_handle v2,
+         starpu_data_handle s, unsigned nblocks)
+@{
+    starpu_insert_task(&bzero_variable_cl, STARPU_W, s, 0);
+    for (b = 0; b < nblocks; b++)
+        starpu_insert_task(&dot_kernel_cl,
+            STARPU_RW, s,
+            STARPU_R, starpu_data_get_sub_data(v1, 1, b),
+            STARPU_R, starpu_data_get_sub_data(v2, 1, b),
+            0);
+@}
+@end smallexample
+
+The @code{cg} example also uses reduction for the blocked gemv kernel, leading
+to yet more relaxed dependencies and more parallelism.
 
 @node Parallel Tasks
 @section Parallel Tasks
