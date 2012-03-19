@@ -38,6 +38,7 @@ New features:
   * Permit to specify MPI tags for more efficient starpu_mpi_insert_task
 
 Changes:
+  * Fix several memory leaks and race conditions
   * Make environment variables take precedence over the configuration
         passed to starpu_init()
   * Libtool interface versioning has been included in libraries names

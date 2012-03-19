@@ -305,7 +305,7 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 			}
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	/* allocation succeeded */
@@ -340,7 +340,7 @@ fail_rowptr:
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 fail_colind:
@@ -364,7 +364,7 @@ fail_colind:
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 fail_nzval:
@@ -409,7 +409,7 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 }
 

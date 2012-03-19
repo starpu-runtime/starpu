@@ -376,6 +376,12 @@ int main(int argc, char **argv)
 	/* We check that the value in the "last" thread is valid */
 	starpu_data_handle_t last_handle = problem_data[nthreads - 1].handle;
 	starpu_data_acquire(last_handle, STARPU_R);
+
+#ifdef STARPU_USE_OPENCL
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+#endif
+
 	ret = EXIT_SUCCESS;
 	if (problem_data[nthreads - 1].val != (nthreads * niter))
 	{
@@ -389,10 +395,6 @@ int main(int argc, char **argv)
 		starpu_data_unregister(problem_data[t].handle);
 	}
 
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
 	starpu_shutdown();
 
 	STARPU_RETURN(ret);

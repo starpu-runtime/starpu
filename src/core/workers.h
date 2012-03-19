@@ -158,15 +158,15 @@ struct _starpu_machine_config
 	 * the result of (worker_mask & STARPU_CUDA). */
 	uint32_t worker_mask;
 
-	/* in case the user gives an explicit configuration, this is only valid
-	 * during starpu_init. */
-	struct starpu_conf *user_conf;
+        /* either the user given configuration passed to starpu_init or a default configuration */
+	struct starpu_conf *conf;
+	/* set to 1 if no conf has been given by the user, it
+	 * indicates the memory allocated for the default
+	 * configuration should be freed on shutdown */
+	int default_conf;
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
-
-        /* indicate if the asynchronous copies should be disabled */
-        int disable_asynchronous_copy;
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];

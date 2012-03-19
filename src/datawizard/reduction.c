@@ -113,6 +113,8 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 	unsigned replicate_count = 0;
 	starpu_data_handle_t replicate_array[1 + STARPU_NMAXWORKERS];
 
+	_starpu_spin_checklocked(&handle->header_lock);
+
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (handle->per_node[node].state != STARPU_INVALID)
@@ -328,6 +330,9 @@ void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
 
 //	fprintf(stderr, "_starpu_data_end_reduction_mode_terminate\n");
 	unsigned worker;
+
+	_starpu_spin_checklocked(&handle->header_lock);
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *replicate;

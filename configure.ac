@@ -1676,6 +1676,6 @@ AC_MSG_NOTICE([
 	       MPI test suite: $running_mpi_check
 	       FFT Support: $fft_support
 	       GCC plug-in: $build_gcc_plugin
-	       GCC plug-in test suite: $run_gcc_plugin_test_suite
+	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
 ])

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
 int _starpu_spin_lock(struct _starpu_spinlock *lock);
 int _starpu_spin_trylock(struct _starpu_spinlock *lock);
+int _starpu_spin_checklocked(struct _starpu_spinlock *lock);
 int _starpu_spin_unlock(struct _starpu_spinlock *lock);
 
 #endif // __STARPU_SPINLOCK_H__

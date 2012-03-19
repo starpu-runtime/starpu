@@ -90,6 +90,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 {
 	struct _starpu_data_request *r = _starpu_data_request_new();
 
+	_starpu_spin_checklocked(&handle->header_lock);
+
 	_starpu_spin_init(&r->lock);
 
 	r->handle = handle;
@@ -235,6 +237,8 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 #ifdef STARPU_MEMORY_STATUS
 	enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
 #endif
+
+	_starpu_spin_checklocked(&handle->header_lock);
 	_starpu_update_data_state(handle, r->dst_replicate, mode);
 
 #ifdef STARPU_MEMORY_STATUS

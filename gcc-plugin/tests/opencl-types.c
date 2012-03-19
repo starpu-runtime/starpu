@@ -25,6 +25,7 @@
 
 #include <mocks.h>
 #include <unistd.h>
+#include <sys/types.h>				  /* for `uint' & co. */
 
 
 /* Make sure `size_t' is flagged.  */
@@ -111,6 +112,49 @@ static void
 my_uchar_task_opencl (char c[])
 {
 }
+
+
+/* "unsigned int" is aka. "uint".  */
+
+static void my_uint_task (const uint *c)
+  __attribute__ ((task));
+static void my_uint_task_cpu (const uint *c)
+  __attribute__ ((task_implementation ("cpu", my_uint_task)));
+static void my_uint_task_opencl (const uint *c)	  /* no warning */
+  __attribute__ ((task_implementation ("opencl", my_uint_task)));
+
+static void
+my_uint_task_cpu (const uint *c)
+{
+}
+
+static void
+my_uint_task_opencl (const uint *c)
+{
+}
+
+
+/* "unsigned char" is aka. "uchar".  */
+
+typedef float uchar;				  /* not a real `uchar'! */
+
+static void my_fake_uchar_task (const uchar *c)
+  __attribute__ ((task));
+static void my_fake_uchar_task_cpu (const uchar *c)
+  __attribute__ ((task_implementation ("cpu", my_fake_uchar_task)));
+static void my_fake_uchar_task_opencl (const uchar *c) /* (warning "differs from the same-named OpenCL type") */
+  __attribute__ ((task_implementation ("opencl", my_fake_uchar_task)));
+
+static void
+my_fake_uchar_task_cpu (const uchar *c)
+{
+}
+
+static void
+my_fake_uchar_task_opencl (const uchar *c)
+{
+}
+
 
 
 /* No OpenCL, no problems.  */

@@ -225,7 +225,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	unsigned i;
 	int err;
 	double sum = 0.0;
-	unsigned int node, cpu_node;
+	int node, cpu_node;
 
 	/* We need to get one node per archtype. This is kinda ugly,
 	 * but it does the job.
@@ -267,28 +267,31 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
+		node = -EINVAL;
+#ifdef STARPU_USE_CPU
 		if (arch < STARPU_CUDA_DEFAULT)
 			node = cpu_node;
+#endif
 #ifdef STARPU_USE_CUDA
-		else if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
+		if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
 			node = cuda_node;
 #endif
 #ifdef STARPU_USE_OPENCL
-		else if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
+		if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
 			node = opencl_node;
 #endif
-		else {
-			node = -EINVAL;
+		if (node == -EINVAL)
 			STARPU_ASSERT(0);
-		}
 
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
 
 		conversion_task = _starpu_create_conversion_task(handle, node);
 		sum += starpu_task_expected_length(conversion_task, arch, nimpl);
+		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
+		_starpu_spin_unlock(&handle->header_lock);
 		starpu_task_deinit(conversion_task);
 		free(conversion_task);
 	}

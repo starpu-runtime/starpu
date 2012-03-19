@@ -59,7 +59,8 @@ EXTRA_DIST = 					\
 	filters/custom_mf/conversion_opencl.cl  \
 	filters/custom_mf/custom_opencl.cl \
 	interface/complex_kernels.cl \
-	reductions/dot_product_opencl_kernels.cl
+	reductions/dot_product_opencl_kernels.cl	\
+	scheduler/schedulers.sh
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf
@@ -152,6 +153,8 @@ noinst_HEADERS = 				\
 
 STARPU_EXAMPLES	=
 TESTS		=	$(STARPU_EXAMPLES)
+TESTS		+=	scheduler/schedulers.sh
+
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(STARPU_EXAMPLES)

@@ -25,9 +25,87 @@ AC_DEFUN([_STARPU_WITH_GCC_PLUGIN_API], [
   CPPFLAGS="$save_CPPFLAGS"
 ])
 
+dnl Set $ac_cv_starpu_gcc_for_plugin to the compiler to use to compile
+dnl GCC plug-ins.  It's `gcc' for GCC 4.5/4.6, probably `g++' for 4.7,
+dnl and definitely `g++' for 4.8, because the last two build
+dnl themselves with `g++', leading to mangled names.
+dnl See <http://thread.gmane.org/gmane.comp.gcc.devel/125210> for details.
+AC_DEFUN([_STARPU_GCC_PLUGIN_LANGUAGE], [
+  AC_CACHE_CHECK([which compiler to use to build GCC plug-ins],
+    [ac_cv_starpu_gcc_for_plugin], [
+     for GCC_FOR_PLUGIN in "$CC" "$CXX" ""
+     do
+       if test "x$GCC_FOR_PLUGIN" = "x"; then
+	 break;
+       fi
+
+       cat > conftest.c <<END_OF_CONFTEST
+	 #include <gcc-plugin.h>
+         #include <plugin-version.h>
+	 #include <cpplib.h>
+
+	 int plugin_is_GPL_compatible;
+
+         extern struct cpp_reader *parse_in; /* C-family front-ends */
+
+	 static void
+	 define_something (void *gcc_data, void *user_data)
+	 {
+	   cpp_define (parse_in, "CONFTEST_GCC_PLUGIN=1");
+	 }
+
+	 int
+	 plugin_init (struct plugin_name_args *plugin_info,
+		      struct plugin_gcc_version *version)
+	 {
+	   if (!plugin_default_version_check (version, &gcc_version))
+	     return 1;
+	   register_callback ("conftest", PLUGIN_START_UNIT,
+			      define_something, NULL);
+	   return 0;
+	 }
+END_OF_CONFTEST
+
+       # Build the plug-in.
+       rm -f conftest.so
+       _STARPU_WITH_GCC_PLUGIN_API([
+	 _AC_DO(["$GCC_FOR_PLUGIN" "$CPPFLAGS" -fPIC -shared conftest.c -o conftest.so]) || {
+	   AC_MSG_ERROR([failed to build a GCC plug-in with `$GCC_FOR_PLUGIN'])
+	 }
+       ])
+
+       # Attempt to use it.
+       save_CFLAGS="$CFLAGS"
+       CFLAGS="-fplugin=$PWD/conftest.so"
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+			   #ifndef CONFTEST_GCC_PLUGIN
+			   # error plug-in not loaded
+			   #endif]], [])],
+	 [ac_cv_starpu_gcc_for_plugin="$GCC_FOR_PLUGIN"], [:])
+       CFLAGS="$save_CFLAGS"
+
+       rm -f conftest.so conftest.c
+
+       if test "x$ac_cv_starpu_gcc_for_plugin" != "x"; then
+	 # We're done.
+	 break
+       fi
+     done
+
+     if test "x$ac_cv_starpu_gcc_for_plugin" = "x"; then
+       AC_MSG_RESULT([none])
+       AC_MSG_ERROR([could not find a suitable compiler for GCC plug-ins])
+     fi
+  ])
+
+  $1="$ac_cv_starpu_gcc_for_plugin"
+])
+
+
 dnl Check whether GCC plug-in support is available (GCC 4.5+).
 AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
   AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([AC_PROG_CXX]) dnl for GCC 4.7+
   AC_CACHE_CHECK([whether GCC supports plug-ins], [ac_cv_have_gcc_plugins], [
     if test "x$GCC" = xyes; then
       # ICC 12.1.0 and Clang 3.1 (among others) support `--version',
@@ -83,11 +161,24 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
       AC_CHECK_HEADERS([c-common.h c-pragma.h c-family/c-common.h c-family/c-pragma.h],
         [], [], [#include <gcc-plugin.h>
 	         #include <tree.h>])
-
-      AC_DEFINE_UNQUOTED([STARPU_INCLUDE_DIR],
-        ["`eval "echo $includedir"`/starpu/$STARPU_EFFECTIVE_VERSION"],
-        [Define to the directory where StarPU's headers are installed.])
     ])
+
+
+    AC_DEFINE_UNQUOTED([STARPU_INCLUDE_DIR],
+      ["`eval "echo $includedir"`/starpu/$STARPU_EFFECTIVE_VERSION"],
+      [Define to the directory where StarPU's headers are installed.])
+
+    dnl Now, `gcc' or `g++'?
+    _STARPU_GCC_PLUGIN_LANGUAGE([GCC_FOR_PLUGIN])
+    AC_SUBST([GCC_FOR_PLUGIN])
+
+    dnl Determine the corresponding Libtool tag.
+    if test "$GCC_FOR_PLUGIN" = "$CXX"; then
+      GCC_FOR_PLUGIN_LIBTOOL_TAG="CXX"
+    else
+      GCC_FOR_PLUGIN_LIBTOOL_TAG="CC"
+    fi
+    AC_SUBST([GCC_FOR_PLUGIN_LIBTOOL_TAG])
   fi
 
   AC_SUBST([GCC_PLUGIN_INCLUDE_DIR])

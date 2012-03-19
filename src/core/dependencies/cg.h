@@ -45,7 +45,9 @@ struct _starpu_cg_list
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
 
-	/* Whether the completion is finished. */
+	/* Whether the completion is finished.
+	 * For restartable/restarted tasks, only the first iteration is taken into account here.
+	 */
 	unsigned terminated;
 
 	/* List of successors */

@@ -478,7 +478,7 @@ void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topo
 {
     struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-    if ((config->user_conf && config->user_conf->single_combined_worker > 0) || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
+    if (config->conf->single_combined_worker > 0)
 	combine_all_cpu_workers(topology);
     else
     {

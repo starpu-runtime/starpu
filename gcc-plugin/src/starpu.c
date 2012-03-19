@@ -19,8 +19,6 @@
 
 #include <starpu-gcc-config.h>
 
-int plugin_is_GPL_compatible;
-
 /* #define ENABLE_TREE_CHECKING 1 */
 
 #include <gcc-plugin.h>
@@ -61,6 +59,13 @@ int plugin_is_GPL_compatible;
 
 #include <starpu.h>  /* for `STARPU_CPU' & co.  */
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Declared with `C' linkage in <gcc-plugin.h>.  */
+int plugin_is_GPL_compatible;
 
 /* The name of this plug-in.  */
 static const char plugin_name[] = "starpu";
@@ -1027,14 +1032,19 @@ validate_opencl_argument_type (location_t loc, const_tree type)
 	  static const struct { const char *c; const char *cl; }
 	  type_map[] =
 	    {
+	      /* Scalar types defined in OpenCL 1.2.  See
+		 <http://www.khronos.org/files/opencl-1-2-quick-reference-card.pdf>.  */
 	      { "char", "cl_char" },
 	      { "unsigned char", "cl_uchar" },
+	      { "uchar", "cl_uchar" },
 	      { "short int", "cl_short" },
 	      { "unsigned short", "cl_ushort" },
 	      { "int", "cl_int" },
 	      { "unsigned int", "cl_uint" },
+	      { "uint", "cl_uint" },
 	      { "long int", "cl_long" },
 	      { "long unsigned int", "cl_ulong" },
+	      { "ulong", "cl_ulong" },
 	      { "float", "cl_float" },
 	      { "double", "cl_double" },
 	      { NULL, NULL }
@@ -2454,3 +2464,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif

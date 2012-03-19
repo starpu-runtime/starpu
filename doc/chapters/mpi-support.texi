@@ -20,10 +20,10 @@ distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
 @menu
-* The API::                     
-* Simple Example::              
-* MPI Insert Task Utility::         
-* MPI Collective Operations::         
+* The API::
+* Simple Example::
+* MPI Insert Task Utility::
+* MPI Collective Operations::
 @end menu
 
 @node The API
@@ -66,49 +66,91 @@ by calling @code{starpu_mpi_initialize_extended}.
 
 @subsection Communication
 
-TODO
+The standard point to point communications of MPI have been
+implemented. The semantic is similar to the MPI one, but adapted to
+the DSM provided by StarPU. A MPI request will only be submitted when
+the data is available in the main memory of the node submitting the
+request.
 
 @deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
+Performs a standard-mode, blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_recv (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, MPI_Status *@var{status})
+Performs a standard-mode, blocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
-
+Posts a standard-mode, non blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. After the call, the pointer to the request
+@var{req} can be used to test the completion of the communication.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
+Posts a nonblocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. After the call, the pointer to the request
+@var{req} can be used to test the completion of the communication.
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend_detached (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
+Posts a standard-mode, non blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, the @var{callback} function is
+called with the argument @var{arg}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv_detached (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
+Posts a nonblocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, the @var{callback} function is
+called with the argument @var{arg}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_wait (starpu_mpi_req *@var{req}, MPI_Status *@var{status})
+Returns when the operation identified by request @var{req} is complete.
 @end deftypefun
 
 @deftypefun int starpu_mpi_test (starpu_mpi_req *@var{req}, int *@var{flag}, MPI_Status *@var{status})
+If the operation identified by @var{req} is complete, set @var{flag}
+to 1. The @var{status} object is set to contain information on the
+completed operation.
 @end deftypefun
 
 @deftypefun int starpu_mpi_barrier (MPI_Comm @var{comm})
+Blocks the caller until all group members of the communicator
+@var{comm} have called it.
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag_t @var{tag})
-When the transfer is completed, the tag is unlocked
+Posts a standard-mode, non blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, @var{tag} is unlocked.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag_t @var{tag})
+Posts a nonblocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, @var{tag} is unlocked.
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
-Asynchronously send an array of buffers, and unlocks the tag once all
-of them are transmitted.
+Posts @var{array_size} standard-mode, non blocking send of the data of
+data @var{data_handle[x]} to the node @var{dest[x]} using the message
+tag @code{mpi_tag[x]} within the communicator @var{comm[x]}. On
+completion of the all the requests, @var{tag} is unlocked.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
+Posts @var{array_size} nonblocking receive in @var{data_handle[x]} from the
+node @var{source[x]} using the message tag @code{mpi_tag[x]} within the
+communicator @var{comm[x]}. On completion of the all the requests,
+@var{tag} is unlocked.
 @end deftypefun
 
 @page

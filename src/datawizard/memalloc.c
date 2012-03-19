@@ -158,6 +158,7 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 #endif
 			/* TODO use request !! */
 			/* Take temporary references on the replicates */
+			_starpu_spin_checklocked(&handle->header_lock);
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 			handle->busy_count+=2;
@@ -708,11 +709,12 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-#ifdef STARPU_DEVEL
-#warning to be fixed
-#endif
-			global_mem_size = 64*1024*1024;
-			break;
+		{
+			/* We should probably never get here : if there is no
+ 			 * space left in RAM, the operating system should swap
+			 * to disk for us. */
+			STARPU_ABORT();
+		}
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
@@ -730,7 +732,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 		}
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 	return global_mem_size;
 }
@@ -751,6 +753,8 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 {
 	unsigned attempts = 0;
 	ssize_t allocated_memory;
+
+	_starpu_spin_checklocked(&handle->header_lock);
 
 	_starpu_data_allocation_inc_stats(dst_node);
 

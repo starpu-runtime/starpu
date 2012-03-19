@@ -363,7 +363,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32
 			}
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	if (fail)

@@ -117,7 +117,7 @@ struct starpu_opencl_program opencl_program;
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret, exit_value;
 
 	/* Initialize StarPU */
 	ret = starpu_init(NULL);
@@ -187,8 +187,8 @@ int main(int argc, char **argv)
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV)
 		{
-		     ret = 77;
-		     goto enodev;
+			exit_value = 77;
+			goto enodev;
 		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -209,8 +209,8 @@ enodev:
 
 	FPRINTF(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", vec_y[0], alpha);
 
-	if (ret != 77)
-		ret = check();
+	if (exit_value != 77)
+		exit_value = check();
 
 	starpu_free((void *)vec_x);
 	starpu_free((void *)vec_y);
@@ -222,5 +222,5 @@ enodev:
 	/* Stop StarPU */
 	starpu_shutdown();
 
-	return ret;
+	return exit_value;
 }

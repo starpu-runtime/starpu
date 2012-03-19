@@ -10,7 +10,12 @@
 When GCC plug-in support is available, StarPU builds a plug-in for the
 GNU Compiler Collection (GCC), which defines extensions to languages of
 the C family (C, C++, Objective-C) that make it easier to write StarPU
-code@footnote{This feature is only available for GCC 4.5 and later.  It
+code@footnote{This feature is only available for GCC 4.5 and later.  You
+may need to install a specific @code{-dev} package of your distro, such
+as @code{gcc-4.6-plugin-dev} on Debian and derivatives.  In addition,
+the plug-in's test suite is only run when
+@url{http://www.gnu.org/software/guile/, GNU@tie{}Guile} is found at
+@code{configure}-time.  Building the GCC plug-in
 can be disabled by configuring with @code{--disable-gcc-extensions}.}.
 
 Those extensions include syntactic sugar for defining

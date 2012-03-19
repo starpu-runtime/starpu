@@ -184,15 +184,8 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 	if (use_prefetch == -1)
 		use_prefetch = 1;
 
-	/* By default, we don't calibrate */
-	unsigned do_calibrate = 0;
-	int res = starpu_get_env_number("STARPU_CALIBRATE");
-	if (res == -1 && config->user_conf)
-		res = config->user_conf->calibrate;
-
-	do_calibrate = (res < 0)?0:(unsigned)res;
-
-	_starpu_set_calibrate_flag(do_calibrate);
+	/* Set calibrate flag */
+	_starpu_set_calibrate_flag(config->conf->calibrate);
 
 	struct starpu_sched_policy *selected_policy;
 	selected_policy = select_sched_policy(config, required_policy);
@@ -289,6 +282,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int *combined_workerid = combined_worker->combined_workerid;
 
 		int ret = 0;
+		int i;
 
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 		j->task_size = worker_size;
@@ -421,8 +415,10 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 	node_kind = starpu_node_get_kind(node);
 
+	_starpu_spin_lock(&handle->header_lock);
 	handle->refcnt++;
 	handle->busy_count++;
+	_starpu_spin_unlock(&handle->header_lock);
 
 	struct starpu_multiformat_data_interface_ops *mf_ops;
 	mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
@@ -479,6 +475,7 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 	struct timespec pop_start_time;
 	if (profiling)
 		_starpu_clock_gettime(&pop_start_time);
+
 pick:
 	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
