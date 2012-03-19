@@ -105,6 +105,7 @@ static void deinitialize_eager_center_priority_policy(struct starpu_machine_topo
 static int _starpu_priority_push_task(struct starpu_task *task)
 {
 	/* wake people waiting for a task */
+	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	_STARPU_TRACE_JOB_PUSH(task, 1);
 
@@ -115,6 +116,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	taskq->total_ntasks++;
 
 	_STARPU_PTHREAD_COND_SIGNAL(&global_sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
 	return 0;
 }
