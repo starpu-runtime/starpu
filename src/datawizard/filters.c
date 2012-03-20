@@ -302,7 +302,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 			task->handles[0] = child_handle;
 			task->cl = &cl;
 			task->synchronous = 1;
-			if (starpu_task_submit(task) != 0)
+			if (_starpu_task_submit_internally(task) != 0)
 				_STARPU_ERROR("Could not submit the conversion task while unpartitionning\n");
 		}
 

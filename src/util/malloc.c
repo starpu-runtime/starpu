@@ -105,7 +105,7 @@ int starpu_malloc(void **A, size_t dim)
 
 		_starpu_exclude_task_from_dag(task);
 
-		push_res = starpu_task_submit(task);
+		push_res = _starpu_task_submit_internally(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 #endif
@@ -131,7 +131,7 @@ int starpu_malloc(void **A, size_t dim)
 //
 //		_starpu_exclude_task_from_dag(task);
 //
-//		push_res = starpu_task_submit(task);
+//		push_res = _starpu_task_submit_internally(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //        }
@@ -216,7 +216,7 @@ int starpu_free(void *A)
 
 		_starpu_exclude_task_from_dag(task);
 
-		push_res = starpu_task_submit(task);
+		push_res = _starpu_task_submit_internally(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 	}
 #endif
@@ -235,7 +235,7 @@ int starpu_free(void *A)
 //
 //		_starpu_exclude_task_from_dag(task);
 //
-//		push_res = starpu_task_submit(task);
+//		push_res = _starpu_task_submit_internally(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //	}

@@ -39,6 +39,6 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 	/* This task does nothing */
 	sync_task->cl = NULL;
 
-	int sync_ret = starpu_task_submit(sync_task);
+	int sync_ret = _starpu_task_submit_internally(sync_task);
 	STARPU_ASSERT(!sync_ret);
 }

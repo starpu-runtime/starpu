@@ -77,7 +77,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 
 		_starpu_exclude_task_from_dag(tasks[worker]);
 
-		ret = starpu_task_submit(tasks[worker]);
+		ret = _starpu_task_submit_internally(tasks[worker]);
 		if (ret == -ENODEV)
 		{
 			/* if the worker is not able to execute this tasks, we
