@@ -31,7 +31,7 @@
 
 #define NPRIO_LEVELS	(MAX_LEVEL - MIN_LEVEL + 1)
 
-struct starpu_priority_taskq_s
+struct _starpu_priority_taskq
 {
 	/* the actual lists
 	 *	taskq[p] is for priority [p - STARPU_MIN_PRIO] */
@@ -42,7 +42,7 @@ struct starpu_priority_taskq_s
 };
 
 /* the former is the actual queue, the latter some container */
-static struct starpu_priority_taskq_s *taskq;
+static struct _starpu_priority_taskq *taskq;
 
 /* keep track of the total number of tasks to be scheduled to avoid infinite
  * polling when there are really few tasks in the overall queue */
@@ -53,11 +53,11 @@ static pthread_mutex_t global_sched_mutex;
  * Centralized queue with priorities
  */
 
-static struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
+static struct _starpu_priority_taskq *_starpu_create_priority_taskq(void)
 {
-	struct starpu_priority_taskq_s *central_queue;
+	struct _starpu_priority_taskq *central_queue;
 
-	central_queue = (struct starpu_priority_taskq_s *) malloc(sizeof(struct starpu_priority_taskq_s));
+	central_queue = (struct _starpu_priority_taskq *) malloc(sizeof(struct _starpu_priority_taskq));
 	central_queue->total_ntasks = 0;
 
 	unsigned prio;
@@ -70,7 +70,7 @@ static struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
 	return central_queue;
 }
 
-static void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *priority_queue)
+static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priority_queue)
 {
 	free(priority_queue);
 }
