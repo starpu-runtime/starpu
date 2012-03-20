@@ -43,7 +43,7 @@ typedef struct {
 	double beta;
 	double _gamma;
 	double idle_power;
-* When we push a task on a combined worker we need all the cpu workers it contains
+/* When we push a task on a combined worker we need all the cpu workers it contains
  * to be locked at once */
 	pthread_mutex_t global_push_mutex;
 } pheft_data;
