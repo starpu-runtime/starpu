@@ -261,7 +261,7 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node,
 	return 0;
 }
 #endif
-static const struct starpu_data_copy_methods complex_copy_methods =
+static struct starpu_data_copy_methods complex_copy_methods =
 {
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,

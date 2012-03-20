@@ -328,7 +328,7 @@ This datatype describes a data access mode. The different available modes are:
 @item @code{STARPU_W}: write-only mode.
 @item @code{STARPU_RW}: read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
 @item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs), and no data transfer is ever performed. This is useful for temporary variables to avoid allocating/freeing buffers inside each task. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function. It is being considered for future extensions at least to define the initial value. For now, data to be used in SCRATCH mode should be registered with node -1 and a NULL pointer, since the value of the provided buffer is simply ignored for now.
-@item @code{STARPU_REDUX} reduction mode. TODO: add an example in the advanced examples section.
+@item @code{STARPU_REDUX} reduction mode.
 @end table
 @end deftp
 

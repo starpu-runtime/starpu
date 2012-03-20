@@ -49,7 +49,10 @@ extern "C"
 #  endif
 #endif
 
-#define STARPU_ABORT()		assert(0)
+#define STARPU_ABORT() do {                                          \
+	fprintf(stderr, "%s:%d %s\n", __FILE__, __LINE__, __func__); \
+	abort();                                                     \
+} while(0)
 
 #if defined(STARPU_HAVE_STRERROR_R)
 #  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { \

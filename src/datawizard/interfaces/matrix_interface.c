@@ -46,7 +46,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event);
 #endif
 
-static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
+static struct starpu_data_copy_methods matrix_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,

@@ -75,6 +75,10 @@ mode, or because write accesses are actually commutative), use the
 @code{starpu_data_set_sequential_consistency_flag} function to disable implicit
 dependencies on that data.
 
+In the same vein, accumulation of results in the same data can become a
+bottleneck. The use of the @code{STARPU_REDUX} mode permits to optimize such
+accumulation (@pxref{Data reduction}).
+
 @node Task granularity
 @section Task granularity
 

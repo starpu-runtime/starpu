@@ -43,6 +43,9 @@ typedef struct {
 	double beta;
 	double _gamma;
 	double idle_power;
+* When we push a task on a combined worker we need all the cpu workers it contains
+ * to be locked at once */
+	pthread_mutex_t global_push_mutex;
 } pheft_data;
 
 static double worker_exp_start[STARPU_NMAXWORKERS];
@@ -86,6 +89,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 {
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
+	
+	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
 	/* Is this a basic worker or a combined worker ? */
 	int nbasic_workers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
@@ -116,7 +121,13 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		ntasks[best_workerid]++;
 		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
+		/* We don't want it to interlace its task with a combined
+		 * worker's one */
+		_STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
+
 		ret = starpu_push_local_task(best_workerid, task, prio);
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&hd->global_push_mutex);
 	}
 	else
 	{
@@ -140,6 +151,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
+		/* All cpu workers must be locked at once */
+		_STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
+
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
@@ -162,6 +176,10 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&hd->global_push_mutex);
+
+		//TODO : free task
 
 	}
 
@@ -555,7 +573,8 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
 		hd->idle_power = atof(strval_idle_power);
-
+	
+	_STARPU_PTHREAD_MUTEX_INIT(&hd->global_push_mutex, NULL);
 
 }
 
@@ -563,6 +582,7 @@ static void parallel_heft_deinit(unsigned sched_ctx_id)
 {
 	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&hd->global_push_mutex);
 	free(hd);
 }
 

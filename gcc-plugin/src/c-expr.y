@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -95,27 +95,52 @@
   /* Mapping of libcpp token names to Bison-generated token names.  This is
      not ideal but Bison cannot be told to use the `enum cpp_ttype'
      values.  */
+
+#define STARPU_CPP_TOKENS			\
+  TK (CPP_NAME)					\
+  TK (CPP_NUMBER)				\
+  TK (CPP_AND)					\
+  TK (CPP_OPEN_SQUARE)				\
+  TK (CPP_CLOSE_SQUARE)				\
+  TK (CPP_OPEN_PAREN)				\
+  TK (CPP_CLOSE_PAREN)				\
+  TK (CPP_PLUS)					\
+  TK (CPP_MINUS)				\
+  TK (CPP_MULT)					\
+  TK (CPP_DIV)					\
+  TK (CPP_DOT)					\
+  TK (CPP_DEREF)
+
+#ifndef __cplusplus
+
   static const int cpplib_bison_token_map[] =
     {
-      [CPP_NAME] = YCPP_NAME,
-      [CPP_NUMBER] = YCPP_NUM,
-      [CPP_AND] = YCPP_AND,
-      [CPP_OPEN_SQUARE] = YCPP_OPEN_SQUARE,
-      [CPP_CLOSE_SQUARE] = YCPP_CLOSE_SQUARE,
-      [CPP_OPEN_PAREN] = YCPP_OPEN_PAREN,
-      [CPP_CLOSE_PAREN] = YCPP_CLOSE_PAREN,
-      [CPP_PLUS] = YCPP_PLUS,
-      [CPP_MINUS] = YCPP_MINUS,
-      [CPP_MULT] = YCPP_MULT,
-      [CPP_DIV] = YCPP_DIV,
-      [CPP_DOT] = YCPP_DOT,
-      [CPP_DEREF] = YCPP_DEREF
+# define TK(x) [x] = Y ## x,
+      STARPU_CPP_TOKENS
+# undef TK
     };
+
+#else /* __cplusplus */
+
+  /* No designated initializers in C++.  */
+  static int cpplib_bison_token_map[CPP_PADDING];
+
+#endif	/* __cplusplus */
 
   static int
   yylex (YYSTYPE *lvalp)
   {
     int ret;
+
+#ifdef __cplusplus
+    if (cpplib_bison_token_map[CPP_NAME] != YCPP_NAME)
+      {
+	/* Initialize the table.  */
+# define TK(x) cpplib_bison_token_map[x] = Y ## x;
+	STARPU_CPP_TOKENS
+# undef TK
+      }
+#endif
 
     ret = pragma_lex (lvalp);
     if (ret < sizeof cpplib_bison_token_map / sizeof cpplib_bison_token_map[0])
@@ -128,7 +153,7 @@
 }
 
 %token YCPP_NAME "identifier"
-%token YCPP_NUM "integer"
+%token YCPP_NUMBER "integer"
 %token YCPP_AND "&"
 %token YCPP_OPEN_SQUARE "["
 %token YCPP_CLOSE_SQUARE "]"
@@ -228,7 +253,7 @@ primary_expression: identifier
      | YCPP_OPEN_PAREN expression YCPP_CLOSE_PAREN { $$ = $2; }
 ;
 
-constant: YCPP_NUM { $$ = $1; }
+constant: YCPP_NUMBER { $$ = $1; }
 ;
 
 %%

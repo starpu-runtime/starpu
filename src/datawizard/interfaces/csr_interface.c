@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -42,7 +42,7 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #endif
 
-static const struct starpu_data_copy_methods csr_copy_data_methods_s =
+static struct starpu_data_copy_methods csr_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,

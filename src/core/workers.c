@@ -384,6 +384,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 	     conf->single_combined_worker = 0;
 
 	conf->disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
+	if (conf->disable_asynchronous_copy == -1)
+		conf->disable_asynchronous_copy = 0;
 
 	return 0;
 }
