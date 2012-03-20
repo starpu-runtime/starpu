@@ -1,8 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +17,7 @@
 
 /* Policy attributing tasks randomly to workers */
 
+#include <starpu_rand.h>
 #include <core/workers.h>
 #include <core/sched_ctx.h>
 #include <sched_policies/fifo_queues.h>
@@ -113,8 +113,7 @@ static void random_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &workerarg->sched_mutex, &workerarg->sched_cond);
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
 	}
 
 }

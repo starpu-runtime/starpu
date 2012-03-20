@@ -117,7 +117,7 @@ struct starpu_opencl_program opencl_program;
 
 int main(int argc, char **argv)
 {
-	int ret, exit_value;
+	int ret, exit_value = 0;
 
 	/* Initialize StarPU */
 	ret = starpu_init(NULL);
