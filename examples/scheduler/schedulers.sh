@@ -23,6 +23,8 @@ check_success()
     fi
 }
 
+[ -x ./cholesky/cholesky_tag ] || exit 77
+
 SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/->/ {print $1}'`
 
 for sched in $SCHEDULERS
