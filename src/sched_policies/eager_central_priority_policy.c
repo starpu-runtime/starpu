@@ -111,7 +111,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
-	starpu_task_list_push_front(&taskq->taskq[priolevel], task);
+	starpu_task_list_push_back(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 
@@ -123,8 +123,9 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 static struct starpu_task *_starpu_priority_pop_task(void)
 {
-	/* XXX FIXME: should call starpu_worker_can_execute_task!! */
-	struct starpu_task *task = NULL;
+	struct starpu_task *chosen_task = NULL, *task;
+	unsigned workerid = starpu_worker_get_id();
+	int skipped = 0;
 
 	/* block until some event happens */
 
@@ -144,19 +145,34 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 		{
 			if (taskq->ntasks[priolevel] > 0)
 			{
-				/* there is some task that we can grab */
-				task = starpu_task_list_pop_back(&taskq->taskq[priolevel]);
-				taskq->ntasks[priolevel]--;
-				taskq->total_ntasks--;
-				_STARPU_TRACE_JOB_POP(task, 0);
+				for (task  = starpu_task_list_begin(&taskq->taskq[priolevel]);
+				     task != starpu_task_list_end(&taskq->taskq[priolevel]);
+				     task  = starpu_task_list_next(task)) {
+					unsigned nimpl;
+					for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+					{
+						if (starpu_worker_can_execute_task(workerid, task, nimpl))
+						{
+							/* there is some task that we can grab */
+							_starpu_get_job_associated_to_task(task)->nimpl = nimpl;
+							starpu_task_list_erase(&taskq->taskq[priolevel], task);
+							chosen_task = task;
+							taskq->ntasks[priolevel]--;
+							taskq->total_ntasks--;
+							_STARPU_TRACE_JOB_POP(task, 0);
+						} else skipped = 1;
+					}
+				}
 			}
 		}
-		while (!task && priolevel-- > 0);
+		while (!chosen_task && priolevel-- > 0);
 	}
-	if (task)
-		STARPU_ASSERT_MSG(starpu_worker_can_execute_task(starpu_worker_get_id(), task, 0), "prio does not support \"can_execute\"");
 
-	return task;
+	if (!chosen_task && skipped)
+		/* Notify another worker to do that task */
+		_STARPU_PTHREAD_COND_SIGNAL(&global_sched_cond);
+
+	return chosen_task;
 }
 
 struct starpu_sched_policy _starpu_sched_prio_policy =
