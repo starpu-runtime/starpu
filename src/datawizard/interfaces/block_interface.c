@@ -621,9 +621,9 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-                        err = starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_block->ptr, src_node, (cl_mem)dst_block->dev_handle, dst_node,
-                                                                           src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                                           dst_block->offset, (cl_event*)_event, &ret);
+                        err = starpu_opencl_copy_ram_to_opencl((void*)src_block->ptr, src_node, (cl_mem)dst_block->dev_handle, dst_node,
+							       src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
+							       dst_block->offset, (cl_event*)_event, &ret);
                         if (STARPU_UNLIKELY(err))
                                 STARPU_OPENCL_REPORT_ERROR(err);
                 }
@@ -644,9 +644,9 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 			{
                                 void *ptr = (void*)src_block->ptr+(layer*src_block->ldz*src_block->elemsize)+(j*src_block->ldy*src_block->elemsize);
                                 err = starpu_opencl_copy_ram_to_opencl(ptr, src_node, (cl_mem)dst_block->dev_handle, dst_node,
-                                                                        src_block->nx*src_block->elemsize,
-                                                                        layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize
-                                                                        + dst_block->offset, NULL);
+								       src_block->nx*src_block->elemsize,
+								       layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize
+								       + dst_block->offset, NULL, NULL);
                                 if (STARPU_UNLIKELY(err))
                                         STARPU_OPENCL_REPORT_ERROR(err);
                         }
@@ -687,9 +687,9 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 		/* Is that a single contiguous buffer ? */
 		if (((src_block->nx*src_block->ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-                        err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_block->dev_handle, src_node, (void*)dst_block->ptr, dst_node,
-                                                                           src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                                           src_block->offset, (cl_event*)_event, &ret);
+                        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_block->dev_handle, src_node, (void*)dst_block->ptr, dst_node,
+							       src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
+							       src_block->offset, (cl_event*)_event, &ret);
                         if (STARPU_UNLIKELY(err))
                                 STARPU_OPENCL_REPORT_ERROR(err);
                 }
@@ -713,7 +713,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
                                 err = starpu_opencl_copy_opencl_to_ram((void*)src_block->dev_handle, src_node, ptr, dst_node,
                                                                         src_block->nx*src_block->elemsize,
                                                                         layer*src_block->ldz*src_block->elemsize+j*src_block->ldy*src_block->elemsize+
-                                                                        src_block->offset, NULL);
+								       src_block->offset, NULL, NULL);
 				if (STARPU_UNLIKELY(err))
 					STARPU_OPENCL_REPORT_ERROR(err);
                         }

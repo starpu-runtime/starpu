@@ -666,15 +666,15 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_csr->nzval, src_node, (void *)dst_csr->nzval, dst_node, nnz*elemsize, 0, NULL);
+        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_csr->nzval, src_node, (void *)dst_csr->nzval, dst_node, nnz*elemsize, 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_csr->colind, src_node, (void *)dst_csr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_csr->colind, src_node, (void *)dst_csr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL, NULL);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_csr->rowptr, src_node, (void *)dst_csr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
+        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_csr->rowptr, src_node, (void *)dst_csr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -694,15 +694,15 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-        err = starpu_opencl_copy_ram_to_opencl((void *)src_csr->nzval, src_node, (cl_mem)dst_csr->nzval, dst_node, nnz*elemsize, 0, NULL);
+        err = starpu_opencl_copy_ram_to_opencl((void *)src_csr->nzval, src_node, (cl_mem)dst_csr->nzval, dst_node, nnz*elemsize, 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_ram_to_opencl((void *)src_csr->colind, src_node, (cl_mem)dst_csr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_ram_to_opencl((void *)src_csr->colind, src_node, (cl_mem)dst_csr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL, NULL);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-        err = starpu_opencl_copy_ram_to_opencl((void *)src_csr->rowptr, src_node, (cl_mem)dst_csr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
+        err = starpu_opencl_copy_ram_to_opencl((void *)src_csr->rowptr, src_node, (cl_mem)dst_csr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 

@@ -607,9 +607,9 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 
 	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
-	err = starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
-                                                           src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-                                                           dst_matrix->offset, (cl_event*)_event, &ret);
+	err = starpu_opencl_copy_ram_to_opencl((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
+					       src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+					       dst_matrix->offset, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -626,9 +626,9 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 
 	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
-        err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
-                                                           src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-                                                           src_matrix->offset, (cl_event*)_event, &ret);
+        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
+					       src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+					       src_matrix->offset, (cl_event*)_event, &ret);
 
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);

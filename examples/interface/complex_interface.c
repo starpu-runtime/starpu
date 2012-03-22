@@ -204,25 +204,25 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node,
 
 	cl_int err;
 
-	err = starpu_opencl_copy_ram_to_opencl(
-		src_complex->real,
-		src_node,
-		(cl_mem) dst_complex->real,
-		dst_node,
-		src_complex->nx * sizeof(src_complex->real[0]),
-		0,
-		NULL);
+	err = starpu_opencl_copy_ram_to_opencl(src_complex->real,
+					       src_node,
+					       (cl_mem) dst_complex->real,
+					       dst_node,
+					       src_complex->nx * sizeof(src_complex->real[0]),
+					       0,
+					       NULL,
+					       NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_ram_to_opencl(
-		src_complex->imaginary,
-		src_node,
-		(cl_mem) dst_complex->imaginary,
-		dst_node,
-		src_complex->nx * sizeof(src_complex->imaginary[0]),
-		0,
-		NULL);
+	err = starpu_opencl_copy_ram_to_opencl(src_complex->imaginary,
+					       src_node,
+					       (cl_mem) dst_complex->imaginary,
+					       dst_node,
+					       src_complex->nx * sizeof(src_complex->imaginary[0]),
+					       0,
+					       NULL,
+					       NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -236,25 +236,25 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node,
 	struct starpu_complex_interface *dst_complex = dst_interface;
 
 	cl_int err;
-	err = starpu_opencl_copy_opencl_to_ram(
-		(cl_mem) src_complex->real,
-		src_node,
-		dst_complex->real,
-		dst_node,
-		src_complex->nx * sizeof(src_complex->real[0]),
-		0,
-		NULL);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem) src_complex->real,
+					       src_node,
+					       dst_complex->real,
+					       dst_node,
+					       src_complex->nx * sizeof(src_complex->real[0]),
+					       0,
+					       NULL,
+					       NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_opencl_to_ram(
-		(cl_mem) src_complex->imaginary,
-		src_node,
-		dst_complex->imaginary,
-		dst_node,
-		src_complex->nx * sizeof(src_complex->imaginary[0]),
-		0,
-		NULL);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem) src_complex->imaginary,
+					       src_node,
+					       dst_complex->imaginary,
+					       dst_node,
+					       src_complex->nx * sizeof(src_complex->imaginary[0]),
+					       0,
+					       NULL,
+					       NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 

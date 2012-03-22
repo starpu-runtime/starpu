@@ -542,14 +542,14 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				size, CL_MEM_READ_WRITE);
 		assert(ret == CL_SUCCESS);
 	}
-	err = starpu_opencl_copy_ram_to_opencl_async_sync(src_custom->cpu_ptr,
-							  src_node,
-							  dst_custom->cpu_ptr,
-							  dst_node,
-							  size,
-							  0,
-							  NULL,
-							  &ret);
+	err = starpu_opencl_copy_ram_to_opencl(src_custom->cpu_ptr,
+					       src_node,
+					       dst_custom->cpu_ptr,
+					       dst_node,
+					       size,
+					       0,
+					       NULL,
+					       &ret);
 	assert(err == 0);
 	return 0;
 }
@@ -584,15 +584,14 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 		assert(dst_custom->opencl_ptr != NULL);
 	}
 
-	err = starpu_opencl_copy_opencl_to_ram_async_sync(
-			src_custom->opencl_ptr,
-			src_node,
-			dst_custom->opencl_ptr,
-			dst_node,
-			size,
-			0,
-			NULL,
-			&ret);
+	err = starpu_opencl_copy_opencl_to_ram(src_custom->opencl_ptr,
+					       src_node,
+					       dst_custom->opencl_ptr,
+					       dst_node,
+					       size,
+					       0,
+					       NULL,
+					       &ret);
 	assert(err == 0);
 	return 0;
 }

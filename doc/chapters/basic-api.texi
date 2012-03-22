@@ -2271,12 +2271,13 @@ Allocate @var{size} bytes of memory, stored in @var{addr}. @var{flags} must be a
 valid combination of cl_mem_flags values.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_ram_to_opencl_async_sync ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
-Copy @var{size} bytes asynchronously from the given @var{ptr} on
+@deftypefun cl_int starpu_opencl_copy_ram_to_opencl ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
+Copy @var{size} bytes from the given @var{ptr} on
 @var{src_node} to the given @var{buffer} on @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
-@var{event} can be used to wait for this particular copy to complete. It can be
-NULL.
+if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
 otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
 was successful, or to 0 if event was NULL.
@@ -2291,12 +2292,13 @@ This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL e
 otherwise.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_opencl_to_ram_async_sync (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
+@deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes asynchronously from the given @var{buffer} on
 @var{src_node} to the given @var{ptr} on @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
-@var{event} can be used to wait for this particular copy to complete. It can be
-NULL.
+if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
 otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
 was successful, or to 0 if event was NULL.

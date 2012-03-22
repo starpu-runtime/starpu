@@ -214,111 +214,54 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flag
         return CL_SUCCESS;
 }
 
-cl_int starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
+cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
-        cl_bool blocking;
-
-        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
 
         if (event)
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
-                *ret = (event == NULL) ? 0 : -EAGAIN;
-                return CL_SUCCESS;
-        }
-        else
-	{
-                if (event != NULL)
+		if (event == NULL)
 		{
-                        /* The asynchronous copy has failed, try to copy synchronously */
-                        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-                }
-                if (STARPU_LIKELY(err == CL_SUCCESS))
+			/* We want a synchronous copy, let's synchronise the queue */
+			clFinish(transfer_queues[worker->devid]);
+		}
+		if (ret)
 		{
-                        *ret = 0;
-                        return CL_SUCCESS;
-                }
-                else
-		{
-                        STARPU_OPENCL_REPORT_ERROR(err);
-                        return err;
-                }
-        }
+			*ret = (event == NULL) ? 0 : -EAGAIN;
+		}
+	}
+	return err;
 }
 
-cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
+cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
-        cl_bool blocking;
 
-        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
-        if (event)
-                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-        return CL_SUCCESS;
-}
-
-cl_int starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
-{
-        cl_int err;
-        struct _starpu_worker *worker = _starpu_get_local_worker_key();
-        cl_bool blocking;
-
-        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        if (event)
-                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
-                *ret = (event == NULL) ? 0 : -EAGAIN;
-                return CL_SUCCESS;
-        }
-        else
-	{
-                if (event != NULL)
-                        /* The asynchronous copy has failed, try to copy synchronously */
-                        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-                if (STARPU_LIKELY(err == CL_SUCCESS))
+		if (event == NULL)
 		{
-                        *ret = 0;
-                        return CL_SUCCESS;
-                }
-                else
+			/* We want a synchronous copy, let's synchronise the queue */
+			clFinish(transfer_queues[worker->devid]);
+		}
+		if (ret)
 		{
-                        STARPU_OPENCL_REPORT_ERROR(err);
-                        return err;
-                }
-        }
-}
-
-cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
-{
-        cl_int err;
-        struct _starpu_worker *worker = _starpu_get_local_worker_key();
-        cl_bool blocking;
-
-        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        if (event)
-                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
-        if (event)
-                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-        return CL_SUCCESS;
+			*ret = (event == NULL) ? 0 : -EAGAIN;
+		}
+	}
+	return err;
 }
 
 #if 0
