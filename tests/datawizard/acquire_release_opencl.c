@@ -42,17 +42,7 @@ void increment_opencl(void *buffers[], void *args)
 
 	{
 		size_t global=1;
-		size_t local;
-                size_t s;
-                cl_device_id device;
-
-                starpu_opencl_get_device(devid, &device);
-
-                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
-                if (err != CL_SUCCESS)
-			STARPU_OPENCL_REPORT_ERROR(err);
-                if (local > global)
-			local=global;
+		size_t local=1;
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
 		if (err != CL_SUCCESS)
