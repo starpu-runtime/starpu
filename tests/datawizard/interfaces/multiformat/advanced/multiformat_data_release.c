@@ -131,7 +131,7 @@ main(void)
 	};
 	memset(&global_stats, 0, sizeof(global_stats));
 	ret = starpu_init(&conf);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	register_handle();
