@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void _opencl_unsigned_inc(__global unsigned int *val)
+__kernel void _opencl_unsigned_inc(__global unsigned *val)
 {
 	val[0]++;
 }
