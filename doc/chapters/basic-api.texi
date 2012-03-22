@@ -2283,15 +2283,6 @@ otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchro
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_ram_to_opencl ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event})
-Copy @var{size} bytes from the given @var{ptr} on @var{src_node} to the
-given @var{buffer} on @var{dst_node}. @var{offset} is the offset, in bytes,
-in @var{buffer}. @var{event} can be used to wait for this particular copy to
-complete. It can be NULL.
-This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise.
-@end deftypefun
-
 @deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes asynchronously from the given @var{buffer} on
 @var{src_node} to the given @var{ptr} on @var{dst_node}.
@@ -2302,15 +2293,6 @@ after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
 otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
 was successful, or to 0 if event was NULL.
-@end deftypefun
-
-@deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event})
-Copy @var{size} bytes from the given @var{buffer} on @var{src_node} to the
-given @var{ptr} on @var{dst_node}. @var{offset} is the offset, in bytes,
-in @var{buffer}. @var{event} can be used to wait for this particular copy to
-complete. It can be NULL.
-This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise.
 @end deftypefun
 
 @node Cell extensions
