@@ -138,7 +138,7 @@ static void send_handle(struct thread_data *thread_data)
 	/* wait until it's received (ie. neighbour's recv_flag is set back to 0) */
 	while (neighbour_data->recv_flag)
 		_STARPU_PTHREAD_COND_WAIT(&neighbour_data->recv_cond, &neighbour_data->recv_mutex);
-	
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
 
 	starpu_data_release(thread_data->handle);
@@ -159,7 +159,7 @@ static void *thread_func(void *arg)
 		{
 			recv_handle(thread_data);
 		}
-		
+
 		increment_handle(thread_data);
 
 		if (!((index == (NTHREADS - 1)) && (iter == (NITER - 1))))
