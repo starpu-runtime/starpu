@@ -65,15 +65,15 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 	memset(v, 42, length);
 
 	clEnqueueWriteBuffer(queue,
-			buffer,
-			CL_TRUE,
-			0,      /* offset */
-			length, /* sizeof (char) */
-			v,
-			0,      /* num_events_in_wait_list */
-			NULL,   /* event_wait_list */
-			NULL    /* event */);
-			
+			     buffer,
+			     CL_FALSE,
+			     0,      /* offset */
+			     length, /* sizeof (char) */
+			     v,
+			     0,      /* num_events_in_wait_list */
+			     NULL,   /* event_wait_list */
+			     NULL    /* event */);
+	clFinish(queue);
 }
 #endif
 
@@ -160,19 +160,19 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 	for (i = 0; i < length; i++)
 	{
 		char dst;
-		clEnqueueReadBuffer(
-			queue,
-			buf,
-			CL_TRUE,
-			i * sizeof(dst),
-			sizeof(dst),
-			&dst,
-			0,      /* num_events_in_wait_list */
-			NULL,   /* event_wait_list */
-			NULL    /* event */);
+		clEnqueueReadBuffer(queue,
+				    buf,
+				    CL_FALSE,
+				    i * sizeof(dst),
+				    sizeof(dst),
+				    &dst,
+				    0,      /* num_events_in_wait_list */
+				    NULL,   /* event_wait_list */
+				    NULL    /* event */);
+		clFinish(queue);
 		if (dst != 42)
 		{
-			FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i, dst, 42);
+			FPRINTF(stderr, "buf[%u] is '%c' while it should be '%c'\n", i, dst, 42);
 			exit(-1);
 		}
 	}
