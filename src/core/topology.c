@@ -298,13 +298,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config)
 		{
 			/* Nothing was specified, so let's choose ! */
 			ncuda = nb_devices;
-			if (ncuda > STARPU_MAXCUDADEVS)
-			{
-				fprintf(stderr,
-					"# Warning: %d CUDA devices available. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n",
-					nb_devices, STARPU_MAXCUDADEVS);
-				ncuda = STARPU_MAXCUDADEVS;
-			}
 		}
 		else
 		{
@@ -315,14 +308,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config)
 					"# Warning: %d CUDA devices requested. Only %d available.\n",
 					ncuda, nb_devices);
 				ncuda = nb_devices;
-			}
-			/* Let's make sure this value is OK. */
-			if (ncuda > STARPU_MAXCUDADEVS)
-			{
-				fprintf(stderr,
-					"# Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n",
-					ncuda, STARPU_MAXCUDADEVS);
-				ncuda = STARPU_MAXCUDADEVS;
 			}
 		}
 	}
