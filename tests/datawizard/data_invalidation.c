@@ -70,15 +70,15 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 	memset(v, 42, length);
 
 	clEnqueueWriteBuffer(queue,
-			buffer,
-			CL_TRUE,
-			0,      /* offset */
-			length, /* sizeof (char) */
-			v,
-			0,      /* num_events_in_wait_list */
-			NULL,   /* event_wait_list */
-			NULL    /* event */);
-			
+			     buffer,
+			     CL_FALSE,
+			     0,      /* offset */
+			     length, /* sizeof (char) */
+			     v,
+			     0,      /* num_events_in_wait_list */
+			     NULL,   /* event_wait_list */
+			     NULL    /* event */);
+	clFinish(queue);
 }
 #endif /* !STARPU_USE_OPENCL */
 
@@ -121,7 +121,7 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 	{
 		if (buf[i] != 42)
 		{
-			FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i, buf[i], 42);
+			FPRINTF(stderr, "buf[%u] is '%c' while it should be '%c'\n", i, buf[i], 42);
 			exit(-1);
 		}
 	}
