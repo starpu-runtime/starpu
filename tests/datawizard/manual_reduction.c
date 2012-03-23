@@ -57,7 +57,8 @@ static void initialize_per_worker_handle(void *arg __attribute__((unused)))
 			cl_mem ptr = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(variable), NULL, NULL);
 			/* Poor's man memset */
 			unsigned zero = 0;
-			clEnqueueWriteBuffer(queue, ptr, CL_TRUE, 0, sizeof(variable), (void *)&zero, 0, NULL, NULL);
+			clEnqueueWriteBuffer(queue, ptr, CL_FALSE, 0, sizeof(variable), (void *)&zero, 0, NULL, NULL);
+			clFinish(queue);
 			per_worker[workerid] = (uintptr_t)ptr;
 			}
 
@@ -142,9 +143,11 @@ static void opencl_func_incr(void *descr[], void *cl_arg __attribute__((unused))
 	cl_command_queue queue;
 	starpu_opencl_get_current_queue(&queue);
 
-	clEnqueueReadBuffer(queue, d_val, CL_TRUE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	clEnqueueReadBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	clFinish(queue);
 	h_val++;
-	clEnqueueWriteBuffer(queue, d_val, CL_TRUE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	clEnqueueWriteBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	clFinish(queue);
 }
 #endif
 
