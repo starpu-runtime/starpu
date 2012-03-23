@@ -269,6 +269,9 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/scal_opencl.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+
 	ret = test_opencl();
 	if (ret == 1)
 		goto fail;
