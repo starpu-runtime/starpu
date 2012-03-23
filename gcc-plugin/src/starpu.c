@@ -1077,6 +1077,7 @@ validate_opencl_argument_type (location_t loc, const_tree type)
 	      /* Scalar types defined in OpenCL 1.2.  See
 		 <http://www.khronos.org/files/opencl-1-2-quick-reference-card.pdf>.  */
 	      { "char", "cl_char" },
+	      { "signed char", "cl_char" },
 	      { "unsigned char", "cl_uchar" },
 	      { "uchar", "cl_uchar" },
 	      { "short int", "cl_short" },
