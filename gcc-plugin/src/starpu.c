@@ -1135,6 +1135,43 @@ validate_opencl_argument_type (location_t loc, const_tree type)
     }
 }
 
+/* Add FN to the list of implementations of TASK_DECL.  */
+
+static void
+add_task_implementation (tree task_decl, tree fn, const_tree where)
+{
+  location_t loc;
+  tree attr, impls;
+
+  attr = lookup_attribute (task_implementation_list_attribute_name,
+			   DECL_ATTRIBUTES (task_decl));
+  gcc_assert (attr != NULL_TREE);
+
+  gcc_assert (TREE_CODE (where) == STRING_CST);
+
+  loc = DECL_SOURCE_LOCATION (fn);
+
+  impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
+  TREE_VALUE (attr) = impls;
+
+  TREE_USED (fn) = TREE_USED (task_decl);
+
+  /* Check the `where' argument to raise a warning if needed.  */
+  if (task_implementation_target_to_int (where) == 0)
+    warning_at (loc, 0,
+		"unsupported target %E; task implementation won't be used",
+		where);
+  else if (task_implementation_target_to_int (where) == STARPU_OPENCL)
+    {
+      local_define (void, validate, (tree t))
+	{
+	  validate_opencl_argument_type (loc, t);
+	};
+
+      for_each (validate, TYPE_ARG_TYPES (TREE_TYPE (fn)));
+    }
+}
+
 /* Handle the `task_implementation (WHERE, TASK)' attribute.  WHERE is a
    string constant ("cpu", "cuda", etc.), and TASK is the identifier of a
    function declared with the `task' attribute.  */
@@ -1184,30 +1221,7 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
   else
     {
       /* Add FN to the list of implementations of TASK_DECL.  */
-
-      tree attr, impls;
-
-      attr = lookup_attribute (task_implementation_list_attribute_name,
-			       DECL_ATTRIBUTES (task_decl));
-      impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
-      TREE_VALUE (attr) = impls;
-
-      TREE_USED (fn) = TREE_USED (task_decl);
-
-      /* Check the `where' argument to raise a warning if needed.  */
-      if (task_implementation_target_to_int (where) == 0)
-	warning_at (loc, 0,
-		    "unsupported target %E; task implementation won't be used",
-		    where);
-      else if (task_implementation_target_to_int (where) == STARPU_OPENCL)
-	{
-	  local_define (void, validate, (tree t))
-	  {
-	    validate_opencl_argument_type (loc, t);
-	  };
-
-	  for_each (validate, TYPE_ARG_TYPES (TREE_TYPE (fn)));
-	}
+      add_task_implementation (task_decl, fn, where);
 
       /* Keep the attribute.  */
       *no_add_attrs = false;
