@@ -18,7 +18,8 @@
 
 extern void my_external_task (int foo, char *bar) __attribute__ ((task));
 
-static void my_task (int foo, char *bar) __attribute__ ((task));
+void my_task (int foo, char *bar) /* (error "none of the implementations") */
+  __attribute__ ((task));
 static void my_task_cpu (int foo, float *bar)    /* (error "type differs") */
   __attribute__ ((task_implementation ("cpu", my_task)));
 
@@ -47,9 +48,6 @@ static void my_task_wrong_task_arg (int foo, char *bar)   /* (error "not a funct
 
 static void my_task_wrong_target_arg (int foo, char *bar) /* (error "string constant expected") */
   __attribute__ ((task_implementation (123, my_task)));
-
-static void my_task_with_a_body (int foo, char *bar)
-  __attribute__ ((task, unused));
 
 extern int my_task_not_void (int foo) /* (error "return type") */
   __attribute__ ((task));
@@ -113,11 +111,6 @@ my_task_wrong_task_arg (int foo, char *bar)
 
 static void
 my_task_wrong_target_arg (int foo, char *bar)
-{
-}
-
-static void
-my_task_with_a_body (int foo, char *bar)  /* (error "must not have a body") */
 {
 }
 

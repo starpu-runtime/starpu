@@ -72,7 +72,26 @@ my_other_task_opencl (int x)
   printf ("opencl\n");
 }
 
+
+/* Task with a body.  */
 
+static void my_task_with_body (int x) __attribute__ ((task));
+
+static void
+my_task_with_body (int x)
+{
+  /* This body is implicitly the "cpu" implementation of the task.  */
+  int y = x + 2;
+  printf ("body: %i\n", y - 2);
+}
+
+static void my_task_with_body_opencl (int x)
+  __attribute__ ((task_implementation ("opencl", my_task_with_body)));
+
+static void
+my_task_with_body_opencl (int x)
+{
+}
 
 
 int
@@ -124,7 +143,9 @@ main (int argc, char *argv[])
 
   my_other_task (42);
 
-  assert (tasks_submitted == 10);
+  my_task_with_body (42);
+
+  assert (tasks_submitted == 11);
 
 #pragma starpu shutdown
   assert (initialized == 0);

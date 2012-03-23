@@ -133,11 +133,15 @@ static tree unpack_fn, data_lookup_fn;
 /* Forward declarations.  */
 
 static tree build_codelet_declaration (tree task_decl);
+static tree build_cpu_codelet_identifier (const_tree task);
 static void define_task (tree task_decl);
 static tree build_pointer_lookup (tree pointer);
 
 static bool task_p (const_tree decl);
 static bool task_implementation_p (const_tree decl);
+static tree task_implementation_task (const_tree task_impl);
+static bool implicit_cpu_task_implementation_p (const_tree fn);
+
 
 static int task_implementation_target_to_int (const_tree target);
 
@@ -1165,7 +1169,7 @@ add_task_implementation (tree task_decl, tree fn, const_tree where)
   impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
   TREE_VALUE (attr) = impls;
 
-  TREE_USED (fn) = TREE_USED (task_decl);
+  TREE_USED (fn) = true;
 
   /* Check the `where' argument to raise a warning if needed.  */
   if (task_implementation_target_to_int (where) == 0)
@@ -1202,6 +1206,12 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
   fn = *node;
   where = TREE_VALUE (args);
   task_decl = TREE_VALUE (TREE_CHAIN (args));
+
+  if (implicit_cpu_task_implementation_p (task_decl))
+    /* TASK_DECL is actually a CPU implementation.  Implicit CPU task
+       implementations can lead to this situation, because the task is
+       renamed and modified to become a CPU implementation.  */
+    task_decl = task_implementation_task (task_decl);
 
   loc = DECL_SOURCE_LOCATION (fn);
 
@@ -1480,7 +1490,7 @@ task_where (const_tree task_decl)
 static tree
 task_implementation_task (const_tree task_impl)
 {
-  tree impl_attr, args;
+  tree impl_attr, args, task;
 
   gcc_assert (TREE_CODE (task_impl) == FUNCTION_DECL);
 
@@ -1490,7 +1500,13 @@ task_implementation_task (const_tree task_impl)
 
   args = TREE_VALUE (impl_attr);
 
-  return TREE_VALUE (TREE_CHAIN (args));
+  task = TREE_VALUE (TREE_CHAIN (args));
+  if (task_implementation_p (task))
+    /* TASK is an implicit CPU task implementation, so return its real
+       task.  */
+    return task_implementation_task (task);
+
+  return task;
 }
 
 /* Return the FUNCTION_DECL of the wrapper generated for TASK_IMPL.  */
@@ -1507,6 +1523,23 @@ task_implementation_wrapper (const_tree task_impl)
   gcc_assert (attr != NULL_TREE);
 
   return TREE_VALUE (attr);
+}
+
+/* Return true when FN is an implicit CPU task implementation.  */
+
+static bool
+implicit_cpu_task_implementation_p (const_tree fn)
+{
+  if (task_implementation_p (fn)
+      && task_implementation_where (fn) == STARPU_CPU)
+    {
+      /* XXX: Hackish heuristic.  */
+      const_tree cpu_id;
+      cpu_id = build_cpu_codelet_identifier (task_implementation_task (fn));
+      return cpu_id == DECL_NAME (fn);
+    }
+
+  return false;
 }
 
 /* Return true when VAR_DECL has the `heap_allocated' attribute.  */
@@ -2088,6 +2121,27 @@ declare_codelet (tree task_decl)
   return cl_decl;
 }
 
+/* Return the identifier for an automatically-generated CPU codelet of
+   TASK.  */
+
+static tree
+build_cpu_codelet_identifier (const_tree task)
+{
+  static const char suffix[] = ".cpu_implementation";
+
+  tree id;
+  char *cl_name;
+  const char *task_name;
+
+  id = DECL_NAME (task);
+  task_name = IDENTIFIER_POINTER (id);
+
+  cl_name = (char *) alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
+  memcpy (cl_name, task_name, IDENTIFIER_LENGTH (id));
+  strcpy (&cl_name[IDENTIFIER_LENGTH (id)], suffix);
+
+  return get_identifier (cl_name);
+}
 
 static void
 handle_pre_genericize (void *gcc_data, void *user_data)
@@ -2097,10 +2151,56 @@ handle_pre_genericize (void *gcc_data, void *user_data)
   gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
 
   if (task_p (fn) && TREE_STATIC (fn))
-    /* The user defined a body for task FN, which is forbidden.  */
-    error_at (DECL_SOURCE_LOCATION (fn),
-	      "task %qE must not have a body", DECL_NAME (fn));
-  else if (task_implementation_p (fn))
+    {
+      /* The user defined a body for task FN, which we interpret as being the
+	 body of an implicit CPU task implementation for FN.  Thus, rename FN
+	 and turn it into the "cpu" implementation of a task that we create
+	 under FN's original name (this is easier than moving the body to a
+	 different function, which would require traversing the body to
+	 rewrite all references to FN to point to the new function.)  Later,
+	 `lower_starpu' rewrites calls to FN as calls to the newly created
+	 task.  */
+
+      tree task_name = DECL_NAME (fn);
+
+      tree cpu_impl = fn;
+      DECL_NAME (cpu_impl) = build_cpu_codelet_identifier (fn);
+      if (verbose_output_p)
+	inform (DECL_SOURCE_LOCATION (fn),
+		"implicit CPU implementation renamed from %qE to %qE",
+		task_name, DECL_NAME (cpu_impl));
+
+      tree task = build_decl (DECL_SOURCE_LOCATION (fn), FUNCTION_DECL,
+			      task_name, TREE_TYPE (fn));
+
+      TREE_PUBLIC (task) = TREE_PUBLIC (fn);
+      TREE_PUBLIC (cpu_impl) = false;
+
+      taskify_function (task);
+
+      /* Inherit the task implementation list from FN.  */
+      tree impls = lookup_attribute (task_implementation_list_attribute_name,
+				     DECL_ATTRIBUTES (fn));
+      gcc_assert (impls != NULL_TREE);
+      impls = TREE_VALUE (impls);
+
+      DECL_ATTRIBUTES (task) =
+	tree_cons (get_identifier (task_implementation_list_attribute_name),
+		   impls, DECL_ATTRIBUTES (task));
+
+      /* Make CPU_IMPL an implementation of FN.  */
+      DECL_ATTRIBUTES (cpu_impl) =
+	tree_cons (get_identifier (task_implementation_attribute_name),
+		   tree_cons (NULL_TREE, build_string (3, "cpu"),
+			      tree_cons (NULL_TREE, task, NULL_TREE)),
+		   NULL_TREE);
+
+      add_task_implementation (task, cpu_impl, build_string (3, "cpu"));
+
+      /* And now, process CPU_IMPL.  */
+    }
+
+  if (task_implementation_p (fn))
     {
       tree task = task_implementation_task (fn);
 
@@ -2142,6 +2242,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 	  rest_of_decl_compilation (task, true, 0);
 	  allocate_struct_function (task, false);
 	  cgraph_finalize_function (task, false);
+	  cgraph_mark_needed_node (cgraph_get_node (task));
 	}
     }
 }
@@ -2290,6 +2391,7 @@ define_task (tree task_decl)
   DECL_SAVED_TREE (task_decl) = bind;
   TREE_STATIC (task_decl) = true;
   DECL_EXTERNAL (task_decl) = false;
+  DECL_ARTIFICIAL (task_decl) = true;
   DECL_INITIAL (task_decl) =
     build_block (error_var, NULL_TREE, task_decl, NULL_TREE);
   DECL_RESULT (task_decl) =
@@ -2423,12 +2525,28 @@ lower_starpu (void)
     {
       gcc_assert (callee->callee != NULL);
 
-      tree callee_decl;
+      tree callee_decl, caller_decl;
 
       callee_decl = callee->callee->decl;
+      caller_decl = callee->caller->decl;
 
-      if (lookup_attribute (task_attribute_name,
-			    DECL_ATTRIBUTES (callee_decl)))
+      if (implicit_cpu_task_implementation_p (callee_decl)
+	  && !DECL_ARTIFICIAL (caller_decl))
+	{
+	  /* Rewrite the call to point to the actual task beneath
+	     CALLEE_DECL.  */
+	  callee_decl = task_implementation_task (callee_decl);
+	  if (verbose_output_p)
+	    inform (gimple_location (callee->call_stmt),
+		    "call to %qE rewritten as a call to task %qE",
+		    DECL_NAME (callee->callee->decl),
+		    DECL_NAME (callee_decl));
+
+	  gimple_call_set_fn (callee->call_stmt,
+			      build_addr (callee_decl, callee->caller->decl));
+	}
+
+      if (task_p (callee_decl))
 	{
 	  if (verbose_output_p)
 	    inform (gimple_location (callee->call_stmt),

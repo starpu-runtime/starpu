@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,17 +28,15 @@
 static void my_pointer_task (const int *x, char a, long long *y, int b)
   __attribute__ ((task));
 
-static void my_pointer_task_cpu (const int *x, char a, long long *y, int b)
-  __attribute__ ((task_implementation ("cpu", my_pointer_task), noinline));
-
 static int implementations_called;
 
 /* The input arguments.  */
 static const int pointer_arg1[] = { 42, 1, 2, 3, 4, 5 };
 static long long *pointer_arg2;
 
+/* CPU implementation of `my_pointer_task'.  */
 static void
-my_pointer_task_cpu (const int *x, char a, long long *y, int b)
+my_pointer_task (const int *x, char a, long long *y, int b)
 {
   implementations_called |= STARPU_CPU;
   assert (x == pointer_arg1);

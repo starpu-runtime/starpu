@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@
 #ifndef MY_LIB_H
 #define MY_LIB_H
 
-extern void my_task (char, const char *, float *, int)
+extern void my_task (signed char, const signed char *, float *, int)
   __attribute__ ((task));
 
 /* One of the implementations of MY_TASK.  Since it's `extern', this should
    not trigger generation of the codelet, wrapper, etc.  */
-extern void my_task_cpu (char, const char *, float *, int)
-  __attribute__ ((task_implementation ("cpu", my_task)));
+extern void my_task_opencl (signed char, const signed char *, float *, int)
+  __attribute__ ((task_implementation ("opencl", my_task)));
 
 #endif /* MY_LIB_H */

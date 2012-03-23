@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ main (int argc, char *argv[])
 
   /* Align X so that the assumptions behind `dummy_pointer_to_handle'
      hold.  */
-  static const char x[] __attribute__ ((aligned (8))) = { 0, 1, 2, 3, 4, 5 };
+  static const signed char x[] __attribute__ ((aligned (8))) =
+    { 0, 1, 2, 3, 4, 5 };
 
   float y[sizeof x];
 
