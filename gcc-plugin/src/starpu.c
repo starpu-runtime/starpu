@@ -990,6 +990,31 @@ register_pragmas (void *gcc_data, void *user_data)
 /* Attributes.  */
 
 
+/* Turn FN into a task, and push its associated codelet declaration.  */
+
+static void
+taskify_function (tree fn)
+{
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
+
+  /* Add a `task' attribute and an empty `task_implementation_list'
+     attribute.  */
+  DECL_ATTRIBUTES (fn) =
+    tree_cons (get_identifier (task_implementation_list_attribute_name),
+	       NULL_TREE,
+	       tree_cons (get_identifier (task_attribute_name), NULL_TREE,
+			  DECL_ATTRIBUTES (fn)));
+
+  /* Push a declaration for the corresponding `struct starpu_codelet' object and
+     add it as an attribute of FN.  */
+  tree cl = build_codelet_declaration (fn);
+  DECL_ATTRIBUTES (fn) =
+    tree_cons (get_identifier (task_codelet_attribute_name), cl,
+	       DECL_ATTRIBUTES (fn));
+
+  pushdecl (cl);
+}
+
 /* Handle the `task' function attribute.  */
 
 static tree
@@ -1020,23 +1045,8 @@ handle_task_attribute (tree *node, tree name, tree args,
 	error_at (DECL_SOURCE_LOCATION (fn),
 		  "maximum number of pointer parameters exceeded");
 
-      /* This is a function declaration for something local to this
-	 translation unit, so add the `task' attribute to FN.  */
-      *no_add_attrs = false;
-
-      /* Add an empty `task_implementation_list' attribute.  */
-      DECL_ATTRIBUTES (fn) =
-	tree_cons (get_identifier (task_implementation_list_attribute_name),
-		   NULL_TREE,
-		   NULL_TREE);
-
-      /* Push a declaration for the corresponding `struct starpu_codelet' object and
-	 add it as an attribute of FN.  */
-      tree cl = build_codelet_declaration (fn);
-      DECL_ATTRIBUTES (fn) =
-	tree_cons (get_identifier (task_codelet_attribute_name), cl,
-		   DECL_ATTRIBUTES (fn));
-      pushdecl (cl);
+      /* Turn FN into an actual task.  */
+      taskify_function (fn);
     }
 
   /* Lookup & cache function declarations for later reuse.  */
