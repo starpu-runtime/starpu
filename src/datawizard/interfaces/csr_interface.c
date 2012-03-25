@@ -324,6 +324,7 @@ fail_rowptr:
 	{
 		case STARPU_CPU_RAM:
 			free((void *)addr_colind);
+			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
@@ -348,6 +349,7 @@ fail_colind:
 	{
 		case STARPU_CPU_RAM:
 			free((void *)addr_nzval);
+			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
