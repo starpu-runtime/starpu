@@ -683,6 +683,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	return 0;
 
 enomem:
+	_STARPU_TRACE_END_FETCH_INPUT(NULL);
 	/* try to unreference all the input that were successfully taken */
 	/* XXX broken ... */
 	_STARPU_DISP("something went wrong with buffer %u\n", index);
