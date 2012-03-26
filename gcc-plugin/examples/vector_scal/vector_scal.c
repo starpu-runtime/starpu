@@ -13,13 +13,12 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-#ifndef STARPU_GCC_PLUGIN
-# error must be compiled with the StarPU GCC plug-in
-#endif
 
-/* This examples showcases features of the StarPU GCC plug-in.  It defines a
+/* This example showcases features of the StarPU GCC plug-in.  It defines a
    "vector scaling" task with multiple CPU implementations, an OpenCL
-   implementation, and a CUDA implementation.   */
+   implementation, and a CUDA implementation.
+
+   Compiling it without `-fplugin=starpu.so' yields valid sequential code.  */
 
 #include <math.h>
 #include <stdbool.h>
@@ -32,11 +31,9 @@
 static void vector_scal (unsigned int size, float vector[size], float factor)
   __attribute__ ((task));
 
-static void vector_scal_cpu (unsigned int size, float vector[size], float factor)
-  __attribute__ ((task_implementation ("cpu", vector_scal)));
-
+/* The CPU implementation.  */
 static void
-vector_scal_cpu (unsigned int size, float vector[size], float factor)
+vector_scal (unsigned int size, float vector[size], float factor)
 {
   unsigned int i;
   for (i = 0; i < size; i++)
@@ -44,7 +41,7 @@ vector_scal_cpu (unsigned int size, float vector[size], float factor)
 }
 
 
-#ifdef __SSE__
+#if defined STARPU_GCC_PLUGIN && defined __SSE__
 /* The SSE-capable CPU implementation.  */
 
 #include <xmmintrin.h>
@@ -78,7 +75,7 @@ vector_scal_sse (unsigned int size, float vector[size], float factor)
 
 /* Declaration and definition of the OpenCL implementation.  */
 
-#ifdef STARPU_USE_OPENCL
+#if defined STARPU_GCC_PLUGIN && defined STARPU_USE_OPENCL
 
 #include <starpu_opencl.h>
 
@@ -166,7 +163,7 @@ main (void)
 
 #pragma starpu initialize
 
-#ifdef STARPU_USE_OPENCL
+#if defined STARPU_GCC_PLUGIN && defined STARPU_USE_OPENCL
   starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
 				       &cl_programs, "");
 #endif
