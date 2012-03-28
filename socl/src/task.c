@@ -120,10 +120,13 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
 
   arg->callback(arg->arg);
 
+#warning FIXME: free memory
+/*
   if (arg->free_arg)
     free(arg->arg);
 
   free(arg);
+*/
 }
 
 static struct starpu_codelet cputask_codelet = {

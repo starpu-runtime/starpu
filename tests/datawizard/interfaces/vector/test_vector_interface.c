@@ -110,7 +110,7 @@ main(void)
 		.nopencl = 1
 	};
 
-	if (starpu_init(&conf) == -ENODEV)
+	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;
 
 	register_data();

@@ -19,8 +19,13 @@
 #include <limits.h>
 #include <starpu.h>
 
+#ifdef STARPU_SLOW_MACHINE
+static unsigned nblocks = 512;
+static unsigned entries_per_bock = 64;
+#else
 static unsigned nblocks = 8192;
 static unsigned entries_per_bock = 1024;
+#endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 

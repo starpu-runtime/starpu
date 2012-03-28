@@ -23,7 +23,7 @@ extern "C"
 {
 #endif
 
-#warning "Your application is using former types. You may want to update to use the latest API, by using tools/dev/rename.sh"
+#warning Your application is using former types. You may want to update to use the latest API, by using tools/dev/rename.sh.
 
 typedef starpu_data_handle_t starpu_data_handle;
 typedef struct starpu_block_interface starpu_block_interface_t;

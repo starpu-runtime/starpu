@@ -71,6 +71,10 @@ versinclude_HEADERS = 				\
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
 
+noinst_HEADERS = \
+	include/pthread_win32/pthread.h		\
+	include/pthread_win32/semaphore.h
+
 if BUILD_STARPU_TOP
 starpu-top/starpu_top$(EXEEXT): all-local
 all-local:

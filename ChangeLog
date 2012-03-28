@@ -14,7 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.0 (svn revision xxxx)
+StarPU 1.0.0 (svn revision 6306)
 ==============================================
 The extensions-again release
 
@@ -61,6 +61,10 @@ Changes:
         To port code to use new names (this is not mandatory), the
         tools/dev/rename.sh script can be used, and pkg-config starpu-1.0 should
         be used.
+  * The communication cost in the heft and dmda scheduling strategies now
+        take into account the contention brought by the number of GPUs. This
+        changes the meaning of the beta factor, whose default 1.0 value should
+        now be good enough in most case.
 
 Small features:
   * Allow users to disable asynchronous data transfers between CPUs and

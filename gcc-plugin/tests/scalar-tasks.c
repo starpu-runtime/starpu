@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,15 +26,14 @@
 
 static void my_scalar_task (int x, int y) __attribute__ ((task));
 
-static void my_scalar_task_cpu (int, int)
-  __attribute__ ((task_implementation ("cpu", my_scalar_task), noinline));
 static void my_scalar_task_opencl (int, int)
   __attribute__ ((task_implementation ("opencl", my_scalar_task), noinline));
 
 static int implementations_called;
 
+/* CPU implementation of `my_scalar_task'.  */
 static void
-my_scalar_task_cpu (int x, int y)
+my_scalar_task (int x, int y)
 {
   implementations_called |= STARPU_CPU;
   assert (x == 42);

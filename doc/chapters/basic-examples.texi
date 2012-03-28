@@ -71,12 +71,8 @@ has a single implementation for CPU:
 /* Task declaration.  */
 static void my_task (int x) __attribute__ ((task));
 
-/* Declaration of the CPU implementation of `my_task'.  */
-static void my_task_cpu (int x)
-   __attribute__ ((task_implementation ("cpu", my_task)));
-
-/* Definition of said CPU implementation.  */
-static void my_task_cpu (int x)
+/* Definition of the CPU implementation of `my_task'.  */
+static void my_task (int x)
 @{
   printf ("Hello, world!  With x = %d\n", x);
 @}
@@ -331,19 +327,13 @@ has to be defined:
 @cartouche
 @smallexample
 /* Declare the `vector_scal' task.  */
-
 static void vector_scal (unsigned size, float vector[size],
                          float factor)
   __attribute__ ((task));
 
-/* Declare and define the standard CPU implementation.  */
-
-static void vector_scal_cpu (unsigned size, float vector[size],
-                             float factor)
-  __attribute__ ((task_implementation ("cpu", vector_scal)));
-
+/* Define the standard CPU implementation.  */
 static void
-vector_scal_cpu (unsigned size, float vector[size], float factor)
+vector_scal (unsigned size, float vector[size], float factor)
 @{
   unsigned i;
   for (i = 0; i < size; i++)

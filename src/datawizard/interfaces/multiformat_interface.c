@@ -637,14 +637,14 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize;
 
 
-	err = starpu_opencl_copy_ram_to_opencl_async_sync(src_multiformat->cpu_ptr,
-							   src_node,
-							   (cl_mem) dst_multiformat->cpu_ptr,
-							   dst_node,
-							   size,
-							   0,
-							   (cl_event *) _event,
-							   &ret);
+	err = starpu_opencl_copy_ram_to_opencl(src_multiformat->cpu_ptr,
+					       src_node,
+					       (cl_mem) dst_multiformat->cpu_ptr,
+					       dst_node,
+					       size,
+					       0,
+					       (cl_event *) _event,
+					       &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -675,14 +675,14 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 		/* XXX : it is weird that we might have to allocate memory here... */
 		dst_multiformat->opencl_ptr = malloc(dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
 	}
-	err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_multiformat->opencl_ptr,
-							   src_node,
-							   dst_multiformat->opencl_ptr,
-							   dst_node,
-							   size,
-                                                           0,
-							   (cl_event *)_event,
-							   &ret);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_multiformat->opencl_ptr,
+					       src_node,
+					       dst_multiformat->opencl_ptr,
+					       dst_node,
+					       size,
+					       0,
+					       (cl_event *)_event,
+					       &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 

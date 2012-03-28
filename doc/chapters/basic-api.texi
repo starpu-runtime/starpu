@@ -3,7 +3,7 @@
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
 @c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
@@ -118,7 +118,7 @@ This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environ
 @item @code{int disable_asynchronous_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
 CPUs and accelerators. This can also be specified with the
-@code{DISABLE_STARPU_ASYNCHRONOUS_COPY} environment variable.
+@code{STARPU_DISABLE_ASYNCHRONOUS_COPY} environment variable.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
@@ -326,8 +326,23 @@ This datatype describes a data access mode. The different available modes are:
 @table @asis
 @item @code{STARPU_R}: read-only mode.
 @item @code{STARPU_W}: write-only mode.
-@item @code{STARPU_RW}: read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
-@item @code{STARPU_SCRATCH}: scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs), and no data transfer is ever performed. This is useful for temporary variables to avoid allocating/freeing buffers inside each task. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function. It is being considered for future extensions at least to define the initial value. For now, data to be used in SCRATCH mode should be registered with node -1 and a NULL pointer, since the value of the provided buffer is simply ignored for now.
+@item @code{STARPU_RW}: read-write mode.
+ This is equivalent to @code{STARPU_R|STARPU_W}.
+@item @code{STARPU_SCRATCH}: scratch memory.
+A temporary buffer is allocated for the task, but StarPU does not
+enforce data consistency---i.e. each device has its own buffer,
+independently from each other (even for CPUs), and no data transfer is
+ever performed.  This is useful for temporary variables to avoid
+allocating/freeing buffers inside each task.
+
+Currently, no behavior is defined concerning the relation with the
+@code{STARPU_R} and @code{STARPU_W} modes and the value provided at
+registration---i.e., the value of the scratch buffer is undefined at
+entry of the codelet function.  It is being considered for future
+extensions at least to define the initial value.  For now, data to be
+used in @code{SCRATCH} mode should be registered with node @code{-1} and
+a @code{NULL} pointer, since the value of the provided buffer is simply
+ignored for now.
 @item @code{STARPU_REDUX} reduction mode.
 @end table
 @end deftp
@@ -399,7 +414,8 @@ scheduled (which may however have to wait for a task completion).
 @end deftypefun
 
 @deftypefun starpu_data_handle_t starpu_data_lookup ({const void *}@var{ptr})
-Return the handle associated to ptr @var{ptr}.
+Return the handle corresponding to the data pointed to by the @var{ptr}
+host pointer.
 @end deftypefun
 
 @deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, uint32_t @var{node})
@@ -2255,44 +2271,28 @@ Allocate @var{size} bytes of memory, stored in @var{addr}. @var{flags} must be a
 valid combination of cl_mem_flags values.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_ram_to_opencl_async_sync ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
-Copy @var{size} bytes asynchronously from the given @var{ptr} on
+@deftypefun cl_int starpu_opencl_copy_ram_to_opencl ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
+Copy @var{size} bytes from the given @var{ptr} on
 @var{src_node} to the given @var{buffer} on @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
-@var{event} can be used to wait for this particular copy to complete. It can be
-NULL.
+if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
 otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_ram_to_opencl ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event})
-Copy @var{size} bytes from the given @var{ptr} on @var{src_node} to the
-given @var{buffer} on @var{dst_node}. @var{offset} is the offset, in bytes,
-in @var{buffer}. @var{event} can be used to wait for this particular copy to
-complete. It can be NULL.
-This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise.
-@end deftypefun
-
-@deftypefun cl_int starpu_opencl_copy_opencl_to_ram_async_sync (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
+@deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes asynchronously from the given @var{buffer} on
 @var{src_node} to the given @var{ptr} on @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
-@var{event} can be used to wait for this particular copy to complete. It can be
-NULL.
+if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
 otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
 was successful, or to 0 if event was NULL.
-@end deftypefun
-
-@deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event})
-Copy @var{size} bytes from the given @var{buffer} on @var{src_node} to the
-given @var{ptr} on @var{dst_node}. @var{offset} is the offset, in bytes,
-in @var{buffer}. @var{event} can be used to wait for this particular copy to
-complete. It can be NULL.
-This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise.
 @end deftypefun
 
 @node Cell extensions

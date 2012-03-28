@@ -483,9 +483,9 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	struct starpu_vector_interface *dst_vector = dst_interface;
         int err, ret;
 
-	err = starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_vector->ptr, src_node, (cl_mem)dst_vector->dev_handle, dst_node,
-                                                           src_vector->nx*src_vector->elemsize,
-                                                           dst_vector->offset, (cl_event*)_event, &ret);
+	err = starpu_opencl_copy_ram_to_opencl((void*)src_vector->ptr, src_node, (cl_mem)dst_vector->dev_handle, dst_node,
+					       src_vector->nx*src_vector->elemsize,
+					       dst_vector->offset, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -501,8 +501,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	struct starpu_vector_interface *dst_vector = dst_interface;
         int err, ret;
 
-	err = starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_vector->dev_handle, src_node, (void*)dst_vector->ptr, dst_node, src_vector->nx*src_vector->elemsize,
-                                                           src_vector->offset, (cl_event *)_event, &ret);
+	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_vector->dev_handle, src_node, (void*)dst_vector->ptr, dst_node, src_vector->nx*src_vector->elemsize,
+					       src_vector->offset, (cl_event *)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 

@@ -101,7 +101,8 @@ main(void)
 	};
 
 	ret = starpu_init(&conf);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
+		return STARPU_TEST_SKIPPED;
 
 	register_data();
 

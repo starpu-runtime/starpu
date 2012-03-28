@@ -30,11 +30,12 @@
 
 #ifdef STARPU_SLOW_MACHINE
 #  define BLOCK_SIZE (64*1024)
+static unsigned ntasks = 250;
 #else
 #  define BLOCK_SIZE (64*1024*1024)
+static unsigned ntasks = 1000;
 #endif
 
-static unsigned ntasks = 1000;
 
 #ifdef STARPU_HAVE_HWLOC
 static uint64_t get_total_memory_size(void)

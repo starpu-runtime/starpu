@@ -16,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU],1.0.0rc3, [starpu-devel@lists.gforge.inria.fr], starpu)
+AC_INIT([StarPU],1.0.0, [starpu-devel@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -116,7 +116,21 @@ case "${srcdir}" in
      AC_SUBST(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})") ;;
 esac
 
-AC_CHECK_LIB([pthread], [pthread_create])
+
+case "$target" in
+*-*-mingw*|*-*-cygwin*)
+    AC_ARG_ENABLE(native-winthreads, [AS_HELP_STRING([--enable-native-winthreads],
+    				   [Use native windows threads instead of pthread])],
+    				   enable_native_winthreads=$enableval, enable_native_winthreads=no)
+    ;;
+esac
+if test x"$enable_native_winthreads" = xyes
+then
+    CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
+else
+    AC_CHECK_LIB([pthread], [pthread_create])
+fi
+
 AC_COMPILE_IFELSE(
   AC_LANG_PROGRAM([[
     #include <pthread.h>
@@ -1044,7 +1058,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
-running_mpi_check=0
+running_mpi_check=no
 if test -d "$srcdir/.svn" ; then
     running_mpi_check=yes
 fi

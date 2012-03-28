@@ -186,19 +186,18 @@ test_opencl(void)
 		foo[i] = i;
 
 	err = clEnqueueWriteBuffer(queue,
-				foo_gpu,
-				CL_TRUE,
-				0,
-				size*sizeof(int),
-				foo,
-				0,
-				NULL,
-				NULL);
+				   foo_gpu,
+				   CL_FALSE,
+				   0,
+				   size*sizeof(int),
+				   foo,
+				   0,
+				   NULL,
+				   NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
+	clFinish(queue);
 
-
-	
 	starpu_vector_data_register(&handle,
 				    starpu_worker_get_memory_node(chosen),
 				    (uintptr_t)foo_gpu,
@@ -222,7 +221,7 @@ test_opencl(void)
 	};
 
 	starpu_data_partition(handle, &f);
-	
+
 	ret = submit_tasks(handle, pieces, n);
 	if (ret == -ENODEV)
 		return -ENODEV;
@@ -235,16 +234,17 @@ test_opencl(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
 	err = clEnqueueReadBuffer(queue,
-		foo_gpu,
-		CL_TRUE,
-		0,
-		size*sizeof(*foo),
-		foo,
-		0,
-		NULL,
-		NULL);
+				  foo_gpu,
+				  CL_FALSE,
+				  0,
+				  size*sizeof(*foo),
+				  foo,
+				  0,
+				  NULL,
+				  NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
+	clFinish(queue);
 	return check_result(foo, size);
 }
 #endif /* !STARPU_USE_OPENCL */
@@ -257,6 +257,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/scal_opencl.cl", &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
 
 #ifdef STARPU_USE_CUDA
 #if CUDART_VERSION >= 4000 /* We need thread-safety of CUDA */

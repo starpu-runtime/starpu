@@ -94,13 +94,9 @@ int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
 
 cl_int starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags flags);
 
-cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event);
+cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
-cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event);
-
-cl_int starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
-
-cl_int starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
+cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 #ifdef __cplusplus
 }

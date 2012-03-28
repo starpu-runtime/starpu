@@ -120,8 +120,9 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait(taskK); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	ret = starpu_task_wait(taskL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
-	/* Destroy all the tasks that were not detached and that we did not
-	 * wait for previously */
+	starpu_task_wait_for_all();
+
+	/* Destroy all the tasks that were not detached */
 	starpu_task_destroy(taskA);
 	starpu_task_destroy(taskC);
 	starpu_task_destroy(taskD);

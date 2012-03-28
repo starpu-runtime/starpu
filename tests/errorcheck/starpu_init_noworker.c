@@ -33,7 +33,7 @@ static void unset_env_variables(void)
 {
 	(void) unsetenv("STARPU_NCPUS");
 	(void) unsetenv("STARPU_NCUDA");
-	(void) unsetenv("STARPU_NNOPENCL");
+	(void) unsetenv("STARPU_NOPENCL");
 }
 
 int main(int argc, char **argv)
@@ -58,9 +58,20 @@ int main(int argc, char **argv)
 
 	/* starpu_init should return -ENODEV */
 	ret = starpu_init(&conf);
-	if (ret != -ENODEV)
+	if (ret == -ENODEV)
+	     return EXIT_SUCCESS;
+	else
+	{
+	     	unsigned ncpu = starpu_cpu_worker_get_count();
+		unsigned ncuda = starpu_cuda_worker_get_count();
+		unsigned nopencl = starpu_opencl_worker_get_count();
+		FPRINTF(stderr, "StarPU has found :\n");
+		FPRINTF(stderr, "\t%d CPU cores\n", ncpu);
+		FPRINTF(stderr, "\t%d CUDA devices\n", ncuda);
+		FPRINTF(stderr, "\t%d OpenCL devices\n", nopencl);
 		return EXIT_FAILURE;
+	}
 
-	return EXIT_SUCCESS;
+
 }
 #endif

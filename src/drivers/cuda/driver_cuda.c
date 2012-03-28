@@ -165,6 +165,10 @@ static void deinit_context(int workerid, int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
+
+/* Return the number of devices usable in the system.
+ * The value returned cannot be greater than MAXCUDADEVS */
+
 unsigned _starpu_get_cuda_device_count(void)
 {
 	int cnt;
