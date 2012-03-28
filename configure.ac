@@ -1028,7 +1028,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
-running_mpi_check=0
+running_mpi_check=no
 if test -d "$srcdir/.svn" ; then
     running_mpi_check=yes
 fi
