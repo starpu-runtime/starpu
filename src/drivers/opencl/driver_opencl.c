@@ -201,7 +201,7 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flag
 	 * want to know this __now__, so we just perform a dummy copy.
 	 */
 	char dummy = 0;
-	err = clEnqueueWriteBuffer(queues[worker->devid], memory, CL_FALSE,
+	err = clEnqueueWriteBuffer(queues[worker->devid], memory, CL_TRUE,
 				   0, sizeof(dummy), &dummy,
 				   0, NULL, NULL);
 	clFinish(queues[worker->devid]);
