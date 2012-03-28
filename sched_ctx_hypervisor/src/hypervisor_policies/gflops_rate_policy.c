@@ -308,7 +308,6 @@ static void gflops_rate_resize(unsigned sched_ctx)
 	int fastest_sched_ctx = _find_fastest_sched_ctx();
 	int slowest_sched_ctx = _find_slowest_sched_ctx();
 
-//	printf("%d %d \n", fastest_sched_ctx, slowest_sched_ctx);
 	if(fastest_sched_ctx != -1 && slowest_sched_ctx != -1 && fastest_sched_ctx != slowest_sched_ctx)
 	{
 		double fastest_exp_end = _get_exp_end(fastest_sched_ctx);

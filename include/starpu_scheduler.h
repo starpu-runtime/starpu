@@ -180,7 +180,11 @@ pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
 
 void starpu_set_sched_ctx(unsigned *sched_ctx);
 
-unsigned starpu_get_sched_ctx();
+unsigned starpu_get_sched_ctx(void);
+
+void starpu_notify_hypervisor_exists(void);
+
+unsigned starpu_check_if_hypervisor_exists(void);
 
 unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx);
 

@@ -21,6 +21,7 @@
 extern struct worker_collection worker_list;
 
 pthread_key_t sched_ctx_key;
+unsigned with_hypervisor = 0;
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 static unsigned _starpu_worker_get_first_free_sched_ctx(struct _starpu_worker *worker);
@@ -33,7 +34,7 @@ static void change_worker_sched_ctx(unsigned sched_ctx_id)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 	int worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker, sched_ctx_id);
-	/* if the ctx is not in the worker's list it means the update concerns the addition of ctxs*/
+	/* if the worker is not in the ctx's list it means the update concerns the addition of ctxs*/
 	if(worker_sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 	{
 		worker_sched_ctx_id = _starpu_worker_get_first_free_sched_ctx(worker);
@@ -480,6 +481,16 @@ unsigned starpu_get_sched_ctx()
 		return STARPU_NMAX_SCHED_CTXS;
 	STARPU_ASSERT(*sched_ctx < STARPU_NMAX_SCHED_CTXS);
 	return *sched_ctx;
+}
+
+void starpu_notify_hypervisor_exists()
+{
+	with_hypervisor = 1;
+}
+
+unsigned starpu_check_if_hypervisor_exists()
+{
+	return with_hypervisor;
 }
 
 unsigned _starpu_get_nsched_ctxs()

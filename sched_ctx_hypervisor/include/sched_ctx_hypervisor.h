@@ -55,6 +55,7 @@ struct resize_ack{
 	int receiver_sched_ctx;
 	int *moved_workers;
 	int nmoved_workers;
+	int *acked_workers;
 };
 
 struct sched_ctx_wrapper {
@@ -113,3 +114,5 @@ int sched_ctx_hypervisor_get_nsched_ctxs();
 struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
 double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
+
+char* sched_ctx_hypervisor_get_policy();

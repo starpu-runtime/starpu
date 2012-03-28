@@ -41,7 +41,6 @@ static void _update_config(struct policy_config *old, struct policy_config* new)
 
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 {
-	printf("%d: ", sched_ctx );
 	if(hypervisor.sched_ctx_w[sched_ctx].config != NULL && config != NULL)
 	{
 		_update_config(hypervisor.sched_ctx_w[sched_ctx].config, config);
@@ -214,6 +213,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 
 	/* if config not null => save hypervisor configuration and consider it later */
 	struct policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
+
 	if(config != NULL)
 		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, config);
 

@@ -222,7 +222,9 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 		{
 			unsigned poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 			if(receiver_sched_ctx == STARPU_NMAX_SCHED_CTXS)
+			{
 				poor_sched_ctx = _find_poor_sched_ctx(sender_sched_ctx, nworkers_to_move);
+			}
 			else
 			{
 				poor_sched_ctx = receiver_sched_ctx;
@@ -233,7 +235,6 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 					nworkers_to_move = nworkers > config->max_nworkers ? 0 : (config->max_nworkers - nworkers+nshared_workers);
 				if(nworkers_to_move == 0) poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 			}
-
 
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{						
