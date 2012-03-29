@@ -688,10 +688,15 @@ Two modes of execution exist to accomodate with existing usages.
 In the Fork mode, StarPU will call the codelet function on one
 of the CPUs of the combined worker. The codelet function can use
 @code{starpu_combined_worker_get_size()} to get the number of threads it is
-allowed to start to achieve the computation. The CPU binding mask is already
-enforced, so that threads created by the function will inherit the mask, and
-thus execute where StarPU expected. For instance, using OpenMP (full source is
-available in @code{examples/openmp/vector_scal.c}):
+allowed to start to achieve the computation. The CPU binding mask for the whole
+set of CPUs is already enforced, so that threads created by the function will
+inherit the mask, and thus execute where StarPU expected, the OS being in charge
+of choosing how to schedule threads on the corresponding CPUs. The application
+can also choose to bind threads by hand, using e.g. sched_getaffinity to know
+the CPU binding mask that StarPU chose.
+
+For instance, using OpenMP (full source is available in
+@code{examples/openmp/vector_scal.c}):
 
 @example
 void scal_cpu_func(void *buffers[], void *_args)
