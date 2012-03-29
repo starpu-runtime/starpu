@@ -21,7 +21,9 @@
 #include <common/config.h>
 #include <core/workers.h>
 
+#ifdef __GLIBC__
 #include <sched.h>
+#endif
 
 #ifdef __MINGW32__
 #include <windows.h>

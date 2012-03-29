@@ -32,6 +32,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <windows.h>
+#include <sys/types.h>
 #undef interface
 #include <stdio.h>
 #include <errno.h>
@@ -136,7 +137,7 @@ static inline int pthread_cancel (pthread_t thread) {
 }
 
 static inline void pthread_exit (void *res) {
-  ExitThread((DWORD) res);
+  ExitThread((DWORD_PTR) (DWORD) res);
 }
 
 static inline int pthread_join (pthread_t thread, void **res) {
@@ -154,7 +155,7 @@ again:
   if (res) {
     DWORD _res;
     if (GetExitCodeThread(thread, &_res))
-      *res = (void *)_res;
+      *res = (void *)(DWORD_PTR)_res;
   }
   return 0;
 }
@@ -269,6 +270,7 @@ typedef struct {
 } pthread_cond_t;
 #define PTHREAD_COND_INITIALIZER { NULL, 0}
 
+#ifndef _TIMESPEC_DEFINED
 #ifndef STARPU_TIMESPEC_DEFINED
 #define STARPU_TIMESPEC_DEFINED 1
 struct timespec {
@@ -276,6 +278,7 @@ struct timespec {
   long    tv_nsec; /* Nanoseconds */
 };
 #endif /* STARPU_TIMESPEC_DEFINED */
+#endif
 
 typedef unsigned pthread_condattr_t;
 
