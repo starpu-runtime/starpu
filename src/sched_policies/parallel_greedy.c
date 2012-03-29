@@ -114,7 +114,7 @@ static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 		unsigned master = data->master_id[workerid];
 
 		/* All masters use the same condition/mutex */
-		if (workerid == master)
+		if (master == workerid)
 			starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
 		else
 			starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->master_sched_mutex[master], &data->master_sched_cond[master]);
@@ -211,7 +211,7 @@ static struct starpu_task *pop_task_pgreedy_policy(unsigned sched_ctx_id)
 
 	int master = data->master_id[workerid];
 
-	if (workerid == master)
+	if (master == workerid)
 	{
 		/* The worker is a master */
 		struct starpu_task *task = _starpu_fifo_pop_task(data->fifo, workerid);
