@@ -136,7 +136,7 @@ static inline int pthread_cancel (pthread_t thread) {
 }
 
 static inline void pthread_exit (void *res) {
-  ExitThread((DWORD) res);
+  ExitThread((DWORD_PTR) (DWORD) res);
 }
 
 static inline int pthread_join (pthread_t thread, void **res) {
@@ -154,7 +154,7 @@ again:
   if (res) {
     DWORD _res;
     if (GetExitCodeThread(thread, &_res))
-      *res = (void *)_res;
+      *res = (void *)(DWORD_PTR)_res;
   }
   return 0;
 }
