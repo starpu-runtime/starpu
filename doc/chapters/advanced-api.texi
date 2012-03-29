@@ -415,64 +415,7 @@ Get the next task of the list. This is not erase-safe.
 
 @node Using Parallel Tasks
 @section Using Parallel Tasks
-
-These are used by parallel tasks:
-
-@deftypefun int starpu_combined_worker_get_size (void)
-Return the size of the current combined worker, i.e. the total number of cpus
-running the same task in the case of SPMD parallel tasks, or the total number
-of threads that the task is allowed to start in the case of FORKJOIN parallel
-tasks.
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_rank (void)
-Return the rank of the current thread within the combined worker. Can only be
-used in FORKJOIN parallel tasks, to know which part of the task to work on.
-@end deftypefun
-
-Most of these are used for schedulers which support parallel tasks.
-
-@deftypefun unsigned starpu_combined_worker_get_count (void)
-Return the number of different combined workers.
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_id (void)
-Return the identifier of the current combined worker.
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array}[])
-Register a new combined worker and get its identifier
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_description (int @var{workerid}, {int *}@var{worker_size}, {int **}@var{combined_workerid})
-Get the description of a combined worker
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_can_execute_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned @var{nimpl})
-Variant of starpu_worker_can_execute_task compatible with combined workers
-@end deftypefun
-
-
-@node Defining a new scheduling policy
-@section Defining a new scheduling policy
-
-TODO
-
-A full example showing how to define a new scheduling policy is available in
-the StarPU sources in the directory @code{examples/scheduler/}.
-
-@menu
-* Scheduling Policy API:: Scheduling Policy API
-* Source code::
-@end menu
-
-@node Scheduling Policy API
-@subsection Scheduling Policy API
-
-While StarPU comes with a variety of scheduling policies (@pxref{Task
-scheduling policy}), it may sometimes be desirable to implement custom
-policies to address specific problems.  The API described below allows
-users to write their own scheduling policy.
+Workers are grouped considering the topology of the machine in order to permit the opaque execution of parallel tasks.
 
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
@@ -531,9 +474,161 @@ driver.  It is either filled according to the user's explicit parameters (from
 starpu_conf) or according to the STARPU_WORKERS_OPENCLID env. variable. Otherwise,
 they are taken in ID order.
 
+@end table
+@end deftp
+
+
+@deftypefun int starpu_combined_worker_get_size (void)
+Return the size of the current combined worker, i.e. the total number of cpus
+running the same task in the case of SPMD parallel tasks, or the total number
+of threads that the task is allowed to start in the case of FORKJOIN parallel
+tasks.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_rank (void)
+Return the rank of the current thread within the combined worker. Can only be
+used in FORKJOIN parallel tasks, to know which part of the task to work on.
+@end deftypefun
+
+Most of these are used for schedulers which support parallel tasks.
+
+@deftypefun unsigned starpu_combined_worker_get_count (void)
+Return the number of different combined workers.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_id (void)
+Return the identifier of the current combined worker.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array}[])
+Register a new combined worker and get its identifier
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_description (int @var{workerid}, {int *}@var{worker_size}, {int **}@var{combined_workerid})
+Get the description of a combined worker
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_can_execute_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned @var{nimpl})
+Variant of starpu_worker_can_execute_task compatible with combined workers
+@end deftypefun
+
+@node Scheduling Contexts
+@section Scheduling Contexts
+StarPU permits on one hand grouping workers in combined workers in order to execute a parallel task and on the other hand grouping tasks in bundles that will be executed by a single specified worker.
+Scheduling contexts are different, they represent abstracts sets of workers that allow the programmers to control the distribution of computational resources (i.e. CPUs and
+GPUs) to concurrent parallel kernels. The main goal is to minimize interferences between the execution of multiple parallel kernels, by partitioning the underlying pool of workers using contexts.
+Scheduling contexts can be created, deleted and modified dynamically.
+
+@menu
+* starpu_create_sched_ctx:: Create a scheduling context
+* starpu_delete_sched_ctx:: Delete a scheduling context
+* starpu_add_workers_to_sched_ctx:: Add workers to scheduling context at runtime
+* starpu_remove_workers_from_sched_ctx:: Remove workers from scheduling context at runtime
+* starpu_get_workers_of_sched_ctx:: Get the workers assigned to a scheduling context
+@end menu
+
+@deftypefun unsigned starpu_create_sched_ctx (const char *@var{policy_name}, int *@var{workerids_ctx}, int @var{nworkers_ctx}, const char *@var{sched_ctx_name})
+This function creates a scheduling context which uses the scheduling policy indicated in the first argument and assigns the workers indicated in the second argument to execute the tasks submitted to it.
+The return value represents the identifier of the context that has just been created. It will be further used to indicate the context the tasks will be submitted to. The return value should be at most @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@deftypefun void starpu_delete_sched_ctx (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id})
+This function deletes the scheduling context indicated by the first argument and lets the scheduling context indicated in the second argument take over its workers.
+@end deftypefun
+
+@deftypefun void starpu_add_workers_to_sched_ctx (int *@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
+This function adds dynamically the workers indicated in the first argument to the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@deftypefun void starpu_remove_workers_from_sched_ctx (int *@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
+This function removes the workers indicated in the first argument from the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+A scheduling context manages a collection of workers that can be memorized using different data structures. Thus, a generic structure is available in order to simplify the choice of its type. 
+Only the list data structure is available but further data structures(like tree) implementations are foreseen. 
+
+@deftp {Data Type} {struct worker_collection}
+@table @asis
+@item @code{void *workerids}
+The workerids managed by the collection
+@item @code{unsigned nworkers}
+The number of workerids
+@item @code{pthread_key_t cursor_key} (optional)
+The cursor needed to iterate the collection (depending on the data structure)
+@item @code{int type}
+The type of structure (currently WORKER_LIST is the only one available) 
+@item @code{unsigned (*has_next)(struct worker_collection *workers)}
+Checks if there is a next worker
+@item @code{int (*get_next)(struct worker_collection *workers)}
+Gets the next worker
+@item @code{int (*add)(struct worker_collection *workers, int worker)}
+Adds a worker to the collection
+@item @code{int (*remove)(struct worker_collection *workers, int worker)}
+Removes a worker from the collection
+@item @code{void* (*init)(struct worker_collection *workers)}
+Initialize the collection
+@item @code{void (*deinit)(struct worker_collection *workers)}
+Deinitialize the colection
+@item @code{void (*init_cursor)(struct worker_collection *workers)} (optional)
+Initialize the cursor if there is one
+@item @code{void (*deinit_cursor)(struct worker_collection *workers)} (optional)
+Deinitialize the cursor if there is one
 
 @end table
 @end deftp
+
+@deftypefun struct worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned @var{sched_ctx_id}, int @var{type})
+Creates a worker collection of the type indicated by the last parameter for the context specified through the first parameter
+@end deftypefun
+
+@deftypefun void starpu_delete_worker_collection_for_sched_ctx(unsigned @var{sched_ctx_id})
+Deletes the worker collection of the specified scheduling context
+@end deftypefun
+ 
+@deftypefun struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned @var{sched_ctx_id})
+Returns the worker collection managed by the indicated context
+@end deftypefun
+
+@deftypefun pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned @var{sched_ctx_id})
+@end deftypefun
+
+@deftypefun void starpu_set_sched_ctx(unsigned *@var{sched_ctx})
+Sets the scheduling context the task will be submitted to
+@end deftypefun
+
+@deftypefun unsigned starpu_get_sched_ctx(void)
+Returns the scheduling contexts the tasks are currently submitted to
+@end deftypefun
+
+@deftypefun unsigned starpu_get_nworkers_of_sched_ctx(unsigned @var{sched_ctx})
+Returns the number of workers managed by the specified contexts
+(Usually needed to verify if it manages any workers or if it should be blocked)
+@end deftypefun
+
+@deftypefun unsigned starpu_get_nshared_workers(unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
+Returns the number of workers shared by two contexts
+@end deftypefun
+
+@node Defining a new scheduling policy
+@section Defining a new scheduling policy
+
+TODO
+
+A full example showing how to define a new scheduling policy is available in
+the StarPU sources in the directory @code{examples/scheduler/}.
+
+@menu
+* Scheduling Policy API:: Scheduling Policy API
+* Source code::
+@end menu
+
+@node Scheduling Policy API
+@subsection Scheduling Policy API
+
+While StarPU comes with a variety of scheduling policies (@pxref{Task
+scheduling policy}), it may sometimes be desirable to implement custom
+policies to address specific problems.  The API described below allows
+users to write their own scheduling policy.
 
 @deftp {Data Type} {struct starpu_sched_policy}
 This structure contains all the methods that implement a scheduling policy.  An
@@ -542,10 +637,10 @@ field of the @code{starpu_conf} structure passed to the @code{starpu_init}
 function. The different fields are:
 
 @table @asis
-@item @code{void (*init_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *)}
+@item @code{void (*init_sched)(unsigned sched_ctx_id)}
 Initialize the scheduling policy.
 
-@item @code{void (*deinit_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *)}
+@item @code{void (*deinit_sched)(unsigned sched_ctx_id)}
 Cleanup the scheduling policy.
 
 @item @code{int (*push_task)(struct starpu_task *)}
@@ -558,14 +653,14 @@ is about to be executed by the worker. This method therefore permits to keep
 the state of of the scheduler coherent even when StarPU bypasses the scheduling
 strategy.
 
-@item @code{struct starpu_task *(*pop_task)(void)} (optional)
+@item @code{struct starpu_task *(*pop_task)(unsigned sched_ctx_id)} (optional)
 Get a task from the scheduler. The mutex associated to the worker is already
 taken when this method is called. If this method is defined as @code{NULL}, the
 worker will only execute tasks from its local queue. In this case, the
 @code{push_task} method should use the @code{starpu_push_local_task} method to
 assign tasks to the different workers.
 
-@item @code{struct starpu_task *(*pop_every_task)(void)}
+@item @code{struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id)}
 Remove all available tasks from the scheduler (tasks are chained by the means
 of the prev and next fields of the starpu_task structure). The mutex associated
 to the worker is already taken when this method is called. This is currently
@@ -577,6 +672,12 @@ This method is called every time a task is starting.
 @item @code{void (*post_exec_hook)(struct starpu_task *)} (optional)
 This method is called every time a task has been executed.
 
+@item @code{void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers)}
+Initialize scheduling structures corresponding to each worker used by the policy.
+
+@item @code{void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers)}
+Deinitialize scheduling structures corresponding to each worker used by the policy.
+
 @item @code{const char *policy_name} (optional)
 Name of the policy.
 
@@ -585,8 +686,8 @@ Description of the policy.
 @end table
 @end deftp
 
-@deftypefun void starpu_worker_set_sched_condition (int @var{workerid}, pthread_cond_t *@var{sched_cond}, pthread_mutex_t *@var{sched_mutex})
-This function specifies the condition variable associated to a worker
+@deftypefun void starpu_worker_set_sched_condition (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_cond_t *@var{sched_cond}, pthread_mutex_t *@var{sched_mutex})
+This function specifies the condition variable associated to a worker per context
 When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
 associated mutex) should be used to block (and to wake up) a worker. Note that
@@ -595,6 +696,20 @@ of a scheduling strategy with a single task queue, the same condition variable
 would be used to block and wake up all workers.
 The initialization method of a scheduling strategy (@code{init_sched}) must
 call this function once per worker.
+@end deftypefun
+
+@deftypefun void starpu_worker_get_sched_condition (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_cond_t **@var{sched_cond}, pthread_mutex_t **@var{sched_mutex})
+This function returns the condition variables associated to a worker in a context
+It is used in the policy to access to the local queue of the worker
+@end deftypefun
+
+@deftypefun void starpu_set_sched_ctx_policy_data(unsigned @var{sched_ctx}, void* @var{policy_data})
+Each scheduling policy uses some specific data (queues, variables, additional condition variables). 
+It is memorize through a local structure. This function assigns it to a scheduling context.
+@end deftypefun
+
+@deftypefun void* starpu_get_sched_ctx_policy_data(unsigned @var{sched_ctx})
+Returns the policy data previously assigned to a context
 @end deftypefun
 
 @deftypefun void starpu_sched_set_min_priority (int @var{min_prio})
@@ -672,6 +787,8 @@ Returns expected conversion time in ms (multiformat interface only)
 static struct starpu_sched_policy dummy_sched_policy = @{
     .init_sched = init_dummy_sched,
     .deinit_sched = deinit_dummy_sched,
+    .add_workers = dummy_sched_add_workers,
+    .remove_workers = dummy_sched_remove_workers,
     .push_task = push_task_dummy,
     .push_prio_task = NULL,
     .pop_task = pop_task_dummy,

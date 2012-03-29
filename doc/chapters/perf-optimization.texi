@@ -156,6 +156,29 @@ parallel tasks (still experimental).
 
 The @b{pgreedy} (parallel greedy) scheduler is similar to greedy, it also
 supports parallel tasks (still experimental).
+@node Task scheduling contexts
+@section Task scheduling contexts
+By default, the application submits tasks to an initial context, which disposes of all the computation ressources available to StarPU (all the workers). If the application programmer plans to launch several parallel kernels simultaneusly, these kernels will be executed within this initial context, using a single scheduler (@pxref{Task scheduling policy}).
+Meanwhile, if the application programmer is aware of the demands of these kernels and of the specificity of the machine used to execute them, the workers can be divided between several contexts. Thus, the scheduling contexts will isolate the execution of each kernel and they will permit the use of a scheduling policy proper to each one of them.
+In order to create the contexts, you have to know the indentifiers of the workers running within StarPU. By passing a set of workers together with the scheduling policy to the function @code{starpu_create_sched_ctx}, you will get an identifier of the context created which you will use to indicate the context you want to submit the tasks to.
+
+@cartouche
+@smallexample
+/* @b{the list of ressources the context will manage} */
+int workerids[3] = @{1, 3, 10@};
+
+/* @b{indicate the scheduling policy to be used within the context, the list of 
+   workers assigned to it, the number of workers, the name of the context} */
+int id_ctx = starpu_create_sched_ctx("heft", workerids, 3, "my_ctx");
+
+/* @b{let StarPU know that the folowing tasks will be submitted to this context} */
+starpu_set_sched_ctx(id);
+
+/* @b{submit the task to StarPU} */
+starpu_task_submit(task);
+
+@end smallexample
+@end cartouche
 
 @node Performance model calibration
 @section Performance model calibration
@@ -315,7 +338,8 @@ detailed in the next chapter. The various informations should be checked for.
 @itemize
 @item What does the Gantt diagram look like? (see @ref{Gantt diagram})
 @itemize
-  @item If it's mostly green (running tasks), then the machine is properly
+  @item If it's mostly green (tasks running in the initial context) or context specific 
+  color prevailing, then the machine is properly
   utilized, and perhaps the codelets are just slow. Check their performance, see
   @ref{Codelet performance}.
   @item If it's mostly purple (FetchingInput), tasks keep waiting for data
