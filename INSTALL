@@ -55,7 +55,7 @@ Make sure the following packages are available:
 
 http://sourceforge.net/projects/mingw/
 
-3. Install hwloc (not mandatory)
+3. Install hwloc (not mandatory, but strongly recommended)
 
 http://www.open-mpi.org/projects/hwloc
 
@@ -77,9 +77,9 @@ http://www.open-mpi.org/projects/hwloc
    export PATH="/c/Program Files (x86)/Microsoft Visual Studio 10.0/Common7/IDE":$PATH
    export PATH="/c/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin":$PATH
 
-   Try to call <lib.exe> and <link.exe> without any option to make sure these
-   dump their help output with a series of options, otherwise no .def or .lib
-   file will be produced.
+   Try to call <cl.exe>, <lib.exe> and <link.exe> without any option to make
+   sure these dump their help output with a series of options, otherwise no
+   .def or .lib file will be produced.
 
 5. Install GPU Drivers (not mandatory)
 
@@ -106,7 +106,7 @@ http://www.open-mpi.org/projects/hwloc
 
       export PATH=/cygdrive/c/CUDA/bin:$PATH
 
-      Since we tell nvcc to build CUDA code with gcc instead of Visual studio,
+      Since we build code using CUDA headers with gcc instead of Visual studio,
       a fix is needed: c:\cuda\include\host_defines.h has a bogus CUDARTAPI
       definition which makes linking fail completely. Replace the first
       occurence of
@@ -171,7 +171,7 @@ autogen.sh part.
    cd starpu-trunk
    mkdir build
    cd build
-   ../configure --prefix=$PWD/target --disable-default-drand48 \
+   ../configure --prefix=$PWD/target \
         --with-hwloc=<HWLOC installation directory> \
         --with-cuda-dir=<CUDA installation directory> \
         --with-cuda-lib-dir=<CUDA installation directory>/lib/Win32 \
@@ -181,9 +181,9 @@ autogen.sh part.
 
    Also convert a couple of files to CRLF:
 
-   sed -e 's/$/'$'\015'/ < README > $PWD/target/README.txt
-   sed -e 's/$/'$'\015'/ < AUTHORS > $PWD/target/AUTHORS.txt
-   sed -e 's/$/'$'\015'/ < COPYING.LGPL > $PWD/target/COPYING.LGPL.txt
+   sed -e 's/$/'$'\015'/ < README > $prefix/README.txt
+   sed -e 's/$/'$'\015'/ < AUTHORS > $prefix/AUTHORS.txt
+   sed -e 's/$/'$'\015'/ < COPYING.LGPL > $prefix/COPYING.LGPL.txt
 
 9. If you want your StarPU installation to be standalone, you need to
    copy the DLL files from hwloc, Cuda, and OpenCL into the StarPU

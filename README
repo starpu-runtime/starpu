@@ -124,8 +124,7 @@ Update the video drivers to the latest stable release available for your
 hardware. Old ATI drivers (< 2.3) contain bugs that cause OpenCL support in
 StarPU to hang or exhibit incorrect behaviour.
 
-For details on the Windows build process, see the README.dev file in the
-subversion tree.
+For details on the Windows build process, see the INSTALL file.
 
 ++==================++
 || V. Documentation ||
