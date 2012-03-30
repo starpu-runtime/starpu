@@ -570,35 +570,35 @@ Deinitialize the cursor if there is one
 @end table
 @end deftp
 
-@deftypefun struct worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned @var{sched_ctx_id}, int @var{type})
+@deftypefun struct worker_collection* starpu_create_worker_collection_for_sched_ctx (unsigned @var{sched_ctx_id}, int @var{type})
 Creates a worker collection of the type indicated by the last parameter for the context specified through the first parameter
 @end deftypefun
 
-@deftypefun void starpu_delete_worker_collection_for_sched_ctx(unsigned @var{sched_ctx_id})
+@deftypefun void starpu_delete_worker_collection_for_sched_ctx (unsigned @var{sched_ctx_id})
 Deletes the worker collection of the specified scheduling context
 @end deftypefun
  
-@deftypefun struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned @var{sched_ctx_id})
+@deftypefun struct worker_collection* starpu_get_worker_collection_of_sched_ctx (unsigned @var{sched_ctx_id})
 Returns the worker collection managed by the indicated context
 @end deftypefun
 
-@deftypefun pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned @var{sched_ctx_id})
+@deftypefun pthread_mutex_t* starpu_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
 @end deftypefun
 
-@deftypefun void starpu_set_sched_ctx(unsigned *@var{sched_ctx})
+@deftypefun void starpu_set_sched_ctx (unsigned *@var{sched_ctx})
 Sets the scheduling context the task will be submitted to
 @end deftypefun
 
-@deftypefun unsigned starpu_get_sched_ctx(void)
+@deftypefun unsigned starpu_get_sched_ctx (void)
 Returns the scheduling contexts the tasks are currently submitted to
 @end deftypefun
 
-@deftypefun unsigned starpu_get_nworkers_of_sched_ctx(unsigned @var{sched_ctx})
+@deftypefun unsigned starpu_get_nworkers_of_sched_ctx (unsigned @var{sched_ctx})
 Returns the number of workers managed by the specified contexts
 (Usually needed to verify if it manages any workers or if it should be blocked)
 @end deftypefun
 
-@deftypefun unsigned starpu_get_nshared_workers(unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
+@deftypefun unsigned starpu_get_nshared_workers (unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
 Returns the number of workers shared by two contexts
 @end deftypefun
 
@@ -696,12 +696,12 @@ This function returns the condition variables associated to a worker in a contex
 It is used in the policy to access to the local queue of the worker
 @end deftypefun
 
-@deftypefun void starpu_set_sched_ctx_policy_data(unsigned @var{sched_ctx}, {void*} @var{policy_data})
+@deftypefun void starpu_set_sched_ctx_policy_data (unsigned @var{sched_ctx}, {void*} @var{policy_data})
 Each scheduling policy uses some specific data (queues, variables, additional condition variables). 
 It is memorize through a local structure. This function assigns it to a scheduling context.
 @end deftypefun
 
-@deftypefun void* starpu_get_sched_ctx_policy_data(unsigned @var{sched_ctx})
+@deftypefun void* starpu_get_sched_ctx_policy_data (unsigned @var{sched_ctx})
 Returns the policy data previously assigned to a context
 @end deftypefun
 
