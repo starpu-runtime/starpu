@@ -46,7 +46,7 @@ plug-in.  It does not require detailed knowledge of the StarPU library.
 Note: as of StarPU @value{VERSION}, this is still an area under
 development and subject to change.
 
-@menu
+  @menu
 * Defining Tasks::              Defining StarPU tasks
 * Synchronization and Other Pragmas:: Synchronization, and more.
 * Registered Data Buffers::     Manipulating data buffers

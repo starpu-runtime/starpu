@@ -117,6 +117,11 @@ Allow for at most @var{count} codelet implementations for the same
 target device.  This information is then available as the
 @code{STARPU_MAXIMPLEMENTATIONS} macro.
 
+@item ----enable-max-sched-ctxs=@var{count}
+Allow for at most @var{count} scheduling contexts
+This information is then available as the
+@code{STARPU_NMAX_SCHED_CTXS} macro.
+
 @end table
 
 @node Advanced configuration
@@ -199,6 +204,10 @@ default, it is enabled when an OpenCL implementation is found.
 @item --disable-starpu-top
 Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
 is enabled when the required dependencies are found.
+
+@item --enable-sched-ctx-hypervisor
+Enables the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hypervisor}). 
+By default, it is disabled.
 
 @end table
 @node Execution configuration through environment variables

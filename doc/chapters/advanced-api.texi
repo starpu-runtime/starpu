@@ -516,8 +516,7 @@ Variant of starpu_worker_can_execute_task compatible with combined workers
 @node Scheduling Contexts
 @section Scheduling Contexts
 StarPU permits on one hand grouping workers in combined workers in order to execute a parallel task and on the other hand grouping tasks in bundles that will be executed by a single specified worker.
-Scheduling contexts are different, they represent abstracts sets of workers that allow the programmers to control the distribution of computational resources (i.e. CPUs and
-GPUs) to concurrent parallel kernels. The main goal is to minimize interferences between the execution of multiple parallel kernels, by partitioning the underlying pool of workers using contexts.
+In contrast when we group workers in scheduling contexts we submit starpu tasks to them and we schedule them with the policy assigned to the context.
 Scheduling contexts can be created, deleted and modified dynamically.
 
 @deftypefun unsigned starpu_create_sched_ctx (const char *@var{policy_name}, int *@var{workerids_ctx}, int @var{nworkers_ctx}, const char *@var{sched_ctx_name})

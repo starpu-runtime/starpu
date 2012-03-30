@@ -1,0 +1,27 @@
+@c -*-texinfo-*-
+
+@c This file is part of the StarPU Handbook.
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+@c See the file starpu.texi for copying conditions.
+
+@cindex Scheduling Context Hypervisor
+
+StarPU proposes a platform for constructing Scheduling Contexts, for deleting and modifying them dynamically.
+A parallel kernel, can thus be isolated into a scheduling context and interferences between several parallel kernels are avoided.
+If the user knows exactly how many workers each scheduling context needs, he can assign them to the contexts at their creation time or modify them during the execution of the program.
+
+The Scheduling Context Hypervisor Plugin is available for the users who do not dispose of a regular parallelism and who need to resize the contexts according to the behavior of the parallel kernel.
+The Hypervisor receives information concerning the execution of the tasks, the efficiency of the resources, etc. from StarPU and it decides accordingly when and how the contexts it manages can be resized.
+Basic strategies of resizing scheduling contexts already exist but a platform for implementing additional custom ones is available.
+
+@menu
+* Performance counters::              			StarPU provides information to the Hypervisor through performance counters
+* Registering Scheduling Contexts to the hypervisor:: 	Contexts have to register to the hypervisor
+* The user's input in the resizing process:: 		The user can help the hypervisor decide how to resize
+* Defining a new hypervisor policy::      		New Policies can be implemented
+@end menu
+
+@c Local Variables:
+@c TeX-master: "../starpu.texi"
+@c ispell-local-dictionary: "american"
+@c End:

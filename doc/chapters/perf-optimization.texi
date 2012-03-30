@@ -160,10 +160,15 @@ supports parallel tasks (still experimental).
 
 @node Task scheduling contexts
 @section Task scheduling contexts
+Task scheduling contexts represent abstracts sets of workers that allow the programmers to control the distribution of computational resources (i.e. CPUs and
+GPUs) to concurrent parallel kernels. The main goal is to minimize interferences between the execution of multiple parallel kernels, by partitioning the underlying pool of workers using contexts.
+
 By default, the application submits tasks to an initial context, which disposes of all the computation ressources available to StarPU (all the workers). 
-If the application programmer plans to launch several parallel kernels simultaneusly, these kernels will be executed within this initial context, using a single scheduler (@pxref{Task scheduling policy}).
-Meanwhile, if the application programmer is aware of the demands of these kernels and of the specificity of the machine used to execute them, the workers can be divided between several contexts. Thus, the scheduling contexts will isolate the execution of each kernel and they will permit the use of a scheduling policy proper to each one of them.
-In order to create the contexts, you have to know the indentifiers of the workers running within StarPU. By passing a set of workers together with the scheduling policy to the function @code{starpu_create_sched_ctx}, you will get an identifier of the context created which you will use to indicate the context you want to submit the tasks to.
+If the application programmer plans to launch several parallel kernels simultaneusly, by default these kernels will be executed within this initial context, using a single scheduler policy(@pxref{Task scheduling policy}).
+Meanwhile, if the application programmer is aware of the demands of these kernels and of the specificity of the machine used to execute them, the workers can be divided between several contexts. 
+These scheduling contexts will isolate the execution of each kernel and they will permit the use of a scheduling policy proper to each one of them.
+In order to create the contexts, you have to know the indentifiers of the workers running within StarPU. 
+By passing a set of workers together with the scheduling policy to the function @code{starpu_create_sched_ctx}, you will get an identifier of the context created which you will use to indicate the context you want to submit the tasks to.
 
 @cartouche
 @smallexample
@@ -182,6 +187,9 @@ starpu_task_submit(task);
 
 @end smallexample
 @end cartouche
+
+Note: Parallel greedy and parallel heft scheduling policies do not support the existence of several disjoint contexts on the machine. 
+Combined workers are constructed depending on the entire topology of the machine, not only the one belonging to a context.
 
 @node Performance model calibration
 @section Performance model calibration
