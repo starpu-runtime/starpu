@@ -1170,7 +1170,7 @@ if test "x$STARPU_DEVEL" != x; then
 fi
 
 # Same value as Automake's, for use in other places.
-pkglibdir="\${__cuda_libdir}/$PACKAGE"
+pkglibdir="\${libdir}/$PACKAGE"
 AC_SUBST([pkglibdir])
 
 
