@@ -15,11 +15,24 @@ The Hypervisor receives information concerning the execution of the tasks, the e
 Basic strategies of resizing scheduling contexts already exist but a platform for implementing additional custom ones is available.
 
 @menu
-* Performance counters::              			StarPU provides information to the Hypervisor through performance counters
+* Performance Counters::              			StarPU provides information to the Hypervisor through performance counters
 * Registering Scheduling Contexts to the hypervisor:: 	Contexts have to register to the hypervisor
 * The user's input in the resizing process:: 		The user can help the hypervisor decide how to resize
 * Defining a new hypervisor policy::      		New Policies can be implemented
 @end menu
+
+@node Performance Counters
+@section Performance Counters
+
+
+@node Registering Scheduling Contexts to the hypervisor
+@section Registering Scheduling Contexts to the hypervisor
+
+@node The user's input in the resizing process
+@section The user's input in the resizing process
+
+@node Defining a new hypervisor policy
+@section Defining a new hypervisor policy
 
 @c Local Variables:
 @c TeX-master: "../starpu.texi"
