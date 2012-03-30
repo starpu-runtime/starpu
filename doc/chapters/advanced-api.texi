@@ -12,7 +12,7 @@
 * Task Bundles::                
 * Task Lists::                  
 * Using Parallel Tasks::       
-* Scheduling Contexts 
+* Scheduling Contexts::
 * Defining a new scheduling policy::  
 * Expert mode::                 
 @end menu
