@@ -14,6 +14,7 @@ TODO: improve!
 * Task submission::
 * Task priorities::
 * Task scheduling policy::
+* Task scheduling contexts::
 * Performance model calibration::
 * Task distribution vs Data transfer::
 * Data prefetch::
@@ -156,9 +157,11 @@ parallel tasks (still experimental).
 
 The @b{pgreedy} (parallel greedy) scheduler is similar to greedy, it also
 supports parallel tasks (still experimental).
+
 @node Task scheduling contexts
 @section Task scheduling contexts
-By default, the application submits tasks to an initial context, which disposes of all the computation ressources available to StarPU (all the workers). If the application programmer plans to launch several parallel kernels simultaneusly, these kernels will be executed within this initial context, using a single scheduler (@pxref{Task scheduling policy}).
+By default, the application submits tasks to an initial context, which disposes of all the computation ressources available to StarPU (all the workers). 
+If the application programmer plans to launch several parallel kernels simultaneusly, these kernels will be executed within this initial context, using a single scheduler (@pxref{Task scheduling policy}).
 Meanwhile, if the application programmer is aware of the demands of these kernels and of the specificity of the machine used to execute them, the workers can be divided between several contexts. Thus, the scheduling contexts will isolate the execution of each kernel and they will permit the use of a scheduling policy proper to each one of them.
 In order to create the contexts, you have to know the indentifiers of the workers running within StarPU. By passing a set of workers together with the scheduling policy to the function @code{starpu_create_sched_ctx}, you will get an identifier of the context created which you will use to indicate the context you want to submit the tasks to.
 
