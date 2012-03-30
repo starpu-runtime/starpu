@@ -24,6 +24,28 @@ Basic strategies of resizing scheduling contexts already exist but a platform fo
 @node Performance Counters
 @section Performance Counters
 
+StarPU provides a series of performance counters which are used by the Hypervisor in the resize decision taking process. 
+
+@deftp {Data Type} {struct starpu_performance_counters}
+@anchor{struct starpu_performance_counters}
+
+@table @asis
+@item @code{void (*notify_idle_cycle)(unsigned sched_ctx, int worker, double idle_time)}
+Informs the hypervisor for how long a worker has been idle in the specified context
+@item @code{void (*notify_idle_end)(unsigned sched_ctx, int worker)}
+Informs the hypervisor that after a period of idle, the worker has just executed a task in the specified context.
+The idle counter it though reset.
+@item @code{void (*notify_pushed_task)(unsigned sched_ctx, int worker)}
+Notifies the hypervisor a task has been scheduled on the queue of the worker corresponding to the specified context
+@item @code{void (*notify_poped_task)(unsigned sched_ctx, int worker, double flops)}
+Informs the hypervisor a task executing a specified number of instructions has been poped from the worker
+@item @code{void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid)}
+Notifies the hypervisor a task has just been executed
+
+@end table
+@end deftp
+
+These performance counters are created at the initialization of the hypervisor, and contexts that have to trigger information sending towards the Hypervisor, have to receive them as parameter at their creation time.
 
 @node Registering Scheduling Contexts to the hypervisor
 @section Registering Scheduling Contexts to the hypervisor
