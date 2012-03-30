@@ -337,11 +337,11 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	    fi
 	else
 	    if test "$__cuda_dir" != "no" ; then
-		for libdir in lib64 lib lib/x64 lib/Win32 ; do
-		    AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir and $__cuda_dir/$libdir)
+		for __cuda_libdir in lib64 lib lib/x64 lib/Win32 ; do
+		    AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir and $__cuda_dir/$__cuda_libdir)
 		    AC_MSG_RESULT()
-		    STARPU_CUDA_LDFLAGS="-L${__cuda_dir}/$libdir"
-		    LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_dir}/$libdir"
+		    STARPU_CUDA_LDFLAGS="-L${__cuda_dir}/$__cuda_libdir"
+		    LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_dir}/$__cuda_libdir"
 		    AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
 		    unset ac_cv_lib_cuda_main
 		    if test "$have_valid_cuda" = yes ; then
@@ -567,8 +567,8 @@ AC_DEFUN([STARPU_CHECK_OPENCL],
 	    AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
 	    unset ac_cv_lib_OpenCL_main
 	    if test "$have_valid_opencl" = "no" -a "$__opencl_dir" != "no" ; then
-		for libdir in lib64 lib lib/x86 lib/Win32 ; do
-		    __opencl_lib_dir="$__opencl_dir/$libdir"
+		for __cuda_libdir in lib64 lib lib/x86 lib/Win32 ; do
+		    __opencl_lib_dir="$__opencl_dir/$__cuda_libdir"
 		    AC_MSG_CHECKING(whether OpenCL is available in $__opencl_dir and $__opencl_lib_dir)
 		    AC_MSG_RESULT()
 		    LDFLAGS="${SAVED_LDFLAGS} -L$__opencl_lib_dir"
@@ -1170,7 +1170,7 @@ if test "x$STARPU_DEVEL" != x; then
 fi
 
 # Same value as Automake's, for use in other places.
-pkglibdir="\${libdir}/$PACKAGE"
+pkglibdir="\${__cuda_libdir}/$PACKAGE"
 AC_SUBST([pkglibdir])
 
 
