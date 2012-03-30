@@ -63,24 +63,24 @@ was last updated on @value{UPDATED}.
 @comment  better formatting.
 @comment
 @menu
-* Introduction::                Getting started
-* Installing StarPU::           How to configure, build and install StarPU
-* Using StarPU::                How to run StarPU application
-* Basic Examples::              Basic examples of the use of StarPU
-* Advanced Examples::           Advanced examples of the use of StarPU
-* Performance optimization::    How to optimize performance with StarPU
-* Performance feedback::        Performance debugging tools
-* Tips and Tricks::             Tips and tricks to know about
-* StarPU MPI support::          How to combine StarPU with MPI
-* StarPU FFT support::          How to perform FFT computations with StarPU
-* C Extensions::                Easier StarPU programming with GCC
-* SOCL OpenCL Extensions::      How to use OpenCL on top of StarPU
-* Scheduling Context Hypervisor How to use Scheduling Context Hypervisor with StarPU
-* StarPU Basic API::            The Basic API to use StarPU
-* StarPU Advanced API::         Advanced use of StarPU
-* Configuring StarPU::          How to configure StarPU
+* Introduction::                	Getting started
+* Installing StarPU::           	How to configure, build and install StarPU
+* Using StarPU::                	How to run StarPU application
+* Basic Examples::              	Basic examples of the use of StarPU
+* Advanced Examples::           	Advanced examples of the use of StarPU
+* Performance optimization::    	How to optimize performance with StarPU
+* Performance feedback::        	Performance debugging tools
+* Tips and Tricks::             	Tips and tricks to know about
+* StarPU MPI support::          	How to combine StarPU with MPI
+* StarPU FFT support::          	How to perform FFT computations with StarPU
+* C Extensions::                	Easier StarPU programming with GCC
+* SOCL OpenCL Extensions::      	How to use OpenCL on top of StarPU
+* Scheduling Context Hypervisor:: 	How to use Scheduling Context Hypervisor with StarPU
+* StarPU Basic API::            	The Basic API to use StarPU
+* StarPU Advanced API::         	Advanced use of StarPU
+* Configuring StarPU::          	How to configure StarPU
 * Full source code for the 'Scaling a Vector' example::  
-* GNU Free Documentation License::  How you can copy and share this manual.
+* GNU Free Documentation License::  	How you can copy and share this manual.
 
 * Concept Index::               Index of programming concepts.
 * Function Index::              Index of C functions.
