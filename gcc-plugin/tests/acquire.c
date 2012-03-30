@@ -20,6 +20,14 @@
 
 #include <mocks.h>
 
+static void
+foo (char *x, int foo)
+{
+  expected_acquire_arguments.pointer = x;
+#pragma starpu acquire x
+}
+
+
 int
 main (int argc, char *argv[])
 {
@@ -44,8 +52,10 @@ main (int argc, char *argv[])
   expected_acquire_arguments.pointer = z;
 #pragma starpu acquire z
 
+  foo (z, 345);
+
   assert (data_register_calls == 2);
-  assert (data_acquire_calls == 2);
+  assert (data_acquire_calls == 3);
 
   return EXIT_SUCCESS;
 }

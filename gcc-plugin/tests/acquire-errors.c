@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@ main (int argc, char *argv[])
 #pragma starpu acquire argc /* (error "neither a pointer nor an array") */
 #pragma starpu acquire y
 #pragma starpu acquire x
+
+#pragma starpu acquire x z			  /* (error "junk after") */
 
   /* XXX: Uncomment below when this is supported.  */
 #if 0

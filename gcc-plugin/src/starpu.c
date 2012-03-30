@@ -892,7 +892,7 @@ handle_pragma_acquire (struct cpp_reader *reader)
       error_at (loc, "%qE is neither a pointer nor an array", var);
       return;
     }
-  else if (TREE_CHAIN (var) != NULL_TREE)
+  else if (TREE_CHAIN (args) != NULL_TREE)
     error_at (loc, "junk after %<starpu acquire%> pragma");
 
   /* If VAR is an array, take its address.  */
