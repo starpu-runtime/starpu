@@ -1527,9 +1527,12 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    AC_MSG_CHECKING(whether CUDA and ICC are compatible)
    OLD_CC="$CC"
    CC="$ICC"
+   OLD_CFLAGS="$CFLAGS"
+   CFLAGS="-I$PWD/include -I$srcdir/include"
    AC_COMPILE_IFELSE(
        AC_LANG_PROGRAM(
-	   [[#include <cuda.h>]],
+	   [[#include <cuda.h>
+	   #include <starpu.h>]],
 	   [[]]
 	   ),
        AC_MSG_RESULT(yes),
@@ -1537,6 +1540,7 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
            AC_MSG_RESULT(no)]
    )
    CC="$OLD_CC"
+   CFLAGS="$OLD_CFLAGS"
 fi
 
 # Disable ICC on windows
