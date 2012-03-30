@@ -11,7 +11,8 @@
 * Multiformat Data Interface::  
 * Task Bundles::                
 * Task Lists::                  
-* Using Parallel Tasks::        
+* Using Parallel Tasks::       
+* Scheduling Contexts 
 * Defining a new scheduling policy::  
 * Expert mode::                 
 @end menu
