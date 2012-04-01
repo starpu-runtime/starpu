@@ -247,7 +247,8 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	for(i = 0; i < 12; i++)
 		p1.workers[i] = i; 
 
-	p1.ctx = starpu_create_sched_ctx_with_perf_counters("heft", p1.workers, nworkers1, "sched_ctx1", perf_counters);
+	p1.ctx = starpu_create_sched_ctx("heft", p1.workers, nworkers1, "sched_ctx1");
+	starpu_set_perf_counters(p1.ctx, perf_counters);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
 	sched_ctx_hypervisor_register_ctx(p1.ctx, 0.0);
@@ -282,7 +283,8 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	/* for(i = n_all_gpus  + cpu1; i < n_all_gpus + cpu1 + cpu2; i++) */
 	/* 	p2.workers[k++] = i; */
 
-	p2.ctx = starpu_create_sched_ctx_with_perf_counters("heft", p2.workers, 0, "sched_ctx2", perf_counters);
+	p2.ctx = starpu_create_sched_ctx("heft", p2.workers, 0, "sched_ctx2");
+	starpu_set_perf_counters(p2.ctx, perf_counters);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;
 	sched_ctx_hypervisor_register_ctx(p2.ctx, 0.0);

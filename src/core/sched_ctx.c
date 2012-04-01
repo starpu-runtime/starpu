@@ -238,11 +238,8 @@ unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids,
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-unsigned starpu_create_sched_ctx_with_perf_counters(const char *policy_name, int *workerids, 
-				 int nworkers_ctx, const char *sched_name,
-				 struct starpu_performance_counters *perf_counters)
+void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters)
 {
-	unsigned sched_ctx_id = starpu_create_sched_ctx(policy_name, workerids, nworkers_ctx, sched_name);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->perf_counters = perf_counters;
 	return sched_ctx_id;

@@ -106,10 +106,10 @@ struct starpu_sched_policy
 	/* This method is called every time a task has been executed. (optional) */
 	void (*post_exec_hook)(struct starpu_task *);
 
-	/* Initialize the scheduling policy for added workers. */
+	/* Initialize scheduling structures corresponding to each worker. */
 	void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
-	/* Deinitialize the scheduling policy for removed workers. */
+	/* Deinitialize scheduling structures corresponding to each worker. */
 	void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
 	/* Name of the policy (optionnal) */
@@ -145,7 +145,7 @@ struct starpu_performance_counters {
 };
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
-unsigned starpu_create_sched_ctx_with_perf_counters(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name, struct starpu_performance_counters *perf_counters);
+void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters);
 void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops);
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_BUILD_SCHED_CTX_HYPERVISOR
