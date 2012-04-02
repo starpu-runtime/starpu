@@ -23,6 +23,8 @@ gcc_tests =					\
   register-errors.c				\
   acquire.c					\
   acquire-errors.c				\
+  release.c					\
+  release-errors.c				\
   unregister.c					\
   unregister-errors.c				\
   task-errors.c					\
