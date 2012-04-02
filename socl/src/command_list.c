@@ -35,6 +35,7 @@ command_list command_list_remove(command_list l, cl_command cmd) {
 			free(e);
 			if (e == l) return next;
 		}
+		e = e->next;
 	}
 	return l;
 }
