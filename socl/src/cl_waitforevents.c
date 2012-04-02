@@ -22,16 +22,6 @@ soclWaitForEvents(cl_uint           num_events,
 {
    unsigned int i;
    DEBUG_MSG("Waiting for events: ");
-   for (i=0; i<num_events; i++) {
-   	command_graph_dump(event_list[i]->command);
-
-   	/* We need to submit commands if it's not already done */
-	command_submit_deep(event_list[i]->command);
-
-      	DEBUG_MSG_NOHEAD("%d ", event_list[i]->id);
-   }
-   DEBUG_MSG_NOHEAD("\n");
-
    for (i=0; i<num_events; i++)
       starpu_tag_wait(event_list[i]->id);
 
