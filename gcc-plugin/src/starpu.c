@@ -908,6 +908,48 @@ handle_pragma_acquire (struct cpp_reader *reader)
 			     build_int_cst (integer_type_node, STARPU_RW)));
 }
 
+/* Process `#pragma starpu release VAR' and emit the corresponding
+   `starpu_data_release' call.  */
+
+static void
+handle_pragma_release (struct cpp_reader *reader)
+{
+  static tree release_fn;
+  LOOKUP_STARPU_FUNCTION (release_fn, "starpu_data_release");
+
+  tree args, var;
+  location_t loc;
+
+  loc = cpp_peek_token (reader, 0)->src_loc;
+
+  args = read_pragma_expressions ("release", loc);
+  if (args == NULL_TREE)
+    return;
+
+  var = TREE_VALUE (args);
+
+  if (var == error_mark_node)
+    return;
+  else if (TREE_CODE (TREE_TYPE (var)) != POINTER_TYPE
+	   && TREE_CODE (TREE_TYPE (var)) != ARRAY_TYPE)
+    {
+      error_at (loc, "%qE is neither a pointer nor an array", var);
+      return;
+    }
+  else if (TREE_CHAIN (args) != NULL_TREE)
+    error_at (loc, "junk after %<starpu release%> pragma");
+
+  /* If VAR is an array, take its address.  */
+  tree pointer =
+    POINTER_TYPE_P (TREE_TYPE (var))
+    ? var
+    : build_addr (var, current_function_decl);
+
+  /* Call `starpu_data_release (starpu_data_lookup (ptr))'.  */
+  add_stmt (build_call_expr (release_fn, 1,
+			     build_pointer_lookup (pointer)));
+}
+
 /* Process `#pragma starpu unregister VAR' and emit the corresponding
    `starpu_data_unregister' call.  */
 
@@ -984,6 +1026,8 @@ register_pragmas (void *gcc_data, void *user_data)
 				    handle_pragma_register);
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "acquire",
 				    handle_pragma_acquire);
+  c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "release",
+				    handle_pragma_release);
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "unregister",
 				    handle_pragma_unregister);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "shutdown",
