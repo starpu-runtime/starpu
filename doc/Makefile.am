@@ -59,8 +59,10 @@ uninstall-local:
 #	vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 
 # Rule to update documentation on web server. Should only be used locally.
-update-web:
-	scp starpu.pdf starpu.html sync:/web/runtime/html/StarPU
+PUBLISHHOST	:= sync
+update-web: starpu.html
+	sed -i 's/gcc\.html#Attribute-Syntax/http:\/\/gcc.gnu.org\/onlinedocs\/gcc\/Attribute-Syntax.html#Attribute-Syntax/' starpu.html
+	scp starpu.pdf starpu.html $(PUBLISHHOST):/web/runtime/html/StarPU
 
 showcheck:
 	-cat /dev/null
