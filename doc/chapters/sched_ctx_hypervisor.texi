@@ -369,6 +369,24 @@ Returns the flops of a context elapsed from the last resize
 Returns the name of the resizing policy the hypervisor uses
 @end deftypefun
 
+@node Source code
+@subsection Source code
+@cartouche
+@smallexample
+
+struct hypervisor_policy dummy_policy = 
+{
+       .handle_poped_task = dummy_handle_poped_task,
+       .handle_pushed_task = dummy_handle_pushed_task,
+       .handle_idle_cycle = dummy_handle_idle_cycle,
+       .handle_idle_end = dummy_handle_idle_end,
+       .handle_post_exec_hook = dummy_handle_post_exec_hook,
+       .custom = 1,
+       .name = ``dummy''
+};
+
+@end smallexample
+@end cartouche
 
 @c Local Variables:
 @c TeX-master: "../starpu.texi"
