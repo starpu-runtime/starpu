@@ -287,6 +287,32 @@ AC_ARG_WITH(cuda-lib-dir,
 		enable_cuda=yes
 	], [cuda_lib_dir=no])
 
+AC_DEFUN([STARPU_CHECK_CUDA_L],
+[
+    __cuda_L=$1
+    SAVED_LDFLAGS="${LDFLAGS}"
+    STARPU_CUDA_LDFLAGS="${__cuda_L}"
+    AC_MSG_CHECKING(whether CUDA is available with: $__cuda_L)
+    AC_MSG_RESULT()
+    LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
+    AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
+    unset ac_cv_lib_cuda_main
+    if test "$have_valid_cuda" = "yes" ; then
+	AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
+	unset ac_cv_lib_cudart_main
+	if test "$have_valid_cuda" = yes ; then
+	    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
+	    LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	    # we also check that CUBLAS is available
+	    AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
+	    unset ac_cv_lib_cublas_main
+	    if test "$have_valid_cuda" = "yes" ; then
+		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
+	    fi
+	fi
+    fi
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
 AC_DEFUN([STARPU_CHECK_CUDA],
 [
     __cuda_dir=$1
@@ -315,7 +341,6 @@ AC_DEFUN([STARPU_CHECK_CUDA],
     fi
 
     SAVED_CPPFLAGS="$CPPFLAGS"
-    SAVED_LDFLAGS="${LDFLAGS}"
     have_valid_cuda=no
 
     if test "$__cuda_include_dir" != "no" ; then
@@ -327,48 +352,23 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 
     if test "$have_valid_cuda" = "yes" ; then
 	if test "$__cuda_lib_dir" != "no" ; then
-	    STARPU_CUDA_LDFLAGS="-L${__cuda_lib_dir}"
-	    LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_lib_dir}"
-	    AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
-	    unset ac_cv_lib_cuda_main
-	    if test "$have_valid_cuda" = "yes" ; then
-		AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
-		unset ac_cv_lib_cudart_main
-	    fi
+	    STARPU_CHECK_CUDA_L("-L${__cuda_lib_dir}")
 	else
 	    if test "$__cuda_dir" != "no" ; then
 		for __cuda_libdir in lib64 lib lib/x64 lib/Win32 ; do
-		    AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir and $__cuda_dir/$__cuda_libdir)
-		    AC_MSG_RESULT()
-		    STARPU_CUDA_LDFLAGS="-L${__cuda_dir}/$__cuda_libdir"
-		    LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_dir}/$__cuda_libdir"
-		    AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
-		    unset ac_cv_lib_cuda_main
-		    if test "$have_valid_cuda" = yes ; then
-			AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
-			unset ac_cv_lib_cudart_main
-		    fi
-		    if test "$have_valid_cuda" = yes ; then
-			STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
-			LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
-			# we also check that CUBLAS is available
-			AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
-			unset ac_cv_lib_cublas_main
-			if test "$have_valid_cuda" = "yes" ; then
-			    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
-			fi
-		    fi
+		    STARPU_CHECK_CUDA_L("-L${__cuda_dir}/${__cuda_libdir}")
 		    if test "$have_valid_cuda" = yes ; then
 			break
 		    fi
 		done
+	    else
+		STARPU_CHECK_CUDA_L("")
 	    fi
 	fi
     fi
 
     if test "$have_valid_cuda" = "no" ; then
 	CPPFLAGS="${SAVED_CPPFLAGS}"
-        LDFLAGS="${SAVED_LDFLAGS}"
 	unset STARPU_CUDA_LDFLAGS
     else
 	if test "$__cuda_include_dir" != "no"; then
@@ -578,6 +578,10 @@ AC_DEFUN([STARPU_CHECK_OPENCL],
 			break
 		    fi
 		done
+	    else
+		LDFLAGS="${SAVED_LDFLAGS}"
+		AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+		unset ac_cv_lib_OpenCL_main
 	    fi
         fi
     fi
