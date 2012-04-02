@@ -3,7 +3,7 @@
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
 @c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
@@ -277,11 +277,10 @@ Or alternatively, setting the @code{STARPU_GENERATE_TRACE} environment variable
 to 1 before application execution will make StarPU do it automatically at
 application shutdown.
 
-This will create a @code{paje.trace} file in the current directory that can be
-inspected with the ViTE trace visualizing open-source tool. More information
-about ViTE is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
-possible to open the @code{paje.trace} file with ViTE by using the following
-command:
+This will create a @code{paje.trace} file in the current directory that
+can be inspected with the @url{http://vite.gforge.inria.fr/, ViTE trace
+visualizing open-source tool}.  It is possible to open the
+@code{paje.trace} file with ViTE by using the following command:
 @example
 % vite paje.trace
 @end example
