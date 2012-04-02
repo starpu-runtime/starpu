@@ -27,14 +27,14 @@ Basic strategies of resizing scheduling contexts already exist but a platform fo
 @section Managing the hypervisor
 There is a single hypervisor that is in charge of resizing contexts and the resizing strategy is chosen at the initialization of the hypervisor. A single resize can be done at a time.
 
-@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init({struct hypervisor_policy*} @var{policy})
+@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init ({struct hypervisor_policy*} @var{policy})
 Initializes the hypervisor to use the strategy provided as parameter and creates the performance counters (see @pxref{Performance Counters}).
 These performance counters represent actually some callbacks that will be used by the contexts to notify the information needed by the hypervisor.
 @end deftypefun
 
 Note: The Hypervisor is actually a worker that takes this role once certain conditions trigger the resizing process (there is no additional thread assigned to the hypervisor).
 
-@deftypefun void sched_ctx_hypervisor_shutdown(void)
+@deftypefun void sched_ctx_hypervisor_shutdown (void)
 The hypervisor and all information is freed. There is no synchronization between this function and starpu_shutdown. Thus, this should be done after starpu_shutdown(), 
 because the performance counters will still need allocated callback functions.
 @end deftypefun
@@ -43,11 +43,11 @@ because the performance counters will still need allocated callback functions.
 @section Registering Scheduling Contexts to the hypervisor
 Scheduling Contexts that have to be resized by the hypervisor must be first registered to the hypervisor. Whenever we want to exclude contexts from the resizing process we have to unregister them from the hypervisor.
 
-@deftypefun void sched_ctx_hypervisor_register_ctx(unsigned @var{sched_ctx}, double @var{total_flops})
+@deftypefun void sched_ctx_hypervisor_register_ctx (unsigned @var{sched_ctx}, double @var{total_flops})
 Register the context to the hypervisor, and indicate the number of flops the context will execute (needed for Gflops rate based strategy @pxref{Resizing strategies} or any other custom strategy needing it, for the others we can pass 0.0)
 @end deftypefun
 
-@deftypefun void sched_ctx_hypervisor_unregister_ctx(unsigned @var{sched_ctx})
+@deftypefun void sched_ctx_hypervisor_unregister_ctx (unsigned @var{sched_ctx})
 Unregister the context from the hypervisor
 @end deftypefun
 
@@ -55,17 +55,17 @@ Unregister the context from the hypervisor
 @section The user's input in the resizing process
 The user can totally forbid the resizing of a certain context or can then change his mind and allow it (in this case the resizing is managed by the hypervisor, that can forbid it or allow it)
 
-@deftypefun void sched_ctx_hypervisor_stop_resize(unsigned @var{sched_ctx})
+@deftypefun void sched_ctx_hypervisor_stop_resize (unsigned @var{sched_ctx})
 Forbid resizing of a context
 @end deftypefun
 
-@deftypefun void sched_ctx_hypervisor_start_resize(unsigned @var{sched_ctx})
+@deftypefun void sched_ctx_hypervisor_start_resize (unsigned @var{sched_ctx})
 Allow resizing of a context
 @end deftypefun
 
 The user can then provide information to the hypervisor concerning the conditions of resizing.
 
-@deftypefun void sched_ctx_hypervisor_ioctl(unsigned @var{sched_ctx}, ...)
+@deftypefun void sched_ctx_hypervisor_ioctl (unsigned @var{sched_ctx}, ...)
 Inputs conditions to the context @code{sched_ctx} with the following arguments.  The argument list must be zero-terminated.
 
 @defmac HYPERVISOR_MAX_IDLE
@@ -341,31 +341,31 @@ If the value corresponding to a worker is 1, this one is taken into account in t
 
 The following functions can be used in the resizing strategies.
 
-@deftypefun void sched_ctx_hypervisor_move_workers(unsigned @var{sender_sched_ctx}, unsigned @var{receier_sched_ctx}, {int *}@var{workers_to_move}, unsigned @var{nworkers_to_move});
+@deftypefun void sched_ctx_hypervisor_move_workers (unsigned @var{sender_sched_ctx}, unsigned @var{receier_sched_ctx}, {int *}@var{workers_to_move}, unsigned @var{nworkers_to_move});
 Moves workers from one context to another
 @end deftypefun
 
-@deftypefun {struct policy_config*} sched_ctx_hypervisor_get_config(unsigned @var{sched_ctx});
+@deftypefun {struct policy_config*} sched_ctx_hypervisor_get_config (unsigned @var{sched_ctx});
 Returns the configuration structure of a context
 @end deftypefun
 
-@deftypefun {int*} sched_ctx_hypervisor_get_sched_ctxs();
+@deftypefun {int*} sched_ctx_hypervisor_get_sched_ctxs ();
 Gets the contexts managed by the hypervisor
 @end deftypefun
 
-@deftypefun int sched_ctx_hypervisor_get_nsched_ctxs();
+@deftypefun int sched_ctx_hypervisor_get_nsched_ctxs ();
 Gets the number of contexts managed by the hypervisor
 @end deftypefun
 
-@deftypefun {struct sched_ctx_wrapper*} sched_ctx_hypervisor_get_wrapper(unsigned @var{sched_ctx});
+@deftypefun {struct sched_ctx_wrapper*} sched_ctx_hypervisor_get_wrapper (unsigned @var{sched_ctx});
 Returns the wrapper corresponding the context @code{sched_ctx}
 @end deftypefun
 
-@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx({struct sched_ctx_wrapper*} @var{sc_w});
+@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx ({struct sched_ctx_wrapper*} @var{sc_w});
 Returns the flops of a context elapsed from the last resize
 @end deftypefun
 
-@deftypefun {char*} sched_ctx_hypervisor_get_policy();
+@deftypefun {char*} sched_ctx_hypervisor_get_policy ();
 Returns the name of the resizing policy the hypervisor uses
 @end deftypefun
 
