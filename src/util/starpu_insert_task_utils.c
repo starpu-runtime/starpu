@@ -242,10 +242,17 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codele
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_HYPERVISOR_TAG) {
+		else if (arg_type==STARPU_HYPERVISOR_TAG) 
+		{
 			int hypervisor_tag = va_arg(varg_list, int);
 			(*task)->hypervisor_tag = hypervisor_tag;
 		}
+		else if (arg_type==STARPU_HYPERVISOR_FLOPS) 
+		{
+			int flops = va_arg(varg_list, int);
+			(*task)->flops = flops;
+		}
+
 	}
 
 	va_end(varg_list);

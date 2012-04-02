@@ -118,7 +118,7 @@ the maximum idle time allowed for workers that have just been moved from other c
 This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument (int) indicating the tag
 an executed task should have such that this configuration should be taken into account.
 @end defmac
-
+@end deftypefun
 @node Resizing strategies
 @section Resizing strategies
 
@@ -199,11 +199,10 @@ or
 
 @cartouche
 @smallexample
-@{starpu_insert_task(&codelet,
+starpu_insert_task(&codelet,
 		    ...,
 		    STARPU_FLOPS, 100,
                     0);
-@}
 @end smallexample
 @end cartouche
 
@@ -328,6 +327,7 @@ The structure confirming the last resize finished and a new one can be done
 
 @deftp {Data Type} {struct resize_ack}
 This structures checks if the workers moved to another context are actually taken into account in that context
+@table @asis
 @item @code{int receiver_sched_ctx}
 The context receiving the new workers
 @item @code{int *moved_workers}

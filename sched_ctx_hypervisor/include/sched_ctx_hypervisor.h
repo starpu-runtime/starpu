@@ -105,8 +105,6 @@ void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
 struct policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
 
-void sched_ctx_hypervisor_steal_workers(unsigned sched_ctx, int *workers, int nworkers, int task_tag);
-
 int* sched_ctx_hypervisor_get_sched_ctxs();
 
 int sched_ctx_hypervisor_get_nsched_ctxs();
