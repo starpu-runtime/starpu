@@ -285,6 +285,9 @@ visualizing open-source tool}.  It is possible to open the
 % vite paje.trace
 @end example
 
+By default, all tasks are displayed using a green color. To display tasks with
+varying colors, pass option @code{-c} to @code{starpu_fxt_tool}.
+
 @node DAG
 @subsection Creating a DAG with graphviz
 
