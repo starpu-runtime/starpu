@@ -35,10 +35,13 @@ static void soclBuildProgram_task(void *data) {
    err = clBuildProgram(d->program->cl_programs[range], 1, &device, d->options, NULL, NULL);
    if (err != CL_SUCCESS) {
       size_t len;
-      static char buffer[4096];
-      clGetProgramBuildInfo(d->program->cl_programs[range], device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+      clGetProgramBuildInfo(d->program->cl_programs[range], device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
+      char * buffer = malloc(len+1);
+      buffer[len] = '\0';
+      clGetProgramBuildInfo(d->program->cl_programs[range], device, CL_PROGRAM_BUILD_LOG, len, buffer, NULL);
       DEBUG_CL("clBuildProgram", err);
       ERROR_MSG("clBuildProgram: %s\n Aborting.\n", buffer);
+      free(buffer);
    }
 
    DEBUG_MSG("[Worker %d] Done building.\n", wid);
