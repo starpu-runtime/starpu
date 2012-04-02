@@ -74,10 +74,10 @@ choose any of its implementations.
 @end enumerate
 
 Tasks and their implementations must be @emph{declared}.  These
-declarations are annotated with @dfn{attributes}
-(See @url{http://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html#Attribute-Syntax}):
-the declaration of a task is a regular C function declaration with an
-additional @code{task} attribute, and task implementations are
+declarations are annotated with @dfn{attributes} (@pxref{Attribute
+Syntax, attributes in GNU C,, gcc, Using the GNU Compiler Collection
+(GCC)}): the declaration of a task is a regular C function declaration
+with an additional @code{task} attribute, and task implementations are
 declared with a @code{task_implementation} attribute.
 
 The following function attributes are provided:
