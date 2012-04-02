@@ -10,21 +10,207 @@ StarPU proposes a platform for constructing Scheduling Contexts, for deleting an
 A parallel kernel, can thus be isolated into a scheduling context and interferences between several parallel kernels are avoided.
 If the user knows exactly how many workers each scheduling context needs, he can assign them to the contexts at their creation time or modify them during the execution of the program.
 
-The Scheduling Context Hypervisor Plugin is available for the users who do not dispose of a regular parallelism and who need to resize the contexts according to the behavior of the parallel kernel.
-The Hypervisor receives information concerning the execution of the tasks, the efficiency of the resources, etc. from StarPU and it decides accordingly when and how the contexts it manages can be resized.
+The Scheduling Context Hypervisor Plugin is available for the users who do not dispose of a regular parallelism, who cannot not know in advance the exact size of the context and need to resize the contexts according to the behavior of the parallel kernel.
+The Hypervisor receives information from StarPU concerning the execution of the tasks, the efficiency of the resources, etc. and it decides accordingly when and how the contexts can be resized.
 Basic strategies of resizing scheduling contexts already exist but a platform for implementing additional custom ones is available.
 
 @menu
-* Performance Counters::              			StarPU provides information to the Hypervisor through performance counters
+* Managing the hypervisor::				Initialize the hypervisor
 * Registering Scheduling Contexts to the hypervisor:: 	Contexts have to register to the hypervisor
 * The user's input in the resizing process:: 		The user can help the hypervisor decide how to resize
+* Resizing strategies::					Several resizing strategies are proposed
+* Performance Counters::              			StarPU provides information to the Hypervisor through performance counters
 * Defining a new hypervisor policy::      		New Policies can be implemented
 @end menu
+
+@node Managing the hypervisor
+@section Managing the hypervisor
+There is a single hypervisor that is in charge of resizing contexts and the resizing strategy is chosen at the initialization of the hypervisor. A single resize can be done at a time.
+
+@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init({struct hypervisor_policy*} @var{policy})
+Initializes the hypervisor to use the strategy provided as parameter and creates the performance counters (see @pxref{Performance Counters}).
+These performance counters represent actually some callbacks that will be used by the contexts to notify the information needed by the hypervisor.
+@end deftypefun
+
+Note: The Hypervisor is actually a worker that takes this role once certain conditions trigger the resizing process (there is no additional thread assigned to the hypervisor).
+
+@deftypefun void sched_ctx_hypervisor_shutdown(void)
+The hypervisor and all information is freed. There is no synchronization between this function and starpu_shutdown. Thus, this should be done after starpu_shutdown(), 
+because the performance counters will still need allocated callback functions.
+@end deftypefun
+
+@node Registering Scheduling Contexts to the hypervisor
+@section Registering Scheduling Contexts to the hypervisor
+Scheduling Contexts that have to be resized by the hypervisor must be first registered to the hypervisor. Whenever we want to exclude contexts from the resizing process we have to unregister them from the hypervisor.
+
+@deftypefun void sched_ctx_hypervisor_register_ctx(unsigned @var{sched_ctx}, double @var{total_flops})
+Register the context to the hypervisor, and indicate the number of flops the context will execute (needed for Gflops rate based strategy @pxref{Resizing strategies} or any other custom strategy needing it, for the others we can pass 0.0)
+@end deftypefun
+
+@deftypefun void sched_ctx_hypervisor_unregister_ctx(unsigned @var{sched_ctx})
+Unregister the context from the hypervisor
+@end deftypefun
+
+@node The user's input in the resizing process
+@section The user's input in the resizing process
+The user can totally forbid the resizing of a certain context or can then change his mind and allow it (in this case the resizing is managed by the hypervisor, that can forbid it or allow it)
+
+@deftypefun void sched_ctx_hypervisor_stop_resize(unsigned @var{sched_ctx})
+Forbid resizing of a context
+@end deftypefun
+
+@deftypefun void sched_ctx_hypervisor_start_resize(unsigned @var{sched_ctx})
+Allow resizing of a context
+@end deftypefun
+
+The user can then provide information to the hypervisor concerning the conditions of resizing.
+
+@deftypefun void sched_ctx_hypervisor_ioctl(unsigned @var{sched_ctx}, ...)
+Inputs conditions to the context @code{sched_ctx} with the following arguments.  The argument list must be zero-terminated.
+
+@defmac HYPERVISOR_MAX_IDLE
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 3 arguments: 
+an array of int for the workerids to apply the condition, an int to indicate the size of the array, and a double value indicating 
+the maximum idle time allowed for a worker before the resizing process should be triggered
+@end defmac
+
+@defmac HYPERVISOR_PRIORITY
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 3 arguments: 
+an array of int for the workerids to apply the condition, an int to indicate the size of the array, and an int value indicating 
+the priority of the workers previously mentioned.
+The workers with the smallest priority are moved the first.
+@end defmac
+
+@defmac HYPERVISOR_MIN_WORKERS
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument(int) indicating
+the minimum number of workers a context should have, underneath this limit the context cannot execute.
+@end defmac
+
+@defmac HYPERVISOR_MAX_WORKERS
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument(int) indicating 
+the maximum number of workers a context should have, above this limit the context would not be able to scale
+@end defmac
+
+@defmac HYPERVISOR_GRANULARITY
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument(int) indicating
+the granularity of the resizing process (the number of workers should be moved from the context once it is resized)
+This parameter is ignore for the Gflops rate based strategy @pxref{Resizing strategies}, the number of workers that have to be moved is calculated by the strategy.
+@end defmac
+
+@defmac HYPERVISOR_FIXED_WORKERS 
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 2 arguments: 
+an array of int for the workerids to apply the condition and an int to indicate the size of the array.
+These workers are not allowed to be moved from the context.
+@end defmac
+
+@defmac HYPERVISOR_MIN_TASKS
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument (int)
+that indicated the minimum number of tasks that have to be executed before the context could be resized.
+This parameter is ignored for the Application Driven strategy @pxref{Resizing strategies} where the user indicates exactly when the resize should be done.
+@end defmac
+
+@defmac HYPERVISOR_NEW_WORKERS_MAX_IDLE
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument, a double value indicating 
+the maximum idle time allowed for workers that have just been moved from other contexts in the current context.
+@end defmac
+
+@defmac HYPERVISOR_TIME_TO_APPLY
+This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 1 argument (int) indicating the tag
+an executed task should have such that this configuration should be taken into account.
+@end defmac
+
+@node Resizing strategies
+@section Resizing strategies
+
+The plugin proposes several strategies for resizing the scheduling context.
+
+The @b{Application driven} strategy uses the user's input concerning the moment when he wants to resize the contexts. 
+Thus, the users tags the task that should trigger the resizing process. We can set directly the corresponding field in the @code{starpu_task} data structure is @code{hypervisor_tag} or
+use the macro @code{STARPU_HYPERVISOR_TAG} in @code{starpu_insert_task} function. 
+
+@cartouche
+@smallexample
+task.hypervisor_tag = 2;
+@end smallexample
+@end cartouche
+
+or
+
+@cartouche
+@smallexample
+@{starpu_insert_task(&codelet,
+		    ...,
+		    STARPU_HYPERVISOR_TAG, 2,
+                    0);
+@}
+@end smallexample
+@end cartouche
+
+The the user has to indicate that when a task with the specified tag is executed the contexts should resize.
+
+@cartouche
+@smallexample
+sched_ctx_hypervisor_resize(sched_ctx, 2);
+@end smallexample
+@end cartouche
+
+The user can use the same tag to change the resizing configuration of the contexts if he considers it necessary.
+@cartouche
+@smallexample
+sched_ctx_hypervisor_ioctl(sched_ctx,
+                          HYPERVISOR_MIN_WORKERS, 6,
+                          HYPERVISOR_MAX_WORKERS, 12,
+                          HYPERVISOR_TIME_TO_APPLY, 2,
+                          NULL);
+@end smallexample
+@end cartouche
+
+
+The @b{Idleness} based strategy resizes the scheduling contexts every time one of their workers stays idle 
+for a period longer than the one imposed by the user (see @pxref{The user's input in the resizing process})
+
+@cartouche
+@smallexample
+int workerids[3] = @{1, 3, 10@};
+int workerids2[9] = @{0, 2, 4, 5, 6, 7, 8, 9, 11@};
+sched_ctx_hypervisor_ioctl(sched_ctx_id,
+                           HYPERVISOR_MAX_IDLE, workerids, 3, 10000.0,
+			   HYPERVISOR_MAX_IDLE, workerids2, 9, 50000.0,
+                           NULL);
+@end smallexample
+@end cartouche
+
+The @b{Gflops rate} based strategy resizes the scheduling contexts such that they all finish at the same time. 
+The velocity of each of them is considered and once one of them is significantly slower the resizing process is triggered.
+In order to do these computations the user has to input the total number of instructions needed to be executed by the 
+parallel kernels and the number of instruction to be executed by each task.
+The number of flops to be executed by a context are passed as parameter when they are registered to the hypervisor,
+ (@code{sched_ctx_hypervisor_register_ctx(sched_ctx_id, flops)}) and the one to be executed by each task are passed when the task is submitted.
+The corresponding field in the @code{starpu_task} data structure is @code{flops} and 
+the corresponding macro in @code{starpu_insert_task} function is @code{STARPU_FLOPS}. When the task is executed 
+the resizing process is triggered.
+@cartouche
+@smallexample
+task.flops = 100;
+@end smallexample
+@end cartouche
+
+or
+
+@cartouche
+@smallexample
+@{starpu_insert_task(&codelet,
+		    ...,
+		    STARPU_FLOPS, 100,
+                    0);
+@}
+@end smallexample
+@end cartouche
 
 @node Performance Counters
 @section Performance Counters
 
-StarPU provides a series of performance counters which are used by the Hypervisor in the resize decision taking process. 
+The Scheduling Context Hypervisor Plugin provides a series of performance counters to StarPU. By incrementing them, StarPU can help the hypervisor in the resizing decision taking process.
 
 @deftp {Data Type} {struct starpu_performance_counters}
 @anchor{struct starpu_performance_counters}
@@ -45,16 +231,144 @@ Notifies the hypervisor a task has just been executed
 @end table
 @end deftp
 
-These performance counters are created at the initialization of the hypervisor, and contexts that have to trigger information sending towards the Hypervisor, have to receive them as parameter at their creation time.
-
-@node Registering Scheduling Contexts to the hypervisor
-@section Registering Scheduling Contexts to the hypervisor
-
-@node The user's input in the resizing process
-@section The user's input in the resizing process
+TODO maybe they should be hidden to the user
 
 @node Defining a new hypervisor policy
 @section Defining a new hypervisor policy
+
+@menu
+* Hypervisor Policy API:: Hypervisor Policy API
+* Source code::
+@end menu
+
+@node Hypervisor Policy API
+@subsection Hypervisor Policy API
+
+While Scheduling Context Hypervisor Plugin comes with a variety of resizing policies (@pxref{Resizing strategies}), 
+it may sometimes be desirable to implement custom
+policies to address specific problems.  The API described below allows
+users to write their own resizing policy.
+
+@deftp {Data Type} {struct hypervisor_policy}
+This structure contains all the methods that implement a hypervisor resizing policy. 
+
+@table @asis
+@item @code{const char* name}
+Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
+@item @code{unsigned custom}
+Indicates whether the policy is custom or not
+@item @code{void (*handle_idle_cycle)(unsigned sched_ctx, int worker)}
+It is called whenever the indicated worker executes another idle cycle in @code{sched_ctx}
+@item @code{void (*handle_pushed_task)(unsigned sched_ctx, int worker)}
+It is called whenever a task is pushed on the worker's queue corresponding to the context @code{sched_ctx}
+@item @code{void (*handle_poped_task)(unsigned sched_ctx, int worker)}
+It is called whenever a task is poped from the worker's queue corresponding to the context @code{sched_ctx}
+@item @code{void (*handle_idle_end)(unsigned sched_ctx, int worker)}
+It is called whenever a task is executed on the indicated worker and context after a long period of idle time
+@item @code{void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node* resize_requests, int task_tag)}
+It is called whenever a tag task has just been executed. The table of resize requests is provided as well as the tag
+@end table
+@end deftp
+
+The Hypervisor provides also a structure with configuration information of each context, which can be used to construct new resize strategies.
+
+@deftp {Data Type} {struct policy_config }
+This structure contains all configuration information of a context
+
+@table @asis
+@item @code{int min_nworkers}
+Indicates the minimum number of workers needed by the context
+@item @code{int max_nworkers}
+Indicates the maximum number of workers needed by the context
+@item @code{int granularity}
+Indicates the workers granularity of the context
+@item @code{int priority[STARPU_NMAXWORKERS]}
+Indicates the priority of each worker in the context
+@item @code{double max_idle[STARPU_NMAXWORKERS]}
+Indicates the maximum idle time accepted before a resize is triggered
+@item @code{int fixed_workers[STARPU_NMAXWORKERS]}
+Indicates which workers can be moved and which ones are fixed
+@item @code{double new_workers_max_idle}
+Indicates the maximum idle time accepted before a resize is triggered for the workers that just arrived in the new context
+@end table
+@end deftp
+
+Additionally, the hypervisor provides a structure with information obtained from StarPU by means of the performance counters
+
+
+@deftp {Data Type} {struct sched_ctx_wrapper}
+This structure is a wrapper of the contexts available in StarPU
+and contains all information about a context obtained by incrementing the performance counters
+
+@table @asis
+@item @code{unsigned sched_ctx}
+The context wrapped
+@item @code{struct policy_config *config}
+The corresponding resize configuration
+@item @code{double current_idle_time[STARPU_NMAXWORKERS]}
+The idle time counter of each worker of the context
+@item @code{int pushed_tasks[STARPU_NMAXWORKERS]}
+The number of pushed tasks of each worker of the context
+@item @code{int poped_tasks[STARPU_NMAXWORKERS]}
+The number of poped tasks of each worker of the context
+@item @code{double total_flops}
+The total number of flops to execute by the context
+@item @code{double total_elapsed_flops[STARPU_NMAXWORKERS]}
+The number of flops executed by each workers of the context
+@item @code{double elapsed_flops[STARPU_NMAXWORKERS]}
+The number of flops executed by each worker of the context from last resize
+@item @code{double remaining_flops}
+The number of flops that still have to be executed by the workers in the context
+@item @code{double start_time}
+The time when he started executed
+@item @code{struct resize_ack resize_ack}
+The structure confirming the last resize finished and a new one can be done
+@end table
+@end deftp
+
+@deftp {Data Type} {struct resize_ack}
+This structures checks if the workers moved to another context are actually taken into account in that context
+@item @code{int receiver_sched_ctx}
+The context receiving the new workers
+@item @code{int *moved_workers}
+The workers moved to the receiver context
+@item @code{int nmoved_workers}
+The number of workers moved
+@item @code{int *acked_workers}
+If the value corresponding to a worker is 1, this one is taken into account in the new context if 0 not yet
+@end table
+@end deftp
+
+The following functions can be used in the resizing strategies.
+
+@deftypefun void sched_ctx_hypervisor_move_workers(unsigned @var{sender_sched_ctx}, unsigned @var{receier_sched_ctx}, {int *}@var{workers_to_move}, unsigned @var{nworkers_to_move});
+Moves workers from one context to another
+@end deftypefun
+
+@deftypefun {struct policy_config*} sched_ctx_hypervisor_get_config(unsigned @var{sched_ctx});
+Returns the configuration structure of a context
+@end deftypefun
+
+@deftypefun {int*} sched_ctx_hypervisor_get_sched_ctxs();
+Gets the contexts managed by the hypervisor
+@end deftypefun
+
+@deftypefun int sched_ctx_hypervisor_get_nsched_ctxs();
+Gets the number of contexts managed by the hypervisor
+@end deftypefun
+
+@deftypefun {struct sched_ctx_wrapper*} sched_ctx_hypervisor_get_wrapper(unsigned @var{sched_ctx});
+Returns the wrapper corresponding the context @code{sched_ctx}
+@end deftypefun
+
+@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx({struct sched_ctx_wrapper*} @var{sc_w});
+Returns the flops of a context elapsed from the last resize
+@end deftypefun
+
+@deftypefun {char*} sched_ctx_hypervisor_get_policy();
+Returns the name of the resizing policy the hypervisor uses
+@end deftypefun
+
 
 @c Local Variables:
 @c TeX-master: "../starpu.texi"
