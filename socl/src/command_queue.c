@@ -165,4 +165,7 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 
 	/* Unlock command queue */
 	pthread_mutex_unlock(&cq->mutex);
+
+	/* Submit command */
+	command_submit_ex(cmd);
 }
