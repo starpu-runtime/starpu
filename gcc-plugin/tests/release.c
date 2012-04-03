@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2012 Institut National de Recherche en Informatique et Automatique
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Test whether `#pragma starpu acquire ...' generates the right code.  */
+/* Test whether `#pragma starpu release ...' generates the right code.  */
 
 #undef NDEBUG
 
@@ -23,8 +23,8 @@
 static void
 foo (char *x, int foo)
 {
-  expected_acquire_arguments.pointer = x;
-#pragma starpu acquire x
+  expected_release_arguments.pointer = x;
+#pragma starpu release x
 }
 
 
@@ -41,21 +41,21 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof x[0];
 #pragma starpu register x
 
-  expected_acquire_arguments.pointer = x;
-#pragma starpu acquire x
+  expected_release_arguments.pointer = x;
+#pragma starpu release x
 
   expected_register_arguments.pointer = z;
   expected_register_arguments.elements = sizeof z;
   expected_register_arguments.element_size = sizeof z[0];
 #pragma starpu register z
 
-  expected_acquire_arguments.pointer = z;
-#pragma starpu acquire z
+  expected_release_arguments.pointer = z;
+#pragma starpu release z
 
   foo (z, 345);
 
   assert (data_register_calls == 2);
-  assert (data_acquire_calls == 3);
+  assert (data_release_calls == 3);
 
   return EXIT_SUCCESS;
 }

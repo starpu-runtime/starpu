@@ -285,3 +285,4 @@ starpu.log
 /tests/main/wait_all_regenerable_tasks
 /tools/starpu_workers_activity
 /tests/datawizard/interfaces/copy_interfaces
+/gcc-plugin/tests/release

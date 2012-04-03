@@ -424,11 +424,12 @@ const char *_starpu_get_model_name(struct _starpu_job *j)
 		return NULL;
 
 	struct starpu_task *task = j->task;
-        if (task && task->cl
-            && task->cl->model
-            && task->cl->model->symbol)
+        if (task && task->cl) {
+            if (task->cl->model && task->cl->model->symbol)
                 return task->cl->model->symbol;
-        else
+	    else
+		return task->cl->name;
+	} else
 	{
 #ifdef STARPU_USE_FXT
                 return j->model_name;

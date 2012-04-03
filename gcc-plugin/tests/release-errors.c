@@ -28,22 +28,15 @@ main (int argc, char *argv[])
 
 #pragma starpu register x
 
-#pragma starpu acquire /* (error "parse error") */
-#pragma starpu acquire 123 /* (error "neither a pointer nor an array") */
-#pragma starpu acquire does_not_exit /* (error "unbound variable") */
+#pragma starpu release /* (error "parse error") */
+#pragma starpu release 123 /* (error "neither a pointer nor an array") */
+#pragma starpu release does_not_exit /* (error "unbound variable") */
 
-#pragma starpu acquire argc /* (error "neither a pointer nor an array") */
-#pragma starpu acquire y
-#pragma starpu acquire x
+#pragma starpu release argc /* (error "neither a pointer nor an array") */
+#pragma starpu release y
+#pragma starpu release x
 
-#pragma starpu acquire x z			  /* (error "junk after") */
-
-  /* XXX: Uncomment below when this is supported.  */
-#if 0
-#pragma starpu acquire z /* error "not registered" */
-#pragma starpu acquire a /* error "not registered" */
-#pragma starpu acquire argv /* error "not registered" */
-#endif
+#pragma starpu release x z			  /* (error "junk after") */
 
   return 1;
 }

@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 		  int *numbers = (int *)pointer;
 		  if (numbers[i] != i)
 		  {
-		       FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", i, numbers[i], i);
+		       FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", (int)i, numbers[i], (int)i);
 		       ret = EXIT_FAILURE;
 		  }
 	     }

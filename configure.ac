@@ -317,74 +317,62 @@ AC_ARG_WITH(cuda-lib-dir,
 		enable_cuda=yes
 	], [cuda_lib_dir=no])
 
-AC_DEFUN([STARPU_CHECK_CUDA],
+AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
-    __cuda_dir=$1
-    __cuda_lib_dir=$2
-
-    if test "$__cuda_dir" != "no" ; then
-	AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir)
-    else
-	AC_MSG_CHECKING(whether CUDA is available)
-    fi
-    AC_MSG_RESULT()
-
-    if test "$__cuda_lib_dir" = "no" -a "$__cuda_dir" != "no" ; then
-        __cuda_lib_dir="$__cuda_dir/lib"
-    fi
-
+    __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-
-    if test "$__cuda_dir" != "no" ; then
-	STARPU_CUDA_LDFLAGS="-L${__cuda_lib_dir}"
-	LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_lib_dir}"
-    fi
-
+    STARPU_CUDA_LDFLAGS="${__cuda_L}"
+    AC_MSG_CHECKING(whether CUDA is available with: $__cuda_L)
+    AC_MSG_RESULT()
+    LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
     AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cuda_main
-
-    if test "$have_valid_cuda" = "no" ; then
-        if test "$__cuda_dir" != "no" ; then
-	    STARPU_CUDA_LDFLAGS="-L${__cuda_dir}/lib64"
-	    LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_dir}/lib64"
-	    AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
-            unset ac_cv_lib_cuda_main
-        fi
+    if test "$have_valid_cuda" = "yes" ; then
+	AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
+	unset ac_cv_lib_cudart_main
+	if test "$have_valid_cuda" = yes ; then
+	    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
+	    LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	    # we also check that CUBLAS is available
+	    AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
+	    unset ac_cv_lib_cublas_main
+	    if test "$have_valid_cuda" = "yes" ; then
+		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
+	    fi
+	fi
     fi
-
-    if test "$have_valid_cuda" = "no" ; then
-        LDFLAGS="${SAVED_LDFLAGS}"
-	unset STARPU_CUDA_LDFLAGS
-    fi
+    LDFLAGS="${SAVED_LDFLAGS}"
 ])
-
-AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
+AC_DEFUN([STARPU_CHECK_CUDA],
 [
     __cuda_dir=$1
     __cuda_include_dir=$2
     __cuda_lib_dir=$3
 
-    if test "$__cuda_dir" != "no" -a "$__cuda_dir" != "" ; then
-	AC_MSG_CHECKING(whether CUDA RT is available in $__cuda_dir)
+    if test -z "$__cuda_lib_dir" ; then
+	__cuda_lib_dir=no
+    fi
+    if test -z "$__cuda_include_dir" ; then
+	__cuda_include_dir=no
+    fi
+    if test -z "$__cuda_dir" ; then
+	__cuda_dir=no
+    fi
+
+    if test "$__cuda_dir" != "no" ; then
+	AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir, $__cuda_include_dir and $__cuda_lib_dir)
     else
-	AC_MSG_CHECKING(whether CUDA RT is available)
+	AC_MSG_CHECKING(whether CUDA is available)
     fi
     AC_MSG_RESULT()
 
     if test "$__cuda_include_dir" = "no" -a "$__cuda_dir" != "no" ; then
         __cuda_include_dir="$__cuda_dir/include"
     fi
-    if test "$__cuda_lib_dir" = "no" -a "$__cuda_dir" != "no" ; then
-        __cuda_lib_dir="$__cuda_dir/lib"
-    fi
 
     SAVED_CPPFLAGS="$CPPFLAGS"
-    SAVED_LDFLAGS="${LDFLAGS}"
-    SAVED_STARPU_CUDA_LDFLAGS=${STARPU_CUDA_LDFLAGS}
+    have_valid_cuda=no
 
-    if test "$__cuda_lib_dir" != "no" ; then
-	STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS} -L$__cuda_lib_dir"
-    fi
     if test "$__cuda_include_dir" != "no" ; then
         CPPFLAGS="${CPPFLAGS} -I$__cuda_include_dir"
     fi
@@ -393,63 +381,47 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     unset ac_cv_header_cuda_h
 
     if test "$have_valid_cuda" = "yes" ; then
-	if test "$__cuda_lib_dir" != "no"; then
-	    LDFLAGS="${SAVED_LDFLAGS} -L$__cuda_lib_dir"
-        fi
-	AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
-        unset ac_cv_lib_cudart_main
-        if test "$have_valid_cuda" = "no" ; then
-            if test "$3" = "no" -a "$__cuda_dir" != "no" ; then
-                __cuda_lib_dir="$__cuda_dir/lib64"
-		LDFLAGS="${SAVED_LDFLAGS} -L$__cuda_lib_dir"
-	        STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS} -L$__cuda_lib_dir"
-	        AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
-                unset ac_cv_lib_cudart_main
-            fi
-        fi
+	if test "$__cuda_lib_dir" != "no" ; then
+	    STARPU_CHECK_CUDA_L("-L${__cuda_lib_dir}")
+	else
+	    if test "$__cuda_dir" != "no" ; then
+		for __cuda_libdir in lib64 lib lib/x64 lib/Win32 ; do
+		    STARPU_CHECK_CUDA_L("-L${__cuda_dir}/${__cuda_libdir}")
+		    if test "$have_valid_cuda" = yes ; then
+			break
+		    fi
+		done
+	    else
+		STARPU_CHECK_CUDA_L("")
+	    fi
+	fi
     fi
 
-    if test "$have_valid_cuda" = "yes" ; then
-        STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
-	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
-	# we also check that CUBLAS is available
-	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
-        unset ac_cv_lib_cublas_main
-        if test "$have_valid_cuda" = "yes" ; then
-            STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
-        fi
-    fi
-
-    CPPFLAGS="${SAVED_CPPFLAGS}"
-    LDFLAGS="${SAVED_LDFLAGS}"
-
-    if test "$have_valid_cuda" = "yes" -a "$__cuda_include_dir" != "no"; then
-        STARPU_CUDA_CPPFLAGS="-I$__cuda_include_dir"
-	NVCCFLAGS="${NVCCFLAGS} -I$__cuda_include_dir"
+    if test "$have_valid_cuda" = "no" ; then
+	CPPFLAGS="${SAVED_CPPFLAGS}"
+	unset STARPU_CUDA_LDFLAGS
+    else
+	if test "$__cuda_include_dir" != "no"; then
+	    STARPU_CUDA_CPPFLAGS="-I$__cuda_include_dir"
+	    NVCCFLAGS="${NVCCFLAGS} -I$__cuda_include_dir"
+	fi
     fi
 ])
 
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
-    STARPU_CHECK_CUDA($cuda_dir, $cuda_lib_dir)
+    STARPU_CHECK_CUDA("$cuda_dir", "$cuda_include_dir", "$cuda_lib_dir")
     if test "$have_valid_cuda" = "no" ; then
-        for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
-            STARPU_CHECK_CUDA($f, "no")
-            if test "$have_valid_cuda" = "yes" ; then
-                break
-            fi
-        done
+	STARPU_CHECK_CUDA("$CUDA_PATH", "$CUDA_INC_PATH", "$CUDA_LIB_PATH")
     fi
-
-    if test "$have_valid_cuda" = "yes" ; then
-        STARPU_CHECK_CUDA_RUNTIME($cuda_dir, $cuda_include_dir, $cuda_lib_dir)
-        if test "$have_valid_cuda" = "no" ; then
-            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
-                STARPU_CHECK_CUDA_RUNTIME($f, "no", "no")
-                if test "$have_valid_cuda" = "yes" ; then
-                    break
-                fi
-            done
-        fi
+    if test "$have_valid_cuda" = "no" ; then
+	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	    if test -n "$f" ; then
+		STARPU_CHECK_CUDA("$f", "no", "no")
+		if test "$have_valid_cuda" = "yes" ; then
+		    break
+		fi
+	    fi
+	done
     fi
 
     # Check cuda is compatible with the C compiler
@@ -595,7 +567,7 @@ AC_DEFUN([STARPU_CHECK_OPENCL],
     __opencl_lib_dir=$3
 
     if test "$__opencl_dir" != "no" ; then
-	AC_MSG_CHECKING(whether OpenCL is available in $__opencl_dir)
+	AC_MSG_CHECKING(whether OpenCL is available in $__opencl_dir $__opencl_include_dir and $__opencl_lib_dir)
     else
 	AC_MSG_CHECKING(whether OpenCL is available)
     fi
@@ -603,9 +575,6 @@ AC_DEFUN([STARPU_CHECK_OPENCL],
 
     if test "$__opencl_include_dir" = "no" -a "$__opencl_dir" != "no" ; then
         __opencl_include_dir="$__opencl_dir/include"
-    fi
-    if test "$__opencl_lib_dir" = "no" -a "$__opencl_dir" != "no" ; then
-        __opencl_lib_dir="$__opencl_dir/lib"
     fi
 
     SAVED_CPPFLAGS="$CPPFLAGS"
@@ -620,16 +589,30 @@ AC_DEFUN([STARPU_CHECK_OPENCL],
     if test "$have_valid_opencl" = "yes" ; then
 	if test "$__opencl_lib_dir" != "no"; then
 	    LDFLAGS="${SAVED_LDFLAGS} -L$__opencl_lib_dir"
-        fi
-	AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
-        unset ac_cv_lib_OpenCL_main
-        if test "$have_valid_opencl" = "no" ; then
-            if test "$3" = "no" -a "$__opencl_dir" != "no" ; then
-                __opencl_lib_dir="$__opencl_dir/lib64"
-	        LDFLAGS="${SAVED_LDFLAGS} -L$__opencl_lib_dir"
-	        AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
-                unset ac_cv_lib_OpenCL_main
-            fi
+	    AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+	    unset ac_cv_lib_OpenCL_main
+	else
+	    AC_MSG_CHECKING(whether OpenCL is available in $__opencl_dir)
+	    AC_MSG_RESULT()
+	    AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+	    unset ac_cv_lib_OpenCL_main
+	    if test "$have_valid_opencl" = "no" -a "$__opencl_dir" != "no" ; then
+		for __cuda_libdir in lib64 lib lib/x86 lib/Win32 ; do
+		    __opencl_lib_dir="$__opencl_dir/$__cuda_libdir"
+		    AC_MSG_CHECKING(whether OpenCL is available in $__opencl_dir and $__opencl_lib_dir)
+		    AC_MSG_RESULT()
+		    LDFLAGS="${SAVED_LDFLAGS} -L$__opencl_lib_dir"
+		    AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+		    unset ac_cv_lib_OpenCL_main
+		    if test "$have_valid_opencl" = yes ; then
+			break
+		    fi
+		done
+	    else
+		LDFLAGS="${SAVED_LDFLAGS}"
+		AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+		unset ac_cv_lib_OpenCL_main
+	    fi
         fi
     fi
 
@@ -681,11 +664,11 @@ AC_ARG_WITH(opencl-lib-dir,
 AC_DEFUN([STARPU_LOOK_FOR_OPENCL],
 [
     	if test "x$has_opencl_being_checked" != "xyes" ; then
-    	    STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
+    	    STARPU_CHECK_OPENCL("$opencl_dir", "$opencl_include_dir", "$opencl_lib_dir")
 	    if test "$have_valid_opencl" = "no" ; then
-            	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
-		    if test -n $f ; then
-    			STARPU_CHECK_OPENCL($f, "no", "no")
+            	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+		    if test -n "$f" ; then
+    			STARPU_CHECK_OPENCL("$f", "no", "no")
 			if test "$have_valid_opencl" = "yes" ; then
 			    break
 			fi
@@ -1578,9 +1561,12 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    AC_MSG_CHECKING(whether CUDA and ICC are compatible)
    OLD_CC="$CC"
    CC="$ICC"
+   OLD_CFLAGS="$CFLAGS"
+   CFLAGS="-I$PWD/include -I$srcdir/include"
    AC_COMPILE_IFELSE(
        AC_LANG_PROGRAM(
-	   [[#include <cuda.h>]],
+	   [[#include <cuda.h>
+	   #include <starpu.h>]],
 	   [[]]
 	   ),
        AC_MSG_RESULT(yes),
@@ -1588,6 +1574,7 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
            AC_MSG_RESULT(no)]
    )
    CC="$OLD_CC"
+   CFLAGS="$OLD_CFLAGS"
 fi
 
 # Disable ICC on windows

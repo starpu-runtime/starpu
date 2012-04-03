@@ -178,9 +178,7 @@ unregister it.
 @subsection Research Papers
 
 Research papers about StarPU can be found at
+@indicateurl{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}.
 
-@indicateurl{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}
-
-Notably a good overview in the research report
-
-@indicateurl{http://hal.archives-ouvertes.fr/inria-00467677}
+A good overview is available in the research report at
+@indicateurl{http://hal.archives-ouvertes.fr/inria-00467677}.

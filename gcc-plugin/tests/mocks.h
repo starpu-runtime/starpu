@@ -279,11 +279,19 @@ struct data_acquire_arguments
   void *pointer;
 };
 
-/* Number of `starpu_data_acquire' calls.  */
-static unsigned int data_acquire_calls;
+struct data_release_arguments
+{
+  /* Pointer to the data being released.  */
+  void *pointer;
+};
 
-/* Variable describing the expected `starpu_data_acquire' arguments.  */
+/* Number of `starpu_data_{acquire,release}' calls.  */
+static unsigned int data_acquire_calls, data_release_calls;
+
+/* Variable describing the expected `starpu_data_{acquire,release}'
+   arguments.  */
 struct data_acquire_arguments expected_acquire_arguments;
+struct data_release_arguments expected_release_arguments;
 
 int
 starpu_data_acquire (starpu_data_handle_t handle, enum starpu_access_mode mode)
@@ -295,6 +303,13 @@ starpu_data_acquire (starpu_data_handle_t handle, enum starpu_access_mode mode)
   data_acquire_calls++;
 
   return 0;
+}
+
+void
+starpu_data_release (starpu_data_handle_t handle)
+{
+  assert (handle_to_pointer (handle) == expected_release_arguments.pointer);
+  data_release_calls++;
 }
 
 
