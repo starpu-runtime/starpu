@@ -3,7 +3,7 @@
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
 @c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
@@ -42,8 +42,8 @@ Additionally, the code can be directly checked out of Subversion, it
 should be done only if you need the very latest changes (i.e. less
 than a day!).@footnote{The client side of the software Subversion can
 be obtained from @indicateurl{http://subversion.tigris.org}. If you
-are running on Windows, you will probably prefer to use TortoiseSVN
-from @indicateurl{http://tortoisesvn.tigris.org/}}.
+are running on Windows, you will probably prefer to use
+@url{http://tortoisesvn.tigris.org/, TortoiseSVN}.}.
 
 @example
 % svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
@@ -52,12 +52,11 @@ from @indicateurl{http://tortoisesvn.tigris.org/}}.
 @node Optional dependencies
 @subsection Optional dependencies
 
-The topology discovery library, @code{hwloc}, is not mandatory to use StarPU
-but strongly recommended. It allows to increase performance, and to
-perform some topology aware scheduling.
-
-@code{hwloc} is available in major distributions and for most OSes and can be
-downloaded from @indicateurl{http://www.open-mpi.org/software/hwloc}.
+The @url{http://www.open-mpi.org/software/hwloc, @code{hwloc} topology
+discovery library} is not mandatory to use StarPU but strongly
+recommended.  It allows for topology aware scheduling, which improves
+performance.  @code{hwloc} is available in major free operating system
+distributions, and for most operating systems.
 
 @node Configuration of StarPU
 @section Configuration of StarPU
