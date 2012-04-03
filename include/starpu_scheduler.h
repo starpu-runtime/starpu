@@ -119,21 +119,35 @@ struct starpu_sched_policy
 	const char *policy_description;
 };
 
+/* generic structure used by the scheduling contexts to iterated the workers */
 struct worker_collection {
+	/* hidden data structure used to memorize the workers */
 	void *workerids;
+	/* the number of workers in the collection */
 	unsigned nworkers;
+	/* the current cursor of the collection*/
 	pthread_key_t cursor_key;
+	/* the type of structure (WORKER_LIST,...) */
 	int type;
+	/* checks if there is another element in collection */
 	unsigned (*has_next)(struct worker_collection *workers);
+	/* return the next element in the collection */
 	int (*get_next)(struct worker_collection *workers);
+	/* add a new element in the collection */
 	int (*add)(struct worker_collection *workers, int worker);
+	/* remove an element from the collection */
 	int (*remove)(struct worker_collection *workers, int worker);
+	/* initialize the structure */
 	void* (*init)(struct worker_collection *workers);
+	/* free the structure */
 	void (*deinit)(struct worker_collection *workers);
+	/* initialize the cursor if there is one */
 	void (*init_cursor)(struct worker_collection *workers);
+	/* free the cursor if there is one */
 	void (*deinit_cursor)(struct worker_collection *workers);
 };
 
+/* types of structures the worker collection can implement */
 #define WORKER_LIST 0
 
 struct starpu_performance_counters {
