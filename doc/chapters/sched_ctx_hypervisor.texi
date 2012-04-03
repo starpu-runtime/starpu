@@ -237,7 +237,7 @@ TODO maybe they should be hidden to the user
 
 @menu
 * Hypervisor Policy API:: Hypervisor Policy API
-* Source code::
+* Example::
 @end menu
 
 @node Hypervisor Policy API
@@ -369,8 +369,9 @@ Returns the flops of a context elapsed from the last resize
 Returns the name of the resizing policy the hypervisor uses
 @end deftypefun
 
-@node Source code
-@subsection Source code
+@node Example
+@subsection Example
+
 @cartouche
 @smallexample
 
