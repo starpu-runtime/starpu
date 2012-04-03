@@ -47,6 +47,7 @@ CLEANFILES = *.gimple *.o			\
   base						\
   pointers					\
   register					\
+  release					\
   scalar-tasks					\
   pointer-tasks					\
   lib-user					\
