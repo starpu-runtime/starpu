@@ -209,7 +209,7 @@ starpu_insert_task(&codelet,
 @node Performance Counters
 @section Performance Counters
 
-The Scheduling Context Hypervisor Plugin provides a series of performance counters to StarPU. By incrementing them, StarPU can help the hypervisor in the resizing decision taking process.
+The Scheduling Context Hypervisor Plugin provides a series of performance counters to StarPU. By incrementing them, StarPU can help the hypervisor in the resizing decision making process.
 
 @deftp {Data Type} {struct starpu_performance_counters}
 @anchor{struct starpu_performance_counters}

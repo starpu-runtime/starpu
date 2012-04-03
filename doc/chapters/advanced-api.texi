@@ -524,8 +524,8 @@ This function creates a scheduling context which uses the scheduling policy indi
 The return value represents the identifier of the context that has just been created. It will be further used to indicate the context the tasks will be submitted to. The return value should be at most @code{STARPU_NMAX_SCHED_CTXS}.
 @end deftypefun
 
-@deftypefun void starpu_delete_sched_ctx (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id})
-This function deletes the scheduling context indicated by the first argument and lets the scheduling context indicated in the second argument take over its workers.
+@deftypefun void starpu_delete_sched_ctx (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id}) 
+Delete scheduling context @var{sched_ctx_id} and lets scheduling context @var{inheritor_sched_ctx_id} take over its workers.
 @end deftypefun
 
 @deftypefun void starpu_add_workers_to_sched_ctx ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
@@ -570,7 +570,7 @@ Deinitialize the cursor if there is one
 @end deftp
 
 @deftypefun struct worker_collection* starpu_create_worker_collection_for_sched_ctx (unsigned @var{sched_ctx_id}, int @var{type})
-Creates a worker collection of the type indicated by the last parameter for the context specified through the first parameter
+Creates a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
 @end deftypefun
 
 @deftypefun void starpu_delete_worker_collection_for_sched_ctx (unsigned @var{sched_ctx_id})

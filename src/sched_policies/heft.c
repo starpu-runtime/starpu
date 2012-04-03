@@ -404,7 +404,7 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
         pthread_cond_t *sched_cond;
         starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
 		struct starpu_task *conversion_task;
@@ -426,7 +426,7 @@ static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid
 	task->execute_on_a_specific_worker = 1;
 	task->workerid = workerid;
 	task->mf_skip= 1;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
 }
