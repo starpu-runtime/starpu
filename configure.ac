@@ -1679,4 +1679,5 @@ AC_MSG_NOTICE([
 	       GCC plug-in: $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
+               Scheduler Hypervisor: $build_sched_ctx_hypervisor
 ])
