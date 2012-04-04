@@ -1,5 +1,5 @@
 #include <sched_ctx_hypervisor.h>
-#include <../common/htable32.h>
+#include <common/htable32.h>
 
 struct sched_ctx_hypervisor {
 	struct sched_ctx_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
