@@ -12,7 +12,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-AUTOMAKE_OPTIONS = subdir-objects
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS =				\
@@ -25,7 +24,7 @@ endif
 
 AM_LDFLAGS = $(top_builddir)/src/libstarpu-1.0.la 
 
-LIBS = $(top_srcdir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
+LIBS = $(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
 
 AM_CPPFLAGS =						\
   -I$(top_srcdir)/include				\
@@ -45,7 +44,7 @@ cholesky_cholesky_implicit_SOURCES =		\
 	$(top_srcdir)/examples/common/blas.c
 
 cholesky_cholesky_implicit_LDADD =		\
-	$(top_srcdir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
+	$(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la \
 	$(STARPU_BLAS_LDFLAGS)
 
 endif
