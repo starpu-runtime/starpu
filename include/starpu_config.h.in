@@ -35,7 +35,6 @@
 #undef STARPU_MKL
 #undef STARPU_SYSTEM_BLAS
 
-<<<<<<< .working
 #undef STARPU_BUILD_DIR
 #undef STARPU_OPENCL_DATADIR
 #undef STARPU_HAVE_MAGMA
@@ -84,55 +83,6 @@ typedef long starpu_ssize_t;
 #  include <sys/types.h>
 typedef ssize_t starpu_ssize_t;
 #define __starpu_func__ __func__
-=======
-#undef STARPU_BUILD_DIR
-#undef STARPU_OPENCL_DATADIR
-#undef STARPU_HAVE_MAGMA
-
-#undef STARPU_OPENGL_RENDER
-#undef STARPU_USE_GTK
-#undef STARPU_HAVE_X11
-
-#undef STARPU_HAVE_POSIX_MEMALIGN
-
-#undef STARPU_HAVE_MEMALIGN
-
-#undef STARPU_HAVE_MALLOC_H
-
-#undef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
-#undef STARPU_HAVE_SYNC_FETCH_AND_ADD
-#undef STARPU_HAVE_SYNC_FETCH_AND_OR
-#undef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
-
-#undef STARPU_MODEL_DEBUG
-#undef STARPU_NO_ASSERT
-
-#undef STARPU_HAVE_FFTW
-#undef STARPU_HAVE_FFTWF
-#undef STARPU_HAVE_FFTWL
-
-#undef STARPU_HAVE_CURAND
-
-#undef STARPU_MAXNODES
-#undef STARPU_NMAXBUFS
-#undef STARPU_MAXCPUS
-#undef STARPU_MAXCUDADEVS
-#undef STARPU_MAXOPENCLDEVS
-#undef STARPU_NMAXWORKERS
-#undef STARPU_MAXIMPLEMENTATIONS
-
-#undef STARPU_HAVE_LIBNUMA
-
-#undef STARPU_HAVE_WINDOWS
-
-#ifdef _MSC_VER
-typedef long starpu_ssize_t;
-#define __starpu_func__ __FUNCTION__
-#else
-#  include <sys/types.h>
-typedef ssize_t starpu_ssize_t;
-#define __starpu_func__ __func__
->>>>>>> .merge-right.r6401
 #endif
 
 #undef STARPU_SLOW_MACHINE
