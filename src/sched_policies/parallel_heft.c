@@ -601,3 +601,4 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.policy_name = "pheft",
 	.policy_description = "parallel HEFT"
 };
+

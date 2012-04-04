@@ -759,3 +759,4 @@ starpu_gordon_func_t _starpu_task_get_gordon_nth_implementation(struct starpu_co
 	STARPU_ASSERT(cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS);
 	return cl->gordon_funcs[nimpl];
 }
+

@@ -504,3 +504,4 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 
 	return 0;
 }
+

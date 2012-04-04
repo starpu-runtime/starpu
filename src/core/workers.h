@@ -235,3 +235,4 @@ unsigned _starpu_execute_registered_progression_hooks(void);
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
 #endif // __WORKERS_H__
+

@@ -879,3 +879,4 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config __attribute_
 	may_bind_automatically = 0;
 #endif
 }
+

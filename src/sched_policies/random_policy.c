@@ -143,3 +143,4 @@ struct starpu_sched_policy _starpu_sched_random_policy =
 	.policy_name = "random",
 	.policy_description = "weighted random"
 };
+

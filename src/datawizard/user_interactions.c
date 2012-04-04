@@ -497,3 +497,4 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 
 //	_starpu_spin_unlock(&handle->header_lock);
 }
+

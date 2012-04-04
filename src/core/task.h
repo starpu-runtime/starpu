@@ -74,3 +74,4 @@ starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_co
 starpu_gordon_func_t _starpu_task_get_gordon_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 
 #endif // __CORE_TASK_H__
+

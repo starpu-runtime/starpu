@@ -446,3 +446,4 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 	/* this handle now has children */
 	handle->nchildren = nchildren;
 }
+

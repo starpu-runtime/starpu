@@ -349,3 +349,4 @@ void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
 		}
 	}
 }
+
