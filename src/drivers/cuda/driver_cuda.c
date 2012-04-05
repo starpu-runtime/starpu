@@ -445,7 +445,5 @@ int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node STARPU_ATTRIBUT
 		return 0;
 	}
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, ssize);
-
 	return -EAGAIN;
 }
