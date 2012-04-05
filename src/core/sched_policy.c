@@ -170,8 +170,7 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 		return selected_policy;
 
 	/* If no policy was specified, we use the greedy policy as a default */
-	//	return &_starpu_sched_eager_policy;
-	return &heft_policy;
+	return &_starpu_sched_eager_policy;
 }
 
 void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, const char *required_policy)
@@ -385,7 +384,7 @@ int _starpu_push_task(struct _starpu_job *j)
 		ret = sched_ctx->sched_policy->push_task(task);
 		if(ret == -1)
 		{
-			printf("repush task \n");
+			fprintf(stderr, "repush task \n");
 			ret = _starpu_push_task(j);
 		}
 	}
