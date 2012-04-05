@@ -2106,6 +2106,17 @@ Calls starpu_cuda_report_error, passing the current function, file and line
 position.
 @end defmac
 
+@deftypefun int starpu_cuda_copy_async_sync ({void *}@var{src_ptr}, unsigned @var{src_node}, {void *}@var{dst_ptr}, unsigned @var{dst_node}, size_t @var{ssize}, cudaStream_t @var{stream}, {enum cudaMemcpyKind} @var{kind})
+Copy @var{ssize} bytes from the pointer @var{src_ptr} on
+@var{src_node} to the pointer @var{dst_ptr} on @var{dst_node}.
+The function first tries to copy the data asynchronous (unless
+@var{stream} is @code{NULL}. If the asynchronous copy fails or if
+@var{stream} is @code{NULL}, it copies the data synchronously.
+The function returns @code{-EAGAIN} if the asynchronous copy was
+successfull. It returns 0 if the synchronous copy was successful, or
+fails otherwise.
+@end deftypefun
+
 @deftypefun void starpu_helper_cublas_init (void)
 This function initializes CUBLAS on every CUDA device.
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -421,4 +421,31 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 	const char *errormsg = cudaGetErrorString(status);
 	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
+}
+
+int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
+{
+	cudaError_t cures = 0;
+
+	if (stream)
+	{
+	     _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+	     cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
+	     _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+	}
+	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
+	if (stream == NULL || cures)
+	{
+		/* do it in a synchronous fashion */
+		cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
+
+		return 0;
+	}
+
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, ssize);
+
+	return -EAGAIN;
 }
