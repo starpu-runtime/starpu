@@ -165,32 +165,41 @@ static uint32_t complex_footprint(starpu_data_handle_t handle)
 }
 
 #ifdef STARPU_USE_CUDA
-static int copy_cuda_common(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, enum cudaMemcpyKind kind)
+static int copy_cuda_async_sync(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
 
-	cudaError_t cures;
+	cudaStream_t sstream = stream;
+	int ret;
 
-	cures = cudaMemcpy((void *)dst_complex->real, (void *)src_complex->real, src_complex->nx*sizeof(src_complex->real[0]), kind);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
+	ret = starpu_cuda_copy_async_sync((void *)src_complex->real, src_node, (void *)dst_complex->real, dst_node,
+					  src_complex->nx*sizeof(src_complex->real[0]), sstream, kind);
+	if (ret == 0) sstream = NULL;
 
-	cures = cudaMemcpy((char *)dst_complex->imaginary, (char *)src_complex->imaginary, src_complex->nx*sizeof(src_complex->imaginary[0]), kind);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	return 0;
+	ret = starpu_cuda_copy_async_sync((char *)src_complex->imaginary, src_node, (char *)dst_complex->imaginary, dst_node,
+					  src_complex->nx*sizeof(src_complex->imaginary[0]), sstream, kind);
+	return ret;
 }
 
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice);
+     return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice, NULL);
+}
+
+static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
+{
+	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice, stream);
 }
 
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToHost);
+	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToHost, NULL);
+}
+
+static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
+{
+	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToHost, stream);
 }
 #endif
 
@@ -266,10 +275,13 @@ static struct starpu_data_copy_methods complex_copy_methods =
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cuda_async,
+	.cuda_to_ram_async = copy_cuda_to_ram_async,
 #endif
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl = copy_ram_to_opencl,
 	.opencl_to_ram = copy_opencl_to_ram,
+#warning implement the asynchronous functions
 #endif
 };
 
