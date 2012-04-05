@@ -423,10 +423,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-                        cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
-                                           nx*ny*nz*elemsize, kind);
-                        if (STARPU_UNLIKELY(cures))
-                                STARPU_CUDA_REPORT_ERROR(cures);
+			starpu_cuda_copy_async_sync(src_block->ptr, src_node, dst_block->ptr, dst_node, nx*ny*nz*elemsize, NULL, kind);
                 }
 		else
 		{
@@ -482,24 +479,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			cures = cudaMemcpyAsync((char *)dst_block->ptr, (char *)src_block->ptr,
-					nx*ny*nz*elemsize, kind, stream);
-			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-			if (STARPU_UNLIKELY(cures))
-			{
-				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
-					nx*ny*nz*elemsize, kind);
-				if (STARPU_UNLIKELY(cures))
-					STARPU_CUDA_REPORT_ERROR(cures);
-
-				ret = 0;
-			}
-			else
-			{
-				ret = -EAGAIN;
-			}
-
+			ret = starpu_cuda_copy_async_sync(src_block->ptr, src_node, dst_block->ptr, dst_node, nx*ny*nz*elemsize, stream, kind);
 		}
 		else
 		{
