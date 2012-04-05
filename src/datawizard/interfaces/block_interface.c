@@ -423,7 +423,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-			starpu_cuda_copy_async_sync(src_block->ptr, src_node, dst_block->ptr, dst_node, nx*ny*nz*elemsize, NULL, kind);
+			starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*elemsize, NULL, kind);
                 }
 		else
 		{
@@ -479,7 +479,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-			ret = starpu_cuda_copy_async_sync(src_block->ptr, src_node, dst_block->ptr, dst_node, nx*ny*nz*elemsize, stream, kind);
+			ret = starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*elemsize, stream, kind);
 		}
 		else
 		{
