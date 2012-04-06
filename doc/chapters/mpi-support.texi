@@ -140,17 +140,20 @@ communicator @var{comm}. On completion, @var{tag} is unlocked.
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
-Posts @var{array_size} standard-mode, non blocking send of the data of
-data @var{data_handle[x]} to the node @var{dest[x]} using the message
-tag @code{mpi_tag[x]} within the communicator @var{comm[x]}. On
-completion of the all the requests, @var{tag} is unlocked.
+Posts @var{array_size} standard-mode, non blocking send. Each post
+sends the n-th data of the array @var{data_handle} to the n-th node of
+the array @var{dest}
+using the n-th message tag of the array @code{mpi_tag} within the n-th
+communicator of the array
+@var{comm}. On completion of the all the requests, @var{tag} is unlocked.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
-Posts @var{array_size} nonblocking receive in @var{data_handle[x]} from the
-node @var{source[x]} using the message tag @code{mpi_tag[x]} within the
-communicator @var{comm[x]}. On completion of the all the requests,
-@var{tag} is unlocked.
+Posts @var{array_size} nonblocking receive. Each post receives in the
+n-th data of the array @var{data_handle} from the n-th
+node of the array @var{source} using the n-th message tag of the array
+@code{mpi_tag} within the n-th communicator of the array @var{comm}.
+On completion of the all the requests, @var{tag} is unlocked.
 @end deftypefun
 
 @page
