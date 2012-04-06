@@ -42,6 +42,7 @@ static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_a
 
         starpu_opencl_get_queue(devid, &queue);
         clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
+	clFinish(queue);
 }
 #endif
 
@@ -72,7 +73,7 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	if (*buf != 42)
 	{
-		FPRINTF(stderr, "Value = %c (should be %c)\n", *buf, 42);
+		FPRINTF(stderr, "Value = '%c' (should be '%c')\n", *buf, 42);
 		exit(-1);
 	}
 }
