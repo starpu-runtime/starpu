@@ -207,6 +207,7 @@ noinst_PROGRAMS =				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
+	microbenchs/matrix_as_vector		\
 	overlap/overlap				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
