@@ -17,7 +17,10 @@
 #include <starpu.h>
 #include "../helper.h"
 #include <sys/time.h>
-#include <cublas.h>
+
+#ifdef STARPU_USE_CUDA
+#  include <cublas.h>
+#endif
 
 #define LOOPS 100
 
@@ -34,6 +37,7 @@ void vector_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 	matrix[0] = sum/nx;
 }
 
+#ifdef STARPU_USE_CUDA
 void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -48,6 +52,7 @@ void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
 	cudaThreadSynchronize();
 }
+#endif /* STARPU_USE_CUDA */
 
 void matrix_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
@@ -63,6 +68,7 @@ void matrix_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 	matrix[0] = sum / (nx*ny);
 }
 
+#ifdef STARPU_USE_CUDA
 void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -78,6 +84,7 @@ void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
 	cudaThreadSynchronize();
 }
+#endif /* STARPU_USE_CUDA */
 
 int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_codelet *matrix_codelet, char *device_name)
 {
