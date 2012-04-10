@@ -37,9 +37,9 @@ void vector_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 	matrix[0] = sum/nx;
 }
 
-#ifdef STARPU_USE_CUDA
 void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
+#ifdef STARPU_USE_CUDA
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -51,8 +51,8 @@ void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 
 	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
 	cudaThreadSynchronize();
-}
 #endif /* STARPU_USE_CUDA */
+}
 
 void matrix_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
@@ -68,9 +68,9 @@ void matrix_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 	matrix[0] = sum / (nx*ny);
 }
 
-#ifdef STARPU_USE_CUDA
 void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 {
+#ifdef STARPU_USE_CUDA
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -83,8 +83,8 @@ void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 
 	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
 	cudaThreadSynchronize();
-}
 #endif /* STARPU_USE_CUDA */
+}
 
 int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_codelet *matrix_codelet, char *device_name)
 {
