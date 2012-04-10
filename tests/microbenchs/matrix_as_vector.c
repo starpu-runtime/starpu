@@ -218,6 +218,7 @@ int main(int argc, char **argv)
 	}
 
 error:
+	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }
