@@ -153,7 +153,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	}
 }
 
-#define NX_MIN 2
+#define NX_MIN 1024
 #define NX_MAX 1024*1024
 
 int check_size_on_device(uint32_t where, char *device_name)
