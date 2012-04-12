@@ -72,6 +72,9 @@
 #undef STARPU_NMAX_SCHED_CTXS
 #undef STARPU_MAXIMPLEMENTATIONS
 
+/* Define to 1 if you have the <glpk.h> header file. */
+#undef HAVE_GLPK_H
+
 #undef STARPU_HAVE_LIBNUMA
 
 #undef STARPU_HAVE_WINDOWS

@@ -1,6 +1,8 @@
 #include <sched_ctx_hypervisor.h>
 #include <pthread.h>
 
+enum starpu_archtype STARPU_ALL;
+
 static int _compute_priority(unsigned sched_ctx)
 {
 	struct policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
@@ -84,7 +86,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 			considered = 0;
 			worker = workers->get_next(workers);
 			enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
-			if(arch == -1 || curr_arch == arch)
+			if(arch == STARPU_ALL || curr_arch == arch)
 			{
 
 				if(!config->fixed_workers[worker])
@@ -149,7 +151,7 @@ unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ct
 	{
 		worker = workers->get_next(workers);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
-                if(arch == 0 || curr_arch == arch)
+                if(arch == STARPU_ALL || curr_arch == arch)
                 {
 			if(!config->fixed_workers[worker])
 				potential_workers++;
@@ -170,7 +172,7 @@ unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
 	
-	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, 0);
+	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, STARPU_ALL);
 	if(potential_moving_workers > 0)
 	{
 		if(potential_moving_workers <= config->min_nworkers)
@@ -238,7 +240,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{						
-				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, -1);
+				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ALL);
 				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move);
 				
 				struct policy_config *new_config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
@@ -262,3 +264,56 @@ unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx)
 	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0);
 }
 
+static double _get_elapsed_flops(struct sched_ctx_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
+{
+	double ret_val = 0.0;
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sc_w->sched_ctx);
+        int worker;
+
+	if(workers->init_cursor)
+                workers->init_cursor(workers);
+
+        while(workers->has_next(workers))
+	{
+                worker = workers->get_next(workers);
+                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                if(arch == req_arch)
+                {
+			ret_val += sc_w->elapsed_flops[worker];
+			(*npus)++;
+                }
+        }
+
+	if(workers->init_cursor)
+		workers->deinit_cursor(workers);
+
+	return ret_val;
+}
+
+double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
+{
+        double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+
+        if( elapsed_flops != 0.0)
+        {
+                double curr_time = starpu_timing_now();
+                double elapsed_time = curr_time - sc_w->start_time;
+                return elapsed_flops/elapsed_time;
+        }
+}
+
+/* compute an average value of the cpu velocity */
+double _get_velocity_per_worker_type(struct sched_ctx_wrapper* sc_w, enum starpu_archtype arch)
+{
+        int npus = 0;
+        double elapsed_flops = _get_elapsed_flops(sc_w, &npus, arch);
+
+        if( elapsed_flops != 0.0)
+        {
+                double curr_time = starpu_timing_now();
+                double elapsed_time = curr_time - sc_w->start_time;
+                return (elapsed_flops/elapsed_time) / npus;
+        }
+
+        return -1.0;
+}

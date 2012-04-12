@@ -29,10 +29,16 @@ static void notify_idle_end(unsigned sched_ctx, int  worker);
 extern struct hypervisor_policy idle_policy;
 extern struct hypervisor_policy app_driven_policy;
 extern struct hypervisor_policy gflops_rate_policy;
+#ifdef HAVE_GLPK_H
+extern struct hypervisor_policy lp_policy;
+#endif
 
 static struct hypervisor_policy *predefined_policies[] = {
         &idle_policy,
 	&app_driven_policy,
+#ifdef HAVE_GLPK_H
+	&lp_policy,
+#endif
 	&gflops_rate_policy
 };
 
@@ -492,7 +498,7 @@ static void notify_pushed_task(unsigned sched_ctx, int worker)
 	
 	int ntasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].pushed_tasks);
 	
-	if(!(hypervisor.resize[sched_ctx] == 0 && imposed_resize) && ntasks == hypervisor.min_tasks)
+	if(hypervisor.min_tasks == 0 || (!(hypervisor.resize[sched_ctx] == 0 && imposed_resize) && ntasks == hypervisor.min_tasks))
 	{
 		hypervisor.resize[sched_ctx] = 1;
 		if(imposed_resize) imposed_resize = 0;

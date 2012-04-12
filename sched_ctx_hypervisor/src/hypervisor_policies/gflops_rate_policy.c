@@ -26,33 +26,6 @@ static double _get_total_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
 	return ret_val;
 }
 
-static double _get_elapsed_flops_per_cpus(struct sched_ctx_wrapper* sc_w, int *ncpus)
-{
-	double ret_val = 0.0;
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sc_w->sched_ctx);
-        int worker;
-
-	if(workers->init_cursor)
-                workers->init_cursor(workers);
-
-        while(workers->has_next(workers))
-	{
-                worker = workers->get_next(workers);
-                enum starpu_archtype arch = starpu_worker_get_type(worker);
-                if(arch == STARPU_CPU_WORKER)
-                {
-			ret_val += sc_w->elapsed_flops[worker];
-			(*ncpus)++;
-                }
-        }
-
-	if(workers->init_cursor)
-		workers->deinit_cursor(workers);
-
-	return ret_val;
-}
-
-
 double _get_exp_end(unsigned sched_ctx)
 {
 	struct sched_ctx_wrapper *sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
@@ -66,34 +39,6 @@ double _get_exp_end(unsigned sched_ctx)
 		return exp_end;
 	}
 	return -1.0;
-}
-
-double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
-{
-        double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
-
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - sc_w->start_time;
-                return elapsed_flops/elapsed_time;
-        }
-}
-
-/* compute an average value of the cpu velocity */
-double _get_cpu_velocity(struct sched_ctx_wrapper* sc_w)
-{
-        int ncpus = 0;
-        double elapsed_flops = _get_elapsed_flops_per_cpus(sc_w, &ncpus);
-
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - sc_w->start_time;
-                return (elapsed_flops/elapsed_time) / ncpus;
-        }
-
-        return -1.0;
 }
 
 /* computes the instructions left to be executed out of the total instructions to execute */
@@ -116,7 +61,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
         double v_receiver = _get_ctx_velocity(receiver_sc_w);
         double receiver_remainig_flops = receiver_sc_w->remaining_flops;
         double sender_exp_end = _get_exp_end(sender_sched_ctx);
-        double sender_v_cpu = _get_cpu_velocity(sender_sc_w);
+        double sender_v_cpu = _get_velocity_per_worker_type(sender_sc_w, STARPU_CPU_WORKER);
         double v_for_rctx = (receiver_remainig_flops/(sender_exp_end - starpu_timing_now())) - v_receiver;
 
         int nworkers_needed = v_for_rctx/sender_v_cpu;
