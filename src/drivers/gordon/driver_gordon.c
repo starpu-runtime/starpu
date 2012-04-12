@@ -488,5 +488,5 @@ void *_starpu_gordon_worker(void *arg)
 	gordon_deinit();
 	_STARPU_DEBUG("gordon was deinited\n");
 
-	pthread_exit((void *)0x42);
+	return NULL;
 }

@@ -376,10 +376,7 @@ void *_starpu_cuda_worker(void *arg)
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 
-	pthread_exit(NULL);
-
 	return NULL;
-
 }
 
 void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)

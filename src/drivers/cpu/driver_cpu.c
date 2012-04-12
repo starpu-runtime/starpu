@@ -238,6 +238,5 @@ void *_starpu_cpu_worker(void *arg)
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
 
-	pthread_exit(NULL);
 	return NULL;
 }

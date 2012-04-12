@@ -509,8 +509,6 @@ void *_starpu_opencl_worker(void *arg)
 
         _starpu_opencl_deinit_context(devid);
 
-	pthread_exit(NULL);
-
 	return NULL;
 }
 
