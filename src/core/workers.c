@@ -929,8 +929,15 @@ extern int _starpu_run_cuda(struct starpu_driver *);
 int
 starpu_run_driver(struct starpu_driver *d)
 {
-	if (!d || d->type != STARPU_CUDA_WORKER)
+	if (!d)
+		return -EINVAL;
+
+#ifdef STARPU_USE_CUDA
+	if (d->type != STARPU_CUDA_WORKER)
 		return -EINVAL;
 
 	return _starpu_run_cuda(d);
+#else
+	return -ENODEV;
+#endif
 }
