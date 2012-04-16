@@ -103,11 +103,9 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
 {
         cl_int err;
 	cl_device_id device;
-        cl_context context;
         cl_program program;
 
         starpu_opencl_get_device(devid, &device);
-        starpu_opencl_get_context(devid, &context);
         starpu_opencl_get_queue(devid, queue);
 
         program = opencl_programs->programs[devid];
