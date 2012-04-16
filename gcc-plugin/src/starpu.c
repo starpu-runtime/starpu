@@ -94,6 +94,11 @@
 extern int yyparse (location_t, const char *, tree *);
 extern int yydebug;
 
+/* This declaration is from `c-tree.h', but that header doesn't get
+   installed.  */
+
+extern tree xref_tag (enum tree_code, tree);
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,7 +129,7 @@ static const char heap_allocated_orig_type_attribute_name[] =
   ".heap_allocated_original_type";
 
 /* Names of data structures defined in <starpu.h>.  */
-static const char codelet_struct_name[] = "starpu_codelet_gcc";
+static const char codelet_struct_tag[] = "starpu_codelet";
 
 /* Cached function declarations.  */
 static tree unpack_fn, data_lookup_fn;
@@ -1940,8 +1945,14 @@ codelet_type (void)
       /* Lookup the `struct starpu_codelet' struct type.  This should succeed since
 	 we push <starpu.h> early on.  */
 
-      type_decl = lookup_name (get_identifier (codelet_struct_name));
-      gcc_assert (type_decl != NULL_TREE && TREE_CODE (type_decl) == TYPE_DECL);
+      type_decl = xref_tag (RECORD_TYPE, get_identifier (codelet_struct_tag));
+      gcc_assert (type_decl != NULL_TREE
+		  && TREE_CODE (type_decl) == RECORD_TYPE);
+
+      /* `build_decl' expects a TYPE_DECL, so give it what it wants.  */
+
+      type_decl = TYPE_STUB_DECL (type_decl);
+      gcc_assert (type_decl != NULL && TREE_CODE (type_decl) == TYPE_DECL);
     }
 
   return TREE_TYPE (type_decl);
