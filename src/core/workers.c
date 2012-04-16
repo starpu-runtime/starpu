@@ -217,6 +217,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	unsigned nworkers = config->topology.nworkers;
 
 	/* Launch workers asynchronously (except for SPUs) */
+	unsigned cuda = 0;
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -260,9 +261,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				pthread_create(&workerarg->worker_thread,
-						NULL, _starpu_cuda_worker, workerarg);
-
+				if (config->conf->not_launched_driver &&
+				    !(config->conf->not_launched_driver->type == STARPU_CUDA_WORKER &&
+				      config->conf->not_launched_driver->id.cuda_id == cuda))
+				{
+					pthread_create(&workerarg->worker_thread,
+						       NULL, _starpu_cuda_worker, workerarg);
+				}
+				cuda++;
 				break;
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -308,6 +314,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		}
 	}
 
+	cuda = 0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
@@ -315,7 +322,25 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
+				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_initialized)
+					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				break;
 			case STARPU_CUDA_WORKER:
+				if (config->conf->not_launched_driver &&
+				    config->conf->not_launched_driver->type == STARPU_CUDA_WORKER &&
+				    config->conf->not_launched_driver->id.cuda_id == cuda)
+				{
+					cuda++;
+					break;
+				}
+				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_initialized)
+					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				cuda++;
+				break;
 			case STARPU_OPENCL_WORKER:
 				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
@@ -888,4 +913,24 @@ void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond,
 {
 	config.workers[workerid].sched_cond = sched_cond;
 	config.workers[workerid].sched_mutex = sched_mutex;
+}
+
+void
+starpu_set_end_of_submissions(void)
+{
+	struct _starpu_machine_config *config;
+	config = _starpu_get_machine_config();
+	starpu_task_wait_for_all();
+	config->running = 0;
+}
+
+extern int _starpu_run_cuda(struct starpu_driver *);
+
+int
+starpu_run_driver(struct starpu_driver *d)
+{
+	if (!d || d->type != STARPU_CUDA_WORKER)
+		return -EINVAL;
+
+	return _starpu_run_cuda(d);
 }
