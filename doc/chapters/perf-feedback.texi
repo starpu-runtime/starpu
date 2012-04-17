@@ -64,7 +64,7 @@ function.
 It it worth noting that the application may directly access this structure from
 the callback executed at the end of the task. The @code{starpu_task} structure
 associated to the callback currently being executed is indeed accessible with
-the @code{starpu_get_current_task()} function.
+the @code{starpu_task_get_current()} function.
 
 @node Codelet feedback
 @subsection Per-codelet feedback

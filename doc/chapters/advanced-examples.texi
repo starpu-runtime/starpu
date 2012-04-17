@@ -652,8 +652,8 @@ and dtq_handle can now be used in @code{STARPU_REDUX} mode for the dot products
 with partitioned vectors:
 
 @smallexample
-int dots(starpu_data_handle v1, starpu_data_handle v2,
-         starpu_data_handle s, unsigned nblocks)
+int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
+         starpu_data_handle_t s, unsigned nblocks)
 @{
     starpu_insert_task(&bzero_variable_cl, STARPU_W, s, 0);
     for (b = 0; b < nblocks; b++)
