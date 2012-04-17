@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -321,7 +321,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
 	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", symbol);
 	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
-	fprintf(gnuplot_file, "set xlabel \"Size\"\n");
+	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	fprintf(gnuplot_file, "set ylabel \"Time (ms)\"\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set key top left\n");
