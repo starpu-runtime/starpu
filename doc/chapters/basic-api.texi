@@ -1414,9 +1414,10 @@ codelets, where the @code{cl_arg} pointer is given as such.
 @item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback
-function is executed @emph{on the host} after the execution of the task. The
-callback is passed the value contained in the @code{callback_arg} field. No
-callback is executed if the field is set to @code{NULL}.
+function is executed @emph{on the host} after the execution of the task. Tasks
+which depend on it might already be executing. The callback is passed the
+value contained in the @code{callback_arg} field. No callback is executed if the
+field is set to @code{NULL}.
 
 @item @code{void *callback_arg} (optional) (default: @code{NULL})
 This is the pointer passed to the callback function. This field is ignored if
