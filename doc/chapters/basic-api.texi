@@ -1582,6 +1582,10 @@ function for instance.
 In case of success, this function returns 0, a return value of @code{-ENODEV}
 means that there is no worker able to process this task (e.g. there is no GPU
 available and this task is only implemented for CUDA devices).
+
+starpu_task_submit() can be called from anywhere, including codelet
+functions and callbacks, provided that the @code{synchronous} field of the
+@code{starpu_task} structure is left to 0.
 @end deftypefun
 
 @deftypefun int starpu_task_wait_for_all (void)
