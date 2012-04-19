@@ -1691,6 +1691,14 @@ This function is similar to @code{starpu_tag_wait} except that it blocks until
 terminated.
 @end deftypefun
 
+@deftypefun void starpu_tag_restart (unsigned @var{id})
+This function can be used to clear the "already notified" status
+of a tag which is not associated with a task. Before that, calling
+@code{starpu_tag_notify_from_apps} again will not notify the successors. After
+that, the next call to @code{starpu_tag_notify_from_apps} will notify the
+successors.
+@end deftypefun
+
 @deftypefun void starpu_tag_remove (starpu_tag_t @var{id})
 This function releases the resources associated to tag @var{id}. It can be
 called once the corresponding task has been executed and when there is
@@ -1702,7 +1710,10 @@ This function explicitly unlocks tag @var{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
 tasks (e.g. third-party libraries).  It is also provided as a
 convenient tool for the programmer, for instance to entirely construct the task
-DAG before actually giving StarPU the opportunity to execute the tasks.
+DAG before actually giving StarPU the opportunity to execute the tasks. When
+called several times on the same tag, notification will be done only on first
+call, thus implementing "OR" dependencies, until the tag is restarted using
+@code{starpu_tag_restart}.
 @end deftypefun
 
 @node Implicit Data Dependencies

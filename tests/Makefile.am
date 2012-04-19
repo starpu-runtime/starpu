@@ -130,6 +130,7 @@ noinst_PROGRAMS =				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_regenerate		\
+	main/subgraph_repeat_regenerate_tag	\
 	main/empty_task				\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\

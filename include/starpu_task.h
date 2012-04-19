@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -254,6 +254,9 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 
 /* The application can feed a tag explicitely */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
+
+/* To reuse a tag not associated with a task */
+void starpu_tag_restart(starpu_tag_t id);
 
 /* To release resources, tags should be freed after use */
 void starpu_tag_remove(starpu_tag_t id);
