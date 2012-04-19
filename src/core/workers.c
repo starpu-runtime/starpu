@@ -215,20 +215,26 @@ static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 					  struct starpu_driver *d)
 {
-	if (!conf->not_launched_driver)
+	if (conf->n_not_launched_drivers == 0 ||
+	    conf->not_launched_drivers == NULL)
 		return 1;
 
-	if (d->type != conf->not_launched_driver->type)
-		return 1;
-
-	switch (d->type)
+	/* Is <d> in conf->not_launched_drivers ? */
+	unsigned i;
+	for (i = 0; i < conf->n_not_launched_drivers; i++)
 	{
-	case STARPU_CUDA_WORKER:
-		if (d->id.cuda_id == conf->not_launched_driver->id.cuda_id)
-			return 0;
-		break;
-	default:
-		STARPU_ABORT();
+		if (d->type != conf->not_launched_drivers[i].type)
+			continue;
+
+		switch (d->type)
+		{
+		case STARPU_CUDA_WORKER:
+			if (d->id.cuda_id == conf->not_launched_drivers[i].id.cuda_id)
+				return 0;
+			break;
+		default:
+			STARPU_ABORT();
+		}
 	}
 
 	return 1;

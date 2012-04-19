@@ -112,7 +112,8 @@ struct starpu_conf
 	int disable_asynchronous_copy;
 
 	/* A driver that the application will run in one of its own threads. */
-	struct starpu_driver *not_launched_driver;
+	struct starpu_driver *not_launched_drivers;
+	unsigned n_not_launched_drivers;
 };
 
 /* Initialize a starpu_conf structure with default values. */
