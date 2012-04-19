@@ -208,6 +208,32 @@ static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 	_starpu_memory_node_register_condition(cond, mutex, memory_node);
 }
 
+/*
+ * Returns 0 if the given driver is one of the drivers that must be launched by
+ * the application itself, and not by StarPU, 1 otherwise.
+ */
+static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
+					  struct starpu_driver *d)
+{
+	if (!conf->not_launched_driver)
+		return 1;
+
+	if (d->type != conf->not_launched_driver->type)
+		return 1;
+
+	switch (d->type)
+	{
+	case STARPU_CUDA_WORKER:
+		if (d->id.cuda_id == conf->not_launched_driver->id.cuda_id)
+			return 0;
+		break;
+	default:
+		STARPU_ABORT();
+	}
+
+	return 1;
+}
+
 static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 {
 	config->running = 1;
@@ -247,6 +273,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 		_starpu_init_worker_queue(workerarg);
 
+		struct starpu_driver driver;
+		driver.type = workerarg->arch;
 		switch (workerarg->arch)
 		{
 #ifdef STARPU_USE_CPU
@@ -261,9 +289,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				if (config->conf->not_launched_driver &&
-				    !(config->conf->not_launched_driver->type == STARPU_CUDA_WORKER &&
-				      config->conf->not_launched_driver->id.cuda_id == cuda))
+				driver.id.cuda_id = cuda;
+				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
 					pthread_create(&workerarg->worker_thread,
 						       NULL, _starpu_cuda_worker, workerarg);
@@ -318,6 +345,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
+		struct starpu_driver driver;
+		driver.type = workerarg->arch;
 
 		switch (workerarg->arch)
 		{
@@ -328,9 +357,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 			case STARPU_CUDA_WORKER:
-				if (config->conf->not_launched_driver &&
-				    config->conf->not_launched_driver->type == STARPU_CUDA_WORKER &&
-				    config->conf->not_launched_driver->id.cuda_id == cuda)
+				driver.id.cuda_id = cuda;
+				if (!_starpu_may_launch_driver(config->conf, &driver))
 				{
 					cuda++;
 					break;
