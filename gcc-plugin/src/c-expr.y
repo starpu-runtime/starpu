@@ -109,7 +109,8 @@
   TK (CPP_MULT)					\
   TK (CPP_DIV)					\
   TK (CPP_DOT)					\
-  TK (CPP_DEREF)
+  TK (CPP_DEREF)				\
+  TK (CPP_STRING)
 
 #ifndef __cplusplus
 
@@ -165,6 +166,7 @@
 %token YCPP_DIV "/"
 %token YCPP_DOT "."
 %token YCPP_DEREF "->"
+%token YCPP_STRING "string"
 
 %% /* Grammar rules.  */
 
@@ -248,10 +250,14 @@ postfix_expression:
 
 primary_expression: identifier
      | constant
+     | string_literal
      | YCPP_OPEN_PAREN expression YCPP_CLOSE_PAREN { $$ = $2; }
 ;
 
 constant: YCPP_NUMBER { $$ = $1; }
+;
+
+string_literal: YCPP_STRING { $$ = $1; }
 ;
 
 %%
