@@ -843,9 +843,6 @@ if test x$use_fxt = xyes; then
 	else
 	    PKG_CHECK_MODULES([FXT],  [fxt])
 	fi
-
-	# if we use monotonic clocks, FxT uses -lrt
-	AC_CHECK_LIB(rt, clock_gettime,,AC_MSG_ERROR([cannot find clock_gettime]))
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
