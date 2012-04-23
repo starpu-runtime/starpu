@@ -36,6 +36,24 @@ Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
 indicates that no worker was available (so that StarPU was not initialized).
 @end deftypefun
 
+@deftp {Data Type} {struct starpu_driver}
+@table @asis
+@item @code{enum starpu_archtype type}
+The type of the driver. Only STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are
+currently supported.
+@item @code{union id}
+@deftp {Data type} {anonymous union}
+@table @asis
+@item @code{unsigned cuda_id}
+Should only be used if type is STARPU_CUDA_WORKER.
+@item @code{cl_device_id opencl_id}
+Should only be used if type is STARPU_OPENCL_WORKER.
+@end table
+@end deftp
+@end table
+@end deftp
+
+
 @deftp {Data Type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
 to configure StarPU. It has to be initialized with @code{starpu_conf_init}.
@@ -122,6 +140,13 @@ CPUs and accelerators. This can also be specified with the
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
+
+@item @code{struct starpu_driver *not_launched_drivers}
+The drivers that should not be launched by StarPU.
+
+@item @code{unsigned nnot_launched_drivers}
+The number of StarPU drivers that should not be launched by StarPU.
+
 @end table
 @end deftp
 
