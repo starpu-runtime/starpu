@@ -592,3 +592,42 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 
 	return EXIT_SUCCESS;
 }
+
+int _starpu_run_opencl(struct starpu_driver *d)
+{
+	STARPU_ASSERT(d && d->type == STARPU_OPENCL_WORKER);
+
+	int nworkers;
+	int workers[STARPU_MAXOPENCLDEVS];
+	nworkers = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, STARPU_MAXOPENCLDEVS);
+	if (nworkers == 0)
+		return -ENODEV;
+
+	int i;
+	for (i = 0; i < nworkers; i++)
+	{
+		cl_device_id device;
+		int devid = starpu_worker_get_devid(workers[i]);
+		starpu_opencl_get_device(devid, &device);
+		if (device == d->id.opencl_id)
+			break;
+	}
+
+	if (i == nworkers)
+		return -ENODEV;
+
+	struct _starpu_worker *workerarg = _starpu_get_worker_struct(i);
+	_STARPU_DEBUG("Running OpenCL %d from the application\n", workerarg->devid);
+
+	workerarg->set = NULL;
+	workerarg->worker_is_initialized = 0;
+
+	/* Let's go ! */
+	_starpu_opencl_worker(workerarg);
+
+	/* XXX: Should we wait for the driver to be ready, as it is done when
+	 * launching it the usual way ? Cf. the end of _starpu_launch_drivers()
+	 */
+
+	return 0;
+}

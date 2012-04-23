@@ -51,6 +51,10 @@ extern "C"
 {
 #endif
 
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#include <starpu_opencl.h>
+#endif
+
 enum starpu_archtype
 {
 	STARPU_CPU_WORKER,    /* CPU core */
@@ -65,6 +69,9 @@ struct starpu_driver
 	union
 	{
 		unsigned cuda_id;
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+		cl_device_id opencl_id;
+#endif
 		/*
 		 * TODO: handle CPUs and OpenCL devices :
 		 * 1) Add a member to this union.

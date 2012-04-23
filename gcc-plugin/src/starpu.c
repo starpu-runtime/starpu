@@ -18,6 +18,9 @@
 #define _GNU_SOURCE 1
 
 #include <starpu-gcc-config.h>
+/* We must include starpu.h here, otherwise gcc will complain about a poisoned
+   malloc in xmmintrin.h. */
+#include <starpu.h>  /* for `STARPU_CPU' & co.  */
 
 /* #define ENABLE_TREE_CHECKING 1 */
 
@@ -57,7 +60,6 @@
    disclaimer.  */
 #define STARPU_DONT_INCLUDE_CUDA_HEADERS
 
-#include <starpu.h>  /* for `STARPU_CPU' & co.  */
 
 
 /* GCC 4.7 requires compilation with `g++', and C++ lacks a number of GNU C
