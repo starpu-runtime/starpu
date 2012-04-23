@@ -913,8 +913,22 @@ Graphical-oriented applications need to draw the result of their computations,
 typically on the very GPU where these happened. Technologies such as OpenGL/CUDA
 interoperability permit to let CUDA directly work on the OpenGL buffers, making
 them thus immediately ready for drawing, by mapping OpenGL buffer, textures or
-renderbuffer objects into CUDA. To achieve this with StarPU, it simply needs to
-be given the CUDA pointer at registration, for instance:
+renderbuffer objects into CUDA.  CUDA however imposes some technical
+constraints: peer memcpy has to be disabled, and the thread that runs OpenGL has
+to be the one that runs CUDA computations for that GPU.
+
+To achieve this with StarPU, pass the @code{--disable-cuda-memcpy-peer} option
+to @code{./configure} (TODO: make it dynamic), the interoperability mode has to
+be enabled by using the @code{cuda_opengl_interoperability} field of the
+@code{starpu_conf} structure, and the driver loop has to be run by
+the application, by using the @code{not_launched_drivers} field of
+@code{starpu_conf} to prevent StarPU from running it in a separate thread, and
+by using @code{starpu_run_driver} to run the loop. The @code{gl_interop} example
+shows how it articulates in a simple case, where rendering is done in task
+callbacks. TODO: provide glutIdleFunc alternative.
+
+Then, to use an OpenGL buffer as a CUDA data, StarPU simply needs to be given
+the CUDA pointer at registration, for instance:
 
 @cartouche
 @smallexample
@@ -922,20 +936,14 @@ for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
         if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
                 break;
 
-cudaSetDevice(starpu_worker_get_devid(workerid));
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
 starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
 
 starpu_insert_task(&cl, STARPU_RW, handle, 0);
-
-starpu_data_unregister(handle);
-
-cudaSetDevice(starpu_worker_get_devid(workerid));
-cudaGraphicsUnmapResources(1, &resource, 0);
-
-/* Now display it */
 @end smallexample
 @end cartouche
+
+and display it e.g. in the callback function.
 
 @node More examples
 @section More examples

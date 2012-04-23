@@ -26,6 +26,7 @@
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
+#include <cuda_gl_interop.h>
 
 /* the number of CUDA devices */
 static int ncudagpus;
@@ -108,14 +109,38 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	return &props[devid];
 }
 
+void starpu_cuda_set_device(int devid)
+{
+	cudaError_t cures;
+	struct starpu_conf *conf = _starpu_get_machine_config()->conf;
+	unsigned i;
+
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	if (conf->n_cuda_opengl_interoperability) {
+		fprintf(stderr, "OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
+		STARPU_ASSERT(0);
+	}
+#else
+	for (i = 0; i < conf->n_cuda_opengl_interoperability; i++)
+		if (conf->cuda_opengl_interoperability[i] == devid) {
+			cures = cudaGLSetGLDevice(devid);
+			goto done;
+		}
+#endif
+
+	cures = cudaSetDevice(devid);
+
+done:
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+}
+
 static void init_context(int devid)
 {
 	cudaError_t cures;
 	int workerid = starpu_worker_get_id();
 
-	cures = cudaSetDevice(devid);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
+	starpu_cuda_set_device(devid);
 
 	/* force CUDA to initialize the context for real */
 	cures = cudaFree(0);
@@ -231,9 +256,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	/* We make sure we do manipulate the proper device */
-	cures = cudaSetDevice(args->devid);
-	if (STARPU_UNLIKELY(cures != cudaSuccess))
-		STARPU_CUDA_REPORT_ERROR(cures);
+	starpu_cuda_set_device(args->devid);
 #endif
 
 	starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, j->nimpl);

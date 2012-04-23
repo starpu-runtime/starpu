@@ -160,6 +160,9 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
+
+	/* this flag is set until the application is finished submitting tasks */
+	unsigned submitting;
 };
 
 /* Has starpu_shutdown already been called ? */

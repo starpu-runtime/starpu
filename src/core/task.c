@@ -596,14 +596,40 @@ int starpu_task_wait_for_no_ready(void)
 
 void _starpu_decrement_nsubmitted_tasks(void)
 {
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
-	if (--nsubmitted == 0)
+	if (--nsubmitted == 0) {
+		if (!config->submitting)
+			config->running = 0;
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
+	}
 
 	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
+}
+
+void
+starpu_set_end_of_submissions(void)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+
+	config->submitting = 0;
+	if (nsubmitted == 0) {
+		config->running = 0;
+		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
+	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+}
+
+void _starpu_check_nsubmitted_tasks(void)
+{
 
 }
 

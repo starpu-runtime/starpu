@@ -249,6 +249,7 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 {
 	config->running = 1;
+	config->submitting = 1;
 
 	pthread_key_create(&worker_key, NULL);
 
@@ -424,6 +425,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (!conf)
 		return -EINVAL;
 
+	memset(conf, 0, sizeof(*conf));
 	conf->magic = 42;
 	conf->sched_policy_name = getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
@@ -966,15 +968,6 @@ void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond,
 {
 	config.workers[workerid].sched_cond = sched_cond;
 	config.workers[workerid].sched_mutex = sched_mutex;
-}
-
-void
-starpu_set_end_of_submissions(void)
-{
-	struct _starpu_machine_config *config;
-	config = _starpu_get_machine_config();
-	starpu_task_wait_for_all();
-	config->running = 0;
 }
 
 #ifdef STARPU_USE_CUDA

@@ -1312,6 +1312,7 @@ fi
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)
 AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
+AM_CONDITIONAL([HAVE_OPENGL], [test "x$enable_opengl_render" = xyes])
 
 AC_PATH_XTRA
 if test "x$no_x" != "xyes"; then

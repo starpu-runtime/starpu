@@ -141,6 +141,15 @@ The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 
+@item @code{int *cuda_opengl_interoperability} (default = NULL)
+This can be set to an array of CUDA device identifiers for which
+@code{cudaGLSetGLDevice} should be called instead of @code{cudaSetDevice}. Its
+size is specified by the @code{n_cuda_opengl_interoperability} field below
+
+@item @code{int *n_cuda_opengl_interoperability} (default = 0)
+This has to be set to the size of the array pointed to by the
+@code{cuda_opengl_interoperability} field.
+
 @item @code{struct starpu_driver *not_launched_drivers}
 The drivers that should not be launched by StarPU.
 
@@ -2156,6 +2165,12 @@ The function first tries to copy the data asynchronous (unless
 The function returns @code{-EAGAIN} if the asynchronous copy was
 successfull. It returns 0 if the synchronous copy was successful, or
 fails otherwise.
+@end deftypefun
+
+@deftypefun void starpu_cuda_set_device (int@var{devid})
+Calls @code{cudaSetDevice(devid)} or @code{cudaGLSetGLDevice(devid)}, according to
+whether @code{devid} is among the @code{cuda_opengl_interoperability} field of
+the @code{starpu_conf} structure.
 @end deftypefun
 
 @deftypefun void starpu_helper_cublas_init (void)
