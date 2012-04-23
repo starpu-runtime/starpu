@@ -73,7 +73,7 @@ struct starpu_driver
 		cl_device_id opencl_id;
 #endif
 		/*
-		 * TODO: handle CPUs and OpenCL devices :
+		 * TODO: handle CPUs:
 		 * 1) Add a member to this union.
 		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
 		 *    not always launched.
