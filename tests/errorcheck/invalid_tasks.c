@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	unsetenv("STARPU_NOPENCL");
 	unsetenv("STARPU_NCPUS");
 	struct starpu_conf conf;
-	memset(&conf, 0, sizeof(conf));
+	starpu_conf_init(&conf);
 	conf.ncpus = 1;
 
 	ret = starpu_init(&conf);

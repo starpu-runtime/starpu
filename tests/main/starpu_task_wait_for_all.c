@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,26 +69,13 @@ static int inject_one_task(void)
 	return ret;
 }
 
-static struct starpu_conf conf =
-{
-	.sched_policy_name = NULL,
-	.ncpus = -1,
-	.ncuda = -1,
-        .nopencl = -1,
-	.nspus = -1,
-	.use_explicit_workers_bindid = 0,
-	.use_explicit_workers_cuda_gpuid = 0,
-	.use_explicit_workers_opencl_gpuid = 0,
-	.calibrate = 0
-};
-
 static void usage(char **argv)
 {
 	FPRINTF(stderr, "%s [-i ntasks] [-p sched_policy] [-h]\n", argv[0]);
 	exit(-1);
 }
 
-static void parse_args(int argc, char **argv)
+static void parse_args(int argc, char **argv, struct starpu_conf *conf)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:p:h")) != -1)
@@ -98,7 +85,7 @@ static void parse_args(int argc, char **argv)
 			ntasks = atoi(optarg);
 			break;
 		case 'p':
-			conf.sched_policy_name = optarg;
+			conf->sched_policy_name = optarg;
 			break;
 		case 'h':
 			usage(argv);
@@ -113,8 +100,11 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 	int ret;
+	struct starpu_conf conf;
 
-	parse_args(argc, argv);
+	starpu_conf_init(&conf);
+
+	parse_args(argc, argv, &conf);
 
 #ifdef STARPU_SLOW_MACHINE
 	ntasks /= 10;

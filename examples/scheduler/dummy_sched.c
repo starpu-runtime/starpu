@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -89,20 +89,6 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.policy_description = "dummy scheduling strategy"
 };
 
-static struct starpu_conf conf =
-{
-	.sched_policy_name = NULL,
-	.sched_policy = &dummy_sched_policy,
-	.ncpus = -1,
-	.ncuda = -1,
-        .nopencl = -1,
-	.nspus = -1,
-	.use_explicit_workers_bindid = 0,
-	.use_explicit_workers_cuda_gpuid = 0,
-	.use_explicit_workers_opencl_gpuid = 0,
-	.calibrate = 0
-};
-
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
@@ -122,7 +108,10 @@ int main(int argc, char **argv)
 {
 	int ntasks = NTASKS;
 	int ret;
+	struct starpu_conf conf;
 
+	starpu_conf_init(&conf);
+	conf.sched_policy = &dummy_sched_policy,
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;

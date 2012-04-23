@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -80,6 +80,9 @@ struct starpu_driver
 
 struct starpu_conf
 {
+	/* Will be initialized by starpu_conf_init */
+	int magic;
+
 	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy_name;
 	struct starpu_sched_policy *sched_policy;

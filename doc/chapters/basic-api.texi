@@ -38,7 +38,7 @@ indicates that no worker was available (so that StarPU was not initialized).
 
 @deftp {Data Type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
-to configure StarPU.
+to configure StarPU. It has to be initialized with @code{starpu_conf_init}.
 When the default value is used, StarPU automatically selects the number of
 processing units and takes the default scheduling policy. The environment
 variables overwrite the equivalent parameters.

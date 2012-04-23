@@ -410,6 +410,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (!conf)
 		return -EINVAL;
 
+	conf->magic = 42;
 	conf->sched_policy_name = getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
 
@@ -546,6 +547,10 @@ int starpu_init(struct starpu_conf *user_conf)
 	}
 	else
 	{
+	     if (user_conf->magic != 42) {
+		fprintf(stderr, "starpu_conf structure needs to be initialized with starpu_conf_init\n");
+		return -EINVAL;
+	     }
 	     config.conf = user_conf;
 	     config.default_conf = 0;
 	}
