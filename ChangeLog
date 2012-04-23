@@ -17,6 +17,9 @@
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
 
+New features:
+  * OpenGL interoperability support.
+
 StarPU 1.0.0 (svn revision 6306)
 ==============================================
 The extensions-again release
