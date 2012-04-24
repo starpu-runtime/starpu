@@ -50,6 +50,8 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.ncpus = 1;
+	conf.nopencl = 0;
+	conf.ncuda = 0;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -58,7 +60,7 @@ int main(int argc, char **argv)
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &gpu_only_cl;
 
-	/* Only a CUDA device could execute that task ! */
+	/* Only a GPU device could execute that task ! */
 	ret = starpu_task_submit(task);
 	STARPU_ASSERT(ret == -ENODEV);
 
