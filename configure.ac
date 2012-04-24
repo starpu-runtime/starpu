@@ -399,14 +399,30 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     if test "$have_valid_cuda" = "yes" ; then
         SAVED_CPPFLAGS="${CPPFLAGS}"
         CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
+	SAVED_LDFLAGS="${LDFLAGS}"
+	LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS} -lcuda"
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <cuda.h>]],
 		[[]]
-		),
-	    [have_valid_cuda="yes"],
-	    [have_valid_cuda="no"]
-	])
+		)],
+	    [
+	      AC_RUN_IFELSE([AC_LANG_PROGRAM(
+	        [[#include <cuda.h>]],
+		[[]]
+		)],
+		[have_valid_cuda="yes"],
+		[
+	          AC_MSG_RESULT([CUDA found and can be compiled, but compiled application can not be run, is the CUDA path missing in LD_LIBRARY_PATH?])
+	          have_valid_cuda="no"
+		])
+	    ],
+	    [
+	    AC_MSG_ERROR([CUDA found, but cuda.h could not be compiled])
+	    have_valid_cuda="no"
+	    ]
+	)
         CPPFLAGS="${SAVED_CPPFLAGS}"
+	LDFLAGS="${SAVED_LDFLAGS}"
     fi
     AC_MSG_RESULT($have_valid_cuda)
 
