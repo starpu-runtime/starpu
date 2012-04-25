@@ -946,8 +946,11 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
-	if (regmodel->valid)
+	if (regmodel->valid) {
+		fprintf(stderr, "model is valid\n");
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
+	} else
+		fprintf(stderr, "model is not valid\n");
 
 	return exp;
 }
