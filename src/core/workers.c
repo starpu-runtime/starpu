@@ -538,20 +538,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	srand(2008);
 
-#ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
-#endif
-
-	_starpu_open_debug_logfile();
-
-	_starpu_data_interface_init();
-
-	_starpu_timing_init();
-
-	_starpu_profiling_init();
-
-	_starpu_load_bus_performance_files();
-
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
@@ -571,6 +557,20 @@ int starpu_init(struct starpu_conf *user_conf)
 	     config.default_conf = 0;
 	}
 	_starpu_conf_check_environment(config.conf);
+
+#ifdef STARPU_USE_FXT
+	_starpu_start_fxt_profiling();
+#endif
+
+	_starpu_open_debug_logfile();
+
+	_starpu_data_interface_init();
+
+	_starpu_timing_init();
+
+	_starpu_profiling_init();
+
+	_starpu_load_bus_performance_files();
 
 	ret = _starpu_build_topology(&config);
 	if (ret)
