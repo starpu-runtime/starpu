@@ -349,7 +349,7 @@ struct starpu_codelet cl = @{
 
 @item
 Measured at runtime and refined by regression (@code{STARPU_*REGRESSION_BASED}
-model type). This still assumes performance regularity, but can work
+model type). This still assumes performance regularity, but works
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
 form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
