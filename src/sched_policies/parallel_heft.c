@@ -306,21 +306,17 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_task_length[worker][nimpl])) {
+			if (isnan(local_task_length[worker][nimpl]))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
-				fprintf(stderr,"still nan\n");
 				calibrating = 1;
-			}
 
 			if (isnan(local_task_length[worker][nimpl])
-					|| _STARPU_IS_ZERO(local_task_length[worker][nimpl])) {
+					|| _STARPU_IS_ZERO(local_task_length[worker][nimpl]))
 				/* there is no prediction available for that task
 				 * with that arch yet, so switch to a greedy strategy */
-				fprintf(stderr,"unknown\n");
 				unknown = 1;
-			}
 
 			if (unknown)
 				continue;
@@ -446,7 +442,6 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology *topo
 	_starpu_sched_find_worker_combinations(topology);
 
 	ncombinedworkers = topology->ncombinedworkers;
-	fprintf(stderr,"combined %d\n", ncombinedworkers);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
