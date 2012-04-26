@@ -309,21 +309,21 @@ the @code{starpu_conf} structure passed to @code{starpu_init} is set.
 @node STARPU_SINGLE_COMBINED_WORKER
 @subsubsection @code{STARPU_SINGLE_COMBINED_WORKER} -- Do not use concurrent workers
 
-If set, StarPU will create a multiple workers which won't be able to work
+If set, StarPU will create several workers which won't be able to work
 concurrently. It will create combined workers which size goes from 1 to the
-number total of CPU workers in the system.
+total number of CPU workers in the system.
 
 @node STARPU_MIN_WORKERSIZE
 @subsubsection @code{STARPU_MIN_WORKERSIZE} -- Minimum size of the combined workers
 
-Let the user give a hint to StarPU about which minimum size the combined workers
-should have.
+Let the user give a hint to StarPU about which how many workers
+(minimum boundary) the combined workers should contain.
 
 @node STARPU_MAX_WORKERSIZE
 @subsubsection @code{STARPU_MAX_WORKERSIZE} -- Maximum size of the combined workers
 
-Let the user give a hint to StarPU about which maximum size the combined workers
-should have.
+Let the user give a hint to StarPU about which how many workers
+(maximum boundary) the combined workers should contain.
 
 @node Scheduling
 @subsection Configuring the Scheduling engine
