@@ -1661,3 +1661,11 @@ AC_MSG_NOTICE([
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
 ])
+
+if test x"$have_valid_hwloc" = xno
+then
+  AC_MSG_NOTICE([
+WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
+performance may be impacted a lot.  It is strongly recommended to install
+hwloc])
+fi
