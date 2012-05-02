@@ -77,7 +77,7 @@ struct starpu_driver
 		 * 1) Add a member to this union.
 		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
 		 *    not always launched.
-		 * 3) Edit starpu_run_driver() so that it can handle another
+		 * 3) Edit starpu_driver_run() so that it can handle another
 		 *    kind of architecture.
 		 * 4) Write _starpu_run_foobar() in the corresponding driver.
 		 * 5) Test the whole thing :)
@@ -201,7 +201,7 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
  */
 int starpu_worker_get_devid(int id);
 
-int starpu_run_driver(struct starpu_driver *);
+int starpu_driver_run(struct starpu_driver *);
 void starpu_set_end_of_submissions(void);
 
 int starpu_driver_init(struct starpu_driver *d);

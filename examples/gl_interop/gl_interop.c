@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 
 	/* And run the driver, which will run the task */
 	printf("running the driver\n");
-	starpu_run_driver(&drivers[0]);
+	starpu_driver_run(&drivers[0]);
 	printf("finished running the driver\n");
 
 	starpu_shutdown();

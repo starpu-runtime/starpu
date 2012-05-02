@@ -978,7 +978,7 @@ extern int _starpu_run_opencl(struct starpu_driver *);
 #endif
 
 int
-starpu_run_driver(struct starpu_driver *d)
+starpu_driver_run(struct starpu_driver *d)
 {
 	if (!d)
 		return -EINVAL;

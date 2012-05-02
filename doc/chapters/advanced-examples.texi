@@ -932,7 +932,7 @@ be enabled by using the @code{cuda_opengl_interoperability} field of the
 @code{starpu_conf} structure, and the driver loop has to be run by
 the application, by using the @code{not_launched_drivers} field of
 @code{starpu_conf} to prevent StarPU from running it in a separate thread, and
-by using @code{starpu_run_driver} to run the loop. The @code{gl_interop} example
+by using @code{starpu_driver_run} to run the loop. The @code{gl_interop} example
 shows how it articulates in a simple case, where rendering is done in task
 callbacks. TODO: provide glutIdleFunc alternative.
 
