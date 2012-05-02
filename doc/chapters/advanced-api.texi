@@ -13,6 +13,7 @@
 * Task Lists::                  
 * Using Parallel Tasks::        
 * Defining a new scheduling policy::  
+* Running drivers::
 * Expert mode::                 
 @end menu
 
@@ -680,6 +681,56 @@ static struct starpu_sched_policy dummy_sched_policy = @{
     .policy_name = "dummy",
     .policy_description = "dummy scheduling strategy"
 @};
+@end smallexample
+@end cartouche
+
+@node Running drivers
+@section Running drivers
+
+@menu
+* Driver API::
+* Example::
+@end menu
+
+@node Driver API
+@subsection Driver API
+
+@deftypefun int starpu_driver_init(struct starpu_driver *@var{d})
+Initialize the given driver. Returns 0 on success, -EINVAL if d->type is not
+STARPU_CUDA_WORKER.
+@end deftypefun
+
+@deftypefun int starpu_driver_run_once(struct starpu_driver *@var{d})
+Runs the driver for a while, then returns 0 on success, -EINVAL if d->type is
+not STARPU_CUDA_WORKER.
+@end deftypefun
+
+@deftypefun int starpu_driver_deinit(struct starpu_driver *@var{d})
+Deinitialize the given driver. Returns 0 on success, -EINVAL if d->type is not
+STARPU_CUDA_WORKER.
+@end deftypefun
+
+@node Example
+@subsection Example
+
+@cartouche
+@smallexample
+int ret;
+struct starpu_driver = @{
+    .type = STARPU_CUDA_WORKER,
+    .id.cuda_id = 0
+@};
+ret = starpu_driver_init(&d);
+if (ret != 0)
+    error();
+while (some_condition) @{
+    ret = starpu_driver_run_once(&d);
+    if (ret != 0)
+        error();
+@}
+ret = starpu_driver_deinit(&d);
+if (ret != 0)
+    error();
 @end smallexample
 @end cartouche
 
