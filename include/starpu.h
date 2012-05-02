@@ -203,6 +203,10 @@ int starpu_worker_get_devid(int id);
 
 int starpu_run_driver(struct starpu_driver *);
 void starpu_set_end_of_submissions(void);
+
+int starpu_driver_init(struct starpu_driver *d);
+int starpu_driver_run_once(struct starpu_driver *d);
+int starpu_driver_deinit(struct starpu_driver *d);
 #ifdef __cplusplus
 }
 #endif

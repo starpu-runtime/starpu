@@ -999,3 +999,66 @@ starpu_run_driver(struct starpu_driver *d)
 		return -EINVAL;
 	}
 }
+
+#ifdef STARPU_USE_CUDA
+extern int _starpu_cuda_driver_init(struct starpu_driver *);
+extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
+extern int _starpu_cuda_driver_deinit(struct starpu_driver *);
+#endif
+
+int
+starpu_driver_init(struct starpu_driver *d)
+{
+	STARPU_ASSERT(d);
+
+	switch (d->type)
+	{
+#ifdef STARPU_USE_CUDA
+	case STARPU_CUDA_WORKER:
+		return _starpu_cuda_driver_init(d);
+#endif
+	case STARPU_CPU_WORKER:    /* Not supported yet */
+	case STARPU_OPENCL_WORKER: /* Not supported yet */
+	case STARPU_GORDON_WORKER: /* Not supported yet */
+	default:
+		return -EINVAL;
+	}
+}
+
+int
+starpu_driver_run_once(struct starpu_driver *d)
+{
+	STARPU_ASSERT(d);
+
+	switch (d->type)
+	{
+#ifdef STARPU_USE_CUDA
+	case STARPU_CUDA_WORKER:
+		return _starpu_cuda_driver_run_once(d);
+#endif
+	case STARPU_CPU_WORKER:    /* Not supported yet */
+	case STARPU_OPENCL_WORKER: /* Not supported yet */
+	case STARPU_GORDON_WORKER: /* Not supported yet */
+	default:
+		return -EINVAL;
+	}
+}
+
+int
+starpu_driver_deinit(struct starpu_driver *d)
+{
+	STARPU_ASSERT(d);
+
+	switch (d->type)
+	{
+#ifdef STARPU_USE_CUDA
+	case STARPU_CUDA_WORKER:
+		return _starpu_cuda_driver_deinit(d);
+#endif
+	case STARPU_CPU_WORKER:    /* Not supported yet */
+	case STARPU_OPENCL_WORKER: /* Not supported yet */
+	case STARPU_GORDON_WORKER: /* Not supported yet */
+	default:
+		return -EINVAL;
+	}
+}
