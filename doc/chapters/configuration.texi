@@ -214,14 +214,17 @@ is enabled when the required dependencies are found.
 @subsection Configuring workers
 
 @menu
-* STARPU_NCPUS::                Number of CPU workers
-* STARPU_NCUDA::                Number of CUDA workers
-* STARPU_NOPENCL::              Number of OpenCL workers
-* STARPU_NGORDON::              Number of SPU workers (Cell)
-* STARPU_WORKERS_NOBIND::       Do not bind workers
-* STARPU_WORKERS_CPUID::        Bind workers to specific CPUs
-* STARPU_WORKERS_CUDAID::       Select specific CUDA devices
-* STARPU_WORKERS_OPENCLID::     Select specific OpenCL devices
+* STARPU_NCPUS::                	Number of CPU workers
+* STARPU_NCUDA::                	Number of CUDA workers
+* STARPU_NOPENCL::              	Number of OpenCL workers
+* STARPU_NGORDON::              	Number of SPU workers (Cell)
+* STARPU_WORKERS_NOBIND::       	Do not bind workers
+* STARPU_WORKERS_CPUID::        	Bind workers to specific CPUs
+* STARPU_WORKERS_CUDAID::       	Select specific CUDA devices
+* STARPU_WORKERS_OPENCLID::     	Select specific OpenCL devices
+* STARPU_SINGLE_COMBINED_WORKER:: 	Do not use concurrent workers
+* STARPU_MIN_WORKERSIZE::	 	Minimum size of the combined workers
+* STARPU_MAX_WORKERSIZE:: 		Maximum size of the combined workers
 @end menu
 
 @node STARPU_NCPUS
@@ -302,6 +305,25 @@ OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 
 This variable is ignored if the @code{use_explicit_workers_opencl_gpuid} flag of
 the @code{starpu_conf} structure passed to @code{starpu_init} is set.
+
+@node STARPU_SINGLE_COMBINED_WORKER
+@subsubsection @code{STARPU_SINGLE_COMBINED_WORKER} -- Do not use concurrent workers
+
+If set, StarPU will create a multiple workers which won't be able to work
+concurrently. It will create combined workers which size goes from 1 to the
+number total of CPU workers in the system.
+
+@node STARPU_MIN_WORKERSIZE
+@subsubsection @code{STARPU_MIN_WORKERSIZE} -- Minimum size of the combined workers
+
+Let the user give a hint to StarPU about which minimum size the combined workers
+should have.
+
+@node STARPU_MAX_WORKERSIZE
+@subsubsection @code{STARPU_MAX_WORKERSIZE} -- Maximum size of the combined workers
+
+Let the user give a hint to StarPU about which maximum size the combined workers
+should have.
 
 @node Scheduling
 @subsection Configuring the Scheduling engine
