@@ -33,6 +33,7 @@ struct hypervisor_policy app_driven_policy = {
 	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = app_driven_handle_post_exec_hook,
+	.handle_submitted_job = NULL,
 	.custom = 0,
 	.name = "app_driven"
 };

@@ -1,7 +1,7 @@
 #include <sched_ctx_hypervisor.h>
 #include <pthread.h>
 
-enum starpu_archtype STARPU_ALL;
+//enum starpu_archtype STARPU_ALL;
 
 static int _compute_priority(unsigned sched_ctx)
 {
@@ -300,6 +300,7 @@ double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
                 double elapsed_time = curr_time - sc_w->start_time;
                 return elapsed_flops/elapsed_time;
         }
+	return 0.0;
 }
 
 /* compute an average value of the cpu velocity */

@@ -1026,6 +1026,16 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	return exp;
 }
 
+double starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned footprint)
+{
+	struct _starpu_job j =
+		{
+			.footprint = footprint,
+			.footprint_is_computed = 1,
+		};
+	return _starpu_history_based_job_expected_perf(model, arch, &j, j.nimpl);
+}
+
 void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
 {
 	if (model)

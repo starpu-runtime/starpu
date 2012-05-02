@@ -96,6 +96,7 @@ struct hypervisor_policy {
 	void (*handle_poped_task)(unsigned sched_ctx, int worker);
 	void (*handle_idle_end)(unsigned sched_ctx, int worker);
 	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node* resize_requests, int task_tag);
+	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
 };
 
 
@@ -125,8 +126,14 @@ int* sched_ctx_hypervisor_get_sched_ctxs();
 
 int sched_ctx_hypervisor_get_nsched_ctxs();
 
+int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch);
+
 struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
 double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
 
 char* sched_ctx_hypervisor_get_policy();
+
+void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
+
+void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx);

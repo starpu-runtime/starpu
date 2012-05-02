@@ -123,7 +123,8 @@ enum starpu_archtype
 	STARPU_CPU_WORKER, /* CPU core */
 	STARPU_CUDA_WORKER, /* NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER, /* OpenCL CUDA device */
-	STARPU_GORDON_WORKER /* Cell SPU */
+	STARPU_GORDON_WORKER, /* Cell SPU */
+	STARPU_ALL
 };
 
 /* This function returns the type of worker associated to an identifier (as

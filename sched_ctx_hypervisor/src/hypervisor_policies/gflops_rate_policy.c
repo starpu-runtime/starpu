@@ -294,6 +294,7 @@ struct hypervisor_policy gflops_rate_policy = {
 	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
+	.handle_submitted_job = NULL,
 	.custom = 0,
 	.name = "gflops_rate"
 };

@@ -30,7 +30,8 @@ libsched_ctx_hypervisor_la_SOURCES = 			\
 	hypervisor_policies/idle_policy.c		\
 	hypervisor_policies/app_driven_policy.c		\
 	hypervisor_policies/gflops_rate_policy.c	\
-	hypervisor_policies/lp_policy.c	
+	hypervisor_policies/lp_policy.c			\
+	hypervisor_policies/lp2_policy.c	
 
 noinst_HEADERS = sched_ctx_hypervisor_intern.h		\
 	hypervisor_policies/policy_utils.h
