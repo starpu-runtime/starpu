@@ -40,7 +40,14 @@ gcc_tests =					\
   debug-tree.c					\
   shutdown-errors.c
 
-#  opencl-types.c				
+if !STARPU_USE_OPENCL
+
+# XXX: This test simulates a buggy OpenCL implementation, and thus
+# cannot be run then a real <cl_platform.h> is included.
+gcc_tests += opencl-types.c
+
+endif !STARPU_USE_OPENCL
+
 
 dist_noinst_HEADERS = mocks.h
 
