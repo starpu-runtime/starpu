@@ -154,6 +154,8 @@ static int task_implementation_target_to_int (const_tree target);
 
 static bool heap_allocated_p (const_tree var_decl);
 
+static tree declare_codelet (tree task_decl);
+
 
 /* Lookup the StarPU function NAME in the global scope and store the result
    in VAR (this can't be done from `lower_starpu'.)  */
@@ -2273,29 +2275,10 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 	  /* TASK lacks a body.  Declare its codelet, intantiate its codelet
 	     wrappers, and its body in this compilation unit.  */
 
-	  local_define (tree, build_parameter, (const_tree lst))
-	  {
-	    tree param, type;
-
-	    type = TREE_VALUE (lst);
-	    param = build_decl (DECL_SOURCE_LOCATION (task), PARM_DECL,
-				create_tmp_var_name ("parameter"),
-				type);
-	    DECL_ARG_TYPE (param) = type;
-	    DECL_CONTEXT (param) = task;
-
-	    return param;
-	  };
 
 	  /* Declare TASK's codelet.  It cannot be defined yet because the
 	     complete list of tasks isn't available at this point.  */
 	  declare_codelet (task);
-
-	  /* Set the task's parameter list.  */
-	  DECL_ARGUMENTS (task) =
-	    map (build_parameter,
-		 list_remove (void_type_p,
-			      TYPE_ARG_TYPES (TREE_TYPE (task))));
 
 	  /* Build its body.  */
 	  current_function_decl = task;
@@ -2359,11 +2342,42 @@ build_pointer_lookup (tree pointer)
   return build4 (TARGET_EXPR, ptr_type_node, result_var, stmts, NULL_TREE, NULL_TREE);
 }
 
+/* Return a fresh argument list for FN.  */
+
+static tree
+build_function_arguments (tree fn)
+{
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL
+	      && DECL_ARGUMENTS (fn) == NULL_TREE);
+
+  local_define (tree, build_argument, (const_tree lst))
+    {
+      tree param, type;
+
+      type = TREE_VALUE (lst);
+      param = build_decl (DECL_SOURCE_LOCATION (fn), PARM_DECL,
+			  create_tmp_var_name ("argument"),
+			  type);
+      DECL_ARG_TYPE (param) = type;
+      DECL_CONTEXT (param) = fn;
+
+      return param;
+    };
+
+  return map (build_argument,
+	      list_remove (void_type_p,
+			   TYPE_ARG_TYPES (TREE_TYPE (fn))));
+}
+
+
 /* Build the body of TASK_DECL, which will call `starpu_insert_task'.  */
 
 static void
 define_task (tree task_decl)
 {
+  /* First of all, give TASK_DECL an argument list.  */
+  DECL_ARGUMENTS (task_decl) = build_function_arguments (task_decl);
+
   VEC(tree, gc) *args = NULL;
   location_t loc = DECL_SOURCE_LOCATION (task_decl);
   tree p, params = DECL_ARGUMENTS (task_decl);
