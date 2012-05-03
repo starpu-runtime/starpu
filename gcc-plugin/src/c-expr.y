@@ -89,6 +89,24 @@
     sorry ("struct field access not implemented yet"); /* XXX */
     return error_mark_node;
   }
+
+  /* Interpret the string beneath CST, and return a new string constant.  */
+  static tree
+  interpret_string (const_tree cst)
+  {
+    gcc_assert (TREE_CODE (cst) == STRING_CST);
+
+    cpp_string input, interpreted;
+    input.text = (unsigned char *) TREE_STRING_POINTER (cst);
+    input.len = TREE_STRING_LENGTH (cst);
+
+    bool success;
+    success = cpp_interpret_string (parse_in, &input, 1, &interpreted,
+				    CPP_STRING);
+    gcc_assert (success);
+
+    return build_string (interpreted.len, (char *) interpreted.text);
+  }
 %}
 
 %code {
@@ -156,6 +174,13 @@
 	   `pragma_lex' normally do, because we want to be able to
 	   distinguish adjacent STRING_CST.  */
 	type = c_lex_with_flags (lvalp, &loc, NULL, C_LEX_STRING_NO_JOIN);
+
+	if (type == CPP_STRING)
+	  /* XXX: When using `C_LEX_STRING_NO_JOIN', `c_lex_with_flags'
+	     doesn't call `cpp_interpret_string', leaving us with an
+	     uninterpreted string (with quotes, etc.)  This hack works around
+	     that.  */
+	  *lvalp = interpret_string (*lvalp);
 
 	if (type < sizeof cpplib_bison_token_map / sizeof cpplib_bison_token_map[0])
 	  ret = cpplib_bison_token_map[type];
