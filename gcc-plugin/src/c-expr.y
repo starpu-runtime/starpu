@@ -132,6 +132,8 @@
   yylex (YYSTYPE *lvalp)
   {
     int ret;
+    enum cpp_ttype type;
+    location_t loc;
 
 #ifdef __cplusplus
     if (cpplib_bison_token_map[CPP_NAME] != YCPP_NAME)
@@ -143,11 +145,23 @@
       }
 #endif
 
-    ret = pragma_lex (lvalp);
-    if (ret < sizeof cpplib_bison_token_map / sizeof cpplib_bison_token_map[0])
-      ret = cpplib_bison_token_map[ret];
-    else
+    /* First check whether EOL is reached, because the EOL token needs to be
+       left to the C parser.  */
+    type = cpp_peek_token (parse_in, 0)->type;
+    if (type == CPP_PRAGMA_EOL)
       ret = -1;
+    else
+      {
+	/* Tell the lexer to not concatenate adjacent strings like cpp and
+	   `pragma_lex' normally do, because we want to be able to
+	   distinguish adjacent STRING_CST.  */
+	type = c_lex_with_flags (lvalp, &loc, NULL, C_LEX_STRING_NO_JOIN);
+
+	if (type < sizeof cpplib_bison_token_map / sizeof cpplib_bison_token_map[0])
+	  ret = cpplib_bison_token_map[type];
+	else
+	  ret = -1;
+      }
 
     return ret;
   }

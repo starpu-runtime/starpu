@@ -769,6 +769,13 @@ handle_pragma_register (struct cpp_reader *reader)
   else
     ptr_type = TREE_TYPE (ptr);
 
+  if (ptr_type == NULL_TREE)
+    {
+      /* PTR is a type-less thing, such as a STRING_CST.  */
+      error_at (loc, "invalid %<register%> argument");
+      return;
+    }
+
   if (!POINTER_TYPE_P (ptr_type)
       && TREE_CODE (ptr_type) != ARRAY_TYPE)
     {

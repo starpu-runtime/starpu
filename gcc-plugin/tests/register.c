@@ -172,12 +172,7 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof m3d[0];
 #pragma starpu register m3d
 
-  expected_register_arguments.pointer = "hello";
-  expected_register_arguments.elements = sizeof "hello";
-  expected_register_arguments.element_size = 1;
-#pragma starpu register "hello"
-
-  assert (data_register_calls == 18);
+  assert (data_register_calls == 17);
 
   free (y);
 
