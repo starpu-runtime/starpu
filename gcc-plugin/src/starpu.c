@@ -136,6 +136,22 @@ static const char codelet_struct_tag[] = "starpu_codelet";
 /* Cached function declarations.  */
 static tree unpack_fn, data_lookup_fn;
 
+/* Targets supported by GCC-StarPU.  */
+static int supported_targets = 0
+#ifdef STARPU_USE_CPU
+    | STARPU_CPU
+#endif
+#ifdef STARPU_USE_CUDA
+    | STARPU_CUDA
+#endif
+#ifdef STARPU_USE_OPENCL
+    | STARPU_OPENCL
+#endif
+#ifdef STARPU_USE_GORDON
+    | STARPU_GORDON
+#endif
+    ;
+
 
 /* Forward declarations.  */
 
@@ -1026,6 +1042,44 @@ handle_pragma_debug_tree (struct cpp_reader *reader)
   printf ("\n");
 }
 
+/* Handle the `#pragma starpu add_target TARGET', which tells GCC-StarPU to
+   consider TARGET ("cpu", "opencl", etc.) as supported.  This pragma is
+   undocumented and only meant to be used for testing purposes.  */
+
+static void
+handle_pragma_add_target (struct cpp_reader *reader)
+{
+  tree args, obj;
+  location_t loc;
+
+  loc = cpp_peek_token (reader, 0)->src_loc;
+
+  args = read_pragma_expressions ("add_target", loc);
+  if (args == NULL_TREE)
+    /* Parse error, presumably already handled by the parser.  */
+    return;
+
+  obj = TREE_VALUE (args);
+  args = TREE_CHAIN (args);
+
+  if (obj == error_mark_node)
+    return;
+
+  if (args != NULL_TREE)
+    warning_at (loc, 0, "extraneous arguments ignored");
+
+  if (TREE_CODE (obj) == STRING_CST)
+    {
+      int new_target = task_implementation_target_to_int (obj);
+      if (obj == 0)
+	error_at (loc, "unsupported target %qE", obj);
+      else
+	supported_targets |= new_target;
+    }
+  else
+    error_at (loc, "expecting string literal");
+}
+
 static void
 register_pragmas (void *gcc_data, void *user_data)
 {
@@ -1033,6 +1087,8 @@ register_pragmas (void *gcc_data, void *user_data)
 		     handle_pragma_hello);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "debug_tree",
 		     handle_pragma_debug_tree);
+  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "add_target",
+		     handle_pragma_add_target);
 
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "initialize",
 				    handle_pragma_initialize);
@@ -2484,27 +2540,12 @@ validate_task (tree task)
 {
   gcc_assert (task_p (task));
 
-  static const int supported = 0
-#ifdef STARPU_USE_CPU
-    | STARPU_CPU
-#endif
-#ifdef STARPU_USE_CUDA
-    | STARPU_CUDA
-#endif
-#ifdef STARPU_USE_OPENCL
-    | STARPU_OPENCL
-#endif
-#ifdef STARPU_USE_GORDON
-    | STARPU_GORDON
-#endif
-    ;
-
   int where = task_where (task);
 
   /* If TASK has no implementations, things will barf elsewhere anyway.  */
 
   if (task_implementation_list (task) != NULL_TREE)
-    if ((where & supported) == 0)
+    if ((where & supported_targets) == 0)
       error_at (DECL_SOURCE_LOCATION (task),
 		"none of the implementations of task %qE can be used",
 		DECL_NAME (task));
