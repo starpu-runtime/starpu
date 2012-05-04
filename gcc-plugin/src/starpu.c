@@ -1102,7 +1102,7 @@ build_variable_from_file_contents (location_t loc,
 	error_at (loc, "failed to open %qs: %m", file);
       else
 	{
-	  void *contents;
+	  char *contents;
 
 	  contents = mmap (NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	  if (contents == NULL)
