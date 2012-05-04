@@ -1043,6 +1043,84 @@ build_string_variable (location_t loc, const char *name_seed,
   return decl;
 }
 
+/* Return a VAR_DECL for a string variable containing the contents of FILE,
+   which is looked for in each of the directories listed in SEARCH_PATH.  If
+   FILE could not be found, return NULL_TREE.  */
+
+static tree
+build_variable_from_file_contents (location_t loc,
+				   const char *name_seed,
+				   const char *file,
+				   const_tree search_path)
+{
+  gcc_assert (search_path != NULL_TREE
+	      && TREE_CODE (search_path) == STRING_CST);
+
+  int err, dir_fd;
+  struct stat st;
+  const_tree dirs;
+  tree var = NULL_TREE;
+
+  /* Look for FILE in each directory in SEARCH_PATH, and pick the first one
+     that matches.  */
+  for (err = ENOENT, dir_fd = -1, dirs = opencl_include_dirs;
+       (err != 0 || err == ENOENT) && dirs != NULL_TREE;
+       dirs = TREE_CHAIN (dirs))
+    {
+      dir_fd = open (TREE_STRING_POINTER (dirs),
+		     O_DIRECTORY | O_RDONLY);
+      if (dir_fd < 0)
+	err = ENOENT;
+      else
+	{
+	  err = fstatat (dir_fd, file, &st, 0);
+	  if (err != 0)
+	    close (dir_fd);
+	}
+    }
+
+  if (err != 0 || dir_fd < 0)
+    error_at (loc, "failed to access %qs: %m", file);
+  else if (st.st_size == 0)
+    {
+      error_at (loc, "source file %qs is empty", file);
+      close (dir_fd);
+    }
+  else
+    {
+      if (verbose_output_p)
+	inform (loc, "found file %qs in %qs",
+		file, TREE_STRING_POINTER (dirs));
+
+      int fd;
+
+      fd = openat (dir_fd, file, O_RDONLY);
+      close (dir_fd);
+
+      if (fd < 0)
+	error_at (loc, "failed to open %qs: %m", file);
+      else
+	{
+	  void *contents;
+
+	  contents = mmap (NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	  if (contents == NULL)
+	    error_at (loc, "failed to map contents of %qs: %m", file);
+	  else
+	    {
+	      var = build_string_variable (loc, name_seed,
+					   contents, st.st_size);
+	      pushdecl (var);
+	      munmap (contents, st.st_size);
+	    }
+
+	  close (fd);
+	}
+    }
+
+  return var;
+}
+
 /* Return the type corresponding to OPENCL_PROGRAM_STRUCT_TAG.  */
 
 static tree
@@ -1094,68 +1172,9 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
     inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
 	    DECL_NAME (task_impl), TREE_STRING_POINTER (kernel), file);
 
-  int err, dir_fd;
-  struct stat st;
-  tree source_var = NULL_TREE;
-  tree dirs;
-
-  /* Look for FILE in each OPENCL_INCLUDE_DIRS, and pick the first one that
-     matches.  */
-  for (err = ENOENT, dir_fd = -1, dirs = opencl_include_dirs;
-       (err != 0 || err == ENOENT) && dirs != NULL_TREE;
-       dirs = TREE_CHAIN (dirs))
-    {
-      dir_fd = open (TREE_STRING_POINTER (dirs),
-		     O_DIRECTORY | O_RDONLY);
-      if (dir_fd < 0)
-	err = ENOENT;
-      else
-	{
-	  err = fstatat (dir_fd, file, &st, 0);
-	  if (err != 0)
-	    close (dir_fd);
-	}
-    }
-
-  if (err != 0 || dir_fd < 0)
-    error_at (loc, "failed to access %qs: %m", file);
-  else if (st.st_size == 0)
-    {
-      error_at (loc, "source file %qs is empty", file);
-      close (dir_fd);
-    }
-  else
-    {
-      if (verbose_output_p)
-	inform (loc, "found file %qs in %qs",
-		file, TREE_STRING_POINTER (dirs));
-
-      int fd;
-
-      fd = openat (dir_fd, file, O_RDONLY);
-      close (dir_fd);
-
-      if (fd < 0)
-	error_at (loc, "failed to open %qs: %m", file);
-      else
-	{
-	  void *contents;
-
-	  contents = mmap (NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-	  if (contents == NULL)
-	    error_at (loc, "failed to map contents of %qs: %m", file);
-	  else
-	    {
-	      source_var = build_string_variable (loc, "opencl_source",
-						  contents, st.st_size);
-	      pushdecl (source_var);
-	      munmap (contents, st.st_size);
-	    }
-
-	  close (fd);
-	}
-    }
-
+  tree source_var;
+  source_var = build_variable_from_file_contents (loc, "opencl_source",
+						  file, opencl_include_dirs);
   if (source_var != NULL_TREE)
     {
       tree prog_var, prog_loaded_var;
