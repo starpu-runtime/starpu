@@ -164,16 +164,16 @@ starpu_codelet_unpack_args (void *cl_raw_arg, ...)
 
   va_start (args, cl_raw_arg);
 
-  for (arg = 0, offset = 1, size = 0;
+  for (arg = 0, offset = 1;
        arg < nargs;
        arg++, offset += sizeof (size_t) + size)
     {
       void *argp;
 
       argp = va_arg (args, void *);
-      size = *(size_t *) &cl_arg[size];
+      size = *(size_t *) &cl_arg[offset];
 
-      memcpy (argp, &cl_arg[offset], size);
+      memcpy (argp, &cl_arg[offset + sizeof size], size);
     }
 
   va_end (args);
