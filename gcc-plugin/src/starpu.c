@@ -2000,6 +2000,23 @@ build_codelet_identifier (tree task_decl)
   return get_identifier (cl_name);
 }
 
+/* Return a TYPE_DECL for the RECORD_TYPE with tag name TAG.  */
+
+static tree
+type_decl_for_struct_tag (const char *tag)
+{
+  tree type_decl = xref_tag (RECORD_TYPE, get_identifier (tag));
+  gcc_assert (type_decl != NULL_TREE
+	      && TREE_CODE (type_decl) == RECORD_TYPE);
+
+  /* `build_decl' expects a TYPE_DECL, so give it what it wants.  */
+
+  type_decl = TYPE_STUB_DECL (type_decl);
+  gcc_assert (type_decl != NULL && TREE_CODE (type_decl) == TYPE_DECL);
+
+  return type_decl;
+}
+
 static tree
 codelet_type (void)
 {
@@ -2008,19 +2025,9 @@ codelet_type (void)
   static tree type_decl = NULL_TREE;
 
   if (type_decl == NULL_TREE)
-    {
-      /* Lookup the `struct starpu_codelet' struct type.  This should succeed since
-	 we push <starpu.h> early on.  */
-
-      type_decl = xref_tag (RECORD_TYPE, get_identifier (codelet_struct_tag));
-      gcc_assert (type_decl != NULL_TREE
-		  && TREE_CODE (type_decl) == RECORD_TYPE);
-
-      /* `build_decl' expects a TYPE_DECL, so give it what it wants.  */
-
-      type_decl = TYPE_STUB_DECL (type_decl);
-      gcc_assert (type_decl != NULL && TREE_CODE (type_decl) == TYPE_DECL);
-    }
+    /* Lookup the `struct starpu_codelet' struct type.  This should succeed since
+       we push <starpu.h> early on.  */
+    type_decl = type_decl_for_struct_tag (codelet_struct_tag);
 
   return TREE_TYPE (type_decl);
 }
