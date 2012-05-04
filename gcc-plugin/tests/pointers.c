@@ -32,12 +32,14 @@ static void
 my_pointer_task_cpu (const int *x, short *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
+  assert (*x == 42 && *y == 77);
 }
 
 static void
 my_pointer_task_opencl (const int *x, short *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
+  assert (*x == 42 && *y == 77);
 }
 
 
