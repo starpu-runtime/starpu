@@ -422,6 +422,39 @@ starpu_free (void *ptr)
 }
 
 
+/* OpenCL support.  */
+
+#define STARPU_USE_OPENCL 1
+
+struct starpu_opencl_program
+{
+  /* Nothing.  */
+};
+
+/* Number of `load_opencl_from_string' calls.  */
+static unsigned int load_opencl_calls;
+
+struct load_opencl_arguments
+{
+  const char *source_file;
+  struct starpu_opencl_program *program;
+};
+
+/* Expected arguments.  */
+static struct load_opencl_arguments expected_load_opencl_arguments;
+
+int
+starpu_opencl_load_opencl_from_string (const char *source,
+				       struct starpu_opencl_program *program,
+				       const char *build_options)
+{
+  assert (source != NULL);		       /* FIXME: mmap file & check */
+  assert (program != expected_load_opencl_arguments.program);
+  load_opencl_calls++;
+  return 0;
+}
+
+
 /* Initialization.  */
 
 static int initialized;

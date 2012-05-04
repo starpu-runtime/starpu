@@ -286,3 +286,4 @@ starpu.log
 /tools/starpu_workers_activity
 /tests/datawizard/interfaces/copy_interfaces
 /gcc-plugin/tests/release
+/gcc-plugin/tests/opencl

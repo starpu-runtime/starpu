@@ -38,7 +38,11 @@ gcc_tests =					\
   heap-allocated-errors.c			\
   verbose.c					\
   debug-tree.c					\
+  opencl.c					\
+  opencl-errors.c				\
   shutdown-errors.c
+
+EXTRA_DIST =
 
 if !STARPU_USE_OPENCL
 
@@ -46,7 +50,16 @@ if !STARPU_USE_OPENCL
 # cannot be run then a real <cl_platform.h> is included.
 gcc_tests += opencl-types.c
 
-endif !STARPU_USE_OPENCL
+# This test simulates errors when lacking an OpenCL implementation.
+gcc_tests += opencl-lacking.c
+
+else STARPU_USE_OPENCL
+
+EXTRA_DIST +=					\
+  opencl-types.c				\
+  opencl-lacking.c
+
+endif STARPU_USE_OPENCL
 
 
 dist_noinst_HEADERS = mocks.h
@@ -62,11 +75,13 @@ CLEANFILES = *.gimple *.o			\
   output-pointer				\
   unregister					\
   heap-allocated				\
-  acquire
+  acquire					\
+  opencl
 
 
-EXTRA_DIST = ./run-test.in			\
+EXTRA_DIST += ./run-test.in			\
   my-lib.h my-lib.c				\
+  test.cl					\
   $(gcc_tests)
 
 # The test suite assumes that the CPU back-end is available.

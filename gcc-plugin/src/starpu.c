@@ -132,6 +132,7 @@ static const char heap_allocated_orig_type_attribute_name[] =
 
 /* Names of data structures defined in <starpu.h>.  */
 static const char codelet_struct_tag[] = "starpu_codelet";
+static const char opencl_program_struct_tag[] = "starpu_opencl_program";
 
 /* Cached function declarations.  */
 static tree unpack_fn, data_lookup_fn;
@@ -155,14 +156,17 @@ static int supported_targets = 0
 
 /* Forward declarations.  */
 
+static tree build_function_arguments (tree fn);
 static tree build_codelet_declaration (tree task_decl);
 static tree build_cpu_codelet_identifier (const_tree task);
 static void define_task (tree task_decl);
 static tree build_pointer_lookup (tree pointer);
+static tree type_decl_for_struct_tag (const char *tag);
 
 static bool task_p (const_tree decl);
 static bool task_implementation_p (const_tree decl);
 static tree task_implementation_task (const_tree task_impl);
+static int task_implementation_where (const_tree task_impl);
 static bool implicit_cpu_task_implementation_p (const_tree fn);
 
 
@@ -1013,6 +1017,269 @@ handle_pragma_unregister (struct cpp_reader *reader)
   add_stmt (build_data_unregister_call (loc, var));
 }
 
+/* Return a private global string literal VAR_DECL, whose contents are the
+   LEN bytes at CONTENTS.  */
+
+static tree
+build_string_variable (location_t loc, const char *name_seed,
+		       const char *contents, size_t len)
+{
+  tree decl;
+
+  decl = build_decl (loc, VAR_DECL, create_tmp_var_name (name_seed),
+		     string_type_node);
+  TREE_PUBLIC (decl) = false;
+  TREE_STATIC (decl) = true;
+  TREE_USED (decl) = true;
+
+  DECL_INITIAL (decl) =				  /* XXX: off-by-one? */
+    build_string_literal (len + 1, contents);
+
+  DECL_ARTIFICIAL (decl) = true;
+
+  return decl;
+}
+
+/* Return the type corresponding to OPENCL_PROGRAM_STRUCT_TAG.  */
+
+static tree
+opencl_program_type (void)
+{
+  tree t = TREE_TYPE (type_decl_for_struct_tag (opencl_program_struct_tag));
+
+  if (TYPE_SIZE (t) == NULL_TREE)
+    {
+      /* Incomplete type definition, for instance because <starpu_opencl.h>
+	 wasn't included.  */
+      error_at (UNKNOWN_LOCATION, "StarPU OpenCL support is lacking");
+      t = error_mark_node;
+    }
+
+  return t;
+}
+
+/* Define a body for TASK_IMPL that loads OpenCL source from FILE and calls
+   KERNEL.  */
+
+static void
+define_opencl_task_implementation (location_t loc, tree task_impl,
+				   const char *file, const_tree kernel)
+{
+  gcc_assert (task_implementation_p (task_impl)
+	      && task_implementation_where (task_impl) == STARPU_OPENCL);
+  gcc_assert (TREE_CODE (kernel) == STRING_CST);
+
+  if (!verbose_output_p)
+    /* No further warnings for this node.  */
+    TREE_NO_WARNING (task_impl) = true;
+
+  static tree load_fn;
+
+  if (load_fn == NULL_TREE)
+    {
+      load_fn =
+	lookup_name (get_identifier ("starpu_opencl_load_opencl_from_string"));
+      if (load_fn == NULL_TREE)
+	{
+	  inform (loc, "no OpenCL support, task implementation %qE "
+		  "not generated", DECL_NAME (task_impl));
+	  return;
+	}
+    }
+
+  int err;
+  struct stat st;
+  tree source_var = NULL_TREE;
+
+  if (verbose_output_p)
+    inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
+	    DECL_NAME (task_impl), TREE_STRING_POINTER (kernel), file);
+
+  err = stat (file, &st);
+  if (err != 0)
+    error_at (loc, "failed to access %qs: %m", file);
+  else if (st.st_size == 0)
+    error_at (loc, "source file %qs is empty", file);
+  else
+    {
+      int fd;
+
+      fd = open (file, O_RDONLY);
+      if (fd < 0)
+	error_at (loc, "failed to open %qs: %m", file);
+      else
+	{
+	  void *contents;
+
+	  contents = mmap (NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	  if (contents == NULL)
+	    error_at (loc, "failed to map contents of %qs: %m", file);
+	  else
+	    {
+	      source_var = build_string_variable (loc, "opencl_source",
+						  contents, st.st_size);
+	      pushdecl (source_var);
+	      munmap (contents, st.st_size);
+	    }
+
+	  close (fd);
+	}
+    }
+
+  if (source_var != NULL_TREE)
+    {
+      tree prog_var, prog_loaded_var;
+
+      /* Global variable to hold the `starpu_opencl_program' object.  */
+
+      prog_var = build_decl (loc, VAR_DECL,
+			     create_tmp_var_name ("opencl_program"),
+			     opencl_program_type ());
+      TREE_PUBLIC (prog_var) = false;
+      TREE_STATIC (prog_var) = true;
+      TREE_USED (prog_var) = true;
+      DECL_ARTIFICIAL (prog_var) = true;
+      pushdecl (prog_var);
+
+      /* Global variable indicating whether the program has already been
+	 loaded.  */
+
+      prog_loaded_var = build_decl (loc, VAR_DECL,
+				    create_tmp_var_name ("opencl_prog_loaded"),
+				    boolean_type_node);
+      TREE_PUBLIC (prog_loaded_var) = false;
+      TREE_STATIC (prog_loaded_var) = true;
+      TREE_USED (prog_loaded_var) = true;
+      DECL_ARTIFICIAL (prog_loaded_var) = true;
+      DECL_INITIAL (prog_loaded_var) = build_zero_cst (boolean_type_node);
+      pushdecl (prog_loaded_var);
+
+      /* Build `starpu_opencl_load_opencl_from_string (SOURCE_VAR,
+	                                               &PROG_VAR, "")'.  */
+      tree load = build_call_expr (load_fn, 3, source_var,
+				   build_addr (prog_var, task_impl),
+				   build_string_literal (1, ""));
+
+      tree load_stmts = NULL_TREE;
+      append_to_statement_list (load, &load_stmts);
+      append_to_statement_list (build2 (MODIFY_EXPR, boolean_type_node,
+					prog_loaded_var,
+					build_int_cst (boolean_type_node, 1)),
+				&load_stmts);
+
+      /* Build `if (!PROG_LOADED_VAR) { ...; PROG_LOADED_VAR = true; }'.  */
+
+      tree cond = build3 (COND_EXPR, void_type_node,
+			  prog_loaded_var,
+			  NULL_TREE,
+			  load_stmts);
+
+      /* TODO: Build the kernel invocation.  */
+
+      TREE_USED (task_impl) = true;
+      TREE_STATIC (task_impl) = true;
+      DECL_EXTERNAL (task_impl) = false;
+      DECL_ARTIFICIAL (task_impl) = true;
+      DECL_SAVED_TREE (task_impl) = cond;
+      DECL_INITIAL (task_impl) =
+	build_block (NULL_TREE, NULL_TREE, task_impl, NULL_TREE);
+      DECL_RESULT (task_impl) =
+	build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
+      DECL_ARGUMENTS (task_impl) =
+	build_function_arguments (task_impl);
+
+      /* Compile TASK_IMPL.  */
+      rest_of_decl_compilation (task_impl, true, 0);
+      allocate_struct_function (task_impl, false);
+      cgraph_finalize_function (task_impl, false);
+      cgraph_mark_needed_node (cgraph_get_node (task_impl));
+
+      /* Generate a wrapper for TASK_IMPL, and possibly the body of its task.
+	 This needs to be done explicitly here, because otherwise
+	 `handle_pre_genericize' would never see TASK_IMPL's task.  */
+      tree task = task_implementation_task (task_impl);
+      if (!TREE_STATIC (task))
+	{
+	  declare_codelet (task);
+	  define_task (task);
+
+	  /* Compile TASK's body.  */
+	  rest_of_decl_compilation (task, true, 0);
+	  allocate_struct_function (task, false);
+	  cgraph_finalize_function (task, false);
+	  cgraph_mark_needed_node (cgraph_get_node (task));
+	}
+    }
+  else
+    DECL_SAVED_TREE (task_impl) = error_mark_node;
+
+  return;
+}
+
+/* Handle the `opencl' pragma, which defines an OpenCL task
+   implementation.  */
+
+static void
+handle_pragma_opencl (struct cpp_reader *reader)
+{
+  tree args;
+  location_t loc;
+
+  loc = cpp_peek_token (reader, 0)->src_loc;
+
+  if (current_function_decl != NULL_TREE)
+    {
+      error_at (loc, "%<starpu opencl%> pragma can only be used "
+		"at the top-level");
+      return;
+    }
+
+  args = read_pragma_expressions ("opencl", loc);
+  if (args == NULL_TREE)
+    return;
+
+  /* TODO: Add "group size" and "number of groups" arguments.  */
+  if (list_length (args) < 3)
+    {
+      error_at (loc, "wrong number of arguments for %<starpu opencl%> pragma");
+      return;
+    }
+
+  if (task_implementation_p (TREE_VALUE (args)))
+    {
+      tree task_impl = TREE_VALUE (args);
+      if (task_implementation_where (task_impl) == STARPU_OPENCL)
+  	{
+  	  args = TREE_CHAIN (args);
+  	  if (TREE_CODE (TREE_VALUE (args)) == STRING_CST)
+  	    {
+  	      tree file = TREE_VALUE (args);
+  	      args = TREE_CHAIN (args);
+  	      if (TREE_CODE (TREE_VALUE (args)) == STRING_CST)
+  		{
+  		  tree kernel = TREE_VALUE (args);
+
+  		  if (TREE_CHAIN (args) == NULL_TREE)
+		    define_opencl_task_implementation (loc, task_impl,
+						       TREE_STRING_POINTER (file),
+						       kernel);
+  		  else
+  		    error_at (loc, "junk after %<starpu opencl%> pragma");
+  		}
+  	      else
+  		error_at (loc, "%<kernel%> argument must be a string constant");
+	    }
+	  else
+	    error_at (loc, "%<file%> argument must be a string constant");
+	}
+      else
+	error_at (loc, "%qE is not an OpenCL task implementation",
+		  DECL_NAME (task_impl));
+    }
+  else
+    error_at (loc, "%qE is not a task implementation", TREE_VALUE (args));
+}
+
 /* Handle the `debug_tree' pragma (for debugging purposes.)  */
 
 static void
@@ -1102,6 +1369,8 @@ register_pragmas (void *gcc_data, void *user_data)
 				    handle_pragma_release);
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "unregister",
 				    handle_pragma_unregister);
+  c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "opencl",
+				    handle_pragma_opencl);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "shutdown",
 		     handle_pragma_shutdown);
 }
