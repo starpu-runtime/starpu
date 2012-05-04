@@ -115,6 +115,9 @@ static const char plugin_name[] = "starpu";
 /* Whether to enable verbose output.  */
 static bool verbose_output_p = false;
 
+/* Search path for OpenCL source files, for the `opencl' pragma.  */
+static tree opencl_include_dirs = NULL_TREE;
+
 /* Names of public attributes.  */
 static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
@@ -1087,24 +1090,51 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 	}
     }
 
-  int err;
-  struct stat st;
-  tree source_var = NULL_TREE;
-
   if (verbose_output_p)
     inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
 	    DECL_NAME (task_impl), TREE_STRING_POINTER (kernel), file);
 
-  err = stat (file, &st);
-  if (err != 0)
+  int err, dir_fd;
+  struct stat st;
+  tree source_var = NULL_TREE;
+  tree dirs;
+
+  /* Look for FILE in each OPENCL_INCLUDE_DIRS, and pick the first one that
+     matches.  */
+  for (err = ENOENT, dir_fd = -1, dirs = opencl_include_dirs;
+       (err != 0 || err == ENOENT) && dirs != NULL_TREE;
+       dirs = TREE_CHAIN (dirs))
+    {
+      dir_fd = open (TREE_STRING_POINTER (dirs),
+		     O_DIRECTORY | O_RDONLY);
+      if (dir_fd < 0)
+	err = ENOENT;
+      else
+	{
+	  err = fstatat (dir_fd, file, &st, 0);
+	  if (err != 0)
+	    close (dir_fd);
+	}
+    }
+
+  if (err != 0 || dir_fd < 0)
     error_at (loc, "failed to access %qs: %m", file);
   else if (st.st_size == 0)
-    error_at (loc, "source file %qs is empty", file);
+    {
+      error_at (loc, "source file %qs is empty", file);
+      close (dir_fd);
+    }
   else
     {
+      if (verbose_output_p)
+	inform (loc, "found file %qs in %qs",
+		file, TREE_STRING_POINTER (dirs));
+
       int fd;
 
-      fd = open (file, O_RDONLY);
+      fd = openat (dir_fd, file, O_RDONLY);
+      close (dir_fd);
+
       if (fd < 0)
 	error_at (loc, "failed to open %qs: %m", file);
       else
@@ -3021,6 +3051,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 		     NULL, &pass_info);
 
   include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
+  opencl_include_dirs = build_string (1, ".");
 
   int arg;
   for (arg = 0; arg < plugin_info->argc; arg++)
@@ -3033,6 +3064,18 @@ plugin_init (struct plugin_name_args *plugin_info,
 	  else
 	    /* XXX: We assume that `value' has an infinite lifetime.  */
 	    include_dir = plugin_info->argv[arg].value;
+	}
+      else if (strcmp (plugin_info->argv[arg].key, "opencl-include-dir") == 0)
+	{
+	  if (plugin_info->argv[arg].value == NULL)
+	    error_at (UNKNOWN_LOCATION, "missing directory name for option "
+		      "%<-fplugin-arg-starpu-opencl-include-dir%>");
+	  else
+	    {
+	      tree dir = build_string (strlen (plugin_info->argv[arg].value),
+				       plugin_info->argv[arg].value);
+	      opencl_include_dirs = chainon (opencl_include_dirs, dir);
+	    }
 	}
       else if (strcmp (plugin_info->argv[arg].key, "verbose") == 0)
 	verbose_output_p = true;

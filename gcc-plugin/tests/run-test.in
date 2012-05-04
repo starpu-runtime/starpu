@@ -87,7 +87,10 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     ,(string-append "-fplugin=" %builddir "/../src/.libs/starpu.so")
 
     ;; Use the non-installed headers.
-    ,(string-append "-fplugin-arg-starpu-include-dir=@top_srcdir@/include")
+    "-fplugin-arg-starpu-include-dir=@top_srcdir@/include"
+
+    ;; Find OpenCL source files under $srcdir.
+    ,(string-append "-fplugin-arg-starpu-opencl-include-dir=" %srcdir)
 
     "-g"
     "-fdump-tree-gimple" "-Wall"))
