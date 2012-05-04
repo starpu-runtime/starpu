@@ -54,6 +54,7 @@
 #include <toplev.h>
 
 #include <stdio.h>
+#include <sys/mman.h>
 
 /* Don't include the dreaded proprietary headers that we don't need anyway.
    In particular, this waives the obligation to reproduce their silly
