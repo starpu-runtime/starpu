@@ -59,7 +59,9 @@ m4_ifdef([AM_SILENT_RULES],
 
 AC_PREREQ(2.60)
 
+AM_PROG_AR
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_SED
@@ -132,9 +134,9 @@ else
 fi
 
 AC_COMPILE_IFELSE(
-  AC_LANG_PROGRAM([[
+  [AC_LANG_PROGRAM([[
     #include <pthread.h>
-  ]], [[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]]),,
+  ]], [[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])],,
   AC_MSG_ERROR([pthread_create unavailable]))
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_HAVE_LIBRARY([ws2_32])
@@ -1548,11 +1550,11 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    OLD_CFLAGS="$CFLAGS"
    CFLAGS="-I$PWD/include -I$srcdir/include"
    AC_COMPILE_IFELSE(
-       AC_LANG_PROGRAM(
+       [AC_LANG_PROGRAM(
 	   [[#include <cuda.h>
 	   #include <starpu.h>]],
 	   [[]]
-	   ),
+	   )],
        AC_MSG_RESULT(yes),
        [ICC=""
            AC_MSG_RESULT(no)]
