@@ -131,7 +131,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 			cl_mem buf = *(cl_mem*)cmd->args[i];
 
 			gc_entity_store(&cmd->buffers[cmd->num_buffers], buf);
-			task->buffers[cmd->num_buffers].handle = buf->handle;
+			task->handles[cmd->num_buffers] = buf->handle;
 
 			/* Determine best StarPU buffer access mode */
 			int mode;
@@ -149,7 +149,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 				mode = STARPU_RW;
 				buf->scratch = 0;
 			}
-			task->buffers[cmd->num_buffers].mode = mode; 
+			codelet->modes[cmd->num_buffers] = mode; 
 
 			cmd->num_buffers += 1;
 		}

@@ -65,6 +65,16 @@ static struct starpu_codelet codelet_writebuffer = {
    .model = NULL,
    .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
+   .modes = {STARPU_W},
+   .nbuffers = 1
+};
+
+static struct starpu_codelet codelet_writebuffer_partial = {
+   .where = STARPU_OPENCL,
+   .model = NULL,
+   .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
+   .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
+   .modes = {STARPU_RW},
    .nbuffers = 1
 };
 
@@ -80,13 +90,12 @@ cl_int command_write_buffer_submit(command_write_buffer cmd) {
 
 	task = task_create(CL_COMMAND_WRITE_BUFFER);
 
-	task->buffers[0].handle = buffer->handle;
+	task->handles[0] = buffer->handle;
 	//If only a subpart of the buffer is written, RW access mode is required
 	if (cb != buffer->size)
-		task->buffers[0].mode = STARPU_RW;
+		task->cl = &codelet_writebuffer_partial;
 	else 
-		task->buffers[0].mode = STARPU_W;
-	task->cl = &codelet_writebuffer;
+		task->cl = &codelet_writebuffer;
 
 	arg = (struct arg_writebuffer*)malloc(sizeof(struct arg_writebuffer));
 	arg->offset = offset;
