@@ -160,6 +160,9 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	cmd->num_events = all_num_events;
 	cmd->events = all_events;
 
+	/* Increment event ref count */
+	gc_entity_retain(cmd->event);
+
 	/* Insert command in the queue */
 	command_queue_insert(cq, cmd, is_barrier);
 
