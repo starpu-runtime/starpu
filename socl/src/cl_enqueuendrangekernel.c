@@ -97,9 +97,24 @@ static void cleaning_task_callback(void *args) {
 
 	free(cmd->buffers);
 
-	void * co = cmd->codelet;
+	free(cmd->codelet);
 	cmd->codelet = NULL;
-	free(co);
+
+	if (cmd->global_work_offset != NULL) {
+	  free((void*)cmd->global_work_offset);
+	  cmd->global_work_offset = NULL;
+	}
+
+	if (cmd->global_work_size != NULL) {
+	  free((void*)cmd->global_work_size);
+	  cmd->global_work_size = NULL;
+	}
+
+	if (cmd->local_work_size != NULL) {
+	  free((void*)cmd->local_work_size);
+	  cmd->local_work_size = NULL;
+	}
+
 }
 
 static struct starpu_perfmodel perf_model = {

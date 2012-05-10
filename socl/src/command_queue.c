@@ -129,6 +129,8 @@ void command_queue_dependencies(
 	memcpy(evs, implicit_events, sizeof(cl_event) * implicit_num_events);
 	memcpy(&evs[implicit_num_events], events, sizeof(cl_event) * num_events);
 
+	free(implicit_events);
+
 	*ret_num_events = ndeps;
 	*ret_events = evs;
 }
