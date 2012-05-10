@@ -424,12 +424,18 @@ starpu_free (void *ptr)
 
 /* OpenCL support.  */
 
-#define STARPU_USE_OPENCL 1
+#ifndef STARPU_USE_OPENCL
 
+# define STARPU_USE_OPENCL 1
+
+/* The `opencl' pragma needs this structure, so make sure it's defined.  */
 struct starpu_opencl_program
 {
   /* Nothing.  */
 };
+
+#endif
+
 
 /* Number of `load_opencl_from_string' calls.  */
 static unsigned int load_opencl_calls;

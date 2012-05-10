@@ -15,20 +15,31 @@
 
 
 gcc_tests =					\
+  base.c					\
+  pointers.c					\
+  output-pointer.c				\
   output-pointer-errors.c			\
+  register.c					\
   register-errors.c				\
+  acquire.c					\
   acquire-errors.c				\
+  release.c					\
   release-errors.c				\
+  unregister.c					\
   unregister-errors.c				\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\
   external-task-impl.c				\
   no-initialize.c				\
+  lib-user.c					\
   wait-errors.c					\
+  heap-allocated.c				\
   heap-allocated-errors.c			\
   verbose.c					\
   debug-tree.c					\
+  opencl.c					\
+  opencl-errors.c				\
   shutdown-errors.c
 
 EXTRA_DIST =
@@ -42,35 +53,11 @@ gcc_tests += opencl-types.c
 # This test simulates errors when lacking an OpenCL implementation.
 gcc_tests += opencl-lacking.c
 
-gcc_tests +=  					\
-  base.c 					\
-  pointers.c 					\
-  output-pointer.c				\
-  register.c					\
-  acquire.c					\
-  release.c					\
-  unregister.c					\
-  lib-user.c					\
-  heap-allocated.c				\
-  opencl.c					\
-  opencl-errors.c
-
 else STARPU_USE_OPENCL
 
 EXTRA_DIST +=					\
-  base.c					\
-  pointers.c					\
   opencl-types.c				\
-  opencl-lacking.c				\
-  output-pointer.c				\
-  register.c					\
-  acquire.c					\
-  release.c					\
-  unregister.c					\
-  lib-user.c					\
-  heap-allocated.c				\
-  opencl.c					\
-  opencl-errors.c
+  opencl-lacking.c
 
 endif STARPU_USE_OPENCL
 
