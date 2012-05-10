@@ -215,7 +215,10 @@ noinst_PROGRAMS =				\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	perfmodels/regression_based		\
-	perfmodels/non_linear_regression_based 
+	perfmodels/non_linear_regression_based  \
+	sched_policies/execute_all_tasks        \
+	sched_policies/simple_deps              \
+	sched_policies/simple_cpu_gpu_sched
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
