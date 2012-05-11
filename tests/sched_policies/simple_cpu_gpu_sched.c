@@ -218,7 +218,7 @@ main(void)
 #warning "setenv() is not available, skipping this test"
 	return STARPU_TEST_SKIPPED;
 #else
-	setenv("STARPU_SCHED_BETA", 0, 1);
+	setenv("STARPU_SCHED_BETA", "0", 1);
 
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
