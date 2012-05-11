@@ -44,7 +44,7 @@ run(struct starpu_sched_policy *policy)
 	conf.sched_policy = policy;
 	ret = starpu_init(&conf);
 	if (ret != 0)
-		return 1;
+		exit(STARPU_TEST_SKIPPED);
 	starpu_profiling_status_set(1);
 
 	struct starpu_codelet cl =

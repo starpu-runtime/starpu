@@ -136,14 +136,14 @@ run(struct starpu_sched_policy *policy)
 	conf.sched_policy = policy;
 	int ret = starpu_init(&conf);
 	if (ret == -ENODEV)
-		return STARPU_TEST_SKIPPED;
+		exit(STARPU_TEST_SKIPPED);
 
 	/* At least 1 CPU and 1 GPU are needed. */
 	if (starpu_cpu_worker_get_count() == 0)
-		return -ENODEV;
+		exit(STARPU_TEST_SKIPPED);
 	if (starpu_cuda_worker_get_count() == 0 &&
 	    starpu_opencl_worker_get_count() == 0)
-		return -ENODEV;
+		exit(STARPU_TEST_SKIPPED);
 
 	starpu_profiling_status_set(1);
 	init_perfmodels();
@@ -229,15 +229,8 @@ main(void)
 			policy->policy_name);
 		int ret;
 		ret = run(policy);
-		if (ret == -ENODEV)
-		{
-			FPRINTF(stderr, "At least one CPU and one GPU are needed for this test\n");
-			return STARPU_TEST_SKIPPED;
-		}
-		else if (ret == 1)
-		{
+		if (ret == 1)
 			return EXIT_FAILURE;
-		}
 	}
 
 	return EXIT_SUCCESS;
