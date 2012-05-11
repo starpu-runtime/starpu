@@ -546,5 +546,7 @@ perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
 endif
 
+sched_policies_execute_all_tasks_LDFLAGS = -lm
+
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
