@@ -530,7 +530,7 @@ static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology 
 	}
 }
 
-struct starpu_sched_policy heft_policy =
+struct starpu_sched_policy _starpu_sched_heft_policy =
 {
 	.init_sched = heft_init,
 	.deinit_sched = heft_deinit,
