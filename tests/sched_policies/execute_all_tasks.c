@@ -106,7 +106,10 @@ run(struct starpu_sched_policy *p)
 		pi = tasks[i]->profiling_info;
 		task_len = starpu_timing_timespec_delay_us(&pi->start_time, &pi->end_time);
 		if (fabs(task_len - 1e6) > 1000) /* That's 1ms, should be good. */
+		{
+			FPRINTF(stderr, "Failed with task length: %fµ\n", task_len);
 			return 1;
+		}
 
 		starpu_task_destroy(tasks[i]);
 	}
