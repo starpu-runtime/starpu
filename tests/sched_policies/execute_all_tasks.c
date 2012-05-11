@@ -27,7 +27,8 @@
  * Applies to: all schedulers.
  */
 
-#define NTASKS  2
+#define NTASKS           8
+#define TASK_DURATION    1e6 /* In microseconds */
 
 extern struct starpu_sched_policy _starpu_sched_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_prio_policy;
@@ -61,7 +62,8 @@ dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-	usleep(1000000);
+
+	usleep(TASK_DURATION);
 }
 
 static int
@@ -105,7 +107,7 @@ run(struct starpu_sched_policy *p)
 
 		pi = tasks[i]->profiling_info;
 		task_len = starpu_timing_timespec_delay_us(&pi->start_time, &pi->end_time);
-		if (fabs(task_len - 1e6) > 100000) /* That's 0.1s, should be good. */
+		if (task_len < TASK_DURATION/2)
 		{
 			FPRINTF(stderr, "Failed with task length: %fµs\n", task_len);
 			return 1;
