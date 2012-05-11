@@ -405,6 +405,41 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 }
 
+/* This is the same as _starpu_release_data_enforce_sequential_consistency, but
+ * for all data of a task */
+void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
+{
+	struct starpu_task *task = j->task;
+        struct starpu_buffer_descr *descrs = j->ordered_buffers;
+
+	if (!task->cl)
+		return;
+
+        unsigned nbuffers = task->cl->nbuffers;
+
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = descrs[index].handle;
+
+		if (index && descrs[index-1].handle == descrs[index].handle)
+			/* We have already released this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles */
+			continue;
+
+		_starpu_release_data_enforce_sequential_consistency(task, handle);
+		/* Release the reference acquired in _starpu_push_task_output */
+		_starpu_spin_lock(&handle->header_lock);
+		STARPU_ASSERT(handle->busy_count > 0);
+		handle->busy_count--;
+		if (!_starpu_data_check_not_busy(handle))
+			_starpu_spin_unlock(&handle->header_lock);
+
+	}
+}
+
+
 void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle)
 {
         _STARPU_LOG_IN();

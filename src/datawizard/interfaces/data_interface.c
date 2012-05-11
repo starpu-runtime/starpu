@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -405,8 +405,11 @@ struct _starpu_unregister_callback_arg
 
 /* Check whether we should tell starpu_data_unregister that the data handle is
  * not busy any more.
- * The header is supposed to be locked */
-void _starpu_data_check_not_busy(starpu_data_handle_t handle)
+ * The header is supposed to be locked.
+ * This may free the handle, if it was lazily unregistered (1 is returned in
+ * that case).  The handle pointer thus becomes invalid for the caller.
+ */
+int _starpu_data_check_not_busy(starpu_data_handle_t handle)
 {
 	if (!handle->busy_count && handle->busy_waiting)
 	{
@@ -414,6 +417,20 @@ void _starpu_data_check_not_busy(starpu_data_handle_t handle)
 		_STARPU_PTHREAD_COND_BROADCAST(&handle->busy_cond);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 	}
+
+	/* The handle has been destroyed in between (eg. this was a temporary
+	 * handle created for a reduction.) */
+	if (handle->lazy_unregister && handle->busy_count == 0)
+	{
+		_starpu_spin_unlock(&handle->header_lock);
+		starpu_data_unregister_no_coherency(handle);
+		/* Warning: in case we unregister the handle, we must be sure
+		 * that the caller will not try to unlock the header after
+		 * !*/
+		return 1;
+	}
+
+	return 0;
 }
 
 static void _starpu_data_unregister_fetch_data_callback(void *_arg)
@@ -519,14 +536,16 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			func(buffers, NULL);
 		}
 	}
-	else
-	{
-		/* Should we postpone the unregister operation ? */
-		if ((handle->refcnt > 0) && handle->lazy_unregister)
-			return;
-	}
 
 	_starpu_spin_lock(&handle->header_lock);
+	if (!coherent) {
+		/* Should we postpone the unregister operation ? */
+		if ((handle->busy_count > 0) && handle->lazy_unregister) {
+			_starpu_spin_unlock(&handle->header_lock);
+			return;
+		}
+	}
+
 	/* Tell holders of references that we're starting waiting */
 	handle->busy_waiting = 1;
 	_starpu_spin_unlock(&handle->header_lock);

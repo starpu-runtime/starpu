@@ -342,7 +342,9 @@ void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle)
 		if (handle->reduction_tmp_handles[worker])
 		{
 //			fprintf(stderr, "unregister handle %p\n", handle);
+			_starpu_spin_lock(&handle->reduction_tmp_handles[worker]->header_lock);
 			handle->reduction_tmp_handles[worker]->lazy_unregister = 1;
+			_starpu_spin_unlock(&handle->reduction_tmp_handles[worker]->header_lock);
 			starpu_data_unregister_no_coherency(handle->reduction_tmp_handles[worker]);
 			handle->per_worker[worker].refcnt--;
 			/* TODO put in cache */
