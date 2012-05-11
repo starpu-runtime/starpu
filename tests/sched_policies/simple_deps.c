@@ -32,7 +32,7 @@ dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-	sleep(1);
+	usleep(1000000);
 }
 
 static int
