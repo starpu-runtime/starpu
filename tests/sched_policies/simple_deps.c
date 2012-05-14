@@ -56,7 +56,7 @@ run(struct starpu_sched_policy *policy)
 	struct starpu_task *task0 = starpu_task_create();
 	task0->cl = &cl;
 	task0->destroy = 0;
-	
+
 	struct starpu_task *task1 = starpu_task_create();
 	task1->cl = &cl;
 	task1->destroy = 0;
@@ -64,8 +64,10 @@ run(struct starpu_sched_policy *policy)
 	starpu_task_declare_deps_array(task0, 1, &task1);
 
 	ret = starpu_task_submit(task0);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(task1);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_task_wait_for_all();
@@ -76,9 +78,13 @@ run(struct starpu_sched_policy *policy)
 
 	starpu_task_destroy(task0);
 	starpu_task_destroy(task1);
-	starpu_shutdown();	
+	starpu_shutdown();
 
 	return t1 < t2 ? 0:1;
+
+enodev:
+	starpu_shutdown();
+	return -ENODEV;
 }
 
 extern struct starpu_sched_policy _starpu_sched_ws_policy;
@@ -120,6 +126,8 @@ main(void)
 			policy->policy_name);
 		int ret;
 		ret = run(policy);
+		if (ret == -ENODEV)
+			return STARPU_TEST_SKIPPED;
 		if (ret == 1)
 			return EXIT_FAILURE;
 	}
