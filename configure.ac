@@ -1499,7 +1499,10 @@ AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 # hwloc                                  #
 ##########################################
 
-AC_ARG_WITH([hwloc], [AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])])
+AC_ARG_WITH([hwloc],
+	[AS_HELP_STRING([--without-hwloc],
+	[Disable hwloc (enabled by default)])],
+	[hwloc_dir="$withval"])
 SAVED_LDFLAGS="${LDFLAGS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
 AS_IF([test "x$with_hwloc" != "xno"], [
@@ -1509,10 +1512,9 @@ AS_IF([test "x$with_hwloc" != "xno"], [
 		have_valid_hwloc=no
 		have_pkgconfig_hwloc=no])
 	AS_IF([test "$have_valid_hwloc" = "no"], [
-		hwloc_dir="$withval"
-		CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
+		if test "$hwloc_dir" != "" ; then CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include" ; fi
 		AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-		LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
+		if test "$hwloc_dir" != "" ; then LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib" ; fi
 		AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 		])
     ],
