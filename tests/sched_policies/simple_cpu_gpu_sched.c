@@ -39,9 +39,10 @@ dummy(void *buffers[], void *args)
 /*
  * Fake cost functions.
  */
-double cpu_task_cpu(struct starpu_task *task,
-		    enum starpu_perf_archtype arch,
-		    unsigned nimpl)
+static double
+cpu_task_cpu(struct starpu_task *task,
+	     enum starpu_perf_archtype arch,
+	     unsigned nimpl)
 {
 	(void) task;
 	(void) arch;
@@ -49,9 +50,10 @@ double cpu_task_cpu(struct starpu_task *task,
 	return 1.0;
 }
 
-double cpu_task_gpu(struct starpu_task *task,
-		    enum starpu_perf_archtype arch,
-		    unsigned nimpl)
+static double
+cpu_task_gpu(struct starpu_task *task,
+	     enum starpu_perf_archtype arch,
+	     unsigned nimpl)
 {
 	(void) task;
 	(void) arch;
@@ -60,9 +62,10 @@ double cpu_task_gpu(struct starpu_task *task,
 	return 1000.0;
 }
 
-double gpu_task_cpu(struct starpu_task *task,
-		    enum starpu_perf_archtype arch,
-		    unsigned nimpl)
+static double
+gpu_task_cpu(struct starpu_task *task,
+	     enum starpu_perf_archtype arch,
+	     unsigned nimpl)
 {
 	(void) task;
 	(void) arch;
@@ -71,9 +74,10 @@ double gpu_task_cpu(struct starpu_task *task,
 	return 1000.0;
 }
 
-double gpu_task_gpu(struct starpu_task *task,
-		    enum starpu_perf_archtype arch,
-		    unsigned nimpl)
+static double
+gpu_task_gpu(struct starpu_task *task,
+	     enum starpu_perf_archtype arch,
+	     unsigned nimpl)
 {
 	(void) task;
 	(void) arch;
@@ -82,11 +86,11 @@ double gpu_task_gpu(struct starpu_task *task,
 	return 1.0;
 }
 
-struct starpu_perfmodel model_cpu_task = 
+static struct starpu_perfmodel model_cpu_task = 
 {
 	.type = STARPU_PER_ARCH
 };
-struct starpu_perfmodel model_gpu_task = 
+static struct starpu_perfmodel model_gpu_task = 
 {
 	.type = STARPU_PER_ARCH
 };
@@ -110,7 +114,7 @@ init_perfmodels(void)
 /*
  * Dummy codelets.
  */
-struct starpu_codelet cpu_cl =
+static struct starpu_codelet cpu_cl =
 {
 	.cpu_funcs    = { dummy, NULL },
 	.cuda_funcs   = { dummy, NULL },
@@ -119,7 +123,7 @@ struct starpu_codelet cpu_cl =
 	.model        = &model_cpu_task
 };
 
-struct starpu_codelet gpu_cl =
+static struct starpu_codelet gpu_cl =
 {
 	.cpu_funcs    = { dummy, NULL },
 	.cuda_funcs   = { dummy, NULL },
