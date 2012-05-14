@@ -194,7 +194,6 @@ examplebin_PROGRAMS +=				\
 	scheduler/dummy_sched			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
-	mandelbrot/mandelbrot			\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
 
@@ -776,12 +775,6 @@ endif
 ##################
 # Mandelbrot Set #
 ##################
-
-mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
-if HAVE_X11
-mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
-mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) -lX11
-endif
 
 ################
 # Top Examples #
