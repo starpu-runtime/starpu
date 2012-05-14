@@ -1024,7 +1024,7 @@ starpu_driver_init(struct starpu_driver *d)
 #endif
 #ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_deinit(d);
+		return _starpu_opencl_driver_init(d);
 #endif
 	case STARPU_CPU_WORKER:    /* Not supported yet */
 	case STARPU_GORDON_WORKER: /* Not supported yet */
