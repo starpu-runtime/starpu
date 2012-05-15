@@ -31,6 +31,7 @@ extern "C"
 {
 #endif
 
+const char *starpu_opencl_error_string(cl_int status);
 void starpu_opencl_display_error(const char *func, const char *file, int line, const char *msg, cl_int status);
 #define STARPU_OPENCL_DISPLAY_ERROR(status) \
 	starpu_opencl_display_error(__starpu_func__, __FILE__, __LINE__, NULL, status)

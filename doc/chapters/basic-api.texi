@@ -2303,6 +2303,11 @@ collect statistics about the kernel execution (used cycles, consumed power).
 @node OpenCL utilities
 @subsection OpenCL utilities
 
+@deftypefun {const char *}starpu_opencl_error_string (cl_int @var{status})
+Return the error message in English corresponding to @var{status}, an
+OpenCL error code.
+@end deftypefun
+
 @deftypefun void starpu_opencl_display_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, {const char *}@var{msg}, cl_int @var{status})
 Given a valid error @var{status}, prints the corresponding error message on
 stdout, along with the given function name @var{func}, the given filename
