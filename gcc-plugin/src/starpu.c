@@ -412,13 +412,16 @@ build_hello_world (void)
 }
 
 /* Given ERROR_VAR, an integer variable holding a StarPU error code, return
-   statements that print out an error message and abort.  */
+   statements that print out the error message returned by
+   BUILD_ERROR_MESSAGE (ERROR_VAR) and abort.  */
 
-static tree build_error_statements (location_t, tree, const char *, ...)
-  __attribute__ ((format (printf, 3, 4)));
+static tree build_error_statements (location_t, tree, tree (*) (tree), const char *, ...)
+  __attribute__ ((format (printf, 4, 5)));
 
 static tree
-build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
+build_error_statements (location_t loc, tree error_var,
+			tree (*build_error_message) (tree),
+			const char *fmt, ...)
 {
   expanded_location xloc = expand_location (loc);
 
@@ -436,23 +439,17 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
   if (error_var != NULL_TREE)
     {
       /* ERROR_VAR is an error code.  */
-
-      static tree strerror_fn;
-      LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
-
       gcc_assert (TREE_CODE (error_var) == VAR_DECL
 		  && TREE_TYPE (error_var) == integer_type_node);
 
       asprintf (&fmt_long, "%s:%d: error: %s: %%s\n",
 		xloc.file, xloc.line, str);
 
-      tree error_code =
-	build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
       print =
 	build_call_expr (builtin_decl_explicit (BUILT_IN_PRINTF), 2,
 			 build_string_literal (strlen (fmt_long) + 1,
 					       fmt_long),
-			 build_call_expr (strerror_fn, 1, error_code));
+			 build_error_message (error_var));
     }
   else
     {
@@ -478,6 +475,20 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
 			    &stmts);
 
   return stmts;
+}
+
+/* Build an error string for the StarPU return value in ERROR_VAR.  */
+
+static tree
+build_starpu_error_string (tree error_var)
+{
+  static tree strerror_fn;
+  LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
+
+  tree error_code =
+    build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
+
+  return build_call_expr (strerror_fn, 1, error_code);
 }
 
 
@@ -620,6 +631,7 @@ handle_pragma_initialize (struct cpp_reader *reader)
 		      build2 (NE_EXPR, boolean_type_node,
 			      error_var, integer_zero_node),
 		      build_error_statements (loc, error_var,
+					      build_starpu_error_string,
 					      "failed to initialize StarPU"), 
 		      NULL_TREE);
 
@@ -2792,6 +2804,7 @@ build_pointer_lookup (tree pointer)
 		      build2 (EQ_EXPR, boolean_type_node,
 			      result_var, null_pointer_node),
 		      build_error_statements (loc, NULL_TREE,
+					      build_starpu_error_string,
 					      "attempt to use unregistered "
 					      "pointer"),
 		      NULL_TREE);
@@ -2915,6 +2928,7 @@ define_task (tree task_decl)
 		      build2 (NE_EXPR, boolean_type_node,
 			      error_var, integer_zero_node),
 		      build_error_statements (loc, error_var,
+					      build_starpu_error_string,
 					      "failed to insert task `%s'",
 					      IDENTIFIER_POINTER (name)),
 		      NULL_TREE);
