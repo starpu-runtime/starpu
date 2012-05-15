@@ -1140,6 +1140,39 @@ opencl_program_type (void)
   return t;
 }
 
+static tree
+opencl_kernel_type (void)
+{
+  tree t = lookup_name (get_identifier ("cl_kernel"));
+  gcc_assert (t != NULL_TREE);
+  if (TREE_CODE (t) == TYPE_DECL)
+    t = TREE_TYPE (t);
+  gcc_assert (TYPE_P (t));
+  return t;
+}
+
+static tree
+opencl_command_queue_type (void)
+{
+  tree t = lookup_name (get_identifier ("cl_command_queue"));
+  gcc_assert (t != NULL_TREE);
+  if (TREE_CODE (t) == TYPE_DECL)
+    t = TREE_TYPE (t);
+  gcc_assert (TYPE_P (t));
+  return t;
+}
+
+static tree
+opencl_event_type (void)
+{
+  tree t = lookup_name (get_identifier ("cl_event"));
+  gcc_assert (t != NULL_TREE);
+  if (TREE_CODE (t) == TYPE_DECL)
+    t = TREE_TYPE (t);
+  gcc_assert (TYPE_P (t));
+  return t;
+}
+
 /* Define a body for TASK_IMPL that loads OpenCL source from FILE and calls
    KERNEL.  */
 
@@ -1151,11 +1184,21 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 	      && task_implementation_where (task_impl) == STARPU_OPENCL);
   gcc_assert (TREE_CODE (kernel) == STRING_CST);
 
+  local_define (tree, local_var, (tree type))
+  {
+    tree var = build_decl (loc, VAR_DECL,
+			   create_tmp_var_name ("opencl_var"),
+			   type);
+    DECL_ARTIFICIAL (var) = true;
+    DECL_CONTEXT (var) = task_impl;
+    return var;
+  };
+
   if (!verbose_output_p)
     /* No further warnings for this node.  */
     TREE_NO_WARNING (task_impl) = true;
 
-  static tree load_fn;
+  static tree load_fn, load_kern_fn, wid_fn, devid_fn;
 
   if (load_fn == NULL_TREE)
     {
@@ -1168,6 +1211,10 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 	  return;
 	}
     }
+
+  LOOKUP_STARPU_FUNCTION (load_kern_fn, "starpu_opencl_load_kernel");
+  LOOKUP_STARPU_FUNCTION (wid_fn, "starpu_worker_get_id");
+  LOOKUP_STARPU_FUNCTION (devid_fn, "starpu_worker_get_devid");
 
   if (verbose_output_p)
     inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
@@ -1219,20 +1266,53 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 
       /* Build `if (!PROG_LOADED_VAR) { ...; PROG_LOADED_VAR = true; }'.  */
 
-      tree cond = build3 (COND_EXPR, void_type_node,
-			  prog_loaded_var,
-			  NULL_TREE,
-			  load_stmts);
+      tree load_cond = build3 (COND_EXPR, void_type_node,
+			       prog_loaded_var,
+			       NULL_TREE,
+			       load_stmts);
 
-      /* TODO: Build the kernel invocation.  */
+      /* Local variables.  */
+      tree kernel_var, queue_var, event_var, group_size_var, ngroups_var;
+
+      kernel_var = local_var (opencl_kernel_type ());
+      queue_var = local_var (opencl_command_queue_type ());
+      event_var = local_var (opencl_event_type ());
+      group_size_var = local_var (size_type_node);
+      ngroups_var = local_var (size_type_node);
+
+      /* Build `starpu_opencl_load_kernel (...)'.
+         TODO: Check return value.  */
+      tree devid =
+	build_call_expr (devid_fn, 1, build_call_expr (wid_fn, 0));
+
+      tree load_kern = build_call_expr (load_kern_fn, 5,
+					build_addr (kernel_var, task_impl),
+					build_addr (queue_var, task_impl),
+					build_addr (prog_var, task_impl),
+					build_string_literal
+					(TREE_STRING_LENGTH (kernel) + 1,
+					 TREE_STRING_POINTER (kernel)),
+					devid);
+
+      /* TODO: `clSetKernelArg', `clEnqueueNDRangeKernel', etc.  */
+
+      /* Put it all together.  */
+      tree stmts = NULL_TREE;
+      append_to_statement_list (load_cond, &stmts);
+      append_to_statement_list (load_kern, &stmts);
+
+      /* Bind the local vars.  */
+      tree vars = chain_trees (kernel_var, queue_var, event_var,
+			       group_size_var, ngroups_var, NULL_TREE);
+      tree bind = build3 (BIND_EXPR, void_type_node, vars, stmts,
+			  build_block (vars, NULL_TREE, task_impl, NULL_TREE));
 
       TREE_USED (task_impl) = true;
       TREE_STATIC (task_impl) = true;
       DECL_EXTERNAL (task_impl) = false;
       DECL_ARTIFICIAL (task_impl) = true;
-      DECL_SAVED_TREE (task_impl) = cond;
-      DECL_INITIAL (task_impl) =
-	build_block (NULL_TREE, NULL_TREE, task_impl, NULL_TREE);
+      DECL_SAVED_TREE (task_impl) = bind;
+      DECL_INITIAL (task_impl) = BIND_EXPR_BLOCK (bind);
       DECL_RESULT (task_impl) =
 	build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
       DECL_ARGUMENTS (task_impl) =

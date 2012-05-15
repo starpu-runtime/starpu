@@ -62,6 +62,7 @@ main ()
 
   assert (tasks_submitted == 3);
   assert (load_opencl_calls == 1);
+  assert (load_opencl_kernel_calls == 3);
 
   return EXIT_SUCCESS;
 }

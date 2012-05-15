@@ -434,11 +434,15 @@ struct starpu_opencl_program
   /* Nothing.  */
 };
 
+typedef int cl_event;
+typedef int cl_kernel;
+typedef int cl_command_queue;
+
 #endif
 
 
-/* Number of `load_opencl_from_string' calls.  */
-static unsigned int load_opencl_calls;
+/* Number of `load_opencl_from_string' and `load_kernel' calls.  */
+static unsigned int load_opencl_calls, load_opencl_kernel_calls;
 
 struct load_opencl_arguments
 {
@@ -458,6 +462,30 @@ starpu_opencl_load_opencl_from_string (const char *source,
   assert (program != expected_load_opencl_arguments.program);
   load_opencl_calls++;
   return 0;
+}
+
+int
+starpu_opencl_load_kernel (cl_kernel *kernel,
+			   cl_command_queue *queue,
+			   struct starpu_opencl_program *programs,
+			   const char *kernel_name, int devid)
+{
+  assert (kernel != NULL && queue != NULL && programs != NULL
+	  && kernel_name != NULL && devid == -42);
+  load_opencl_kernel_calls++;
+  return 0;
+}
+
+int
+starpu_worker_get_id (void)
+{
+  return 42;
+}
+
+int
+starpu_worker_get_devid (int id)
+{
+  return -id;
 }
 
 
