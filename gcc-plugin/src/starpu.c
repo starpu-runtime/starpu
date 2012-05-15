@@ -415,12 +415,14 @@ build_hello_world (void)
    statements that print out the error message returned by
    BUILD_ERROR_MESSAGE (ERROR_VAR) and abort.  */
 
-static tree build_error_statements (location_t, tree, tree (*) (tree), const char *, ...)
+static tree build_error_statements (location_t, tree,
+				    function_parm (tree, f, (tree)),
+				    const char *, ...)
   __attribute__ ((format (printf, 4, 5)));
 
 static tree
 build_error_statements (location_t loc, tree error_var,
-			tree (*build_error_message) (tree),
+			function_parm (tree, build_error_message, (tree)),
 			const char *fmt, ...)
 {
   expanded_location xloc = expand_location (loc);
