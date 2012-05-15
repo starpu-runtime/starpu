@@ -1185,6 +1185,80 @@ opencl_event_type (void)
   return t;
 }
 
+/* Return an error-checking `clSetKernelArg' call for argument ARG, at
+   index IDX, of KERNEL.  */
+
+static tree
+build_opencl_set_kernel_arg_call (location_t loc, tree fn,
+				  tree kernel, unsigned int idx,
+				  tree arg)
+{
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL
+	      && TREE_TYPE (kernel) == opencl_kernel_type ());
+
+  static tree setkernarg_fn, clstrerror_fn;
+  LOOKUP_STARPU_FUNCTION (setkernarg_fn, "clSetKernelArg");
+  LOOKUP_STARPU_FUNCTION (clstrerror_fn, "starpu_opencl_error_string");
+
+  local_define (tree, build_errorstr, (tree error_var))
+  {
+    return build_call_expr (clstrerror_fn, 1, error_var);
+  };
+
+  tree call = build_call_expr (setkernarg_fn, 4, kernel,
+			       build_int_cst (integer_type_node, idx),
+			       size_in_bytes (TREE_TYPE (arg)),
+			       build_addr (arg, fn));
+  tree error_var = build_decl (loc, VAR_DECL,
+			       create_tmp_var_name ("setkernelarg_error"),
+			       integer_type_node);
+  DECL_ARTIFICIAL (error_var) = true;
+  DECL_CONTEXT (error_var) = fn;
+
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
+			    error_var, call);
+
+  /* Build `if (ERROR_VAR != 0) error ();'.  */
+  tree cond;
+  cond = build3 (COND_EXPR, void_type_node,
+		 build2 (NE_EXPR, boolean_type_node,
+			 error_var, integer_zero_node),
+		 build_error_statements (loc, error_var, build_errorstr,
+					 "failed to set OpenCL kernel "
+					 "argument %d", idx),
+		 NULL_TREE);
+
+  tree stmts = NULL_TREE;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+
+  return build4 (TARGET_EXPR, void_type_node, error_var,
+		 stmts, NULL_TREE, NULL_TREE);
+}
+
+/* Return the sequence of `clSetKernelArg' calls for KERNEL.  */
+
+static tree
+build_opencl_set_kernel_arg_calls (location_t loc, tree task_impl,
+				   tree kernel)
+{
+  gcc_assert (task_implementation_p (task_impl));
+
+  size_t n;
+  tree arg, stmts = NULL_TREE;
+
+  for (arg = DECL_ARGUMENTS (task_impl), n = 0;
+       arg != NULL_TREE;
+       arg = TREE_CHAIN (arg), n++)
+    {
+      tree call = build_opencl_set_kernel_arg_call (loc, task_impl,
+						    kernel, n, arg);
+      append_to_statement_list (call, &stmts);
+    }
+
+  return stmts;
+}
+
 /* Define a body for TASK_IMPL that loads OpenCL source from FILE and calls
    KERNEL.  */
 
@@ -1237,6 +1311,9 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 						  file, opencl_include_dirs);
   if (source_var != NULL_TREE)
     {
+      /* Give TASK_IMPL an actual argument list.  */
+      DECL_ARGUMENTS (task_impl) = build_function_arguments (task_impl);
+
       tree prog_var, prog_loaded_var;
 
       /* Global variable to hold the `starpu_opencl_program' object.  */
@@ -1312,6 +1389,10 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
       tree stmts = NULL_TREE;
       append_to_statement_list (load_cond, &stmts);
       append_to_statement_list (load_kern, &stmts);
+      append_to_statement_list (build_opencl_set_kernel_arg_calls (loc,
+								   task_impl,
+								   kernel_var),
+				&stmts);
 
       /* Bind the local vars.  */
       tree vars = chain_trees (kernel_var, queue_var, event_var,
@@ -1327,8 +1408,6 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
       DECL_INITIAL (task_impl) = BIND_EXPR_BLOCK (bind);
       DECL_RESULT (task_impl) =
 	build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
-      DECL_ARGUMENTS (task_impl) =
-	build_function_arguments (task_impl);
 
       /* Compile TASK_IMPL.  */
       rest_of_decl_compilation (task_impl, true, 0);

@@ -438,11 +438,15 @@ typedef int cl_event;
 typedef int cl_kernel;
 typedef int cl_command_queue;
 
+extern cl_int clSetKernelArg (cl_kernel, cl_uint, size_t, const void *);
+
 #endif
 
 
-/* Number of `load_opencl_from_string' and `load_kernel' calls.  */
-static unsigned int load_opencl_calls, load_opencl_kernel_calls;
+/* Number of `load_opencl_from_string', `load_kernel', and `clSetKernelArg'
+   calls.  */
+static unsigned int load_opencl_calls, load_opencl_kernel_calls,
+  opencl_set_kernel_arg_calls;
 
 struct load_opencl_arguments
 {
@@ -486,6 +490,48 @@ int
 starpu_worker_get_devid (int id)
 {
   return -id;
+}
+
+/* Set the INDEXth argument to KERNEL to the SIZE bytes pointed to by
+   VALUE.  */
+cl_int
+clSetKernelArg (cl_kernel kernel, cl_uint index, size_t size,
+		const void *value)
+{
+  size_t n;
+  const struct insert_task_argument *arg;
+
+  for (n = 0, arg = expected_insert_task_arguments;
+       n < index;
+       n++, arg++)
+    assert (arg->pointer != NULL);
+
+  switch (arg->type)
+    {
+    case STARPU_VALUE:
+      assert (size == arg->size);
+      assert (memcmp (arg->pointer, value, size) == 0);
+      break;
+
+    case STARPU_RW:
+    case STARPU_R:
+    case STARPU_W:
+      assert (size == sizeof (void *));
+      assert (* (void **) value == arg->pointer);
+      break;
+
+    default:
+      abort ();
+    }
+
+  opencl_set_kernel_arg_calls++;
+  return 0;
+}
+
+const char *
+starpu_opencl_error_string (cl_int s)
+{
+  return "mock";
 }
 
 
