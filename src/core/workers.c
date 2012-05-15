@@ -273,6 +273,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		workerarg->worker_size = 1;
 		workerarg->combined_workerid = workerarg->workerid;
 		workerarg->current_rank = 0;
+		workerarg->run_by_starpu = 1;
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -303,6 +304,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 					pthread_create(&workerarg->worker_thread,
 							NULL, _starpu_cpu_worker, workerarg);
 				}
+				else
+				{
+					workerarg->run_by_starpu = 0;
+				}
 				cpu++;
 				break;
 #endif
@@ -316,6 +321,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 					pthread_create(&workerarg->worker_thread,
 						       NULL, _starpu_cuda_worker, workerarg);
 				}
+				else
+				{
+					workerarg->run_by_starpu = 0;
+				}
 				cuda++;
 				break;
 #endif
@@ -323,7 +332,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_OPENCL_WORKER:
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
 				if (!_starpu_may_launch_driver(config->conf, &driver))
+				{
+					workerarg->run_by_starpu = 0;
 					break;
+				}
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread,
@@ -661,6 +673,9 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 		}
 		else
 		{
+			if (!worker->run_by_starpu)
+				goto out;
+
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 			{
 				status = pthread_join(worker->worker_thread, NULL);
@@ -673,6 +688,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 			}
 		}
 
+out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
