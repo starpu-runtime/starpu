@@ -1000,6 +1000,11 @@ starpu_driver_run(struct starpu_driver *d)
 	}
 }
 
+#ifdef STARPU_USE_CPU
+extern int _starpu_cpu_driver_init(struct starpu_driver *);
+extern int _starpu_cpu_driver_run_once(struct starpu_driver *);
+extern int _starpu_cpu_driver_deinit(struct starpu_driver *);
+#endif
 #ifdef STARPU_USE_CUDA
 extern int _starpu_cuda_driver_init(struct starpu_driver *);
 extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
@@ -1018,6 +1023,10 @@ starpu_driver_init(struct starpu_driver *d)
 
 	switch (d->type)
 	{
+#ifdef STARPU_USE_CPU
+	case STARPU_CPU_WORKER:
+		return _starpu_cpu_driver_init(d);
+#endif
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_WORKER:
 		return _starpu_cuda_driver_init(d);
@@ -1026,7 +1035,6 @@ starpu_driver_init(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_opencl_driver_init(d);
 #endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
 	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;
@@ -1040,6 +1048,10 @@ starpu_driver_run_once(struct starpu_driver *d)
 
 	switch (d->type)
 	{
+#ifdef STARPU_USE_CPU
+	case STARPU_CPU_WORKER:
+		return _starpu_cpu_driver_run_once(d);
+#endif
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_WORKER:
 		return _starpu_cuda_driver_run_once(d);
@@ -1048,7 +1060,6 @@ starpu_driver_run_once(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_opencl_driver_run_once(d);
 #endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
 	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;
@@ -1062,6 +1073,10 @@ starpu_driver_deinit(struct starpu_driver *d)
 
 	switch (d->type)
 	{
+#ifdef STARPU_USE_CPU
+	case STARPU_CPU_WORKER:
+		return _starpu_cpu_driver_deinit(d);
+#endif
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_WORKER:
 		return _starpu_cuda_driver_deinit(d);
@@ -1070,7 +1085,6 @@ starpu_driver_deinit(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_opencl_driver_deinit(d);
 #endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
 	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;

@@ -68,6 +68,7 @@ struct starpu_driver
 	enum starpu_archtype type;
 	union
 	{
+		unsigned cpu_id;
 		unsigned cuda_id;
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 		cl_device_id opencl_id;
