@@ -64,6 +64,7 @@ main ()
   assert (load_opencl_calls == 1);
   assert (load_opencl_kernel_calls == 3);
   assert (opencl_set_kernel_arg_calls == 3 * 2);
+  assert (opencl_enqueue_calls == 3);
 
   return EXIT_SUCCESS;
 }

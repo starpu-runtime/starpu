@@ -1187,6 +1187,18 @@ opencl_event_type (void)
   return t;
 }
 
+/* Return an expression that, given the OpenCL error code in ERROR_VAR,
+   returns a string.  */
+
+static tree
+build_opencl_error_string (tree error_var)
+{
+  static tree clstrerror_fn;
+  LOOKUP_STARPU_FUNCTION (clstrerror_fn, "starpu_opencl_error_string");
+
+  return build_call_expr (clstrerror_fn, 1, error_var);
+}
+
 /* Return an error-checking `clSetKernelArg' call for argument ARG, at
    index IDX, of KERNEL.  */
 
@@ -1198,14 +1210,8 @@ build_opencl_set_kernel_arg_call (location_t loc, tree fn,
   gcc_assert (TREE_CODE (fn) == FUNCTION_DECL
 	      && TREE_TYPE (kernel) == opencl_kernel_type ());
 
-  static tree setkernarg_fn, clstrerror_fn;
+  static tree setkernarg_fn;
   LOOKUP_STARPU_FUNCTION (setkernarg_fn, "clSetKernelArg");
-  LOOKUP_STARPU_FUNCTION (clstrerror_fn, "starpu_opencl_error_string");
-
-  local_define (tree, build_errorstr, (tree error_var))
-  {
-    return build_call_expr (clstrerror_fn, 1, error_var);
-  };
 
   tree call = build_call_expr (setkernarg_fn, 4, kernel,
 			       build_int_cst (integer_type_node, idx),
@@ -1225,7 +1231,8 @@ build_opencl_set_kernel_arg_call (location_t loc, tree fn,
   cond = build3 (COND_EXPR, void_type_node,
 		 build2 (NE_EXPR, boolean_type_node,
 			 error_var, integer_zero_node),
-		 build_error_statements (loc, error_var, build_errorstr,
+		 build_error_statements (loc, error_var,
+					 build_opencl_error_string,
 					 "failed to set OpenCL kernel "
 					 "argument %d", idx),
 		 NULL_TREE);
@@ -1286,7 +1293,7 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
     /* No further warnings for this node.  */
     TREE_NO_WARNING (task_impl) = true;
 
-  static tree load_fn, load_kern_fn, wid_fn, devid_fn;
+  static tree load_fn, load_kern_fn, enqueue_kern_fn, wid_fn, devid_fn;
 
   if (load_fn == NULL_TREE)
     {
@@ -1303,6 +1310,7 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
   LOOKUP_STARPU_FUNCTION (load_kern_fn, "starpu_opencl_load_kernel");
   LOOKUP_STARPU_FUNCTION (wid_fn, "starpu_worker_get_id");
   LOOKUP_STARPU_FUNCTION (devid_fn, "starpu_worker_get_devid");
+  LOOKUP_STARPU_FUNCTION (enqueue_kern_fn, "clEnqueueNDRangeKernel");
 
   if (verbose_output_p)
     inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
@@ -1363,13 +1371,15 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 			       load_stmts);
 
       /* Local variables.  */
-      tree kernel_var, queue_var, event_var, group_size_var, ngroups_var;
+      tree kernel_var, queue_var, event_var, group_size_var, ngroups_var,
+	error_var;
 
       kernel_var = local_var (opencl_kernel_type ());
       queue_var = local_var (opencl_command_queue_type ());
       event_var = local_var (opencl_event_type ());
       group_size_var = local_var (size_type_node);
       ngroups_var = local_var (size_type_node);
+      error_var = local_var (integer_type_node);
 
       /* Build `starpu_opencl_load_kernel (...)'.
          TODO: Check return value.  */
@@ -1385,8 +1395,34 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 					 TREE_STRING_POINTER (kernel)),
 					devid);
 
-      /* TODO: `clSetKernelArg', `clEnqueueNDRangeKernel', etc.  */
+      tree enqueue_kern =
+	build_call_expr (enqueue_kern_fn, 9,
+			 queue_var, kernel_var,
+			 build_int_cst (integer_type_node, 1),
+			 null_pointer_node,
+			 build_addr (group_size_var, task_impl),
+			 build_addr (ngroups_var, task_impl),
+			 integer_zero_node,
+			 null_pointer_node,
+			 build_addr (event_var, task_impl));
+      tree enqueue_err =
+	build2 (INIT_EXPR, TREE_TYPE (error_var), error_var, enqueue_kern);
 
+      tree enqueue_cond =
+	build3 (COND_EXPR, void_type_node,
+		build2 (NE_EXPR, boolean_type_node,
+			error_var, integer_zero_node),
+		build_error_statements (loc, error_var,
+					build_opencl_error_string,
+					"failed to enqueue kernel"),
+		NULL_TREE);
+
+      tree enqueue_stmts = NULL_TREE;
+      append_to_statement_list (enqueue_err, &enqueue_stmts);
+      append_to_statement_list (enqueue_cond, &enqueue_stmts);
+
+
+      /* TODO: Build `clFinish', `clReleaseEvent', & co.  */
       /* Put it all together.  */
       tree stmts = NULL_TREE;
       append_to_statement_list (load_cond, &stmts);
@@ -1394,6 +1430,20 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
       append_to_statement_list (build_opencl_set_kernel_arg_calls (loc,
 								   task_impl,
 								   kernel_var),
+				&stmts);
+
+      /* TODO: Support user-provided values.  */
+      append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (group_size_var),
+					group_size_var,
+					build_int_cst (integer_type_node, 1)),
+				&stmts);
+      append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (ngroups_var),
+					ngroups_var,
+					build_int_cst (integer_type_node, 1)),
+				&stmts);
+      append_to_statement_list (build4 (TARGET_EXPR, void_type_node,
+					error_var, enqueue_stmts,
+					NULL_TREE, NULL_TREE),
 				&stmts);
 
       /* Bind the local vars.  */

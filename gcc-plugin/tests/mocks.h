@@ -440,13 +440,24 @@ typedef int cl_command_queue;
 
 extern cl_int clSetKernelArg (cl_kernel, cl_uint, size_t, const void *);
 
+extern cl_int
+clEnqueueNDRangeKernel(cl_command_queue /* command_queue */,
+                       cl_kernel        /* kernel */,
+                       cl_uint          /* work_dim */,
+                       const size_t *   /* global_work_offset */,
+                       const size_t *   /* global_work_size */,
+                       const size_t *   /* local_work_size */,
+                       cl_uint          /* num_events_in_wait_list */,
+                       const cl_event * /* event_wait_list */,
+                       cl_event *       /* event */);
+
 #endif
 
 
 /* Number of `load_opencl_from_string', `load_kernel', and `clSetKernelArg'
    calls.  */
 static unsigned int load_opencl_calls, load_opencl_kernel_calls,
-  opencl_set_kernel_arg_calls;
+  opencl_set_kernel_arg_calls, opencl_enqueue_calls;
 
 struct load_opencl_arguments
 {
@@ -525,6 +536,22 @@ clSetKernelArg (cl_kernel kernel, cl_uint index, size_t size,
     }
 
   opencl_set_kernel_arg_calls++;
+  return 0;
+}
+
+cl_int
+clEnqueueNDRangeKernel(cl_command_queue command_queue,
+                       cl_kernel        kernel,
+                       cl_uint          work_dim,
+                       const size_t *   global_work_offset,
+                       const size_t *   global_work_size,
+                       const size_t *   local_work_size,
+                       cl_uint          num_events_in_wait_list,
+                       const cl_event * event_wait_list,
+                       cl_event *       event)
+{
+  assert (*global_work_size == 1 && *local_work_size == 1);
+  opencl_enqueue_calls++;
   return 0;
 }
 
