@@ -288,3 +288,17 @@ _starpu_cpu_worker(void *arg)
 
 	return NULL;
 }
+
+int _starpu_run_cpu(struct starpu_driver *d)
+{
+	STARPU_ASSERT(d && d->type == STARPU_CPU_WORKER);
+
+	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
+	STARPU_ASSERT(worker);
+
+	worker->set = NULL;
+	worker->worker_is_initialized = 0;
+	_starpu_cpu_worker(worker);
+
+	return 0;
+}

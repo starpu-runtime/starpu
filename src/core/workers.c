@@ -398,6 +398,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				while (!workerarg->worker_is_initialized)
 					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				cpu++;
 				break;
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = cuda;
@@ -1001,6 +1002,9 @@ void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond,
 	config.workers[workerid].sched_mutex = sched_mutex;
 }
 
+#ifdef STARPU_USE_CPU
+extern int _starpu_run_cpu(struct starpu_driver *);
+#endif
 #ifdef STARPU_USE_CUDA
 extern int _starpu_run_cuda(struct starpu_driver *);
 #endif
@@ -1016,6 +1020,10 @@ starpu_driver_run(struct starpu_driver *d)
 
 	switch (d->type)
 	{
+#ifdef STARPU_USE_CPU
+	case STARPU_CPU_WORKER:
+		return _starpu_run_cpu(d);
+#endif
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_WORKER:
 		return _starpu_run_cuda(d);
@@ -1024,7 +1032,6 @@ starpu_driver_run(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_run_opencl(d);
 #endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
 	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;
