@@ -114,8 +114,8 @@ noinst_HEADERS = 				\
 	heat/dw_factolu.h			\
 	lu/xlu.h				\
 	lu/xlu_kernels.h			\
-	lu/float.h				\
-	lu/double.h				\
+	lu/lu-float.h				\
+	lu/lu-double.h				\
 	lu/complex_float.h			\
 	lu/complex_double.h			\
 	lu/blas_complex.h			\

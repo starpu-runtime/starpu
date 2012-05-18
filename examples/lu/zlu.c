@@ -15,5 +15,5 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "complex_double.h"
+#include "complex_-double.h"
 #include "xlu.c"
