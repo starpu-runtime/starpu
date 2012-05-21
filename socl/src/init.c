@@ -26,13 +26,8 @@ int _starpu_init_failed;
 __attribute__((constructor)) static void socl_init() {
 
   struct starpu_conf conf;
-  const char *env;
-
   starpu_conf_init(&conf);
   conf.ncuda = 0;
-  putenv("STARPU_NCUDA=0");
-  if ((env = getenv("STARPU_NCPUS")) && atoi(env) == 0)
-	  putenv("STARPU_NCPUS=1");
 
   mem_object_init();
 

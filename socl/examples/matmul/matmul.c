@@ -222,8 +222,10 @@ int main(int argc, const char** argv) {
 	parse_args(argc, argv);
 
 	check(clGetPlatformIDs(5, platforms, &platform_count));
-	if (platform_count == 0)
-		error("No platform found\n");
+	if (platform_count == 0) {
+		printf("No platform found\n");
+		exit(77);
+	}
 
 	cl_uint device_count;
 	cl_uint devs[platform_count];
