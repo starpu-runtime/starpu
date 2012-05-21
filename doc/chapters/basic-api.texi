@@ -1343,11 +1343,13 @@ option when configuring StarPU.
 
 @item @code{struct starpu_perfmodel *model} (optional)
 This is a pointer to the task duration performance model associated to this
-codelet. This optional field is ignored when set to @code{NULL}.
+codelet. This optional field is ignored when set to @code{NULL} or
+when its @code{symbol} field is not set.
 
 @item @code{struct starpu_perfmodel *power_model} (optional)
 This is a pointer to the task power consumption performance model associated
-to this codelet. This optional field is ignored when set to @code{NULL}.
+to this codelet. This optional field is ignored when set to
+@code{NULL} or when its @code{symbol} field is not set.
 In the case of parallel codelets, this has to account for all processing units
 involved in the parallel execution.
 
@@ -1825,7 +1827,8 @@ archs will be determined by multiplying by an arch-specific factor.
 
 @item @code{const char *symbol}
 is the symbol name for the performance model, which will be used as
-file name to store the model.
+file name to store the model. It must be set otherwise the model will
+be ignored.
 
 @item @code{double (*cost_model)(struct starpu_buffer_descr *)}
 This field is deprecated. Use instead the @code{cost_function} field.
