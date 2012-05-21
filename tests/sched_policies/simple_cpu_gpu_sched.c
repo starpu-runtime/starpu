@@ -88,11 +88,13 @@ gpu_task_gpu(struct starpu_task *task,
 
 static struct starpu_perfmodel model_cpu_task = 
 {
-	.type = STARPU_PER_ARCH
+	.type = STARPU_PER_ARCH,
+	.symbol = "model_cpu_task"
 };
 static struct starpu_perfmodel model_gpu_task = 
 {
-	.type = STARPU_PER_ARCH
+	.type = STARPU_PER_ARCH,
+	.symbol = "model_gpu_task"
 };
 
 static void
