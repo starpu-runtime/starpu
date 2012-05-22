@@ -1529,6 +1529,10 @@ AS_IF([test "$have_valid_hwloc" = "yes"], [
 	])
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
+
+if test "$have_valid_hwloc" = "no" -a "$hwloc_dir" != "no" ; then
+   AC_MSG_ERROR([hwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install hwloc. However, if you really want to use StarPU without enabling hwloc, please restart configure by specifying the option '--without-hwloc'.])
+fi
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)
