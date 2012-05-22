@@ -18,11 +18,21 @@ AC_DEFUN([_STARPU_WITH_GCC_PLUGIN_API], [
   GCC_PLUGIN_INCLUDE_DIR="`"$CC" -print-file-name=plugin`/include"
 
   save_CPPFLAGS="$CPPFLAGS"
+  save_LDFLAGS="$LDFLAGS"
+
   CPPFLAGS="-I$GCC_PLUGIN_INCLUDE_DIR"
+
+  case "$host_os" in
+    darwin*)
+      # Darwin's linker errors out when encountering undefined
+      # symbols, by default.  Tell it to ignore them.
+      LDFLAGS="-Wl,-undefined -Wl,dynamic_lookup";;
+  esac
 
   $1
 
   CPPFLAGS="$save_CPPFLAGS"
+  LDFLAGS="$save_LDFLAGS"
 ])
 
 dnl Set $ac_cv_starpu_gcc_for_plugin to the compiler to use to compile
