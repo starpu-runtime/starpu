@@ -21,7 +21,10 @@ Changes:
   * hwloc support. Warn users when hwloc is not found on the system and
 	error not explicitely disabled.
   * Several bug fixes
-  * Add `#pragma starpu release' in gcc plugin.
+  * GCC plug-in
+	- Add `#pragma starpu release'
+	- Fix bug when using `acquire' pragma with function parameters
+	- Slightly improve test suite coverage
   * Update SOCL to use new API
   * Documentation improvement.
 
