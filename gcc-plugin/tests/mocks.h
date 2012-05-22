@@ -78,26 +78,37 @@ struct insert_task_argument
    `starpu_insert_task' arguments.  */
 const struct insert_task_argument *expected_insert_task_arguments;
 
+/* Expected targets of the codelets submitted.  */
+static int expected_insert_task_targets = STARPU_CPU | STARPU_OPENCL;
+
+
 int
 starpu_insert_task (struct starpu_codelet *cl, ...)
 {
   assert (cl->name != NULL && strlen (cl->name) > 0);
-  assert (cl->where == (STARPU_CPU | STARPU_OPENCL));
+  assert (cl->where == expected_insert_task_targets);
 
-  /* TODO: Call `cpu_func' & co. and check whether they do the right
-     thing.  */
-
-  assert (cl->cpu_funcs[0] != NULL);
-  assert (cl->opencl_funcs[0] != NULL);
-  assert (cl->cuda_funcs[0] == NULL);
+  assert ((cl->where & STARPU_CPU) == 0
+	  ? cl->cpu_funcs[0] == NULL
+	  : cl->cpu_funcs[0] != NULL);
+  assert ((cl->where & STARPU_OPENCL) == 0
+	  ? cl->opencl_funcs[0] == NULL
+	  : cl->opencl_funcs[0] != NULL);
+  assert ((cl->where & STARPU_CUDA) == 0
+	  ? cl->cuda_funcs[0] == NULL
+	  : cl->cuda_funcs[0] != NULL);
 
   va_list args;
-  size_t pointer_arg;
+  size_t i, scalars, pointers, cl_args_offset;
+  void *pointer_args[123];
+  struct starpu_vector_interface pointer_args_ifaces[123];
+  unsigned char cl_args[234];
 
   va_start (args, cl);
 
   const struct insert_task_argument *expected;
-  for (expected = expected_insert_task_arguments, pointer_arg = 0;
+  for (expected = expected_insert_task_arguments,
+	 cl_args_offset = 1, scalars = 0, pointers = 0;
        expected->type != 0;
        expected++)
     {
@@ -119,6 +130,15 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
 	    assert (size == expected->size);
 	    assert (arg != NULL);
 	    assert (!memcmp (arg, expected->pointer, size));
+
+	    /* Pack ARG into CL_ARGS.  */
+	    assert (cl_args_offset + size + sizeof size < sizeof cl_args);
+	    memcpy (&cl_args[cl_args_offset], &size, sizeof size);
+	    cl_args_offset += sizeof size;
+	    memcpy (&cl_args[cl_args_offset], arg, size);
+	    cl_args_offset += size;
+
+	    scalars++;
 	    break;
 	  }
 
@@ -128,8 +148,20 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
 	  {
 	    starpu_data_handle_t handle;
 	    handle = starpu_data_lookup (expected->pointer);
-	    assert (type == cl->modes[pointer_arg++]);
+
+	    assert (type == cl->modes[pointers]);
 	    assert (va_arg (args, void *) == handle);
+	    assert (pointers + 1
+		    < sizeof pointer_args_ifaces / sizeof pointer_args_ifaces[0]);
+
+	    pointer_args_ifaces[pointers].ptr = (uintptr_t) expected->pointer;
+	    pointer_args_ifaces[pointers].dev_handle =
+	      (uintptr_t) expected->pointer;	  /* for OpenCL */
+	    pointer_args_ifaces[pointers].elemsize = 1;
+	    pointer_args_ifaces[pointers].nx = 1;
+	    pointer_args_ifaces[pointers].offset = 0;
+
+	    pointers++;
 	    break;
 	  }
 
@@ -144,6 +176,19 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
   assert (expected->type == 0);
 
   tasks_submitted++;
+
+  /* Finish packing the scalar arguments in CL_ARGS.  */
+  cl_args[0] = (unsigned char) scalars;
+  for (i = 0; i < pointers; i++)
+    pointer_args[i] = &pointer_args_ifaces[i];
+
+  /* Call the codelets.  */
+  if (cl->where & STARPU_CPU)
+    cl->cpu_funcs[0] (pointer_args, cl_args);
+  if (cl->where & STARPU_OPENCL)
+    cl->opencl_funcs[0] (pointer_args, cl_args);
+  if (cl->where & STARPU_CUDA)
+    cl->cuda_funcs[0] (pointer_args, cl_args);
 
   return 0;
 }
