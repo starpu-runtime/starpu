@@ -14,6 +14,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.0.1 (svn revision 6622)
+==============================================
+
+Changes:
+  * hwloc support. Warn users when hwloc is not found on the system and
+	error not explicitely disabled.
+  * Several bug fixes
+  * Add `#pragma starpu release' in gcc plugin.
+  * Update SOCL to use new API
+  * Documentation improvement.
+
 StarPU 1.0.0 (svn revision 6306)
 ==============================================
 The extensions-again release
