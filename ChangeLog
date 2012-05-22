@@ -14,12 +14,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.0.1 (svn revision 6622)
+StarPU 1.0.1 (svn revision 6630)
 ==============================================
 
 Changes:
   * hwloc support. Warn users when hwloc is not found on the system and
-	error not explicitely disabled.
+	produce error when not explicitely disabled.
   * Several bug fixes
   * GCC plug-in
 	- Add `#pragma starpu release'
