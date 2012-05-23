@@ -2,6 +2,21 @@
 
 # Versioning (SONAMEs) for StarPU libraries.
 
+# http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
+# Here are a set of rules to help you update your library version information:
+# Start with version information of ‘0:0:0’ for each libtool library.
+# Update the version information only immediately before a public
+# release of your software. More frequent updates are unnecessary, and
+# only guarantee that the current interface number gets larger faster.
+# - If the library source code has changed at all since the last
+#   update, then increment revision (‘c:r:a’ becomes ‘c:r+1:a’).
+# - If any interfaces have been added, removed, or changed since the
+#   last update, increment current, and set revision to 0.
+# - If any interfaces have been added since the last public release,
+#   then increment age.
+# - If any interfaces have been removed or changed since the last
+#   public release, then set age to 0. change
+
 # Libtool interface versioning (info "(libtool) Versioning").
 LIBSTARPU_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPU_INTERFACE_REVISION=0	# increment upon implementation change
