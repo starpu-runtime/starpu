@@ -349,9 +349,12 @@ void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, u
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
 	{
+		if(unlocked)
+			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 		struct starpu_task *old_task = starpu_task_list_pop_back(&sched_ctx->empty_ctx_tasks);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 		unlocked = 1;
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+
 		struct _starpu_job *old_j = _starpu_get_job_associated_to_task(old_task);
 		_starpu_push_task(old_j);
 	}
@@ -648,6 +651,16 @@ unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id
                 workers2->deinit_cursor(workers2);
 
 	return shared_workers;
+}
+
+unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	unsigned i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		if(worker->sched_ctx[i] == sched_ctx_id)
+			return 1;
+	return 0;
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR

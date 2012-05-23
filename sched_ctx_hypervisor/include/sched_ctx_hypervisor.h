@@ -83,9 +83,11 @@ struct sched_ctx_wrapper {
 	double total_flops;
 	double total_elapsed_flops[STARPU_NMAXWORKERS];
 	double elapsed_flops[STARPU_NMAXWORKERS];
+	double submitted_flops;
 	double remaining_flops;
 	double start_time;
 	struct resize_ack resize_ack;
+	pthread_mutex_t mutex;
 };
 
 struct hypervisor_policy {

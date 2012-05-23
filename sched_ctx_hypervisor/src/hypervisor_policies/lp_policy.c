@@ -189,15 +189,21 @@ int _velocity_gap_btw_ctxs()
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
 		double ctx_v = _get_ctx_velocity(sc_w);
-		for(j = 0; j < nsched_ctxs; j++)
+		if(ctx_v != 0.0)
 		{
-			if(sched_ctxs[i] != sched_ctxs[j])
+			for(j = 0; j < nsched_ctxs; j++)
 			{
-				other_sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[j]);
-				double other_ctx_v = _get_ctx_velocity(other_sc_w);
-				double gap = ctx_v < other_ctx_v ? ctx_v / other_ctx_v : other_ctx_v / ctx_v;
-				if(gap > 0.7)
-					return 1;
+				if(sched_ctxs[i] != sched_ctxs[j])
+				{
+					other_sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[j]);
+					double other_ctx_v = _get_ctx_velocity(other_sc_w);
+					if(other_ctx_v != 0.0)
+					{
+						double gap = ctx_v < other_ctx_v ? ctx_v / other_ctx_v : other_ctx_v / ctx_v;
+						if(gap > 0.5)
+							return 1;
+					}
+				}
 			}
 		}
 
@@ -261,7 +267,7 @@ void _round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns
 	}		
 }
 
-void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw])
+void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw])
 {
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 	int s, s2, w;
@@ -273,36 +279,98 @@ void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw])
 			if(w == 0) arch = STARPU_CUDA_WORKER;
 			if(w == 1) arch = STARPU_CPU_WORKER;
 
-			unsigned nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch);
-			if(nworkers_ctx > res_rounded[s][w])
+			if(w == 1)
 			{
-				int nworkers_to_move = nworkers_ctx - res_rounded[s][w];
-				int receiving_s = -1;
-				
-				for(s2 = 0; s2 < ns; s2++)
+				unsigned nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch);
+				if(nworkers_ctx > res_rounded[s][w])
 				{
-					if(sched_ctxs[s2] != sched_ctxs[s])
+					int nworkers_to_move = nworkers_ctx - res_rounded[s][w];
+					int receiving_s = -1;
+					
+					for(s2 = 0; s2 < ns; s2++)
 					{
-						int nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch);
-						if((res_rounded[s2][w] - nworkers_ctx2) == nworkers_to_move)
+						if(sched_ctxs[s2] != sched_ctxs[s])
 						{
-							receiving_s = sched_ctxs[s2];
-							break;
+							int nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch);
+							if((res_rounded[s2][w] - nworkers_ctx2) >= nworkers_to_move)
+							{
+								receiving_s = sched_ctxs[s2];
+								break;
+							}
+						}
+					}
+					if(receiving_s != -1)
+					{
+						int *workers_to_move = _get_first_workers(sched_ctxs[s], &nworkers_to_move, arch);
+						sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, nworkers_to_move);
+						struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
+						int i;
+						for(i = 0; i < nworkers_to_move; i++)
+							new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
+						
+						free(workers_to_move);
+					}
+				}
+			}
+			else
+			{
+				double nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch) * 1.0;
+				if(nworkers_ctx > res[s][w])
+				{
+					double nworkers_to_move = nworkers_ctx - res[s][w];
+					int receiving_s = -1;
+					
+					for(s2 = 0; s2 < ns; s2++)
+					{
+						if(sched_ctxs[s2] != sched_ctxs[s])
+						{
+							double nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch) * 1.0;
+							if((res[s2][w] - nworkers_ctx2) >= nworkers_to_move)
+							{
+								receiving_s = sched_ctxs[s2];
+								break;
+							}
+						}
+					}
+					if(receiving_s != -1)
+					{
+						int x = floor(nworkers_to_move);
+						double x_double = (double)x;
+						double diff = nworkers_to_move - x_double;
+						if(diff == 0)
+						{
+							int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
+							sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, x);
+							struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
+							int i;
+							for(i = 0; i < x; i++)
+								new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
+							
+							free(workers_to_move);
+						}
+						else
+						{
+							x+=1;
+							int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
+							sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_move, x-1, sched_ctxs[s]);
+							if(diff > 0.3)
+								sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_move, x, receiving_s);
+							else
+								sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_move, x-1, receiving_s);
+
+							struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
+							int i;
+							for(i = 0; i < x-1; i++)
+								new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
+
+							free(workers_to_move);
+							
+
 						}
 					}
 				}
-				if(receiving_s != -1)
-				{
-					int *workers_to_move = _get_first_workers(sched_ctxs[s], &nworkers_to_move, arch);
-					sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, nworkers_to_move);
-					struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
-					int i;
-					for(i = 0; i < nworkers_to_move; i++)
-						new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
-
-					free(workers_to_move);
-				}
 			}
+
 		}
 	}
 }
@@ -346,7 +414,7 @@ void lp_handle_poped_task(unsigned sched_ctx, int worker)
 /* 				printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]); */
 /* 			} */
 			
-			_redistribute_resources_in_ctxs(nsched_ctxs, 2, res_rounded);
+			_redistribute_resources_in_ctxs(nsched_ctxs, 2, res_rounded, res);
 			
 			pthread_mutex_unlock(&act_hypervisor_mutex);
 		}

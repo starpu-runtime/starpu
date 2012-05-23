@@ -42,7 +42,7 @@ struct _starpu_sched_ctx {
 
 	struct worker_collection *workers;
 	
-	/* mutext for temp_nworkers_in_ctx*/
+	/* mutex for temp_nworkers_in_ctx*/
 	pthread_mutex_t changing_ctx_mutex;
 
 	/* we keep an initial sched which we never delete */
