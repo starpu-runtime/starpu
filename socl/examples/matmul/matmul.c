@@ -34,9 +34,9 @@
 #define TYPE float
 
 // Basic Matrix dimensions
-#define WA (1024L * BLOCK_SIZE) // Matrix A width
+#define WA (128L * BLOCK_SIZE) // Matrix A width
 #define HA (512L * BLOCK_SIZE) // Matrix A height
-#define WB (1024L * BLOCK_SIZE) // Matrix B width
+#define WB (128L * BLOCK_SIZE) // Matrix B width
 #define HB WA  // Matrix B height
 #define WC WB  // Matrix C width 
 #define HC HA  // Matrix C height
