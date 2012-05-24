@@ -25,6 +25,7 @@ Changes:
 	- Add `#pragma starpu release'
 	- Fix bug when using `acquire' pragma with function parameters
 	- Slightly improve test suite coverage
+	- Relax the GCC version check
   * Update SOCL to use new API
   * Documentation improvement.
 
