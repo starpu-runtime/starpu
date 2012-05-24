@@ -1293,7 +1293,8 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
     /* No further warnings for this node.  */
     TREE_NO_WARNING (task_impl) = true;
 
-  static tree load_fn, load_kern_fn, enqueue_kern_fn, wid_fn, devid_fn;
+  static tree load_fn, load_kern_fn, enqueue_kern_fn, wid_fn, devid_fn, clfinish_fn,
+    collect_stats_fn, release_ev_fn;
 
   if (load_fn == NULL_TREE)
     {
@@ -1311,6 +1312,9 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
   LOOKUP_STARPU_FUNCTION (wid_fn, "starpu_worker_get_id");
   LOOKUP_STARPU_FUNCTION (devid_fn, "starpu_worker_get_devid");
   LOOKUP_STARPU_FUNCTION (enqueue_kern_fn, "clEnqueueNDRangeKernel");
+  LOOKUP_STARPU_FUNCTION (clfinish_fn, "clFinish");
+  LOOKUP_STARPU_FUNCTION (collect_stats_fn, "starpu_opencl_collect_stats");
+  LOOKUP_STARPU_FUNCTION (release_ev_fn, "clReleaseEvent");
 
   if (verbose_output_p)
     inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
@@ -1417,6 +1421,15 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 					"failed to enqueue kernel"),
 		NULL_TREE);
 
+      tree clfinish =
+	build_call_expr (clfinish_fn, 1, queue_var);
+
+      tree collect_stats =
+	build_call_expr (collect_stats_fn, 1, event_var);
+
+      tree release_ev =
+	build_call_expr (release_ev_fn, 1, event_var);
+
       tree enqueue_stmts = NULL_TREE;
       append_to_statement_list (enqueue_err, &enqueue_stmts);
       append_to_statement_list (enqueue_cond, &enqueue_stmts);
@@ -1445,6 +1458,9 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 					error_var, enqueue_stmts,
 					NULL_TREE, NULL_TREE),
 				&stmts);
+      append_to_statement_list (clfinish, &stmts);
+      append_to_statement_list (collect_stats, &stmts);
+      append_to_statement_list (release_ev, &stmts);
 
       /* Bind the local vars.  */
       tree vars = chain_trees (kernel_var, queue_var, event_var,
