@@ -102,6 +102,11 @@ extern int yydebug;
 
 extern tree xref_tag (enum tree_code, tree);
 
+#ifndef STRINGIFY
+# define STRINGIFY_(x) # x
+# define STRINGIFY(x)  STRINGIFY_ (x)
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -3285,8 +3290,31 @@ int
 plugin_init (struct plugin_name_args *plugin_info,
 	     struct plugin_gcc_version *version)
 {
-  if (!plugin_default_version_check (version, &gcc_version))
-    return 1;
+  /* `plugin_default_version_check' happens to be stricter than necessary
+     (for instance, it fails when the `buildstamp' field of the plug-in
+     doesn't match that of GCC), so write our own check and make more relax
+     and more verbose.  */
+
+#define VERSION_CHECK(field)						\
+  do									\
+    {									\
+      if (strcmp (gcc_version. field, version-> field) != 0)		\
+	{								\
+	  error_at (UNKNOWN_LOCATION, "plug-in version check for `"	\
+		    STRINGIFY (field) "' failed: expected `%s', "	\
+		    "got `%s'",						\
+		    gcc_version. field, version-> field);		\
+	  return 1;							\
+	}								\
+    }									\
+  while (0)
+
+  VERSION_CHECK (basever);			  /* e.g., "4.6.2" */
+  VERSION_CHECK (devphase);
+  VERSION_CHECK (revision);
+  VERSION_CHECK (configuration_arguments);
+
+#undef VERSION_CHECK
 
   register_callback (plugin_name, PLUGIN_START_UNIT,
 		     define_cpp_macros, NULL);
