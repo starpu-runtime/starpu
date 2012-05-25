@@ -101,7 +101,7 @@ else
 txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README
-EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION
+EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION build-aux/svn2cl.xsl
 
 include starpu-top/extradist
 
