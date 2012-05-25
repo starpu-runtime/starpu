@@ -88,6 +88,8 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy)
 	}
 #endif
 
+	policy.policy_name = sched_policy->policy_name;
+	policy.policy_description = sched_policy->policy_description;
 	policy.init_sched = sched_policy->init_sched;
 	policy.deinit_sched = sched_policy->deinit_sched;
 	policy.push_task = sched_policy->push_task;
