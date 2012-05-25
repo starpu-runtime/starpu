@@ -1262,7 +1262,8 @@ fi
 AM_MISSING_PROG([YACC], [bison])
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
-AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
+AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
+  [test "x$run_gcc_plugin_test_suite" = "xyes"])
 
 ###############################################################################
 #                                                                             #
