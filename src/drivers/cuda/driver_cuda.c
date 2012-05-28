@@ -118,7 +118,7 @@ void starpu_cuda_set_device(int devid)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (conf->n_cuda_opengl_interoperability) {
 		fprintf(stderr, "OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 #else
 	for (i = 0; i < conf->n_cuda_opengl_interoperability; i++)
