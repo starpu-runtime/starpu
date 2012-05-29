@@ -202,8 +202,8 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
  */
 int starpu_worker_get_devid(int id);
 
-int starpu_driver_run(struct starpu_driver *);
-void starpu_set_end_of_submissions(void);
+int starpu_driver_run(struct starpu_driver *d);
+void starpu_drivers_request_termination(void);
 
 int starpu_driver_init(struct starpu_driver *d);
 int starpu_driver_run_once(struct starpu_driver *d);

@@ -613,7 +613,7 @@ void _starpu_decrement_nsubmitted_tasks(void)
 }
 
 void
-starpu_set_end_of_submissions(void)
+starpu_drivers_request_termination(void)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
