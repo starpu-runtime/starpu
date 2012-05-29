@@ -564,7 +564,7 @@ void *_starpu_opencl_worker(void *arg)
 
 	starpu_opencl_get_device(args->devid, &id);
 	struct starpu_driver d = {
-		.type         = STARPU_CUDA_WORKER,
+		.type         = STARPU_OPENCL_WORKER,
 		.id.opencl_id = id
 	};
 
