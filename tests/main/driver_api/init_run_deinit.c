@@ -156,16 +156,14 @@ test_opencl(void)
         err = clGetPlatformIDs(1, &platform, &dummy);
         if (err != CL_SUCCESS)
         {   
-                fprintf(stderr, "%s:%d\n", __func__, __LINE__);
-		return 1;
+		return STARPU_TEST_SKIPPED;
 	}
 
 	cl_device_id device_id;
         err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
         if (err != CL_SUCCESS)
         {   
-                fprintf(stderr, "%s:%d\n", __func__, __LINE__);
-		return 1;
+		return STARPU_TEST_SKIPPED;
 	}
 
 	int var = 0, ret;
