@@ -719,7 +719,7 @@ Deinitialize the given driver. Returns 0 on success, -EINVAL if
 STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
 @end deftypefun
 
-@deftypefun void starpu_drivers_request_termination(void)
+@deftypefun void starpu_drivers_request_termination (void)
 Notify all running drivers they should terminate.
 @end deftypefun
 
