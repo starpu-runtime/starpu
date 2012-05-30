@@ -42,7 +42,7 @@ run(struct starpu_task *task, struct starpu_driver *d)
 static void
 deinit_driver(struct starpu_driver *d)
 {
-	int ret; 
+	int ret;
 	ret = starpu_driver_deinit(d);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_deinit");
 }
@@ -58,7 +58,7 @@ test_cpu(void)
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return 1;
-	
+
 
 	struct starpu_driver d =
 	{
@@ -74,7 +74,7 @@ test_cpu(void)
 		return STARPU_TEST_SKIPPED;
 
 	init_driver(&d);
-	int i;	
+	int i;
 	for (i = 0; i < NTASKS; i++)
 	{
 		struct starpu_task *task;
@@ -90,7 +90,7 @@ test_cpu(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	fprintf(stderr, "[CPU] Var is %d\n", var);
+	FPRINTF(stderr, "[CPU] Var is %d\n", var);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_CPU */
@@ -99,13 +99,13 @@ test_cpu(void)
 static int
 test_cuda(void)
 {
-	int var = 0, ret;
+	int var = 0, ret, ncuda;
 	struct starpu_conf conf;
 
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return 1;
-	
+
 
 	struct starpu_driver d =
 	{
@@ -122,9 +122,12 @@ test_cuda(void)
 	if (ret == -ENODEV)
 		return STARPU_TEST_SKIPPED;
 
+	ncuda = starpu_cuda_worker_get_count();
+	if (ncuda == 0)
+		return STARPU_TEST_SKIPPED;
 
 	init_driver(&d);
-	int i;	
+	int i;
 	for (i = 0; i < NTASKS; i++)
 	{
 		struct starpu_task *task;
@@ -140,7 +143,7 @@ test_cuda(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	fprintf(stderr, "[CUDA] Var is %d\n", var);
+	FPRINTF(stderr, "[CUDA] Var is %d\n", var);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_CUDA */
@@ -152,17 +155,18 @@ test_opencl(void)
         cl_int err;
         cl_platform_id platform;
         cl_uint dummy;
+	int opencl;
 
         err = clGetPlatformIDs(1, &platform, &dummy);
         if (err != CL_SUCCESS)
-        {   
+        {
 		return STARPU_TEST_SKIPPED;
 	}
 
 	cl_device_id device_id;
         err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
         if (err != CL_SUCCESS)
-        {   
+        {
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -172,7 +176,7 @@ test_opencl(void)
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return 1;
-	
+
 	struct starpu_driver d =
 	{
 		.type = STARPU_OPENCL_WORKER,
@@ -188,9 +192,12 @@ test_opencl(void)
 	if (ret == -ENODEV)
 		return STARPU_TEST_SKIPPED;
 
+	nopencl = starpu_opencl_worker_get_count();
+	if (nopencl == 0)
+		return STARPU_TEST_SKIPPED;
 
 	init_driver(&d);
-	int i;	
+	int i;
 	for (i = 0; i < NTASKS; i++)
 	{
 		struct starpu_task *task;
