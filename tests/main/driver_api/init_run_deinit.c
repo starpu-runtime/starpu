@@ -155,7 +155,7 @@ test_opencl(void)
         cl_int err;
         cl_platform_id platform;
         cl_uint dummy;
-	int opencl;
+	int nopencl;
 
         err = clGetPlatformIDs(1, &platform, &dummy);
         if (err != CL_SUCCESS)
