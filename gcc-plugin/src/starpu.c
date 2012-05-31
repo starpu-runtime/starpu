@@ -639,7 +639,7 @@ handle_pragma_initialize (struct cpp_reader *reader)
 			      error_var, integer_zero_node),
 		      build_error_statements (loc, error_var,
 					      build_starpu_error_string,
-					      "failed to initialize StarPU"), 
+					      "failed to initialize StarPU"),
 		      NULL_TREE);
 
   tree stmts = NULL_TREE;
@@ -1278,11 +1278,13 @@ build_opencl_set_kernel_arg_calls (location_t loc, tree task_impl,
 
 static void
 define_opencl_task_implementation (location_t loc, tree task_impl,
-				   const char *file, const_tree kernel)
+				   const char *file, const_tree kernel,
+				   const_tree groupsize)
 {
   gcc_assert (task_implementation_p (task_impl)
 	      && task_implementation_where (task_impl) == STARPU_OPENCL);
   gcc_assert (TREE_CODE (kernel) == STRING_CST);
+  gcc_assert (INTEGRAL_TYPE_P (TREE_TYPE (groupsize)));
 
   local_define (tree, local_var, (tree type))
   {
@@ -1452,8 +1454,7 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 
       /* TODO: Support user-provided values.  */
       append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (group_size_var),
-					group_size_var,
-					build_int_cst (integer_type_node, 1)),
+					group_size_var, (tree)groupsize),
 				&stmts);
       append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (ngroups_var),
 					ngroups_var,
@@ -1532,8 +1533,8 @@ handle_pragma_opencl (struct cpp_reader *reader)
   if (args == NULL_TREE)
     return;
 
-  /* TODO: Add "group size" and "number of groups" arguments.  */
-  if (list_length (args) < 3)
+  /* TODO: Add "number of groups" arguments.  */
+  if (list_length (args) < 4)
     {
       error_at (loc, "wrong number of arguments for %<starpu opencl%> pragma");
       return;
@@ -1552,13 +1553,21 @@ handle_pragma_opencl (struct cpp_reader *reader)
   	      if (TREE_CODE (TREE_VALUE (args)) == STRING_CST)
   		{
   		  tree kernel = TREE_VALUE (args);
+		  args = TREE_CHAIN (args);
 
-  		  if (TREE_CHAIN (args) == NULL_TREE)
-		    define_opencl_task_implementation (loc, task_impl,
-						       TREE_STRING_POINTER (file),
-						       kernel);
-  		  else
-  		    error_at (loc, "junk after %<starpu opencl%> pragma");
+		  if (TREE_TYPE (TREE_VALUE (args)) != NULL_TREE &&
+		      INTEGRAL_TYPE_P (TREE_TYPE (TREE_VALUE (args))))
+		    {
+		      tree groupsize = TREE_VALUE (args);
+		      if (TREE_CHAIN (args) == NULL_TREE)
+			define_opencl_task_implementation (loc, task_impl,
+							   TREE_STRING_POINTER (file),
+							   kernel, groupsize);
+		      else
+			error_at (loc, "junk after %<starpu opencl%> pragma");
+		    }
+		  else
+		    error_at (loc, "%<groupsize%> argument must be an integral type");
   		}
   	      else
   		error_at (loc, "%<kernel%> argument must be a string constant");
