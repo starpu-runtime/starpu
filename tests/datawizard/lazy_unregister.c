@@ -19,26 +19,29 @@
 
 #include "../helper.h"
 
-static void dummy_func(void ** buffers, void * args) {
+static void dummy_func(void ** buffers, void * args)
+{
+	(void) buffers;
+	(void) args;
 }
 
 static struct starpu_codelet dummy_cl =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = {dummy_func, NULL},
+	.cpu_funcs = { dummy_func, NULL },
 	.nbuffers = 1
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
-	int i;
 	int ret;
 	int buffer[1024];
 	starpu_data_handle_t handle;
 	struct starpu_task *t1, *t2;
 
-        ret = starpu_init(NULL);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)buffer, 1024*sizeof(int));
@@ -52,18 +55,21 @@ int main(int argc, char **argv)
 
 	starpu_task_declare_deps_array(t2, 1, &t1);
 
-	starpu_task_submit(t2);
+	ret = starpu_task_submit(t2);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	starpu_data_unregister_lazy(handle);
 
 	if (starpu_data_lookup(buffer) == NULL)
-	  return EXIT_FAILURE;
+		return EXIT_FAILURE;
 
-	starpu_task_submit(t1);
+	ret = starpu_task_submit(t1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_task_wait(t2);
+	ret = starpu_task_wait(t2);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	if (starpu_data_lookup(buffer) != NULL)
-	  return EXIT_FAILURE;
+		return EXIT_FAILURE;
 
 	starpu_shutdown();
 
