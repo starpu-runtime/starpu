@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include <starpu.h>
+#include <stdlib.h>
 
 #include "../helper.h"
 
@@ -37,7 +38,7 @@ int main(void)
 	int ret;
 	int buffer[1024];
 	starpu_data_handle_t handle;
-	struct starpu_task *t1, *t2;
+	struct starpu_task *t1;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -47,29 +48,20 @@ int main(void)
 	starpu_variable_data_register(&handle, 0, (uintptr_t)buffer, 1024*sizeof(int));
 
 	t1 = starpu_task_create();
-	t2 = starpu_task_create();
 	t1->cl = &dummy_cl;
-	t2->cl = &dummy_cl;
+	t1->detach = 0;
 	t1->handles[0] = handle;
-	t2->handles[0] = handle;
-
-	starpu_task_declare_deps_array(t2, 1, &t1);
-
-	ret = starpu_task_submit(t2);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	starpu_data_unregister_lazy(handle);
-
-	if (starpu_data_lookup(buffer) == NULL)
-		return EXIT_FAILURE;
 
 	ret = starpu_task_submit(t1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	ret = starpu_task_wait(t2);
+	starpu_data_unregister_lazy(handle);
+
+	ret = starpu_task_wait(t1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	if (starpu_data_lookup(buffer) != NULL)
-		return EXIT_FAILURE;
+	while (starpu_data_lookup(buffer) != NULL)
+		sleep(1);
 
 	starpu_shutdown();
 
