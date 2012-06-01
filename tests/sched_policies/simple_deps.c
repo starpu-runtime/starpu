@@ -72,15 +72,15 @@ run(struct starpu_sched_policy *policy)
 
 	starpu_task_wait_for_all();
 
-	double t1, t2;
-	t1 = starpu_timing_timespec_to_us(&task1->profiling_info->end_time);
-	t2 = starpu_timing_timespec_to_us(&task0->profiling_info->start_time);
+	double task1_end, task0_start;
+	task1_end   = starpu_timing_timespec_to_us(&task1->profiling_info->end_time);
+	task0_start = starpu_timing_timespec_to_us(&task0->profiling_info->start_time);
 
 	starpu_task_destroy(task0);
 	starpu_task_destroy(task1);
 	starpu_shutdown();
 
-	return t1 < t2 ? 0:1;
+	return !!(task1_end > task0_start);
 
 enodev:
 	starpu_shutdown();
