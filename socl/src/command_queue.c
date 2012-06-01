@@ -58,8 +58,11 @@ void command_queue_dependencies_implicit(
 	 * Return dependencies
 	 *********************/
 
-	cl_event * evs = malloc(ndeps * sizeof(cl_event));
 	int n = 0;
+	cl_event * evs = NULL;
+	if (ndeps > 0)
+		evs = malloc(ndeps * sizeof(cl_event));
+
 
 	/* Add dependency to last barrier if applicable */
 	if (cq->barrier != NULL)
