@@ -23,4 +23,4 @@ static void my_task_opencl (int x, float a[x])
   __attribute__ ((task_implementation ("opencl", my_task)));
 
 #pragma starpu opencl my_task_opencl  /* (note "not generated") */	\
-               "test.cl" "kern"
+               "test.cl" "kern" 8
