@@ -65,7 +65,7 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	while (starpu_data_lookup(buffer) != NULL)
-		sleep(1);
+		usleep(100000);
 
 	starpu_shutdown();
 
