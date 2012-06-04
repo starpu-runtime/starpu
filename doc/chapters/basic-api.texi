@@ -1148,6 +1148,18 @@ vector represented by @var{father_interface} once partitioned in
 @var{nparts} chunks of equal size.
 @end deftypefun
 
+@deftypefun void starpu_block_shadow_filter_func_vector (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+Return in @code{*@var{child_interface}} the @var{id}th element of the
+vector represented by @var{father_interface} once partitioned in
+@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}
+
+The @code{filter_arg_ptr} field must be the shadow size casted into @code{void*}.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow.c
+@end deftypefun
 
 @deftypefun void starpu_vector_list_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
 Return in @code{*@var{child_interface}} the @var{id}th element of the
