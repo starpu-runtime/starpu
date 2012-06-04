@@ -17,8 +17,6 @@
 
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_insert_task_cache.h>
-#include <starpu_hash.h>
-#include <common/htable32.h>
 
 typedef struct _starpu_mpi_clear_cache_s {
         starpu_data_handle_t data;
@@ -26,21 +24,24 @@ typedef struct _starpu_mpi_clear_cache_s {
         int mode;
 } _starpu_mpi_clear_cache_t;
 
-struct starpu_htbl32_node **sent_data = NULL;
-struct starpu_htbl32_node **received_data = NULL;
+struct starpu_addr_node_list **sent_data = NULL;
+struct starpu_addr_node_list **received_data = NULL;
 
 void _starpu_mpi_clear_cache_callback(void *callback_arg)
 {
         _starpu_mpi_clear_cache_t *clear_cache = (_starpu_mpi_clear_cache_t *)callback_arg;
-        uint32_t key = starpu_crc32_be((uintptr_t)clear_cache->data, 0);
+		struct starpu_addr_node *stored_node = starpu_addr_node_new();
 
         if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
                 _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_32(&sent_data[clear_cache->rank], key, NULL);
+				/* TODO: the implementation should be careful about freed memory. */
+				stored_node->ndata = (uintptr_t)clear_cache->data;
+				starpu_addr_node_list_push_front(sent_data[clear_cache->rank], stored_node);
         }
         else if (clear_cache->mode == _STARPU_MPI_CLEAR_RECEIVED_DATA) {
                 _STARPU_MPI_DEBUG("Clearing received cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_32(&received_data[clear_cache->rank], key, NULL);
+				stored_node->ndata = (uintptr_t)clear_cache->data;
+				starpu_addr_node_list_push_front(received_data[clear_cache->rank], stored_node);
         }
 
         free(clear_cache);

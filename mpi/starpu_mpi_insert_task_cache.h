@@ -16,11 +16,16 @@
  */
 
 #include <starpu.h>
+#include <common/list.h>
 
 #define _STARPU_MPI_CLEAR_SENT_DATA     0
 #define _STARPU_MPI_CLEAR_RECEIVED_DATA 1
 
-extern struct starpu_htbl32_node **sent_data;
-extern struct starpu_htbl32_node **received_data;
+LIST_TYPE(starpu_addr_node, 
+		uintptr_t ndata;
+);
+
+extern struct starpu_addr_node_list **sent_data;
+extern struct starpu_addr_node_list **received_data;
 
 void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank, int mode);
