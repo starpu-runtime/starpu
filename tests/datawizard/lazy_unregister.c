@@ -53,11 +53,15 @@ int main(void)
 	t1->handles[0] = handle;
 
 	ret = starpu_task_submit(t1);
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_data_unregister_lazy(handle);
 
 	ret = starpu_task_wait(t1);
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	while (starpu_data_lookup(buffer) != NULL)
