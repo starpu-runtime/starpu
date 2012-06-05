@@ -2257,8 +2257,23 @@ Return the computation kernel command queue of the current worker.
 Sets the arguments of a given kernel. The list of arguments must be given as
 (size_t @var{size_of_the_argument}, cl_mem * @var{pointer_to_the_argument}).
 The last argument must be 0. Returns the number of arguments that were
-successfully set. In case of failure, @var{err} is set to the error returned by
-OpenCL.
+successfully set. In case of failure, returns the id of the argument
+that could not be set and @var{err} is set to the error returned by
+OpenCL. Otherwise, returns the number of arguments that were set.
+
+@cartouche
+@smallexample
+int n;
+cl_int err;
+cl_kernel kernel;
+n = starpu_opencl_set_kernel_args(&err, 2, &kernel,
+                                  sizeof(foo), &foo,
+                                  sizeof(bar), &bar,
+                                  0);
+if (n != 2)
+   fprintf(stderr, "Error : %d\n", err);
+@end smallexample
+@end cartouche
 @end deftypefun
 
 @node Compiling OpenCL kernels
