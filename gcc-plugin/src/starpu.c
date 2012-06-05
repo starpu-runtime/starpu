@@ -121,7 +121,8 @@ static const char plugin_name[] = "starpu";
 /* Whether to enable verbose output.  */
 static bool verbose_output_p = false;
 
-/* Search path for OpenCL source files, for the `opencl' pragma.  */
+/* Search path for OpenCL source files for the `opencl' pragma, as a
+   `TREE_LIST'.  */
 static tree opencl_include_dirs = NULL_TREE;
 
 /* Names of public attributes.  */
@@ -1074,7 +1075,7 @@ build_variable_from_file_contents (location_t loc,
 				   const_tree search_path)
 {
   gcc_assert (search_path != NULL_TREE
-	      && TREE_CODE (search_path) == STRING_CST);
+	      && TREE_CODE (search_path) == TREE_LIST);
 
   int err, dir_fd;
   struct stat st;
@@ -1083,11 +1084,14 @@ build_variable_from_file_contents (location_t loc,
 
   /* Look for FILE in each directory in SEARCH_PATH, and pick the first one
      that matches.  */
-  for (err = ENOENT, dir_fd = -1, dirs = opencl_include_dirs;
+  for (err = ENOENT, dir_fd = -1, dirs = search_path;
        (err != 0 || err == ENOENT) && dirs != NULL_TREE;
        dirs = TREE_CHAIN (dirs))
     {
-      dir_fd = open (TREE_STRING_POINTER (dirs),
+      gcc_assert (TREE_VALUE (dirs) != NULL_TREE
+		  && TREE_CODE (TREE_VALUE (dirs)) == STRING_CST);
+
+      dir_fd = open (TREE_STRING_POINTER (TREE_VALUE (dirs)),
 		     O_DIRECTORY | O_RDONLY);
       if (dir_fd < 0)
 	err = ENOENT;
@@ -1096,6 +1100,10 @@ build_variable_from_file_contents (location_t loc,
 	  err = fstatat (dir_fd, file, &st, 0);
 	  if (err != 0)
 	    close (dir_fd);
+
+	  /* Leave DIRS unchanged so it can be referred to in diagnostics
+	     below.  */
+	  break;
 	}
     }
 
@@ -1110,7 +1118,7 @@ build_variable_from_file_contents (location_t loc,
     {
       if (verbose_output_p)
 	inform (loc, "found file %qs in %qs",
-		file, TREE_STRING_POINTER (dirs));
+		file, TREE_STRING_POINTER (TREE_VALUE (dirs)));
 
       int fd;
 
@@ -3349,7 +3357,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 		     NULL, &pass_info);
 
   include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
-  opencl_include_dirs = build_string (1, ".");
+  opencl_include_dirs = tree_cons (NULL_TREE, build_string (1, "."),
+				   NULL_TREE);
 
   int arg;
   for (arg = 0; arg < plugin_info->argc; arg++)
@@ -3372,7 +3381,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 	    {
 	      tree dir = build_string (strlen (plugin_info->argv[arg].value),
 				       plugin_info->argv[arg].value);
-	      opencl_include_dirs = chainon (opencl_include_dirs, dir);
+	      opencl_include_dirs = tree_cons (NULL_TREE, dir,
+					       opencl_include_dirs);
 	    }
 	}
       else if (strcmp (plugin_info->argv[arg].key, "verbose") == 0)
@@ -3381,6 +3391,9 @@ plugin_init (struct plugin_name_args *plugin_info,
 	error_at (UNKNOWN_LOCATION, "invalid StarPU plug-in argument %qs",
 		  plugin_info->argv[arg].key);
     }
+
+  /* Keep the directories in the order in which they appear.  */
+  opencl_include_dirs = nreverse (opencl_include_dirs);
 
   return 0;
 }
