@@ -160,7 +160,7 @@ struct starpu_complex_interface
 @end cartouche
 
 Registering such a data to StarPU is easily done using the function
-@code{starpu_data_register} (@pxref{Basic Data Library API}). The last
+@code{starpu_data_register} (@pxref{Basic Data Management API}). The last
 parameter of the function, @code{interface_complex_ops}, will be
 described below.
 
