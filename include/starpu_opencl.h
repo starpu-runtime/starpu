@@ -71,13 +71,13 @@ int starpu_opencl_collect_stats(cl_event event);
 /*
  * Sets the arguments of an OpenCL kernel.
  * Arguments to pass to the kernel should be given as follows :
- * 
+ *
  * 	size of the argument,  pointer to the argument
  *
  * 0 must be passed to this function after the kernel arguments.
  *
  * In case of failure, returns the id of the argument that could not be set,
- * and sets "error" to the error returned. Otherwise, returns the number of 
+ * and sets "error" to the error returned. Otherwise, returns the number of
  * arguments that were set.
  *
  * Example :
