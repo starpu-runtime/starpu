@@ -9,7 +9,7 @@
 @menu
 * Initialization and Termination::  Initialization and Termination methods
 * Workers' Properties::         Methods to enumerate workers' properties
-* Data Library::                Methods to manipulate data
+* Data Management::                Methods to manipulate data
 * Data Interfaces::
 * Data Partition::
 * Codelets and Tasks::          Methods to construct tasks
@@ -298,12 +298,12 @@ this function should be used in the allocation function to determine
 on which device the memory needs to be allocated.
 @end deftypefun
 
-@node Data Library
-@section Data Library
+@node Data Management
+@section Data Management
 
 @menu
-* Introduction to Data Library::
-* Basic Data Library API::
+* Introduction to Data Management::
+* Basic Data Management API::
 * Access registered data from the application::
 @end menu
 
@@ -312,7 +312,7 @@ This section describes the data management facilities provided by StarPU.
 We show how to use existing data interfaces in @ref{Data Interfaces}, but developers can
 design their own data interfaces if required.
 
-@node Introduction to Data Library
+@node Introduction to Data Management
 @subsection Introduction
 Data management is done at a high-level in StarPU: rather than accessing a mere
 list of contiguous buffers, the tasks may manipulate data that are described by
@@ -340,8 +340,8 @@ to StarPU, the specified memory node indicates where the piece of data
 initially resides (we also call this memory node the home node of a piece of
 data).
 
-@node Basic Data Library API
-@subsection Basic Data Library API
+@node Basic Data Management API
+@subsection Basic Data Management API
 
 @deftypefun int starpu_malloc (void **@var{A}, size_t @var{dim})
 This function allocates data of the given size in main memory. It will also try to pin it in
