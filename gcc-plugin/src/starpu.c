@@ -1287,7 +1287,7 @@ build_opencl_set_kernel_arg_calls (location_t loc, tree task_impl,
 static void
 define_opencl_task_implementation (location_t loc, tree task_impl,
 				   const char *file, const_tree kernel,
-				   const_tree groupsize)
+				   tree groupsize)
 {
   gcc_assert (task_implementation_p (task_impl)
 	      && task_implementation_where (task_impl) == STARPU_OPENCL);
@@ -1462,11 +1462,14 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 
       /* TODO: Support user-provided values.  */
       append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (group_size_var),
-					group_size_var, (tree)groupsize),
+					group_size_var,
+					fold_convert (TREE_TYPE (group_size_var),
+						      groupsize)),
 				&stmts);
       append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (ngroups_var),
 					ngroups_var,
-					build_int_cst (integer_type_node, 1)),
+					build_int_cst (TREE_TYPE (ngroups_var),
+						       1)),
 				&stmts);
       append_to_statement_list (build4 (TARGET_EXPR, void_type_node,
 					error_var, enqueue_stmts,
