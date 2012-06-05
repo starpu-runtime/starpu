@@ -31,7 +31,7 @@ double _get_exp_end(unsigned sched_ctx)
 	struct sched_ctx_wrapper *sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 
-	if( elapsed_flops != 0.0)
+	if( elapsed_flops >= 1.0)
 	{
 		double curr_time = starpu_timing_now();
 		double elapsed_time = curr_time - sc_w->start_time;
@@ -116,7 +116,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 			/*if the needed number of workers is to big we only move the number of workers 
 			  corresponding to the granularity set by the user */
                         int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
-
+			
                         if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
                         {
                                 unsigned nshared_workers = starpu_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
@@ -125,7 +125,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 
                                 if(nworkers_to_move > 0)
                                 {
-                                        workers = _get_first_workers(sender_sched_ctx, &nworkers_to_move, -1);
+                                        workers = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ALL);
                                         *nworkers = nworkers_to_move;
                                 }
                         }
@@ -278,7 +278,13 @@ static void gflops_rate_resize(unsigned sched_ctx)
 		{
 			double fast_flops_left_pct = _get_flops_left_pct(fastest_sched_ctx);
 			if(fast_flops_left_pct < 0.8)
-				_gflops_rate_resize(fastest_sched_ctx, slowest_sched_ctx, 0);
+			{
+
+				struct sched_ctx_wrapper *sc_w = sched_ctx_hypervisor_get_wrapper(slowest_sched_ctx);
+				double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+				if((elapsed_flops/sc_w->total_flops) > 0.1)
+					_gflops_rate_resize(fastest_sched_ctx, slowest_sched_ctx, 0);
+			}
 		}
 	}
 }

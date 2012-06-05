@@ -32,6 +32,7 @@ extern struct hypervisor_policy gflops_rate_policy;
 #ifdef HAVE_GLPK_H
 extern struct hypervisor_policy lp_policy;
 extern struct hypervisor_policy lp2_policy;
+extern struct hypervisor_policy lp3_policy;
 #endif
 
 static struct hypervisor_policy *predefined_policies[] = {
@@ -40,6 +41,7 @@ static struct hypervisor_policy *predefined_policies[] = {
 #ifdef HAVE_GLPK_H
 	&lp_policy,
 	&lp2_policy,
+	&lp3_policy,
 #endif
 	&gflops_rate_policy
 };
@@ -336,7 +338,7 @@ int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
 /* forbids another resize request before this one is take into account */
 void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move)
 {
-	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx] && hypervisor.resize[receiver_sched_ctx])
+	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx])// && hypervisor.resize[receiver_sched_ctx])
 	{
 		int j;
 		printf("resize ctx %d with", sender_sched_ctx);
@@ -370,7 +372,7 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 			hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.acked_workers[i] = 0;	
 		}
 
-		pthread_mutex_lock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
+		pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 
 		hypervisor.resize[sender_sched_ctx] = 0;
 		hypervisor.resize[receiver_sched_ctx] = 0;
@@ -611,7 +613,7 @@ static void notify_poped_task(unsigned sched_ctx, int worker, double elapsed_flo
 	hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker]++;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[worker] += elapsed_flops;
 	hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[worker] += elapsed_flops;
-	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]);
+	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= elapsed_flops; //sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]);
 
 	if(hypervisor.nsched_ctxs > 1)
 	{

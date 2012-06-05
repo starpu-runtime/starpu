@@ -294,7 +294,7 @@ double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
 {
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 
-        if( elapsed_flops != 0.0)
+        if( elapsed_flops >= 1.0)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = curr_time - sc_w->start_time;
@@ -317,4 +317,41 @@ double _get_velocity_per_worker_type(struct sched_ctx_wrapper* sc_w, enum starpu
         }
 
         return -1.0;
+}
+
+
+/* check if there is a big velocity gap between the contexts */
+int _velocity_gap_btw_ctxs()
+{
+	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int i = 0, j = 0;
+	struct sched_ctx_wrapper* sc_w;
+	struct sched_ctx_wrapper* other_sc_w;
+	
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
+		double ctx_v = _get_ctx_velocity(sc_w);
+		if(ctx_v != 0.0)
+		{
+			for(j = 0; j < nsched_ctxs; j++)
+			{
+				if(sched_ctxs[i] != sched_ctxs[j])
+				{
+					other_sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[j]);
+					double other_ctx_v = _get_ctx_velocity(other_sc_w);
+					if(other_ctx_v != 0.0)
+					{
+						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
+//						printf("gap = %lf\n", gap);
+						if(gap > 5)
+							return 1;
+					}
+				}
+			}
+		}
+
+	}
+	return 0;
 }

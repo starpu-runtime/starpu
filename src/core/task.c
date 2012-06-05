@@ -361,8 +361,10 @@ int starpu_task_submit(struct starpu_task *task)
 	STARPU_ASSERT(task->magic == 42);
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 
-	task->sched_ctx = (nsched_ctxs == 1 || task->control_task) ? 
-		0 : starpu_get_sched_ctx();
+	if(task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
+		task->sched_ctx = starpu_get_sched_ctx();
+//	task->sched_ctx = (nsched_ctxs == 1 || task->control_task) ? 
+//	   0 : starpu_get_sched_ctx());
 	int ret;
 	unsigned is_sync = task->synchronous;
         _STARPU_LOG_IN();
@@ -457,6 +459,13 @@ int _starpu_task_submit_internally(struct starpu_task *task)
 {
 	task->control_task = 1;
 	return starpu_task_submit(task);
+}
+
+/* application should submit new tasks to StarPU through this function */
+int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	task->sched_ctx = sched_ctx_id;
+	starpu_task_submit(task);
 }
 
 /* The StarPU core can submit tasks directly to the scheduler or a worker,
@@ -594,6 +603,11 @@ int starpu_task_wait_for_all(void)
 	return 0;
 }
 
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
+{
+	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	return 0;
+}
 /*
  * We wait until there is no ready task any more (i.e. StarPU will not be able
  * to progress any more).

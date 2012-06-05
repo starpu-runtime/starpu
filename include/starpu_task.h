@@ -301,6 +301,7 @@ struct starpu_task *starpu_task_create(void);
  * allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task);// STARPU_WARN_UNUSED_RESULT;
+int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
 /* This function blocks until the task was executed. It is not possible to
  * synchronize with a task more than once. It is not possible to wait
@@ -312,6 +313,8 @@ int starpu_task_wait(struct starpu_task *task);// STARPU_WARN_UNUSED_RESULT;
 /* This function waits until all the tasks that were already submitted have
  * been executed. */
 int starpu_task_wait_for_all(void);
+
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx);
 
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);

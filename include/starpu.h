@@ -163,7 +163,8 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
  *  identifier (as returned by the starpu_worker_get_id() function)
  */
 int starpu_worker_get_devid(int id);
-
+void starpu_profiling_init();
+	void starpu_display_stats();
 #ifdef __cplusplus
 }
 #endif

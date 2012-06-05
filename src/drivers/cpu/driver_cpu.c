@@ -137,7 +137,8 @@ void *_starpu_cpu_worker(void *arg)
 
 	pthread_cond_t *sched_cond = &cpu_arg->sched_cond;
 	pthread_mutex_t *sched_mutex = &cpu_arg->sched_mutex;
-
+	struct timespec start_time, end_time;
+	unsigned idle = 0;
 	while (_starpu_machine_is_running())
 	{
 		_STARPU_TRACE_START_PROGRESS(memnode);
@@ -153,11 +154,30 @@ void *_starpu_cpu_worker(void *arg)
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, sched_cond, sched_mutex);
+			else
+			{
+				_starpu_clock_gettime(&start_time);
+				_starpu_worker_register_sleeping_start_date(workerid, &start_time);
+				idle = 1;
 
+			}
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			continue;
 		};
 
+		if(idle)
+		{
+			_starpu_clock_gettime(&end_time);
+			
+			int profiling = starpu_profiling_status_get();
+			if (profiling)
+			{
+				struct timespec sleeping_time;
+				starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
+				_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
+			}
+			idle = 0;
+		}
 
 		STARPU_ASSERT(task);
 		j = _starpu_get_job_associated_to_task(task);

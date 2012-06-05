@@ -160,7 +160,7 @@ static void _glp_resolve(int ns, int nw, double v[ns][nw], double flops[ns], dou
 //	glp_simplex(lp, NULL);
 	
 	double vmax1 = glp_get_obj_val(lp);
-//	printf("vmax1 = %lf \n", vmax1);
+	printf("vmax1 = %lf \n", vmax1);
 
 	n = 1;
 	for(s = 0; s < ns; s++)
@@ -176,42 +176,7 @@ static void _glp_resolve(int ns, int nw, double v[ns][nw], double flops[ns], dou
 	return;
 }
 
-/* check if there is a big velocity gap between the contexts */
-int _velocity_gap_btw_ctxs()
-{
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
-	int i = 0, j = 0;
-	struct sched_ctx_wrapper* sc_w;
-	struct sched_ctx_wrapper* other_sc_w;
-	
-	for(i = 0; i < nsched_ctxs; i++)
-	{
-		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
-		double ctx_v = _get_ctx_velocity(sc_w);
-		if(ctx_v != 0.0)
-		{
-			for(j = 0; j < nsched_ctxs; j++)
-			{
-				if(sched_ctxs[i] != sched_ctxs[j])
-				{
-					other_sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[j]);
-					double other_ctx_v = _get_ctx_velocity(other_sc_w);
-					if(other_ctx_v != 0.0)
-					{
-						double gap = ctx_v < other_ctx_v ? ctx_v / other_ctx_v : other_ctx_v / ctx_v;
-						if(gap > 0.5)
-							return 1;
-					}
-				}
-			}
-		}
-
-	}
-	return 0;
-}
-
-void _round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw])
+static void _round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw])
 {
 	int s, w;
 	double left_res[nw];
@@ -267,7 +232,7 @@ void _round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns
 	}		
 }
 
-void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw])
+static void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw])
 {
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 	int s, s2, w;
@@ -375,7 +340,7 @@ void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], do
 	}
 }
 
-void lp_handle_poped_task(unsigned sched_ctx, int worker)
+static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 {
 	if(_velocity_gap_btw_ctxs())
 	{
@@ -395,24 +360,25 @@ void lp_handle_poped_task(unsigned sched_ctx, int worker)
 			v[i][0] = 200.0;//_get_velocity_per_worker_type(sc_w, STARPU_CUDA_WORKER);
 			v[i][1] = 20.0;//_get_velocity_per_worker_type(sc_w, STARPU_CPU_WORKER);
 			flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
+			printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
 		}
                 
 		int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
 			_glp_resolve(nsched_ctxs, 2, v, flops, res);
-/* 			for( i = 0; i < nsched_ctxs; i++) */
-/* 			{ */
-/* 				printf("ctx %d/worker type %d: n = %lf \n", i, 0, res[i][0]); */
-/* 				printf("ctx %d/worker type %d: n = %lf \n", i, 1, res[i][1]); */
-/* 			} */
+			for( i = 0; i < nsched_ctxs; i++)
+			{
+				printf("ctx %d/worker type %d: n = %lf \n", i, 0, res[i][0]);
+				printf("ctx %d/worker type %d: n = %lf \n", i, 1, res[i][1]);
+			}
 			int res_rounded[nsched_ctxs][2];
 			_round_double_to_int(nsched_ctxs, 2, res, res_rounded);
-/* 			for( i = 0; i < nsched_ctxs; i++) */
-/* 			{ */
-/* 				printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]); */
-/* 				printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]); */
-/* 			} */
+			for( i = 0; i < nsched_ctxs; i++)
+			{
+				printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]);
+				printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]);
+			}
 			
 			_redistribute_resources_in_ctxs(nsched_ctxs, 2, res_rounded, res);
 			

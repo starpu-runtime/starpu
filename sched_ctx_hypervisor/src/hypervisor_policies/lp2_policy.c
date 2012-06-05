@@ -16,20 +16,6 @@
 
 #include "policy_utils.h"
 #include <math.h>
-struct bound_task_pool
-{
-	/* Which codelet has been executed */
-	struct starpu_codelet *cl;
-	/* Task footprint key */
-	uint32_t footprint;
-	/* Context the task belongs to */
-	unsigned sched_ctx_id;
-	/* Number of tasks of this kind */
-	unsigned long n;
-	/* Other task kinds */
-	struct bound_task_pool *next;
-};
-
 
 static struct bound_task_pool *task_pools, *last;
 
@@ -143,7 +129,7 @@ static void _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt])
 
 		int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 
-		/* Number of task * time > 0.3 * tmax */
+		/* ntasks_per_worker*t_tasks < tmax */
 		glp_add_rows(lp, nw*ns);
 		for(s = 0; s < ns; s++)
 		{

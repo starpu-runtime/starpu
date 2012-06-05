@@ -482,7 +482,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	_starpu_timing_init();
 
-	_starpu_profiling_init();
+//	_starpu_profiling_init();
 
 	_starpu_load_bus_performance_files();
 
@@ -542,6 +542,10 @@ int starpu_init(struct starpu_conf *user_conf)
 	return 0;
 }
 
+void starpu_profiling_init()
+{
+	_starpu_profiling_init();
+}
 /*
  * Handle runtime termination
  */
@@ -635,6 +639,15 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 	starpu_wake_all_blocked_workers();
 }
 
+void starpu_display_stats()
+{
+	const char *stats;
+	if ((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))
+		starpu_bus_profiling_helper_display_summary();
+
+	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
+		starpu_worker_profiling_helper_display_summary();
+}
 void starpu_shutdown(void)
 {
 	const char *stats;
