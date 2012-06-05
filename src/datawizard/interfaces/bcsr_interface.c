@@ -547,7 +547,7 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 	uint32_t r = src_bcsr->r;
 	uint32_t c = src_bcsr->c;
 
-	memcpy((void *)dst_bcsr->nzval, (void *)src_bcsr->nzval, nnz*elemsize*r*c);
+	memcpy((void *)dst_bcsr->nzval, (void *)src_bcsr->nzval, nnz*elemsize);
 
 	memcpy((void *)dst_bcsr->colind, (void *)src_bcsr->colind, nnz*sizeof(uint32_t));
 
