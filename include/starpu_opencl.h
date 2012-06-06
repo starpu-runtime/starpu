@@ -59,6 +59,10 @@ void starpu_opencl_get_queue(int devid, cl_command_queue *queue);
 void starpu_opencl_get_current_context(cl_context *context);
 void starpu_opencl_get_current_queue(cl_command_queue *queue);
 
+void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source);
+int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char* build_options);
+int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char* build_options);
+
 int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options);
 int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options);
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);

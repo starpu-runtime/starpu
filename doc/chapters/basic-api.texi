@@ -2309,6 +2309,37 @@ This function compiles an OpenCL source code stored in a string.
 This function unloads an OpenCL compiled code.
 @end deftypefun
 
+@deftypefun void starpu_opencl_load_program_source ({const char *}@var{source_file_name}, char *@var{located_file_name}, char *@var{located_dir_name}, char *@var{opencl_program_source})
+Store the contents of the file @var{source_file_name} in the buffer
+@var{opencl_program_source}. The file @var{source_file_name} can be
+located in the current directory, or in the directory specified by the
+environment variable @code{STARPU_OPENCL_PROGRAM_DIR}, or in the
+directory @code{share/starpu/opencl} of the installation directory of
+StarPU, or in the source directory of StarPU.
+When the file is found, @code{located_file_name} is the full name of
+the file as it has been located on the system, @code{located_dir_name}
+the directory where it has been located. Otherwise, they are both set
+to the empty string.
+@end deftypefun
+
+@deftypefun int starpu_opencl_compile_opencl_from_file ({const char *}@var{source_file_name}, {const char*} @var{build_options})
+Compile the OpenCL kernel stored in the file @code{source_file_name}
+with the given options @code{build_options} and stores the result in
+the directory @code{$STARPU_HOME/.starpu/opencl} with the same
+filename as @code{source_file_name}. The compilation is done for every
+OpenCL device, and the filename is suffixed with the vendor id and the
+device id of the OpenCL device.
+@end deftypefun
+
+@deftypefun int starpu_opencl_compile_opencl_from_string ({const char *}@var{opencl_program_source}, {const char *}@var{file_name}, {const char* }@var{build_options})
+Compile the OpenCL kernel in the string @code{opencl_program_source}
+with the given options @code{build_options} and stores the result in
+the directory @code{$STARPU_HOME/.starpu/opencl} with the filename
+@code{file_name}. The compilation is done for every
+OpenCL device, and the filename is suffixed with the vendor id and the
+device id of the OpenCL device.
+@end deftypefun
+
 @node Loading OpenCL kernels
 @subsection Loading OpenCL kernels
 
