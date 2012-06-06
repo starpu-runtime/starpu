@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,6 +75,32 @@ out:
 	return rv;
 }
 
+void _starpu_mkpath_and_check(const char *path, mode_t mode)
+{
+	int ret;
+
+	ret = _starpu_mkpath(path, mode);
+
+	if (ret == -1)
+	{
+		if (errno != EEXIST)
+		{
+			fprintf(stderr,"Error making StarPU directory %s:\n", path);
+			perror("mkdir");
+			STARPU_ASSERT(0);
+		}
+
+		/* make sure that it is actually a directory */
+		struct stat sb;
+		stat(path, &sb);
+		if (!S_ISDIR(sb.st_mode))
+		{
+			fprintf(stderr,"Error: %s is not a directory:\n", path);
+			STARPU_ASSERT(0);
+		}
+	}
+}
+
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
 {
 	int ret;
@@ -91,4 +117,19 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
 	STARPU_ASSERT (ret != EDEADLK);
 
 	return 1;
+}
+
+char *_starpu_get_home_path()
+{
+	char *path = getenv("XDG_CACHE_HOME");
+	if (!path)
+		path = getenv("STARPU_HOME");
+	if (!path)
+		path = getenv("HOME");
+	if (!path)
+		path = getenv("USERPROFILE");
+	if (!path)
+		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
+	_STARPU_DISP("Home path <%s>\n", path);
+	return path;
 }
