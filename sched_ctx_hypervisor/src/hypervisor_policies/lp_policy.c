@@ -160,7 +160,7 @@ static void _glp_resolve(int ns, int nw, double v[ns][nw], double flops[ns], dou
 //	glp_simplex(lp, NULL);
 	
 	double vmax1 = glp_get_obj_val(lp);
-	printf("vmax1 = %lf \n", vmax1);
+//	printf("vmax1 = %lf \n", vmax1);
 
 	n = 1;
 	for(s = 0; s < ns; s++)
@@ -360,25 +360,25 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 			v[i][0] = 200.0;//_get_velocity_per_worker_type(sc_w, STARPU_CUDA_WORKER);
 			v[i][1] = 20.0;//_get_velocity_per_worker_type(sc_w, STARPU_CPU_WORKER);
 			flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
-			printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
+//			printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
 		}
                 
 		int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
 			_glp_resolve(nsched_ctxs, 2, v, flops, res);
-			for( i = 0; i < nsched_ctxs; i++)
-			{
-				printf("ctx %d/worker type %d: n = %lf \n", i, 0, res[i][0]);
-				printf("ctx %d/worker type %d: n = %lf \n", i, 1, res[i][1]);
-			}
+/* 			for( i = 0; i < nsched_ctxs; i++) */
+/* 			{ */
+/* 				printf("ctx %d/worker type %d: n = %lf \n", i, 0, res[i][0]); */
+/* 				printf("ctx %d/worker type %d: n = %lf \n", i, 1, res[i][1]); */
+/* 			} */
 			int res_rounded[nsched_ctxs][2];
-			_round_double_to_int(nsched_ctxs, 2, res, res_rounded);
-			for( i = 0; i < nsched_ctxs; i++)
-			{
-				printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]);
-				printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]);
-			}
+ 			_round_double_to_int(nsched_ctxs, 2, res, res_rounded);
+	/* 		for( i = 0; i < nsched_ctxs; i++) */
+/* 			{ */
+/* 				printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]); */
+/* 				printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]); */
+/* 			} */
 			
 			_redistribute_resources_in_ctxs(nsched_ctxs, 2, res_rounded, res);
 			

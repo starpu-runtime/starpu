@@ -17,7 +17,8 @@
 #include "policy_utils.h"
 #include <math.h>
 
-static struct bound_task_pool *task_pools, *last;
+//static struct bound_task_pool *task_pools, *last;
+static struct bound_task_pool *task_pools;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -26,12 +27,12 @@ static void lp3_handle_submitted_job(struct starpu_task *task, unsigned footprin
 	pthread_mutex_lock(&mutex);
 	struct bound_task_pool *tp;
 	
-	if (last && last->cl == task->cl && last->footprint == footprint && last->sched_ctx_id == task->sched_ctx)
-		tp = last;
-	else
-		for (tp = task_pools; tp; tp = tp->next)
-			if (tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
-					break;
+/* 	if (last && last->cl == task->cl && last->footprint == footprint && last->sched_ctx_id == task->sched_ctx) */
+/* 		tp = last; */
+/* 	else */
+	for (tp = task_pools; tp; tp = tp->next)
+		if (tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
+			break;
 	
 	if (!tp)
 	{
@@ -42,8 +43,12 @@ static void lp3_handle_submitted_job(struct starpu_task *task, unsigned footprin
 		tp->n = 0;
 		tp->next = task_pools;
 		task_pools = tp;
+//		printf("add t_foot%d_%s\n", (int)tp->footprint, tp->cl->model->symbol);
 	}
-	
+/* 	else */
+/* 	{ */
+/* 		printf("increment t_foot%d_%s\n", (int)tp->footprint, tp->cl->model->symbol); */
+/* 	} */
 	/* One more task of this kind */
 	tp->n++;
 	pthread_mutex_unlock(&mutex);
@@ -65,7 +70,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt])
                        else
                                 times[w][t] = length / 1000.;
 			
-//			printf("t%d on worker %d ctx %d: %lf \n", t, w, tp->sched_ctx_id, times[w][t]);
+//			printf("t%d_%s on worker %d ctx %d: %lf \n", t, tp->cl->model->symbol, w, tp->sched_ctx_id, times[w][t]);
                 }
 //		printf("\n");
         }
@@ -123,7 +128,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				char name[32];
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
 				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);	
-				glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_LO, 0., 0.);
+				glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
 			}
 
 		int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
@@ -170,7 +175,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				ja[n] = nw*nt+s*nw+w+1;
 				ar[n] = (-1) * tmax;
 				n++;
-				glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0, 0);
+				glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0.0, 0.0);
 			}
 		}
 
@@ -212,7 +217,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				n++;
 			}
 
-			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
+			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
 		}
 
 //		printf("n = %d nw*ns  = %d ne = %d\n", n, nw*ns, ne);
@@ -223,7 +228,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 	glp_smcp parm;
 	glp_init_smcp(&parm);
-	parm.msg_lev = GLP_MSG_OFF;
+//	parm.msg_lev = GLP_MSG_OFF;
 	int ret = glp_simplex(lp, &parm);
 	if (ret)
 	{
@@ -232,6 +237,15 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		return 0.0;
 	}
 
+	int stat = glp_get_prim_stat(lp);
+
+	if(stat == GLP_NOFEAS)
+	{
+		printf("NO FEASIBLE SOLUTION \n");
+		glp_delete_prob(lp);
+		lp = NULL;
+		return 0.0;
+	}
 	double res = glp_get_obj_val(lp);
 
 	printf("Z: %f (must be eq to nw %d)\n", res, nw);
@@ -292,6 +306,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 }
 
 static int done = 0;
+static int first = 0;
 static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 {
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
@@ -299,6 +314,12 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
+		if(!first)
+		{
+			task_pools = NULL;
+			first = 1;
+		}
+
 		if(sc_w->submitted_flops < sc_w->total_flops)
 		{
 			pthread_mutex_unlock(&act_hypervisor_mutex);
@@ -336,12 +357,14 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 				}
 
 			double tmax = 30000;
+			
 			double res = 1.0;
+			unsigned found_sol = 0;
 			while(tmax >= 1.0)
 			{
 				printf("resolve for tmax = %lf\n", tmax);
 				res = _glp_resolve(ns, nw, nt, draft_tasks, tmax, draft_w_in_s);
-				if(res == (double)nw)
+				if(res != 0.0)
 				{
 					for(w = 0; w < nw; w++)
 						for(t = 0; t < nt; t++)
@@ -349,16 +372,20 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 					for(s = 0; s < ns; s++)
 						for(w = 0; w < nw; w++)
 							w_in_s[s][w] = draft_w_in_s[s][w];
-
+					tmax /= 2;
+					found_sol = 1;
 				}
 				else
-				{
-					
-					printf("break\n");
 					break;
-				}
-				tmax /= 2;
+					
 			}
+
+/* 			for(w = 0; w < nw; w++) */
+/* 				for(t = 0; t < nt; t++) */
+/* 					tasks[w][t] = draft_tasks[w][t]; */
+/* 			for(s = 0; s < ns; s++) */
+/* 				for(w = 0; w < nw; w++) */
+/* 					w_in_s[s][w] = draft_w_in_s[s][w]; */
 
 /* 			for(w = 0; w < nw; w++) */
 /* 				for (t = 0, tp = task_pools; tp; t++, tp = tp->next) */
@@ -367,7 +394,10 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 /* 						printf("ctx %d/worker %d/task type %d: res = %lf \n", tp->sched_ctx_id, w, t, tasks[w][t]); */
 /* 				} */
 
-			_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s);
+			if(found_sol)
+			{
+				_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s);
+			}
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 	}		

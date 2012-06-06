@@ -345,7 +345,7 @@ int _velocity_gap_btw_ctxs()
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
 //						printf("gap = %lf\n", gap);
-						if(gap > 5)
+						if(gap > 8)
 							return 1;
 					}
 				}

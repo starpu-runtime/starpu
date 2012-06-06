@@ -127,8 +127,9 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 		}
 
 		if (calibrate_model)
-
+		{
 			_starpu_update_perfmodel_history(j, j->task->cl->model,  perf_arch, worker_args->devid, measured,j->nimpl);
+		}
 
 
 	}
