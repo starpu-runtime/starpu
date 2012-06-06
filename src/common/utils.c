@@ -130,6 +130,5 @@ char *_starpu_get_home_path()
 		path = getenv("USERPROFILE");
 	if (!path)
 		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
-	_STARPU_DISP("Home path <%s>\n", path);
 	return path;
 }
