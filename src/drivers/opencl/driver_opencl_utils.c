@@ -173,7 +173,7 @@ void _starpu_opencl_create_binary_directory(char *path, size_t maxlen)
 
 	if (_directory_created == 0)
 	{
-		_STARPU_DISP("Creating directory %s\n", path);
+		_STARPU_DEBUG("Creating directory %s\n", path);
 		_starpu_mkpath_and_check(path, S_IRWXU);
 		_directory_created = 1;
 	}
@@ -302,7 +302,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			fwrite(binary, binary_len, 1, fh);
 			fclose(fh);
 			free(binary);
-			_STARPU_DISP("File <%s> created\n", binary_file_name);
+			_STARPU_DEBUG("File <%s> created\n", binary_file_name);
 		}
         }
         return EXIT_SUCCESS;
