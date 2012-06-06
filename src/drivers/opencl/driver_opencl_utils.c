@@ -173,8 +173,6 @@ void _starpu_opencl_create_binary_directory(char *path, size_t maxlen)
 
 	if (_directory_created == 0)
 	{
-		int ret;
-
 		_STARPU_DISP("Creating directory %s\n", path);
 		_starpu_mkpath_and_check(path, S_IRWXU);
 		_directory_created = 1;
@@ -195,7 +193,7 @@ char *_starpu_opencl_get_device_type_as_string(int id)
 	}
 }
 
-int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, char *source_file_name, int dev, cl_device_id device)
+int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, const char *source_file_name, int dev, cl_device_id device)
 {
 	char binary_directory[1024];
 	char *p;
@@ -205,8 +203,7 @@ int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, char *
 	_starpu_opencl_create_binary_directory(binary_directory, 1024);
 
 	p = strrchr(source_file_name, '/');
-	if (!p) p=(char *)source_file_name;
-	snprintf(binary_file_name, maxlen, "%s/%s", binary_directory, p);
+	snprintf(binary_file_name, maxlen, "%s/%s", binary_directory, p?p:source_file_name);
 
 	p = strstr(binary_file_name, ".cl");
 	if (p == NULL) p=binary_file_name + strlen(binary_file_name);
@@ -285,7 +282,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			size_t binary_len;
 			FILE *fh;
 
-			err = _starpu_opencl_get_binary_name(binary_file_name, 1024, (char *)source_file_name, dev, device);
+			err = _starpu_opencl_get_binary_name(binary_file_name, 1024, source_file_name, dev, device);
 			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 			err = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_len, NULL);
@@ -298,7 +295,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			fh = fopen(binary_file_name, "w");
 			if (fh == NULL)
 			{
-				_STARPU_DISP("Error: Failed to open file\n");
+				_STARPU_DISP("Error: Failed to open file <%s>\n", binary_file_name);
 				perror("fopen");
 				return EXIT_FAILURE;
 			}
