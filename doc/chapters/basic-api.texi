@@ -2340,6 +2340,12 @@ OpenCL device, and the filename is suffixed with the vendor id and the
 device id of the OpenCL device.
 @end deftypefun
 
+@deftypefun int starpu_opencl_load_binary_opencl ({const char *}@var{kernel_id}, {struct starpu_opencl_program *}@var{opencl_programs})
+Compile the binary OpenCL kernel identified with @var{id}. For every
+OpenCL device, the binary OpenCL kernel will be loaded from the file
+@code{$STARPU_HOME/.starpu/opencl/<kernel_id>.<device_type>.vendor_id_<vendor_id>_device_id_<device_id>}.
+@end deftypefun
+
 @node Loading OpenCL kernels
 @subsection Loading OpenCL kernels
 

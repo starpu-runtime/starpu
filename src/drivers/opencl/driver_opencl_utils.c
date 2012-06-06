@@ -370,6 +370,76 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
 	return _starpu_opencl_compile_or_load_opencl_from_file(source_file_name, opencl_programs, build_options);
 }
 
+int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs)
+{
+        unsigned int dev;
+        unsigned int nb_devices;
+
+        nb_devices = _starpu_opencl_get_device_count();
+        // Iterate over each device
+        for(dev = 0; dev < nb_devices; dev ++)
+	{
+                cl_device_id device;
+                cl_context   context;
+                cl_program   program;
+                cl_int       err;
+		char        *binary;
+		char         binary_file_name[1024];
+		size_t       length;
+		cl_int       binary_status;
+
+		opencl_programs->programs[dev] = NULL;
+
+                starpu_opencl_get_device(dev, &device);
+                starpu_opencl_get_context(dev, &context);
+                if (context == NULL)
+		{
+                        _STARPU_DEBUG("[%d] is not a valid OpenCL context\n", dev);
+                        continue;
+                }
+
+		// Load the binary buffer
+		err = _starpu_opencl_get_binary_name(binary_file_name, 1024, kernel_id, dev, device);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		binary = _starpu_opencl_load_program_source(binary_file_name);
+		length = strlen(binary);
+
+                // Create the compute program from the binary buffer
+                program = clCreateProgramWithBinary(context, 1, &device, &length, (const unsigned char **) &binary, &binary_status, &err);
+                if (!program || err != CL_SUCCESS) {
+			_STARPU_DISP("Error: Failed to load program binary!\n");
+			return EXIT_FAILURE;
+		}
+
+                // Build the program executable
+                err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+
+		// Get the status
+		{
+		     cl_build_status status;
+		     size_t len;
+		     static char buffer[4096] = "";
+
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+		     if (len > 2)
+			  _STARPU_DISP("Compilation output\n%s\n", buffer);
+
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
+		     if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
+		     {
+			  _STARPU_DISP("Error: Failed to build program executable!\n");
+			  _STARPU_DISP("clBuildProgram: %d - clGetProgramBuildInfo: %d\n", err, status);
+			  return EXIT_FAILURE;
+		     }
+
+		}
+
+                // Store program
+		opencl_programs->programs[dev] = program;
+	}
+	return 0;
+}
+
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
