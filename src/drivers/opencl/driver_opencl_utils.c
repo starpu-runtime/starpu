@@ -165,6 +165,30 @@ char *_starpu_opencl_load_program_source(const char *filename)
         return source;
 }
 
+
+static
+char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
+{
+	struct stat statbuf;
+	FILE        *fh;
+	char        *binary;
+
+	fh = fopen(filename, "r");
+	if (fh == 0)
+		return NULL;
+
+	stat(filename, &statbuf);
+
+	binary = (char *) malloc(statbuf.st_size);
+	if (!binary)
+		return binary;
+
+	fread(binary, statbuf.st_size, 1, fh);
+
+	*len = statbuf.st_size;
+	return binary;
+}
+
 void _starpu_opencl_create_binary_directory(char *path, size_t maxlen)
 {
 	static int _directory_created = 0;
@@ -401,8 +425,7 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 		// Load the binary buffer
 		err = _starpu_opencl_get_binary_name(binary_file_name, 1024, kernel_id, dev, device);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-		binary = _starpu_opencl_load_program_source(binary_file_name);
-		length = strlen(binary);
+		binary = _starpu_opencl_load_program_binary(binary_file_name, &length);
 
                 // Create the compute program from the binary buffer
                 program = clCreateProgramWithBinary(context, 1, &device, &length, (const unsigned char **) &binary, &binary_status, &err);
