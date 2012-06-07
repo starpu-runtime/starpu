@@ -103,7 +103,6 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
 #ifdef STARPU_USE_FXT
-#include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
 
