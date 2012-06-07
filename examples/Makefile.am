@@ -741,8 +741,6 @@ binary_binary_SOURCES =	\
 if STARPU_USE_OPENCL
 binary_binary_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
-nobase_STARPU_OPENCL_DATA_DATA += \
-	incrementer/incrementer_kernels_opencl_kernel.cl
 endif
 
 #####################
