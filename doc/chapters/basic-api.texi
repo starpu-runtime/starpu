@@ -612,12 +612,12 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
-Register the sparse matrix made of @var{nnz} non-zero values of size
+Register the sparse matrix made of @var{nnz} non-zero blocks of elements of size
 @var{elemsize} stored in @var{nzval} and initializes @var{handle} to represent
 it. Blocks have size @var{r} * @var{c}. @var{nrow} is the number of rows (in
-terms of blocks), @var{colind} is the list of positions of the non-zero entries
-on the row, @var{rowptr} is the index (in nzval) of the first entry of the row.
-@var{fristentry} is the index of the first entry of the given arrays (usually 0
+terms of blocks), @var{colind[i]} is the block-column index for block @code{i}
+in @code{nzval}, @var{rowptr[i]} is the block-index (in nzval) of the first block of row @code{i}.
+@var{firstentry} is the index of the first entry of the given arrays (usually 0
 or 1).
 @end deftypefun
 
