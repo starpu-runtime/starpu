@@ -112,7 +112,7 @@ int gc_entity_release_ex(entity e) {
   if (refs != 0)
     return 0;
 
-  DEBUG_MSG("Releasing entity %lx\n", e);
+  DEBUG_MSG("Releasing entity %p\n", e);
 
   GC_LOCK;
 
