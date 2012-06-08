@@ -98,7 +98,7 @@ static char * code =  CODE;
 
 int check = 0;
 
-static void __attribute__((unused)) parse_args(int argc, char **argv)
+static void __attribute__((unused)) parse_args(int argc, const char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
