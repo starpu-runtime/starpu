@@ -662,7 +662,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 	}
 }
 
-static void notify_submitted_job(struct starpu_task *task, unsigned footprint)
+static void notify_submitted_job(struct starpu_task *task, uint32_t footprint)
 {
 	pthread_mutex_lock(&act_hypervisor_mutex);
 	hypervisor.sched_ctx_w[task->sched_ctx].submitted_flops += task->flops;

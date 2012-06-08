@@ -155,7 +155,7 @@ struct starpu_performance_counters {
 	void (*notify_pushed_task)(unsigned sched_ctx, int worker);
 	void (*notify_poped_task)(unsigned sched_ctx, int worker, double flops);
 	void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid);
-	void (*notify_submitted_job)(struct starpu_task *task, unsigned footprint);
+	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint);
 };
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR

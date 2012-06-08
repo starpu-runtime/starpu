@@ -225,7 +225,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	if(sched_ctx != NULL && j->task->sched_ctx != 0 && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 	{
-		_starpu_compute_buffers_footprint(NULL, STARPU_CPU_DEFAULT, 0, j);
+		_starpu_compute_buffers_footprint(j->task->cl->model, STARPU_CPU_DEFAULT, 0, j);
 		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint);
 	}
 #endif

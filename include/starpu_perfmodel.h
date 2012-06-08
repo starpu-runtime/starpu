@@ -208,7 +208,7 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
 int starpu_list_models(FILE *output);
-double starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned footprint);
+double starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, uint32_t footprint);
 void starpu_force_bus_sampling(void);
 void starpu_bus_print_bandwidth(FILE *f);
 
