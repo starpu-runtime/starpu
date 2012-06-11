@@ -358,6 +358,17 @@ This function mustn't be called if @var{bundle} is already closed and/or @var{ta
 Inform the runtime that the user won't modify @var{bundle} anymore, it means no more inserting or removing task. Thus the runtime can destroy it when possible.
 @end deftypefun
 
+@deftypefun double starpu_task_bundle_expected_length (starpu_task_bundle_t @var{bundle}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+Return the expected duration of the entire task bundle in µs.
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_power (starpu_task_bundle_t @var{bundle}, enum starpu_perf_archtype @var{arch}, unsigned @var{nimpl})
+Return the expected power consumption of the entire task bundle in J.
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_data_transfer_time (starpu_task_bundle_t @var{bundle}, unsigned @var{memory_node})
+Return the time (in µs) expected to transfer all data used within the bundle.
+@end deftypefun
 
 @node Task Lists
 @section Task Lists
