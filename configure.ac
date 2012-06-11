@@ -913,7 +913,7 @@ fi
 
 AC_CHECK_HEADERS([glpk.h])
 STARPU_HAVE_LIBRARY(GLPK, [glpk])
-
+AM_CONDITIONAL([STARPU_HAVE_GLPK], [test "x$build_sched_ctx_hypervisor" = "xyes"])
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #

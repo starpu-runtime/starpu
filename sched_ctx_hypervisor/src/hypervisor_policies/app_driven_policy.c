@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "policy_utils.h"
+#include "policy_tools.h"
 
 void app_driven_handle_post_exec_hook(unsigned sched_ctx, struct starpu_htbl32_node_s* resize_requests, int task_tag)
 {
