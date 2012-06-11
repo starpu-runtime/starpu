@@ -1100,10 +1100,10 @@ build_variable_from_file_contents (location_t loc,
 	  err = fstatat (dir_fd, file, &st, 0);
 	  if (err != 0)
 	    close (dir_fd);
-
-	  /* Leave DIRS unchanged so it can be referred to in diagnostics
-	     below.  */
-	  break;
+	  else
+	    /* Leave DIRS unchanged so it can be referred to in diagnostics
+	       below.  */
+	    break;
 	}
     }
 
