@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "policy_tools.h"
+#include "lp_tools.h"
 #include <math.h>
 
 static struct bound_task_pool *task_pools = NULL;
@@ -91,7 +91,8 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	{
 		double times[nw][nt];
 		int ne = nt * nw /* worker execution time */
-			+ nw * (nt+ns)
+			+ nw * ns
+			+ nw * nt
 			+ nw * ns
 			+ 1; /* glp dumbness */
 		int n = 1;
@@ -214,7 +215,6 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
 		}
 
-//		printf("n = %d nw*ns  = %d ne = %d\n", n, nw*ns, ne);
 		STARPU_ASSERT(n == ne);
 
 		glp_load_matrix(lp, ne-1, ia, ja, ar);
@@ -310,7 +310,6 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 
 		if(_velocity_gap_btw_ctxs() && !done)
 		{
-			done = 1;
 			int ns = sched_ctx_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 			int nt = 0; /* Number of different kinds of tasks */
@@ -338,15 +337,19 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 					draft_w_in_s[s][w] = 0.0;
 				}
 
-			double tmax = 30000.0;
-			
+			/* smallest possible tmax, difficult to obtain as we 
+			   compute the nr of flops and not the tasks */
+			double smallest_tmax = _lp_get_tmax();
+			double tmax = smallest_tmax * ns;
+			printf("tmax = %lf\n", tmax);
+
 			double res = 1.0;
 			unsigned has_sol = 0;
 			double tmin = 0.0;
 			double old_tmax = 0.0;
 			unsigned found_sol;
 			/* we fix tmax and we do not treat it as an unknown
-			   we just vary its values usiby dichotomy */
+			   we just vary by dichotomy its values*/
 			while(tmax > 1.0)
 			{
 				/* find solution and save the values in draft tables
@@ -371,21 +374,33 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 				   bigger than the old min */
 				if(has_sol)
 				{
+					printf("%lf: has sol\n", tmax);
 					if(old_tmax != 0.0 && (old_tmax - tmax) < 0.5)
 						break;
 					old_tmax = tmax;
 				}
 				else /*else try a bigger one but smaller than the old tmax */
 				{
+					printf("%lf: no sol\n", tmax);
 					tmin = tmax;
 					if(old_tmax != 0.0)
 						tmax = old_tmax;
 				}
+				if(tmin == tmax) break;
 				tmax = _find_tmax(tmin, tmax);
+
+				if(tmax < smallest_tmax)
+				{
+					found_sol = 0;
+					break;
+				}
 			}
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
+			{
+				done = 1;
 				_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s);
+			}
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 	}		

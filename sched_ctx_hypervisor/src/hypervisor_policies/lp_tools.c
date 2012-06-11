@@ -173,9 +173,16 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 	}
 
 #ifdef HAVE_GLPK_H	
-	return _glp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res);
+	return 1/_glp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res);
 #else
 	return 0.0;
 #endif
 }
 
+double _lp_get_tmax()
+{
+	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	
+	double res[nsched_ctxs][2];
+	return _lp_get_nworkers_per_ctx(nsched_ctxs, 2, res) * 1000;
+}

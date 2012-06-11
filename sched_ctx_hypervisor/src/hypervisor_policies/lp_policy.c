@@ -14,12 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//#include "policy_utils.h"
-
-
-/*                                                                                                                                                                                                                  
- * GNU Linear Programming Kit backend                                                                                                                                                                               
- */
 #include "lp_tools.h"
 
 static void _round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw])
