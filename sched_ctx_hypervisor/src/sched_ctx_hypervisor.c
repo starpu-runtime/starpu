@@ -57,6 +57,7 @@ static void _load_hypervisor_policy(struct hypervisor_policy *policy)
         }
 #endif
 	hypervisor.policy.name = policy->name;
+	hypervisor.policy.size_ctxs = policy->size_ctxs;
 	hypervisor.policy.handle_poped_task = policy->handle_poped_task;
 	hypervisor.policy.handle_pushed_task = policy->handle_pushed_task;
 	hypervisor.policy.handle_idle_cycle = policy->handle_idle_cycle;
@@ -134,6 +135,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_
 	{
 		hypervisor.resize[i] = 0;
 		hypervisor.configurations[i] = NULL;
+		hypervisor.sr = NULL;
 		hypervisor.sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].sched_ctx = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].config = NULL;
@@ -426,7 +428,6 @@ void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, 
 		printf("\n");
 
 		starpu_remove_workers_from_sched_ctx(workers_to_remove, nworkers_to_remove, sched_ctx);
-
 /* 		hypervisor.sched_ctx_w[sched_ctx].resize_ack.receiver_sched_ctx = sched_ctx; */
 /* 		hypervisor.sched_ctx_w[sched_ctx].resize_ack.moved_workers = (int*)malloc(nworkers_to_remove * sizeof(int)); */
 /* 		hypervisor.sched_ctx_w[sched_ctx].resize_ack.nmoved_workers = nworkers_to_remove; */
@@ -672,6 +673,18 @@ static void notify_submitted_job(struct starpu_task *task, uint32_t footprint)
 		hypervisor.policy.handle_submitted_job(task, footprint);
 }
 
+void sched_ctx_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+{
+	int curr_nsched_ctxs = sched_ctxs == NULL ? hypervisor.nsched_ctxs : nsched_ctxs;
+	int *curr_sched_ctxs = sched_ctxs == NULL ? hypervisor.sched_ctxs : sched_ctxs;
+	int s;
+	for(s = 0; s < curr_nsched_ctxs; s++)
+		hypervisor.resize[curr_sched_ctxs[s]] = 1;
+
+	if(hypervisor.policy.size_ctxs)
+		hypervisor.policy.size_ctxs(curr_sched_ctxs, curr_nsched_ctxs, workers, nworkers);
+}
+
 struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx)
 {
 	return &hypervisor.sched_ctx_w[sched_ctx];
@@ -685,4 +698,35 @@ int* sched_ctx_hypervisor_get_sched_ctxs()
 int sched_ctx_hypervisor_get_nsched_ctxs()
 {
 	return hypervisor.nsched_ctxs;
+}
+
+void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+{
+	hypervisor.sr = (struct size_request*)malloc(sizeof(struct size_request));
+	hypervisor.sr->sched_ctxs = sched_ctxs;
+	hypervisor.sr->nsched_ctxs = nsched_ctxs;
+	hypervisor.sr->workers = workers;
+	hypervisor.sr->nworkers = nworkers;
+}
+
+unsigned sched_ctx_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers)
+{
+	if(hypervisor.sr != NULL)
+	{
+		*sched_ctxs = hypervisor.sr->sched_ctxs;
+		*nsched_ctxs = hypervisor.sr->nsched_ctxs;
+		*workers = hypervisor.sr->workers;
+		*nworkers = hypervisor.sr->nworkers;
+		return 1;
+	}
+	return 0;
+}
+
+void sched_ctx_hypervisor_free_size_req(void)
+{
+	if(hypervisor.sr != NULL)
+	{
+		free(hypervisor.sr);
+		hypervisor.sr = NULL;
+	}
 }

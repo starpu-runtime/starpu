@@ -479,6 +479,7 @@ void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 }
 
 struct hypervisor_policy lp2_policy = {
+	.size_ctxs = NULL,
 	.handle_poped_task = lp2_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,

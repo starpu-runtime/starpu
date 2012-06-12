@@ -93,6 +93,7 @@ struct sched_ctx_wrapper {
 struct hypervisor_policy {
 	const char* name;
 	unsigned custom;
+	void (*size_ctxs)(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
 	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
 	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
 	void (*handle_poped_task)(unsigned sched_ctx, int worker);
@@ -139,3 +140,11 @@ char* sched_ctx_hypervisor_get_policy();
 void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
 
 void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx);
+
+void sched_ctx_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+
+unsigned sched_ctx_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);	
+
+void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);	
+
+void sched_ctx_hypervisor_free_size_req(void);

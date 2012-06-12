@@ -2,7 +2,7 @@
 
 #ifdef HAVE_GLPK_H
 
-static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw])
+static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], double total_nw[nw])
 {
 	int s, w;
 	glp_prob *lp;
@@ -122,11 +122,11 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 
 		/*sum(all gpus) = 3*/
 		if(w == 0)
-			glp_set_row_bnds(lp, ns+w+1, GLP_FX, 3., 3.);
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
 
 		/*sum(all cpus) = 9*/
 		if(w == 1) 
-			glp_set_row_bnds(lp, ns+w+1, GLP_FX, 9., 9.);
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
 	}
 
 	STARPU_ASSERT(n == ne);
@@ -156,7 +156,7 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 
 #endif //HAVE_GLPK_H
 
-double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers])
+double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers])
 {
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 	double v[nsched_ctxs][ntypes_of_workers];
@@ -173,16 +173,20 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 	}
 
 #ifdef HAVE_GLPK_H	
-	return 1/_glp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res);
+	return 1/_glp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
 #else
 	return 0.0;
 #endif
 }
 
-double _lp_get_tmax()
+double _lp_get_tmax(int nw, int *workers)
 {
+	int ntypes_of_workers = 2;
+	int total_nw[ntypes_of_workers];
+	_get_total_nw(workers, nw, 2, total_nw);
+
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
 	
-	double res[nsched_ctxs][2];
-	return _lp_get_nworkers_per_ctx(nsched_ctxs, 2, res) * 1000;
+	double res[nsched_ctxs][ntypes_of_workers];
+	return _lp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, res, total_nw) * 1000;
 }

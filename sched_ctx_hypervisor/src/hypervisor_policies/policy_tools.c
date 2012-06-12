@@ -60,6 +60,28 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 	return sched_ctx;
 }
 
+int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch)
+{
+	int *curr_workers = (int*)malloc((*nworkers)*sizeof(int));
+	
+	int w, worker;
+	int nfound_workers = 0;
+	for(w = 0; w < nall_workers; w++)
+	{
+		worker = workers == NULL ? w : workers[w];
+		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+		if(arch == STARPU_ALL || curr_arch == arch)
+		{
+			curr_workers[nfound_workers++] = worker;
+		}
+		if(nfound_workers == *nworkers)
+			break;
+	}
+	if(nfound_workers < *nworkers)
+		*nworkers = nfound_workers;
+	return curr_workers;
+}
+
 /* get first nworkers with the highest idle time in the context */
 int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_archtype arch)
 {
@@ -357,3 +379,20 @@ int _velocity_gap_btw_ctxs()
 }
 
 
+void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, double total_nw[ntypes_of_workers])
+{
+	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
+	int w;
+	for(w = 0; w < ntypes_of_workers; w++)
+		total_nw[w] = 0.0;
+
+	for(w = 0; w < current_nworkers; w++)
+	{
+		enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+			starpu_worker_get_type(workers[w]);
+		if(arch == STARPU_CPU_WORKER)
+			total_nw[1]++;
+		else
+			total_nw[0]++;
+	}
+}

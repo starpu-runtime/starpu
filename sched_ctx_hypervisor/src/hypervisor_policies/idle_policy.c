@@ -25,6 +25,7 @@ void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 }
 
 struct hypervisor_policy idle_policy = {
+	.size_ctxs = NULL,
 	.handle_poped_task = NULL,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = idle_handle_idle_cycle,

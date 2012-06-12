@@ -28,6 +28,7 @@ void app_driven_handle_post_exec_hook(unsigned sched_ctx, struct starpu_htbl32_n
 }
 
 struct hypervisor_policy app_driven_policy = {
+	.size_ctxs = NULL,
 	.handle_poped_task = NULL,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,

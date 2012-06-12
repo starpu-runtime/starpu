@@ -295,6 +295,7 @@ void gflops_rate_handle_poped_task(unsigned sched_ctx, int worker)
 }
 
 struct hypervisor_policy gflops_rate_policy = {
+	.size_ctxs = NULL,
 	.handle_poped_task = gflops_rate_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,
