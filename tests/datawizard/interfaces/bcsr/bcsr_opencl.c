@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011, 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,6 +39,9 @@ test_bcsr_opencl_func(void *buffers[], void *args)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
 	uint32_t nnz = STARPU_BCSR_GET_NNZ(buffers[0]);
+ 	uint32_t r   = ((struct starpu_bcsr_interface *)buffers[0])->r;
+ 	uint32_t c   = ((struct starpu_bcsr_interface *)buffers[0])->c;
+	nnz *= (r*c);
 	cl_mem nzval = (cl_mem)STARPU_BCSR_GET_NZVAL(buffers[0]);
 
 	cl_context context;
