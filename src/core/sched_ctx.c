@@ -90,13 +90,15 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 			worker[i]->tasks[sched_ctx_id]->execute_on_a_specific_worker = 1;
 			worker[i]->tasks[sched_ctx_id]->workerid = workerids[i];
 			worker[i]->tasks[sched_ctx_id]->destroy = 1;
+			worker[i]->tasks[sched_ctx_id]->control_task = 1;
 			int worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker[i], sched_ctx_id);
                         /* if the ctx is not in the worker's list it means the update concerns the addition of ctxs*/
                         if(worker_sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
                                 worker[i]->tasks[sched_ctx_id]->priority = 1;
 
 			_starpu_exclude_task_from_dag(worker[i]->tasks[sched_ctx_id]);
-			
+
+//			starpu_push_local_task(workerids[i], worker[i]->tasks[sched_ctx_id], 1);
 			_starpu_task_submit_internally(worker[i]->tasks[sched_ctx_id]);
 		}		
 	}
@@ -121,7 +123,9 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		{
 			int worker = workers->add(workers, (workerids == NULL ? i : workerids[i]));
 			if(worker >= 0)
+			{
 				added_workers[(*n_added_workers)++] = worker;		
+			}
 		}
 		else
 		{
@@ -334,16 +338,18 @@ void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, u
 	_starpu_add_workers_to_sched_ctx(sched_ctx, workers_to_add, nworkers_to_add, added_workers, &n_added_workers);
 
 	if(n_added_workers > 0)
+	{
 		_starpu_update_workers(added_workers, n_added_workers, sched_ctx->id);
+	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->changing_ctx_mutex);
 
-	if(n_added_workers > 0)
-	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex);
-		_STARPU_PTHREAD_COND_BROADCAST(&sched_ctx->no_workers_cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex);
-	}
+/* 	if(n_added_workers > 0) */
+/* 	{ */
+/* 		_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex); */
+/* 		_STARPU_PTHREAD_COND_BROADCAST(&sched_ctx->no_workers_cond); */
+/* 		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex); */
+/* 	} */
 
 	unsigned unlocked = 0;
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);

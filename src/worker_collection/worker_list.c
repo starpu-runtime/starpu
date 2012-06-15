@@ -35,8 +35,10 @@ static unsigned _worker_belongs_to_ctx(struct worker_collection *workers, int wo
 	
 	int i;
 	for(i = 0; i < nworkers; i++)
-	  if(workerids[i] == workerid)
-		  return 1;
+	{
+		if(workerids[i] == workerid)
+			return 1;
+	}
 	return 0;
 }
 
@@ -106,7 +108,8 @@ static int list_remove(struct worker_collection *workers, int worker)
 	}
 
 	_rearange_workerids(workerids, nworkers);
-	workers->nworkers--;
+	if(found_worker != -1)
+		workers->nworkers--;
 
 	return found_worker;
 }

@@ -272,7 +272,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			for (i = 0; i < task->cl->nbuffers; i++)
 				task->handles[i]->mf_node = node;
 		}
-		return _starpu_push_local_task(worker, task, 0);
+		if(task->priority > 0)
+			return _starpu_push_local_task(worker, task, 1);
+		else
+			return _starpu_push_local_task(worker, task, 0);
 	}
 	else
 	{

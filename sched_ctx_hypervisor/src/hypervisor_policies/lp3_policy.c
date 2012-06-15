@@ -23,7 +23,6 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	printf("~~~~~~~~~~~~~~~~~~~~~~~~size\n");
 	int ns = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = workers == NULL ? starpu_worker_get_count() : nworkers; /* Number of different workers */
 	int nt = 0; /* Number of different kinds of tasks */
@@ -293,7 +292,11 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
+		{
 			w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
+/* 			if(w_in_s[s][w]) */
+/* 				printf("%d in %d %lf \n",w, s, w_in_s[s][w]); */
+		}
 
 	glp_delete_prob(lp);
 	return res;
@@ -308,6 +311,8 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 	for(s = 0; s < ns; s++)
 	{
 		int workers_to_add[nw], workers_to_remove[nw];
+		int destination_ctx[nw][ns];
+
 		for(w = 0; w < nw; w++)
 		{
 			workers_to_add[w] = -1;
@@ -318,20 +323,78 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 
 		for(w = 0; w < nw; w++)
 		{
-			if(w_in_s[s][w] >= 0.5)
-				workers_to_add[nadd++] = workers == NULL ? w : workers[w];
+			enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+				starpu_worker_get_type(workers[w]);
+
+			if(arch == STARPU_CPU_WORKER)
+			{
+				if(w_in_s[s][w] >= 0.5)
+				{
+//					printf("add %d to ctx %d\n", w, s);
+					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
+				}
+				else
+				{
+//					printf("remove %d from ctx %d\n", w, s);
+					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
+					for(s2 = 0; s2 < ns; s2++)
+						if(s2 != s && w_in_s[s2][w] >= 0.5)
+							destination_ctx[w][s2] = 1;
+						else
+							destination_ctx[w][s2] = 0;
+					
+					
+				}
+			}
 			else
-				workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
+			{
+				if(w_in_s[s][w] >= 0.3)
+				{
+	//				printf("add %d to ctx %d\n", w, s);
+					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
+				}
+				else
+				{
+//					printf("remove %d from ctx %d\n", w, s);
+					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
+					for(s2 = 0; s2 < ns; s2++)
+						if(s2 != s && w_in_s[s2][w] >= 0.3)
+							destination_ctx[w][s2] = 1;
+						else
+							destination_ctx[w][s2] = 0;
+				}
+			}
+	
 		}
 		
 		if(!first_time)
 		{
-			printf("********resize \n");
-			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s]);
+			/* do not remove workers if they can't go anywhere */
+			int w2;
+			unsigned found_one_dest[nremove];
+			unsigned all_have_dest = 1;
+			for(w2 = 0; w2 < nremove; w2++)
+				found_one_dest[w2] = 0;
+
+			for(w2 = 0; w2 < nremove; w2++)
+				for(s2 = 0; s2 < ns; s2++)
+					if(destination_ctx[w2][s2] && sched_ctx_hypervisor_can_resize(sched_ctxs[s2]))
+					{
+						found_one_dest[w2] = 1;
+						break;
+					}
+			for(w2 = 0; w2 < nremove; w2++)
+			{
+				if(!found_one_dest[w2])
+				{
+					all_have_dest = 0;
+					break;
+				}
+			}
+			if(all_have_dest)
+				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s]);
 		}
-		else
-			printf("*********size \n");
-	
+
 		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
 		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
 		int i;
@@ -371,13 +434,12 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 	   compute the nr of flops and not the tasks */
 	double smallest_tmax = _lp_get_tmax(nw, workers);
 	double tmax = smallest_tmax * ns;
-	printf("tmax = %lf\n", tmax);
 	
 	double res = 1.0;
 	unsigned has_sol = 0;
 	double tmin = 0.0;
 	double old_tmax = 0.0;
-	unsigned found_sol;
+	unsigned found_sol = 0;
 	/* we fix tmax and we do not treat it as an unknown
 	   we just vary by dichotomy its values*/
 	while(tmax > 1.0)
@@ -404,14 +466,12 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 		   bigger than the old min */
 		if(has_sol)
 		{
-			printf("%lf: has sol\n", tmax);
 			if(old_tmax != 0.0 && (old_tmax - tmax) < 0.5)
 				break;
 			old_tmax = tmax;
 		}
 		else /*else try a bigger one but smaller than the old tmax */
 		{
-			printf("%lf: no sol\n", tmax);
 			tmin = tmax;
 			if(old_tmax != 0.0)
 				tmax = old_tmax;
@@ -421,14 +481,14 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 		
 		if(tmax < smallest_tmax)
 		{
-			found_sol = 0;
-			break;
+			tmax = old_tmax;
+			tmin = smallest_tmax;
+			tmax = _find_tmax(tmin, tmax);
 		}
 	}
 	return found_sol;
 }
 
-static int done = 0;
 static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 {
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
@@ -442,7 +502,7 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 			return;
 		}
 
-		if(_velocity_gap_btw_ctxs() && !done)
+		if(_velocity_gap_btw_ctxs())
 		{
 			int ns = sched_ctx_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
@@ -457,7 +517,6 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
 			{
-				done = 1;
 				_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s, 0, NULL, NULL);
 			}
 		}
@@ -468,7 +527,6 @@ static void lp3_handle_poped_task(unsigned sched_ctx, int worker)
 
 static void lp3_size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	printf("require size !!!!!!!!!!!!!!\n");
 	sched_ctx_hypervisor_save_size_req(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 

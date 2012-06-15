@@ -135,6 +135,8 @@ struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
 double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
 
+double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
+
 char* sched_ctx_hypervisor_get_policy();
 
 void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
@@ -148,3 +150,5 @@ unsigned sched_ctx_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, i
 void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);	
 
 void sched_ctx_hypervisor_free_size_req(void);
+
+unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx);

@@ -315,8 +315,10 @@ static double _get_elapsed_flops(struct sched_ctx_wrapper* sc_w, int *npus, enum
 double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
 {
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
-
-        if( elapsed_flops >= 1.0)
+	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
+	double prc = elapsed_flops/sc_w->total_flops;
+	double prc_valid_velocity = elapsed_flops == total_elapsed_flops ? 0.05 : 0.2;
+        if( prc >= prc_valid_velocity)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = curr_time - sc_w->start_time;
@@ -367,7 +369,7 @@ int _velocity_gap_btw_ctxs()
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
 //						printf("gap = %lf\n", gap);
-						if(gap > 8)
+						if(gap > 2)
 							return 1;
 					}
 				}

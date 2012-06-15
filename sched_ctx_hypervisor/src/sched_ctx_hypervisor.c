@@ -417,6 +417,11 @@ void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned
 	return;
 }
 
+unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx)
+{
+	return hypervisor.resize[sched_ctx];
+}
+
 void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx)
 {
 	if(nworkers_to_remove > 0 && hypervisor.resize[sched_ctx])
@@ -461,6 +466,15 @@ double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wra
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 		ret_val += sc_w->elapsed_flops[i];
+	return ret_val;
+}
+
+double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w)
+{
+	double ret_val = 0.0;
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		ret_val += sc_w->total_elapsed_flops[i];
 	return ret_val;
 }
 
@@ -516,36 +530,69 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 		
 		unsigned resize_completed = (nacked_workers == nmoved_workers);
 		unsigned receiver_sched_ctx = resize_ack->receiver_sched_ctx;
-		/* if the permission to resize is not allowed by the user don't do it
-		   whatever the application says */
-		if(resize_completed && !((hypervisor.resize[sched_ctx] == 0 || hypervisor.resize[receiver_sched_ctx] == 0) && imposed_resize) && worker == moved_workers[0])
-		{				
-			/* info concerning only the gflops_rate strateg */
-			struct sched_ctx_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
-			struct sched_ctx_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
+		unsigned unknown_sender = receiver_sched_ctx == sched_ctx;
+		if(!unknown_sender)
+		{
+			/* if the permission to resize is not allowed by the user don't do it
+			   whatever the application says */
+			if(resize_completed && !((hypervisor.resize[sched_ctx] == 0 || hypervisor.resize[receiver_sched_ctx] == 0) && imposed_resize) && worker == moved_workers[0])
+			{				
+				/* info concerning only the gflops_rate strateg */
+				struct sched_ctx_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
+				struct sched_ctx_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
+				
+				double start_time =  starpu_timing_now();
+				sender_sc_w->start_time = start_time;
+				sender_sc_w->remaining_flops = sender_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sender_sc_w);
+				_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
+				
+				receiver_sc_w->start_time = start_time;
+				receiver_sc_w->remaining_flops = receiver_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(receiver_sc_w);
+				_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
+				
+				hypervisor.resize[sender_sched_ctx] = 1;
+				hypervisor.resize[receiver_sched_ctx] = 1;
+				/* if the user allowed resizing leave the decisions to the application */
+				if(imposed_resize)  imposed_resize = 0;
+				
+				pthread_mutex_lock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
+				resize_ack->receiver_sched_ctx = -1;
+				resize_ack->nmoved_workers = 0;
+				free(resize_ack->moved_workers);
+				free(resize_ack->acked_workers);
+				pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
+			}
 			
-			double start_time =  starpu_timing_now();
-			sender_sc_w->start_time = start_time;
-			sender_sc_w->remaining_flops = sender_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sender_sc_w);
-			_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
-			
-			receiver_sc_w->start_time = start_time;
-			receiver_sc_w->remaining_flops = receiver_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(receiver_sc_w);
-			_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
-
-			hypervisor.resize[sender_sched_ctx] = 1;
-			hypervisor.resize[receiver_sched_ctx] = 1;
-			/* if the user allowed resizing leave the decisions to the application */
-			if(imposed_resize)  imposed_resize = 0;
-
-			pthread_mutex_lock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
-			resize_ack->receiver_sched_ctx = -1;
-			resize_ack->nmoved_workers = 0;
-			free(resize_ack->moved_workers);
-			free(resize_ack->acked_workers);
-			pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
+			return resize_completed;
 		}
-		return resize_completed;
+		else
+		{
+			/* if the permission to resize is not allowed by the user don't do it
+			   whatever the application says */
+			if(resize_completed && !(hypervisor.resize[sched_ctx] == 0 && imposed_resize) && worker == moved_workers[0])
+			{				
+				/* info concerning only the gflops_rate strateg */
+				struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
+				
+				double start_time =  starpu_timing_now();
+				sc_w->start_time = start_time;
+				sc_w->remaining_flops = sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+				_set_elapsed_flops_per_sched_ctx(sched_ctx, 0.0);
+								
+				hypervisor.resize[sched_ctx] = 1;
+				/* if the user allowed resizing leave the decisions to the application */
+				if(imposed_resize)  imposed_resize = 0;
+				
+				pthread_mutex_lock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
+				resize_ack->receiver_sched_ctx = -1;
+				resize_ack->nmoved_workers = 0;
+				free(resize_ack->moved_workers);
+				free(resize_ack->acked_workers);
+				pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
+			}
+			
+			return resize_completed;
+		}
 	}
 	return 0;
 }
@@ -567,7 +614,8 @@ static void notify_idle_end(unsigned sched_ctx, int worker)
 		if(hypervisor.policy.handle_idle_end)
 			hypervisor.policy.handle_idle_end(sched_ctx, worker);
 		
-		_ack_resize_completed(sched_ctx, worker);
+		if(!hypervisor.resize[sched_ctx])
+			_ack_resize_completed(sched_ctx, worker);
 	}
 }
 
