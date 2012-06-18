@@ -127,7 +127,7 @@ executing tasks. If this value is equal to -1, the default value is used. This
 can also be specified with the @code{STARPU_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
-By default, StarPU parallel tasks concurrently.
+By default, StarPU executes parallel tasks concurrently.
 Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
 makes StarPU only start one parallel task at a time.
