@@ -615,8 +615,8 @@ Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of @var{nnz} non-zero blocks of elements of size
 @var{elemsize} stored in @var{nzval} and initializes @var{handle} to represent
 it. Blocks have size @var{r} * @var{c}. @var{nrow} is the number of rows (in
-terms of blocks), @var{colind[i]} is the block-column index for block @code{i}
-in @code{nzval}, @var{rowptr[i]} is the block-index (in nzval) of the first block of row @code{i}.
+terms of blocks), @code{colind[i]} is the block-column index for block @code{i}
+in @code{nzval}, @code{rowptr[i]} is the block-index (in nzval) of the first block of row @code{i}.
 @var{firstentry} is the index of the first entry of the given arrays (usually 0
 or 1).
 @end deftypefun
