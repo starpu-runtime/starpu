@@ -465,6 +465,9 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
               sizeof(struct dev_timing),
 			compar_dev_timing);
 
+#ifdef STARPU_DEVEL
+#  warning save timing_dtoh and timing_htod data to display them when calling starpu_machine_display ? (Brice would like that)
+#endif
 #ifdef STARPU_VERBOSE
         unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
