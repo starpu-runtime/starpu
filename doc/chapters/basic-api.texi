@@ -1952,6 +1952,10 @@ prints a list of all performance models on @var{output}.
 prints a matrix of bus bandwidths on @var{f}.
 @end deftypefun
 
+@deftypefun void starpu_bus_print_affinity ({FILE *}@var{f})
+prints the affinity devices on @var{f}.
+@end deftypefun
+
 @node Profiling API
 @section Profiling API
 

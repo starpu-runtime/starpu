@@ -211,6 +211,7 @@ int starpu_list_models(FILE *output);
 
 void starpu_force_bus_sampling(void);
 void starpu_bus_print_bandwidth(FILE *f);
+void starpu_bus_print_affinity(FILE *f);
 
 #ifdef __cplusplus
 }

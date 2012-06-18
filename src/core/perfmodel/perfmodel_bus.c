@@ -766,6 +766,42 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 }
 #endif /* STARPU_USE_OPENCL */
 
+void starpu_bus_print_affinity(FILE *f)
+{
+	unsigned cpu;
+	int gpu;
+
+	fprintf(f, "# GPU\t");
+	for(cpu = 0 ; cpu < ncpus ; cpu++)
+	{
+		fprintf(f, "CPU%d\t", cpu);
+	}
+	fprintf(f, "\n");
+
+#ifdef STARPU_USE_CUDA
+	for(gpu = 0 ; gpu<ncuda ; gpu++)
+	{
+		fprintf(f, "%d\t", gpu);
+		for (cpu = 0; cpu < ncpus; cpu++)
+		{
+			fprintf(f, "%d\t", cuda_affinity_matrix[gpu][cpu]);
+		}
+		fprintf(f, "\n");
+	}
+#endif
+#ifdef STARPU_USE_OPENCL
+	for(gpu = 0 ; gpu<nopencl ; gpu++)
+	{
+		fprintf(f, "%d\t", gpu);
+		for (cpu = 0; cpu < ncpus; cpu++)
+		{
+			fprintf(f, "%d\t", cuda_affinity_matrix[gpu][cpu]);
+		}
+		fprintf(f, "\n");
+	}
+#endif
+}
+
 /*
  *	Latency
  */
