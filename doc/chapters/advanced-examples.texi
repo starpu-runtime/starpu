@@ -353,15 +353,31 @@ model type). This still assumes performance regularity, but works
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
 form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
-STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
+STARPU_REGRESSION_BASED, but costs a lot more to compute).
+
+For instance,
 @code{tests/perfmodels/regression_based.c} uses a regression-based performance
-model for the @code{memset} operation. Of course, the application has to issue
+model for the @code{memset} operation.
+
+Of course, the application has to issue
 tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
-and maximum observed input size. For non-linear regression, since computing it
+and maximum observed input size. It can be useful to set the
+@code{STARPU_CALIBRATE} environment variable to @code{1} and run the application
+on varying input sizes, so as to feed the performance model for a variety of
+inputs. The @code{starpu_perfmodel_display} and @code{starpu_perfmodel_plot}
+tools can be used to observe how much the performance model is calibrated; when
+their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
+StarPU use the resulting performance model without recording new measures. If
+the data input sizes vary a lot, it is really important to set
+@code{STARPU_CALIBRATE} to @code{0}, otherwise StarPU will continue adding the
+measures, and result with a very big performance model, which will take time a
+lot of time to load and save.
+
+For non-linear regression, since computing it
 is quite expensive, it is only done at termination of the application. This
-means that the first execution uses history-based performance model to perform
-scheduling.
+means that the first execution of the application will use only history-based
+performance model to perform scheduling, without using regression.
 
 @item
 Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_function} field),
