@@ -197,7 +197,8 @@ examplebin_PROGRAMS +=				\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	ppm_downscaler/ppm_downscaler		\
-	ppm_downscaler/yuv_downscaler
+	ppm_downscaler/yuv_downscaler		\
+	pipeline/pipeline
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
@@ -218,7 +219,8 @@ examplebin_PROGRAMS +=				\
 	lu/lu_implicit_example_float		\
 	lu/lu_implicit_example_double		\
 	heat/heat				\
-	cg/cg
+	cg/cg					\
+	pipeline/pipeline
 endif
 
 if MKL_BLAS_LIB
@@ -281,7 +283,8 @@ STARPU_EXAMPLES +=				\
 	lu/lu_implicit_example_float		\
 	lu/lu_implicit_example_double		\
 	heat/heat				\
-	cg/cg
+	cg/cg					\
+	pipeline/pipeline
 endif
 
 if MKL_BLAS_LIB
@@ -846,6 +849,19 @@ gl_interop_gl_interop_SOURCES =			\
 
 gl_interop_gl_interop_LDADD =			\
 	$(STARPU_OPENGL_RENDER_LDFLAGS)
+endif
+
+####################
+# pipeline example #
+####################
+
+if !NO_BLAS_LIB
+pipeline_pipeline_SOURCES	=	\
+	pipeline/pipeline.c		\
+	common/blas.c
+
+pipeline_pipeline_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
 endif
 
 showcheck:
