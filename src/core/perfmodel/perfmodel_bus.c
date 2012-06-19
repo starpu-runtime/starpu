@@ -798,7 +798,7 @@ void starpu_bus_print_affinity(FILE *f)
 		fprintf(f, "%d\t", gpu);
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
-			fprintf(f, "%d\t", cuda_affinity_matrix[gpu][cpu]);
+			fprintf(f, "%d\t", opencl_affinity_matrix[gpu][cpu]);
 		}
 		fprintf(f, "\n");
 	}
