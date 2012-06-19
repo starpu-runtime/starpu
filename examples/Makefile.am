@@ -197,8 +197,7 @@ examplebin_PROGRAMS +=				\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	ppm_downscaler/ppm_downscaler		\
-	ppm_downscaler/yuv_downscaler		\
-	pipeline/pipeline
+	ppm_downscaler/yuv_downscaler
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
