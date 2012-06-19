@@ -33,7 +33,10 @@
 #include <stdint.h>
 #include <semaphore.h>
 #include <common/blas.h>
+
+#ifdef STARPU_USE_CUDA
 #include <cublas.h>
+#endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
