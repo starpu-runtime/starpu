@@ -113,9 +113,15 @@ static struct starpu_perfmodel pipeline_model_axpy =
 
 static struct starpu_codelet pipeline_codelet_axpy =
 {
-	.where = STARPU_CPU | STARPU_CUDA,
+	.where = STARPU_CPU
+#ifdef STARPU_USE_CUDA
+		| STARPU_CUDA
+#endif
+		,
 	.cpu_funcs = {pipeline_cpu_axpy, NULL},
+#ifdef STARPU_USE_CUDA
 	.cuda_funcs = {pipeline_cublas_axpy, NULL},
+#endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
 	.model = &pipeline_model_axpy
@@ -154,9 +160,15 @@ static struct starpu_perfmodel pipeline_model_sum =
 
 static struct starpu_codelet pipeline_codelet_sum =
 {
-	.where = STARPU_CPU | STARPU_CUDA,
+	.where = STARPU_CPU
+#ifdef STARPU_USE_CUDA
+		| STARPU_CUDA
+#endif
+		,
 	.cpu_funcs = {pipeline_cpu_sum, NULL},
+#ifdef STARPU_USE_CUDA
 	.cuda_funcs = {pipeline_cublas_sum, NULL},
+#endif
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.model = &pipeline_model_sum
