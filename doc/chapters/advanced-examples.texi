@@ -15,6 +15,7 @@
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
 * Data reduction::  
+* Temporary buffers::  
 * Parallel Tasks::
 * Debugging::
 * The multiformat interface::
@@ -684,6 +685,64 @@ int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
 
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading
 to yet more relaxed dependencies and more parallelism.
+
+@node Temporary buffers
+@section Temporary buffers
+
+There are two kinds of temporary buffers: temporary data which just pass results
+from a task to another, and scratch data which are needed only internally by
+tasks.
+
+@subsection Temporary data
+
+Data can sometimes be entirely produced by a task, and entirely consumed by
+another task, without the need for other parts of the application to access
+it. In such case, registration can be done without prior allocation, by using
+the special -1 memory node number, and passing a zero pointer. StarPU will
+actually allocate memory only when the task creating the content gets scheduled,
+and destroy it on unregistration.
+
+In addition to that, it can be tedious for the application to have to unregister
+the data, since it will not use its content anyway. The unregistration can be
+done lazily by using the @code{starpu_data_unregister_lazy(handle)} function,
+which will record that no more tasks accessing the handle will be submitted, so
+that it can be freed as soon as the last task accessing it is over.
+
+The following code examplifies both points: it registers the temporary
+data, submits three tasks accessing it, and records the data for automatic
+unregistration.
+
+@smallexample
+starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
+starpu_insert_task(&produce_data, STARPU_W, handle, 0);
+starpu_insert_task(&compute_data, STARPU_RW, handle, 0);
+starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
+starpu_data_unregister_lazy(handle);
+@end smallexample
+
+@subsection Scratch data
+
+Some kernels sometimes need temporary data to achieve the computations, i.e. a
+workspace. The application could allocate it at the start of the codelet
+function, and free it at the end, but that would be costly. It could also
+allocate one buffer per worker (similarly to @ref{Per-worker library
+initialization }), but that would make them systematic and permanent. A more
+optimized way is to use the SCRATCH data access mode, as examplified below,
+which provides per-worker buffers without content consistency.
+
+@smallexample
+starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
+for (i = 0; i < N; i++)
+    starpu_insert_task(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
+@end smallexample
+
+StarPU will make sure that the buffer is allocated before executing the task,
+and make this allocation per-worker: for CPU workers, notably, each worker has
+its own buffer. This means that each task submitted above will actually have its
+own workspace, which will actually be the same for all tasks running one after
+the other on the same worker. Also, if for instance GPU memory becomes scarce,
+StarPU will notice that it can free such buffers easily, since the content does
+not matter.
 
 @node Parallel Tasks
 @section Parallel Tasks
