@@ -174,11 +174,13 @@ static struct starpu_codelet pipeline_codelet_sum =
 	.model = &pipeline_model_sum
 };
 
-int main(void) {
-	int ret;
+int main(void)
+{
+	int ret = 0;
 	int k, l, c;
 	starpu_data_handle_t buffersX[K], buffersY[K], buffersP[K];
 	sem_t sems[C];
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		exit(77);
@@ -200,7 +202,6 @@ int main(void) {
 
 	/* Submits the l pipeline stages */
 	for (l = 0; l < L; l++) {
-		int ret;
 		float x = l;
 		float y = 2*l;
 		/* First wait for the C previous concurrent stages */
@@ -212,29 +213,39 @@ int main(void) {
 				STARPU_W, buffersX[l%K],
 				STARPU_VALUE, &x, sizeof(x),
 				0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task x");
 
 		ret = starpu_insert_task(&pipeline_codelet_x,
 				STARPU_W, buffersY[l%K],
 				STARPU_VALUE, &y, sizeof(y),
 				0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task y");
 
 		ret = starpu_insert_task(&pipeline_codelet_axpy,
 				STARPU_R, buffersX[l%K],
 				STARPU_RW, buffersY[l%K],
 				0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task axpy");
 
 		ret = starpu_insert_task(&pipeline_codelet_sum,
 				STARPU_R, buffersY[l%K],
 				STARPU_CALLBACK_WITH_ARG, (void (*)(void*))sem_post, &sems[l%C],
 				0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task sum");
 	}
 	starpu_task_wait_for_all();
 
+enodev:
+	for (k = 0; k < K; k++) {
+		starpu_data_unregister(buffersX[k]);
+		starpu_data_unregister(buffersY[k]);
+		starpu_data_unregister(buffersP[k]);
+	}
 	starpu_shutdown();
 
-	return 0;
+	return ret;
 }
