@@ -108,13 +108,9 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *w
                         if (isnan(length))
                                 times[w][t] = NAN;
                        else
-                                times[w][t] = length / 1000.;
-			
-//			printf("t%d_%x_%s on worker %d ctx %d: %lf ntasks = %d\n", t, tp->footprint, tp->cl->model->symbol, w, tp->sched_ctx_id, times[w][t], tp->n);
+                                times[w][t] = length / 1000.;	
                 }
-//		printf("\n");
         }
-//	printf("\n");
 }
 
 /*                                                                                                                                                                                                                  
@@ -292,11 +288,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
-		{
 			w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
-/* 			if(w_in_s[s][w]) */
-/* 				printf("%d in %d %lf \n",w, s, w_in_s[s][w]); */
-		}
 
 	glp_delete_prob(lp);
 	return res;
@@ -317,6 +309,8 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 		{
 			workers_to_add[w] = -1;
 			workers_to_remove[w] = -1;
+			for(s2 = 0; s2 < ns; s2++)
+				destination_ctx[w][s2] = -1;
 		}
 
 		int nadd = 0, nremove = 0;
@@ -330,32 +324,26 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 			{
 				if(w_in_s[s][w] >= 0.5)
 				{
-//					printf("add %d to ctx %d\n", w, s);
 					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
 				}
 				else
 				{
-//					printf("remove %d from ctx %d\n", w, s);
 					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
 					for(s2 = 0; s2 < ns; s2++)
 						if(s2 != s && w_in_s[s2][w] >= 0.5)
 							destination_ctx[w][s2] = 1;
 						else
-							destination_ctx[w][s2] = 0;
-					
-					
+							destination_ctx[w][s2] = 0;	
 				}
 			}
 			else
 			{
 				if(w_in_s[s][w] >= 0.3)
 				{
-	//				printf("add %d to ctx %d\n", w, s);
 					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
 				}
 				else
 				{
-//					printf("remove %d from ctx %d\n", w, s);
 					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
 					for(s2 = 0; s2 < ns; s2++)
 						if(s2 != s && w_in_s[s2][w] >= 0.3)
@@ -366,6 +354,12 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 			}
 	
 		}
+
+		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
+		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
+		int i;
+		for(i = 0; i < nadd; i++)
+			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
 		
 		if(!first_time)
 		{
@@ -378,14 +372,20 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 
 			for(w2 = 0; w2 < nremove; w2++)
 				for(s2 = 0; s2 < ns; s2++)
-					if(destination_ctx[w2][s2] && sched_ctx_hypervisor_can_resize(sched_ctxs[s2]))
+				{
+					/* if the worker has to be removed we should find a destination
+					   otherwise we are not interested */
+					if(destination_ctx[w2][s2] == -1)
+						found_one_dest[w2] = -1;
+					if(destination_ctx[w2][s2] == 1)// && sched_ctx_hypervisor_can_resize(sched_ctxs[s2]))
 					{
 						found_one_dest[w2] = 1;
 						break;
 					}
+				}
 			for(w2 = 0; w2 < nremove; w2++)
 			{
-				if(!found_one_dest[w2])
+				if(found_one_dest[w2] == 0)
 				{
 					all_have_dest = 0;
 					break;
@@ -394,12 +394,6 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 			if(all_have_dest)
 				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s]);
 		}
-
-		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
-		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
-		int i;
-		for(i = 0; i < nadd; i++)
-			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
 	}
 
 }

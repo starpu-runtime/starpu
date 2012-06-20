@@ -1,6 +1,7 @@
-#include <sched_ctx_hypervisor.h>
-#include <pthread.h>
+/* #include <sched_ctx_hypervisor.h> */
+/* #include <pthread.h> */
 
+#include "policy_tools.h"
 //enum starpu_archtype STARPU_ALL;
 
 static int _compute_priority(unsigned sched_ctx)
@@ -317,8 +318,10 @@ double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
 	double prc = elapsed_flops/sc_w->total_flops;
-	double prc_valid_velocity = elapsed_flops == total_elapsed_flops ? 0.05 : 0.2;
-        if( prc >= prc_valid_velocity)
+	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sc_w->sched_ctx);
+
+	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;
+        if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = curr_time - sc_w->start_time;
@@ -368,7 +371,6 @@ int _velocity_gap_btw_ctxs()
 					if(other_ctx_v != 0.0)
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
-//						printf("gap = %lf\n", gap);
 						if(gap > 2)
 							return 1;
 					}

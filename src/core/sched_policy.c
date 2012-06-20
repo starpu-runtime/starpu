@@ -514,6 +514,28 @@ pick:
 		}
 	  }
 
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	struct _starpu_sched_ctx *sched_ctx = NULL;
+	struct starpu_performance_counters *perf_counters = NULL;
+	int j;
+	for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+	{
+		sched_ctx = worker->sched_ctx[j];
+		if(sched_ctx != NULL && sched_ctx->id != 0)
+		{
+			perf_counters = sched_ctx->perf_counters;
+			if(perf_counters != NULL && perf_counters->notify_idle_cycle && perf_counters->notify_idle_end)
+			{
+				if(!task)
+					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+				else
+					perf_counters->notify_idle_end(sched_ctx->id, worker->workerid);
+			}
+		}
+	}
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
+
 	if (!task)
 		goto profiling;
 
@@ -578,26 +600,6 @@ profiling:
 			_starpu_clock_gettime(&profiling_info->pop_end_time);
 		}
 	}
-
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	struct _starpu_sched_ctx *sched_ctx = NULL;
-	struct starpu_performance_counters *perf_counters = NULL;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		sched_ctx = worker->sched_ctx[i];
-		if(sched_ctx != NULL && sched_ctx->id != 0)
-		{
-			perf_counters = sched_ctx->perf_counters;
-			if(perf_counters != NULL && perf_counters->notify_idle_cycle && perf_counters->notify_idle_end)
-			{
-				if(!task)
-					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
-				else
-					perf_counters->notify_idle_end(sched_ctx->id, worker->workerid);
-			}
-		}
-	}
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	return task;
 }

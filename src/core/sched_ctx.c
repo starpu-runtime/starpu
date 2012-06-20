@@ -664,7 +664,7 @@ unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-		if(worker->sched_ctx[i] == sched_ctx_id)
+		if(worker->sched_ctx[i] && worker->sched_ctx[i]->id == sched_ctx_id)
 			return 1;
 	return 0;
 }

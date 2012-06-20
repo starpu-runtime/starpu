@@ -78,6 +78,7 @@ struct sched_ctx_wrapper {
 	unsigned sched_ctx;
 	struct policy_config *config;
 	double current_idle_time[STARPU_NMAXWORKERS];
+	int worker_to_be_removed[STARPU_NMAXWORKERS];
 	int pushed_tasks[STARPU_NMAXWORKERS];
 	int poped_tasks[STARPU_NMAXWORKERS];
 	double total_flops;
