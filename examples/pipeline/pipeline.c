@@ -250,5 +250,5 @@ enodev:
 	}
 	starpu_shutdown();
 
-	return ret;
+	return (ret == -ENODEV ? 77 : 0);
 }
