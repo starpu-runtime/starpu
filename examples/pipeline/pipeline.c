@@ -190,7 +190,8 @@ int main(void)
 
 	/* Initialize the K temporary buffers. No need to allocate it ourselves
 	 * Since it's the X and Y kernels which will fill the initial values. */
-	for (k = 0; k < K; k++) {
+	for (k = 0; k < K; k++)
+	{
 		starpu_vector_data_register(&buffersX[k], -1, 0, N, sizeof(float));
 		starpu_vector_data_register(&buffersY[k], -1, 0, N, sizeof(float));
 		starpu_vector_data_register(&buffersP[k], -1, 0, N, sizeof(float));
@@ -201,7 +202,8 @@ int main(void)
 		sem_init(&sems[c], 0, 0);
 
 	/* Submits the l pipeline stages */
-	for (l = 0; l < L; l++) {
+	for (l = 0; l < L; l++)
+	{
 		float x = l;
 		float y = 2*l;
 		/* First wait for the C previous concurrent stages */
@@ -240,7 +242,8 @@ int main(void)
 	starpu_task_wait_for_all();
 
 enodev:
-	for (k = 0; k < K; k++) {
+	for (k = 0; k < K; k++)
+	{
 		starpu_data_unregister(buffersX[k]);
 		starpu_data_unregister(buffersY[k]);
 		starpu_data_unregister(buffersP[k]);
