@@ -33,7 +33,8 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 	chapters/fft-support.texi \
 	chapters/using.texi \
 	chapters/vector_scal_opencl.texi \
-	chapters/socl.texi
+	chapters/socl.texi \
+	chapters/version.texi
 
 MAINTAINERCLEANFILES = starpu.pdf
 
@@ -44,6 +45,18 @@ AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers -
 
 uninstall-local:
 	$(RM) $(DESTDIR)$(infodir)/dir
+
+#TODO: when stat is not available on the machine, insert "unknown date"
+chapters/version.texi:
+	@for f in $(starpu_TEXINFOS) ; do \
+                if test -f $(top_srcdir)/doc/$$f ; then stat --format=%Y $(top_srcdir)/doc/$$f ; fi \
+        done | sort -r | head -1 > timestamp
+	@LC_ALL=C date --date=@$(shell cat timestamp) +"%d %B %Y" > timestamp_updated
+	@LC_ALL=C date --date=@$(shell cat timestamp) +"%B %Y" > timestamp_updated_month
+	@echo "@set UPDATED " $(shell cat timestamp_updated) > $(top_srcdir)/doc/chapters/version.texi
+	@echo "@set UPDATED-MONTH" $(shell cat timestamp_updated_month) >> $(top_srcdir)/doc/chapters/version.texi
+	@echo "@set EDITION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
+	@echo "@set VERSION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
 
 #$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 #vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c
