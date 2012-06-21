@@ -161,7 +161,9 @@ struct starpu_codelet cl =
 
 A codelet is a structure that represents a computational kernel. Such a codelet
 may contain an implementation of the same kernel on different architectures
-(e.g. CUDA, Cell's SPU, x86, ...).
+(e.g. CUDA, Cell's SPU, x86, ...). For compatibility, make sure that the whole
+structure is initialized to zero, either by using memset, or by letting the
+compiler implicitly do it as examplified above.
 
 The @code{nbuffers} field specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data

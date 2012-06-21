@@ -1259,7 +1259,9 @@ always only define the field @code{opencl_funcs}.
 
 @deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
-targets. For compatibility, make sure to initialize the whole structure to zero.
+targets. For compatibility, make sure to initialize the whole structure to zero,
+either by using explicit memset, or by letting the compiler implicitly do it in
+e.g. static storage case.
 
 @table @asis
 @item @code{uint32_t where} (optional)
@@ -1826,7 +1828,11 @@ The possible values are:
 @anchor{struct starpu_perfmodel}
 contains all information about a performance model. At least the
 @code{type} and @code{symbol} fields have to be filled when defining a
-performance model for a codelet. If not provided, other fields have to be zero.
+performance model for a codelet. For compatibility, make sure to initialize the
+whole structure to zero, either by using explicit memset, or by letting the
+compiler implicitly do it in e.g. static storage case.
+
+If not provided, other fields have to be zero.
 
 @table @asis
 @item @code{type}

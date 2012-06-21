@@ -303,7 +303,9 @@ a performance model, by defining a @code{starpu_perfmodel} structure and
 providing its address in the @code{model} field of the @code{struct starpu_codelet}
 structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel}
 are mandatory, to give a name to the model, and the type of the model, since
-there are several kinds of performance models.
+there are several kinds of performance models. For compatibility, make sure to
+initialize the whole structure to zero, either by using explicit memset, or by
+letting the compiler implicitly do it as examplified below.
 
 @itemize
 @item
