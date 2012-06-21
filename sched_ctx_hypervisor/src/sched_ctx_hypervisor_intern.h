@@ -34,6 +34,7 @@ struct sched_ctx_hypervisor {
 	struct starpu_htbl32_node *configurations[STARPU_NMAX_SCHED_CTXS];
 	struct starpu_htbl32_node *resize_requests[STARPU_NMAX_SCHED_CTXS];
 	struct size_request *sr;
+	int check_min_tasks[STARPU_NMAX_SCHED_CTXS];
 };
 
 struct sched_ctx_hypervisor_adjustment {

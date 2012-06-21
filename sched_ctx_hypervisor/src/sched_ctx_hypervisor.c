@@ -136,6 +136,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_
 		hypervisor.resize[i] = 0;
 		hypervisor.configurations[i] = NULL;
 		hypervisor.sr = NULL;
+		hypervisor.check_min_tasks[i] = 1;
 		hypervisor.sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].sched_ctx = STARPU_NMAX_SCHED_CTXS;
 		hypervisor.sched_ctx_w[i].config = NULL;
@@ -148,7 +149,6 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_
 		hypervisor.sched_ctx_w[i].resize_ack.nmoved_workers = 0;
 		hypervisor.sched_ctx_w[i].resize_ack.acked_workers = NULL;
 		pthread_mutex_init(&hypervisor.sched_ctx_w[i].mutex, NULL);
-
 		int j;
 		for(j = 0; j < STARPU_NMAXWORKERS; j++)
 		{
@@ -617,10 +617,11 @@ static void notify_pushed_task(unsigned sched_ctx, int worker)
 	
 	int ntasks = get_ntasks(hypervisor.sched_ctx_w[sched_ctx].pushed_tasks);
 	
-	if(hypervisor.min_tasks == 0 || (!(hypervisor.resize[sched_ctx] == 0 && imposed_resize) && ntasks == hypervisor.min_tasks))
+	if((hypervisor.min_tasks == 0 || (!(hypervisor.resize[sched_ctx] == 0 && imposed_resize) && ntasks == hypervisor.min_tasks)) && hypervisor.check_min_tasks[sched_ctx])
 	{
 		hypervisor.resize[sched_ctx] = 1;
 		if(imposed_resize) imposed_resize = 0;
+		hypervisor.check_min_tasks[sched_ctx] = 0;
 	}
 
 	if(hypervisor.policy.handle_pushed_task)

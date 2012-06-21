@@ -218,6 +218,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 
 		case HYPERVISOR_MIN_TASKS:
 			hypervisor.min_tasks = va_arg(varg_list, int);
+			hypervisor.check_min_tasks[sched_ctx] = 1;
 			break;
 
 		}
