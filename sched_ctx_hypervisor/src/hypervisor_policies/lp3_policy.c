@@ -133,8 +133,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		double times[nw][nt];
 		int ne = nt * nw /* worker execution time */
 			+ nw * ns
-			+ nw * nt
-			+ nw * ns
+			+ nw * (nt + ns)
 			+ 1; /* glp dumbness */
 		int n = 1;
 		int ia[ne], ja[ne];
@@ -255,7 +254,8 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
 		}
-
+		if(n != ne)
+			printf("ns= %d nw = %d nt = %d n = %d ne = %d\n", ns, nw, nt, n, ne);
 		STARPU_ASSERT(n == ne);
 
 		glp_load_matrix(lp, ne-1, ia, ja, ar);

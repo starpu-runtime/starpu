@@ -33,7 +33,7 @@
 
 /* How many executions a codelet will have to be measured before we
  * consider that calibration will provide a value good enough for scheduling */
-#define _STARPU_CALIBRATION_MINIMUM 10
+#define _STARPU_CALIBRATION_MINIMUM 5
 
 /* Assumed relative performance ratios */
 /* TODO: benchmark a bit instead */
