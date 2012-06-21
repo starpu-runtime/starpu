@@ -72,7 +72,7 @@ if @code{sched_policy_name} is set.
 
 @item @code{int ncpus} (default = -1)
 This is the number of CPU cores that StarPU can use. This can also be
-specified with the @code{STARPU_NCPUS} environment variable.
+specified with the @code{STARPU_NCPU} environment variable.
 
 @item @code{int ncuda} (default = -1)
 This is the number of CUDA devices that StarPU can use. This can also

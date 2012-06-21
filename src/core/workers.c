@@ -460,7 +460,11 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
 	 * not defined */
-	conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
+	/* Backward compatibility: check the value of STARPU_NCPUS if
+	 * STARPU_NCPU is not set. */
+	conf->ncpus = starpu_get_env_number("STARPU_NCPU");
+	if (conf->ncpus == -1)
+		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nspus = starpu_get_env_number("STARPU_NGORDON");
@@ -503,6 +507,7 @@ static void _starpu_conf_check_environment(struct starpu_conf *conf)
 	}
 
 	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
+	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
 	_starpu_conf_set_value_against_environment("STARPU_NGORDON", &conf->nspus);
