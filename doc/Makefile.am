@@ -55,8 +55,9 @@ chapters/version.texi:
 	@LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month
 	@echo "@set UPDATED " `cat timestamp_updated` > $(top_srcdir)/doc/chapters/version.texi
 	@echo "@set UPDATED-MONTH" `cat timestamp_updated_month` >> $(top_srcdir)/doc/chapters/version.texi
-	@echo "@set EDITION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi && \
+	@echo "@set EDITION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
 	@echo "@set VERSION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
+	@$(RM) timestamp timestamp_updated timestamp_updated_month
 
 #$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 #vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c
