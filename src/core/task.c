@@ -628,11 +628,6 @@ starpu_drivers_request_termination(void)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
-void _starpu_check_nsubmitted_tasks(void)
-{
-
-}
-
 static void _starpu_increment_nsubmitted_tasks(void)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
