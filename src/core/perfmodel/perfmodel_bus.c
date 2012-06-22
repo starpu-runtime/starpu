@@ -777,7 +777,7 @@ void starpu_bus_print_affinity(FILE *f)
 	fprintf(f, "# GPU\t");
 	for(cpu = 0 ; cpu < ncpus ; cpu++)
 	{
-		fprintf(f, "CPU%d\t", cpu);
+		fprintf(f, "CPU%u\t", cpu);
 	}
 	fprintf(f, "\n");
 
