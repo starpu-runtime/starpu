@@ -189,6 +189,7 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 	return binary;
 }
 
+static
 void _starpu_opencl_create_binary_directory(char *path, size_t maxlen)
 {
 	static int _directory_created = 0;
@@ -217,6 +218,7 @@ char *_starpu_opencl_get_device_type_as_string(int id)
 	}
 }
 
+static
 int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, const char *source_file_name, int dev, cl_device_id device)
 {
 	char binary_directory[1024];
@@ -240,6 +242,7 @@ int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, const 
 	return CL_SUCCESS;
 }
 
+static
 int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program_source, const char* build_options,
 						      struct starpu_opencl_program *opencl_programs, const char* source_file_name)
 {
@@ -262,7 +265,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
                 starpu_opencl_get_context(dev, &context);
                 if (context == NULL)
 		{
-                        _STARPU_DEBUG("[%d] is not a valid OpenCL context\n", dev);
+                        _STARPU_DEBUG("[%u] is not a valid OpenCL context\n", dev);
                         continue;
                 }
 
@@ -418,7 +421,7 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
                 starpu_opencl_get_context(dev, &context);
                 if (context == NULL)
 		{
-                        _STARPU_DEBUG("[%d] is not a valid OpenCL context\n", dev);
+                        _STARPU_DEBUG("[%u] is not a valid OpenCL context\n", dev);
                         continue;
                 }
 
