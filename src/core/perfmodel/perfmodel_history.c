@@ -1015,7 +1015,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Not calibrated enough */
 	{
-		printf("nan pt ca stupid algo nsamples %d\n", entry->nsample);
+//		printf("nan -> nsamples %d\n", entry->nsample);
 		exp = NAN;
 	}
 

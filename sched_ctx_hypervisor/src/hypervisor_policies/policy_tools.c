@@ -243,6 +243,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 	if(ret != EBUSY)
 	{					
 		unsigned nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
+
 		if(nworkers_to_move > 0)
 		{
 			unsigned poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -260,7 +261,6 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 					nworkers_to_move = nworkers > config->max_nworkers ? 0 : (config->max_nworkers - nworkers+nshared_workers);
 				if(nworkers_to_move == 0) poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 			}
-
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{						
 				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ALL);

@@ -351,7 +351,7 @@ int _starpu_push_task(struct _starpu_job *j)
 /* 				if(nworkers == 0) return _starpu_push_task(j); */
 /* 			} */
 /* 			else */
-//			{
+/* 			{ */
 				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
