@@ -27,6 +27,10 @@
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 
+#include <drivers/cpu/driver_cpu.h>
+#include <drivers/cuda/driver_cuda.h>
+#include <drivers/opencl/driver_opencl.h>
+
 #ifdef __MINGW32__
 #include <windows.h>
 #endif
@@ -1007,16 +1011,6 @@ void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond,
 	config.workers[workerid].sched_mutex = sched_mutex;
 }
 
-#ifdef STARPU_USE_CPU
-extern int _starpu_run_cpu(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_CUDA
-extern int _starpu_run_cuda(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_run_opencl(struct starpu_driver *);
-#endif
-
 int
 starpu_driver_run(struct starpu_driver *d)
 {
@@ -1042,22 +1036,6 @@ starpu_driver_run(struct starpu_driver *d)
 		return -EINVAL;
 	}
 }
-
-#ifdef STARPU_USE_CPU
-extern int _starpu_cpu_driver_init(struct starpu_driver *);
-extern int _starpu_cpu_driver_run_once(struct starpu_driver *);
-extern int _starpu_cpu_driver_deinit(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_CUDA
-extern int _starpu_cuda_driver_init(struct starpu_driver *);
-extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
-extern int _starpu_cuda_driver_deinit(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_opencl_driver_init(struct starpu_driver *);
-extern int _starpu_opencl_driver_run_once(struct starpu_driver *);
-extern int _starpu_opencl_driver_deinit(struct starpu_driver *);
-#endif
 
 int
 starpu_driver_init(struct starpu_driver *d)
