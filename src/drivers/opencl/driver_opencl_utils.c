@@ -350,6 +350,7 @@ void starpu_opencl_load_program_source(const char *source_file_name, char *locat
 	sprintf(opencl_program_source, "%s", source);
 }
 
+static
 int _starpu_opencl_compile_or_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options)
 {
 	int nb_devices;
