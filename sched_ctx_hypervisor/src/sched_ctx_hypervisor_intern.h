@@ -33,6 +33,8 @@ struct sched_ctx_hypervisor {
 	struct hypervisor_policy policy;
 	struct starpu_htbl32_node *configurations[STARPU_NMAX_SCHED_CTXS];
 	struct starpu_htbl32_node *resize_requests[STARPU_NMAX_SCHED_CTXS];
+	pthread_mutex_t conf_mut[STARPU_NMAX_SCHED_CTXS];
+	pthread_mutex_t resize_mut[STARPU_NMAX_SCHED_CTXS];
 	struct size_request *sr;
 	int check_min_tasks[STARPU_NMAX_SCHED_CTXS];
 };

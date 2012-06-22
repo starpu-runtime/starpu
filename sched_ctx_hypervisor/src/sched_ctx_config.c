@@ -232,7 +232,11 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	struct policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
 
 	if(config != NULL)
+	{
+		pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
 		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, config);
+		pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
+	}
 
 	return;
 }

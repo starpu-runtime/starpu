@@ -227,6 +227,8 @@ void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 	pthread_mutex_lock(&act_hypervisor_mutex);
 	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node));
 	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node));
+	pthread_mutex_init(&hypervisor.conf_mut[sched_ctx], NULL);
+	pthread_mutex_init(&hypervisor.resize_mut[sched_ctx], NULL);
 
 	_add_config(sched_ctx);
 	hypervisor.sched_ctx_w[sched_ctx].sched_ctx = sched_ctx;
@@ -292,6 +294,8 @@ void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx)
 
 	free(hypervisor.configurations[sched_ctx]);
 	free(hypervisor.resize_requests[sched_ctx]);
+	pthread_mutex_destroy(&hypervisor.conf_mut[sched_ctx]);
+	pthread_mutex_destroy(&hypervisor.resize_mut[sched_ctx]);
 	pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
@@ -586,9 +590,9 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 
 void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag)
 {
-	pthread_mutex_lock(&act_hypervisor_mutex);
+	pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);
 	_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, (void*)sched_ctx);	
-	pthread_mutex_unlock(&act_hypervisor_mutex);
+	pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
 }
 
 /* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
@@ -677,6 +681,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 		for(i = 0; i < hypervisor.nsched_ctxs; i++)
 		{
 			conf_sched_ctx = hypervisor.sched_ctxs[i];
+			pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
 			void *config = _starpu_htbl_search_32(hypervisor.configurations[conf_sched_ctx], (uint32_t)task_tag);
 			if(config && config != hypervisor.configurations[conf_sched_ctx])
 			{
@@ -684,6 +689,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 				free(config);
 				_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, NULL);
 			}
+			pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
 		}	
 
 		/* for the app driven we have to wait for the resize to be available
@@ -692,10 +698,12 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 
 		if(hypervisor.resize[sched_ctx])
 		{
+			pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);
 			struct starpu_htbl32_node* resize_requests = hypervisor.resize_requests[sched_ctx];
 
 			if(hypervisor.policy.handle_post_exec_hook)
 				hypervisor.policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+			pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
 		}
 	}
 }
