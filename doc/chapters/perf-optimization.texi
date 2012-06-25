@@ -210,6 +210,46 @@ disables data transfer / computation overlapping, and should thus not be used
 for eventual benchmarks. Note 2: history-based performance models get calibrated
 only if a performance-model-based scheduler is chosen.
 
+The history-based performance models can also be explicitly filled by the
+application without execution, if e.g. the application already has a series of
+measurements. This can be done by using @code{starpu_perfmodel_update_history},
+for instance:
+
+@example
+static struct starpu_perfmodel perf_model = @{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "my_perfmodel",
+@};
+
+struct starpu_codelet cl = @{
+    .where = STARPU_CUDA,
+    .cuda_funcs = @{ cuda_func1, cuda_func2, NULL @},
+    .nbuffers = 1,
+    .modes = @{STARPU_W@},
+    .model = &perf_model
+@};
+
+void feed(void) @{
+    struct my_measure *measure;
+    struct starpu_task task;
+    starpu_task_init(&task);
+
+    task.cl = &cl;
+
+    for (measure = &measures[0]; measure < measures[last]; measure++) @{
+        starpu_data_handle_t handle;
+	starpu_vector_data_register(&handle, -1, 0, measure->size, sizeof(float));
+	task.handles[0] = handle;
+	starpu_perfmodel_update_history(&perf_model, &task, STARPU_CUDA_DEFAULT + measure->cudadev, 0, measure->implementation, measure->time);
+	starpu_task_deinit(&task);
+	starpu_data_unregister(handle);
+    @}
+@}
+@end example
+
+Measurement has to be provided in milliseconds for the completion time models,
+and in Joules for the energy consumption models.
+
 @node Task distribution vs Data transfer
 @section Task distribution vs Data transfer
 
@@ -267,6 +307,17 @@ be obtained from the machine power supplier.
 
 The power actually consumed by the total execution can be displayed by setting
 @code{export STARPU_PROFILING=1 STARPU_WORKER_STATS=1} .
+
+On-line task consumption measurement is currently only supported through the
+@code{CL_PROFILING_POWER_CONSUMED} OpenCL extension, implemented in the MoviSim
+simulator. Applications can however provide explicit measurements by using the
+@code{starpu_perfmodel_update_history} function (examplified in @ref{Performance
+model example} with the @code{power_model} performance model. Fine-grain
+measurement is often not feasible with the feedback provided by the hardware, so
+the user can for instance run a given task a thousand times, measure the global
+consumption for that series of tasks, divide it by a thousand, repeat for
+varying kinds of tasks and task sizes, and eventually feed StarPU
+with these manual measurements through @code{starpu_perfmodel_update_history}.
 
 @node Profiling
 @section Profiling

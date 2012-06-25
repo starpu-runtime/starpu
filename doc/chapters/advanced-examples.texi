@@ -323,7 +323,10 @@ for further executions, and can be observed by using the
 the @code{starpu_perfmodel_plot} (@pxref{Performance model calibration}).  The
 models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
-@code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done when using a task scheduler which makes use of it, such as @code{heft} or @code{dmda}.
+@code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done
+when using a task scheduler which makes use of it, such as @code{heft} or
+@code{dmda}. Measurements can also be provided explicitly by the application, by
+using the @code{starpu_perfmodel_update_history} function.
 
 The following is a small code example.
 
@@ -369,7 +372,9 @@ trust the regression unless there is at least 10% difference between the minimum
 and maximum observed input size. It can be useful to set the
 @code{STARPU_CALIBRATE} environment variable to @code{1} and run the application
 on varying input sizes, so as to feed the performance model for a variety of
-inputs. The @code{starpu_perfmodel_display} and @code{starpu_perfmodel_plot}
+inputs, or to provide the measurements explictly by using
+@code{starpu_perfmodel_update_history}. The @code{starpu_perfmodel_display} and
+@code{starpu_perfmodel_plot}
 tools can be used to observe how much the performance model is calibrated (@pxref{Performance model calibration}); when
 their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
 StarPU use the resulting performance model without recording new measures. If

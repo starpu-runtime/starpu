@@ -21,6 +21,8 @@ New features:
   * OpenGL interoperability support.
   * Capability to store compiled OpenCL kernels on the file system
   * Capability to load compiled OpenCL kernels
+  * Performance models measurements can now be provided explicitly by
+    applications.
 
 Changes:
   * The FxT code can now be used on systems other than Linux.

@@ -218,7 +218,8 @@ noinst_PROGRAMS =				\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	perfmodels/regression_based		\
-	perfmodels/non_linear_regression_based  \
+	perfmodels/non_linear_regression_based	\
+	perfmodels/feed				\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/simple_deps              \
@@ -549,6 +550,9 @@ if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
 endif
+
+perfmodels_feed_SOURCES=\
+	perfmodels/feed.c
 
 sched_policies_execute_all_tasks_LDFLAGS = -lm
 

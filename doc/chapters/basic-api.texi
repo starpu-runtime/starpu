@@ -1962,6 +1962,14 @@ prints a matrix of bus bandwidths on @var{f}.
 prints the affinity devices on @var{f}.
 @end deftypefun
 
+@deftypefun void starpu_perfmodel_update_history ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{cpuid}, unsigned @var{nimpl}, double @var{measured});
+This feeds the performance model @var{model} with an explicit measurement
+@var{measured}, in addition to measurements done by StarPU itself. This can be
+useful when the application already has an existing set of measurements done
+in good conditions, that StarPU could benefit from instead of doing on-line
+measurements. And example of use can be see in @ref{Performance model example}.
+@end deftypefun
+
 @node Profiling API
 @section Profiling API
 

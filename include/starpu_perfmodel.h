@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -208,6 +208,8 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
 int starpu_list_models(FILE *output);
+
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 
 void starpu_force_bus_sampling(void);
 void starpu_bus_print_bandwidth(FILE *f);
