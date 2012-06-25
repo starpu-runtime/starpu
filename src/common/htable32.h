@@ -25,7 +25,7 @@
 
 #define _STARPU_HTBL32_NODE_SIZE	8
 
-/* Hierarchical table: all nodes have a 2^16 arity . */
+/* Hierarchical table: all nodes have a 2^8 arity . */
 /* Note: this struct is used in include/starpu_perfmodel.h */
 struct starpu_htbl32_node {
 	unsigned nentries;

@@ -25,7 +25,7 @@
 
 #define _STARPU_HTBL64_NODE_SIZE	8 
 
-/* Hierarchical table: all nodes have a 2^32 arity . */
+/* Hierarchical table: all nodes have a 2^8 arity . */
 struct starpu_htbl64_node {
 	unsigned nentries;
 	struct starpu_htbl64_node *children[1ULL<<_STARPU_HTBL64_NODE_SIZE];
