@@ -24,6 +24,8 @@ New features:
 
 Changes:
   * The FxT code can now be used on systems other than Linux.
+  * The cache of starpu_mpi_insert_task is fixed and thus now enabled by
+    default.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
