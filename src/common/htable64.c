@@ -82,7 +82,7 @@ void *_starpu_htbl_insert_64(struct starpu_htbl64_node **htbl, uint64_t key, voi
 static void _starpu_htbl_destroy_64_bit(struct starpu_htbl64_node *htbl, unsigned bit, void (*remove)(void*))
 {
 	unsigned keysize = sizeof(uint64_t)*8;
-	int i;
+	unsigned i;
 
 	if (!htbl)
 		return;
