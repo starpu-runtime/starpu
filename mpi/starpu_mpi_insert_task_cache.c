@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,8 +17,7 @@
 
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_insert_task_cache.h>
-#include <starpu_hash.h>
-#include <common/htable32.h>
+#include <common/htable64.h>
 
 typedef struct _starpu_mpi_clear_cache_s {
         starpu_data_handle_t data;
@@ -26,21 +25,20 @@ typedef struct _starpu_mpi_clear_cache_s {
         int mode;
 } _starpu_mpi_clear_cache_t;
 
-struct starpu_htbl32_node **sent_data = NULL;
-struct starpu_htbl32_node **received_data = NULL;
+struct starpu_htbl64_node **sent_data = NULL;
+struct starpu_htbl64_node **received_data = NULL;
 
 void _starpu_mpi_clear_cache_callback(void *callback_arg)
 {
         _starpu_mpi_clear_cache_t *clear_cache = (_starpu_mpi_clear_cache_t *)callback_arg;
-        uint32_t key = starpu_crc32_be((uintptr_t)clear_cache->data, 0);
 
         if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
                 _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_32(&sent_data[clear_cache->rank], key, NULL);
+                _starpu_htbl_insert_64(&sent_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
         }
         else if (clear_cache->mode == _STARPU_MPI_CLEAR_RECEIVED_DATA) {
                 _STARPU_MPI_DEBUG("Clearing received cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_32(&received_data[clear_cache->rank], key, NULL);
+                _starpu_htbl_insert_64(&received_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
         }
 
         free(clear_cache);

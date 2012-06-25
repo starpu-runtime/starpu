@@ -34,9 +34,11 @@
 
 static unsigned size = 4*1024;
 static unsigned nblocks = 16;
-static unsigned nbigblocks = 8;
+static unsigned nbigblocks = 2;
 static unsigned noprio = 0;
 static unsigned display = 0;
+static unsigned dblockx = 2;
+static unsigned dblocky = 2;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
@@ -59,6 +61,18 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
+		if (strcmp(argv[i], "-dblockx") == 0)
+		{
+		        char *argptr;
+			dblockx = strtol(argv[++i], &argptr, 10);
+		}
+		
+		if (strcmp(argv[i], "-dblocky") == 0)
+		{
+		        char *argptr;
+			dblocky = strtol(argv[++i], &argptr, 10);
+		}
+	
 		if (strcmp(argv[i], "-nblocks") == 0)
 		{
 		        char *argptr;
