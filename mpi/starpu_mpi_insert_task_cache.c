@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,11 +34,11 @@ void _starpu_mpi_clear_cache_callback(void *callback_arg)
 
         if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
                 _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-				_starpu_htbl_insert_64(&sent_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
+                _starpu_htbl_insert_64(&sent_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
         }
         else if (clear_cache->mode == _STARPU_MPI_CLEAR_RECEIVED_DATA) {
                 _STARPU_MPI_DEBUG("Clearing received cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-				_starpu_htbl_insert_64(&received_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
+                _starpu_htbl_insert_64(&received_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
         }
 
         free(clear_cache);
