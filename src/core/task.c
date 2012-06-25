@@ -103,8 +103,10 @@ void starpu_task_deinit(struct starpu_task *task)
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
-	if (j)
+	if (j) {
 		_starpu_job_destroy(j);
+		task->starpu_private = NULL;
+	}
 }
 
 struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
