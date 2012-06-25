@@ -29,7 +29,7 @@ static void my_task (int x, float a[x])
 static void my_task_opencl (int x, float a[x])
   __attribute__ ((task_implementation ("opencl", my_task)));
 
-#pragma starpu opencl my_task_opencl "test.cl" "kern"
+#pragma starpu opencl my_task_opencl "test.cl" "kern" 8
 
 int
 main ()
@@ -55,6 +55,7 @@ main ()
 
   expected_insert_task_arguments = expected;
   expected_insert_task_targets = STARPU_OPENCL;
+  size_t y = 8; expected_cl_enqueue_kernel_arguments.global_work_size = &y;
 
   my_task (123, a);
   my_task (123, a);
@@ -62,6 +63,11 @@ main ()
 
   assert (tasks_submitted == 3);
   assert (load_opencl_calls == 1);
-
+  assert (load_opencl_kernel_calls == 3);
+  assert (opencl_set_kernel_arg_calls == 3 * 2);
+  assert (opencl_enqueue_calls == 3);
+  assert (opencl_finish_calls == 3);
+  assert (opencl_release_event_calls == 3);
+  assert (opencl_collect_stats_calls == 3);
   return EXIT_SUCCESS;
 }

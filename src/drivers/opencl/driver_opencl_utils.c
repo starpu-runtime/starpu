@@ -26,6 +26,7 @@
 #include <starpu_opencl.h>
 #include <starpu_profiling.h>
 #include <core/workers.h>
+#include <common/utils.h>
 #include "driver_opencl_utils.h"
 #include "driver_opencl.h"
 
@@ -164,8 +165,86 @@ char *_starpu_opencl_load_program_source(const char *filename)
         return source;
 }
 
-int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs,
-					  const char* build_options)
+
+static
+char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
+{
+	struct stat statbuf;
+	FILE        *fh;
+	char        *binary;
+
+	fh = fopen(filename, "r");
+	if (fh == 0)
+		return NULL;
+
+	stat(filename, &statbuf);
+
+	binary = (char *) malloc(statbuf.st_size);
+	if (!binary)
+		return binary;
+
+	fread(binary, statbuf.st_size, 1, fh);
+
+	*len = statbuf.st_size;
+	return binary;
+}
+
+static
+void _starpu_opencl_create_binary_directory(char *path, size_t maxlen)
+{
+	static int _directory_created = 0;
+
+	snprintf(path, maxlen, "%s/.starpu/opencl/", _starpu_get_home_path());
+
+	if (_directory_created == 0)
+	{
+		_STARPU_DEBUG("Creating directory %s\n", path);
+		_starpu_mkpath_and_check(path, S_IRWXU);
+		_directory_created = 1;
+	}
+}
+
+char *_starpu_opencl_get_device_type_as_string(int id)
+{
+	cl_device_type type;
+
+	type = _starpu_opencl_get_device_type(id);
+	switch (type)
+	{
+		case CL_DEVICE_TYPE_GPU: return "gpu";
+		case CL_DEVICE_TYPE_ACCELERATOR: return "acc";
+		case CL_DEVICE_TYPE_CPU: return "cpu";
+		default: return "unk";
+	}
+}
+
+static
+int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, const char *source_file_name, int dev, cl_device_id device)
+{
+	char binary_directory[1024];
+	char *p;
+	cl_int err;
+	cl_uint vendor_id;
+
+	_starpu_opencl_create_binary_directory(binary_directory, 1024);
+
+	p = strrchr(source_file_name, '/');
+	snprintf(binary_file_name, maxlen, "%s/%s", binary_directory, p?p:source_file_name);
+
+	p = strstr(binary_file_name, ".cl");
+	if (p == NULL) p=binary_file_name + strlen(binary_file_name);
+
+	err = clGetDeviceInfo(device, CL_DEVICE_VENDOR_ID, sizeof(vendor_id), &vendor_id, NULL);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	sprintf(p, ".%s.vendor_id_%d_device_id_%d", _starpu_opencl_get_device_type_as_string(dev), (int)vendor_id, dev);
+
+	return CL_SUCCESS;
+}
+
+static
+int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program_source, const char* build_options,
+						      struct starpu_opencl_program *opencl_programs, const char* source_file_name)
 {
         unsigned int dev;
         unsigned int nb_devices;
@@ -179,13 +258,14 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
                 cl_program   program;
                 cl_int       err;
 
-                opencl_programs->programs[dev] = NULL;
+		if (opencl_programs)
+			opencl_programs->programs[dev] = NULL;
 
                 starpu_opencl_get_device(dev, &device);
                 starpu_opencl_get_context(dev, &context);
                 if (context == NULL)
 		{
-                        _STARPU_DEBUG("[%d] is not a valid OpenCL context\n", dev);
+                        _STARPU_DEBUG("[%u] is not a valid OpenCL context\n", dev);
                         continue;
                 }
 
@@ -220,32 +300,70 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 		}
 
                 // Store program
-                opencl_programs->programs[dev] = program;
+		if (opencl_programs)
+			opencl_programs->programs[dev] = program;
+		else
+		{
+			char binary_file_name[1024];
+			char *binary;
+			size_t binary_len;
+			FILE *fh;
+
+			err = _starpu_opencl_get_binary_name(binary_file_name, 1024, source_file_name, dev, device);
+			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+			err = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_len, NULL);
+			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+			binary = malloc(binary_len);
+
+			err = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(binary), &binary, NULL);
+			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+			fh = fopen(binary_file_name, "w");
+			if (fh == NULL)
+			{
+				_STARPU_DISP("Error: Failed to open file <%s>\n", binary_file_name);
+				perror("fopen");
+				return EXIT_FAILURE;
+			}
+			fwrite(binary, binary_len, 1, fh);
+			fclose(fh);
+			free(binary);
+			_STARPU_DEBUG("File <%s> created\n", binary_file_name);
+		}
         }
         return EXIT_SUCCESS;
 }
 
-int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs,
-					const char* build_options)
+void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source)
 {
-	int nb_devices;
-        char located_file_name[1024];
-        char located_dir_name[1024];
-	char new_build_options[1024];
-
-	// Do not try to load and compile the file if there is no devices
-	nb_devices = starpu_opencl_worker_get_count();
-	if (nb_devices == 0) return EXIT_SUCCESS;
-
         // Locate source file
         _starpu_opencl_locate_file(source_file_name, located_file_name, located_dir_name);
         _STARPU_DEBUG("Source file name : <%s>\n", located_file_name);
         _STARPU_DEBUG("Source directory name : <%s>\n", located_dir_name);
 
-        // Load the compute program from disk into a cstring buffer
-        char *opencl_program_source = _starpu_opencl_load_program_source(located_file_name);
-        if(!opencl_program_source)
+        // Load the compute program from disk into a char *
+        char *source = _starpu_opencl_load_program_source(located_file_name);
+        if(!source)
                 _STARPU_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
+
+	sprintf(opencl_program_source, "%s", source);
+}
+
+static
+int _starpu_opencl_compile_or_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options)
+{
+	int nb_devices;
+        char located_file_name[1024];
+        char located_dir_name[1024];
+	char new_build_options[1024];
+	char opencl_program_source[16384];
+
+	// Do not try to load and compile the file if there is no devices
+	nb_devices = starpu_opencl_worker_get_count();
+	if (nb_devices == 0) return EXIT_SUCCESS;
+
+	starpu_opencl_load_program_source(source_file_name, located_file_name, located_dir_name, opencl_program_source);
 
 	if (!strcmp(located_dir_name, ""))
 		strcpy(new_build_options, build_options);
@@ -255,7 +373,98 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
 		sprintf(new_build_options, "-I %s", located_dir_name);
 	_STARPU_DEBUG("Build options: <%s>\n", new_build_options);
 
-        return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs, new_build_options);
+        return _starpu_opencl_compile_or_load_opencl_from_string(opencl_program_source, new_build_options, opencl_programs, source_file_name);
+}
+
+int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char* build_options)
+{
+	return _starpu_opencl_compile_or_load_opencl_from_file(source_file_name, NULL, build_options);
+}
+
+int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char* build_options)
+{
+	return _starpu_opencl_compile_or_load_opencl_from_string(opencl_program_source, build_options, NULL, file_name);
+}
+
+int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs,
+					  const char* build_options)
+{
+	return _starpu_opencl_compile_or_load_opencl_from_string(opencl_program_source, build_options, opencl_programs, NULL);
+}
+
+int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs,
+					const char* build_options)
+{
+	return _starpu_opencl_compile_or_load_opencl_from_file(source_file_name, opencl_programs, build_options);
+}
+
+int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs)
+{
+        unsigned int dev;
+        unsigned int nb_devices;
+
+        nb_devices = _starpu_opencl_get_device_count();
+        // Iterate over each device
+        for(dev = 0; dev < nb_devices; dev ++)
+	{
+                cl_device_id device;
+                cl_context   context;
+                cl_program   program;
+                cl_int       err;
+		char        *binary;
+		char         binary_file_name[1024];
+		size_t       length;
+		cl_int       binary_status;
+
+		opencl_programs->programs[dev] = NULL;
+
+                starpu_opencl_get_device(dev, &device);
+                starpu_opencl_get_context(dev, &context);
+                if (context == NULL)
+		{
+                        _STARPU_DEBUG("[%u] is not a valid OpenCL context\n", dev);
+                        continue;
+                }
+
+		// Load the binary buffer
+		err = _starpu_opencl_get_binary_name(binary_file_name, 1024, kernel_id, dev, device);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		binary = _starpu_opencl_load_program_binary(binary_file_name, &length);
+
+                // Create the compute program from the binary buffer
+                program = clCreateProgramWithBinary(context, 1, &device, &length, (const unsigned char **) &binary, &binary_status, &err);
+                if (!program || err != CL_SUCCESS) {
+			_STARPU_DISP("Error: Failed to load program binary!\n");
+			return EXIT_FAILURE;
+		}
+
+                // Build the program executable
+                err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+
+		// Get the status
+		{
+		     cl_build_status status;
+		     size_t len;
+		     static char buffer[4096] = "";
+
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+		     if (len > 2)
+			  _STARPU_DISP("Compilation output\n%s\n", buffer);
+
+		     clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
+		     if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
+		     {
+			  _STARPU_DISP("Error: Failed to build program executable!\n");
+			  _STARPU_DISP("clBuildProgram: %d - clGetProgramBuildInfo: %d\n", err, status);
+			  return EXIT_FAILURE;
+		     }
+
+		}
+
+                // Store program
+		opencl_programs->programs[dev] = program;
+	}
+	return 0;
 }
 
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
@@ -330,13 +539,13 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	return 0;
 }
 
-void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
+const char *starpu_opencl_error_string(cl_int status)
 {
 	const char *errormsg;
 	switch (status)
 	{
 	case CL_SUCCESS:
-		errormsg = "success";
+		errormsg = "Success";
 		break;
 	case CL_DEVICE_NOT_FOUND:
 		errormsg = "Device not found";
@@ -479,13 +688,16 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 		break;
 #endif
 	default:
-		errormsg = "unknown error";
+		errormsg = "unknown OpenCL error";
 		break;
 	}
-	if (msg)
-		printf("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg, errormsg, status);
-	else
-		printf("oops in %s (%s:%d) ... <%s> (%d) \n", func, file, line, errormsg, status);
+	return errormsg;
+}
+
+void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
+{
+	printf("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg,
+	       starpu_opencl_error_string (status), status);
 
 }
 

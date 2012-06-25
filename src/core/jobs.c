@@ -162,6 +162,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
+	/* Tell other tasks that we don't exist any more, thus no need for
+	 * implicit dependencies any more.  */
+	_starpu_release_task_enforce_sequential_consistency(j);
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us */

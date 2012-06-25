@@ -21,10 +21,12 @@
 #endif
 #include "../helper.h"
 
+#ifdef STARPU_USE_OPENCL
 static void codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
      FPRINTF(stderr, "codelet\n");
 }
+#endif
 
 static struct starpu_codelet cl =
 {

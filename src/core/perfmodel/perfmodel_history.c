@@ -219,7 +219,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		_STARPU_DEBUG("Parsing arch %u\n", arch);
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &nimpls);
-		_STARPU_DEBUG("%u implementations\n", nimpls);
+		_STARPU_DEBUG("%d implementations\n", nimpls);
 		STARPU_ASSERT(ret == 1);
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
@@ -243,7 +243,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		{
 			_STARPU_DEBUG("skipping arch %u\n", arch);
 			ret = fscanf(f, "%d\n", &nimpls);
-			_STARPU_DEBUG("%u implementations\n", nimpls);
+			_STARPU_DEBUG("%d implementations\n", nimpls);
 			STARPU_ASSERT(ret == 1);
 			implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 			skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;

@@ -225,7 +225,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	unsigned i;
 	int err;
 	double sum = 0.0;
-	int node, cpu_node;
+	int node;
 
 	/* We need to get one node per archtype. This is kinda ugly,
 	 * but it does the job.
@@ -233,7 +233,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	 * (err != 1 && err != -ERANGE)
 	 */
 #ifdef STARPU_USE_CPU
-	int cpu_worker;
+	int cpu_worker, cpu_node;
 	err = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
 					    &cpu_worker, 1);
 	if (err != 1 && err != -ERANGE)
@@ -462,16 +462,7 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 	/* use the directory specified at configure time */
 	snprintf(path, maxlen, "%s", STARPU_PERF_MODEL_DIR);
 #else
-	const char *home_path = getenv("XDG_CACHE_HOME");
-	if (!home_path)
-		home_path = getenv("STARPU_HOME");
-	if (!home_path)
-		home_path = getenv("HOME");
-	if (!home_path)
-		home_path = getenv("USERPROFILE");
-	if (!home_path)
-		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
-	snprintf(path, maxlen, "%s/.starpu/sampling/", home_path);
+	snprintf(path, maxlen, "%s/.starpu/sampling/", _starpu_get_home_path());
 #endif
 }
 
@@ -508,93 +499,23 @@ void _starpu_create_sampling_directory_if_needed(void)
 		   may not be safe: it is possible that the permission are
 		   changed in between. Instead, we create it and check if
 		   it already existed before */
-		int ret;
-		ret = _starpu_mkpath(perf_model_dir, S_IRWXU);
+		_starpu_mkpath_and_check(perf_model_dir, S_IRWXU);
 
-		if (ret == -1)
-		{
-			if (errno != EEXIST) {
-				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
-				perror("mkdir");
-				STARPU_ASSERT(0);
-			}
-
-			/* make sure that it is actually a directory */
-			struct stat sb;
-			stat(perf_model_dir, &sb);
-			if (!S_ISDIR(sb.st_mode)) {
-				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
-				STARPU_ASSERT(0);
-			}
-		}
 
 		/* Per-task performance models */
 		char perf_model_dir_codelets[256];
 		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
-
-		ret = _starpu_mkpath(perf_model_dir_codelets, S_IRWXU);
-		if (ret == -1)
-		{
-			if (errno != EEXIST) {
-				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
-				perror("mkdir");
-				STARPU_ASSERT(0);
-			}
-
-
-			/* make sure that it is actually a directory */
-			struct stat sb;
-			stat(perf_model_dir_codelets, &sb);
-			if (!S_ISDIR(sb.st_mode)) {
-				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
-				STARPU_ASSERT(0);
-			}
-		}
+		_starpu_mkpath_and_check(perf_model_dir_codelets, S_IRWXU);
 
 		/* Performance of the memory subsystem */
 		char perf_model_dir_bus[256];
 		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, 256);
-
-		ret = _starpu_mkpath(perf_model_dir_bus, S_IRWXU);
-		if (ret == -1)
-		{
-			if (errno != EEXIST) {
-				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
-				perror("mkdir");
-				STARPU_ASSERT(0);
-			}
-
-			/* make sure that it is actually a directory */
-			struct stat sb;
-			stat(perf_model_dir_bus, &sb);
-			if (!S_ISDIR(sb.st_mode)) {
-				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
-				STARPU_ASSERT(0);
-			}
-		}
+		_starpu_mkpath_and_check(perf_model_dir_bus, S_IRWXU);
 
 		/* Performance debug measurements */
 		char perf_model_dir_debug[256];
 		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, 256);
-
-		ret = _starpu_mkpath(perf_model_dir_debug, S_IRWXU);
-		if (ret == -1)
-		{
-			if (errno != EEXIST) {
-				fprintf(stderr,"Error making starpu directory %s:\n", perf_model_dir);
-				perror("mkdir");
-				STARPU_ASSERT(0);
-			}
-
-
-			/* make sure that it is actually a directory */
-			struct stat sb;
-			stat(perf_model_dir_debug, &sb);
-			if (!S_ISDIR(sb.st_mode)) {
-				fprintf(stderr,"Error: %s is not a directory:\n", perf_model_dir);
-				STARPU_ASSERT(0);
-			}
-		}
+		_starpu_mkpath_and_check(perf_model_dir_debug, S_IRWXU);
 
 		directory_existence_was_tested = 1;
 	}

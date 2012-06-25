@@ -398,12 +398,38 @@ void _starpu_opencl_init(void)
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args);
 
-void *_starpu_opencl_worker(void *arg)
+static struct _starpu_worker*
+_starpu_opencl_get_worker_from_driver(struct starpu_driver *d)
 {
-	struct _starpu_worker* args = arg;
+	int nworkers;
+	int workers[STARPU_MAXOPENCLDEVS];
+	nworkers = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, STARPU_MAXOPENCLDEVS);
+	if (nworkers == 0)
+		return NULL;
+
+	int i;
+	for (i = 0; i < nworkers; i++)
+	{
+		cl_device_id device;
+		int devid = starpu_worker_get_devid(workers[i]);
+		starpu_opencl_get_device(devid, &device);
+		if (device == d->id.opencl_id)
+			break;
+	}
+
+	if (i == nworkers)
+		return NULL;
+
+	return _starpu_get_worker_struct(workers[i]);
+}
+
+int _starpu_opencl_driver_init(struct starpu_driver *d)
+{
+	struct _starpu_worker* args;
+	args = _starpu_opencl_get_worker_from_driver(d);
+	STARPU_ASSERT(args);
 
 	int devid = args->devid;
-	int workerid = args->workerid;
 
 #ifdef USE_FXT
 	fxt_register_thread(args->bindid);
@@ -414,7 +440,7 @@ void *_starpu_opencl_worker(void *arg)
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
-	_starpu_set_local_memory_node_key(&memnode);
+	_starpu_set_local_memory_node_key(&args->memory_node);
 
 	_starpu_set_local_worker_key(args);
 
@@ -441,73 +467,111 @@ void *_starpu_opencl_worker(void *arg)
 	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-	struct _starpu_job * j;
+	return 0;
+}
+
+int _starpu_opencl_driver_run_once(struct starpu_driver *d)
+{
+	struct _starpu_worker* args;
+	args = _starpu_opencl_get_worker_from_driver(d);
+	STARPU_ASSERT(args);
+
+	int workerid = args->workerid;
+	unsigned memnode = args->memory_node;
+
+	struct _starpu_job *j;
 	struct starpu_task *task;
 	int res;
 
-	while (_starpu_machine_is_running())
+	_STARPU_TRACE_START_PROGRESS(memnode);
+	_starpu_datawizard_progress(memnode, 1);
+	_STARPU_TRACE_END_PROGRESS(memnode);
+
+	_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
+
+	task = _starpu_pop_task(args);
+
+	if (task == NULL)
 	{
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
-
-		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
-
-		task = _starpu_pop_task(args);
-
-                if (task == NULL)
-		{
-			if (_starpu_worker_can_block(memnode))
-				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
-
-			_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
-
-			continue;
-		};
+		if (_starpu_worker_can_block(memnode))
+			_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
-		STARPU_ASSERT(task);
-		j = _starpu_get_job_associated_to_task(task);
+		return 0;
+	};
 
-		/* can OpenCL do that task ? */
-		if (!_STARPU_OPENCL_MAY_PERFORM(j))
-		{
-			/* this is not a OpenCL task */
-			_starpu_push_task(j);
-			continue;
-		}
+	_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
-		_starpu_set_current_task(j->task);
-		args->current_task = j->task;
+	STARPU_ASSERT(task);
+	j = _starpu_get_job_associated_to_task(task);
 
-		res = _starpu_opencl_execute_job(j, args);
-
-		_starpu_set_current_task(NULL);
-		args->current_task = NULL;
-
-                if (res)
-		{
-			switch (res)
-			{
-				case -EAGAIN:
-					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-					_starpu_push_task(j);
-					STARPU_ABORT();
-					continue;
-				default:
-					STARPU_ASSERT(0);
-			}
-		}
-
-		_starpu_handle_job_termination(j);
+	/* can OpenCL do that task ? */
+	if (!_STARPU_OPENCL_MAY_PERFORM(j))
+	{
+		/* this is not a OpenCL task */
+		_starpu_push_task(j);
+		return 0;
 	}
 
+	_starpu_set_current_task(j->task);
+	args->current_task = j->task;
+
+	res = _starpu_opencl_execute_job(j, args);
+
+	_starpu_set_current_task(NULL);
+	args->current_task = NULL;
+
+	if (res)
+	{
+		switch (res)
+		{
+			case -EAGAIN:
+				_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
+				_starpu_push_task(j);
+				STARPU_ABORT();
+				return 0;
+			default:
+				STARPU_ASSERT(0);
+		}
+	}
+
+	_starpu_handle_job_termination(j);
+	return 0;
+}
+
+int _starpu_opencl_driver_deinit(struct starpu_driver *d)
+{
 	_STARPU_TRACE_WORKER_DEINIT_START
 
-	_starpu_handle_all_pending_node_data_requests(memnode);
+	struct _starpu_worker* args;
+	args = _starpu_opencl_get_worker_from_driver(d);
+	STARPU_ASSERT(args);
 
+	unsigned devid   = args->devid;
+	unsigned memnode = args->memory_node;
+
+	_starpu_handle_all_pending_node_data_requests(memnode);
         _starpu_opencl_deinit_context(devid);
+
+	return 0;
+}
+
+void *_starpu_opencl_worker(void *arg)
+{
+	cl_device_id id;
+	struct _starpu_worker* args = arg;
+
+	starpu_opencl_get_device(args->devid, &id);
+	struct starpu_driver d = {
+		.type         = STARPU_OPENCL_WORKER,
+		.id.opencl_id = id
+	};
+
+	_starpu_opencl_driver_init(&d);
+	while (_starpu_machine_is_running())
+		_starpu_opencl_driver_run_once(&d);
+	_starpu_opencl_driver_deinit(&d);
 
 	return NULL;
 }

@@ -117,7 +117,9 @@ soclGetKernelWorkGroupInfo(cl_kernel                kernel,
          task->cl_arg = &data;
          task->cl_arg_size = sizeof(data);
          task->synchronous = 1;
-         starpu_task_submit(task);
+         int ret = starpu_task_submit(task);
+	if (ret != 0)
+		DEBUG_ERROR("Unable to submit a task. Error %d\n", ret);
          INFO_CASE_EX2(data.compile_work_group_size);
          }
       case CL_KERNEL_LOCAL_MEM_SIZE:

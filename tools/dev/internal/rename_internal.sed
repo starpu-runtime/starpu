@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bheft_policy\b/_starpu_sched_heft_policy/g
 s/\bstruct starpu_priority_taskq_s\b/struct _starpu_priority_taskq/g
 s/\bSTARPU_FUT_APPS_KEY\b/_STARPU_FUT_APPS_KEY/g
 s/\bSTARPU_FUT_CPU_KEY\b/_STARPU_FUT_CPU_KEY/g

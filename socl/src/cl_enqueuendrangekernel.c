@@ -117,11 +117,6 @@ static void cleaning_task_callback(void *args) {
 
 }
 
-static struct starpu_perfmodel perf_model = {
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "perf_model"
-};
-
 /**
  * Real kernel enqueuing command
  */

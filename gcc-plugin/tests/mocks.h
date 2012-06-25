@@ -434,11 +434,31 @@ struct starpu_opencl_program
   /* Nothing.  */
 };
 
+typedef int cl_event;
+typedef int cl_kernel;
+typedef int cl_command_queue;
+
+extern cl_int clSetKernelArg (cl_kernel, cl_uint, size_t, const void *);
+
+extern cl_int
+clEnqueueNDRangeKernel(cl_command_queue /* command_queue */,
+                       cl_kernel        /* kernel */,
+                       cl_uint          /* work_dim */,
+                       const size_t *   /* global_work_offset */,
+                       const size_t *   /* global_work_size */,
+                       const size_t *   /* local_work_size */,
+                       cl_uint          /* num_events_in_wait_list */,
+                       const cl_event * /* event_wait_list */,
+                       cl_event *       /* event */);
+
 #endif
 
 
-/* Number of `load_opencl_from_string' calls.  */
-static unsigned int load_opencl_calls;
+/* Number of `load_opencl_from_string', `load_kernel', and `clSetKernelArg'
+   calls.  */
+static unsigned int load_opencl_calls, load_opencl_kernel_calls,
+  opencl_set_kernel_arg_calls, opencl_enqueue_calls, opencl_finish_calls,
+  opencl_collect_stats_calls, opencl_release_event_calls;
 
 struct load_opencl_arguments
 {
@@ -449,6 +469,15 @@ struct load_opencl_arguments
 /* Expected arguments.  */
 static struct load_opencl_arguments expected_load_opencl_arguments;
 
+struct cl_enqueue_kernel_arguments
+{
+  size_t * global_work_size;
+};
+
+/* Variable describing the expected `clEnqueueNDRangeKernel' arguments. */
+static struct cl_enqueue_kernel_arguments expected_cl_enqueue_kernel_arguments;
+
+
 int
 starpu_opencl_load_opencl_from_string (const char *source,
 				       struct starpu_opencl_program *program,
@@ -458,6 +487,112 @@ starpu_opencl_load_opencl_from_string (const char *source,
   assert (program != expected_load_opencl_arguments.program);
   load_opencl_calls++;
   return 0;
+}
+
+int
+starpu_opencl_load_kernel (cl_kernel *kernel,
+			   cl_command_queue *queue,
+			   struct starpu_opencl_program *programs,
+			   const char *kernel_name, int devid)
+{
+  assert (kernel != NULL && queue != NULL && programs != NULL
+	  && kernel_name != NULL && devid == -42);
+  load_opencl_kernel_calls++;
+  return 0;
+}
+
+int
+starpu_worker_get_id (void)
+{
+  return 42;
+}
+
+int
+starpu_worker_get_devid (int id)
+{
+  return -id;
+}
+
+/* Set the INDEXth argument to KERNEL to the SIZE bytes pointed to by
+   VALUE.  */
+cl_int
+clSetKernelArg (cl_kernel kernel, cl_uint index, size_t size,
+		const void *value)
+{
+  size_t n;
+  const struct insert_task_argument *arg;
+
+  for (n = 0, arg = expected_insert_task_arguments;
+       n < index;
+       n++, arg++)
+    assert (arg->pointer != NULL);
+
+  switch (arg->type)
+    {
+    case STARPU_VALUE:
+      assert (size == arg->size);
+      assert (memcmp (arg->pointer, value, size) == 0);
+      break;
+
+    case STARPU_RW:
+    case STARPU_R:
+    case STARPU_W:
+      assert (size == sizeof (void *));
+      assert (* (void **) value == arg->pointer);
+      break;
+
+    default:
+      abort ();
+    }
+
+  opencl_set_kernel_arg_calls++;
+  return 0;
+}
+
+cl_int
+clEnqueueNDRangeKernel(cl_command_queue command_queue,
+                       cl_kernel        kernel,
+                       cl_uint          work_dim,
+                       const size_t *   global_work_offset,
+                       const size_t *   global_work_size,
+                       const size_t *   local_work_size,
+                       cl_uint          num_events_in_wait_list,
+                       const cl_event * event_wait_list,
+                       cl_event *       event)
+{
+  assert (*local_work_size == 1);
+  assert (*global_work_size == *expected_cl_enqueue_kernel_arguments.global_work_size);
+
+  opencl_enqueue_calls++;
+  return 0;
+}
+
+cl_int
+clFinish (cl_command_queue command_queue)
+{
+  opencl_finish_calls++;
+  return 0;
+}
+
+cl_int
+starpu_opencl_collect_stats (cl_event event)
+{
+  opencl_collect_stats_calls++;
+  return 0;
+}
+
+cl_int
+clReleaseEvent (cl_event event)
+{
+  opencl_release_event_calls++;
+  return 0;
+}
+
+
+const char *
+starpu_opencl_error_string (cl_int s)
+{
+  return "mock";
 }
 
 

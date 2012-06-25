@@ -17,7 +17,7 @@
 
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_insert_task_cache.h>
-#include <common/htable32.h>
+#include <common/htable64.h>
 
 typedef struct _starpu_mpi_clear_cache_s {
         starpu_data_handle_t data;

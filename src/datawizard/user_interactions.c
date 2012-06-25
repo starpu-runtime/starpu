@@ -334,8 +334,8 @@ static void _prefetch_data_on_node(void *arg)
 	}
 
 	_starpu_spin_lock(&handle->header_lock);
-	_starpu_notify_data_dependencies(handle);
-	_starpu_spin_unlock(&handle->header_lock);
+	if (!_starpu_notify_data_dependencies(handle))
+		_starpu_spin_unlock(&handle->header_lock);
 }
 
 static
@@ -376,17 +376,12 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 			STARPU_ASSERT(replicate->refcnt >= 0);
 			STARPU_ASSERT(handle->busy_count > 0);
 			handle->busy_count--;
-			_starpu_data_check_not_busy(handle);
 		}
 
 		/* In case there was a temporary handle (eg. used for reduction), this
 		 * handle may have requested to be destroyed when the data is released
 		 * */
-		unsigned handle_was_destroyed = handle->lazy_unregister;
-
-		_starpu_notify_data_dependencies(handle);
-
-		if (!handle_was_destroyed)
+		if (!_starpu_notify_data_dependencies(handle))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 	else if (!async)

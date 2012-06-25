@@ -47,7 +47,7 @@ extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy _starpu_sched_eager_policy;
 extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
-extern struct starpu_sched_policy heft_policy;
+extern struct starpu_sched_policy _starpu_sched_heft_policy;
 
 static struct starpu_sched_policy *predefined_policies[] =
 {
@@ -55,7 +55,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_dm_policy,
 	&_starpu_sched_dmda_policy,
-	&heft_policy,
+	&_starpu_sched_heft_policy,
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_random_policy,
@@ -88,14 +88,7 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy)
 	}
 #endif
 
-	policy.init_sched = sched_policy->init_sched;
-	policy.deinit_sched = sched_policy->deinit_sched;
-	policy.push_task = sched_policy->push_task;
-	policy.push_task_notify = sched_policy->push_task_notify;
-	policy.pop_task = sched_policy->pop_task;
-        policy.pre_exec_hook = sched_policy->pre_exec_hook;
-        policy.post_exec_hook = sched_policy->post_exec_hook;
-	policy.pop_every_task = sched_policy->pop_every_task;
+	memcpy(&policy, sched_policy, sizeof(policy));
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)

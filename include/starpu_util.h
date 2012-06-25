@@ -54,7 +54,7 @@ extern "C"
 } while(0)
 
 #if defined(STARPU_HAVE_STRERROR_R)
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) { \
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err != 0) { \
 			char xmessage[256]; strerror_r(-err, xmessage, 256); \
 			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
 			STARPU_ASSERT(0); }}
@@ -63,7 +63,7 @@ extern "C"
 			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
 			STARPU_ASSERT(0); }}
 #else
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err < 0) {		\
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err != 0) {		\
 			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
 			STARPU_ASSERT(0); }}
 #  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \

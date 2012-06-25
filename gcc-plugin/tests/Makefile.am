@@ -85,20 +85,17 @@ EXTRA_DIST += ./run-test.in			\
   $(gcc_tests)
 
 # The test suite assumes that the CPU back-end is available.
-if STARPU_USE_CPU
+if RUN_GCC_PLUGIN_TESTS
 
 TESTS = $(gcc_tests)
-
-endif
-
 TESTS_ENVIRONMENT = ./run-test
 
-if !HAVE_GUILE
+else !RUN_GCC_PLUGIN_TESTS
 
 check-hook:
-	-@echo "GNU Guile not available, test suite not run."
+	-@echo "GNU Guile or CPU back-end not available, test suite not run."
 
-endif !HAVE_GUILE
+endif !RUN_GCC_PLUGIN_TESTS
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

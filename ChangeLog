@@ -19,6 +19,15 @@ StarPU 1.1.0 (svn revision xxxx)
 
 New features:
   * OpenGL interoperability support.
+  * Capability to store compiled OpenCL kernels on the file system
+  * Capability to load compiled OpenCL kernels
+
+Changes:
+  * The FxT code can now be used on systems other than Linux.
+
+Small changes:
+  * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
+	still available for compatibility reasons.
 
 StarPU 1.0.0 (svn revision 6306)
 ==============================================

@@ -80,6 +80,7 @@ struct _starpu_worker
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[48];
 	char short_name[10];
+	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;

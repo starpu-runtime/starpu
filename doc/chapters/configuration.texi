@@ -214,7 +214,7 @@ is enabled when the required dependencies are found.
 @subsection Configuring workers
 
 @menu
-* STARPU_NCPUS::                	Number of CPU workers
+* STARPU_NCPU::                	Number of CPU workers
 * STARPU_NCUDA::                	Number of CUDA workers
 * STARPU_NOPENCL::              	Number of OpenCL workers
 * STARPU_NGORDON::              	Number of SPU workers (Cell)
@@ -227,8 +227,8 @@ is enabled when the required dependencies are found.
 * STARPU_MAX_WORKERSIZE:: 		Maximum size of the combined workers
 @end menu
 
-@node STARPU_NCPUS
-@subsubsection @code{STARPU_NCPUS} -- Number of CPU workers
+@node STARPU_NCPU
+@subsubsection @code{STARPU_NCPU} -- Number of CPU workers
 
 Specify the number of CPU workers (thus not including workers dedicated to control acceleratores). Note that by default, StarPU will not allocate
 more CPU workers than there are physical CPUs, and that some CPUs are used to control
@@ -272,7 +272,7 @@ available.
 
 Note that the first workers correspond to the CUDA workers, then come the
 OpenCL and the SPU, and finally the CPU workers. For example if
-we have @code{STARPU_NCUDA=1}, @code{STARPU_NOPENCL=1}, @code{STARPU_NCPUS=2}
+we have @code{STARPU_NCUDA=1}, @code{STARPU_NOPENCL=1}, @code{STARPU_NCPU=2}
 and @code{STARPU_WORKERS_CPUID = "0 2 1 3"}, the CUDA device will be controlled
 by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
 the logical CPUs #1 and #3 will be used by the CPU workers.

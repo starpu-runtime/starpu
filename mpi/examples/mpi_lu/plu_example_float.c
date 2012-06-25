@@ -15,5 +15,5 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "float.h"
+#include "mpi_lu-float.h"
 #include "plu_example.c"

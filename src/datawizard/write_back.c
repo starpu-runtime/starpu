@@ -24,8 +24,8 @@ static void wt_callback(void *arg)
 	starpu_data_handle_t handle = (starpu_data_handle_t) arg;
 
 	_starpu_spin_lock(&handle->header_lock);
-	_starpu_notify_data_dependencies(handle);
-	_starpu_spin_unlock(&handle->header_lock);
+	if (!_starpu_notify_data_dependencies(handle))
+		_starpu_spin_unlock(&handle->header_lock);
 }
 
 void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node,

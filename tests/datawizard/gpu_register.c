@@ -21,6 +21,13 @@
 #include "../helper.h"
 #include "scal.h"
 
+#if ! (defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA))
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 static int
 submit_tasks(starpu_data_handle_t handle, int pieces, int n)
 {
@@ -292,3 +299,5 @@ fail:
 	starpu_shutdown();
 	return EXIT_FAILURE;
 }
+
+#endif /* defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) */

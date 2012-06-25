@@ -31,6 +31,7 @@ extern "C"
 {
 #endif
 
+const char *starpu_opencl_error_string(cl_int status);
 void starpu_opencl_display_error(const char *func, const char *file, int line, const char *msg, cl_int status);
 #define STARPU_OPENCL_DISPLAY_ERROR(status) \
 	starpu_opencl_display_error(__starpu_func__, __FILE__, __LINE__, NULL, status)
@@ -58,6 +59,12 @@ void starpu_opencl_get_queue(int devid, cl_command_queue *queue);
 void starpu_opencl_get_current_context(cl_context *context);
 void starpu_opencl_get_current_queue(cl_command_queue *queue);
 
+void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source);
+int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char* build_options);
+int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char* build_options);
+
+int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs);
+
 int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options);
 int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options);
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
@@ -70,13 +77,13 @@ int starpu_opencl_collect_stats(cl_event event);
 /*
  * Sets the arguments of an OpenCL kernel.
  * Arguments to pass to the kernel should be given as follows :
- * 
+ *
  * 	size of the argument,  pointer to the argument
  *
  * 0 must be passed to this function after the kernel arguments.
  *
  * In case of failure, returns the id of the argument that could not be set,
- * and sets "error" to the error returned. Otherwise, returns the number of 
+ * and sets "error" to the error returned. Otherwise, returns the number of
  * arguments that were set.
  *
  * Example :

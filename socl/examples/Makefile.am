@@ -43,18 +43,21 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
-	clinfo/clinfo
+	clinfo/clinfo \
+  matmul/matmul
 
 #	mandelbrot/mandelbrot
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
-	clinfo/clinfo
+	clinfo/clinfo\
+  matmul/matmul
 
 #	mandelbrot/mandelbrot
 
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
+matmul_matmul_SOURCES = matmul/matmul.c
 #mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
 
 #mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)

@@ -73,6 +73,9 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
 (define %cuda-cppflags
   (string-tokenize "@STARPU_CUDA_CPPFLAGS@"))
 
+(define %opencl-cppflags
+  (string-tokenize "@STARPU_OPENCL_CPPFLAGS@"))
+
 (define %default-cflags
   `("-I" ,%srcdir
     "-I" ,(string-append %srcdir "/../../src")    ; for <common/uthash.h>
@@ -81,6 +84,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     "-I" ,(string-append %builddir "/../..")
 
     ,@%cuda-cppflags
+    ,@%opencl-cppflags
 
     ;; Unfortunately `libtool --mode=execute' doesn't help here, so hard-code
     ;; the real file name.

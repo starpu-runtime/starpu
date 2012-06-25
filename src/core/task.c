@@ -390,10 +390,10 @@ int starpu_task_submit(struct starpu_task *task)
 
 		_starpu_detect_implicit_data_deps(task);
 
-		if (task->cl->model)
+		if (task->cl->model && task->cl->model->symbol)
 			_starpu_load_perfmodel(task->cl->model);
 
-		if (task->cl->power_model)
+		if (task->cl->power_model && task->cl->power_model->symbol)
 			_starpu_load_perfmodel(task->cl->power_model);
 	}
 
@@ -613,7 +613,7 @@ void _starpu_decrement_nsubmitted_tasks(void)
 }
 
 void
-starpu_set_end_of_submissions(void)
+starpu_drivers_request_termination(void)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
@@ -626,11 +626,6 @@ starpu_set_end_of_submissions(void)
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-}
-
-void _starpu_check_nsubmitted_tasks(void)
-{
-
 }
 
 static void _starpu_increment_nsubmitted_tasks(void)

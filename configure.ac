@@ -171,6 +171,9 @@ fi
 # Some systems do not define strerror_r
 AC_CHECK_FUNC([strerror_r], [AC_DEFINE([STARPU_HAVE_STRERROR_R], [1], [Define to 1 if the function strerro_r is available.])])
 
+# Some systems may not define setenv
+AC_CHECK_FUNC([setenv], [AC_DEFINE([STARPU_HAVE_SETENV], [1], [Define to 1 if the function setenv is available.])])
+
 # Some systems do not define unsetenv
 AC_CHECK_FUNC([unsetenv], [AC_DEFINE([STARPU_HAVE_UNSETENV], [1], [Define to 1 if the function unsetenv is available.])])
 
@@ -980,7 +983,7 @@ AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of worker
 AC_MSG_CHECKING(maximum number of implementations)
 AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
 		[maximum number of implementations])],
-		maximplementations=$enableval, maximplementations=4)
+		maximplementations=$enableval, maximplementations=8)
 AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
@@ -1259,7 +1262,8 @@ fi
 AM_MISSING_PROG([YACC], [bison])
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
-AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
+AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
+  [test "x$run_gcc_plugin_test_suite" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -1496,7 +1500,10 @@ AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 # hwloc                                  #
 ##########################################
 
-AC_ARG_WITH([hwloc], [AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])])
+AC_ARG_WITH([hwloc],
+	[AS_HELP_STRING([--without-hwloc],
+	[Disable hwloc (enabled by default)])],
+	[hwloc_dir="$withval"])
 SAVED_LDFLAGS="${LDFLAGS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
 AS_IF([test "x$with_hwloc" != "xno"], [
@@ -1506,10 +1513,9 @@ AS_IF([test "x$with_hwloc" != "xno"], [
 		have_valid_hwloc=no
 		have_pkgconfig_hwloc=no])
 	AS_IF([test "$have_valid_hwloc" = "no"], [
-		hwloc_dir="$withval"
-		CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
+		if test "$hwloc_dir" != "" ; then CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include" ; fi
 		AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-		LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
+		if test "$hwloc_dir" != "" ; then LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib" ; fi
 		AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 		])
     ],
@@ -1524,6 +1530,10 @@ AS_IF([test "$have_valid_hwloc" = "yes"], [
 	])
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
+
+if test "$have_valid_hwloc" = "no" -a "$hwloc_dir" != "no" ; then
+   AC_MSG_ERROR([hwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install hwloc. However, if you really want to use StarPU without enabling hwloc, please restart configure by specifying the option '--without-hwloc'.])
+fi
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)

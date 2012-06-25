@@ -29,6 +29,12 @@
 #include <windows.h>
 #endif
 
+#ifdef __linux__
+#include <sys/syscall.h>   /* for SYS_gettid */
+#elif defined(__FreeBSD__)
+#include <sys/thr.h>       /* for thr_self() */
+#endif
+
 #define _STARPU_PROF_BUFFER_SIZE  (8*1024*1024)
 
 static char _STARPU_PROF_FILE_USER[128];
@@ -37,6 +43,19 @@ static int _starpu_fxt_started = 0;
 static int _starpu_written = 0;
 
 static int _starpu_id;
+
+long _starpu_gettid()
+{
+#if defined(__linux__)
+	return syscall(SYS_gettid);
+#elif defined(__FreeBSD__)
+	long tid;
+	thr_self(&tid);
+	return tid;
+#else
+	return (long) pthread_self();
+#endif
+}
 
 static void _starpu_profile_set_tracefile(void *last, ...)
 {
@@ -78,7 +97,7 @@ void _starpu_start_fxt_profiling(void)
 		_starpu_profile_set_tracefile(NULL);
 	}
 
-	threadid = syscall(SYS_gettid);
+	threadid = _starpu_gettid();
 
 	atexit(_starpu_stop_fxt_profiling);
 
@@ -140,7 +159,7 @@ void _starpu_stop_fxt_profiling(void)
 
 void _starpu_fxt_register_thread(unsigned cpuid)
 {
-	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, syscall(SYS_gettid));
+	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, _starpu_gettid());
 }
 
 #endif // STARPU_USE_FXT

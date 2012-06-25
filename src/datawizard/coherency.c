@@ -559,16 +559,8 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 	STARPU_ASSERT(handle->busy_count > 0);
 	handle->busy_count--;
-	_starpu_data_check_not_busy(handle);
 
-	/* In case there was a temporary handle (eg. used for reduction), this
-	 * handle may have requested to be destroyed when the data is released
-	 * */
-	unsigned handle_was_destroyed = handle->lazy_unregister;
-
-	_starpu_notify_data_dependencies(handle);
-
-	if (!handle_was_destroyed)
+	if (!_starpu_notify_data_dependencies(handle))
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
@@ -723,15 +715,13 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 
 		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
 
-		/* In case there was a temporary handle (eg. used for
-		 * reduction), this handle may have requested to be destroyed
-		 * when the data is released
-		 * */
-		unsigned handle_was_destroyed = handle->lazy_unregister;
+		/* Keep a reference for future
+		 * _starpu_release_task_enforce_sequential_consistency call */
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
 
 		_starpu_release_data_on_node(handle, mask, local_replicate);
-		if (!handle_was_destroyed)
-			_starpu_release_data_enforce_sequential_consistency(task, handle);
 	}
 
 	if (profiling && task->profiling_info)

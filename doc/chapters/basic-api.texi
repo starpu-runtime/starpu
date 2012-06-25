@@ -9,7 +9,7 @@
 @menu
 * Initialization and Termination::  Initialization and Termination methods
 * Workers' Properties::         Methods to enumerate workers' properties
-* Data Library::                Methods to manipulate data
+* Data Management::                Methods to manipulate data
 * Data Interfaces::
 * Data Partition::
 * Codelets and Tasks::          Methods to construct tasks
@@ -39,10 +39,12 @@ indicates that no worker was available (so that StarPU was not initialized).
 @deftp {Data Type} {struct starpu_driver}
 @table @asis
 @item @code{enum starpu_archtype type}
-The type of the driver. Only STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are
-currently supported.
+The type of the driver. Only STARPU_CPU_DRIVER, STARPU_CUDA_DRIVER and
+STARPU_OPENCL_DRIVER are currently supported.
 @item @code{union id} Anonymous union
 @table @asis
+@item @code{unsigned cpu_id}
+Should only be used if type is STARPU_CPU_WORKER.
 @item @code{unsigned cuda_id}
 Should only be used if type is STARPU_CUDA_WORKER.
 @item @code{cl_device_id opencl_id}
@@ -70,7 +72,7 @@ if @code{sched_policy_name} is set.
 
 @item @code{int ncpus} (default = -1)
 This is the number of CPU cores that StarPU can use. This can also be
-specified with the @code{STARPU_NCPUS} environment variable.
+specified with the @code{STARPU_NCPU} environment variable.
 
 @item @code{int ncuda} (default = -1)
 This is the number of CUDA devices that StarPU can use. This can also
@@ -125,7 +127,7 @@ executing tasks. If this value is equal to -1, the default value is used. This
 can also be specified with the @code{STARPU_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
-By default, StarPU parallel tasks concurrently.
+By default, StarPU executes parallel tasks concurrently.
 Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
 makes StarPU only start one parallel task at a time.
@@ -296,12 +298,12 @@ this function should be used in the allocation function to determine
 on which device the memory needs to be allocated.
 @end deftypefun
 
-@node Data Library
-@section Data Library
+@node Data Management
+@section Data Management
 
 @menu
-* Introduction to Data Library::
-* Basic Data Library API::
+* Introduction to Data Management::
+* Basic Data Management API::
 * Access registered data from the application::
 @end menu
 
@@ -310,7 +312,7 @@ This section describes the data management facilities provided by StarPU.
 We show how to use existing data interfaces in @ref{Data Interfaces}, but developers can
 design their own data interfaces if required.
 
-@node Introduction to Data Library
+@node Introduction to Data Management
 @subsection Introduction
 Data management is done at a high-level in StarPU: rather than accessing a mere
 list of contiguous buffers, the tasks may manipulate data that are described by
@@ -338,8 +340,8 @@ to StarPU, the specified memory node indicates where the piece of data
 initially resides (we also call this memory node the home node of a piece of
 data).
 
-@node Basic Data Library API
-@subsection Basic Data Library API
+@node Basic Data Management API
+@subsection Basic Data Management API
 
 @deftypefun int starpu_malloc (void **@var{A}, size_t @var{dim})
 This function allocates data of the given size in main memory. It will also try to pin it in
@@ -610,12 +612,12 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
-Register the sparse matrix made of @var{nnz} non-zero values of size
+Register the sparse matrix made of @var{nnz} non-zero blocks of elements of size
 @var{elemsize} stored in @var{nzval} and initializes @var{handle} to represent
 it. Blocks have size @var{r} * @var{c}. @var{nrow} is the number of rows (in
-terms of blocks), @var{colind} is the list of positions of the non-zero entries
-on the row, @var{rowptr} is the index (in nzval) of the first entry of the row.
-@var{fristentry} is the index of the first entry of the given arrays (usually 0
+terms of blocks), @code{colind[i]} is the block-column index for block @code{i}
+in @code{nzval}, @code{rowptr[i]} is the block-index (in nzval) of the first block of row @code{i}.
+@var{firstentry} is the index of the first entry of the given arrays (usually 0
 or 1).
 @end deftypefun
 
@@ -1146,6 +1148,18 @@ vector represented by @var{father_interface} once partitioned in
 @var{nparts} chunks of equal size.
 @end deftypefun
 
+@deftypefun void starpu_block_shadow_filter_func_vector (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+Return in @code{*@var{child_interface}} the @var{id}th element of the
+vector represented by @var{father_interface} once partitioned in
+@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}
+
+The @code{filter_arg_ptr} field must be the shadow size casted into @code{void*}.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow.c
+@end deftypefun
 
 @deftypefun void starpu_vector_list_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
 Return in @code{*@var{child_interface}} the @var{id}th element of the
@@ -1245,7 +1259,9 @@ always only define the field @code{opencl_funcs}.
 
 @deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
-targets. For compatibility, make sure to initialize the whole structure to zero.
+targets. For compatibility, make sure to initialize the whole structure to zero,
+either by using explicit memset, or by letting the compiler implicitly do it in
+e.g. static storage case.
 
 @table @asis
 @item @code{uint32_t where} (optional)
@@ -1343,11 +1359,13 @@ option when configuring StarPU.
 
 @item @code{struct starpu_perfmodel *model} (optional)
 This is a pointer to the task duration performance model associated to this
-codelet. This optional field is ignored when set to @code{NULL}.
+codelet. This optional field is ignored when set to @code{NULL} or
+when its @code{symbol} field is not set.
 
 @item @code{struct starpu_perfmodel *power_model} (optional)
 This is a pointer to the task power consumption performance model associated
-to this codelet. This optional field is ignored when set to @code{NULL}.
+to this codelet. This optional field is ignored when set to
+@code{NULL} or when its @code{symbol} field is not set.
 In the case of parallel codelets, this has to account for all processing units
 involved in the parallel execution.
 
@@ -1810,7 +1828,11 @@ The possible values are:
 @anchor{struct starpu_perfmodel}
 contains all information about a performance model. At least the
 @code{type} and @code{symbol} fields have to be filled when defining a
-performance model for a codelet. If not provided, other fields have to be zero.
+performance model for a codelet. For compatibility, make sure to initialize the
+whole structure to zero, either by using explicit memset, or by letting the
+compiler implicitly do it in e.g. static storage case.
+
+If not provided, other fields have to be zero.
 
 @table @asis
 @item @code{type}
@@ -1825,7 +1847,8 @@ archs will be determined by multiplying by an arch-specific factor.
 
 @item @code{const char *symbol}
 is the symbol name for the performance model, which will be used as
-file name to store the model.
+file name to store the model. It must be set otherwise the model will
+be ignored.
 
 @item @code{double (*cost_model)(struct starpu_buffer_descr *)}
 This field is deprecated. Use instead the @code{cost_function} field.
@@ -1933,6 +1956,10 @@ prints a list of all performance models on @var{output}.
 
 @deftypefun void starpu_bus_print_bandwidth ({FILE *}@var{f})
 prints a matrix of bus bandwidths on @var{f}.
+@end deftypefun
+
+@deftypefun void starpu_bus_print_affinity ({FILE *}@var{f})
+prints the affinity devices on @var{f}.
 @end deftypefun
 
 @node Profiling API
@@ -2240,8 +2267,23 @@ Return the computation kernel command queue of the current worker.
 Sets the arguments of a given kernel. The list of arguments must be given as
 (size_t @var{size_of_the_argument}, cl_mem * @var{pointer_to_the_argument}).
 The last argument must be 0. Returns the number of arguments that were
-successfully set. In case of failure, @var{err} is set to the error returned by
-OpenCL.
+successfully set. In case of failure, returns the id of the argument
+that could not be set and @var{err} is set to the error returned by
+OpenCL. Otherwise, returns the number of arguments that were set.
+
+@cartouche
+@smallexample
+int n;
+cl_int err;
+cl_kernel kernel;
+n = starpu_opencl_set_kernel_args(&err, 2, &kernel,
+                                  sizeof(foo), &foo,
+                                  sizeof(bar), &bar,
+                                  0);
+if (n != 2)
+   fprintf(stderr, "Error : %d\n", err);
+@end smallexample
+@end cartouche
 @end deftypefun
 
 @node Compiling OpenCL kernels
@@ -2277,6 +2319,43 @@ This function compiles an OpenCL source code stored in a string.
 This function unloads an OpenCL compiled code.
 @end deftypefun
 
+@deftypefun void starpu_opencl_load_program_source ({const char *}@var{source_file_name}, char *@var{located_file_name}, char *@var{located_dir_name}, char *@var{opencl_program_source})
+Store the contents of the file @var{source_file_name} in the buffer
+@var{opencl_program_source}. The file @var{source_file_name} can be
+located in the current directory, or in the directory specified by the
+environment variable @code{STARPU_OPENCL_PROGRAM_DIR}, or in the
+directory @code{share/starpu/opencl} of the installation directory of
+StarPU, or in the source directory of StarPU.
+When the file is found, @code{located_file_name} is the full name of
+the file as it has been located on the system, @code{located_dir_name}
+the directory where it has been located. Otherwise, they are both set
+to the empty string.
+@end deftypefun
+
+@deftypefun int starpu_opencl_compile_opencl_from_file ({const char *}@var{source_file_name}, {const char*} @var{build_options})
+Compile the OpenCL kernel stored in the file @code{source_file_name}
+with the given options @code{build_options} and stores the result in
+the directory @code{$STARPU_HOME/.starpu/opencl} with the same
+filename as @code{source_file_name}. The compilation is done for every
+OpenCL device, and the filename is suffixed with the vendor id and the
+device id of the OpenCL device.
+@end deftypefun
+
+@deftypefun int starpu_opencl_compile_opencl_from_string ({const char *}@var{opencl_program_source}, {const char *}@var{file_name}, {const char* }@var{build_options})
+Compile the OpenCL kernel in the string @code{opencl_program_source}
+with the given options @code{build_options} and stores the result in
+the directory @code{$STARPU_HOME/.starpu/opencl} with the filename
+@code{file_name}. The compilation is done for every
+OpenCL device, and the filename is suffixed with the vendor id and the
+device id of the OpenCL device.
+@end deftypefun
+
+@deftypefun int starpu_opencl_load_binary_opencl ({const char *}@var{kernel_id}, {struct starpu_opencl_program *}@var{opencl_programs})
+Compile the binary OpenCL kernel identified with @var{id}. For every
+OpenCL device, the binary OpenCL kernel will be loaded from the file
+@code{$STARPU_HOME/.starpu/opencl/<kernel_id>.<device_type>.vendor_id_<vendor_id>_device_id_<device_id>}.
+@end deftypefun
+
 @node Loading OpenCL kernels
 @subsection Loading OpenCL kernels
 
@@ -2302,6 +2381,11 @@ collect statistics about the kernel execution (used cycles, consumed power).
 
 @node OpenCL utilities
 @subsection OpenCL utilities
+
+@deftypefun {const char *}starpu_opencl_error_string (cl_int @var{status})
+Return the error message in English corresponding to @var{status}, an
+OpenCL error code.
+@end deftypefun
 
 @deftypefun void starpu_opencl_display_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, {const char *}@var{msg}, cl_int @var{status})
 Given a valid error @var{status}, prints the corresponding error message on

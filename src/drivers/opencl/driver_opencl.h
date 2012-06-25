@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,18 @@ void _starpu_opencl_init(void);
 
 extern
 void *_starpu_opencl_worker(void *);
+
+extern
+int _starpu_run_opencl(struct starpu_driver *);
+
+extern
+int _starpu_opencl_driver_init(struct starpu_driver *);
+
+extern
+int _starpu_opencl_driver_run_once(struct starpu_driver *);
+
+extern
+int _starpu_opencl_driver_deinit(struct starpu_driver *);
 
 #endif // STARPU_USE_OPENCL
 #endif //  __DRIVER_OPENCL_H__

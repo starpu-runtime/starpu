@@ -102,6 +102,11 @@ extern int yydebug;
 
 extern tree xref_tag (enum tree_code, tree);
 
+#ifndef STRINGIFY
+# define STRINGIFY_(x) # x
+# define STRINGIFY(x)  STRINGIFY_ (x)
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,7 +121,8 @@ static const char plugin_name[] = "starpu";
 /* Whether to enable verbose output.  */
 static bool verbose_output_p = false;
 
-/* Search path for OpenCL source files, for the `opencl' pragma.  */
+/* Search path for OpenCL source files for the `opencl' pragma, as a
+   `TREE_LIST'.  */
 static tree opencl_include_dirs = NULL_TREE;
 
 /* Names of public attributes.  */
@@ -412,13 +418,18 @@ build_hello_world (void)
 }
 
 /* Given ERROR_VAR, an integer variable holding a StarPU error code, return
-   statements that print out an error message and abort.  */
+   statements that print out the error message returned by
+   BUILD_ERROR_MESSAGE (ERROR_VAR) and abort.  */
 
-static tree build_error_statements (location_t, tree, const char *, ...)
-  __attribute__ ((format (printf, 3, 4)));
+static tree build_error_statements (location_t, tree,
+				    function_parm (tree, f, (tree)),
+				    const char *, ...)
+  __attribute__ ((format (printf, 4, 5)));
 
 static tree
-build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
+build_error_statements (location_t loc, tree error_var,
+			function_parm (tree, build_error_message, (tree)),
+			const char *fmt, ...)
 {
   expanded_location xloc = expand_location (loc);
 
@@ -436,23 +447,17 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
   if (error_var != NULL_TREE)
     {
       /* ERROR_VAR is an error code.  */
-
-      static tree strerror_fn;
-      LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
-
       gcc_assert (TREE_CODE (error_var) == VAR_DECL
 		  && TREE_TYPE (error_var) == integer_type_node);
 
       asprintf (&fmt_long, "%s:%d: error: %s: %%s\n",
 		xloc.file, xloc.line, str);
 
-      tree error_code =
-	build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
       print =
 	build_call_expr (builtin_decl_explicit (BUILT_IN_PRINTF), 2,
 			 build_string_literal (strlen (fmt_long) + 1,
 					       fmt_long),
-			 build_call_expr (strerror_fn, 1, error_code));
+			 build_error_message (error_var));
     }
   else
     {
@@ -478,6 +483,20 @@ build_error_statements (location_t loc, tree error_var, const char *fmt, ...)
 			    &stmts);
 
   return stmts;
+}
+
+/* Build an error string for the StarPU return value in ERROR_VAR.  */
+
+static tree
+build_starpu_error_string (tree error_var)
+{
+  static tree strerror_fn;
+  LOOKUP_STARPU_FUNCTION (strerror_fn, "strerror");
+
+  tree error_code =
+    build1 (NEGATE_EXPR, TREE_TYPE (error_var), error_var);
+
+  return build_call_expr (strerror_fn, 1, error_code);
 }
 
 
@@ -620,7 +639,8 @@ handle_pragma_initialize (struct cpp_reader *reader)
 		      build2 (NE_EXPR, boolean_type_node,
 			      error_var, integer_zero_node),
 		      build_error_statements (loc, error_var,
-					      "failed to initialize StarPU"), 
+					      build_starpu_error_string,
+					      "failed to initialize StarPU"),
 		      NULL_TREE);
 
   tree stmts = NULL_TREE;
@@ -1055,7 +1075,7 @@ build_variable_from_file_contents (location_t loc,
 				   const_tree search_path)
 {
   gcc_assert (search_path != NULL_TREE
-	      && TREE_CODE (search_path) == STRING_CST);
+	      && TREE_CODE (search_path) == TREE_LIST);
 
   int err, dir_fd;
   struct stat st;
@@ -1064,11 +1084,14 @@ build_variable_from_file_contents (location_t loc,
 
   /* Look for FILE in each directory in SEARCH_PATH, and pick the first one
      that matches.  */
-  for (err = ENOENT, dir_fd = -1, dirs = opencl_include_dirs;
+  for (err = ENOENT, dir_fd = -1, dirs = search_path;
        (err != 0 || err == ENOENT) && dirs != NULL_TREE;
        dirs = TREE_CHAIN (dirs))
     {
-      dir_fd = open (TREE_STRING_POINTER (dirs),
+      gcc_assert (TREE_VALUE (dirs) != NULL_TREE
+		  && TREE_CODE (TREE_VALUE (dirs)) == STRING_CST);
+
+      dir_fd = open (TREE_STRING_POINTER (TREE_VALUE (dirs)),
 		     O_DIRECTORY | O_RDONLY);
       if (dir_fd < 0)
 	err = ENOENT;
@@ -1077,6 +1100,10 @@ build_variable_from_file_contents (location_t loc,
 	  err = fstatat (dir_fd, file, &st, 0);
 	  if (err != 0)
 	    close (dir_fd);
+	  else
+	    /* Leave DIRS unchanged so it can be referred to in diagnostics
+	       below.  */
+	    break;
 	}
     }
 
@@ -1091,7 +1118,7 @@ build_variable_from_file_contents (location_t loc,
     {
       if (verbose_output_p)
 	inform (loc, "found file %qs in %qs",
-		file, TREE_STRING_POINTER (dirs));
+		file, TREE_STRING_POINTER (TREE_VALUE (dirs)));
 
       int fd;
 
@@ -1140,22 +1167,149 @@ opencl_program_type (void)
   return t;
 }
 
+static tree
+opencl_kernel_type (void)
+{
+  tree t = lookup_name (get_identifier ("cl_kernel"));
+  gcc_assert (t != NULL_TREE);
+  if (TREE_CODE (t) == TYPE_DECL)
+    t = TREE_TYPE (t);
+  gcc_assert (TYPE_P (t));
+  return t;
+}
+
+static tree
+opencl_command_queue_type (void)
+{
+  tree t = lookup_name (get_identifier ("cl_command_queue"));
+  gcc_assert (t != NULL_TREE);
+  if (TREE_CODE (t) == TYPE_DECL)
+    t = TREE_TYPE (t);
+  gcc_assert (TYPE_P (t));
+  return t;
+}
+
+static tree
+opencl_event_type (void)
+{
+  tree t = lookup_name (get_identifier ("cl_event"));
+  gcc_assert (t != NULL_TREE);
+  if (TREE_CODE (t) == TYPE_DECL)
+    t = TREE_TYPE (t);
+  gcc_assert (TYPE_P (t));
+  return t;
+}
+
+/* Return an expression that, given the OpenCL error code in ERROR_VAR,
+   returns a string.  */
+
+static tree
+build_opencl_error_string (tree error_var)
+{
+  static tree clstrerror_fn;
+  LOOKUP_STARPU_FUNCTION (clstrerror_fn, "starpu_opencl_error_string");
+
+  return build_call_expr (clstrerror_fn, 1, error_var);
+}
+
+/* Return an error-checking `clSetKernelArg' call for argument ARG, at
+   index IDX, of KERNEL.  */
+
+static tree
+build_opencl_set_kernel_arg_call (location_t loc, tree fn,
+				  tree kernel, unsigned int idx,
+				  tree arg)
+{
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL
+	      && TREE_TYPE (kernel) == opencl_kernel_type ());
+
+  static tree setkernarg_fn;
+  LOOKUP_STARPU_FUNCTION (setkernarg_fn, "clSetKernelArg");
+
+  tree call = build_call_expr (setkernarg_fn, 4, kernel,
+			       build_int_cst (integer_type_node, idx),
+			       size_in_bytes (TREE_TYPE (arg)),
+			       build_addr (arg, fn));
+  tree error_var = build_decl (loc, VAR_DECL,
+			       create_tmp_var_name ("setkernelarg_error"),
+			       integer_type_node);
+  DECL_ARTIFICIAL (error_var) = true;
+  DECL_CONTEXT (error_var) = fn;
+
+  tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
+			    error_var, call);
+
+  /* Build `if (ERROR_VAR != 0) error ();'.  */
+  tree cond;
+  cond = build3 (COND_EXPR, void_type_node,
+		 build2 (NE_EXPR, boolean_type_node,
+			 error_var, integer_zero_node),
+		 build_error_statements (loc, error_var,
+					 build_opencl_error_string,
+					 "failed to set OpenCL kernel "
+					 "argument %d", idx),
+		 NULL_TREE);
+
+  tree stmts = NULL_TREE;
+  append_to_statement_list (assignment, &stmts);
+  append_to_statement_list (cond, &stmts);
+
+  return build4 (TARGET_EXPR, void_type_node, error_var,
+		 stmts, NULL_TREE, NULL_TREE);
+}
+
+/* Return the sequence of `clSetKernelArg' calls for KERNEL.  */
+
+static tree
+build_opencl_set_kernel_arg_calls (location_t loc, tree task_impl,
+				   tree kernel)
+{
+  gcc_assert (task_implementation_p (task_impl));
+
+  size_t n;
+  tree arg, stmts = NULL_TREE;
+
+  for (arg = DECL_ARGUMENTS (task_impl), n = 0;
+       arg != NULL_TREE;
+       arg = TREE_CHAIN (arg), n++)
+    {
+      tree call = build_opencl_set_kernel_arg_call (loc, task_impl,
+						    kernel, n, arg);
+      append_to_statement_list (call, &stmts);
+    }
+
+  return stmts;
+}
+
 /* Define a body for TASK_IMPL that loads OpenCL source from FILE and calls
    KERNEL.  */
 
 static void
 define_opencl_task_implementation (location_t loc, tree task_impl,
-				   const char *file, const_tree kernel)
+				   const char *file, const_tree kernel,
+				   tree groupsize)
 {
   gcc_assert (task_implementation_p (task_impl)
 	      && task_implementation_where (task_impl) == STARPU_OPENCL);
   gcc_assert (TREE_CODE (kernel) == STRING_CST);
+  gcc_assert (INTEGRAL_TYPE_P (TREE_TYPE (groupsize)));
+
+  local_define (tree, local_var, (tree type))
+  {
+    tree var = build_decl (loc, VAR_DECL,
+			   create_tmp_var_name ("opencl_var"),
+			   type);
+    DECL_ARTIFICIAL (var) = true;
+    DECL_CONTEXT (var) = task_impl;
+    return var;
+  };
 
   if (!verbose_output_p)
     /* No further warnings for this node.  */
     TREE_NO_WARNING (task_impl) = true;
 
-  static tree load_fn;
+  static tree load_fn, load_kern_fn, enqueue_kern_fn, wid_fn, devid_fn, clfinish_fn,
+    collect_stats_fn, release_ev_fn;
 
   if (load_fn == NULL_TREE)
     {
@@ -1169,6 +1323,14 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 	}
     }
 
+  LOOKUP_STARPU_FUNCTION (load_kern_fn, "starpu_opencl_load_kernel");
+  LOOKUP_STARPU_FUNCTION (wid_fn, "starpu_worker_get_id");
+  LOOKUP_STARPU_FUNCTION (devid_fn, "starpu_worker_get_devid");
+  LOOKUP_STARPU_FUNCTION (enqueue_kern_fn, "clEnqueueNDRangeKernel");
+  LOOKUP_STARPU_FUNCTION (clfinish_fn, "clFinish");
+  LOOKUP_STARPU_FUNCTION (collect_stats_fn, "starpu_opencl_collect_stats");
+  LOOKUP_STARPU_FUNCTION (release_ev_fn, "clReleaseEvent");
+
   if (verbose_output_p)
     inform (loc, "defining %qE, with OpenCL kernel %qs from file %qs",
 	    DECL_NAME (task_impl), TREE_STRING_POINTER (kernel), file);
@@ -1178,6 +1340,9 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 						  file, opencl_include_dirs);
   if (source_var != NULL_TREE)
     {
+      /* Give TASK_IMPL an actual argument list.  */
+      DECL_ARGUMENTS (task_impl) = build_function_arguments (task_impl);
+
       tree prog_var, prog_loaded_var;
 
       /* Global variable to hold the `starpu_opencl_program' object.  */
@@ -1219,24 +1384,115 @@ define_opencl_task_implementation (location_t loc, tree task_impl,
 
       /* Build `if (!PROG_LOADED_VAR) { ...; PROG_LOADED_VAR = true; }'.  */
 
-      tree cond = build3 (COND_EXPR, void_type_node,
-			  prog_loaded_var,
-			  NULL_TREE,
-			  load_stmts);
+      tree load_cond = build3 (COND_EXPR, void_type_node,
+			       prog_loaded_var,
+			       NULL_TREE,
+			       load_stmts);
 
-      /* TODO: Build the kernel invocation.  */
+      /* Local variables.  */
+      tree kernel_var, queue_var, event_var, group_size_var, ngroups_var,
+	error_var;
+
+      kernel_var = local_var (opencl_kernel_type ());
+      queue_var = local_var (opencl_command_queue_type ());
+      event_var = local_var (opencl_event_type ());
+      group_size_var = local_var (size_type_node);
+      ngroups_var = local_var (size_type_node);
+      error_var = local_var (integer_type_node);
+
+      /* Build `starpu_opencl_load_kernel (...)'.
+         TODO: Check return value.  */
+      tree devid =
+	build_call_expr (devid_fn, 1, build_call_expr (wid_fn, 0));
+
+      tree load_kern = build_call_expr (load_kern_fn, 5,
+					build_addr (kernel_var, task_impl),
+					build_addr (queue_var, task_impl),
+					build_addr (prog_var, task_impl),
+					build_string_literal
+					(TREE_STRING_LENGTH (kernel) + 1,
+					 TREE_STRING_POINTER (kernel)),
+					devid);
+
+      tree enqueue_kern =
+	build_call_expr (enqueue_kern_fn, 9,
+			 queue_var, kernel_var,
+			 build_int_cst (integer_type_node, 1),
+			 null_pointer_node,
+			 build_addr (group_size_var, task_impl),
+			 build_addr (ngroups_var, task_impl),
+			 integer_zero_node,
+			 null_pointer_node,
+			 build_addr (event_var, task_impl));
+      tree enqueue_err =
+	build2 (INIT_EXPR, TREE_TYPE (error_var), error_var, enqueue_kern);
+
+      tree enqueue_cond =
+	build3 (COND_EXPR, void_type_node,
+		build2 (NE_EXPR, boolean_type_node,
+			error_var, integer_zero_node),
+		build_error_statements (loc, error_var,
+					build_opencl_error_string,
+					"failed to enqueue kernel"),
+		NULL_TREE);
+
+      tree clfinish =
+	build_call_expr (clfinish_fn, 1, queue_var);
+
+      tree collect_stats =
+	build_call_expr (collect_stats_fn, 1, event_var);
+
+      tree release_ev =
+	build_call_expr (release_ev_fn, 1, event_var);
+
+      tree enqueue_stmts = NULL_TREE;
+      append_to_statement_list (enqueue_err, &enqueue_stmts);
+      append_to_statement_list (enqueue_cond, &enqueue_stmts);
+
+
+      /* TODO: Build `clFinish', `clReleaseEvent', & co.  */
+      /* Put it all together.  */
+      tree stmts = NULL_TREE;
+      append_to_statement_list (load_cond, &stmts);
+      append_to_statement_list (load_kern, &stmts);
+      append_to_statement_list (build_opencl_set_kernel_arg_calls (loc,
+								   task_impl,
+								   kernel_var),
+				&stmts);
+
+      /* TODO: Support user-provided values.  */
+      append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (group_size_var),
+					group_size_var,
+					fold_convert (TREE_TYPE (group_size_var),
+						      groupsize)),
+				&stmts);
+      append_to_statement_list (build2 (INIT_EXPR, TREE_TYPE (ngroups_var),
+					ngroups_var,
+					build_int_cst (TREE_TYPE (ngroups_var),
+						       1)),
+				&stmts);
+      append_to_statement_list (build4 (TARGET_EXPR, void_type_node,
+					error_var, enqueue_stmts,
+					NULL_TREE, NULL_TREE),
+				&stmts);
+      append_to_statement_list (clfinish, &stmts);
+      append_to_statement_list (collect_stats, &stmts);
+      append_to_statement_list (release_ev, &stmts);
+
+      /* Bind the local vars.  */
+      tree vars = chain_trees (kernel_var, queue_var, event_var,
+			       group_size_var, ngroups_var, NULL_TREE);
+      tree bind = build3 (BIND_EXPR, void_type_node, vars, stmts,
+			  build_block (vars, NULL_TREE, task_impl, NULL_TREE));
 
       TREE_USED (task_impl) = true;
       TREE_STATIC (task_impl) = true;
       DECL_EXTERNAL (task_impl) = false;
       DECL_ARTIFICIAL (task_impl) = true;
-      DECL_SAVED_TREE (task_impl) = cond;
-      DECL_INITIAL (task_impl) =
-	build_block (NULL_TREE, NULL_TREE, task_impl, NULL_TREE);
+      DECL_SAVED_TREE (task_impl) = bind;
+      DECL_INITIAL (task_impl) = BIND_EXPR_BLOCK (bind);
       DECL_RESULT (task_impl) =
 	build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
-      DECL_ARGUMENTS (task_impl) =
-	build_function_arguments (task_impl);
 
       /* Compile TASK_IMPL.  */
       rest_of_decl_compilation (task_impl, true, 0);
@@ -1288,8 +1544,8 @@ handle_pragma_opencl (struct cpp_reader *reader)
   if (args == NULL_TREE)
     return;
 
-  /* TODO: Add "group size" and "number of groups" arguments.  */
-  if (list_length (args) < 3)
+  /* TODO: Add "number of groups" arguments.  */
+  if (list_length (args) < 4)
     {
       error_at (loc, "wrong number of arguments for %<starpu opencl%> pragma");
       return;
@@ -1308,13 +1564,21 @@ handle_pragma_opencl (struct cpp_reader *reader)
   	      if (TREE_CODE (TREE_VALUE (args)) == STRING_CST)
   		{
   		  tree kernel = TREE_VALUE (args);
+		  args = TREE_CHAIN (args);
 
-  		  if (TREE_CHAIN (args) == NULL_TREE)
-		    define_opencl_task_implementation (loc, task_impl,
-						       TREE_STRING_POINTER (file),
-						       kernel);
-  		  else
-  		    error_at (loc, "junk after %<starpu opencl%> pragma");
+		  if (TREE_TYPE (TREE_VALUE (args)) != NULL_TREE &&
+		      INTEGRAL_TYPE_P (TREE_TYPE (TREE_VALUE (args))))
+		    {
+		      tree groupsize = TREE_VALUE (args);
+		      if (TREE_CHAIN (args) == NULL_TREE)
+			define_opencl_task_implementation (loc, task_impl,
+							   TREE_STRING_POINTER (file),
+							   kernel, groupsize);
+		      else
+			error_at (loc, "junk after %<starpu opencl%> pragma");
+		    }
+		  else
+		    error_at (loc, "%<groupsize%> argument must be an integral type");
   		}
   	      else
   		error_at (loc, "%<kernel%> argument must be a string constant");
@@ -2712,6 +2976,7 @@ build_pointer_lookup (tree pointer)
 		      build2 (EQ_EXPR, boolean_type_node,
 			      result_var, null_pointer_node),
 		      build_error_statements (loc, NULL_TREE,
+					      build_starpu_error_string,
 					      "attempt to use unregistered "
 					      "pointer"),
 		      NULL_TREE);
@@ -2835,6 +3100,7 @@ define_task (tree task_decl)
 		      build2 (NE_EXPR, boolean_type_node,
 			      error_var, integer_zero_node),
 		      build_error_statements (loc, error_var,
+					      build_starpu_error_string,
 					      "failed to insert task `%s'",
 					      IDENTIFIER_POINTER (name)),
 		      NULL_TREE);
@@ -3044,8 +3310,31 @@ int
 plugin_init (struct plugin_name_args *plugin_info,
 	     struct plugin_gcc_version *version)
 {
-  if (!plugin_default_version_check (version, &gcc_version))
-    return 1;
+  /* `plugin_default_version_check' happens to be stricter than necessary
+     (for instance, it fails when the `buildstamp' field of the plug-in
+     doesn't match that of GCC), so write our own check and make more relax
+     and more verbose.  */
+
+#define VERSION_CHECK(field)						\
+  do									\
+    {									\
+      if (strcmp (gcc_version. field, version-> field) != 0)		\
+	{								\
+	  error_at (UNKNOWN_LOCATION, "plug-in version check for `"	\
+		    STRINGIFY (field) "' failed: expected `%s', "	\
+		    "got `%s'",						\
+		    gcc_version. field, version-> field);		\
+	  return 1;							\
+	}								\
+    }									\
+  while (0)
+
+  VERSION_CHECK (basever);			  /* e.g., "4.6.2" */
+  VERSION_CHECK (devphase);
+  VERSION_CHECK (revision);
+  VERSION_CHECK (configuration_arguments);
+
+#undef VERSION_CHECK
 
   register_callback (plugin_name, PLUGIN_START_UNIT,
 		     define_cpp_macros, NULL);
@@ -3071,7 +3360,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 		     NULL, &pass_info);
 
   include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
-  opencl_include_dirs = build_string (1, ".");
+  opencl_include_dirs = tree_cons (NULL_TREE, build_string (1, "."),
+				   NULL_TREE);
 
   int arg;
   for (arg = 0; arg < plugin_info->argc; arg++)
@@ -3094,7 +3384,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 	    {
 	      tree dir = build_string (strlen (plugin_info->argv[arg].value),
 				       plugin_info->argv[arg].value);
-	      opencl_include_dirs = chainon (opencl_include_dirs, dir);
+	      opencl_include_dirs = tree_cons (NULL_TREE, dir,
+					       opencl_include_dirs);
 	    }
 	}
       else if (strcmp (plugin_info->argv[arg].key, "verbose") == 0)
@@ -3103,6 +3394,9 @@ plugin_init (struct plugin_name_args *plugin_info,
 	error_at (UNKNOWN_LOCATION, "invalid StarPU plug-in argument %qs",
 		  plugin_info->argv[arg].key);
     }
+
+  /* Keep the directories in the order in which they appear.  */
+  opencl_include_dirs = nreverse (opencl_include_dirs);
 
   return 0;
 }

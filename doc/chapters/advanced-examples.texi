@@ -15,6 +15,7 @@
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
 * Data reduction::  
+* Temporary buffers::  
 * Parallel Tasks::
 * Debugging::
 * The multiformat interface::
@@ -235,7 +236,7 @@ starpu_data_partition(handle, &f);
 @end smallexample
 @end cartouche
 
-The task submission then uses @code{starpu_data_get_sub_data} to retrive the
+The task submission then uses @code{starpu_data_get_sub_data} to retrieve the
 sub-handles to be passed as tasks parameters.
 
 @cartouche
@@ -302,7 +303,9 @@ a performance model, by defining a @code{starpu_perfmodel} structure and
 providing its address in the @code{model} field of the @code{struct starpu_codelet}
 structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel}
 are mandatory, to give a name to the model, and the type of the model, since
-there are several kinds of performance models.
+there are several kinds of performance models. For compatibility, make sure to
+initialize the whole structure to zero, either by using explicit memset, or by
+letting the compiler implicitly do it as examplified below.
 
 @itemize
 @item
@@ -317,7 +320,8 @@ and ouput sizes as an index.
 It will also save it in @code{~/.starpu/sampling/codelets}
 for further executions, and can be observed by using the
 @code{starpu_perfmodel_display} command, or drawn by using
-the @code{starpu_perfmodel_plot}.  The models are indexed by machine name. To
+the @code{starpu_perfmodel_plot} (@pxref{Performance model calibration}).  The
+models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
 @code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done when using a task scheduler which makes use of it, such as @code{heft} or @code{dmda}.
 
@@ -353,15 +357,31 @@ model type). This still assumes performance regularity, but works
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
 form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
-STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
+STARPU_REGRESSION_BASED, but costs a lot more to compute).
+
+For instance,
 @code{tests/perfmodels/regression_based.c} uses a regression-based performance
-model for the @code{memset} operation. Of course, the application has to issue
+model for the @code{memset} operation.
+
+Of course, the application has to issue
 tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
-and maximum observed input size. For non-linear regression, since computing it
+and maximum observed input size. It can be useful to set the
+@code{STARPU_CALIBRATE} environment variable to @code{1} and run the application
+on varying input sizes, so as to feed the performance model for a variety of
+inputs. The @code{starpu_perfmodel_display} and @code{starpu_perfmodel_plot}
+tools can be used to observe how much the performance model is calibrated (@pxref{Performance model calibration}); when
+their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
+StarPU use the resulting performance model without recording new measures. If
+the data input sizes vary a lot, it is really important to set
+@code{STARPU_CALIBRATE} to @code{0}, otherwise StarPU will continue adding the
+measures, and result with a very big performance model, which will take time a
+lot of time to load and save.
+
+For non-linear regression, since computing it
 is quite expensive, it is only done at termination of the application. This
-means that the first execution uses history-based performance model to perform
-scheduling.
+means that the first execution of the application will use only history-based
+performance model to perform scheduling, without using regression.
 
 @item
 Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_function} field),
@@ -667,6 +687,64 @@ int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
 
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading
 to yet more relaxed dependencies and more parallelism.
+
+@node Temporary buffers
+@section Temporary buffers
+
+There are two kinds of temporary buffers: temporary data which just pass results
+from a task to another, and scratch data which are needed only internally by
+tasks.
+
+@subsection Temporary data
+
+Data can sometimes be entirely produced by a task, and entirely consumed by
+another task, without the need for other parts of the application to access
+it. In such case, registration can be done without prior allocation, by using
+the special -1 memory node number, and passing a zero pointer. StarPU will
+actually allocate memory only when the task creating the content gets scheduled,
+and destroy it on unregistration.
+
+In addition to that, it can be tedious for the application to have to unregister
+the data, since it will not use its content anyway. The unregistration can be
+done lazily by using the @code{starpu_data_unregister_lazy(handle)} function,
+which will record that no more tasks accessing the handle will be submitted, so
+that it can be freed as soon as the last task accessing it is over.
+
+The following code examplifies both points: it registers the temporary
+data, submits three tasks accessing it, and records the data for automatic
+unregistration.
+
+@smallexample
+starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
+starpu_insert_task(&produce_data, STARPU_W, handle, 0);
+starpu_insert_task(&compute_data, STARPU_RW, handle, 0);
+starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
+starpu_data_unregister_lazy(handle);
+@end smallexample
+
+@subsection Scratch data
+
+Some kernels sometimes need temporary data to achieve the computations, i.e. a
+workspace. The application could allocate it at the start of the codelet
+function, and free it at the end, but that would be costly. It could also
+allocate one buffer per worker (similarly to @ref{Per-worker library
+initialization }), but that would make them systematic and permanent. A more
+optimized way is to use the SCRATCH data access mode, as examplified below,
+which provides per-worker buffers without content consistency.
+
+@smallexample
+starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
+for (i = 0; i < N; i++)
+    starpu_insert_task(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
+@end smallexample
+
+StarPU will make sure that the buffer is allocated before executing the task,
+and make this allocation per-worker: for CPU workers, notably, each worker has
+its own buffer. This means that each task submitted above will actually have its
+own workspace, which will actually be the same for all tasks running one after
+the other on the same worker. Also, if for instance GPU memory becomes scarce,
+StarPU will notice that it can free such buffers easily, since the content does
+not matter.
 
 @node Parallel Tasks
 @section Parallel Tasks

@@ -5,7 +5,7 @@
 @settitle StarPU Handbook
 @c %**end of header
 
-@include version.texi
+@include chapters/version.texi
 
 @copying
 Copyright @copyright{} 2009--2011  Universit@'e de Bordeaux 1

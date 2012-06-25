@@ -321,7 +321,7 @@ simple way to allocate storage for arrays on the heap:
 This attributes applies to local variables with an array type.  Its
 effect is to automatically allocate the array's storage on
 the heap, using @code{starpu_malloc} under the hood (@pxref{Basic Data
-Library API, starpu_malloc}).  The heap-allocated array is automatically
+Management API, starpu_malloc}).  The heap-allocated array is automatically
 freed when the variable's scope is left, as with
 automatic variables.
 

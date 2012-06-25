@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -35,6 +35,38 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 
 	uint32_t child_nx =
 	  STARPU_MIN(chunk_size, nx - id*chunk_size);
+
+	vector_child->nx = child_nx;
+	vector_child->elemsize = elemsize;
+
+	if (vector_father->dev_handle)
+	{
+		if (vector_father->ptr)
+			vector_child->ptr = vector_father->ptr + offset;
+		vector_child->dev_handle = vector_father->dev_handle;
+		vector_child->offset = vector_father->offset + offset;
+	}
+}
+
+
+void starpu_block_shadow_filter_func_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+{
+        struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+        struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
+
+        uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
+
+	/* actual number of elements */
+	uint32_t nx = vector_father->nx - 2 * shadow_size;
+	size_t elemsize = vector_father->elemsize;
+
+	STARPU_ASSERT(nchunks <= nx);
+
+	uint32_t chunk_size = (nx + nchunks - 1)/nchunks;
+	size_t offset = id*chunk_size*elemsize;
+
+	uint32_t child_nx =
+	  STARPU_MIN(chunk_size, nx - id*chunk_size) + 2 * shadow_size;
 
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;

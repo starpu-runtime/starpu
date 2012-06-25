@@ -160,7 +160,7 @@ struct starpu_complex_interface
 @end cartouche
 
 Registering such a data to StarPU is easily done using the function
-@code{starpu_data_register} (@pxref{Basic Data Library API}). The last
+@code{starpu_data_register} (@pxref{Basic Data Management API}). The last
 parameter of the function, @code{interface_complex_ops}, will be
 described below.
 
@@ -358,6 +358,17 @@ This function mustn't be called if @var{bundle} is already closed and/or @var{ta
 Inform the runtime that the user won't modify @var{bundle} anymore, it means no more inserting or removing task. Thus the runtime can destroy it when possible.
 @end deftypefun
 
+@deftypefun double starpu_task_bundle_expected_length (starpu_task_bundle_t @var{bundle}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+Return the expected duration of the entire task bundle in µs.
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_power (starpu_task_bundle_t @var{bundle}, enum starpu_perf_archtype @var{arch}, unsigned @var{nimpl})
+Return the expected power consumption of the entire task bundle in J.
+@end deftypefun
+
+@deftypefun double starpu_task_bundle_expected_data_transfer_time (starpu_task_bundle_t @var{bundle}, unsigned @var{memory_node})
+Return the time (in µs) expected to transfer all data used within the bundle.
+@end deftypefun
 
 @node Task Lists
 @section Task Lists
@@ -695,19 +706,32 @@ static struct starpu_sched_policy dummy_sched_policy = @{
 @node Driver API
 @subsection Driver API
 
-@deftypefun int starpu_driver_init(struct starpu_driver *@var{d})
-Initialize the given driver. Returns 0 on success, -EINVAL if d->type is not
-STARPU_CUDA_WORKER.
+@deftypefun int starpu_driver_init (struct starpu_driver *@var{d})
+Initialize the given driver. Returns 0 on success, -EINVAL if
+@code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
+STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
 @end deftypefun
 
-@deftypefun int starpu_driver_run_once(struct starpu_driver *@var{d})
-Runs the driver for a while, then returns 0 on success, -EINVAL if d->type is
-not STARPU_CUDA_WORKER.
+@deftypefun int starpu_driver_run ({struct starpu_driver *}@var{d})
+Run the driver until it receives a request to terminate, then returns 0 on success, -EINVAL if
+@code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
+STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
 @end deftypefun
 
-@deftypefun int starpu_driver_deinit(struct starpu_driver *@var{d})
-Deinitialize the given driver. Returns 0 on success, -EINVAL if d->type is not
-STARPU_CUDA_WORKER.
+@deftypefun int starpu_driver_run_once (struct starpu_driver *@var{d})
+Run the driver once, then returns 0 on success, -EINVAL if
+@code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
+STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
+@end deftypefun
+
+@deftypefun int starpu_driver_deinit (struct starpu_driver *@var{d})
+Deinitialize the given driver. Returns 0 on success, -EINVAL if
+@code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
+STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
+@end deftypefun
+
+@deftypefun void starpu_drivers_request_termination (void)
+Notify all running drivers they should terminate.
 @end deftypefun
 
 @node Example

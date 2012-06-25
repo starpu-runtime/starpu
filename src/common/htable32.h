@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define _STARPU_HTBL32_NODE_SIZE	16
+#define _STARPU_HTBL32_NODE_SIZE	8
 
 /* Hierarchical table: all nodes have a 2^16 arity . */
 /* Note: this struct is used in include/starpu_perfmodel.h */

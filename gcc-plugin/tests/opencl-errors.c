@@ -35,19 +35,20 @@ my_task_cpu (int x, float a[x])
 }
 
 
-#pragma starpu opencl my_task "test.cl" "kern" /* (error "not a.* task impl") */
+#pragma starpu opencl my_task "test.cl" "kern" 1 /* (error "not a.* task impl") */
 #pragma starpu opencl my_task_cpu  /* (error "not a.* task impl") */	\
-                      "test.cl" "kern"
-#pragma starpu opencl my_task_opencl "/dev/null" "kern" /* (error "empty") */
-#pragma starpu opencl my_task_opencl "/does-not-exist/" "kern" /* (error "failed to access") */
+                      "test.cl" "kern" 1
+#pragma starpu opencl my_task_opencl "/dev/null" "kern" 1 /* (error "empty") */
+#pragma starpu opencl my_task_opencl "/does-not-exist/" "kern" 1 /* (error "failed to access") */
 
 #pragma starpu opencl my_task_opencl	  /* (error "wrong number of arg") */
-#pragma starpu opencl my_task_opencl 123 "kern" /* (error "string constant") */
-#pragma starpu opencl my_task_opencl "test.cl" 123 /* (error "string constant") */
-#pragma starpu opencl my_task_opencl "test.cl" "kern" "foo" /* (error "junk after") */
+#pragma starpu opencl my_task_opencl 123 "kern" 1 /* (error "string constant") */
+#pragma starpu opencl my_task_opencl "test.cl" 123 1 /* (error "string constant") */
+#pragma starpu opencl my_task_opencl "test.cl" "kern" "a" /* (error "integral type") */
+#pragma starpu opencl my_task_opencl "test.cl" "kern" 1 "foo" /* (error "junk after") */
 
 void
 foo (void)
 {
-#pragma starpu opencl my_task_opencl "test.cl" "kern" /* (error "top-level") */
+#pragma starpu opencl my_task_opencl "test.cl" "kern" 1 /* (error "top-level") */
 }

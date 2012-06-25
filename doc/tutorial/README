@@ -41,6 +41,6 @@ Instructions on how to compile and run StarPU examples
 % make vector_scal
 % ./vector_scal
 
-% STARPU_NCPUS=0 ./vector_scal
-% STARPU_NCPUS=0 STARPU_NCUDA=0 ./vector_scal
+% STARPU_NCPU=0 ./vector_scal
+% STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal
 
