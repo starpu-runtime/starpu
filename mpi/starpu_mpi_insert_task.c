@@ -221,9 +221,9 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				if (do_execute && mpi_rank != me && mpi_rank != -1) {
 					/* I will have to execute but I don't have the data, receive */
 #ifdef MPI_CACHE
-					void *already_received = _starpu_htbl_search_64(received_data[mpi_rank], data);
+					void *already_received = _starpu_htbl_search_64(received_data[mpi_rank], (uintptr_t) data);
 					if (!already_received) {
-						_starpu_htbl_insert_64(&received_data[mpi_rank], data, data);
+						_starpu_htbl_insert_64(&received_data[mpi_rank], (uintptr_t) data, data);
 					}
 					else {
 						_STARPU_MPI_DEBUG("Do not receive data %p from node %d as it is already available\n", data, mpi_rank);
@@ -238,10 +238,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				if (!do_execute && mpi_rank == me) {
 					/* Somebody else will execute it, and I have the data, send it. */
 #ifdef MPI_CACHE
-					void *already_sent = _starpu_htbl_search_64(sent_data[dest], data);
+					void *already_sent = _starpu_htbl_search_64(sent_data[dest], (uintptr_t) data);
 
 					if (!already_sent) {
-						_starpu_htbl_insert_64(&sent_data[dest], data, data);
+						_starpu_htbl_insert_64(&sent_data[dest], (uintptr_t) data, data);
 					}
 					else {
 						_STARPU_MPI_DEBUG("Do not send data %p to node %d as it has already been sent\n", data, dest);
@@ -349,7 +349,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 					int n, size;
 					MPI_Comm_size(comm, &size);
 					for(n=0 ; n<size ; n++) {
-						void *already_sent = _starpu_htbl_search_64(sent_data[n], data);
+						void *already_sent = _starpu_htbl_search_64(sent_data[n], (uintptr_t) data);
 
 						if (already_sent) {
 							_STARPU_MPI_DEBUG("Posting request to clear send cache for data %p\n", data);
@@ -359,7 +359,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				}
 				else {
 					int mpi_rank = starpu_data_get_rank(data);
-					void *already_received=_starpu_htbl_search_64(received_data[mpi_rank], data);
+					void *already_received=_starpu_htbl_search_64(received_data[mpi_rank], (uintptr_t) data);
 					if (already_received) {
 						/* Somebody else will write to the data, so discard our cached copy if any */
 						/* TODO: starpu_mpi could just remember itself. */
