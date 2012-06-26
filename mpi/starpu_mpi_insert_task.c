@@ -31,7 +31,7 @@
 /* Whether we are allowed to keep copies of remote data. Does not work
  * yet: the sender has to know whether the receiver has it, keeping it
  * in an array indexed by node numbers. */
-#define MPI_CACHE 1
+//#define MPI_CACHE 1
 #include <starpu_mpi_insert_task_cache.h>
 
 static void _starpu_mpi_tables_init()
