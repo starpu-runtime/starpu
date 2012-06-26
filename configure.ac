@@ -1081,6 +1081,18 @@ if test x$use_mpi = xyes; then
 	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
 fi
 
+AC_MSG_CHECKING(whether communication statistics should be generated)
+AC_ARG_ENABLE(comm-stats, [AS_HELP_STRING([--enable-comm-stats],
+			[enable communication statistics (only valid with the StarPU MPI library])],
+			enable_comm_stats=$enableval, enable_comm_stats=no)
+AC_MSG_RESULT($enable_comm_stats)
+AC_SUBST(STATS, $enable_comm_stats)
+AC_SUBST(STARPU_COMM_STATS, $enable_comm_stats)
+
+if test x$enable_comm_stats = xyes; then
+        AC_DEFINE(STARPU_COMM_STATS, [1], [enable communication statistics])
+fi
+
 ###############################################################################
 #                                                                             #
 #                               StarPU-Top                                    #

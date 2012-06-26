@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@
 //#define STARPU_MPI_VERBOSE	1
 #include <starpu_mpi_private.h>
 #include <starpu_profiling.h>
+#include <starpu_mpi_stats.h>
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
@@ -62,6 +63,11 @@ static void starpu_mpi_isend_func(struct _starpu_mpi_req *req)
         _STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p req %p\n", req->mpi_tag, req->srcdst, ptr, &req->request);
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
+
+#ifdef STARPU_DEVEL
+#  warning give the real size of the data
+#endif
+	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, 1);//req->data_handle, req->mpi_tag);
 
         req->ret = MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
@@ -765,6 +771,10 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static
 int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 {
+#ifdef STARPU_COMM_STATS
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-comm-stats, which slows down a bit\n");
+#endif
+
 	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_finished, NULL);
@@ -800,7 +810,7 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 #endif
 
 	_starpu_mpi_add_sync_point_in_fxt();
-
+	_starpu_mpi_comm_amounts_init();
 	return 0;
 }
 
@@ -833,6 +843,9 @@ int starpu_mpi_shutdown(void)
 	/* free the request queues */
 	_starpu_mpi_req_list_delete(detached_requests);
 	_starpu_mpi_req_list_delete(new_requests);
+
+	_starpu_mpi_comm_amounts_display();
+	_starpu_mpi_comm_amounts_free();
 
 	return 0;
 }
