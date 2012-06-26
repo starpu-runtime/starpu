@@ -202,6 +202,20 @@ int main(int argc, char **argv)
 	starpu_mpi_initialize_extended(&rank, &nodes);
 	starpu_helper_cublas_init();
 
+	if (dblockx == -1 || dblocky == -1)
+	{
+	     if (nodes % 2 == 0)
+	     {
+		  dblockx = nodes/2;
+		  dblocky = 2;
+	     }
+	     else
+	     {
+		  dblockx = nodes;
+		  dblocky = 1;
+	     }
+	}
+
 	unsigned i,j,x,y;
 	bmat = malloc(nblocks * sizeof(float *));
 	for(x=0 ; x<nblocks ; x++)

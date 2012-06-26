@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,8 +37,8 @@ static unsigned nblocks = 16;
 static unsigned nbigblocks = 2;
 static unsigned noprio = 0;
 static unsigned display = 0;
-static unsigned dblockx = 2;
-static unsigned dblocky = 2;
+static unsigned dblockx = -1;
+static unsigned dblocky = -1;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
