@@ -114,7 +114,7 @@ void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag);
 
-void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receier_sched_ctx, int *workers_to_move, unsigned nworkers_to_move);
+void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receier_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
 
 void sched_ctx_hypervisor_stop_resize(unsigned sched_ctx);
 
@@ -142,7 +142,7 @@ char* sched_ctx_hypervisor_get_policy();
 
 void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
 
-void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx);
+void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now);
 
 void sched_ctx_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 

@@ -154,7 +154,7 @@ struct starpu_performance_counters {
 	void (*notify_idle_end)(unsigned sched_ctx, int worker);
 	void (*notify_pushed_task)(unsigned sched_ctx, int worker);
 	void (*notify_poped_task)(unsigned sched_ctx, int worker, double flops);
-	void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid);
+	void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid, int workerid);
 	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint);
 };
 
@@ -205,6 +205,8 @@ unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx);
 unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
 
 unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id);
+
+void starpu_stop_task_submission(unsigned sched_ctx);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);

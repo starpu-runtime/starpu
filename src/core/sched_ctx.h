@@ -77,6 +77,8 @@ struct _starpu_sched_ctx {
 
 struct _starpu_machine_config;
 
+struct starpu_task stop_submission_task;
+
 /* init sched_ctx_id of all contextes*/
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 

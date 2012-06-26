@@ -392,7 +392,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 				}
 			}
 			if(all_have_dest)
-				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s]);
+				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s], 0);
 		}
 	}
 

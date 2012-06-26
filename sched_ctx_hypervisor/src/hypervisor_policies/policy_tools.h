@@ -30,7 +30,7 @@ unsigned _get_nworkers_to_move(unsigned req_sched_ctx);
 
 unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize);
 
-unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx);
+unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now);
 
 double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w);
 

@@ -98,12 +98,18 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 
 			_starpu_exclude_task_from_dag(worker[i]->tasks[sched_ctx_id]);
 
-//			starpu_push_local_task(workerids[i], worker[i]->tasks[sched_ctx_id], 1);
 			_starpu_task_submit_internally(worker[i]->tasks[sched_ctx_id]);
 		}		
 	}
 }
 
+void starpu_stop_task_submission(unsigned sched_ctx)
+{
+	_starpu_exclude_task_from_dag(&stop_submission_task);
+	
+	_starpu_task_submit_internally(&stop_submission_task);
+
+}
 
 static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers, 
 				       int *added_workers, int *n_added_workers)
@@ -361,6 +367,8 @@ void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, u
 		unlocked = 1;
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 
+		if(old_task == &stop_submission_task)
+			break;
 		struct _starpu_job *old_j = _starpu_get_job_associated_to_task(old_task);
 		_starpu_push_task(old_j);
 	}
@@ -672,6 +680,7 @@ unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id)
 }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+
 void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

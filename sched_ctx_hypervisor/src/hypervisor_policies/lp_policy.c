@@ -107,7 +107,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][
 					if(receiving_s != -1)
 					{
 						int *workers_to_move = _get_first_workers(sched_ctxs[s], &nworkers_to_move, arch);
-						sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, nworkers_to_move);
+						sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, nworkers_to_move, 0);
 						struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
 						int i;
 						for(i = 0; i < nworkers_to_move; i++)
@@ -147,7 +147,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][
 							int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
 							if(x > 0)
 							{
-								sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, x);
+								sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, x, 0);
 
 								struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
 								int i;

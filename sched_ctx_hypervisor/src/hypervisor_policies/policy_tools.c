@@ -233,7 +233,7 @@ unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 	return nworkers_to_move;
 }
 
-unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize)
+unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize, unsigned now)
 {
 	int ret = 1;
 	if(force_resize)
@@ -264,7 +264,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{						
 				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ALL);
-				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move);
+				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move, now);
 				
 				struct policy_config *new_config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				int i;
@@ -282,9 +282,9 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 }
 
 
-unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx)
+unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 {
-	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0);
+	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
 }
 
 static double _get_elapsed_flops(struct sched_ctx_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
@@ -319,9 +319,8 @@ double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
 	double prc = elapsed_flops/sc_w->total_flops;
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sc_w->sched_ctx);
-
-	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;
-        if(prc >= redim_sample)
+	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;  
+	if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = curr_time - sc_w->start_time;
@@ -371,9 +370,11 @@ int _velocity_gap_btw_ctxs()
 					if(other_ctx_v != 0.0)
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
-						if(gap > 2)
+						if(gap > 1.5)
 							return 1;
-					}
+					} 
+					else
+						return 1;						
 				}
 			}
 		}

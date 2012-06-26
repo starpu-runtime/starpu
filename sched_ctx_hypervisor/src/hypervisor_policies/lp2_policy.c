@@ -408,7 +408,7 @@ void _redistribute_resources_in_ctxs2(int ns, int nw, int nt, double tasks[nw][n
 		unsigned nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], STARPU_ALL);
 	
 		if(nworkers_ctx > nremove)
-			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s]);
+			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s], 0);
 	
 		if(nworkers_ctx != STARPU_NMAXWORKERS)
 		{

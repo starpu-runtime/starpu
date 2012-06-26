@@ -21,7 +21,7 @@ void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	struct policy_config *config = sc_w->config;
 	if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
-		_resize_to_unknown_receiver(sched_ctx);
+		_resize_to_unknown_receiver(sched_ctx, 0);
 }
 
 struct hypervisor_policy idle_policy = {

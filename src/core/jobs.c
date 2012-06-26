@@ -210,7 +210,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 	/* control task should not execute post_exec_hook */
 	if(j->task_size == 1 && task->cl != NULL && !task->control_task)
 	{
-	  _starpu_sched_post_exec_hook(task);
+		_starpu_sched_post_exec_hook(task, workerid);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	  starpu_call_poped_task_cb(workerid, task->sched_ctx, task->flops);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR

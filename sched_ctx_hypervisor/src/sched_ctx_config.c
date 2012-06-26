@@ -114,7 +114,7 @@ static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsig
 	int *workerids;
 	int nworkers;
 
-	while ((arg_type = va_arg(varg_list, int)) != 0) 
+	while ((arg_type = va_arg(varg_list, int)) != -1) 
 	{
 		switch(arg_type)
 		{
@@ -207,7 +207,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	int stop = 0;
 	int task_tag = -1;
 
-	while ((arg_type = va_arg(varg_list, int)) != 0) 
+	while ((arg_type = va_arg(varg_list, int)) != -1) 
 	{
 		switch(arg_type)
 		{
@@ -230,7 +230,6 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 
 	/* if config not null => save hypervisor configuration and consider it later */
 	struct policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
-
 	if(config != NULL)
 	{
 		pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);

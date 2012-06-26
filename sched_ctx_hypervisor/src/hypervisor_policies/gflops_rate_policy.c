@@ -147,7 +147,7 @@ static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver
                 int *workers_to_move =  _get_workers_to_move(sender_sched_ctx, receiver_sched_ctx, &nworkers_to_move);
 		if(nworkers_to_move > 0)
                 {
-                        sched_ctx_hypervisor_move_workers(sender_sched_ctx, receiver_sched_ctx, workers_to_move, nworkers_to_move);
+                        sched_ctx_hypervisor_move_workers(sender_sched_ctx, receiver_sched_ctx, workers_to_move, nworkers_to_move, 0);
 
                         struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
                         int i;
