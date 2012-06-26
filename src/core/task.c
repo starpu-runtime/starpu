@@ -206,11 +206,25 @@ struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
  * already counted. */
 int _starpu_submit_job(struct _starpu_job *j)
 {
+
+	struct starpu_task *task = j->task;
+
         _STARPU_LOG_IN();
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
 
 	_starpu_increment_nsubmitted_tasks();
+
+	/* We retain handle reference count */
+	if (task->cl) {
+		unsigned i;
+		for (i=0; i<task->cl->nbuffers; i++) {
+			starpu_data_handle_t handle = task->handles[i];
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count++;
+			_starpu_spin_unlock(&handle->header_lock);
+		}
+	}
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 

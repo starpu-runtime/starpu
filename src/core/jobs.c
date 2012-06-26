@@ -162,6 +162,18 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
+	/* We release handle reference count */
+	if (task->cl) {
+		unsigned i;
+		for (i=0; i<task->cl->nbuffers; i++) {
+			starpu_data_handle_t handle = task->handles[i];
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count--;
+			if (!_starpu_data_check_not_busy(handle))
+				_starpu_spin_unlock(&handle->header_lock);
+		}
+	}
+
 	/* Tell other tasks that we don't exist any more, thus no need for
 	 * implicit dependencies any more.  */
 	_starpu_release_task_enforce_sequential_consistency(j);
