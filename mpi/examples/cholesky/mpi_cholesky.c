@@ -204,15 +204,16 @@ int main(int argc, char **argv)
 
 	if (dblockx == -1 || dblocky == -1)
 	{
-	     if (nodes % 2 == 0)
+	     int factor;
+	     dblockx = nodes;
+	     dblocky = 1;
+	     for(factor=sqrt(nodes) ; factor>1 ; factor--)
 	     {
-		  dblockx = nodes/2;
-		  dblocky = 2;
-	     }
-	     else
-	     {
-		  dblockx = nodes;
-		  dblocky = 1;
+		  if (nodes % factor == 0)
+		  {
+		       dblockx = nodes/factor;
+		       dblocky = factor;
+		  }
 	     }
 	}
 
