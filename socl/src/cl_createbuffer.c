@@ -26,7 +26,7 @@ static void release_callback_memobject(void * e) {
   mem_object_release(mem);
 
   /* Destruct object */
-  starpu_data_unregister_no_coherency(mem->handle);
+  starpu_data_unregister_lazy(mem->handle);
 
   if (!(mem->flags & CL_MEM_USE_HOST_PTR))
     free(mem->ptr);
