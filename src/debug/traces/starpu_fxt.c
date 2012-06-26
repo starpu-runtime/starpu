@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -646,6 +646,17 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	fprintf(activity_file, "cnt_submitted\t%f\t%lu\n", current_timestamp, nsubmitted);
 }
 
+static void handle_codelet_tag(struct fxt_ev_64 *ev)
+{
+	uint64_t tag;
+	unsigned long job;
+
+	tag = ev->param[0];
+	job = ev->param[1];
+
+	_starpu_fxt_dag_add_tag(tag, job);
+}
+
 static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
 {
 	uint64_t child;
@@ -920,7 +931,7 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_TAG:
-				/* XXX */
+				handle_codelet_tag(&ev);
 				break;
 
 			case _STARPU_FUT_TAG_DEPS:
