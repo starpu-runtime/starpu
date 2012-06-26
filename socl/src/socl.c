@@ -18,15 +18,15 @@
 
 struct _cl_platform_id socl_platform = {};
 
-const char * SOCL_PROFILE = "FULL_PROFILE";
-const char * SOCL_VERSION = "OpenCL 1.0 StarPU Edition (0.0.1)";
-const char * SOCL_PLATFORM_NAME    = "StarPU Platform";
-const char * SOCL_VENDOR  = "INRIA";
-const char * SOCL_PLATFORM_EXTENSIONS = "";
+const char * __attribute__ ((aligned (16))) SOCL_PROFILE = "FULL_PROFILE" ;
+const char * __attribute__ ((aligned (16))) SOCL_VERSION = "OpenCL 1.0 StarPU Edition (0.0.1)";
+const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_NAME    = "StarPU Platform";
+const char * __attribute__ ((aligned (16))) SOCL_VENDOR  = "INRIA";
+const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_EXTENSIONS = "";
 
 
 /* Command queues with profiling enabled
  * This allows us to disable StarPU profiling it
  * is equal to 0
  */
-int profiling_queue_count = 0;
+int __attribute__ ((aligned (16))) profiling_queue_count = 0;
