@@ -403,9 +403,8 @@ static double _find_tmax(double t1, double t2)
 	return t1 + ((t2 - t1)/2);
 }
 
-static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], int *sched_ctxs, int *workers)
+static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], int *sched_ctxs, int *workers)
 {	
-	double tasks[nw][nt];
 	double draft_tasks[nw][nt];
 	double draft_w_in_s[ns][nw];
 	
@@ -506,12 +505,50 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 				nt++;
 			
 			double w_in_s[ns][nw];
+			double tasks_per_worker[nw][nt];
 
-			unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, NULL, NULL);
+			unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks_per_worker, NULL, NULL);
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
 			{
-				_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s, 0, NULL, NULL);
+				int w, s;
+				double nworkers[ns][2];
+				int nworkers_rounded[ns][2];
+				for(s = 0; s < ns; s++)
+				{
+					nworkers[s][0] = 0.0;
+					nworkers[s][1] = 0.0;
+					nworkers_rounded[s][0] = 0;
+					nworkers_rounded[s][1] = 0;
+
+				}
+
+				for(s = 0; s < ns; s++)
+				{
+					for(w = 0; w < nw; w++)
+					{
+						enum starpu_perf_archtype arch = starpu_worker_get_type(w);
+						
+						if(arch == STARPU_CUDA_WORKER)
+						{
+							if(w_in_s[s][w] >= 0.3)
+							{
+								nworkers_rounded[s][0]++;
+								nworkers[s][0] += w_in_s[s][w];
+							}
+						}
+						else
+						{
+							if(w_in_s[s][w] > 0.5)
+							{
+								nworkers_rounded[s][1]++;
+								nworkers[s][1] += w_in_s[s][w];
+							}
+						}
+					}
+				}
+				_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+
 			}
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
