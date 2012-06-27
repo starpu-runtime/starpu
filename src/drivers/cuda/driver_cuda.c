@@ -352,6 +352,10 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 	_starpu_datawizard_progress(memnode, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
+	/* Note: we need to keep the sched condition mutex all along the path
+	 * from popping a task from the scheduler to blocking. Otherwise the
+	 * driver may go block just after the scheduler got a new task to be
+	 * executed, and thus hanging. */
 	_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 	struct starpu_task *task = _starpu_pop_task(args);
