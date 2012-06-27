@@ -22,7 +22,7 @@ struct starpu_performance_counters* perf_counters = NULL;
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
 static void notify_pushed_task(unsigned sched_ctx, int worker);
 static void notify_poped_task(unsigned sched_ctx, int worker, double flops);
-static void notify_post_exec_hook(unsigned sched_ctx, int taskid, int workerid);
+static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
 static void notify_idle_end(unsigned sched_ctx, int  worker);
 static void notify_submitted_job(struct starpu_task *task, unsigned footprint);
 
@@ -32,7 +32,6 @@ extern struct hypervisor_policy gflops_rate_policy;
 #ifdef HAVE_GLPK_H
 extern struct hypervisor_policy lp_policy;
 extern struct hypervisor_policy lp2_policy;
-extern struct hypervisor_policy lp3_policy;
 #endif
 
 static struct hypervisor_policy *predefined_policies[] = {
@@ -41,7 +40,6 @@ static struct hypervisor_policy *predefined_policies[] = {
 #ifdef HAVE_GLPK_H
 	&lp_policy,
 	&lp2_policy,
-	&lp3_policy,
 #endif
 	&gflops_rate_policy
 };
@@ -688,7 +686,7 @@ static void notify_poped_task(unsigned sched_ctx, int worker, double elapsed_flo
 }
 
 /* notifies the hypervisor that a tagged task has just been executed */
-static void notify_post_exec_hook(unsigned sched_ctx, int task_tag, int worker)
+static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 {
 	STARPU_ASSERT(task_tag > 0);
 
@@ -712,11 +710,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag, int worker)
 		}
 		pthread_mutex_unlock(&hypervisor.conf_mut[conf_sched_ctx]);
 	}	
-	
-	/* for the app driven we have to wait for the resize to be available
-	   because the event is required to be executed at this specific moment */
-//	while(!_ack_resize_completed(sched_ctx, worker));
-	
+		
 	if(hypervisor.resize[sched_ctx])
 	{
 		pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);

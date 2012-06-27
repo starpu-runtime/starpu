@@ -243,7 +243,7 @@ void *_starpu_cpu_worker(void *arg)
 		 * Then we free the workers' task alias */
 		if (is_parallel_task)
 		{
-			_starpu_sched_post_exec_hook(task, workerid);
+			_starpu_sched_post_exec_hook(task);
 			free(task);
 		}
 

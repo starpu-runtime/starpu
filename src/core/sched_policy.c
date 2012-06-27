@@ -621,14 +621,14 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 		sched_ctx->sched_policy->pre_exec_hook(task);
 }
 
-void _starpu_sched_post_exec_hook(struct starpu_task *task, int workerid)
+void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	if(task->hypervisor_tag > 0 && sched_ctx != NULL && 
 	   sched_ctx->id != 0 && sched_ctx->perf_counters != NULL)
-		sched_ctx->perf_counters->notify_post_exec_hook(sched_ctx->id, task->hypervisor_tag, workerid);
+		sched_ctx->perf_counters->notify_post_exec_hook(sched_ctx->id, task->hypervisor_tag);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	if (sched_ctx->sched_policy->post_exec_hook)
