@@ -64,10 +64,7 @@ static void starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
-#ifdef STARPU_DEVEL
-#  warning give the real size of the data
-#endif
-	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, 1);//req->data_handle, req->mpi_tag);
+	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype);
 
         req->ret = MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);

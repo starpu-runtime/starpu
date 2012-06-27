@@ -19,6 +19,6 @@
 
 void _starpu_mpi_comm_amounts_init();
 void _starpu_mpi_comm_amounts_free();
-void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, size_t size);
+void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype datatype);
 void _starpu_mpi_comm_amounts_display();
 
