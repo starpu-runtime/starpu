@@ -486,13 +486,21 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	if (task->cl->power_model)
 		_starpu_load_perfmodel(task->cl->power_model);
 
+	/* We retain handle reference count */
+	unsigned i;
+	for (i=0; i<task->cl->nbuffers; i++) {
+		starpu_data_handle_t handle = task->handles[i];
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
+	}
+
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
 
-	unsigned i;
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
 		j->ordered_buffers[i].handle = j->task->handles[i];
