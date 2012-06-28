@@ -1592,6 +1592,15 @@ by the task have to be freed by calling
 @code{starpu_task_destroy}.
 @end deftypefun
 
+@deftypefun void starpu_task_clean ({struct starpu_task} *@var{task})
+Clean the task, unset internally initialised fields and let the values
+previously set by the user, like codelet and handles, unchanged.
+It is useful for statically allocated tasks ; when the user wants to execute
+the same operation several times with as least overhead as possible.
+It should be called after explicitly waiting for the task:
+@code{starpu_task_wait} or @code{starpu_task_wait_for_all}.
+@end deftypefun
+
 @deftypefun void starpu_task_deinit ({struct starpu_task} *@var{task})
 Release all the structures automatically allocated to execute @var{task}, but
 not the task structure itself. It is thus useful for statically allocated tasks

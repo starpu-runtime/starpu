@@ -91,6 +91,26 @@ void starpu_task_deinit(struct starpu_task *task)
 	}
 }
 
+/* Unset fields internally initialised by StarPU and which must be removed
+ * from a submission to the other.
+ * All values previously set by the user, like codelet and handles, remain
+ * unchanged. Profiling is not modified to keep previously processed profiles
+ * as the task will execute the same functions.
+ */
+void starpu_task_clean(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+
+	struct _starpu_job *j = (struct _starpu_job *) task->starpu_private;
+
+	/* As a new submission means new job we must unset it */
+	if (j)
+	{
+		_starpu_job_destroy(j);
+		task->starpu_private = NULL;
+	}
+}
+
 struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 {
 	struct starpu_task *task;
