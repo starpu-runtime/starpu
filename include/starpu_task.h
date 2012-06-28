@@ -266,14 +266,9 @@ void starpu_task_init(struct starpu_task *task);
 
 /* Release all the structures automatically allocated to execute the task. This
  * is called implicitely by starpu_task_destroy, but the task structure itself
- * is not freed. This should be used for statically allocated tasks for
- * instance. */
-void starpu_task_deinit(struct starpu_task *task);
-
-/* Clean the task, unset internally initialised fields and let the values
- * previously set by the user, like codelet and handles, unchanged.
- * It is useful for statically allocated tasks, when submitting the same task
- * several times with as least overhead as possible is needed.
+ * is not freed. Values previously set by the user remain unchanged.
+ * This should be used for statically allocated tasks for instance.
+ * It should also be used for submitting the same task several times.
  */
 void starpu_task_clean(struct starpu_task *task);
 

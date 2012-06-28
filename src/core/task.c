@@ -66,8 +66,10 @@ void starpu_task_init(struct starpu_task *task)
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
- * structure itself (this is required for statically allocated tasks). */
-void starpu_task_deinit(struct starpu_task *task)
+ * structure itself (this is required for statically allocated tasks).
+ * All values previously set by the user, like codelet and handles, remain
+ * unchanged */
+void starpu_task_clean(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 
@@ -86,26 +88,6 @@ void starpu_task_deinit(struct starpu_task *task)
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
 	if (j) {
-		_starpu_job_destroy(j);
-		task->starpu_private = NULL;
-	}
-}
-
-/* Unset fields internally initialised by StarPU and which must be removed
- * from a submission to the other.
- * All values previously set by the user, like codelet and handles, remain
- * unchanged. Profiling is not modified to keep previously processed profiles
- * as the task will execute the same functions.
- */
-void starpu_task_clean(struct starpu_task *task)
-{
-	STARPU_ASSERT(task);
-
-	struct _starpu_job *j = (struct _starpu_job *) task->starpu_private;
-
-	/* As a new submission means new job we must unset it */
-	if (j)
-	{
 		_starpu_job_destroy(j);
 		task->starpu_private = NULL;
 	}
@@ -144,7 +126,7 @@ void _starpu_task_destroy(struct starpu_task *task)
    }
    else
    {
-	   starpu_task_deinit(task);
+	   starpu_task_clean(task);
 	   /* TODO handle the case of task with detach = 1 and destroy = 1 */
 	   /* TODO handle the case of non terminated tasks -> return -EINVAL */
 	   free(task);

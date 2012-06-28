@@ -1571,7 +1571,7 @@ submitted if it has not been properly initialized.
 Initialize @var{task} with default values. This function is implicitly
 called by @code{starpu_task_create}. By default, tasks initialized with
 @code{starpu_task_init} must be deinitialized explicitly with
-@code{starpu_task_deinit}. Tasks can also be initialized statically,
+@code{starpu_task_clean}. Tasks can also be initialized statically,
 using @code{STARPU_TASK_INITIALIZER} defined below.
 @end deftypefun
 
@@ -1593,19 +1593,13 @@ by the task have to be freed by calling
 @end deftypefun
 
 @deftypefun void starpu_task_clean ({struct starpu_task} *@var{task})
-Clean the task, unset internally initialised fields and let the values
-previously set by the user, like codelet and handles, unchanged.
-It is useful for statically allocated tasks ; when the user wants to execute
-the same operation several times with as least overhead as possible.
-It should be called after explicitly waiting for the task:
-@code{starpu_task_wait} or @code{starpu_task_wait_for_all}.
-@end deftypefun
-
-@deftypefun void starpu_task_deinit ({struct starpu_task} *@var{task})
 Release all the structures automatically allocated to execute @var{task}, but
-not the task structure itself. It is thus useful for statically allocated tasks
-for instance.  It is called automatically by @code{starpu_task_destroy}.  It
-has to be called only after explicitly waiting for the task or after
+not the task structure itself and values set by the user remain unchanged.
+It is thus useful for statically allocated tasks for instance.
+It is also useful when the user wants to execute the same operation several
+times with as least overhead as possible.
+It is called automatically by @code{starpu_task_destroy}.
+It has to be called only after explicitly waiting for the task or after
 @code{starpu_shutdown} (waiting for the callback is not enough, since starpu
 still manipulates the task after calling the callback).
 @end deftypefun

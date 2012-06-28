@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	}
 
-	starpu_task_deinit(&task);
+	starpu_task_clean(&task);
 	gettimeofday(&end, NULL);
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000
