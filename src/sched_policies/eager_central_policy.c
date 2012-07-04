@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,8 @@ static pthread_mutex_t sched_mutex;
 static void initialize_eager_center_policy(struct starpu_machine_topology *topology,
 		   __attribute__ ((unused)) struct starpu_sched_policy *_policy)
 {
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: you are running the default eager scheduler, which does not include optimizations. Make sure to read the StarPU documentation about adding performance models in order to be able to use the heft or dmda schedulers instead.\n");
+
 	/* there is only a single queue in that trivial design */
 	fifo = _starpu_create_fifo();
 
