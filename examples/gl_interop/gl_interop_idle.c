@@ -22,6 +22,9 @@
  * - enabling it at initialization,
  * - running the corresponding CUDA worker in the GLUT thread (here, the main
  *   thread).
+ *
+ * The difference with gl_interop.c is that this version runs StarPU Tasks in
+ * the glut idle handler.
  */
 
 #include <starpu.h>
@@ -56,8 +59,12 @@ void display(float i) {
 	glEnd();
 	glFinish();
 	glutPostRedisplay();
-	glutMainLoopEvent();
 }
+
+static int cuda_devices[] = { 0 };
+static struct starpu_driver drivers[] = {
+	{ .type = STARPU_CUDA_WORKER }
+};
 
 void callback_func(void *foo) {
 	printf("Callback running, rendering\n");
@@ -71,6 +78,16 @@ void callback_func(void *foo) {
 
 	/* Tell it was already the last submitted task */
 	starpu_drivers_request_termination();
+
+	/* And terminate StarPU */
+	starpu_driver_deinit(&drivers[0]);
+	starpu_shutdown();
+	exit(0);
+}
+
+static void idle(void)
+{
+	starpu_driver_run_once(&drivers[0]);
 }
 
 int main(int argc, char **argv)
@@ -79,14 +96,13 @@ int main(int argc, char **argv)
 	return 77;
 #else
 	struct starpu_conf conf;
-	int cuda_device = 0;
-	int cuda_devices[] = { cuda_device };
-	struct starpu_driver drivers[] = {
-		{ .type = STARPU_CUDA_WORKER, .id.cuda_id = cuda_device }
-	};
 	int ret;
 	struct starpu_task *task;
 	starpu_data_handle_t handle;
+	int cuda_device = 0;
+
+	cuda_devices[0] = cuda_device;
+	drivers[0].id.cuda_id = cuda_device;
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);
@@ -120,6 +136,12 @@ int main(int argc, char **argv)
 
 	/* And run the driver inside main, which will run the task */
 	printf("running the driver\n");
+	/* Initialize it */
+	starpu_driver_init(&drivers[0]);
+	/* Register driver loop content as idle handler */
+	glutIdleFunc(idle);
+	/* Now run the glut loop */
+	glutMainLoop();
 	starpu_driver_run(&drivers[0]);
 	printf("finished running the driver\n");
 

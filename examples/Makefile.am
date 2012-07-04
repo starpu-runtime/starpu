@@ -841,12 +841,19 @@ endif
 
 if HAVE_OPENGL
 examplebin_PROGRAMS +=				\
-	gl_interop/gl_interop
+	gl_interop/gl_interop			\
+	gl_interop/gl_interop_idle
 
 gl_interop_gl_interop_SOURCES =			\
 	gl_interop/gl_interop.c
 
 gl_interop_gl_interop_LDADD =			\
+	$(STARPU_OPENGL_RENDER_LDFLAGS)
+
+gl_interop_gl_interop_idle_SOURCES =		\
+	gl_interop/gl_interop_idle.c
+
+gl_interop_gl_interop_idle_LDADD =		\
 	$(STARPU_OPENGL_RENDER_LDFLAGS)
 endif
 

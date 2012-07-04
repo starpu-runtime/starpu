@@ -1015,9 +1015,11 @@ be enabled by using the @code{cuda_opengl_interoperability} field of the
 @code{starpu_conf} structure, and the driver loop has to be run by
 the application, by using the @code{not_launched_drivers} field of
 @code{starpu_conf} to prevent StarPU from running it in a separate thread, and
-by using @code{starpu_driver_run} to run the loop. The @code{gl_interop} example
-shows how it articulates in a simple case, where rendering is done in task
-callbacks. TODO: provide glutIdleFunc alternative.
+by using @code{starpu_driver_run} to run the loop. The @code{gl_interop} and
+@code{gl_interop_idle} examples shows how it articulates in a simple case, where
+rendering is done in task callbacks. The former uses @code{glutMainLoopEvent}
+to make GLUT progress from the StarPU driver loop, while the latter uses
+@code{glutIdleFunc} to make StarPU progress from the GLUT main loop.
 
 Then, to use an OpenGL buffer as a CUDA data, StarPU simply needs to be given
 the CUDA pointer at registration, for instance:
