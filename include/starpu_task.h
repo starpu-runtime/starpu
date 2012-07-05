@@ -192,6 +192,12 @@ struct starpu_task
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
+
+	/* the magic field is set when initialising the task.
+	 * starpu_task_submit will fail if the field does not have the
+	 * right value. This will hence avoid submitting tasks which
+	 * have not been properly initialised.
+	 */
 	int magic;
 };
 
