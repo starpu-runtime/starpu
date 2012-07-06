@@ -54,8 +54,8 @@ struct dev_timing
 	double timing_dtoh;
 };
 
-static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{NAN}};
-static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{NAN}};
+static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
+static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
 static int ncuda = 0;
