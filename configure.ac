@@ -177,6 +177,12 @@ AC_CHECK_FUNC([setenv], [AC_DEFINE([STARPU_HAVE_SETENV], [1], [Define to 1 if th
 # Some systems do not define unsetenv
 AC_CHECK_FUNC([unsetenv], [AC_DEFINE([STARPU_HAVE_UNSETENV], [1], [Define to 1 if the function unsetenv is available.])])
 
+# Some systems do not define nearbyintf...
+AC_CHECK_FUNC([nearbyintf], [AC_DEFINE([STARPU_HAVE_NEARBYINTF], [1], [Define to 1 if the function nearbyintf is available.])])
+
+# ... but they may define rintf.
+AC_CHECK_FUNC([rintf], [AC_DEFINE([STARPU_HAVE_RINTF], [1], [Define to 1 if the function rintf is available.])])
+
 # Define slow machine
 AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--enable-slow-machine],
 				   [Lower default values for the testcases run by make check])],
