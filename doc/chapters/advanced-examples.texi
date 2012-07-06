@@ -430,7 +430,7 @@ needs to be called to destroy the dummy task afterwards. See
 @node Theoretical lower bound on execution time
 @section Theoretical lower bound on execution time
 
-For kernels with history-based performance models, StarPU can very easily provide a theoretical lower
+For kernels with history-based performance models (and provided that they are completely calibrated), StarPU can very easily provide a theoretical lower
 bound for the execution time of a whole set of tasks. See for
 instance @code{examples/lu/lu_example.c}: before submitting tasks,
 call @code{starpu_bound_start}, and after complete execution, call

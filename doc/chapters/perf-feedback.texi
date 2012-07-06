@@ -415,7 +415,7 @@ Print the DAG that was recorded
 @end deftypefun
 
 @deftypefun void starpu_bound_compute ({double *}@var{res}, {double *}@var{integer_res}, int @var{integer})
-Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script)
+Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script). It returns 0 if some performance models are not calibrated.
 @end deftypefun
 
 @deftypefun void starpu_bound_print_lp ({FILE *}@var{output})
