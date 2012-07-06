@@ -342,21 +342,10 @@ int _starpu_push_task(struct _starpu_job *j)
 		
 		if(nworkers == 0)
 		{
-/* 			if(workerid == -1) */
-/* 			{ */
-/* 				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->no_workers_mutex); */
-/* 				_STARPU_PTHREAD_COND_WAIT(&sched_ctx->no_workers_cond, &sched_ctx->no_workers_mutex); */
-/* 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->no_workers_mutex); */
-/* 				nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx); */
-/* 				if(nworkers == 0) return _starpu_push_task(j); */
-/* 			} */
-/* 			else */
-/* 			{ */
 				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 				return 0;
-//			}
 		}
 	}
 

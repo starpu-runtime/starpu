@@ -234,5 +234,7 @@ unsigned _starpu_execute_registered_progression_hooks(void);
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
+int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+
 #endif // __WORKERS_H__
 

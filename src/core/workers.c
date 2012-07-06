@@ -899,6 +899,78 @@ int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int
 	return cnt;
 }
 
+
+int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	int cnt = 0;
+
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+	{
+		if (starpu_worker_get_type(id) == type)
+		{
+			/* Perhaps the array is too small ? */
+			if (cnt >= maxsize)
+				return cnt;
+
+			workerids[cnt++] = id;
+		}
+	}
+
+	return cnt;
+}
+
+
+int starpu_worker_get_available_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	int cnt = 0;
+
+	unsigned id, worker;
+	unsigned found = 0;
+	for (id = 0; id < nworkers; id++)
+	{
+		found = 0;
+		if (starpu_worker_get_type(id) == type)
+		{
+			/* Perhaps the array is too small ? */
+			if (cnt >= maxsize)
+				return cnt;
+			int s;
+			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
+				if(config.sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				{
+					struct worker_collection *workers = config.sched_ctxs[s].workers;
+					if(workers->init_cursor)
+						workers->init_cursor(workers);
+					
+					while(workers->has_next(workers))
+					{
+						worker = workers->get_next(workers);
+						if(worker == id)
+						{
+							found = 1;
+							break;
+						}
+					}
+					
+					if(workers->init_cursor)
+						workers->deinit_cursor(workers);
+					if(found) break;
+				}
+			}
+			if(!found)
+				workerids[cnt++] = id;
+		}
+	}
+
+	return cnt;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = config.workers[id].name;

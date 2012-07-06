@@ -166,6 +166,10 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 
 unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name);
 
+unsigned starpu_create_sched_ctx_inside_interval(const char *policy_name, const char *sched_name, 
+						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
+						 unsigned allow_overlap);
+
 void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id);
 
 void starpu_add_workers_to_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
