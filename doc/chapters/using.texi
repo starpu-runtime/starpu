@@ -60,7 +60,8 @@ AFTER: First element is 3.140000
 
 When StarPU is used for the first time, the directory
 @code{$STARPU_HOME/.starpu/} is created, performance models will be stored in
-that directory (@code{STARPU_HOME} defaults to @code{$HOME})
+that directory (@code{STARPU_HOME} defaults to @code{$HOME}, or @code{$USERPROFILE
+} in windows environments).
 
 Please note that buses are benchmarked when StarPU is launched for the
 first time. This may take a few minutes, or less if @code{hwloc} is

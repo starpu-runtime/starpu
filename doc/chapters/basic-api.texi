@@ -1934,7 +1934,7 @@ regression.
 @end deftp
 
 @deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
-loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{~/.starpu}.
+loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{$HOME/.starpu} (@code{$USERPROFILE/.starpu} in windows environments).
 @end deftypefun
 
 @deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen}, unsigned nimpl)
@@ -2347,7 +2347,8 @@ to the empty string.
 Compile the OpenCL kernel stored in the file @code{source_file_name}
 with the given options @code{build_options} and stores the result in
 the directory @code{$STARPU_HOME/.starpu/opencl} with the same
-filename as @code{source_file_name}. The compilation is done for every
+filename as @code{source_file_name} (@code{$USERPROFILE/.starpu/opencl} in
+windows environments). The compilation is done for every
 OpenCL device, and the filename is suffixed with the vendor id and the
 device id of the OpenCL device.
 @end deftypefun
@@ -2355,7 +2356,8 @@ device id of the OpenCL device.
 @deftypefun int starpu_opencl_compile_opencl_from_string ({const char *}@var{opencl_program_source}, {const char *}@var{file_name}, {const char* }@var{build_options})
 Compile the OpenCL kernel in the string @code{opencl_program_source}
 with the given options @code{build_options} and stores the result in
-the directory @code{$STARPU_HOME/.starpu/opencl} with the filename
+the directory @code{$STARPU_HOME/.starpu/opencl}
+(@code{$USERPROFILE/.starpu/opencl} in windows environments) with the filename
 @code{file_name}. The compilation is done for every
 OpenCL device, and the filename is suffixed with the vendor id and the
 device id of the OpenCL device.

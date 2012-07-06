@@ -317,8 +317,9 @@ few different sets of data input/output sizes. StarPU will then keep record of
 the average time of previous executions on the various processing units, and use
 it as an estimation. History is done per task size, by using a hash of the input
 and ouput sizes as an index.
-It will also save it in @code{~/.starpu/sampling/codelets}
-for further executions, and can be observed by using the
+It will also save it in @code{$HOME/.starpu/sampling/codelets}
+for further executions (@code{$USERPROFILE/.starpu/sampling/codelets} in windows
+environments), and can be observed by using the
 @code{starpu_perfmodel_display} command, or drawn by using
 the @code{starpu_perfmodel_plot} (@pxref{Performance model calibration}).  The
 models are indexed by machine name. To
