@@ -285,7 +285,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		_STARPU_MPI_DEBUG("Execution of the codelet %p (%s)\n", codelet, codelet->name);
 		va_start(varg_list, codelet);
 		struct starpu_task *task = starpu_task_create();
-		int ret = _starpu_insert_task_create_and_submit(arg_buffer, codelet, &task, varg_list);
+		int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
 		_STARPU_MPI_DEBUG("ret: %d\n", ret);
 		STARPU_ASSERT(ret==0);
 	}

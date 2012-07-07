@@ -171,7 +171,7 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
         int arg_type;
 	unsigned current_buffer = 0;
@@ -249,6 +249,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codele
 
 	(*task)->cl = cl;
 	(*task)->cl_arg = arg_buffer;
+	(*task)->cl_arg_size = arg_buffer_size;
 
 	/* The callback will free the argument stack and execute the
 	 * application's callback, if any. */
