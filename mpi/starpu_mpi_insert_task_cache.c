@@ -19,18 +19,18 @@
 #include <starpu_mpi_insert_task_cache.h>
 #include <common/htable64.h>
 
-typedef struct _starpu_mpi_clear_cache_s {
+struct _starpu_mpi_clear_cache {
         starpu_data_handle_t data;
         int rank;
         int mode;
-} _starpu_mpi_clear_cache_t;
+};
 
 struct starpu_htbl64_node **sent_data = NULL;
 struct starpu_htbl64_node **received_data = NULL;
 
 void _starpu_mpi_clear_cache_callback(void *callback_arg)
 {
-        _starpu_mpi_clear_cache_t *clear_cache = (_starpu_mpi_clear_cache_t *)callback_arg;
+        struct _starpu_mpi_clear_cache *clear_cache = (struct _starpu_mpi_clear_cache *)callback_arg;
 
         if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
                 _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
@@ -80,7 +80,7 @@ void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank,
         task->cl = &_starpu_mpi_clear_cache_codelet;
         task->handles[0] = data_handle;
 
-        _starpu_mpi_clear_cache_t *clear_cache = malloc(sizeof(_starpu_mpi_clear_cache_t));
+        struct _starpu_mpi_clear_cache *clear_cache = malloc(sizeof(struct _starpu_mpi_clear_cache));
         clear_cache->data = data_handle;
         clear_cache->rank = rank;
         clear_cache->mode = mode;
