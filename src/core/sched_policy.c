@@ -454,6 +454,38 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	return conversion_task;
 }
 
+struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
+{
+	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
+	int smallest_counter =  worker->nsched_ctxs;
+	unsigned i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		sched_ctx = worker->sched_ctx[i];
+		
+		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && 
+		   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs && 
+		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
+		{
+			good_sched_ctx = sched_ctx;
+			smallest_counter = sched_ctx->pop_counter[worker->workerid];
+		}
+	}
+
+	if(good_sched_ctx == NULL)
+	{
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		{
+			sched_ctx = worker->sched_ctx[i];
+			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+				sched_ctx->pop_counter[worker->workerid] = 0;
+		}
+		
+		return _get_next_sched_ctx_to_pop_into(worker);
+	}
+	return good_sched_ctx;
+}
+
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 {
 	struct starpu_task *task;
@@ -480,27 +512,41 @@ pick:
 		struct _starpu_sched_ctx *sched_ctx;
 		pthread_mutex_t *sched_ctx_mutex;
 		
-		unsigned i;
+		int been_here[STARPU_NMAX_SCHED_CTXS];
+		int i;
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+			been_here[i] = 0;
+
+		while(!task)
 		{
-			sched_ctx = worker->sched_ctx[i];
-			
+			if(worker->nsched_ctxs == 1)
+				sched_ctx = _starpu_get_initial_sched_ctx();
+			else
+				sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
 				if(sched_ctx_mutex != NULL)
 				{
 					_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
+					
 					if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
-					{
 						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
-						_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
-						break;
-					}
+
 					_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
+
 				}
 			}
+
+			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
+				break;
+			
+			been_here[sched_ctx->id] = 1;
+			
+			sched_ctx->pop_counter[worker->workerid]++;
+
 		}
+
 	  }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR

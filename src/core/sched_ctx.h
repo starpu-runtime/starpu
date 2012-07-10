@@ -27,6 +27,7 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
+
 struct _starpu_sched_ctx {
 	/* id of the context used in user mode*/
 	unsigned id;
@@ -80,6 +81,10 @@ struct _starpu_sched_ctx {
 
 	/* max GPUs to execute*/	
 	int max_ngpus;
+	
+	/* needed for overlapping contexts to help the workers to 
+	   determine which is the next context to pop tasks from */
+	int pop_counter[STARPU_NMAXWORKERS];
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */

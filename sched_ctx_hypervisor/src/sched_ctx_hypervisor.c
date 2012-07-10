@@ -700,12 +700,12 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 	{
 		conf_sched_ctx = hypervisor.sched_ctxs[i];
 		pthread_mutex_lock(&hypervisor.conf_mut[conf_sched_ctx]);
-		void *config = _starpu_htbl_search_32(hypervisor.configurations[conf_sched_ctx], (uint32_t)task_tag);
+		void *_config = _starpu_htbl_search_32(hypervisor.configurations[conf_sched_ctx], (uint32_t)task_tag);
 
-		if(config)// && config != hypervisor.configurations[conf_sched_ctx])
+		if(_config)// && config != hypervisor.configurations[conf_sched_ctx])
 		{
-			sched_ctx_hypervisor_set_config(conf_sched_ctx, config);
-			free(config);
+			sched_ctx_hypervisor_set_config(conf_sched_ctx, _config);
+			free(_config);
 			_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, NULL);
 		}
 		pthread_mutex_unlock(&hypervisor.conf_mut[conf_sched_ctx]);

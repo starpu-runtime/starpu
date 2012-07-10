@@ -174,7 +174,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 {
-		struct starpu_task *chosen_task = NULL, *task;
+	struct starpu_task *chosen_task = NULL, *task;
 	unsigned workerid = starpu_worker_get_id();
 	int skipped = 0;
 

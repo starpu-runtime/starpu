@@ -991,7 +991,8 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 	config.workers[workerid].status = status;
 }
 
-struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void){
+struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
+{
 	return &config.sched_ctxs[0];
 }
 

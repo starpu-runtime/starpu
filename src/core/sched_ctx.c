@@ -235,6 +235,12 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 			worker->nsched_ctxs++;
 		}
 	}
+
+	int w;
+	for(w = 0; w < STARPU_NMAXWORKERS; w++)
+	{
+		sched_ctx->pop_counter[w] = 0;
+	}
 	
 	return sched_ctx;
 }
@@ -448,7 +454,7 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 		starpu_add_workers_to_sched_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, inheritor_sched_ctx_id);
 	}
 
-	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
+	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id) && !_starpu_wait_for_all_tasks_of_sched_ctx(0))
 		_starpu_delete_sched_ctx(sched_ctx);
 	return;	
 }
