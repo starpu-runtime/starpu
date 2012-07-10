@@ -30,10 +30,21 @@
 #include <core/perfmodel/regression.h>
 #include <common/config.h>
 #include <starpu_parameters.h>
+#include <common/uthash.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+
+#define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
+#define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
+
+struct starpu_history_table
+{
+	UT_hash_handle hh;
+	uint32_t footprint;
+	struct starpu_history_entry *history_entry;
+};
 
 /* We want more than 10% variance on X to trust regression */
 #define VALID_REGRESSION(reg_model) \
@@ -45,19 +56,24 @@ static struct starpu_model_list *registered_models = NULL;
 /*
  * History based model
  */
-static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_history_list **list, struct starpu_htbl32_node **history_ptr)
+static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_history_list **list, struct starpu_history_table *history_ptr)
 {
 	struct starpu_history_list *link;
-	struct starpu_history_entry *old;
+	struct starpu_history_table *table;
 
 	link = (struct starpu_history_list *) malloc(sizeof(struct starpu_history_list));
 	link->next = *list;
 	link->entry = entry;
 	*list = link;
 
-	old = (struct starpu_history_entry *) _starpu_htbl_insert_32(history_ptr, entry->footprint, entry);
-	/* that may fail in case there is some concurrency issue */
-	STARPU_ASSERT(old == NULL);
+	/* detect concurrency issue */
+	HASH_FIND_UINT32_T(history_ptr, &entry->footprint, table);
+	STARPU_ASSERT(table == NULL);
+
+	table = (struct starpu_history_table*) malloc(sizeof(*table));
+	STARPU_ASSERT(table != NULL);
+	table->footprint = entry->footprint;
+	HASH_ADD_UINT32_T(history_ptr, footprint, table);
 }
 
 static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
@@ -204,7 +220,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel 
 
 		/* insert the entry in the hashtable and the list structures  */
 		if (scan_history)
-			insert_history_entry(entry, &per_arch_model->list, &per_arch_model->history);
+			insert_history_entry(entry, &per_arch_model->list, per_arch_model->history);
 	}
 }
 
@@ -699,8 +715,15 @@ void _starpu_deinitialize_registered_performance_models(void)
 			{
 				struct starpu_per_arch_perfmodel *archmodel = &model->per_arch[arch][nimpl];
 				struct starpu_history_list *list, *plist;
-				_starpu_htbl_destroy_32(archmodel->history, NULL);
+				struct starpu_history_table *entry, *tmp;
+
+				HASH_ITER(hh, archmodel->history, entry, tmp)
+				{
+					HASH_DEL(archmodel->history, entry);
+					free(entry);
+				}
 				archmodel->history = NULL;
+
 				list = archmodel->list;
 				while (list) {
 					free(list->entry);
@@ -966,16 +989,16 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	{
 		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
-		struct starpu_htbl32_node *history;
-		struct starpu_history_entry *entry;
+		struct starpu_history_table *history;
+		struct starpu_history_table *entry;
 
 		_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 		history = per_arch_model->history;
-		entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
+		HASH_FIND_UINT32_T(history, &key, entry);
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-		if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
-			exp = entry->mean;
+		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+			exp = entry->history_entry->mean;
 		else if (!model->benchmarking)
 		{
 			_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
@@ -992,7 +1015,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	double exp;
 	struct starpu_per_arch_perfmodel *per_arch_model;
 	struct starpu_history_entry *entry;
-	struct starpu_htbl32_node *history;
+	struct starpu_history_table *history, *elt;
 
 	uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
@@ -1005,7 +1028,8 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		return NAN;
 	}
 
-	entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
+	HASH_FIND_UINT32_T(history, &key, elt);
+	entry = (elt == NULL) ? NULL : elt->history_entry;
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 	exp = entry?entry->mean:NAN;
@@ -1040,35 +1064,35 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
 			struct starpu_history_entry *entry;
-			struct starpu_htbl32_node *history;
-			struct starpu_htbl32_node **history_ptr;
+			struct starpu_history_table *history, *elt;
+			struct starpu_history_table *history_ptr;
 			struct starpu_history_list **list;
 			uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 			history = per_arch_model->history;
-			history_ptr = &per_arch_model->history;
+			history_ptr = per_arch_model->history;
 			list = &per_arch_model->list;
 
-			entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
+			HASH_FIND_UINT32_T(history, &key, elt);
+			entry = (elt == NULL) ? NULL : elt->history_entry;
 
 			if (!entry)
 			{
 				/* this is the first entry with such a footprint */
 				entry = (struct starpu_history_entry *) malloc(sizeof(struct starpu_history_entry));
 				STARPU_ASSERT(entry);
-					entry->mean = measured;
-					entry->sum = measured;
+				entry->mean = measured;
+				entry->sum = measured;
 
-					entry->deviation = 0.0;
-					entry->sum2 = measured*measured;
+				entry->deviation = 0.0;
+				entry->sum2 = measured*measured;
 
-					entry->size = _starpu_job_get_data_size(model, arch, nimpl, j);
+				entry->size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
-					entry->footprint = key;
-					entry->nsample = 1;
+				entry->footprint = key;
+				entry->nsample = 1;
 
 				insert_history_entry(entry, list, history_ptr);
-
 			}
 			else
 			{
