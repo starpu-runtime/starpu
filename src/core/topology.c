@@ -47,14 +47,14 @@ static unsigned topology_is_initialized = 0;
 static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *config);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-#  ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config);
-/* Entry in the `devices_using_cuda' hash table.  */
 struct handle_entry
 {
 	UT_hash_handle hh;
 	unsigned gpuid;
 };
+#  ifdef STARPU_USE_CUDA
+static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config);
+/* Entry in the `devices_using_cuda' hash table.  */
 static struct handle_entry *devices_using_cuda;
 #  endif
 #  ifdef STARPU_USE_OPENCL
