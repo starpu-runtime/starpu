@@ -26,6 +26,7 @@ New features:
 
 Changes:
   * The FxT code can now be used on systems other than Linux.
+  * Keep only one hashtable implementation common/uthash.h
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
