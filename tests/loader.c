@@ -165,6 +165,17 @@ int main(int argc, char *argv[])
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
 
+	if (strstr(test_name, "starpu_perfmodel_display"))
+	{
+		test_args = (char *) malloc(5*sizeof(char));
+		sprintf(test_args, "-l");
+	}
+	if (strstr(test_name, "starpu_perfmodel_plot"))
+	{
+		test_args = (char *) malloc(5*sizeof(char));
+		sprintf(test_args, "-l");
+	}
+
 	/* get launcher program */
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
