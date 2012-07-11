@@ -48,6 +48,23 @@ bin_PROGRAMS += \
 	starpu_perfmodel_plot 		\
 	starpu_machine_display
 
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS	=	$(bin_PROGRAMS)
+else
+check_PROGRAMS	=	$(LOADER) $(bin_PROGRAMS)
+endif
+
+if !STARPU_HAVE_WINDOWS
+## test loader program
+LOADER			=	loader
+loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER_BIN		=	$(abs_top_builddir)/tools/$(LOADER)
+loader_SOURCES		=	../tests/loader.c
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
+
+TESTS = $(bin_PROGRAMS)
+
 noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=	\
@@ -79,4 +96,4 @@ dist_man1_MANS =\
 endif
 
 showcheck:
-	-cat /dev/null
+	-cat $(TEST_LOGS) /dev/null
