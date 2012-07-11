@@ -106,12 +106,19 @@ int main(int argc, char **argv)
                 }
         }
 
+	mycodelet.name = "codelet1";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1][1], STARPU_R, data_handles[0][1], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+
+	mycodelet.name = "codelet2";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+
+	mycodelet.name = "codelet3";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0][1], STARPU_R, data_handles[0][0], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+
+	mycodelet.name = "codelet4";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 
