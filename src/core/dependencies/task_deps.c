@@ -19,7 +19,6 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/dependencies/tags.h>
-#include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/task.h>
 #include <core/sched_policy.h>
