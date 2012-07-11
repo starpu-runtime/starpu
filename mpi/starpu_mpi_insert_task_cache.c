@@ -17,7 +17,7 @@
 
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_insert_task_cache.h>
-#include <common/htable64.h>
+#include <common/uthash.h>
 
 struct _starpu_mpi_clear_cache {
         starpu_data_handle_t data;
@@ -25,20 +25,24 @@ struct _starpu_mpi_clear_cache {
         int mode;
 };
 
-struct starpu_htbl64_node **sent_data = NULL;
-struct starpu_htbl64_node **received_data = NULL;
+struct _starpu_data_entry **sent_data = NULL;
+struct _starpu_data_entry **received_data = NULL;
 
 void _starpu_mpi_clear_cache_callback(void *callback_arg)
 {
         struct _starpu_mpi_clear_cache *clear_cache = (struct _starpu_mpi_clear_cache *)callback_arg;
 
         if (clear_cache->mode == _STARPU_MPI_CLEAR_SENT_DATA) {
+		struct _starpu_data_entry *entry;
                 _STARPU_MPI_DEBUG("Clearing sent cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_64(&sent_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
+		HASH_FIND_PTR(sent_data[clear_cache->rank], &clear_cache->data, entry);
+		if (entry) HASH_DEL(sent_data[clear_cache->rank], entry);
         }
         else if (clear_cache->mode == _STARPU_MPI_CLEAR_RECEIVED_DATA) {
+		struct _starpu_data_entry *entry;
                 _STARPU_MPI_DEBUG("Clearing received cache for data %p and rank %d\n", clear_cache->data, clear_cache->rank);
-                _starpu_htbl_insert_64(&received_data[clear_cache->rank], (uintptr_t)clear_cache->data, NULL);
+		HASH_FIND_PTR(received_data[clear_cache->rank], &clear_cache->data, entry);
+		if (entry) HASH_DEL(received_data[clear_cache->rank], entry);
         }
 
         free(clear_cache);

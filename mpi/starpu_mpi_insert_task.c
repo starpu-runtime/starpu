@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include <starpu_data.h>
 #include <common/utils.h>
-#include <common/htable64.h>
+#include <common/uthash.h>
 #include <util/starpu_insert_task_utils.h>
 #include <datawizard/coherency.h>
 
@@ -42,9 +42,9 @@ static void _starpu_mpi_tables_init()
 
 		MPI_Comm_size(MPI_COMM_WORLD, &nb_nodes);
 		_STARPU_MPI_DEBUG("Initialising htable for cache\n");
-		sent_data = malloc(nb_nodes * sizeof(struct starpu_htbl64_node *));
+		sent_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
 		for(i=0 ; i<nb_nodes ; i++) sent_data[i] = NULL;
-		received_data = malloc(nb_nodes * sizeof(struct starpu_htbl64_node *));
+		received_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
 		for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
 	}
 }
@@ -221,9 +221,12 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				if (do_execute && mpi_rank != me && mpi_rank != -1) {
 					/* I will have to execute but I don't have the data, receive */
 #ifdef MPI_CACHE
-					void *already_received = _starpu_htbl_search_64(received_data[mpi_rank], (uintptr_t) data);
-					if (!already_received) {
-						_starpu_htbl_insert_64(&received_data[mpi_rank], (uintptr_t) data, data);
+					struct _starpu_data_entry *already_received;
+					HASH_FIND_PTR(received_data[mpi_rank], &data, already_received);
+					if (already_received == NULL) {
+						struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
+						entry->data = data;
+						HASH_ADD_PTR(received_data[mpi_rank], data, entry);
 					}
 					else {
 						_STARPU_MPI_DEBUG("Do not receive data %p from node %d as it is already available\n", data, mpi_rank);
@@ -238,10 +241,12 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				if (!do_execute && mpi_rank == me) {
 					/* Somebody else will execute it, and I have the data, send it. */
 #ifdef MPI_CACHE
-					void *already_sent = _starpu_htbl_search_64(sent_data[dest], (uintptr_t) data);
-
-					if (!already_sent) {
-						_starpu_htbl_insert_64(&sent_data[dest], (uintptr_t) data, data);
+					struct _starpu_data_entry *already_sent;
+					HASH_FIND_PTR(sent_data[mpi_rank], &data, already_sent);
+					if (already_sent == NULL) {
+						struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
+						entry->data = data;
+						HASH_ADD_PTR(sent_data[dest], data, entry);
 					}
 					else {
 						_STARPU_MPI_DEBUG("Do not send data %p to node %d as it has already been sent\n", data, dest);
@@ -349,8 +354,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 					int n, size;
 					MPI_Comm_size(comm, &size);
 					for(n=0 ; n<size ; n++) {
-						void *already_sent = _starpu_htbl_search_64(sent_data[n], (uintptr_t) data);
-
+						struct _starpu_data_entry *already_sent;
+						HASH_FIND_PTR(sent_data[n], &data, already_sent);
 						if (already_sent) {
 							_STARPU_MPI_DEBUG("Posting request to clear send cache for data %p\n", data);
 							_starpu_mpi_clear_cache_request(data, n, _STARPU_MPI_CLEAR_SENT_DATA);
@@ -359,7 +364,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				}
 				else {
 					int mpi_rank = starpu_data_get_rank(data);
-					void *already_received=_starpu_htbl_search_64(received_data[mpi_rank], (uintptr_t) data);
+					struct _starpu_data_entry *already_received;
+					HASH_FIND_PTR(received_data[mpi_rank], &data, already_received);
 					if (already_received) {
 						/* Somebody else will write to the data, so discard our cached copy if any */
 						/* TODO: starpu_mpi could just remember itself. */

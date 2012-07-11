@@ -17,11 +17,18 @@
 
 #include <starpu.h>
 #include <common/list.h>
+#include <common/uthash.h>
 
 #define _STARPU_MPI_CLEAR_SENT_DATA     0
 #define _STARPU_MPI_CLEAR_RECEIVED_DATA 1
 
-extern struct starpu_htbl64_node **sent_data;
-extern struct starpu_htbl64_node **received_data;
+struct _starpu_data_entry
+{
+	UT_hash_handle hh;
+	void *data;
+};
+
+extern struct _starpu_data_entry **sent_data;
+extern struct _starpu_data_entry **received_data;
 
 void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank, int mode);
