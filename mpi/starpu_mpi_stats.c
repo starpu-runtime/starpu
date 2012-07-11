@@ -31,6 +31,8 @@ void _starpu_mpi_comm_amounts_init()
 #ifdef STARPU_COMM_STATS
 	int i;
 
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-comm-stats, which slows down a bit\n");
+
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 	_STARPU_MPI_DEBUG("allocating for %d nodes\n", world_size);
 
