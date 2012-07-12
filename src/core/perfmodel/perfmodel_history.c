@@ -1065,14 +1065,13 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
 			struct starpu_history_entry *entry;
-			struct starpu_history_table *history, *elt;
+			struct starpu_history_table *elt;
 			struct starpu_history_list **list;
 			uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
-			history = per_arch_model->history;
 			list = &per_arch_model->list;
 
-			HASH_FIND_UINT32_T(history, &key, elt);
+			HASH_FIND_UINT32_T(per_arch_model->history, &key, elt);
 			entry = (elt == NULL) ? NULL : elt->history_entry;
 
 			if (!entry)
@@ -1091,7 +1090,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				entry->footprint = key;
 				entry->nsample = 1;
 
-				insert_history_entry(entry, list, &history);
+				insert_history_entry(entry, list, &per_arch_model->history);
 			}
 			else
 			{
