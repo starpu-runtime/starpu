@@ -67,8 +67,8 @@ static void insert_history_entry(struct starpu_history_entry *entry, struct star
 	*list = link;
 
 	/* detect concurrency issue */
-	HASH_FIND_UINT32_T(*history_ptr, &entry->footprint, table);
-	STARPU_ASSERT(table == NULL);
+	//HASH_FIND_UINT32_T(*history_ptr, &entry->footprint, table);
+	//STARPU_ASSERT(table == NULL);
 
 	table = (struct starpu_history_table*) malloc(sizeof(*table));
 	STARPU_ASSERT(table != NULL);
