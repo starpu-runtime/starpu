@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,13 +25,16 @@
 #endif
 
 /* Additional command type */
-#define CL_COMMAND_BARRIER 0x99987
+#ifndef CL_COMMAND_BARRIER
+#define CL_COMMAND_BARRIER 0x1205
+#endif
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "ocl_icd.h"
 
 #include <starpu.h>
 #include <starpu_opencl.h>
@@ -66,6 +70,7 @@ typedef struct entity * entity;
 
 
 struct entity {
+  struct _cl_icd_dispatch * dispatch;
   /* Reference count */
   size_t refs;
 
@@ -81,7 +86,8 @@ struct entity {
  * this macro as their first field */
 #define CL_ENTITY struct entity _entity;
 
-struct _cl_platform_id {};
+
+struct _cl_platform_id {struct _cl_icd_dispatch *dispatch;};
 
 #define RETURN_EVENT(cmd, event) \
 	if (event != NULL) { \
@@ -109,12 +115,12 @@ struct _cl_platform_id {};
 	}
 
 /* Constants */
-struct _cl_platform_id socl_platform;
 const char * SOCL_PROFILE;
 const char * SOCL_VERSION;
 const char * SOCL_PLATFORM_NAME;
 const char * SOCL_VENDOR;
 const char * SOCL_PLATFORM_EXTENSIONS;
+const char * SOCL_PLATFORM_ICD_SUFFIX_KHR;
 
 struct _cl_context {
   CL_ENTITY;
@@ -746,4 +752,12 @@ soclEnqueueBarrier(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_
 extern CL_API_ENTRY void * CL_API_CALL
 soclGetExtensionFunctionAddress(const char * /* func_name */) CL_API_SUFFIX__VERSION_1_0;
 
+extern CL_API_ENTRY cl_int CL_API_CALL
+soclIcdGetPlatformIDsKHR(cl_uint          /* num_entries */,
+                 cl_platform_id * /* platforms */,
+                 cl_uint *        /* num_platforms */) CL_EXT_SUFFIX__VERSION_1_0;
+
+
+struct _cl_icd_dispatch socl_master_dispatch;
+struct _cl_platform_id socl_platform;
 #endif /* SOCL_H */

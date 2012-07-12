@@ -35,7 +35,8 @@ noinst_HEADERS =				\
   mem_objects.h					\
   socl.h					\
   task.h					\
-  util.h
+  util.h					\
+  init.h
 
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
   -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
@@ -118,7 +119,8 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_enqueuendrangekernel.c \
   cl_enqueuenativekernel.c \
   cl_geteventprofilinginfo.c \
-  cl_getextensionfunctionaddress.c
+  cl_getextensionfunctionaddress.c \
+  cl_icdgetplatformidskhr.c
 
 
 

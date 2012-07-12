@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +17,7 @@
  */
 
 #include "socl.h"
-
+#include "init.h"
 
 /**
  * \brief Return one device of each kind
@@ -29,6 +31,8 @@ soclGetDeviceIDs(cl_platform_id   platform,
                cl_device_id *   devices, 
                cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0
 {
+   if( ! _starpu_init )
+      socl_init_starpu(); 
    if (platform != NULL && platform != &socl_platform)
       return CL_INVALID_PLATFORM;
 

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -144,7 +146,8 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	int is_barrier = 0;
 	if (cmd->typ == CL_COMMAND_BARRIER) {
 		is_barrier = 1;
-		/* OpenCL has no CL_COMMAND_BARRIER type, so we fall back on CL_COMMAND_MARKER */
+		/* OpenCL has no CL_COMMAND_BARRIER type, so we fall back on CL_COMMAND_MARKER 
+                   WARNING OpenCL has CL_COMMAND_BARRIER in 1.2*/
 		cmd->typ = CL_COMMAND_MARKER;
 	}
 
