@@ -73,6 +73,7 @@ static void insert_history_entry(struct starpu_history_entry *entry, struct star
 	table = (struct starpu_history_table*) malloc(sizeof(*table));
 	STARPU_ASSERT(table != NULL);
 	table->footprint = entry->footprint;
+	table->history_entry = entry;
 	HASH_ADD_UINT32_T(*history_ptr, footprint, table);
 }
 
