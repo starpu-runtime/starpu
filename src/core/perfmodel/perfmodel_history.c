@@ -56,7 +56,7 @@ static struct starpu_model_list *registered_models = NULL;
 /*
  * History based model
  */
-static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_history_list **list, struct starpu_history_table *history_ptr)
+static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_history_list **list, struct starpu_history_table **history_ptr)
 {
 	struct starpu_history_list *link;
 	struct starpu_history_table *table;
@@ -67,13 +67,13 @@ static void insert_history_entry(struct starpu_history_entry *entry, struct star
 	*list = link;
 
 	/* detect concurrency issue */
-	HASH_FIND_UINT32_T(history_ptr, &entry->footprint, table);
+	HASH_FIND_UINT32_T(*history_ptr, &entry->footprint, table);
 	STARPU_ASSERT(table == NULL);
 
 	table = (struct starpu_history_table*) malloc(sizeof(*table));
 	STARPU_ASSERT(table != NULL);
 	table->footprint = entry->footprint;
-	HASH_ADD_UINT32_T(history_ptr, footprint, table);
+	HASH_ADD_UINT32_T(*history_ptr, footprint, table);
 }
 
 static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
@@ -220,7 +220,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel 
 
 		/* insert the entry in the hashtable and the list structures  */
 		if (scan_history)
-			insert_history_entry(entry, &per_arch_model->list, per_arch_model->history);
+			insert_history_entry(entry, &per_arch_model->list, &per_arch_model->history);
 	}
 }
 
@@ -1065,12 +1065,10 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		{
 			struct starpu_history_entry *entry;
 			struct starpu_history_table *history, *elt;
-			struct starpu_history_table *history_ptr;
 			struct starpu_history_list **list;
 			uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 			history = per_arch_model->history;
-			history_ptr = per_arch_model->history;
 			list = &per_arch_model->list;
 
 			HASH_FIND_UINT32_T(history, &key, elt);
@@ -1092,7 +1090,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				entry->footprint = key;
 				entry->nsample = 1;
 
-				insert_history_entry(entry, list, history_ptr);
+				insert_history_entry(entry, list, &history);
 			}
 			else
 			{
