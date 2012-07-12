@@ -237,12 +237,18 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         cl_command_queue queue;
         cl_int err=0;
 	size_t size = SIZE;
+	int not_initialized;
 
         struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
 
-	/* Initialize OpenCL context on the device */
-        _starpu_opencl_init_context(dev);
+	/* Is the context already initialised ? */
+        starpu_opencl_get_context(dev, &context);
+	not_initialized = (context == NULL);
+	if (not_initialized == 1)
+	     _starpu_opencl_init_context(dev);
+
+	/* Get context and queue */
         starpu_opencl_get_context(dev, &context);
         starpu_opencl_get_queue(dev, &queue);
 
@@ -319,7 +325,8 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	free(h_buffer);
 
 	/* Uninitiliaze OpenCL context on the device */
-        _starpu_opencl_deinit_context(dev);
+	if (not_initialized == 1)
+	     _starpu_opencl_deinit_context(dev);
 }
 #endif
 
