@@ -31,8 +31,6 @@
 
 #define PROGNAME "starpu_perfmodel_display"
 
-static struct starpu_perfmodel model;
-
 /* display all available models */
 static int list = 0;
 /* what kernel ? */
@@ -81,8 +79,10 @@ static void parse_args(int argc, char **argv)
 	};
 
 	int option_index;
-	while ((c = getopt_long(argc, argv, "ls:p:a:f:h", long_options, &option_index)) != -1) {
-	switch (c) {
+	while ((c = getopt_long(argc, argv, "ls:p:a:f:h", long_options, &option_index)) != -1)
+	{
+		switch (c)
+		{
                 case 'l':
                         /* list all models */
                         list = 1;
@@ -122,7 +122,7 @@ static void parse_args(int argc, char **argv)
 		case '?':
 		default:
 			fprintf(stderr, "Unrecognized option: -%c\n", optopt);
-	}
+		}
 	}
 
 	if (!symbol && !list)
@@ -142,23 +142,27 @@ static void display_history_based_perf_model(struct starpu_per_arch_perfmodel *p
 	if (!parameter && ptr)
 		fprintf(stderr, "# hash\t\tsize\t\tmean\t\tdev\t\tn\n");
 
-	while (ptr) {
+	while (ptr)
+	{
 		struct starpu_history_entry *entry = ptr->entry;
 		if (!display_specific_footprint || (entry->footprint == specific_footprint))
 		{
 			if (!parameter)
-			{	
+			{
 				/* There isn't a parameter that is explicitely requested, so we display all parameters */
 				printf("%08x\t%-15lu\t%-15le\t%-15le\t%u\n", entry->footprint,
 					(unsigned long) entry->size, entry->mean, entry->deviation, entry->nsample);
 			}
-			else {
+			else
+			{
 				/* only display the parameter that was specifically requested */
-				if (strcmp(parameter, "mean") == 0) {
+				if (strcmp(parameter, "mean") == 0)
+				{
 					printf("%-15le\n", entry->mean);
 				}
-		
-				if (strcmp(parameter, "stddev") == 0) {
+
+				if (strcmp(parameter, "stddev") == 0)
+				{
 					printf("%-15le\n", entry->deviation);
 					return;
 				}
@@ -174,8 +178,8 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 	struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
 
-	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list) {
-
+	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
+	{
 		starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
 		fprintf(stderr, "performance model for %s\n", archname);
 	}
@@ -184,8 +188,9 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 	{
 		/* no specific parameter was requested, so we display everything */
 		if (arch_model->regression.nsample)
-			fprintf(stderr, "\tRegression : #sample = %d\n",
-				arch_model->regression.nsample);
+		{
+			fprintf(stderr, "\tRegression : #sample = %d\n", arch_model->regression.nsample);
+		}
 
 		/* Only display the regression model if we could actually build a model */
 		if (arch_model->regression.valid)
@@ -194,10 +199,11 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 			fprintf(stderr, "\t\talpha = %e\n", arch_model->regression.alpha);
 			fprintf(stderr, "\t\tbeta = %e\n", arch_model->regression.beta);
 		}
-		else {
+		else
+		{
 			//fprintf(stderr, "\tLinear model is INVALID\n");
 		}
-	
+
 		if (arch_model->regression.nl_valid)
 		{
 			fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
@@ -205,7 +211,8 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 			fprintf(stderr, "\t\tb = %e\n", arch_model->regression.b);
 			fprintf(stderr, "\t\tc = %e\n", arch_model->regression.c);
 		}
-		else {
+		else
+		{
 			//fprintf(stderr, "\tNon-Linear model is INVALID\n");
 		}
 
@@ -217,41 +224,49 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 		printf("\t debug file path : %s\n", debugname);
 #endif
 	}
-	else {
+	else
+	{
 		/* only display the parameter that was specifically requested */
-		if (strcmp(parameter, "a") == 0) {
+		if (strcmp(parameter, "a") == 0)
+		{
 			printf("%e\n", arch_model->regression.a);
 			return;
 		}
 
-		if (strcmp(parameter, "b") == 0) {
+		if (strcmp(parameter, "b") == 0)
+		{
 			printf("%e\n", arch_model->regression.b);
 			return;
 		}
 
-		if (strcmp(parameter, "c") == 0) {
+		if (strcmp(parameter, "c") == 0)
+		{
 			printf("%e\n", arch_model->regression.c);
 			return;
 		}
 
-		if (strcmp(parameter, "alpha") == 0) {
+		if (strcmp(parameter, "alpha") == 0)
+		{
 			printf("%e\n", arch_model->regression.alpha);
 			return;
 		}
 
-		if (strcmp(parameter, "beta") == 0) {
+		if (strcmp(parameter, "beta") == 0)
+		{
 			printf("%e\n", arch_model->regression.beta);
 			return;
 		}
 
-		if (strcmp(parameter, "path-file-debug") == 0) {
+		if (strcmp(parameter, "path-file-debug") == 0)
+		{
 			char debugname[256];
 			starpu_perfmodel_debugfilepath(model, arch, debugname, 1024, nimpl);
 			printf("%s\n", debugname);
 			return;
 		}
 
-		if ((strcmp(parameter, "mean") == 0) || (strcmp(parameter, "stddev"))) {
+		if ((strcmp(parameter, "mean") == 0) || (strcmp(parameter, "stddev")))
+		{
 			display_history_based_perf_model(arch_model);
 			return;
 		}
@@ -270,14 +285,18 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 		/* display all architectures */
 		unsigned archid;
 		unsigned implid;
-		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++) {
-			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) { /* Display all codelets on each arch */
+		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
+		{
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+			{ /* Display all codelets on each arch */
 				display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
 			}
 		}
 	}
-	else {
-		if (strcmp(arch, "cpu") == 0) {
+	else
+	{
+		if (strcmp(arch, "cpu") == 0)
+		{
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 				display_perf_model(model, STARPU_CPU_DEFAULT,implid); /* Display all codelets on cpu */
@@ -300,11 +319,14 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 			return;
 		}
 
-		if (strcmp(arch, "cuda") == 0) {
+		if (strcmp(arch, "cuda") == 0)
+		{
 			unsigned archid;
 			unsigned implid;
-			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++) {
-				for (implid = 0; implid <STARPU_MAXIMPLEMENTATIONS; implid ++) {
+			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++)
+			{
+				for (implid = 0; implid <STARPU_MAXIMPLEMENTATIONS; implid ++)
+				{
 					char archname[32];
 					starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) archid, archname, 32, implid);
 					fprintf(stderr, "performance model for %s\n", archname);
@@ -327,7 +349,8 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 			return;
 		}
 
-		if (strcmp(arch, "gordon") == 0) {
+		if (strcmp(arch, "gordon") == 0)
+		{
 			fprintf(stderr, "performance model for gordon\n");
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
@@ -342,8 +365,6 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 
 int main(int argc, char **argv)
 {
-//	assert(argc == 2);
-
 #ifdef __MINGW32__
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
@@ -351,21 +372,24 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-        if (list) {
+        if (list)
+	{
                 int ret = starpu_list_models(stdout);
-                if (ret) {
+                if (ret)
+		{
                         fprintf(stderr, "The performance model directory is invalid\n");
                         return 1;
                 }
         }
-        else {
+        else
+	{
+		struct starpu_perfmodel model;
                 int ret = starpu_load_history_debug(symbol, &model);
                 if (ret == 1)
-                        {
-                                fprintf(stderr, "The performance model could not be loaded\n");
-                                return 1;
-                        }
-
+		{
+			fprintf(stderr, "The performance model could not be loaded\n");
+			return 1;
+		}
                 display_all_perf_models(&model);
         }
 
