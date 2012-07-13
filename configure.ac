@@ -1295,14 +1295,11 @@ AC_ARG_ENABLE([socl],
   [enable_socl="$enableval"],
   [enable_socl="maybe"])
 
+AC_MSG_CHECKING(for SOCL)
+
 if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
     if test "$have_valid_opencl" = "no" ; then
 	STARPU_LOOK_FOR_OPENCL()
-    fi
-    if test "$have_valid_opencl" = "yes" ; then
-	AC_CHECK_TYPE(cl_device_partition_property,
-	    [have_valid_socl=yes],
-	    [have_valid_socl=no], [#include <CL/cl.h>])
     fi
 fi
 
@@ -1310,18 +1307,14 @@ fi
 if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
     AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
 fi
-if test "x$enable_socl" = "xyes" -a "$have_valid_socl" = "no" ; then
-    AC_MSG_ERROR([SOCL needs a recent version of OpenCL])
-fi
 
 # now we enable SOCL if and only if a proper setup is available
 if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
-   build_socl=$have_valid_socl
+   build_socl=$have_valid_opencl
 else
    build_socl=no
 fi
 
-AC_MSG_CHECKING(for SOCL)
 AC_MSG_RESULT($build_socl)
 AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
