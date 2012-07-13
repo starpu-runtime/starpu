@@ -29,6 +29,7 @@
 #include <windows.h>
 #endif
 
+static struct starpu_perfmodel model;
 #define PROGNAME "starpu_perfmodel_display"
 
 /* display all available models */
@@ -383,7 +384,6 @@ int main(int argc, char **argv)
         }
         else
 	{
-		struct starpu_perfmodel model;
                 int ret = starpu_load_history_debug(symbol, &model);
                 if (ret == 1)
 		{
