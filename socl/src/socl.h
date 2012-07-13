@@ -100,8 +100,7 @@ struct _cl_platform_id {struct _cl_icd_dispatch *dispatch;};
 
 #define MAY_BLOCK_CUSTOM(blocking,event) \
 	if ((blocking) == CL_TRUE) {\
-		cl_event ev = (event);\
-		soclWaitForEvents(1, &ev);\
+		soclWaitForEvents(1, &(event));\
 	}
 
 /* Constants */
