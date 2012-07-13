@@ -19,6 +19,7 @@ The following arguments can be given to the @code{configure} script.
 @menu
 * Common configuration::        
 * Configuring workers::         
+* Extension configuration::     
 * Advanced configuration::      
 @end menu
 
@@ -119,6 +120,33 @@ target device.  This information is then available as the
 
 @end table
 
+@node Extension configuration
+@subsection Extension configuration
+
+@table @code
+
+@item --disable-socl
+Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
+default, it is enabled when an OpenCL implementation is found.
+
+@item --disable-starpu-top
+Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
+is enabled when the required dependencies are found.
+
+@item --disable-gcc-extensions
+Disable the GCC plug-in (@pxref{C Extensions}).  By default, it is
+enabled when the GCC compiler provides a plug-in support.
+
+@item --with-mpicc=@var{path}
+Use the @command{mpicc} compiler at @var{path}, for starpumpi
+(@pxref{StarPU MPI support}).
+
+@item --enable-comm-stats
+Enable communication statistics for starpumpi (@pxref{StarPU MPI
+support}).
+
+@end table
+
 @node Advanced configuration
 @subsection Advanced configuration
 
@@ -168,10 +196,6 @@ notably contain @code{include/fxt/fxt.h}.
 Store performance models under @var{dir}, instead of the current user's
 home.
 
-@item --with-mpicc=@var{path}
-Use the @command{mpicc} compiler at @var{path}, for starpumpi
-(@pxref{StarPU MPI support}).
-
 @item --with-goto-dir=@var{prefix}
 Search for GotoBLAS under @var{prefix}.
 
@@ -187,18 +211,6 @@ Use @var{ldflags} when linking code that uses the MKL library.  Note
 that the
 @url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/,
 MKL website} provides a script to determine the linking flags.
-
-@item --disable-gcc-extensions
-Disable the GCC plug-in (@pxref{C Extensions}).  By default, it is
-enabled when the GCC compiler provides a plug-in support.
-
-@item --disable-socl
-Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
-default, it is enabled when an OpenCL implementation is found.
-
-@item --disable-starpu-top
-Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
-is enabled when the required dependencies are found.
 
 @end table
 @node Execution configuration through environment variables
