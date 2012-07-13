@@ -541,6 +541,9 @@ static void initialize_per_arch_model(struct starpu_per_arch_perfmodel *per_arch
 {
 	per_arch_model->history = NULL;
 	per_arch_model->list = NULL;
+	per_arch_model->regression.nsample = 0;
+	per_arch_model->regression.valid = 0;
+	per_arch_model->regression.nl_valid = 0;
 }
 
 static void initialize_model(struct starpu_perfmodel *model)
@@ -876,6 +879,7 @@ int starpu_list_models(FILE *output)
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
+	initialize_model(model);
 
 	/* where is the file if it exists ? */
 	char path[256];
