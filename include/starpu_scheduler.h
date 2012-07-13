@@ -210,6 +210,14 @@ unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id
 
 unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id);
 
+unsigned starpu_are_overlapping_ctxs_on_worker(int workerid);
+
+unsigned starpu_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
+
+void starpu_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
+
+double starpu_get_max_time_worker_on_ctx(void);
+
 void starpu_stop_task_submission(unsigned sched_ctx);
 
 /* Check if the worker specified by workerid can execute the codelet. */

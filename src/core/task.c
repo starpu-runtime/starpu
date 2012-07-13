@@ -90,6 +90,8 @@ void starpu_task_init(struct starpu_task *task)
 	task->hypervisor_tag = 0;
 	
 	task->flops = 0.0;
+	
+	task->already_pushed = 0;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task

@@ -209,6 +209,8 @@ struct starpu_task
 	int hypervisor_tag;
 	
 	double flops;
+
+	unsigned already_pushed;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -237,8 +239,9 @@ struct starpu_task
 	.magic = 42,                  			\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
-		.hypervisor_tag = 0,			\
-		.flops = 0.0				\
+	.hypervisor_tag = 0,				\
+	.flops = 0.0,					\
+		.already_pushed = 0			\
 };
 
 /*

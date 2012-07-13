@@ -88,6 +88,11 @@ struct _starpu_worker
 	struct starpu_task *tasks[STARPU_NMAX_SCHED_CTXS];
        
 	unsigned has_prev_init; /* had already been inited in another ctx */
+
+	/* indicated in each ctx the workers can execute tasks on,
+	 used for overlapping ctx in order to determine on which 
+	ctx the worker is allowed to pop */
+	unsigned active_ctx;
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;

@@ -317,7 +317,7 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
-		if (starpu_worker_can_execute_task(worker, task, 0))
+		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_is_ctxs_turn(worker, sched_ctx->id))
 			nworkers++;
 	}
 	
@@ -327,6 +327,7 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 }
 
 /* the generic interface that call the proper underlying implementation */
+
 int _starpu_push_task(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
@@ -340,12 +341,25 @@ int _starpu_push_task(struct _starpu_job *j)
 		  we consider the ctx empty */
 		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
 		
+
 		if(nworkers == 0)
 		{
+			if(task->already_pushed)
+			{
 				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+				starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				return -1;
+				
+			}
+			else
+			{
+				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+				task->already_pushed = 1;
 				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 				return 0;
+			}
 		}
 	}
 
@@ -377,6 +391,7 @@ int _starpu_push_task(struct _starpu_job *j)
 		if(ret == -1)
 		{
 			fprintf(stderr, "repush task \n");
+			_starpu_decrement_nready_tasks();
 			ret = _starpu_push_task(j);
 		}
 	}
