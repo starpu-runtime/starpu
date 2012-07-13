@@ -18,22 +18,12 @@
 #ifndef SOCL_H
 #define SOCL_H
 
-#ifndef CL_HEADERS
-#include "CL/cl.h"
-#else
-#include CL_HEADERS "CL/cl.h"
-#endif
-
-/* Additional command type */
-#ifndef CL_COMMAND_BARRIER
-#define CL_COMMAND_BARRIER 0x1205
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "CL/cl.h"
 #include "ocl_icd.h"
 
 #include <starpu.h>
