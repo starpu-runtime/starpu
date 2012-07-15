@@ -379,27 +379,33 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 		}
 		else
 		{
-			pthread_mutex_lock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
-			
-			hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.receiver_sched_ctx = receiver_sched_ctx;
-			hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.moved_workers = (int*)malloc(nworkers_to_move * sizeof(int));
-			hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.nmoved_workers = nworkers_to_move;
-			hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.acked_workers = (int*)malloc(nworkers_to_move * sizeof(int));
-			
-			
-			int i;
-			for(i = 0; i < nworkers_to_move; i++)
+			int ret = pthread_mutex_trylock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);	
+			if(ret != EBUSY)
 			{
-				hypervisor.sched_ctx_w[sender_sched_ctx].current_idle_time[workers_to_move[i]] = 0.0;
-				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.moved_workers[i] = workers_to_move[i];	
-				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.acked_workers[i] = 0;	
+				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.receiver_sched_ctx = receiver_sched_ctx;
+				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.moved_workers = (int*)malloc(nworkers_to_move * sizeof(int));
+				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.nmoved_workers = nworkers_to_move;
+				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.acked_workers = (int*)malloc(nworkers_to_move * sizeof(int));
+				
+				
+				int i;
+				for(i = 0; i < nworkers_to_move; i++)
+				{
+					hypervisor.sched_ctx_w[sender_sched_ctx].current_idle_time[workers_to_move[i]] = 0.0;
+					hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.moved_workers[i] = workers_to_move[i];	
+					hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.acked_workers[i] = 0;	
+				}
+				
+				hypervisor.resize[sender_sched_ctx] = 0;
+			
+				pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 			}
-			
-			hypervisor.resize[sender_sched_ctx] = 0;
-			hypervisor.resize[receiver_sched_ctx] = 0;
-			
-			pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 		}
+		struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
+		int i;
+		for(i = 0; i < nworkers_to_move; i++)
+			new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
+
 	}
 	return;
 }
@@ -413,12 +419,12 @@ void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned
 		for(j = 0; j < nworkers_to_add; j++)
 			printf(" %d", workers_to_add[j]);
 		printf("\n");
-		int ret = pthread_mutex_trylock(&hypervisor.sched_ctx_w[sched_ctx].mutex);	
-		if(ret != EBUSY)
-		{
-			starpu_add_workers_to_sched_ctx(workers_to_add, nworkers_to_add, sched_ctx);
-			pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
-		}
+		starpu_add_workers_to_sched_ctx(workers_to_add, nworkers_to_add, sched_ctx);
+		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctx);
+		int i;
+		for(i = 0; i < nworkers_to_add; i++)
+			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
+		
 	}
 	return;
 }
@@ -600,7 +606,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 				_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
 				
 				hypervisor.resize[sender_sched_ctx] = 1;
-				hypervisor.resize[receiver_sched_ctx] = 1;
+//				hypervisor.resize[receiver_sched_ctx] = 1;
 				/* if the user allowed resizing leave the decisions to the application */
 				if(imposed_resize)  imposed_resize = 0;
 				

@@ -259,37 +259,23 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 			if(w == 0) arch = STARPU_CUDA_WORKER;
 			if(w == 1) arch = STARPU_CPU_WORKER;
 
+			int workers_move[STARPU_NMAXWORKERS];
+			int nw_move = 0;
+
+			int workers_add[STARPU_NMAXWORKERS];
+			int nw_add = 0;
+
 			if(w == 1)
 			{
 				unsigned nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch);
 				if(nworkers_ctx > res_rounded[s][w])
 				{
 					int nworkers_to_move = nworkers_ctx - res_rounded[s][w];
-					int receiving_s = -1;
-					
-					for(s2 = 0; s2 < ns; s2++)
-					{
-						if(sched_ctxs[s2] != sched_ctxs[s])
-						{
-							int nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch);
-							if((res_rounded[s2][w] - nworkers_ctx2) >= nworkers_to_move)
-							{
-								receiving_s = sched_ctxs[s2];
-								break;
-							}
-						}
-					}
-					if(receiving_s != -1)
-					{
-						int *workers_to_move = _get_first_workers(sched_ctxs[s], &nworkers_to_move, arch);
-						sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, nworkers_to_move, 0);
-						struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
-						int i;
-						for(i = 0; i < nworkers_to_move; i++)
-							new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
-						
-						free(workers_to_move);
-					}
+					int *workers_to_move = _get_first_workers(sched_ctxs[s], &nworkers_to_move, arch);
+					int i;
+					for(i = 0; i < nworkers_to_move; i++)
+						workers_move[nw_move++] = workers_to_move[i];
+					free(workers_to_move);
 				}
 			}
 			else
@@ -298,61 +284,65 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 				if(nworkers_ctx > res[s][w])
 				{
 					double nworkers_to_move = nworkers_ctx - res[s][w];
-					int receiving_s = -1;
-					
-					for(s2 = 0; s2 < ns; s2++)
+					int x = floor(nworkers_to_move);
+					double x_double = (double)x;
+					double diff = nworkers_to_move - x_double;
+					if(diff == 0.0)
 					{
-						if(sched_ctxs[s2] != sched_ctxs[s])
+						int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
+						if(x > 0)
 						{
-							double nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch) * 1.0;
-							if((res[s2][w] - nworkers_ctx2) >= nworkers_to_move)
-							{
-								receiving_s = sched_ctxs[s2];
-								break;
-							}
+							int i;
+							for(i = 0; i < x; i++)
+								workers_move[nw_move++] = workers_to_move[i];
+							
 						}
+						free(workers_to_move);
 					}
-					if(receiving_s != -1)
+					else
 					{
-						int x = floor(nworkers_to_move);
-						double x_double = (double)x;
-						double diff = nworkers_to_move - x_double;
-						if(diff == 0.0)
+						x+=1;
+						int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
+						if(x > 0)
 						{
-							int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
-							if(x > 0)
-							{
-								sched_ctx_hypervisor_move_workers(sched_ctxs[s], receiving_s, workers_to_move, x, 0);
-
-								struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
-								int i;
-								for(i = 0; i < x; i++)
-									new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
-							}
-							free(workers_to_move);
-						}
-						else
-						{
-							x+=1;
-							int *workers_to_move = _get_first_workers(sched_ctxs[s], &x, arch);
-							if(x > 0)
-							{
+							int i;
+							for(i = 0; i < x-1; i++)
+								workers_move[nw_move++] = workers_to_move[i];
+							
+							if(diff > 0.8)
+								workers_move[nw_move++] = workers_to_move[x-1];
+							else
 								if(diff > 0.3)
-									sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_move, x, receiving_s);
-								else
-									sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_move, x-1, receiving_s);
-								
-								struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiving_s);
-								int i;
-								for(i = 0; i < x-1; i++)
-									new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
-							}
-							free(workers_to_move);
+									workers_add[nw_add++] = workers_to_move[x-1];
+							
 						}
+						free(workers_to_move);
 					}
 				}
 			}
+			
+			for(s2 = 0; s2 < ns; s2++)
+			{
+				if(sched_ctxs[s2] != sched_ctxs[s])
+				{
+					double nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch) * 1.0;
+					if((res[s2][w] - nworkers_ctx2) >= 0.0 && nw_move > 0)
+					{
+						sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);
+						nw_move = 0;
+						break;
+					}
+					if((res[s2][w] - nworkers_ctx2) >= 0.0 &&  (res[s2][w] - nworkers_ctx2) <= (double)nw_add && nw_add > 0)
+					{
+						sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s2]);
+						nw_add = 0;
+						break;
+					}
 
+				}
+			}
+			if(nw_move > 0)
+				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 0);
 		}
 	}
 }
@@ -399,12 +389,7 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 					if(x > 0)
 					{
 						sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, x, current_sched_ctxs[s]);
-						sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);
-						struct policy_config *new_config = sched_ctx_hypervisor_get_config(current_sched_ctxs[s]);
-						int i;
-						for(i = 0; i < x; i++)
-							new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
-						
+						sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);						
 					}
 					free(workers_to_add);
 				}
@@ -419,10 +404,6 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 						else
 							sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, x-1, current_sched_ctxs[s]);
 						sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);
-						struct policy_config *new_config = sched_ctx_hypervisor_get_config(current_sched_ctxs[s]);
-						int i;
-						for(i = 0; i < x-1; i++)
-							new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
 					}
 					free(workers_to_add);			
 				}

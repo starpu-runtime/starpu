@@ -531,22 +531,22 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 						
 						if(arch == STARPU_CUDA_WORKER)
 						{
+							nworkers[s][0] += w_in_s[s][w];
 							if(w_in_s[s][w] >= 0.3)
-							{
 								nworkers_rounded[s][0]++;
-								nworkers[s][0] += w_in_s[s][w];
-							}
 						}
 						else
 						{
-							if(w_in_s[s][w] > 0.5)
-							{
+							nworkers[s][1] += w_in_s[s][w];
+							if(w_in_s[s][w] > 0.3)
 								nworkers_rounded[s][1]++;
-								nworkers[s][1] += w_in_s[s][w];
-							}
 						}
 					}
 				}
+/* 				for(s = 0; s < ns; s++) */
+/* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
+/* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
+
 				_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
 
 			}
