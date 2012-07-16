@@ -220,6 +220,7 @@ noinst_PROGRAMS =				\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
+	perfmodels/valid_model			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/simple_deps              \
