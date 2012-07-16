@@ -37,7 +37,16 @@ noinst_HEADERS =				\
   socl.h					\
   task.h					\
   util.h					\
-  init.h
+  init.h					\
+  CL/cl_d3d10.h					\
+  CL/cl_ext.h					\
+  CL/cl.h					\
+  CL/cl_d3d11.h					\
+  CL/cl_gl_ext.h				\
+  CL/cl_platform.h				\
+  CL/cl_dx9_media_sharing.h			\
+  CL/cl_gl.h					\
+  CL/opencl.h
 
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
   -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
