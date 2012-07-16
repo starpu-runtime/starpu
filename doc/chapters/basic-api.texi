@@ -204,8 +204,8 @@ StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
 @deftypefun int starpu_worker_get_count_by_type ({enum starpu_archtype} @var{type})
-Returns the number of workers of the given type indicated by the argument. A positive
-(or null) value is returned in case of success, @code{-EINVAL} indicates that
+Returns the number of workers of the given @var{type}. A positive
+(or @code{NULL}) value is returned in case of success, @code{-EINVAL} indicates that
 the type is not valid otherwise.
 @end deftypefun
 
@@ -1280,7 +1280,9 @@ unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
 @item @code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)} (optional)
-Defines a function which should return 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
+Defines a function which should return 1 if the worker designated by
+@var{workerid} can execute the @var{nimpl}th implementation of the
+given @var{task}, 0 otherwise.
 
 @item @code{enum starpu_codelet_type type} (optional)
 The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
