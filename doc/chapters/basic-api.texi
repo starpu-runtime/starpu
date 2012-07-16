@@ -123,8 +123,11 @@ contains the logical identifiers of the OpenCL devices to be used.
 
 @item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. If this value is equal to -1, the default value is used. This
-can also be specified with the @code{STARPU_CALIBRATE} environment variable.
+executing tasks. If this value is equal to @code{-1}, the default value is
+used. If the value is equal to @code{1}, it will force continuing
+calibration. If the value is equal to @code{2}, the existing performance
+models will be overwritten. This can also be specified with the
+@code{STARPU_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
 By default, StarPU executes parallel tasks concurrently.
