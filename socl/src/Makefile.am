@@ -33,6 +33,7 @@ noinst_HEADERS =				\
   gc.h						\
   getinfo.h					\
   mem_objects.h					\
+  ocl_icd.h					\
   socl.h					\
   task.h					\
   util.h					\
