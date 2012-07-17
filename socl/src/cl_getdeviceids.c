@@ -26,13 +26,19 @@
  */
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetDeviceIDs(cl_platform_id   platform,
-               cl_device_type   device_type, 
-               cl_uint          num_entries, 
-               cl_device_id *   devices, 
+               cl_device_type   device_type,
+               cl_uint          num_entries,
+               cl_device_id *   devices,
                cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0
 {
    if( ! _starpu_init )
-      socl_init_starpu(); 
+      socl_init_starpu();
+
+   if (_starpu_init_failed) {
+	*num_devices = 0;
+	return CL_SUCCESS;
+   }
+
    if (platform != NULL && platform != &socl_platform)
       return CL_INVALID_PLATFORM;
 
