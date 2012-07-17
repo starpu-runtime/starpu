@@ -130,7 +130,7 @@ static void decode(char **src, char *motif, char *value)
 
 	       to = strncpy(to, *src, strlen(*src)-strlen(y)); to += strlen(*src)-strlen(y);
 	       to = strcpy(to, value); to += strlen(value);
-	       to = stpcpy(to, y+strlen(motif));
+	       strcpy(to, y+strlen(motif));
 
 	       *src = strdup(neo);
 	       y = strstr(*src, motif);
