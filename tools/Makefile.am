@@ -31,27 +31,17 @@ EXTRA_DIST =					\
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-bin_PROGRAMS += starpu_calibrate_bus
+#####################################
+# What to install and what to check #
+#####################################
 
-if STARPU_USE_FXT
-bin_PROGRAMS += starpu_fxt_tool starpu_fxt_stats
-
-starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
-starpu_fxt_tool_LDADD = $(FXT_LIBS)
-
-starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
-starpu_fxt_stats_LDADD = $(FXT_LIBS)
-endif
-
-bin_PROGRAMS += \
-	starpu_perfmodel_display	\
-	starpu_perfmodel_plot 		\
-	starpu_machine_display
+STARPU_TOOLS	=
+TESTS		= $(STARPU_TOOLS)
 
 if STARPU_HAVE_WINDOWS
-check_PROGRAMS	=	$(bin_PROGRAMS)
+check_PROGRAMS	=	$(STARPU_TOOLS)
 else
-check_PROGRAMS	=	$(LOADER) $(bin_PROGRAMS)
+check_PROGRAMS	=	$(LOADER) $(STARPU_TOOLS)
 endif
 
 if !STARPU_HAVE_WINDOWS
@@ -63,11 +53,37 @@ loader_SOURCES		=	../tests/loader.c
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
-TESTS = $(bin_PROGRAMS)
+if STARPU_USE_FXT
+bin_PROGRAMS += 			\
+	starpu_fxt_tool			\
+	starpu_fxt_stats
+
+STARPU_TOOLS += 			\
+	starpu_fxt_tool			\
+	starpu_fxt_stats
+
+starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_tool_LDADD = $(FXT_LIBS)
+
+starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_stats_LDADD = $(FXT_LIBS)
+endif
+
+bin_PROGRAMS += 			\
+	starpu_perfmodel_display	\
+	starpu_perfmodel_plot 		\
+	starpu_machine_display		\
+	starpu_calibrate_bus
+
+STARPU_TOOLS	+=			\
+	starpu_perfmodel_display	\
+	starpu_perfmodel_plot 		\
+	starpu_machine_display		\
+	starpu_calibrate_bus
 
 noinst_PROGRAMS =	cbc2paje lp2paje
 
-dist_bin_SCRIPTS +=	\
+dist_bin_SCRIPTS +=			\
 	starpu_workers_activity
 
 
