@@ -46,7 +46,6 @@ main(void) {
    err = clGetPlatformIDs(num_platforms, platforms, NULL);
    checkErr(err, "Unable to get platform list");
 
-
    // Iteratate over platforms
    printf("Number of platforms:\t\t\t\t %d\n", num_platforms);
 
@@ -92,6 +91,11 @@ main(void) {
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
          checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
+	 if (num_devices == 0) {
+	      printf("  No devices found\n");
+	      continue;
+	 }
+
          devices = (cl_device_id*)malloc(sizeof(cl_device_id)*num_devices);
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
