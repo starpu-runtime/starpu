@@ -260,7 +260,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s')\n",
+		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
 			*task, (*task)->cl,
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
