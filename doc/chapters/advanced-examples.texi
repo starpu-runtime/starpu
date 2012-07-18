@@ -1011,7 +1011,8 @@ constraints: peer memcpy has to be disabled, and the thread that runs OpenGL has
 to be the one that runs CUDA computations for that GPU.
 
 To achieve this with StarPU, pass the @code{--disable-cuda-memcpy-peer} option
-to @code{./configure} (TODO: make it dynamic), the interoperability mode has to
+to @code{./configure} (TODO: make it dynamic), OpenGL/GLUT has to be initialized
+first, and the interoperability mode has to
 be enabled by using the @code{cuda_opengl_interoperability} field of the
 @code{starpu_conf} structure, and the driver loop has to be run by
 the application, by using the @code{not_launched_drivers} field of
