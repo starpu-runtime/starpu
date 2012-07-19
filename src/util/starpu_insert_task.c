@@ -88,28 +88,3 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
         return ret;
 }
 
-int starpu_insert_task_array(struct starpu_codelet *cl, starpu_data_handle_t *handles, unsigned nb_handles, ...)
-{
-	va_list varg_list;
-
-	/* Compute the size */
-	size_t arg_buffer_size = 0;
-	va_start(varg_list, nb_handles);
-        arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
-
-	va_start(varg_list, nb_handles);
-	char *arg_buffer;
-	_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
-
-	va_start(varg_list, nb_handles);
-        struct starpu_task *task = starpu_task_create();
-	int ret = _starpu_insert_task_create_and_submit_array(arg_buffer, arg_buffer_size, cl, &task, handles, nb_handles, varg_list);
-
-	if (ret == -ENODEV)
-	{
-		task->destroy = 0;
-		starpu_task_destroy(task);
-	}
-        return ret;
-
-}

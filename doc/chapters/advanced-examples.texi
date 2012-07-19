@@ -478,17 +478,8 @@ transfers, which are assumed to be completely overlapped.
 @node Insert Task Utility
 @section Insert Task Utility
 
-StarPU provides wrapper functions @code{starpu_insert_task} and
-@code{starpu_insert_task_array} to ease the creation and submission of tasks.
-
-@menu
-* With a defined number of handles::  
-* With an undefined number of handles::  
-* Task insertion depending on some earlier computation::  
-@end menu
-
-@node With a defined number of handles
-@subsection With a defined number of handles
+StarPU provides the wrapper function @code{starpu_insert_task} to ease
+the creation and submission of tasks.
 
 @deftypefun int starpu_insert_task (struct starpu_codelet *@var{cl}, ...)
 Create and submit a task corresponding to @var{cl} with the following
@@ -500,11 +491,16 @@ The arguments following the codelets can be of the following types:
 @item
 @code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
 @item
+@code{STARPU_DATA_ARRAY} followed by an array of data handles and its number of elements;
+@item
 the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
 @code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
 @code{STARPU_PRIORITY}, followed by the appropriated objects as
 defined below.
 @end itemize
+
+When using @code{STARPU_DATA_ARRAY}, the access mode of the data
+handles is not defined.
 
 Parameters to be passed to the codelet implementation are defined
 through the type @code{STARPU_VALUE}. The function
@@ -605,47 +601,15 @@ task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
 @end smallexample
 
-@node With an undefined number of handles
-@subsection With an undefined number of handles
-
-@deftypefun int starpu_insert_task_array (struct starpu_codelet *@var{cl}, {starpu_data_handle_t *}@var{handles}, unsigned @var{nb_handles}, ...)
-Create and submit a task corresponding to @var{cl} with the given
-number @var{nb_handles} of @var{handles}, and the following
-arguments.  The argument list must be zero-terminated.
-
-The arguments following the codelets can be of the following types:
-
-@itemize
-@item
-the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
-@code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
-@code{STARPU_PRIORITY}, followed by the appropriated objects as
-defined above.
-@end itemize
-
-The number of data handles @var{nb_handles} must be equal to the
-number of data handles expected by the codelet @var{cl}. The access
-modes will be the ones defined by @var{cl}.
-
-Parameters to be passed to the codelet implementation are defined
-through the type @code{STARPU_VALUE}. The function
-@code{starpu_codelet_unpack_args} must be called within the codelet
-implementation to retrieve them.
-@end deftypefun
-
-Here a call to the @code{starpu_insert_task_array} wrapper equivalent
-to the example above.
+Here a similar call using @code{STARPU_DATA_ARRAY}.
 
 @smallexample
 starpu_insert_task(&mycodelet,
-                   data_handles, 2,
+                   STARPU_DATA_ARRAY, data_handles, 2,
                    STARPU_VALUE, &ifactor, sizeof(ifactor),
                    STARPU_VALUE, &ffactor, sizeof(ffactor),
                    0);
 @end smallexample
-
-@node Task insertion depending on some earlier computation
-@subsection Task insertion depending on some earlier computation
 
 If some part of the task insertion depends on the value of some computation,
 the @code{STARPU_DATA_ACQUIRE_CB} macro can be very convenient. For

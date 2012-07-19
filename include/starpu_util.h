@@ -246,10 +246,10 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 #define STARPU_PRIORITY		(1<<8)	/* Priority associated to the task */
 #define STARPU_EXECUTE_ON_NODE	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
 #define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_DATA_ARRAY       (1<<11) /* Array of data handles */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
-int starpu_insert_task_array(struct starpu_codelet *cl, starpu_data_handle_t *handles, unsigned nb_handles, ...);
 
 /* Retrieve the arguments of type STARPU_VALUE associated to a task
  * automatically created using starpu_insert_task. */
