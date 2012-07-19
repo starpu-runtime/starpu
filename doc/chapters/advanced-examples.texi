@@ -294,6 +294,10 @@ __kernel void opencl_kernel(__global int *vector, unsigned offset)
 @end smallexample
 @end cartouche
 
+StarPU provides various interfaces and filters for matrices, vectors, etc.,
+but applications can also write their own data interfaces and filters, see
+@code{examples/interface} and @code{examples/filters/custom_mf} for an example.
+
 @node Performance model example
 @section Performance model example
 
