@@ -24,6 +24,8 @@ New features:
   * Performance models measurements can now be provided explicitly by
     applications.
   * Capability to emit communication statistics when running MPI code
+  * New function starpu_insert_task_array similar to starpu_insert_task
+	but with an array of data_handles
 
 Changes:
   * The FxT code can now be used on systems other than Linux.
