@@ -270,3 +270,96 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
         return ret;
 }
+
+int _starpu_insert_task_create_and_submit_array(char *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, starpu_data_handle_t *handles, unsigned nb_handles, va_list varg_list)
+{
+	unsigned current_buffer = 0;
+	unsigned i;
+        int arg_type;
+
+	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
+	STARPU_ASSERT(cl_arg_wrapper);
+
+	cl_arg_wrapper->callback_func = NULL;
+	cl_arg_wrapper->arg_stack = arg_buffer;
+
+	for(i=0 ; i<nb_handles ; i++)
+	{
+		(*task)->handles[i] = handles[i];
+	}
+	STARPU_ASSERT(nb_handles == cl->nbuffers);
+
+	while((arg_type = va_arg(varg_list, int)) != 0)
+	{
+		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		{
+			/* We have an access mode : we expect to find a handle */
+			(void) va_arg(varg_list, starpu_data_handle_t);
+			return -EINVAL;
+		}
+		else if (arg_type==STARPU_VALUE)
+		{
+			(void)va_arg(varg_list, void *);
+			(void)va_arg(varg_list, size_t);
+		}
+		else if (arg_type==STARPU_CALLBACK)
+		{
+			void (*callback_func)(void *);
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			cl_arg_wrapper->callback_func = callback_func;
+		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			void (*callback_func)(void *);
+			void *callback_arg;
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			callback_arg = va_arg(varg_list, void *);
+			cl_arg_wrapper->callback_func = callback_func;
+			cl_arg_wrapper->callback_arg = callback_arg;
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			void *callback_arg = va_arg(varg_list, void *);
+			cl_arg_wrapper->callback_arg = callback_arg;
+		}
+		else if (arg_type==STARPU_PRIORITY)
+		{
+			/* Followed by a priority level */
+			int prio = va_arg(varg_list, int);
+			(*task)->priority = prio;
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
+			(void)va_arg(varg_list, starpu_data_handle_t);
+		}
+	}
+
+	va_end(varg_list);
+
+	(*task)->cl = cl;
+	(*task)->cl_arg = arg_buffer;
+	(*task)->cl_arg_size = arg_buffer_size;
+
+	/* The callback will free the argument stack and execute the
+	 * application's callback, if any. */
+	(*task)->callback_func = starpu_task_insert_callback_wrapper;
+	(*task)->callback_arg = cl_arg_wrapper;
+
+	int ret = starpu_task_submit(*task);
+
+	if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
+		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+			*task, (*task)->cl,
+			(*task)->cl->name ? (*task)->cl->name :
+			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
+		free(cl_arg_wrapper->arg_stack);
+		free(cl_arg_wrapper);
+	}
+
+        return ret;
+}
