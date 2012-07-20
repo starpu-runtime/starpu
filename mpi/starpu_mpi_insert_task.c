@@ -31,8 +31,9 @@
 /* Whether we are allowed to keep copies of remote data. Does not work
  * yet: the sender has to know whether the receiver has it, keeping it
  * in an array indexed by node numbers. */
-#define MPI_CACHE 1
+//#define MPI_CACHE 1
 
+#ifdef MPI_CACHE
 struct _starpu_data_entry
 {
 	UT_hash_handle hh;
@@ -41,9 +42,11 @@ struct _starpu_data_entry
 
 struct _starpu_data_entry **sent_data = NULL;
 struct _starpu_data_entry **received_data = NULL;
+#endif /* MPI_CACHE */
 
 static void _starpu_mpi_tables_init()
 {
+#ifdef MPI_CACHE
 	if (sent_data == NULL) {
 		int nb_nodes;
 		int i;
@@ -55,6 +58,7 @@ static void _starpu_mpi_tables_init()
 		received_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
 		for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
 	}
+#endif /* MPI_CACHE */
 }
 
 static
