@@ -14,6 +14,14 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.0.2 (svn revision xxx)
+==============================================
+
+Changes:
+  * Add starpu_block_shadow_filter_func_vector and an example.
+  * Add tag dependency in trace-generated DAG.
+  * Fix CPU binding for optimized CPU-GPU transfers.
+
 StarPU 1.0.1 (svn revision 6659)
 ==============================================
 
