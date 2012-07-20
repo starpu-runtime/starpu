@@ -141,11 +141,12 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			/* Somebody else will execute it, and I have the data, send it. */
 #ifdef MPI_CACHE
 			struct _starpu_data_entry *already_sent;
-			HASH_FIND_PTR(sent_data[mpi_rank], &data, already_sent);
+			HASH_FIND_PTR(sent_data[dest], &data, already_sent);
 			if (already_sent == NULL) {
 				struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
 				entry->data = data;
 				HASH_ADD_PTR(sent_data[dest], data, entry);
+				_STARPU_MPI_DEBUG("Noting that data %p has already been sent to %d\n", data, dest);
 			}
 			else {
 				_STARPU_MPI_DEBUG("Do not send data %p to node %d as it has already been sent\n", data, dest);
