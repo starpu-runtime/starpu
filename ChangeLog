@@ -28,6 +28,7 @@ New features:
     starpu_data_invalidate_submit
   * New functionnality to wrapper starpu_insert_task to pass a array of
 	data_handles via the parameter STARPU_DATA_ARRAY
+  * Enable GPU-GPU direct transfers.
 
 Changes:
   * The FxT code can now be used on systems other than Linux.

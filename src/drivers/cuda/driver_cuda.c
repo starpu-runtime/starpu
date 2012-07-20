@@ -138,9 +138,25 @@ done:
 static void init_context(int devid)
 {
 	cudaError_t cures;
-	int workerid = starpu_worker_get_id();
+	int workerid;
 
 	starpu_cuda_set_device(devid);
+
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	int nworkers = starpu_worker_get_count();
+	for (workerid = 0; workerid < nworkers; workerid++) {
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid) {
+			int can;
+			cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
+			if (!cures && can) {
+				cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
+				if (cures)
+					_STARPU_DEBUG("GPU-Direct %d -> %d\n", worker->devid, devid);
+			}
+		}
+	}
+#endif
 
 	/* force CUDA to initialize the context for real */
 	cures = cudaFree(0);
@@ -163,6 +179,8 @@ static void init_context(int devid)
 #endif
 
 	limit_gpu_mem_if_needed(devid);
+
+	workerid = starpu_worker_get_id();
 
 	cures = cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
