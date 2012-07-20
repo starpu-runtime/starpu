@@ -179,8 +179,8 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 				struct _starpu_data_entry *already_sent;
 				HASH_FIND_PTR(sent_data[n], &data, already_sent);
 				if (already_sent) {
-					_STARPU_MPI_DEBUG("Posting request to clear send cache for data %p\n", data);
-					_starpu_mpi_clear_cache_request(data, n, _STARPU_MPI_CLEAR_SENT_DATA);
+					_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data);
+					HASH_DEL(sent_data[n], already_sent);
 				}
 			}
 		}
@@ -191,8 +191,8 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 			if (already_received) {
 				/* Somebody else will write to the data, so discard our cached copy if any */
 				/* TODO: starpu_mpi could just remember itself. */
-				_STARPU_MPI_DEBUG("Posting request to clear receive cache for data %p\n", data);
-				_starpu_mpi_clear_cache_request(data, mpi_rank, _STARPU_MPI_CLEAR_RECEIVED_DATA);
+				_STARPU_MPI_DEBUG("Clearing receive cache for data %p\n", data);
+				HASH_DEL(received_data[mpi_rank], already_received);
 				starpu_data_invalidate_submit(data);
 			}
 		}
