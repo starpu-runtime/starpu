@@ -22,41 +22,30 @@
 
 /* measure the amount of data transfers between each pair of MPI nodes */
 #ifdef STARPU_COMM_STATS
-static size_t **comm_amount;
+static size_t *comm_amount;
 static int world_size;
 #endif /* STARPU_COMM_STATS */
 
-void _starpu_mpi_comm_amounts_init()
+void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 {
 #ifdef STARPU_COMM_STATS
-	int i;
-
 	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-comm-stats, which slows down a bit\n");
 
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	MPI_Comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG("allocating for %d nodes\n", world_size);
 
-	comm_amount = (size_t **) calloc(1, world_size * sizeof(size_t *));
-	for(i=0 ; i<world_size ; i++)
-	{
-		comm_amount[i] = (size_t *) calloc(1, world_size * sizeof(size_t));
-	}
+	comm_amount = (size_t *) calloc(world_size, sizeof(size_t));
 #endif /* STARPU_COMM_STATS */
 }
 
 void _starpu_mpi_comm_amounts_free()
 {
 #ifdef STARPU_COMM_STATS
-	int i;
-	for(i=0 ; i<world_size ; i++)
-	{
-		free(comm_amount[i]);
-	}
 	free(comm_amount);
 #endif /* STARPU_COMM_STATS */
 }
 
-void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)), 
+void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)),
 				  unsigned dst  __attribute__ ((unused)), MPI_Datatype datatype  __attribute__ ((unused)))
 {
 #ifdef STARPU_COMM_STATS
@@ -65,43 +54,33 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)),
 	MPI_Comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
 
-	_STARPU_MPI_DEBUG("adding %d from %d to %d\n", size, src, dst);
+	_STARPU_MPI_DEBUG("[%d] adding %d to %d\n", src, size, dst);
 
-	comm_amount[src][dst] += size;
+	comm_amount[dst] += size;
 #endif /* STARPU_COMM_STATS */
 }
 
-void _starpu_mpi_comm_amounts_display()
+void _starpu_mpi_comm_amounts_display(int node)
 {
 #ifdef STARPU_COMM_STATS
-	unsigned src, dst;
-
+	unsigned dst;
 	size_t sum = 0;
 
 	for (dst = 0; dst < world_size; dst++)
-		for (src = 0; src < world_size; src++)
-		{
-			sum += comm_amount[src][dst];
-		}
+	{
+		sum += comm_amount[dst];
+	}
 
-	fprintf(stderr, "\nCommunication transfers stats:\nTOTAL transfers %f B\t%f MB\n", (float)sum, (float)sum/1024/1024);
+	fprintf(stderr, "\n[%d] Communication transfers stats:\nTOTAL transfers %f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
 
 	for (dst = 0; dst < world_size; dst++)
-		for (src = 0; src < world_size; src++)
+	{
+		if (comm_amount[dst])
 		{
-			if (comm_amount[src][dst])
-			{
-				fprintf(stderr, "\t%d <-> %d\t%f B\t%f MB\n",
-					src, dst, (float)comm_amount[src][dst] + (float)comm_amount[dst][src],
-					((float)comm_amount[src][dst] + (float)comm_amount[dst][src])/(1024*1024));
-				fprintf(stderr, "\t\t%d -> %d\t%f B\t%f MB\n",
-					src, dst, (float)comm_amount[src][dst],
-					((float)comm_amount[src][dst])/(1024*1024));
-				fprintf(stderr, "\t\t%d -> %d\t%f B\t%f MB\n",
-					dst, src, (float)comm_amount[dst][src],
-					((float)comm_amount[dst][src])/(1024*1024));
-			}
+			fprintf(stderr, "\t%d -> %d\t%f B\t%f MB\n",
+				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024));
 		}
+	}
 #endif /* STARPU_COMM_STATS */
 }
 

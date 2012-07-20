@@ -803,7 +803,7 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 #endif
 
 	_starpu_mpi_add_sync_point_in_fxt();
-	_starpu_mpi_comm_amounts_init();
+	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
 	return 0;
 }
 
@@ -820,6 +820,10 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 int starpu_mpi_shutdown(void)
 {
 	void *value;
+	int rank;
+
+	/* We need to get the  rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	/* kill the progression thread */
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -837,7 +841,7 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_req_list_delete(detached_requests);
 	_starpu_mpi_req_list_delete(new_requests);
 
-	_starpu_mpi_comm_amounts_display();
+	_starpu_mpi_comm_amounts_display(rank);
 	_starpu_mpi_comm_amounts_free();
 
 	return 0;
