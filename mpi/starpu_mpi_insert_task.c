@@ -31,8 +31,16 @@
 /* Whether we are allowed to keep copies of remote data. Does not work
  * yet: the sender has to know whether the receiver has it, keeping it
  * in an array indexed by node numbers. */
-//#define MPI_CACHE 1
-#include <starpu_mpi_insert_task_cache.h>
+#define MPI_CACHE 1
+
+struct _starpu_data_entry
+{
+	UT_hash_handle hh;
+	void *data;
+};
+
+struct _starpu_data_entry **sent_data = NULL;
+struct _starpu_data_entry **received_data = NULL;
 
 static void _starpu_mpi_tables_init()
 {
