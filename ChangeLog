@@ -24,6 +24,7 @@ New features:
   * Performance models measurements can now be provided explicitly by
     applications.
   * Capability to emit communication statistics when running MPI code
+  * Add starpu_data_acquire_on_node
   * New functionnality to wrapper starpu_insert_task to pass a array of
 	data_handles via the parameter STARPU_DATA_ARRAY
 

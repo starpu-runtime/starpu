@@ -91,9 +91,9 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
+	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-	ret = _starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, 1,
+	ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 1,
 					 _starpu_data_acquire_fetch_data_callback, wrapper);
 	STARPU_ASSERT(!ret);
 }
@@ -114,7 +114,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_cb(starpu_data_handle_t handle,
+int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 			   enum starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
@@ -125,6 +125,7 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 	STARPU_ASSERT(wrapper);
 
 	wrapper->handle = handle;
+	wrapper->node = node;
 	wrapper->mode = mode;
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
@@ -175,6 +176,12 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 	return 0;
 }
 
+int starpu_data_acquire_cb(starpu_data_handle_t handle,
+			   enum starpu_access_mode mode, void (*callback)(void *), void *arg)
+{
+	return starpu_data_acquire_on_node_cb(handle, 0, mode, callback, arg);
+}
+
 /*
  *	Block data request from application
  */
@@ -186,9 +193,9 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
+	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, 0, NULL, NULL);
+	_starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, NULL, NULL);
 
 	/* continuation of starpu_data_acquire */
 	_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
@@ -198,7 +205,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mode)
+int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
@@ -230,7 +237,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	{
 		.handle = handle,
 		.mode = mode,
-		.node = 0, // unused
+		.node = node,
 		.cond = PTHREAD_COND_INITIALIZER,
 		.lock = PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
@@ -278,8 +285,8 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		struct _starpu_data_replicate *ram_replicate = &handle->per_node[0];
-		int ret = _starpu_fetch_data_on_node(handle, ram_replicate, mode, 0, 0, NULL, NULL);
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
 	else
@@ -301,17 +308,27 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 	return 0;
 }
 
+int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mode)
+{
+	return starpu_data_acquire_on_node(handle, 0, mode);
+}
+
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
-void starpu_data_release(starpu_data_handle_t handle)
+void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(handle);
 
 	/* The application can now release the rw-lock */
-	_starpu_release_data_on_node(handle, 0, &handle->per_node[0]);
+	_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
 
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
 	_starpu_unlock_post_sync_tasks(handle);
+}
+
+void starpu_data_release(starpu_data_handle_t handle)
+{
+	starpu_data_release_on_node(handle, 0);
 }
 
 static void _prefetch_data_on_node(void *arg)

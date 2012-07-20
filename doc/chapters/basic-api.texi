@@ -489,7 +489,7 @@ be consistent with the access mode specified in the @var{mode} argument.
 access the piece of data anymore.  Note that implicit data
 dependencies are also enforced by @code{starpu_data_acquire}, i.e.
 @code{starpu_data_acquire} will wait for all tasks scheduled to work on
-the data, unless that they have not been disabled explictly by calling
+the data, unless they have been disabled explictly by calling
 @code{starpu_data_set_default_sequential_consistency_flag} or
 @code{starpu_data_set_sequential_consistency_flag}.
 @code{starpu_data_acquire} is a blocking call, so that it cannot be called from
@@ -510,6 +510,16 @@ Note that implicit data dependencies are also enforced by
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
+@end deftypefun
+
+@deftypefun int starpu_data_acquire_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode})
+This is the same as @code{starpu_data_acquire}, except that the data will be
+available on the given memory node instead of main memory.
+@end deftypefun
+
+@deftypefun int starpu_data_acquire_on_node_cb (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+This is the same as @code{starpu_data_acquire_cb}, except that the data will be
+available on the given memory node instead of main memory.
 @end deftypefun
 
 @defmac STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
