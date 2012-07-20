@@ -1047,14 +1047,24 @@ the CUDA pointer at registration, for instance:
 
 @cartouche
 @smallexample
+/* Get the CUDA worker id */
 for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
         if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
                 break;
 
+/* Build a CUDA pointer pointing at the OpenGL buffer */
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
+
+/* And register it to StarPU */
 starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
 
+/* The handle can now be used as usual */
 starpu_insert_task(&cl, STARPU_RW, handle, 0);
+
+/* ... */
+
+/* This gets back data into the OpenGL buffer */
+starpu_data_unregister(handle);
 @end smallexample
 @end cartouche
 
