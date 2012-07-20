@@ -49,13 +49,6 @@ static void _starpu_mpi_tables_init()
 	}
 }
 
-void _starpu_data_deallocate(starpu_data_handle_t data_handle)
-{
-#ifdef STARPU_DEVEL
-#warning _starpu_data_deallocate not implemented yet
-#endif
-}
-
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	int arg_type;
@@ -371,7 +364,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 						/* TODO: starpu_mpi could just remember itself. */
 						_STARPU_MPI_DEBUG("Posting request to clear receive cache for data %p\n", data);
 						_starpu_mpi_clear_cache_request(data, mpi_rank, _STARPU_MPI_CLEAR_RECEIVED_DATA);
-						_starpu_data_deallocate(data);
+						starpu_data_invalidate_submit(data);
 					}
 				}
 			}
@@ -380,7 +373,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			if ((arg_type & STARPU_R) && do_execute) {
 				int mpi_rank = starpu_data_get_rank(data);
 				if (mpi_rank != me && mpi_rank != -1) {
-					_starpu_data_deallocate(data);
+					starpu_data_invalidate_submit(data);
 				}
 			}
 #endif
