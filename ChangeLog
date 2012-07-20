@@ -36,6 +36,8 @@ Changes:
   * Keep only one hashtable implementation common/uthash.h
   * Add tag dependency in trace-generated DAG.
   * Fix CPU binding for optimized CPU-GPU transfers.
+  * The cache of starpu_mpi_insert_task is fixed and thus now enabled by
+    default.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
