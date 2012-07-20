@@ -24,6 +24,7 @@ New features:
   * Performance models measurements can now be provided explicitly by
     applications.
   * Capability to emit communication statistics when running MPI code
+  * Add starpu_block_shadow_filter_func_vector and an example.
   * Add starpu_unregister_submit, starpu_data_acquire_on_node and
     starpu_data_invalidate_submit
   * New functionnality to wrapper starpu_insert_task to pass a array of
@@ -33,10 +34,27 @@ New features:
 Changes:
   * The FxT code can now be used on systems other than Linux.
   * Keep only one hashtable implementation common/uthash.h
+  * Add tag dependency in trace-generated DAG.
+  * Fix CPU binding for optimized CPU-GPU transfers.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
 	still available for compatibility reasons.
+
+StarPU 1.0.1 (svn revision 6659)
+==============================================
+
+Changes:
+  * hwloc support. Warn users when hwloc is not found on the system and
+	produce error when not explicitely disabled.
+  * Several bug fixes
+  * GCC plug-in
+	- Add `#pragma starpu release'
+	- Fix bug when using `acquire' pragma with function parameters
+	- Slightly improve test suite coverage
+	- Relax the GCC version check
+  * Update SOCL to use new API
+  * Documentation improvement.
 
 StarPU 1.0.0 (svn revision 6306)
 ==============================================
