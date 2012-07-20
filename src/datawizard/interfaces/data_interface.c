@@ -593,12 +593,9 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle) {
 	_starpu_data_unregister(handle, 0);
 }
 
-void starpu_data_invalidate(starpu_data_handle_t handle)
+static void _starpu_data_invalidate(void *data)
 {
-	STARPU_ASSERT(handle);
-
-	starpu_data_acquire(handle, STARPU_W);
-
+	starpu_data_handle_t handle = data;
 	_starpu_spin_lock(&handle->header_lock);
 
 	unsigned node;
@@ -618,6 +615,22 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 	_starpu_spin_unlock(&handle->header_lock);
 
 	starpu_data_release(handle);
+}
+
+void starpu_data_invalidate(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire(handle, STARPU_W);
+
+	_starpu_data_invalidate(handle);
+}
+
+void starpu_data_invalidate_submit(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire_cb(handle, STARPU_W, _starpu_data_invalidate, handle);
 }
 
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle)

@@ -434,6 +434,10 @@ access to the handle must be performed in write-only mode. Accessing an
 invalidated data in read-mode results in undefined behaviour.
 @end deftypefun
 
+@deftypefun void starpu_data_invalidate_submit (starpu_data_handle_t @var{handle})
+Submits invalidation of the data handle after completion of previously submitted tasks.
+@end deftypefun
+
 @c TODO create a specific sections about user interaction with the DSM ?
 
 @deftypefun void starpu_data_set_wt_mask (starpu_data_handle_t @var{handle}, uint32_t @var{wt_mask})
@@ -500,13 +504,13 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 
 @deftypefun int starpu_data_acquire_cb (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
-@code{starpu_data_release}. When the data specified in the first argument is
+@code{starpu_data_acquire}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
 The application may access the requested data during the execution of this
 callback. The callback function must call @code{starpu_data_release} once the
 application does not need to access the piece of data anymore.
 Note that implicit data dependencies are also enforced by
-@code{starpu_data_acquire_cb} in case they are enabled.
+@code{starpu_data_acquire_cb} in case they are not disabled.
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
