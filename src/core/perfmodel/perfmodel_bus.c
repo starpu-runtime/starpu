@@ -341,11 +341,11 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	double right_dtoh = right->timing_dtoh;
 	double right_htod = right->timing_htod;
 
-	double bandwidth_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
-	double bandwidth_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
+	double timing_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
+	double timing_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
 
 	/* it's for a decreasing sorting */
-	return (bandwidth_sum2_left < bandwidth_sum2_right);
+	return (timing_sum2_left > timing_sum2_right);
 }
 
 #ifdef STARPU_HAVE_HWLOC
