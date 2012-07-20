@@ -1067,7 +1067,8 @@ starpu_data_partition(A_handle, &f);
 
 @deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, uint32_t @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
-collected back into one big piece in the @var{gathering_node} (usually 0).
+collected back into one big piece in the @var{gathering_node} (usually 0). Tasks
+working on the partitioned data must be already finished when calling @code{starpu_data_unpartition}.
 @cartouche
 @smallexample
 starpu_data_unpartition(A_handle, 0);
