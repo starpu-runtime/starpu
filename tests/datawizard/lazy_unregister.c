@@ -61,7 +61,7 @@ int main(void)
 		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	starpu_data_unregister_lazy(handle);
+	starpu_data_unregister_submit(handle);
 
 	ret = starpu_task_submit(t1);
 	if (ret == -ENODEV)

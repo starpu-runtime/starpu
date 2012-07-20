@@ -55,7 +55,7 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 /* Destroy the data handle once it is not needed anymore by any submitted task.
  * No coherency is assumed.
  */
-void starpu_data_unregister_lazy(starpu_data_handle_t handle);
+void starpu_data_unregister_submit(starpu_data_handle_t handle);
 
 /* Destroy all data replicates. After data invalidation, the first access to
  * the handle must be performed in write-only mode. */

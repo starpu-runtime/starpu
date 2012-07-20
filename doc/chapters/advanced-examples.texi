@@ -731,7 +731,7 @@ and destroy it on unregistration.
 
 In addition to that, it can be tedious for the application to have to unregister
 the data, since it will not use its content anyway. The unregistration can be
-done lazily by using the @code{starpu_data_unregister_lazy(handle)} function,
+done lazily by using the @code{starpu_data_unregister_submit(handle)} function,
 which will record that no more tasks accessing the handle will be submitted, so
 that it can be freed as soon as the last task accessing it is over.
 
@@ -744,7 +744,7 @@ starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
 starpu_insert_task(&produce_data, STARPU_W, handle, 0);
 starpu_insert_task(&compute_data, STARPU_RW, handle, 0);
 starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
-starpu_data_unregister_lazy(handle);
+starpu_data_unregister_submit(handle);
 @end smallexample
 
 @subsection Scratch data
