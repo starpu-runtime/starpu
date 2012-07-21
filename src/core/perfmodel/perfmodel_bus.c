@@ -94,7 +94,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	size_t size = SIZE;
 
 	/* Initialize CUDA context on the device */
-	starpu_cuda_set_device(dev);
+	cudaSetDevice(dev);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -189,7 +189,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
 
 	/* Initialize CUDA context on the source */
-	starpu_cuda_set_device(src);
+	cudaSetDevice(src);
 
 	cures = cudaDeviceCanAccessPeer(&can, src, dst);
 	if (!cures && can) {
@@ -205,7 +205,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cudaMemset(s_buffer, 0, size);
 
 	/* Initialize CUDA context on the destination */
-	starpu_cuda_set_device(dst);
+	cudaSetDevice(dst);
 
 	cures = cudaDeviceCanAccessPeer(&can, dst, src);
 	if (!cures && can) {
@@ -239,7 +239,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	/* Free buffers */
 	cudaFree(d_buffer);
-	starpu_cuda_set_device(src);
+	cudaSetDevice(src);
 	cudaFree(s_buffer);
 
 	cudaThreadExit();
