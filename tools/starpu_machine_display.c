@@ -148,11 +148,11 @@ int main(int argc, char **argv)
 
 	display_all_combined_workers();
 
-	fprintf(stdout, "\nbandwidth ...\n");
-	starpu_bus_print_bandwidth(stdout);
-
 	fprintf(stdout, "\ntopology ...\n");
 	starpu_topology_print(stdout);
+
+	fprintf(stdout, "\nbandwidth ...\n");
+	starpu_bus_print_bandwidth(stdout);
 
 	starpu_shutdown();
 
