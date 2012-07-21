@@ -79,6 +79,42 @@ In the same vein, accumulation of results in the same data can become a
 bottleneck. The use of the @code{STARPU_REDUX} mode permits to optimize such
 accumulation (@pxref{Data reduction}).
 
+Applications often need a data just for temporary results.  In such a case,
+registration can be made without an initial value, for instance this produces a vector data:
+
+@cartouche
+@smallexample
+starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
+@end smallexample
+@end cartouche
+
+StarPU will then allocate the actual buffer only when it is actually needed,
+e.g. directly on the GPU without allocating in main memory.
+
+In the same vein, once the temporary results are not useful any more, the
+data should be thrown away. If the handle is not to be reused, it can be
+unregistered:
+
+@cartouche
+@smallexample
+starpu_unregister_submit(handle);
+@end smallexample
+@end cartouche
+
+actual unregistration will be done after all tasks working on the handle
+terminate.
+
+If the handle is to be reused, instead of unregistering it, it can simply be invalidated:
+
+@cartouche
+@smallexample
+starpu_invalidate_submit(handle);
+@end smallexample
+@end cartouche
+
+the buffers containing the current value will then be freed, and reallocated
+only when another task writes some value to the handle.
+
 @node Task granularity
 @section Task granularity
 
