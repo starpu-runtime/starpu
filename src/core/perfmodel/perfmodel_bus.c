@@ -44,8 +44,6 @@
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
-#define MAXCPUS	STARPU_MAXCPUS
-
 static void starpu_force_bus_sampling(void);
 
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
