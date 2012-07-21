@@ -798,12 +798,7 @@ void starpu_bus_print_affinity(FILE *f)
 	unsigned cpu;
 	int gpu;
 
-	fprintf(f, "# GPU\t");
-	for(cpu = 0 ; cpu < ncpus ; cpu++)
-	{
-		fprintf(f, "CPU%u\t", cpu);
-	}
-	fprintf(f, "\n");
+	fprintf(f, "# GPU\tCPU in preference order (logical index)\n");
 
 #ifdef STARPU_USE_CUDA
 	for(gpu = 0 ; gpu<ncuda ; gpu++)
