@@ -1138,6 +1138,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		int ncpus = _starpu_topology_get_nhwcpu(config);
 		int cpu;
 
+#ifdef STARPU_USE_CUDA
 		if (src <= ncuda)
 		{
 			fprintf(f, "CUDA %d\t", src-1);
@@ -1150,7 +1151,11 @@ void starpu_bus_print_bandwidth(FILE *f)
 					fprintf(f, "%d\t", cuda_affinity_matrix[src-1][cpu]);
 			}
 		}
+#ifdef STARPU_USE_OPENCL
 		else
+#endif
+#endif
+#ifdef STARPU_USE_OPENCL
 		{
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
 			for (cpu = 0; cpu < ncpus; cpu++)
@@ -1162,6 +1167,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 					fprintf(f, "%d\t", opencl_affinity_matrix[src-1][cpu]);
 			}
 		}
+#endif
 		fprintf(f, "\n");
 	}
 }
