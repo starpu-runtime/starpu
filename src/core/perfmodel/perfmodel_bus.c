@@ -87,40 +87,6 @@ static hwloc_topology_t hwtopology;
 
 #ifdef STARPU_USE_CUDA
 
-static void initialize_cuda(unsigned ncuda)
-{
-	unsigned dev;
-
-	for (dev = 0; dev < ncuda; dev++) {
-		cudaError_t cures;
-
-		_STARPU_DISP("Initializing CUDA%d...\n", dev);
-
-		/* Initiliaze CUDA context on the device */
-		cures = cudaSetDevice(dev);
-		if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
-
-#ifdef HAVE_CUDA_MEMCPY_PEER
-		unsigned dev2;
-		for (dev2 = 0; dev2 < ncuda; dev2++) {
-			if (dev2 != dev) {
-				int can;
-				cures = cudaDeviceCanAccessPeer(&can, dev, dev2);
-				if (!cures && can) {
-					cures = cudaDeviceEnablePeerAccess(dev2, 0);
-					if (!cures)
-						_STARPU_DISP("GPU-Direct %d -> %d\n", dev2, dev);
-				}
-			}
-		}
-#endif
-
-		/* hack to force the initialization */
-		cures = cudaFree(0);
-		if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
-	}
-}
-
 static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -129,6 +95,12 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	/* Initialize CUDA context on the device */
 	starpu_cuda_set_device(dev);
+
+	/* hack to avoid third party libs to rebind threads */
+	_starpu_bind_thread_on_cpu(config, cpu);
+	
+	/* hack to force the initialization */
+	cudaFree(0);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -203,10 +175,12 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 {
 	size_t size = SIZE;
+	int can;
 
         /* Get the maximum size which can be allocated on the device */
 	struct cudaDeviceProp prop;
 	cudaError_t cures;
+
 	cures = cudaGetDeviceProperties(&prop, src);
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
@@ -217,6 +191,13 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Initialize CUDA context on the source */
 	starpu_cuda_set_device(src);
 
+	cures = cudaDeviceCanAccessPeer(&can, src, dst);
+	if (!cures && can) {
+		cures = cudaDeviceEnablePeerAccess(dst, 0);
+		if (!cures)
+			_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
+	}
+
 	/* Allocate a buffer on the device */
 	unsigned char *s_buffer;
 	cudaMalloc((void **)&s_buffer, size);
@@ -225,6 +206,13 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	/* Initialize CUDA context on the destination */
 	starpu_cuda_set_device(dst);
+
+	cures = cudaDeviceCanAccessPeer(&can, dst, src);
+	if (!cures && can) {
+		cures = cudaDeviceEnablePeerAccess(src, 0);
+		if (!cures)
+			_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
+	}
 
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
@@ -566,7 +554,12 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_USE_CUDA
 	ncuda = _starpu_get_cuda_device_count();
-	initialize_cuda(ncuda);
+	for (i = 0; i < ncuda; i++)
+	{
+		_STARPU_DISP("CUDA %d...\n", i);
+		/* measure bandwidth between Host and Device i */
+		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, "CUDA");
+	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 		for (j = 0; j < ncuda; j++)
@@ -577,12 +570,6 @@ static void benchmark_all_gpu_devices(void)
 				measure_bandwidth_between_dev_and_dev_cuda(i, j);
 			}
 #endif
-	for (i = 0; i < ncuda; i++)
-	{
-		_STARPU_DISP("CUDA %d...\n", i);
-		/* measure bandwidth between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, "CUDA");
-	}
 #endif
 #ifdef STARPU_USE_OPENCL
         nopencl = _starpu_opencl_get_device_count();
