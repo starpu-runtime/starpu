@@ -466,7 +466,7 @@ static void combine_all_cpu_workers(struct starpu_machine_topology *topology)
 	    cpu_workers[ncpus++] = i;
     }
 
-    for (i = 1; i <= ncpus; i++)
+    for (i = ncpus; i >= 1; i--)
     {
 	int ret;
 	ret = starpu_combined_worker_assign_workerid(i, cpu_workers);
