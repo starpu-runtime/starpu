@@ -46,6 +46,8 @@
 
 #define MAXCPUS	32
 
+static void starpu_force_bus_sampling(void);
+
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
 struct dev_timing
 {
@@ -1169,21 +1171,23 @@ static void check_bus_config_file()
 {
         int res;
         char path[256];
+        struct _starpu_machine_config *config = _starpu_get_machine_config();
 
         get_config_path(path, 256);
         res = access(path, F_OK);
-        if (res)
+	if (res || config->conf->bus_calibrate > 0)
 	{
-		_STARPU_DISP("No performance model for the bus, calibrating...\n");
+		if (res)
+			_STARPU_DISP("No performance model for the bus, calibrating...\n");
 		starpu_force_bus_sampling();
-		_STARPU_DISP("... done\n");
+		if (res)
+			_STARPU_DISP("... done\n");
         }
         else
 	{
                 FILE *f;
                 int ret, read_cuda = -1, read_opencl = -1;
                 unsigned read_cpus = -1;
-                struct _starpu_machine_config *config = _starpu_get_machine_config();
 
                 // Loading configuration from file
                 f = fopen(path, "r");
@@ -1261,7 +1265,7 @@ static void generate_bus_config_file()
  *	Generic
  */
 
-void starpu_force_bus_sampling(void)
+static void starpu_force_bus_sampling(void)
 {
 	_starpu_create_sampling_directory_if_needed();
 

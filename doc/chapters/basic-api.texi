@@ -129,6 +129,11 @@ calibration. If the value is equal to @code{2}, the existing performance
 models will be overwritten. This can also be specified with the
 @code{STARPU_CALIBRATE} environment variable.
 
+@item @code{int bus_calibrate} (default = 0)
+If this flag is set, StarPU will recalibrate the bus.  If this value is equal
+to @code{-1}, the default value is used.  This can also be specified with the
+@code{STARPU_BUS_CALIBRATE} environment variable.
+
 @item @code{int single_combined_worker} (default = 0)
 By default, StarPU executes parallel tasks concurrently.
 Some parallel libraries (e.g. most OpenMP implementations) however do
@@ -168,7 +173,7 @@ with the default values. In case some configuration parameters are already
 specified through environment variables, @code{starpu_conf_init} initializes
 the fields of the structure according to the environment variables. For
 instance if @code{STARPU_CALIBRATE} is set, its value is put in the
-@code{.ncuda} field of the structure passed as argument.
+@code{.calibrate} field of the structure passed as argument.
 
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
 indicates that the argument was NULL.
@@ -1963,10 +1968,6 @@ returns the path to the debugging information for the performance model.
 
 @deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen}, unsigned nimpl)
 returns the architecture name for @var{arch}.
-@end deftypefun
-
-@deftypefun void starpu_force_bus_sampling (void)
-forces sampling the bus performance model again.
 @end deftypefun
 
 @deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})

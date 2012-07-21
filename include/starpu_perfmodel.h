@@ -211,7 +211,6 @@ int starpu_list_models(FILE *output);
 
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 
-void starpu_force_bus_sampling(void);
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
 

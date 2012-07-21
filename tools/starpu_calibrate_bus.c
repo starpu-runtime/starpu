@@ -71,16 +71,15 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-#ifdef __MINGW32__
-	WSADATA wsadata;
-	WSAStartup(MAKEWORD(1,0), &wsadata);
-#endif
+	struct starpu_conf conf;
 
 	parse_args(argc, argv);
 
-	/* Note: do not initialize StarPU, to avoid perturbing measurements.  */
+	starpu_conf_init(&conf);
+	conf.bus_calibrate = 1;
 
-	starpu_force_bus_sampling();
+	starpu_init(&conf);
+	starpu_shutdown();
 
 	return 0;
 }

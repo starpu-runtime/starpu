@@ -343,6 +343,7 @@ Let the user give a hint to StarPU about which how many workers
 @menu
 * STARPU_SCHED::                Scheduling policy
 * STARPU_CALIBRATE::            Calibrate performance models
+* STARPU_BUS_CALIBRATE::        Calibrate bus
 * STARPU_PREFETCH::             Use data prefetch
 * STARPU_SCHED_ALPHA::          Computation factor
 * STARPU_SCHED_BETA::           Communication factor
@@ -365,6 +366,11 @@ calibration from scratch. Setting this variable to 0 disable calibration, this
 is the default behaviour.
 
 Note: this currently only applies to @code{dm}, @code{dmda} and @code{heft} scheduling policies.
+
+@node STARPU_BUS_CALIBRATE
+@subsubsection @code{STARPU_BUS_CALIBRATE} -- Calibrate bus
+
+If this variable is set to 1, the bus is recalibrated during intialization.
 
 @node STARPU_PREFETCH
 @subsubsection @code{STARPU_PREFETCH} -- Use data prefetch

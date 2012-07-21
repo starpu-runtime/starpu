@@ -473,9 +473,13 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nspus = starpu_get_env_number("STARPU_NGORDON");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
+	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
 
 	if (conf->calibrate == -1)
 	     conf->calibrate = 0;
+
+	if (conf->bus_calibrate == -1)
+	     conf->bus_calibrate = 0;
 
 	conf->use_explicit_workers_bindid = 0; /* TODO */
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
@@ -516,6 +520,7 @@ static void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
 	_starpu_conf_set_value_against_environment("STARPU_NGORDON", &conf->nspus);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
+	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate);
 	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy);
 }

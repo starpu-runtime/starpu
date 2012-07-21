@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -119,17 +119,17 @@ PROGNAME);
 int main(int argc, char **argv)
 {
 	int force = 0;
+	struct starpu_conf conf;
 
 	parse_args(argc, argv, &force);
 
+	starpu_conf_init(&conf);
+	if (force)
+		conf.bus_calibrate = 1;
+
 	/* Even if starpu_init returns -ENODEV, we should go on : we will just
 	 * print that we found no device. */
-	(void) starpu_init(NULL);
-
-	if (force)
-	{
-		starpu_force_bus_sampling();
-	}
+	(void) starpu_init(&conf);
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
 	unsigned ncuda = starpu_cuda_worker_get_count();
