@@ -96,7 +96,7 @@ Usage: %s [OPTION]                                            \n	\
 Options:                                                      \n	\
 	-h, --help       display this help and exit           \n	\
 	-v, --version    output version information and exit  \n	\
-        -f, --force      force bus sampling                   \n	\
+	-f, --force      force bus sampling and show measures \n	\
                                                               \n	\
 Report bugs to <" PACKAGE_BUGREPORT ">.\n",
 PROGNAME);
@@ -150,9 +150,6 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "\nbandwidth ...\n");
 	starpu_bus_print_bandwidth(stdout);
-
-	fprintf(stdout, "\naffinity ...\n");
-	starpu_bus_print_affinity(stdout);
 
 	starpu_shutdown();
 

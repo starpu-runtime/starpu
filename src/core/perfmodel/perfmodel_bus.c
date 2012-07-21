@@ -44,7 +44,7 @@
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
-#define MAXCPUS	32
+#define MAXCPUS	STARPU_MAXCPUS
 
 static void starpu_force_bus_sampling(void);
 
@@ -491,9 +491,6 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
               sizeof(struct dev_timing),
 			compar_dev_timing);
 
-#ifdef STARPU_DEVEL
-#  warning save timing_dtoh and timing_htod data to display them when calling starpu_machine_display ? (Brice would like that)
-#endif
 #ifdef STARPU_VERBOSE
         unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
@@ -1114,7 +1111,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #endif
 
 	fprintf(f, "from\t");
-	fprintf(f, "to RAM\t\t");
+	fprintf(f, "to RAM\t");
 	for (dst = 0; dst < ncuda; dst++)
 		fprintf(f, "to CUDA %d\t", dst);
 	for (dst = 0; dst < nopencl; dst++)
@@ -1130,8 +1127,43 @@ void starpu_bus_print_bandwidth(FILE *f)
 		else
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
 		for (dst = 0; dst <= maxnode; dst++)
-			fprintf(f, "%f\t", bandwidth_matrix[src][dst]);
+			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
+		fprintf(f, "\n");
+	}
+
+	fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
+	for (src = 1; src <= maxnode; src++)
+	{
+		struct dev_timing *timing;
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
+		int ncpus = _starpu_topology_get_nhwcpu(config);
+		int cpu;
+
+		if (src <= ncuda)
+		{
+			fprintf(f, "CUDA %d\t", src-1);
+			for (cpu = 0; cpu < ncpus; cpu++)
+			{
+				timing = &cudadev_timing_per_cpu[src*MAXCPUS+cpu];
+				if (timing->timing_htod)
+					fprintf(f, "%d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
+				else
+					fprintf(f, "%d\t", cuda_affinity_matrix[src-1][cpu]);
+			}
+		}
+		else
+		{
+			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+			for (cpu = 0; cpu < ncpus; cpu++)
+			{
+				timing = &opencldev_timing_per_cpu[(src-ncuda)*MAXCPUS+cpu];
+				if (timing->timing_htod)
+					fprintf(f, "%d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
+				else
+					fprintf(f, "%d\t", opencl_affinity_matrix[src-1][cpu]);
+			}
+		}
 		fprintf(f, "\n");
 	}
 }
