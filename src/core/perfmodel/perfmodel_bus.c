@@ -694,7 +694,7 @@ static void load_bus_affinity_file_content(void)
 #endif /* !STARPU_USE_OPENCL */
 
 	fclose(f);
-#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
+#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
 
 }
 
