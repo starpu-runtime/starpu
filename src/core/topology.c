@@ -897,3 +897,41 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config __attribute_
 	may_bind_automatically = 0;
 #endif
 }
+
+void starpu_topology_print(FILE *output)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct starpu_machine_topology *topology = &config->topology;
+	unsigned core;
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+	unsigned ncombinedworkers = topology->ncombinedworkers;
+
+	for (core = 0; core < topology->nhwcpus; core++) {
+		fprintf(output, "core %d\t", core);
+		for (worker = 0; worker < nworkers + ncombinedworkers; worker++)
+		{
+			if (worker < nworkers)
+			{
+				if (topology->workers_bindid[worker] == core)
+				{
+					char name[256];
+					starpu_worker_get_name(worker, name, sizeof(name));
+					fprintf(output, "%s\t", name);
+				}
+			}
+			else
+			{
+				int worker_size, i;
+				int *combined_workerid;
+				starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
+				for (i = 0; i < worker_size; i++)
+				{
+					if (topology->workers_bindid[combined_workerid[i]] == core)
+						fprintf(output, "comb %d\t", worker-nworkers);
+				}
+			}
+		}
+		fprintf(output, "\n");
+	}
+}

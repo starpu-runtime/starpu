@@ -146,6 +146,9 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
  * shutdown */
 void starpu_shutdown(void);
 
+/* Print topology configuration */
+void starpu_topology_print(FILE *output);
+
 /* This function returns the number of workers (ie. processing units executing
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);

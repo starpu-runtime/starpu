@@ -151,6 +151,9 @@ int main(int argc, char **argv)
 	fprintf(stdout, "\nbandwidth ...\n");
 	starpu_bus_print_bandwidth(stdout);
 
+	fprintf(stdout, "\ntopology ...\n");
+	starpu_topology_print(stdout);
+
 	starpu_shutdown();
 
 	return 0;
