@@ -801,6 +801,7 @@ void starpu_bus_print_affinity(FILE *f)
 	fprintf(f, "# GPU\tCPU in preference order (logical index)\n");
 
 #ifdef STARPU_USE_CUDA
+	fprintf(f, "# CUDA\n");
 	for(gpu = 0 ; gpu<ncuda ; gpu++)
 	{
 		fprintf(f, "%d\t", gpu);
@@ -812,6 +813,7 @@ void starpu_bus_print_affinity(FILE *f)
 	}
 #endif
 #ifdef STARPU_USE_OPENCL
+	fprintf(f, "# OpenCL\n");
 	for(gpu = 0 ; gpu<nopencl ; gpu++)
 	{
 		fprintf(f, "%d\t", gpu);
