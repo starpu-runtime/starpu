@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 		for(i=0 ; i<PARTSX ; i++)
 			for (l=0 ; l<NY/PARTSY + 2*SHADOWY ; l++)
 				for (k=0 ; k<NX/PARTSX + 2*SHADOWX ; k++)
-					STARPU_ASSERT(matrix2[j*(NY/PARTSY+2*SHADOWY)+l][i*(NX/PARTSX+2*SHADOWX)+k] = matrix[j*(NY/PARTSY)+l][i*(NX/PARTSX)+k]);
+					STARPU_ASSERT(matrix2[j*(NY/PARTSY+2*SHADOWY)+l][i*(NX/PARTSX+2*SHADOWX)+k] == matrix[j*(NY/PARTSY)+l][i*(NX/PARTSX)+k]);
 
 	return 0;
 
