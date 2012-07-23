@@ -513,7 +513,7 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	cures = cudaMemcpy3DPeerAsync(&p, stream);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(stream);
 
 	if (is_async)
 	{
