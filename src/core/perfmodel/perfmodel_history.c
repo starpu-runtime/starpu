@@ -39,7 +39,7 @@
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
-struct starpu_history_table
+struct starpu_perfmodel_history_table
 {
 	UT_hash_handle hh;
 	uint32_t footprint;
@@ -56,10 +56,10 @@ static struct _starpu_perfmodel_list *registered_models = NULL;
 /*
  * History based model
  */
-static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, struct starpu_perfmodel_history_list **list, struct starpu_history_table **history_ptr)
+static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, struct starpu_perfmodel_history_list **list, struct starpu_perfmodel_history_table **history_ptr)
 {
 	struct starpu_perfmodel_history_list *link;
-	struct starpu_history_table *table;
+	struct starpu_perfmodel_history_table *table;
 
 	link = (struct starpu_perfmodel_history_list *) malloc(sizeof(struct starpu_perfmodel_history_list));
 	link->next = *list;
@@ -70,7 +70,7 @@ static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, s
 	//HASH_FIND_UINT32_T(*history_ptr, &entry->footprint, table);
 	//STARPU_ASSERT(table == NULL);
 
-	table = (struct starpu_history_table*) malloc(sizeof(*table));
+	table = (struct starpu_perfmodel_history_table*) malloc(sizeof(*table));
 	STARPU_ASSERT(table != NULL);
 	table->footprint = entry->footprint;
 	table->history_entry = entry;
@@ -719,7 +719,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 			{
 				struct starpu_per_arch_perfmodel *archmodel = &model->per_arch[arch][nimpl];
 				struct starpu_perfmodel_history_list *list, *plist;
-				struct starpu_history_table *entry, *tmp;
+				struct starpu_perfmodel_history_table *entry, *tmp;
 
 				HASH_ITER(hh, archmodel->history, entry, tmp)
 				{
@@ -994,8 +994,8 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	{
 		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
-		struct starpu_history_table *history;
-		struct starpu_history_table *entry;
+		struct starpu_perfmodel_history_table *history;
+		struct starpu_perfmodel_history_table *entry;
 
 		_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 		history = per_arch_model->history;
@@ -1020,7 +1020,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	double exp;
 	struct starpu_per_arch_perfmodel *per_arch_model;
 	struct starpu_perfmodel_history_entry *entry;
-	struct starpu_history_table *history, *elt;
+	struct starpu_perfmodel_history_table *history, *elt;
 
 	uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
@@ -1069,7 +1069,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
 			struct starpu_perfmodel_history_entry *entry;
-			struct starpu_history_table *elt;
+			struct starpu_perfmodel_history_table *elt;
 			struct starpu_perfmodel_history_list **list;
 			uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
