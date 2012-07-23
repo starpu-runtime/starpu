@@ -201,7 +201,10 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
+
 int starpu_perfmodel_list(FILE *output);
+void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
+int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
 
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 

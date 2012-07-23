@@ -139,6 +139,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
+	core/perfmodel/perfmodel_print.c			\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
 	core/priorities.c					\
