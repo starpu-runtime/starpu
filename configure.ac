@@ -479,6 +479,8 @@ if test x$enable_cuda = xyes; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
 		AC_SUBST(NVCCFLAGS)
 	fi
+
+	AC_CHECK_HEADERS([cuda_gl_interop.h])
 fi
 
 have_magma=no

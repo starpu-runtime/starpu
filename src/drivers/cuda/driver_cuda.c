@@ -26,7 +26,9 @@
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
+#ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
+#endif
 
 /* the number of CUDA devices */
 static int ncudagpus;
@@ -113,11 +115,18 @@ void starpu_cuda_set_device(int devid)
 {
 	cudaError_t cures;
 	struct starpu_conf *conf = _starpu_get_machine_config()->conf;
+#if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 	unsigned i;
+#endif
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (conf->n_cuda_opengl_interoperability) {
 		fprintf(stderr, "OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
+		STARPU_ABORT();
+	}
+#elif !defined(HAVE_CUDA_GL_INTEROP_H)
+	if (conf->n_cuda_opengl_interoperability) {
+		fprintf(stderr,"OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.");
 		STARPU_ABORT();
 	}
 #else
@@ -130,7 +139,9 @@ void starpu_cuda_set_device(int devid)
 
 	cures = cudaSetDevice(devid);
 
+#if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 done:
+#endif
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
