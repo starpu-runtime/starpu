@@ -82,7 +82,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 	struct starpu_per_arch_perfmodel *per_arch_model;
 
 	per_arch_model = &model->per_arch[arch][nimpl];
-	struct starpu_regression_model *reg_model;
+	struct starpu_perfmodel_regression_model *reg_model;
 	reg_model = &per_arch_model->regression;
 
 	/*
@@ -116,7 +116,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 }
 
-static void scan_reg_model(FILE *f, struct starpu_regression_model *reg_model)
+static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)
 {
 	int res;
 
@@ -970,7 +970,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 {
 	double exp = NAN;
 	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
-	struct starpu_regression_model *regmodel;
+	struct starpu_perfmodel_regression_model *regmodel;
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
@@ -984,7 +984,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 {
 	double exp = NAN;
 	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
-	struct starpu_regression_model *regmodel;
+	struct starpu_perfmodel_regression_model *regmodel;
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
@@ -1113,7 +1113,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		if (model->type == STARPU_REGRESSION_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
-			struct starpu_regression_model *reg_model;
+			struct starpu_perfmodel_regression_model *reg_model;
 			reg_model = &per_arch_model->regression;
 
 			/* update the regression model */

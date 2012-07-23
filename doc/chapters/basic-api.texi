@@ -1982,7 +1982,7 @@ Lock to protect concurrency between loading from disk (W), updating the values
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_regression_model}
+@deftp {Data Type} {struct starpu_perfmodel_regression_model}
 @table @asis
 @item @code{double sumlny} sum of ln(measured)
 @item @code{double sumlnx} sum of ln(size)
@@ -2024,7 +2024,7 @@ The history of performance measurements.
 Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
 records all execution history measures.
 
-@item @code{struct starpu_regression_model regression}
+@item @code{struct starpu_perfmodel_regression_model regression}
 Used by @code{STARPU_HISTORY_REGRESION_BASED} and
 @code{STARPU_NL_REGRESSION_BASED}, contains the estimated factors of the
 regression.

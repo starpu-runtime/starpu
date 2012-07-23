@@ -111,7 +111,7 @@ struct starpu_perfmodel_history_list
 	struct starpu_perfmodel_history_entry *entry;
 };
 
-struct starpu_regression_model
+struct starpu_perfmodel_regression_model
 {
 	/* sum of ln(measured) */
 	double sumlny;
@@ -150,7 +150,7 @@ struct starpu_per_arch_perfmodel
 	/* internal variables */
 	struct starpu_perfmodel_history_table *history;
 	struct starpu_perfmodel_history_list *list;
-	struct starpu_regression_model regression;
+	struct starpu_perfmodel_regression_model regression;
 #ifdef STARPU_MODEL_DEBUG
 	char debug_path[256];
 #endif
