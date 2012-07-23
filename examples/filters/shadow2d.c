@@ -213,7 +213,7 @@ int main(int argc, char **argv)
 	starpu_matrix_data_register(&handle2, 0, (uintptr_t)matrix2, NX + PARTSX*2*SHADOWX, NX + PARTSX*2*SHADOWX, NY + PARTSY*2*SHADOWY, sizeof(matrix2[0][0]));
 
         /* Partition the source matrix in PARTSY*PARTSX sub-matrices with shadows */
-	/* NOTE: the resulting handles should onlx be used in read-onlx mode,
+	/* NOTE: the resulting handles should only be used in read-only mode,
 	 * as StarPU will not know how the overlapping parts would have to be
 	 * combined. */
 	struct starpu_data_filter fy =
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 	};
 	starpu_data_map_filters(handle2, 2, &fy2, &fx2);
 
-        /* Submit a task on each sub-vector */
+        /* Submit a task on each sub-matrix */
 	for (j=0; j<PARTSY; j++)
 	{
 		for (i=0; i<PARTSX; i++)
