@@ -2056,7 +2056,7 @@ prints a list of all performance models on @var{output}.
 todo
 @end deftypefun
 
-@deftypefun int starpu_perfmodel_print_all({struct starpu_perfmodel *}@var{model}, {char *}@var{arch}, @var{char *}parameter,  {uint32_t *}@var{footprint}, {FILE *}@var{output})
+@deftypefun int starpu_perfmodel_print_all ({struct starpu_perfmodel *}@var{model}, {char *}@var{arch}, @var{char *}parameter,  {uint32_t *}@var{footprint}, {FILE *}@var{output})
 todo
 @end deftypefun
 
