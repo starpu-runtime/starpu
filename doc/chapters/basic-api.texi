@@ -2002,7 +2002,7 @@ returns the architecture name for @var{arch}.
 returns the architecture type of a given worker.
 @end deftypefun
 
-@deftypefun int starpu_list_models ({FILE *}@var{output})
+@deftypefun int starpu_perfmodel_list ({FILE *}@var{output})
 prints a list of all performance models on @var{output}.
 @end deftypefun
 

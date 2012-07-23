@@ -846,7 +846,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 /* This function is intended to be used by external tools that should read
  * the performance model files */
-int starpu_list_models(FILE *output)
+int starpu_perfmodel_list(FILE *output)
 {
         char path[256];
         DIR *dp;
