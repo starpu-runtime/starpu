@@ -22,6 +22,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas.h>
+#include <starpu_cuda.h>
 #ifdef STARPU_HAVE_MAGMA
 #include "magma.h"
 #include "magma_lapack.h"
@@ -65,7 +66,7 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 			st = cublasGetError();
 			STARPU_ASSERT(!st);
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -114,7 +115,7 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 #ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			break;
 #endif
 		default:
@@ -188,7 +189,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 					fprintf(stderr, "Error in Magma: %d\n", ret);
 					STARPU_ABORT();
 				}
-				cudaError_t cures = cudaThreadSynchronize();
+				cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
 				STARPU_ASSERT(!cures);
 			}
 #else
@@ -211,7 +212,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif
 			break;
 #endif

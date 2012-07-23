@@ -137,7 +137,7 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attr
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -202,7 +202,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -264,7 +264,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -357,7 +357,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 								&sub11[(z+1) + (z+1)*ld],ld);
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif

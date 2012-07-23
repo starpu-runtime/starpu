@@ -70,7 +70,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_ABORT();
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -158,7 +158,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_ABORT();
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -243,7 +243,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -342,7 +342,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -482,7 +482,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 				
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -570,7 +570,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 				}
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
