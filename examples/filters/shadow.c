@@ -133,6 +133,9 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle2, 0, (uintptr_t)vector2, NX + PARTS*2*SHADOW, sizeof(vector[0]));
 
         /* Partition the source vector in PARTS sub-vectors with shadows */
+	/* NOTE: the resulting handles should only be used in read-only mode,
+	 * as StarPU will not know how the overlapping parts would have to be
+	 * combined. */
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_shadow_filter_func_vector,
