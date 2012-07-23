@@ -2020,7 +2020,7 @@ case it depends on the architecture-specific implementation.
 @item @code{struct starpu_htbl32_node *history}
 The history of performance measurements.
 
-@item @code{struct starpu_history_list *list}
+@item @code{struct starpu_perfmodel_history_list *list}
 Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
 records all execution history measures.
 

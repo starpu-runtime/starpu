@@ -56,12 +56,12 @@ static struct _starpu_perfmodel_list *registered_models = NULL;
 /*
  * History based model
  */
-static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_history_list **list, struct starpu_history_table **history_ptr)
+static void insert_history_entry(struct starpu_history_entry *entry, struct starpu_perfmodel_history_list **list, struct starpu_history_table **history_ptr)
 {
-	struct starpu_history_list *link;
+	struct starpu_perfmodel_history_list *link;
 	struct starpu_history_table *table;
 
-	link = (struct starpu_history_list *) malloc(sizeof(struct starpu_history_list));
+	link = (struct starpu_perfmodel_history_list *) malloc(sizeof(struct starpu_perfmodel_history_list));
 	link->next = *list;
 	link->entry = entry;
 	*list = link;
@@ -355,7 +355,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, un
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 	/* count the number of elements in the lists */
-	struct starpu_history_list *ptr = NULL;
+	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
@@ -397,7 +397,7 @@ static unsigned get_n_entries(struct starpu_perfmodel *model, unsigned arch, uns
 	struct starpu_per_arch_perfmodel *per_arch_model;
 	per_arch_model = &model->per_arch[arch][impl];
 	/* count the number of elements in the lists */
-	struct starpu_history_list *ptr = NULL;
+	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
@@ -718,7 +718,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				struct starpu_per_arch_perfmodel *archmodel = &model->per_arch[arch][nimpl];
-				struct starpu_history_list *list, *plist;
+				struct starpu_perfmodel_history_list *list, *plist;
 				struct starpu_history_table *entry, *tmp;
 
 				HASH_ITER(hh, archmodel->history, entry, tmp)
@@ -1070,7 +1070,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		{
 			struct starpu_history_entry *entry;
 			struct starpu_history_table *elt;
-			struct starpu_history_list **list;
+			struct starpu_perfmodel_history_list **list;
 			uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 
 			list = &per_arch_model->list;

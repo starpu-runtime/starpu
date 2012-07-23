@@ -23,7 +23,7 @@
 static
 void _starpu_perfmodel_print_history_based(struct starpu_per_arch_perfmodel *per_arch_model, char *parameter, uint32_t *footprint, FILE *output)
 {
-	struct starpu_history_list *ptr;
+	struct starpu_perfmodel_history_list *ptr;
 
 	ptr = per_arch_model->list;
 

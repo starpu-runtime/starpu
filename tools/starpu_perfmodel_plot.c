@@ -220,7 +220,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	char *command;
 	FILE *datafile;
 	unsigned arch;
-	struct starpu_history_list *ptr;
+	struct starpu_perfmodel_history_list *ptr;
 	char archname[32];
 	int col;
 	int len;
