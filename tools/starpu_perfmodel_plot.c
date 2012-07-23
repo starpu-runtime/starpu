@@ -423,10 +423,10 @@ int main(int argc, char **argv)
         }
 
 	/* Load the performance model associated to the symbol */
-	ret = starpu_load_history_debug(symbol, &model);
+	ret = starpu_perfmodel_load_symbol(symbol, &model);
 	if (ret == 1)
 	{
-		fprintf(stderr, "The performance model could not be loaded\n");
+		fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", symbol);
 		return 1;
 	}
 

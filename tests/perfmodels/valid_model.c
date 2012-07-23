@@ -71,7 +71,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	codelet->model = model;
 
 	old_nsamples = 0;
-	ret = starpu_load_history_debug(codelet->model->symbol, &lmodel);
+	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
 	if (ret != 1)
 		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
 			old_nsamples += lmodel.per_arch[archid][0].regression.nsample;
@@ -86,10 +86,10 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
         starpu_data_unregister(handle);
 	starpu_shutdown(); // To force dumping perf models on disk
 
-	ret = starpu_load_history_debug(codelet->model->symbol, &lmodel);
+	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
 	if (ret == 1)
 	{
-		FPRINTF(stderr, "The performance model could not be loaded\n");
+		FPRINTF(stderr, "The performance model for the symbol <%s> could not be loaded\n", codelet->model->symbol);
 		return 1;
 	}
 

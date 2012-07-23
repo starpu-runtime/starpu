@@ -1986,7 +1986,7 @@ regression.
 @end table
 @end deftp
 
-@deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
+@deftypefun int starpu_perfmodel_load_symbol ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
 loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{$HOME/.starpu} (@code{$USERPROFILE/.starpu} in windows environments).
 @end deftypefun
 

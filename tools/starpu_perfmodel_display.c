@@ -384,10 +384,10 @@ int main(int argc, char **argv)
         else
 	{
 		struct starpu_perfmodel model;
-                int ret = starpu_load_history_debug(symbol, &model);
+                int ret = starpu_perfmodel_load_symbol(symbol, &model);
                 if (ret == 1)
 		{
-			fprintf(stderr, "The performance model could not be loaded\n");
+			fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", symbol);
 			return 1;
 		}
                 display_all_perf_models(&model);

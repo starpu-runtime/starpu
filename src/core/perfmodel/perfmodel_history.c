@@ -876,7 +876,7 @@ int starpu_list_models(FILE *output)
 
 /* This function is intended to be used by external tools that should read the
  * performance model files */
-int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model)
+int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
 	initialize_model(model);
@@ -899,7 +899,7 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model
 			symbol2[dot-symbol] = '\0';
 			int ret;
 			fprintf(stderr,"note: loading history from %s instead of %s\n", symbol2, symbol);
-			ret = starpu_load_history_debug(symbol2,model);
+			ret = starpu_perfmodel_load_symbol(symbol2,model);
 			free(symbol2);
 			return ret;
 		}
