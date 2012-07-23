@@ -235,8 +235,8 @@ static void init_cpu_func(void *descr[], void *cl_arg)
 static void init_cuda_func(void *descr[], void *cl_arg)
 {
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
-        cudaMemset(val, 0, sizeof(unsigned long));
-        cudaThreadSynchronize();
+        cudaMemsetAsync(val, 0, sizeof(unsigned long), starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 

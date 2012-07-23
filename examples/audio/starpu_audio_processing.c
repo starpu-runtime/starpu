@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -179,9 +179,11 @@ static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *
 	{
 		cures = cufftPlan1d(&plans[workerid].plan, nsamples, CUFFT_R2C, 1);
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		cufftSetStream(plans[workerid].plan, starpu_cuda_get_local_stream());
 
 		cures = cufftPlan1d(&plans[workerid].inv_plan, nsamples, CUFFT_C2R, 1);
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		cufftSetStream(plans[workerid].inv_plan, starpu_cuda_get_local_stream());
 
 		cudaMalloc((void **)&plans[workerid].localout,
 					nsamples*sizeof(cufftComplex));
@@ -198,11 +200,11 @@ static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *
 	
 	/* filter low freqs */
 	unsigned lowfreq_index = (LOWFREQ*nsamples)/SAMPLERATE;
-	cudaMemset(&localout[0], 0, lowfreq_index*sizeof(fftwf_complex));
+	cudaMemsetAsync(&localout[0], 0, lowfreq_index*sizeof(fftwf_complex), starpu_cuda_get_local_stream());
 
 	/* filter high freqs */
 	unsigned hifreq_index = (HIFREQ*nsamples)/SAMPLERATE;
-	cudaMemset(&localout[hifreq_index], nsamples/2, (nsamples/2 - hifreq_index)*sizeof(fftwf_complex));
+	cudaMemsetAsync(&localout[hifreq_index], nsamples/2, (nsamples/2 - hifreq_index)*sizeof(fftwf_complex), starpu_cuda_get_local_stream());
 
 	/* inverse FFT */
 	cures = cufftExecC2R(plans[workerid].inv_plan, localout, localA);
@@ -210,6 +212,7 @@ static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *
 
 	/* FFTW does not normalize its output ! */
 	cublasSscal (nsamples, 1.0f/nsamples, localA, 1);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -410,6 +413,8 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	starpu_helper_cublas_init();
+
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
 	struct starpu_data_filter f =
@@ -457,6 +462,8 @@ int main(int argc, char **argv)
 	/* make sure that the output is in RAM before quitting StarPU */
 	starpu_data_unpartition(A_handle, 0);
 	starpu_data_unregister(A_handle);
+
+	starpu_helper_cublas_shutdown();
 
 	/* we are done ! */
 	starpu_shutdown();

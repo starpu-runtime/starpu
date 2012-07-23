@@ -79,8 +79,8 @@ void init_cpu_func(void *descr[], void *cl_arg)
 void init_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	cudaMemset(dot, 0, sizeof(DOT_TYPE));
-	cudaThreadSynchronize();
+	cudaMemsetAsync(dot, 0, sizeof(DOT_TYPE), starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
