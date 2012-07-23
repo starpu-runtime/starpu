@@ -16,9 +16,28 @@
  */
 
 /*
- * This examplifies the use of the shadow filter: a source vector of NX
- * elements (plus 2*SHADOW wrap-around elements) is copied into a destination
- * vector of NX+NPARTS*2*SHADOW elements, thus showing how shadowing shows up.
+ * This examplifies the use of the shadow filter: a source "vector" of NX
+ * elements (plus 2*SHADOW wrap-around elements) is partitioned into vectors
+ * with some shadowing, and these are copied into a destination "vector2" of
+ * NRPARTS*(NX/NPARTS+2*SHADOW) elements, partitioned in the traditionnal way,
+ * thus showing how shadowing shows up.
+ *
+ * For instance, with NX=2, SHADOW=1, and NPARTS=4:
+ *
+ * vector
+ * x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
+ *
+ * is partitioned into 4 pieces:
+ *
+ * x0 x1 x2 x3
+ *       x2 x3 x4 x5
+ *             x4 x5 x6 x7
+ *                   x6 x7 x8 x9
+ *
+ * which are copied into the 4 destination subparts of vector2, thus getting in
+ * the end:
+ *
+ * x0 x1 x2 x3 x2 x3 x4 x5 x4 x5 x6 x7 x6 x7 x8 x9
  */
 
 #include <starpu.h>
