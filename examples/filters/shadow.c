@@ -96,7 +96,6 @@ int main(int argc, char **argv)
         int vector[NX + 2*SHADOW];
         int vector2[NX + PARTS*2*SHADOW];
 	starpu_data_handle_t handle, handle2;
-        int factor=1;
 	int ret;
 
         struct starpu_codelet cl =
@@ -159,13 +158,10 @@ int main(int argc, char **argv)
                 starpu_data_handle_t sub_handle2 = starpu_data_get_sub_data(handle2, 1, i);
                 struct starpu_task *task = starpu_task_create();
 
-                factor *= 10;
 		task->handles[0] = sub_handle;
 		task->handles[1] = sub_handle2;
                 task->cl = &cl;
                 task->synchronous = 1;
-                task->cl_arg = &factor;
-                task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
