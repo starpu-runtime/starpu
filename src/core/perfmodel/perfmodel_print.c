@@ -32,7 +32,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_per_arch_perfmodel *per
 
 	while (ptr)
 	{
-		struct starpu_history_entry *entry = ptr->entry;
+		struct starpu_perfmodel_history_entry *entry = ptr->entry;
 		if (!footprint || entry->footprint == *footprint)
 		{
 			if (!parameter)

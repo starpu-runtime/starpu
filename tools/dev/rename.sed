@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstruct starpu_history_entry\b/struct starpu_perfmodel_history_entry/g
 s/\bstruct starpu_history_list\b/struct starpu_perfmodel_history_list/g
 s/\bstarpu_list_models\b/starpu_perfmodel_list/g
 s/\bstruct starpu_model_list\b/struct _starpu_perfmodel_list/g

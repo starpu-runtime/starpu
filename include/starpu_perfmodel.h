@@ -72,7 +72,7 @@ _Static_assert(STARPU_CUDA_DEFAULT < STARPU_OPENCL_DEFAULT,
 
 #define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
 
-struct starpu_history_entry
+struct starpu_perfmodel_history_entry
 {
 	//double measured;
 
@@ -111,7 +111,7 @@ struct starpu_history_entry
 struct starpu_perfmodel_history_list
 {
 	struct starpu_perfmodel_history_list *next;
-	struct starpu_history_entry *entry;
+	struct starpu_perfmodel_history_entry *entry;
 };
 
 struct starpu_regression_model

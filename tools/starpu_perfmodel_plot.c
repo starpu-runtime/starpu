@@ -271,7 +271,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
 				struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][implid];
 				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
-					struct starpu_history_entry *entry = ptr->entry;
+					struct starpu_perfmodel_history_entry *entry = ptr->entry;
 					if (entry->size == minimum) {
 						fprintf(datafile, "\t%-15le\t%-15le", 0.001*entry->mean, 0.001*entry->deviation);
 						break;
