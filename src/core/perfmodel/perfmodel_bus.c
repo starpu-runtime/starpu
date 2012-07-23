@@ -792,8 +792,10 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 
 void starpu_bus_print_affinity(FILE *f)
 {
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned cpu;
 	int gpu;
+#endif
 
 	fprintf(f, "# GPU\tCPU in preference order (logical index)\n");
 
@@ -1130,6 +1132,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		fprintf(f, "\n");
 	}
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
 	for (src = 1; src <= maxnode; src++)
 	{
@@ -1170,6 +1173,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #endif
 		fprintf(f, "\n");
 	}
+#endif
 }
 
 static void generate_bus_bandwidth_file(void)
