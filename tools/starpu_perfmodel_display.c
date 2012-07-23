@@ -32,16 +32,16 @@
 #define PROGNAME "starpu_perfmodel_display"
 
 /* display all available models */
-static int list = 0;
+static int plist = 0;
 /* what kernel ? */
-static char *symbol = NULL;
+static char *psymbol = NULL;
 /* what parameter should be displayed ? (NULL = all) */
-static char *parameter = NULL;
+static char *pparameter = NULL;
 /* which architecture ? (NULL = all)*/
-static char *arch = NULL;
+static char *parch = NULL;
 /* should we display a specific footprint ? */
-unsigned display_specific_footprint;
-uint32_t specific_footprint;
+static unsigned pdisplay_specific_footprint;
+static uint32_t pspecific_footprint;
 
 static void usage(char **argv)
 {
@@ -85,28 +85,28 @@ static void parse_args(int argc, char **argv)
 		{
                 case 'l':
                         /* list all models */
-                        list = 1;
+                        plist = 1;
                         break;
 
 		case 's':
 			/* symbol */
-			symbol = optarg;
+			psymbol = optarg;
 			break;
 
 		case 'p':
 			/* parameter (eg. a, b, c, mean, stddev) */
-			parameter = optarg;
+			pparameter = optarg;
 			break;
 
 		case 'a':
 			/* architecture (cpu, cuda, gordon) */
-			arch = optarg;
+			parch = optarg;
 			break;
 
 		case 'f':
 			/* footprint */
-			display_specific_footprint = 1;
-			sscanf(optarg, "%08x", &specific_footprint);
+			pdisplay_specific_footprint = 1;
+			sscanf(optarg, "%08x", &pspecific_footprint);
 			break;
 
 		case 'h':
@@ -125,7 +125,7 @@ static void parse_args(int argc, char **argv)
 		}
 	}
 
-	if (!symbol && !list)
+	if (!psymbol && !plist)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage(argv);
@@ -133,19 +133,20 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-static void display_history_based_perf_model(struct starpu_per_arch_perfmodel *per_arch_model)
+static
+void starpu_perfmodel_print_history_based(struct starpu_per_arch_perfmodel *per_arch_model, char *parameter, uint32_t *footprint, FILE *f)
 {
 	struct starpu_history_list *ptr;
 
 	ptr = per_arch_model->list;
 
 	if (!parameter && ptr)
-		fprintf(stderr, "# hash\t\tsize\t\tmean\t\tdev\t\tn\n");
+		fprintf(f, "# hash\t\tsize\t\tmean\t\tdev\t\tn\n");
 
 	while (ptr)
 	{
 		struct starpu_history_entry *entry = ptr->entry;
-		if (!display_specific_footprint || (entry->footprint == specific_footprint))
+		if (!footprint || entry->footprint == *footprint)
 		{
 			if (!parameter)
 			{
@@ -173,7 +174,7 @@ static void display_history_based_perf_model(struct starpu_per_arch_perfmodel *p
 	}
 }
 
-static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl)
+static void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *f)
 {
 	struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
@@ -181,7 +182,7 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
 	{
 		starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
-		fprintf(stderr, "performance model for %s\n", archname);
+		fprintf(f, "performance model for %s\n", archname);
 	}
 
 	if (parameter == NULL)
@@ -189,34 +190,34 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 		/* no specific parameter was requested, so we display everything */
 		if (arch_model->regression.nsample)
 		{
-			fprintf(stderr, "\tRegression : #sample = %d\n", arch_model->regression.nsample);
+			fprintf(f, "\tRegression : #sample = %d\n", arch_model->regression.nsample);
 		}
 
 		/* Only display the regression model if we could actually build a model */
 		if (arch_model->regression.valid)
 		{
-			fprintf(stderr, "\tLinear: y = alpha size ^ beta\n");
-			fprintf(stderr, "\t\talpha = %e\n", arch_model->regression.alpha);
-			fprintf(stderr, "\t\tbeta = %e\n", arch_model->regression.beta);
+			fprintf(f, "\tLinear: y = alpha size ^ beta\n");
+			fprintf(f, "\t\talpha = %e\n", arch_model->regression.alpha);
+			fprintf(f, "\t\tbeta = %e\n", arch_model->regression.beta);
 		}
 		else
 		{
-			//fprintf(stderr, "\tLinear model is INVALID\n");
+			//fprintf(f, "\tLinear model is INVALID\n");
 		}
 
 		if (arch_model->regression.nl_valid)
 		{
-			fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
-			fprintf(stderr, "\t\ta = %e\n", arch_model->regression.a);
-			fprintf(stderr, "\t\tb = %e\n", arch_model->regression.b);
-			fprintf(stderr, "\t\tc = %e\n", arch_model->regression.c);
+			fprintf(f, "\tNon-Linear: y = a size ^b + c\n");
+			fprintf(f, "\t\ta = %e\n", arch_model->regression.a);
+			fprintf(f, "\t\tb = %e\n", arch_model->regression.b);
+			fprintf(f, "\t\tc = %e\n", arch_model->regression.c);
 		}
 		else
 		{
-			//fprintf(stderr, "\tNon-Linear model is INVALID\n");
+			//fprintf(f, "\tNon-Linear model is INVALID\n");
 		}
 
-		display_history_based_perf_model(arch_model);
+		starpu_perfmodel_print_history_based(arch_model, parameter, footprint, f);
 
 #if 0
 		char debugname[1024];
@@ -267,18 +268,18 @@ static void display_perf_model(struct starpu_perfmodel *model, enum starpu_perf_
 
 		if ((strcmp(parameter, "mean") == 0) || (strcmp(parameter, "stddev")))
 		{
-			display_history_based_perf_model(arch_model);
+			starpu_perfmodel_print_history_based(arch_model, parameter, footprint, f);
 			return;
 		}
 
 		/* TODO display if it's valid ? */
 
-		fprintf(stderr, "Unknown parameter requested, aborting.\n");
+		fprintf(f, "Unknown parameter requested, aborting.\n");
 		exit(-1);
 	}
 }
 
-static void display_all_perf_models(struct starpu_perfmodel *model)
+static void starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *f)
 {
 	if (arch == NULL)
 	{
@@ -289,7 +290,7 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 		{
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 			{ /* Display all codelets on each arch */
-				display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
+				starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, f);
 			}
 		}
 	}
@@ -299,7 +300,7 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 		{
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				display_perf_model(model, STARPU_CPU_DEFAULT,implid); /* Display all codelets on cpu */
+				starpu_perfmodel_print(model, STARPU_CPU_DEFAULT,implid, parameter, footprint, f); /* Display all codelets on cpu */
 			return;
 		}
 
@@ -309,13 +310,13 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 			/* For combined CPU workers */
 			if ((k < 1) || (k > STARPU_MAXCPUS))
 			{
-				fprintf(stderr, "Invalid CPU size\n");
+				fprintf(f, "Invalid CPU size\n");
 				exit(-1);
 			}
 
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				display_perf_model(model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1), implid);
+				starpu_perfmodel_print(model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1), implid, parameter, footprint, f);
 			return;
 		}
 
@@ -329,8 +330,8 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 				{
 					char archname[32];
 					starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) archid, archname, 32, implid);
-					fprintf(stderr, "performance model for %s\n", archname);
-					display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
+					fprintf(f, "performance model for %s\n", archname);
+					starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, f);
 				}
 			}
 			return;
@@ -345,20 +346,20 @@ static void display_all_perf_models(struct starpu_perfmodel *model)
 			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
+				starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, f);
 			return;
 		}
 
 		if (strcmp(arch, "gordon") == 0)
 		{
-			fprintf(stderr, "performance model for gordon\n");
+			fprintf(f, "performance model for gordon\n");
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				display_perf_model(model, STARPU_GORDON_DEFAULT, implid);
+				starpu_perfmodel_print(model, STARPU_GORDON_DEFAULT, implid, parameter, footprint, f);
 			return;
 		}
 
-		fprintf(stderr, "Unknown architecture requested, aborting.\n");
+		fprintf(f, "Unknown architecture requested, aborting.\n");
 		exit(-1);
 	}
 }
@@ -372,7 +373,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-        if (list)
+        if (plist)
 	{
                 int ret = starpu_perfmodel_list(stdout);
                 if (ret)
@@ -384,13 +385,18 @@ int main(int argc, char **argv)
         else
 	{
 		struct starpu_perfmodel model;
-                int ret = starpu_perfmodel_load_symbol(symbol, &model);
+                int ret = starpu_perfmodel_load_symbol(psymbol, &model);
                 if (ret == 1)
 		{
-			fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", symbol);
+			fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", psymbol);
 			return 1;
 		}
-                display_all_perf_models(&model);
+		uint32_t *footprint = NULL;
+		if (pdisplay_specific_footprint == 1)
+		{
+			footprint = &pspecific_footprint;
+		}
+		starpu_perfmodel_print_all(&model, parch, pparameter, footprint, stdout);
         }
 
 	return 0;
