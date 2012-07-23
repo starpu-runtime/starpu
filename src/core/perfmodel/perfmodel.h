@@ -26,6 +26,12 @@
 #include <pthread.h>
 #include <stdio.h>
 
+struct _starpu_perfmodel_list
+{
+	struct _starpu_perfmodel_list *next;
+	struct starpu_perfmodel *model;
+};
+
 struct starpu_buffer_descr;
 struct _starpu_job;
 enum starpu_perf_archtype;

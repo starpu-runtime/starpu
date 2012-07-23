@@ -51,7 +51,7 @@ struct starpu_history_table
 	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _STARPU_CALIBRATION_MINIMUM)
 
 static pthread_rwlock_t registered_models_rwlock;
-static struct starpu_model_list *registered_models = NULL;
+static struct _starpu_perfmodel_list *registered_models = NULL;
 
 /*
  * History based model
@@ -603,7 +603,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 	}
 
 	/* add the model to a linked list */
-	struct starpu_model_list *node = (struct starpu_model_list *) malloc(sizeof(struct starpu_model_list));
+	struct _starpu_perfmodel_list *node = (struct _starpu_perfmodel_list *) malloc(sizeof(struct _starpu_perfmodel_list));
 
 	node->model = model;
 	//model->debug_modelid = debug_modelid++;
@@ -673,7 +673,7 @@ static void _starpu_dump_registered_models(void)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct starpu_model_list *node;
+	struct _starpu_perfmodel_list *node;
 	node = registered_models;
 
 	_STARPU_DEBUG("DUMP MODELS !\n");
@@ -701,7 +701,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct starpu_model_list *node, *pnode;
+	struct _starpu_perfmodel_list *node, *pnode;
 	node = registered_models;
 
 	_STARPU_DEBUG("FREE MODELS !\n");

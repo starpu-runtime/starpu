@@ -14,6 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstruct starpu_model_list\b/struct _starpu_perfmodel_list/g
 s/\bstarpu_load_history_debug\b/starpu_perfmodel_load_symbol/g
 s/\bstarpu_access_mode\b/enum starpu_access_mode/g
 s/\bstruct starpu_codelet_t\b/struct starpu_codelet/g

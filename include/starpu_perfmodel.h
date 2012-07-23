@@ -114,12 +114,6 @@ struct starpu_history_list
 	struct starpu_history_entry *entry;
 };
 
-struct starpu_model_list
-{
-	struct starpu_model_list *next;
-	struct starpu_perfmodel *model;
-};
-
 struct starpu_regression_model
 {
 	/* sum of ln(measured) */
