@@ -28,9 +28,6 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 
-#warning Error on cudaMemcpy2D
-#undef STARPU_USE_CUDA
-
 /* Shadow width */
 #define SHADOWX 2
 #define SHADOWY 3
@@ -105,7 +102,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 	STARPU_ASSERT(y == y2);
 	STARPU_ASSERT(z == z2);
 	for (k = 0; k < z; k++) {
-		cures = cudaMemcpy2DAsync(val2+k*ldz2*sizeof(*val2), ldy2*sizeof(*val2), val+k*ldz*sizeof(*val), ldy*sizeof(*val),
+		cures = cudaMemcpy2DAsync(val2+k*ldz2, ldy2*sizeof(*val2), val+k*ldz, ldy*sizeof(*val),
 				x*sizeof(*val), y, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 		STARPU_ASSERT(!cures);
 	}
