@@ -39,6 +39,7 @@ Changes:
   * The cache of starpu_mpi_insert_task is fixed and thus now enabled by
     default.
   * Improve starpu_machine_display output.
+  * Standardize objects name in the performance model API
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
