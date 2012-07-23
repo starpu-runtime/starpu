@@ -21,6 +21,9 @@
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
+#ifdef STARPU_USE_CUDA
+#include <starpu_cuda.h>
+#endif
 #include <stdlib.h>
 #include "../helper.h"
 
@@ -51,8 +54,9 @@ static void cuda_task(void **buffers, void *args)
 
 	for(i = 0; i < size; i++)
 	{
-		cudaMemcpy(&numbers[i], &i, sizeof(int), cudaMemcpyHostToDevice);
+		cudaMemcpyAsync(&numbers[i], &i, sizeof(int), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	}
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 

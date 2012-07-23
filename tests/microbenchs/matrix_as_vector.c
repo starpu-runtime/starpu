@@ -20,6 +20,7 @@
 
 #ifdef STARPU_USE_CUDA
 #  include <cublas.h>
+#  include <starpu_cuda.h>
 #endif
 
 #define LOOPS 100
@@ -49,8 +50,8 @@ void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	cudaThreadSynchronize();
 	sum /= nx;
 
-	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -81,8 +82,8 @@ void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	cudaThreadSynchronize();
 	sum /= nx*ny;
 
-	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 

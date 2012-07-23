@@ -85,7 +85,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
-	cudaMemcpy(val2, val, n*sizeof(*val), cudaMemcpyDeviceToDevice);
+	cudaMemcpyAsync(val2, val, n*sizeof(*val), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
