@@ -168,24 +168,24 @@ int main(int argc, char **argv)
         };
 
 	memset(matrix, -1, sizeof(matrix));
-        for(i=1 ; i<=NX ; i++)
-		for(j=1 ; j<=NY ; j++)
+	for(j=1 ; j<=NY ; j++)
+		for(i=1 ; i<=NX ; i++)
 			matrix[SHADOWY+j-1][SHADOWX+i-1] = i+j;
 
 	/* Copy borders */
-	for(i=0 ; i<SHADOWX ; i++)
-		for (j = SHADOWY ; j<SHADOWY+NY ; j++) {
+	for (j = SHADOWY ; j<SHADOWY+NY ; j++)
+		for(i=0 ; i<SHADOWX ; i++) {
 			matrix[j][i] = matrix[j][i+NX];
 			matrix[j][SHADOWX+NX+i] = matrix[j][SHADOWX+i];
 		}
-	for(i=SHADOWX ; i<SHADOWX+NX ; i++)
-		for(j=0 ; j<SHADOWY ; j++) {
+	for(j=0 ; j<SHADOWY ; j++)
+		for(i=SHADOWX ; i<SHADOWX+NX ; i++) {
 			matrix[j][i] = matrix[j+NY][i];
 			matrix[SHADOWY+NY+j][i] = matrix[SHADOWY+j][i];
 		}
 	/* Copy corners */
-	for(i=0 ; i<SHADOWX ; i++)
-		for(j=0 ; j<SHADOWY ; j++) {
+	for(j=0 ; j<SHADOWY ; j++)
+		for(i=0 ; i<SHADOWX ; i++) {
 			matrix[j][i] = matrix[j+NY][i+NX];
 			matrix[j][SHADOWX+NX+i] = matrix[j+NY][SHADOWX+i];
 			matrix[SHADOWY+NY+j][i] = matrix[SHADOWY+j][i+NX];
@@ -277,10 +277,10 @@ int main(int argc, char **argv)
 		FPRINTF(stderr,"\n");
 	}
         FPRINTF(stderr,"\n");
-	for(i=0 ; i<PARTSX ; i++)
-		for(j=0 ; j<PARTSY ; j++)
-			for (k=0 ; k<NX/PARTSX ; k++)
-				for (l=0 ; l<NY/PARTSY ; l++)
+	for(j=0 ; j<PARTSY ; j++)
+		for(i=0 ; i<PARTSX ; i++)
+			for (l=0 ; l<NY/PARTSY ; l++)
+				for (k=0 ; k<NX/PARTSX ; k++)
 					STARPU_ASSERT(matrix2[j*(NX/PARTSY+2*SHADOWY)+l][i*(NX/PARTSX+2*SHADOWX)+k] = matrix[i*(NX/PARTSX)+k][j*(NY/PARTSY)+l]);
 
 	return 0;
