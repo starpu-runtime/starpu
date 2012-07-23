@@ -1307,6 +1307,7 @@ static void generate_bus_config_file()
 
 static void starpu_force_bus_sampling(void)
 {
+	_STARPU_DEBUG("Force bus sampling ...\n");
 	_starpu_create_sampling_directory_if_needed();
 
 	generate_bus_affinity_file();
