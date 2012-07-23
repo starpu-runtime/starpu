@@ -79,7 +79,7 @@ static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, s
 
 static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
 {
-	struct starpu_per_arch_perfmodel *per_arch_model;
+	struct starpu_perfmodel_per_arch *per_arch_model;
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 	struct starpu_perfmodel_regression_model *reg_model;
@@ -195,7 +195,7 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
 {
 	unsigned nentries;
 
@@ -227,7 +227,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel 
 
 static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned archmin, unsigned archmax, unsigned skiparch)
 {
-	struct starpu_per_arch_perfmodel dummy;
+	struct starpu_perfmodel_per_arch dummy;
 	int nimpls, implmax, skipimpl, impl;
 	unsigned ret, arch;
 
@@ -351,7 +351,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 
 static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
 {
-	struct starpu_per_arch_perfmodel *per_arch_model;
+	struct starpu_perfmodel_per_arch *per_arch_model;
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 	/* count the number of elements in the lists */
@@ -394,7 +394,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, un
 
 static unsigned get_n_entries(struct starpu_perfmodel *model, unsigned arch, unsigned impl)
 {
-	struct starpu_per_arch_perfmodel *per_arch_model;
+	struct starpu_perfmodel_per_arch *per_arch_model;
 	per_arch_model = &model->per_arch[arch][impl];
 	/* count the number of elements in the lists */
 	struct starpu_perfmodel_history_list *ptr = NULL;
@@ -537,7 +537,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	}
 }
 
-static void initialize_per_arch_model(struct starpu_per_arch_perfmodel *per_arch_model)
+static void initialize_per_arch_model(struct starpu_perfmodel_per_arch *per_arch_model)
 {
 	per_arch_model->history = NULL;
 	per_arch_model->list = NULL;
@@ -717,7 +717,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 		{
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
-				struct starpu_per_arch_perfmodel *archmodel = &model->per_arch[arch][nimpl];
+				struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[arch][nimpl];
 				struct starpu_perfmodel_history_list *list, *plist;
 				struct starpu_perfmodel_history_table *entry, *tmp;
 
@@ -993,7 +993,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	else
 	{
 		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
-		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
+		struct starpu_perfmodel_per_arch *per_arch_model = &model->per_arch[arch][nimpl];
 		struct starpu_perfmodel_history_table *history;
 		struct starpu_perfmodel_history_table *entry;
 
@@ -1018,7 +1018,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
 	double exp;
-	struct starpu_per_arch_perfmodel *per_arch_model;
+	struct starpu_perfmodel_per_arch *per_arch_model;
 	struct starpu_perfmodel_history_entry *entry;
 	struct starpu_perfmodel_history_table *history, *elt;
 
@@ -1064,7 +1064,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 	{
 		_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
-		struct starpu_per_arch_perfmodel *per_arch_model = &model->per_arch[arch][nimpl];
+		struct starpu_perfmodel_per_arch *per_arch_model = &model->per_arch[arch][nimpl];
 
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{

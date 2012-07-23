@@ -141,7 +141,7 @@ struct starpu_perfmodel_regression_model
 
 struct starpu_perfmodel_history_table;
 
-struct starpu_per_arch_perfmodel
+struct starpu_perfmodel_per_arch
 {
 	double (*cost_model)(struct starpu_buffer_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
 	double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
@@ -177,7 +177,7 @@ struct starpu_perfmodel
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 
 	/* per-architecture model */
-	struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
+	struct starpu_perfmodel_per_arch per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Name of the performance model, this is used as a file name when saving history-based performance models */
 	const char *symbol;

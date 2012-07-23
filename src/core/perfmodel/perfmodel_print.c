@@ -21,7 +21,7 @@
 #include <common/config.h>
 
 static
-void _starpu_perfmodel_print_history_based(struct starpu_per_arch_perfmodel *per_arch_model, char *parameter, uint32_t *footprint, FILE *output)
+void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per_arch_model, char *parameter, uint32_t *footprint, FILE *output)
 {
 	struct starpu_perfmodel_history_list *ptr;
 
@@ -63,7 +63,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_per_arch_perfmodel *per
 
 void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
 {
-	struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][nimpl];
+	struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)

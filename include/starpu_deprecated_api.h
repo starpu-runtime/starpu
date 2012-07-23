@@ -39,10 +39,12 @@ typedef struct starpu_multiformat_interface starpu_multiformat_interface_t;
 #define starpu_buffer_descr_t starpu_buffer_descr
 #define starpu_history_list_t starpu_history_list
 #define starpu_regression_model_t starpu_regression_model
-#define starpu_per_arch_perfmodel_t starpu_per_arch_perfmodel
 #define starpu_perfmodel_t starpu_perfmodel
 #define starpu_sched_policy_s starpu_sched_policy
 #define starpu_data_interface_ops_t starpu_data_interface_ops
+
+#define starpu_per_arch_perfmodel_t starpu_per_arch_perfmodel
+#define starpu_per_arch_perfmodel starpu_perfmodel_per_arch
 
 typedef struct starpu_buffer_descr starpu_buffer_descr;
 typedef struct starpu_codelet starpu_codelet;

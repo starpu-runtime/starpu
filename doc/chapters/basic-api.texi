@@ -1965,7 +1965,7 @@ Used by @code{STARPU_HISTORY_BASED} and
 implementation number, and returns the size to be used as index for
 history and regression.
 
-@item @code{struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS]}
+@item @code{struct starpu_perfmodel_per_arch per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS]}
 Used by @code{STARPU_PER_ARCH}: array of @code{struct
 starpu_per_arch_perfmodel} structures.
 
@@ -1999,7 +1999,7 @@ Lock to protect concurrency between loading from disk (W), updating the values
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_per_arch_perfmodel}
+@deftp {Data Type} {struct starpu_perfmodel_per_arch}
 contains information about the performance model of a given arch.
 
 @table @asis
