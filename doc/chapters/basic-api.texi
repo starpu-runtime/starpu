@@ -1160,10 +1160,34 @@ matrices. If nparts does not divide x, the last submatrix contains the
 remainder.
 @end deftypefun
 
+@deftypefun void starpu_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the x dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (y,((x-2*shadow)/nparts+2*shadow)
+matrices. If nparts does not divide x-2*shadow, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow2d.c
+@end deftypefun
+
 @deftypefun void starpu_vertical_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
 This partitions a dense Matrix along the y dimension, thus getting (y/nparts),x)
 matrices. If nparts does not divide y, the last submatrix contains the
 remainder.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the y dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting ((y-2*shadow)/nparts)+2*shadow,x)
+matrices. If nparts does not divide y-2*shadow, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow2d.c
 @end deftypefun
 
 @node Partitioning Vector Data
@@ -1178,7 +1202,7 @@ vector represented by @var{father_interface} once partitioned in
 @deftypefun void starpu_block_shadow_filter_func_vector (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
 Return in @code{*@var{child_interface}} the @var{id}th element of the
 vector represented by @var{father_interface} once partitioned in
-@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}
+@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}, thus getting a vector of size (n-2*shadow)/nparts+2*shadow 
 
 The @code{filter_arg_ptr} field must be the shadow size casted into @code{void*}.
 

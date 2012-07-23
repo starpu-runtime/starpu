@@ -180,6 +180,7 @@ examplebin_PROGRAMS +=				\
 	filters/fblock				\
 	filters/fmatrix				\
 	filters/shadow				\
+	filters/shadow2d			\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
