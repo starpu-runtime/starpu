@@ -34,9 +34,6 @@ extern "C"
 #endif
 
 struct starpu_task;
-
-struct starpu_perfmodel_history_table;
-struct starpu_perfmodel_history_list;
 struct starpu_buffer_descr;
 
 /*
@@ -141,6 +138,8 @@ struct starpu_regression_model
 
 	unsigned nsample;
 };
+
+struct starpu_perfmodel_history_table;
 
 struct starpu_per_arch_perfmodel
 {
