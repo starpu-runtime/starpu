@@ -28,9 +28,7 @@ static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 
 	cublasSetKernelStream(starpu_cuda_get_local_stream());
 }
-#endif
 
-#ifdef STARPU_USE_CUDA
 static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	cublasShutdown();
