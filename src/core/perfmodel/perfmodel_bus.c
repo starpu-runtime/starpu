@@ -1110,7 +1110,7 @@ void starpu_bus_print_bandwidth(FILE *f)
         maxnode += nopencl;
 #endif
 
-	fprintf(f, "from to\t");
+	fprintf(f, "from/to\t");
 	fprintf(f, "RAM\t");
 	for (dst = 0; dst < ncuda; dst++)
 		fprintf(f, "CUDA %d\t", dst);
