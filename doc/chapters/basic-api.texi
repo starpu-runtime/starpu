@@ -1064,7 +1064,7 @@ subdata according to the filter @var{f}, as shown in the following example:
 @cartouche
 @smallexample
 struct starpu_data_filter f = @{
-    .filter_func = starpu_vertical_block_filter_func,
+    .filter_func = starpu_block_filter_func,
     .nchildren = nslicesx,
     .get_nchildren = NULL,
     .get_child_ops = NULL
@@ -1155,11 +1155,15 @@ This partitions a block-sparse matrix into vertical block-sparse matrices.
 @subsubsection Partitioning BLAS interface
 
 @deftypefun void starpu_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix into horizontal blocks.
+This partitions a dense Matrix along the x dimension, thus getting (y,(x/nparts)
+matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
 @end deftypefun
 
 @deftypefun void starpu_vertical_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix into vertical blocks.
+This partitions a dense Matrix along the y dimension, thus getting (y/nparts),x)
+matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
 @end deftypefun
 
 @node Partitioning Vector Data
