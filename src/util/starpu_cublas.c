@@ -30,12 +30,12 @@ static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 }
 #endif
 
+#ifdef STARPU_USE_CUDA
 static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_USE_CUDA
 	cublasShutdown();
-#endif
 }
+#endif
 
 void starpu_helper_cublas_init(void)
 {
