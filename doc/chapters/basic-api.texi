@@ -1130,65 +1130,15 @@ starpu_data_filter.
 @subsection Predefined filter functions
 
 @menu
-* Partitioning BCSR Data::
-* Partitioning BLAS interface::
 * Partitioning Vector Data::
-* Partitioning Block Data::
+* Partitioning Matrix Data::
+* Partitioning 3D Matrix Data::
+* Partitioning BCSR Data::
 @end menu
 
 This section gives a partial list of the predefined partitioning functions.
 Examples on how to use them are shown in @ref{Partitioning Data}. The complete
 list can be found in @code{starpu_data_filters.h} .
-
-@node Partitioning BCSR Data
-@subsubsection Partitioning BCSR Data
-
-@deftypefun void starpu_canonical_block_filter_bcsr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a block-sparse matrix into dense matrices.
-@end deftypefun
-
-@deftypefun void starpu_vertical_block_filter_func_csr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a block-sparse matrix into vertical block-sparse matrices.
-@end deftypefun
-
-@node Partitioning BLAS interface
-@subsubsection Partitioning BLAS interface
-
-@deftypefun void starpu_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix along the x dimension, thus getting (y,(x/nparts)
-matrices. If nparts does not divide x, the last submatrix contains the
-remainder.
-@end deftypefun
-
-@deftypefun void starpu_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix along the x dimension, with a shadow border
-@code{filter_arg_ptr}, thus getting (y,((x-2*shadow)/nparts+2*shadow)
-matrices. If nparts does not divide x-2*shadow, the last submatrix contains the
-remainder.
-
-IMPORTANT: This can only be used for read-only access, as no coherency is
-enforced for the shadowed parts.
-
-A usage example is available in examples/filters/shadow2d.c
-@end deftypefun
-
-@deftypefun void starpu_vertical_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix along the y dimension, thus getting (y/nparts),x)
-matrices. If nparts does not divide y, the last submatrix contains the
-remainder.
-@end deftypefun
-
-@deftypefun void starpu_vertical_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix along the y dimension, with a shadow border
-@code{filter_arg_ptr}, thus getting ((y-2*shadow)/nparts)+2*shadow,x)
-matrices. If nparts does not divide y-2*shadow, the last submatrix contains the
-remainder.
-
-IMPORTANT: This can only be used for read-only access, as no coherency is
-enforced for the shadowed parts.
-
-A usage example is available in examples/filters/shadow2d.c
-@end deftypefun
 
 @node Partitioning Vector Data
 @subsubsection Partitioning Vector Data
@@ -1231,11 +1181,107 @@ chunks of equal size, ignoring @var{nparts}.  Thus, @var{id} must be
 @end deftypefun
 
 
-@node Partitioning Block Data
-@subsubsection Partitioning Block Data
+@node Partitioning Matrix Data
+@subsubsection Partitioning Matrix Data
+
+@deftypefun void starpu_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the x dimension, thus getting (x/nparts,y)
+matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the x dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting ((x-2*shadow)/nparts+2*shadow,y)
+matrices. If nparts does not divide x-2*shadow, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow2d.c
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the y dimension, thus getting (x,y/nparts)
+matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the y dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (x,(y-2*shadow)/nparts+2*shadow)
+matrices. If nparts does not divide y-2*shadow, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow2d.c
+@end deftypefun
+
+@node Partitioning 3D Matrix Data
+@subsubsection Partitioning 3D Matrix Data
+
+A usage example is available in examples/filters/shadow3d.c
 
 @deftypefun void starpu_block_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a 3D matrix along the X axis.
+This partitions a 3D matrix along the X dimension, thus getting (x/nparts,y,z)
+3D matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_block_shadow_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the X dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting ((x-2*shadow)/nparts+2*shadow,y,z) 3D
+matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Y dimension, thus getting (x,y/nparts,z)
+3D matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_shadow_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Y dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (x,(y-2*shadow)/nparts+2*shadow,z) 3D
+matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+@end deftypefun
+
+@deftypefun void starpu_depth_block_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Z dimension, thus getting (x,y,z/nparts)
+3D matrices. If nparts does not divide z, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_depth_block_shadow_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Z dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (x,y,(z-2*shadow)/nparts+2*shadow)
+3D matrices. If nparts does not divide z, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+@end deftypefun
+
+@node Partitioning BCSR Data
+@subsubsection Partitioning BCSR Data
+
+@deftypefun void starpu_canonical_block_filter_bcsr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a block-sparse matrix into dense matrices.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_filter_func_csr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a block-sparse matrix into vertical block-sparse matrices.
 @end deftypefun
 
 @node Codelets and Tasks
