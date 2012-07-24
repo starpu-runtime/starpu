@@ -832,17 +832,15 @@ static void _starpu_init_workers_binding(struct _starpu_machine_config *config)
 #endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
-		/* Clear the cpu set and set the cpu */
-		workerarg->initial_hwloc_cpu_set = hwloc_bitmap_alloc();
-		hwloc_bitmap_only(workerarg->initial_hwloc_cpu_set, workerarg->bindid);
-		workerarg->current_hwloc_cpu_set = hwloc_bitmap_alloc();
-		hwloc_bitmap_only(workerarg->current_hwloc_cpu_set, workerarg->bindid);
-
 		/* Put the worker descriptor in the userdata field of the hwloc object describing the CPU */
 		hwloc_obj_t worker_obj;
 		worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
 					config->cpu_depth, workerarg->bindid);
 		worker_obj->userdata = &config->workers[worker];
+
+		/* Clear the cpu set and set the cpu */
+		workerarg->initial_hwloc_cpu_set = hwloc_bitmap_dup(worker_obj->cpuset);
+		workerarg->current_hwloc_cpu_set = hwloc_bitmap_dup(worker_obj->cpuset);
 #endif
 	}
 }

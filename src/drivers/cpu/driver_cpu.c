@@ -124,6 +124,9 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	_starpu_bind_thread_on_cpu(cpu_worker->config, cpu_worker->bindid);
 
         _STARPU_DEBUG("cpu worker %d is ready on logical cpu %d\n", devid, cpu_worker->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("cpu worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(cpu_worker->initial_hwloc_cpu_set));
+#endif
 
 	_starpu_set_local_memory_node_key(&cpu_worker->memory_node);
 
