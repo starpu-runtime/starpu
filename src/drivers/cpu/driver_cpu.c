@@ -110,6 +110,9 @@ void *_starpu_cpu_worker(void *arg)
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
         _STARPU_DEBUG("cpu worker %d is ready on logical cpu %d\n", devid, cpu_arg->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("cpu worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(cpu_worker->initial_hwloc_cpu_set));
+#endif
 
 	_starpu_set_local_memory_node_key(&memnode);
 
