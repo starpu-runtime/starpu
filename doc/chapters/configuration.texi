@@ -235,8 +235,7 @@ MKL website} provides a script to determine the linking flags.
 * STARPU_WORKERS_CUDAID::       	Select specific CUDA devices
 * STARPU_WORKERS_OPENCLID::     	Select specific OpenCL devices
 * STARPU_SINGLE_COMBINED_WORKER:: 	Do not use concurrent workers
-* STARPU_MIN_WORKERSIZE::	 	Minimum size of the combined workers
-* STARPU_MAX_WORKERSIZE:: 		Maximum size of the combined workers
+* STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER::	 	Maximum arity between combined worker levels
 @end menu
 
 @node STARPU_NCPU
@@ -325,17 +324,23 @@ If set, StarPU will create several workers which won't be able to work
 concurrently. It will create combined workers which size goes from 1 to the
 total number of CPU workers in the system.
 
-@node STARPU_MIN_WORKERSIZE
-@subsubsection @code{STARPU_MIN_WORKERSIZE} -- Minimum size of the combined workers
+@node STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
+@subsubsection @code{SYNTHESIZE_ARITY_COMBINED_WORKER} -- Maximum arity between levels of combined workers (default = 2)
 
-Let the user give a hint to StarPU about which how many workers
-(minimum boundary) the combined workers should contain.
+Let the user decide how many elements are allowed between combined workers
+created from hwloc information. For instance, in the case of sockets with 6
+cores without shared L2 caches, if @code{SYNTHESIZE_ARITY_COMBINED_WORKER} is
+set to 6, no combined worker will be synthesized beyond one for the socket
+and one per core. If it is set to 3, 3 intermediate combined workers will be
+synthesized, to divide the socket cores into 3 chunks of 2 cores. If it set to
+2, 2 intermediate combined workers will be synthesized, to divide the the socket
+cores into 2 chunks of 3 cores, and then 3 additional combined workers will be
+synthesized, to divide the former synthesized workers into a bunch of 2 cores,
+and the remaining core (for which no combined worker is synthesized since there
+is already a normal worker for it).
 
-@node STARPU_MAX_WORKERSIZE
-@subsubsection @code{STARPU_MAX_WORKERSIZE} -- Maximum size of the combined workers
-
-Let the user give a hint to StarPU about which how many workers
-(maximum boundary) the combined workers should contain.
+The default, 2, thus makes StarPU tend to building a binary trees of combined
+workers.
 
 @node Scheduling
 @subsection Configuring the Scheduling engine

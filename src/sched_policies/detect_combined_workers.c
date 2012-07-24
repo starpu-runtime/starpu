@@ -25,6 +25,7 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 
+#if 0
 /* struct _starpu_tree
  * ==================
  * Purpose
@@ -409,6 +410,143 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
     }
 
     free(tree.workers);
+}
+#endif
+
+static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], unsigned *n)
+{
+    if (!obj->userdata)
+	/* Not something we run something on, don't care */
+	return;
+    if (obj->userdata == (void*) -1)
+    {
+	/* Intra node, recurse */
+	unsigned i;
+	for (i = 0; i < obj->arity; i++)
+	    find_workers(obj->children[i], cpu_workers, n);
+	return;
+    }
+
+    /* Got to a PU leaf */
+    struct _starpu_worker *worker = obj->userdata;
+    /* is it a CPU worker? */
+    if (worker->perf_arch == STARPU_CPU_DEFAULT)
+    {
+	_STARPU_DEBUG("worker %d is part of it\n", worker->workerid);
+	/* Add it to the combined worker */
+	cpu_workers[(*n)++] = worker->workerid;
+    }
+}
+
+static void synthesize_intermediate_workers(struct starpu_machine_topology *topology, hwloc_obj_t *children, unsigned arity, unsigned n, unsigned synthesize_arity)
+{
+    unsigned nworkers, i, j;
+    unsigned chunk_size = (n + synthesize_arity-1) / max_arity;
+    unsigned chunk_start;
+    int cpu_workers[STARPU_NMAXWORKERS];
+    int ret;
+
+    if (n <= synthesize_arity)
+	/* Not too many children, do not synthesize */
+	return;
+
+    _STARPU_DEBUG("%d children > %d, synthesizing intermediate combined workers of size %d\n", n, synthesize_arity, chunk_size);
+
+    n = 0;
+    j = 0;
+    nworkers = 0;
+    chunk_start = 0;
+    for (i = 0 ; i < arity; i++)
+    {
+	if (children[i]->userdata) {
+	    n++;
+	    _STARPU_DEBUG("child %d\n", i);
+	    find_workers(children[i], cpu_workers, &nworkers);
+	    j++;
+	}
+	/* Completed a chunk, or last bit (but not if it's just 1 subobject) */
+	if (j == chunk_size || (i == arity-1 && j > 1)) {
+	    _STARPU_DEBUG("Adding it\n");
+	    ret = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
+	    STARPU_ASSERT(ret >= 0);
+	    /* Recurse there */
+	    synthesize_intermediate_workers(topology, children+chunk_start, i - chunk_start, n, synthesize_arity);
+	    /* And restart another one */
+	    n = 0;
+	    j = 0;
+	    nworkers = 0;
+	    chunk_start = i+1;
+	}
+    }
+}
+
+static void find_and_assign_combinations(struct starpu_machine_topology *topology, hwloc_obj_t obj, unsigned synthesize_arity)
+{
+    char name[64];
+    unsigned i, n, nworkers;
+    int cpu_workers[STARPU_NMAXWORKERS];
+
+    int ret;
+
+    hwloc_obj_snprintf(name, sizeof(name), topology->hwtopology, obj, "#", 0);
+    _STARPU_DEBUG("Looking at %s\n", name);
+
+    for (n = 0, i = 0; i < obj->arity; i++)
+	if (obj->children[i]->userdata)
+	    /* it has a CPU worker */
+	    n++;
+
+    if (n == 1) {
+	/* If there is only one child, we go to the next level right away */
+	find_and_assign_combinations(topology, obj->children[0], synthesize_arity);
+	return;
+    }
+
+    /* Add this object */
+    nworkers = 0;
+    find_workers(obj, cpu_workers, &nworkers);
+
+    if (nworkers > 1)
+    {
+	_STARPU_DEBUG("Adding it\n");
+	ret = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
+	STARPU_ASSERT(ret >= 0);
+    }
+
+    /* Add artificial intermediate objects recursively */
+    synthesize_intermediate_workers(topology, obj->children, obj->arity, n, synthesize_arity);
+
+    /* And recurse */
+    for (i = 0; i < obj->arity; i++)
+	if (obj->children[i]->userdata == (void*) -1)
+	    find_and_assign_combinations(topology, obj->children[i], synthesize_arity);
+}
+
+static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology *topology)
+{
+    unsigned i;
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
+    int synthesize_arity = starpu_get_env_number("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER");
+
+    if (synthesize_arity == -1)
+	synthesize_arity = 2;
+
+    /* First, mark nodes which contain CPU workers, simply by setting their userdata field */
+    for (i = 0; i < topology->nworkers; i++)
+    {
+	struct _starpu_worker *worker = &config->workers[i];
+	if (worker->perf_arch == STARPU_CPU_DEFAULT)
+	{
+	    hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
+	    STARPU_ASSERT(obj->userdata == worker);
+	    obj = obj->parent;
+	    while (obj) {
+		obj->userdata = (void*) -1;
+		obj = obj->parent;
+	    }
+	}
+    }
+    find_and_assign_combinations(topology, hwloc_get_root_obj(topology->hwtopology), synthesize_arity);
 }
 
 #else /* STARPU_HAVE_HWLOC */

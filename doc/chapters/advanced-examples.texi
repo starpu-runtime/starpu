@@ -882,23 +882,15 @@ try to execute tasks with several CPUs. It will automatically try the various
 available combined worker sizes and thus be able to avoid choosing a large
 combined worker if the codelet does not actually scale so much.
 
-@subsection Combined worker sizes
+@subsection Combined workers
 
 By default, StarPU creates combined workers according to the architecture
 structure as detected by hwloc. It means that for each object of the hwloc
 topology (NUMA node, socket, cache, ...) a combined worker will be created. If
 some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
-intermediate sizes.
-The user can give some hints to StarPU about combined workers sizes to favor.
-This can be done by using the environment variables @code{STARPU_MIN_WORKERSIZE}
-and @code{STARPU_MAX_WORKERSIZE}. When set, they will force StarPU to create the
-biggest combined workers possible without overstepping the defined boundaries.
-However, StarPU will create the remaining combined workers without abiding by
-the rules if not possible.
-For example : if the user specifies a minimum and maximum combined workers size
-of 3 on a machine containing 8 CPUs, StarPU will create a combined worker of
-size 2 beside the combined workers of size 3.
+intermediate sizes. The @code{STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER} variable
+permits to tune the maximum arity between levels of combined workers.
 
 The combined workers actually produced can be seen in the output of the
 @code{starpu_machine_display} tool (the @code{STARPU_SCHED} environment variable
