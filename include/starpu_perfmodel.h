@@ -141,6 +141,8 @@ struct starpu_perfmodel_regression_model
 
 struct starpu_perfmodel_history_table;
 
+#define starpu_per_arch_perfmodel starpu_perfmodel_per_arch
+
 struct starpu_perfmodel_per_arch
 {
 	double (*cost_model)(struct starpu_buffer_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
