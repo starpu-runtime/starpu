@@ -146,6 +146,8 @@ int main(int argc, char **argv)
 	glutIdleFunc(idle);
 	/* Now run the glut loop */
 	glutMainLoop();
+	/* And deinitialize driver */
+	starpu_driver_deinit(&drivers[0]);
 	printf("finished running the driver\n");
 
 	starpu_shutdown();
