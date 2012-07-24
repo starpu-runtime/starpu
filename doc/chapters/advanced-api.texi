@@ -706,14 +706,18 @@ static struct starpu_sched_policy dummy_sched_policy = @{
 @node Driver API
 @subsection Driver API
 
-@deftypefun int starpu_driver_init (struct starpu_driver *@var{d})
-Initialize the given driver. Returns 0 on success, -EINVAL if
-@code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
-STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
+@deftypefun int starpu_driver_run ({struct starpu_driver *}@var{d})
+Initialize the given driver, run it until it receives a request to terminate,
+deinitialize it and return 0 on success. It returns -EINVAL if @code{d->type}
+is not a valid StarPU device type (STARPU_CPU_WORKER, STARPU_CUDA_WORKER or
+STARPU_OPENCL_WORKER). This is the same as using the following
+functions: calling @code{starpu_driver_init()}, then calling
+@code{starpu_driver_run_once()} in a loop, and eventually
+@code{starpu_driver_deinit()}.
 @end deftypefun
 
-@deftypefun int starpu_driver_run ({struct starpu_driver *}@var{d})
-Run the driver until it receives a request to terminate, then returns 0 on success, -EINVAL if
+@deftypefun int starpu_driver_init (struct starpu_driver *@var{d})
+Initialize the given driver. Returns 0 on success, -EINVAL if
 @code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
 STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
 @end deftypefun
