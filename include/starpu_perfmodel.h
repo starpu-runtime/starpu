@@ -141,8 +141,7 @@ struct starpu_perfmodel_regression_model
 
 struct starpu_perfmodel_history_table;
 
-/* using starpu_per_arch_perfmodel is deprecated */
-#define starpu_per_arch_perfmodel starpu_perfmodel_per_arch
+#define starpu_per_arch_perfmodel starpu_perfmodel_per_arch STARPU_DEPRECATED
 
 struct starpu_perfmodel_per_arch
 {
