@@ -441,7 +441,7 @@ static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], u
 static void synthesize_intermediate_workers(struct starpu_machine_topology *topology, hwloc_obj_t *children, unsigned arity, unsigned n, unsigned synthesize_arity)
 {
     unsigned nworkers, i, j;
-    unsigned chunk_size = (n + synthesize_arity-1) / max_arity;
+    unsigned chunk_size = (n + synthesize_arity-1) / synthesize_arity;
     unsigned chunk_start;
     int cpu_workers[STARPU_NMAXWORKERS];
     int ret;
