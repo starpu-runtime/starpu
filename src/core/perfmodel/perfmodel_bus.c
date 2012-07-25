@@ -1000,7 +1000,7 @@ static int load_bus_bandwidth_file_content(void)
 			n = fscanf(f, "%lf", &bandwidth);
 			if (n != 1)
 			{
-				fprintf(stderr,"didn't get a number\n");
+				fprintf(stderr,"Error while reading sampling file <%s>. Expected a number\n", path);
 				fclose(f);
 				return 0;
 			}
