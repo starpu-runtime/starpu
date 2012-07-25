@@ -203,6 +203,23 @@ examples_reduction_mpi_reduction_LDADD =	\
 check_PROGRAMS +=		\
 	examples/reduction/mpi_reduction
 
+###################
+# complex example #
+###################
+
+examplebin_PROGRAMS +=				\
+	examples/complex/mpi_complex
+
+examples_complex_mpi_complex_SOURCES =		\
+	examples/complex/mpi_complex.c		\
+	../examples/interface/complex_interface.c
+
+examples_complex_mpi_complex_LDADD =		\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+
+check_PROGRAMS	+=	\
+	examples/complex/mpi_complex
+
 ########################
 # Unit testcases       #
 ########################
