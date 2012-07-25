@@ -46,7 +46,9 @@ void _starpu_mpi_comm_amounts_free()
 }
 
 void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)),
-				  unsigned dst  __attribute__ ((unused)), MPI_Datatype datatype  __attribute__ ((unused)))
+				  unsigned dst  __attribute__ ((unused)),
+				  MPI_Datatype datatype  __attribute__ ((unused)),
+				  int count __attribute__ ((unused)))
 {
 #ifdef STARPU_COMM_STATS
 	int src, size;
@@ -54,9 +56,9 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)),
 	MPI_Comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
 
-	_STARPU_MPI_DEBUG("[%d] adding %d to %d\n", src, size, dst);
+	_STARPU_MPI_DEBUG("[%d] adding %d to %d\n", src, count*size, dst);
 
-	comm_amount[dst] += size;
+	comm_amount[dst] += count*size;
 #endif /* STARPU_COMM_STATS */
 }
 

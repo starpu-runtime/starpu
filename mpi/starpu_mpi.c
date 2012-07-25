@@ -57,16 +57,19 @@ static int posted_requests = 0, newer_requests, barrier_running = 0;
 
 static void starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
+	int count=1, ret;
+
         _STARPU_MPI_LOG_IN();
+
 	void *ptr = starpu_mpi_handle_to_ptr(req->data_handle);
 
         _STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p req %p\n", req->mpi_tag, req->srcdst, ptr, &req->request);
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
-	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype);
+	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, count);
 
-        req->ret = MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
+        req->ret = MPI_Isend(ptr, count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
 	TRACE_MPI_ISEND(req->srcdst, req->mpi_tag, 0);
@@ -153,6 +156,7 @@ int starpu_mpi_isend_detached(starpu_data_handle_t data_handle,
 static void starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
         _STARPU_MPI_LOG_IN();
+	int count=1;
 	void *ptr = starpu_mpi_handle_to_ptr(req->data_handle);
 	STARPU_ASSERT(ptr);
 
@@ -160,7 +164,7 @@ static void starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, req->data_handle, ptr, &req->request, (int)req->datatype);
 
-        req->ret = MPI_Irecv(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
+        req->ret = MPI_Irecv(ptr, count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
