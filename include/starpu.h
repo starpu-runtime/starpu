@@ -45,6 +45,7 @@ typedef unsigned long long uint64_t;
 #include <starpu_scheduler.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
+#include <starpu_cublas.h>
 
 #ifdef __cplusplus
 extern "C"

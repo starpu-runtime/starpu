@@ -187,7 +187,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
-	util/starpu_cublas.c					\
 	util/file.c						\
 	util/starpu_data_cpy.c					\
 	util/starpu_insert_task.c				\
@@ -214,6 +213,8 @@ endif
 if STARPU_USE_CUDA
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
+
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
 
 if STARPU_USE_GORDON
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/gordon/driver_gordon.c

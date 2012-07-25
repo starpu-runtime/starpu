@@ -213,10 +213,6 @@ static __inline int starpu_get_env_number(const char *str)
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
 
-/* Some helper functions for application using CUBLAS kernels */
-void starpu_helper_cublas_init(void);
-void starpu_helper_cublas_shutdown(void);
-
 /* Call func(arg) on every worker matching the "where" mask (eg.
  * STARPU_CUDA|STARPU_CPU to execute the function on every CPU and every CUDA
  * device). This function is synchronous, but the different workers may execute
