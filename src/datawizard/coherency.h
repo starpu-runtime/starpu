@@ -253,8 +253,6 @@ __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, uint32_t node);
-unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node);
-
 
 uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 

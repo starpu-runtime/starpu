@@ -134,6 +134,8 @@ int starpu_data_get_rank(starpu_data_handle_t handle);
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag);
 int starpu_data_get_tag(starpu_data_handle_t handle);
 
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node);
+
 #ifdef __cplusplus
 }
 #endif
