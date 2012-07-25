@@ -40,10 +40,19 @@ int main(int argc, char **argv)
 			double imaginary[2] = {7.0, 9.0};
 			starpu_data_handle_t handle;
 
+			double real2[2] = {14.0, 12.0};
+			double imaginary2[2] = {17.0, 19.0};
+			starpu_data_handle_t handle2;
+			MPI_Status status;
+
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
 			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
 			starpu_mpi_send(handle, 1, 10, MPI_COMM_WORLD);
-#warning todo: send data back and test equality
+
+			starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
+			starpu_mpi_recv(handle2, 1, 11, MPI_COMM_WORLD, &status);
+			starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
+			starpu_insert_task(&cl_compare, STARPU_R, handle, STARPU_R, handle2, 0);
 		}
 		else if (rank == 1)
 		{
@@ -55,6 +64,7 @@ int main(int argc, char **argv)
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
 			starpu_mpi_recv(handle, 0, 10, MPI_COMM_WORLD, &status);
 			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
+			starpu_mpi_send(handle, 0, 11, MPI_COMM_WORLD);
 		}
 	}
 	starpu_task_wait_for_all();
