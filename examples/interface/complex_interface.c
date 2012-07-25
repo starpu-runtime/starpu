@@ -164,6 +164,16 @@ static uint32_t complex_footprint(starpu_data_handle_t handle)
 	return starpu_crc32_be(starpu_complex_get_nx(handle), 0);
 }
 
+static void *complex_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	return (void*) complex_interface->real;
+}
+
 #ifdef STARPU_USE_CUDA
 static int copy_cuda_async_sync(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
@@ -310,6 +320,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.footprint = complex_footprint,
 	.interfaceid = -1,
 	.interface_size = sizeof(struct starpu_complex_interface),
+	.handle_to_pointer = complex_handle_to_pointer
 };
 
 void starpu_complex_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, double *real, double *imaginary, int nx)
