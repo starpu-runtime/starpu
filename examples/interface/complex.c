@@ -28,32 +28,6 @@ extern void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) vo
 extern void copy_complex_codelet_opencl(void *buffers[], void *args);
 #endif
 
-void compare_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
-{
-	int nx1 = STARPU_COMPLEX_GET_NX(descr[0]);
-	double *real1 = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *imaginary1 = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
-
-	int nx2 = STARPU_COMPLEX_GET_NX(descr[1]);
-	double *real2 = STARPU_COMPLEX_GET_REAL(descr[1]);
-	double *imaginary2 = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
-
-	int compare = (nx1 == nx2);
-	if (nx1 == nx2)
-	{
-		int i;
-		for(i=0 ; i<nx1 ; i++)
-		{
-			if (real1[i] != real2[i] || imaginary1[i] != imaginary2[i])
-			{
-				compare = 0;
-				break;
-			}
-		}
-	}
-	fprintf(stderr, "Complex numbers are%s similar\n", compare==0 ? " NOT" : "");
-}
-
 struct starpu_codelet cl_copy =
 {
 #ifdef STARPU_USE_CUDA
@@ -66,12 +40,6 @@ struct starpu_codelet cl_copy =
 	.modes = {STARPU_R, STARPU_W}
 };
 
-struct starpu_codelet cl_compare =
-{
-	.cpu_funcs = {compare_complex_codelet, NULL},
-	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_R}
-};
 
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
