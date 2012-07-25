@@ -69,6 +69,18 @@ An identifier that is unique to each interface.
 @item @code{size_t interface_size}
 The size of the interface data descriptor.
 
+@item @code{int is_multiformat}
+todo
+
+@item @code{struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface)}
+todo
+
+@item @code{int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr)}
+Pack the data handle into a contiguous buffer at the address @code{ptr}
+
+@item @code{int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr)}
+Unpack the data handle from the contiguous buffer at the address @code{ptr}
+
 @end table
 @end deftp
 
