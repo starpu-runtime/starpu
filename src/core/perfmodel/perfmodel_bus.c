@@ -1133,7 +1133,8 @@ void starpu_bus_print_bandwidth(FILE *f)
 	}
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
+	if (ncuda != 0 || nopencl != 0)
+		fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
 	for (src = 1; src <= maxnode; src++)
 	{
 		struct dev_timing *timing;
