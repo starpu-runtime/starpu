@@ -49,6 +49,7 @@ versinclude_HEADERS = 				\
 	include/starpu_task.h			\
 	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
+	include/starpu_task_util.h		\
 	include/starpu_data.h			\
 	include/starpu_perfmodel.h		\
 	include/starpu_util.h			\
