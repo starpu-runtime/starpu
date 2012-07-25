@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include "complex_interface.h"
+#include "complex_codelet.h"
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
@@ -52,26 +53,6 @@ void compare_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 	}
 	fprintf(stderr, "Complex numbers are%s similar\n", compare==0 ? " NOT" : "");
 }
-
-void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
-{
-	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
-	double *real = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
-	int i;
-
-	for(i=0 ; i<nx ; i++)
-	{
-		fprintf(stderr, "Complex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
-	}
-}
-
-struct starpu_codelet cl_display =
-{
-	.cpu_funcs = {display_complex_codelet, NULL},
-	.nbuffers = 1,
-	.modes = {STARPU_R}
-};
 
 struct starpu_codelet cl_copy =
 {
