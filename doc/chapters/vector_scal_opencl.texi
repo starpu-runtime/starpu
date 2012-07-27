@@ -2,12 +2,11 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009-2011  Université de Bordeaux 1
-@c Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 @c See the file starpu.texi for copying conditions.
 
 @smallexample
 #include <starpu.h>
-#include <starpu_opencl.h>
 
 extern struct starpu_opencl_program programs;
 

@@ -438,9 +438,6 @@ in our C file like this:
 
 @cartouche
 @smallexample
-/* Include StarPU's OpenCL integration.  */
-#include <starpu_opencl.h>
-
 /* The OpenCL programs, loaded from `main' (see below).  */
 static struct starpu_opencl_program cl_programs;
 
@@ -536,7 +533,6 @@ the CUDA Kernel}).
    with `nvcc'.  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 #include <stdlib.h>
 
 static __global__ void
@@ -724,7 +720,6 @@ call.
 @cartouche
 @smallexample
 #include <starpu.h>
-#include <starpu_cuda.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
@@ -778,7 +773,6 @@ important when using partitioning, see @ref{Partitioning Data}.
 @cartouche
 @smallexample
 #include <starpu.h>
-@i{#include <starpu_opencl.h>}
 
 @i{extern struct starpu_opencl_program programs;}
 
