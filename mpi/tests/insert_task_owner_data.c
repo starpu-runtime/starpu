@@ -15,7 +15,6 @@
  */
 
 #include <starpu_mpi.h>
-#include <starpu_mpi_datatype.h>
 #include <math.h>
 #include "helper.h"
 
