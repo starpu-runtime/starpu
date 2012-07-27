@@ -23,7 +23,6 @@
 #include <stdio.h>
 
 #include <starpu.h>
-#include <starpu_perfmodel.h>
 
 #ifdef __MINGW32__
 #include <windows.h>
