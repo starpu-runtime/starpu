@@ -13,10 +13,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 
 /* XXX Why cant we dereference a handle without this one ? */
 #include <core/sched_policy.h>

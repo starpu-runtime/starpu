@@ -13,9 +13,9 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <config.h>
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "../test_interfaces.h"
 
 #define KERNEL_LOCATION "tests/datawizard/interfaces/variable/variable_opencl_kernel.cl"

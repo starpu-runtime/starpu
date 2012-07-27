@@ -20,7 +20,6 @@
 
 #ifdef STARPU_USE_CUDA
 #  include <cublas.h>
-#  include <starpu_cuda.h>
 #endif
 
 #define LOOPS 100

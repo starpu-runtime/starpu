@@ -18,13 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#ifdef STARPU_USE_CUDA
-#include <starpu_cuda.h>
-#endif
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
-
 static starpu_data_handle_t handle;
 
 /*

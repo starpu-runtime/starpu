@@ -16,8 +16,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
-#include <starpu_cuda.h>
 #include "../helper.h"
 #include "scal.h"
 

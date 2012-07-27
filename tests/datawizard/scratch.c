@@ -20,9 +20,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <stdlib.h>
 #include "../helper.h"
 

@@ -16,9 +16,6 @@
 
 #include <starpu.h>
 #include <pthread.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 
 #include "../../helper.h"
 

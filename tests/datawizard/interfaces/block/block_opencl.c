@@ -15,7 +15,6 @@
  */
 #include <config.h>
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "../test_interfaces.h"
 
 #define KERNEL_LOCATION "tests/datawizard/interfaces/block/block_opencl_kernel.cl"

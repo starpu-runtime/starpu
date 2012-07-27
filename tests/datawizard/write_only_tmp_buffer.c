@@ -23,17 +23,11 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#ifdef STARPU_USE_CUDA
-#include <starpu_cuda.h>
-#endif
-
 #define VECTORSIZE	1024
 
 starpu_data_handle_t v_handle;
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-
 static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
