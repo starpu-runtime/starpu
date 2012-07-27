@@ -44,6 +44,8 @@ Changes:
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
 	still available for compatibility reasons.
+  * include/starpu.h includes all include/starpu_*.h files, applications
+	therefore only need to have #include <starpu.h>
 
 StarPU 1.0.1 (svn revision 6659)
 ==============================================
