@@ -15,9 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <starpu_hash.h>
 
 #include "complex_interface.h"
 

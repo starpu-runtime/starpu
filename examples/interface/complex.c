@@ -17,9 +17,6 @@
 #include <starpu.h>
 #include "complex_interface.h"
 #include "complex_codelet.h"
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 
 #ifdef STARPU_USE_CUDA
 extern void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) void *_args);

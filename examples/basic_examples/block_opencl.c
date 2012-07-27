@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 
 #define CHECK_CL_SET_KERNEL_ARG(kernel, n, size, ptr)       \
 do						    	    \

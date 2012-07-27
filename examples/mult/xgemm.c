@@ -28,7 +28,6 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
-#include <starpu_cuda.h>
 #endif
 
 static unsigned niter = 100;

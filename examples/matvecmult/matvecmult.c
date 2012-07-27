@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include <pthread.h>
 #include <math.h>
 

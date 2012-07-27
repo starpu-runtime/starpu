@@ -41,7 +41,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 
 /* Shadow width */
 #define SHADOW 2

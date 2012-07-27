@@ -24,10 +24,7 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
-#include <starpu_cuda.h>
 #endif
-
-#include <starpu.h>
 
 #define DOUBLE
 

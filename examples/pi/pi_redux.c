@@ -17,7 +17,6 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <starpu_config.h>
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define PI	3.14159265358979323846
@@ -29,7 +28,6 @@
 #ifdef STARPU_HAVE_CURAND
 #include <cuda.h>
 #include <curand.h>
-#include <starpu_cuda.h>
 #endif
 
 #define NSHOT_PER_TASK	(1024*1024)

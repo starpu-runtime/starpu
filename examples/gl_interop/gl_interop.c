@@ -27,9 +27,6 @@
 #include <starpu.h>
 #include <unistd.h>
 #include <GL/glut.h>
-#ifdef STARPU_USE_CUDA
-#include <starpu_cuda.h>
-#endif
 
 void dummy(void *buffers[], void *cl_arg)
 {
