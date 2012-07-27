@@ -64,7 +64,7 @@ endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 lib_LTLIBRARIES = libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -74,22 +74,22 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			
   -version-info $(LIBSTARPUMPI_INTERFACE_CURRENT):$(LIBSTARPUMPI_INTERFACE_REVISION):$(LIBSTARPUMPI_INTERFACE_AGE)
 
 noinst_HEADERS =					\
-	starpu_mpi_private.h				\
-	starpu_mpi_fxt.h				\
-	starpu_mpi_stats.h				\
-	starpu_mpi_datatype.h
+	src/starpu_mpi_private.h				\
+	src/starpu_mpi_fxt.h				\
+	src/starpu_mpi_stats.h				\
+	src/starpu_mpi_datatype.h
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	include/starpu_mpi.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
-	starpu_mpi.c					\
-	starpu_mpi_helper.c				\
-	starpu_mpi_datatype.c				\
-	starpu_mpi_insert_task.c			\
-	starpu_mpi_collective.c				\
-	starpu_mpi_stats.c
+	src/starpu_mpi.c				\
+	src/starpu_mpi_helper.c				\
+	src/starpu_mpi_datatype.c			\
+	src/starpu_mpi_insert_task.c			\
+	src/starpu_mpi_collective.c			\
+	src/starpu_mpi_stats.c
 
 ###################
 # Stencil example #
