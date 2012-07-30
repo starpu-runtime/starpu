@@ -529,7 +529,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_cpuset_t former_cpuset = hwloc_bitmap_alloc();
+	hwloc_bitmap_t former_cpuset = hwloc_bitmap_alloc();
 	hwloc_get_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 #elif __linux__
 	/* Save the current cpu binding */

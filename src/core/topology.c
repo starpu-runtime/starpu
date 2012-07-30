@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,12 +34,6 @@
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
-#endif
-#ifndef HWLOC_BITMAP_H
-/* hwloc <1.1 does not offer the bitmap API yet */
-#define hwloc_bitmap_alloc hwloc_cpuset_alloc
-#define hwloc_bitmap_only hwloc_cpuset_cpu
-#define hwloc_bitmap_singlify hwloc_cpuset_singlify
 #endif
 
 static unsigned topology_is_initialized = 0;
@@ -649,7 +643,7 @@ void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATT
 	if (support->cpubind->set_thisthread_cpubind)
 	{
 		hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->cpu_depth, cpuid);
-		hwloc_cpuset_t set = obj->cpuset;
+		hwloc_bitmap_t set = obj->cpuset;
 		int ret;
 
 		hwloc_bitmap_singlify(set);
@@ -700,7 +694,7 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 	support = hwloc_topology_get_support(config->topology.hwtopology);
 	if (support->cpubind->set_thisthread_cpubind)
 	{
-		hwloc_cpuset_t set = combined_worker->hwloc_cpu_set;
+		hwloc_bitmap_t set = combined_worker->hwloc_cpu_set;
 		int ret;
 
 		ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);

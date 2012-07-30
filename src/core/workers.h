@@ -87,8 +87,8 @@ struct _starpu_worker
 	cpu_set_t current_cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_cpuset_t initial_hwloc_cpu_set;
-	hwloc_cpuset_t current_hwloc_cpu_set;
+	hwloc_bitmap_t initial_hwloc_cpu_set;
+	hwloc_bitmap_t current_hwloc_cpu_set;
 #endif
 };
 
@@ -104,7 +104,7 @@ struct _starpu_combined_worker
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_cpuset_t hwloc_cpu_set;
+	hwloc_bitmap_t hwloc_cpu_set;
 #endif
 };
 
