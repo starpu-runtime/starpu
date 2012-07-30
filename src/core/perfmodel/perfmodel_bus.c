@@ -1150,9 +1150,9 @@ void starpu_bus_print_bandwidth(FILE *f)
 			{
 				timing = &cudadev_timing_per_cpu[src*STARPU_MAXCPUS+cpu];
 				if (timing->timing_htod)
-					fprintf(f, "%d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
+					fprintf(f, "%2d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%d\t", cuda_affinity_matrix[src-1][cpu]);
+					fprintf(f, "%2d\t", cuda_affinity_matrix[src-1][cpu]);
 			}
 		}
 #ifdef STARPU_USE_OPENCL
@@ -1166,9 +1166,9 @@ void starpu_bus_print_bandwidth(FILE *f)
 			{
 				timing = &opencldev_timing_per_cpu[(src-ncuda)*STARPU_MAXCPUS+cpu];
 				if (timing->timing_htod)
-					fprintf(f, "%d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
+					fprintf(f, "%2d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%d\t", opencl_affinity_matrix[src-1][cpu]);
+					fprintf(f, "%2d\t", opencl_affinity_matrix[src-1][cpu]);
 			}
 		}
 #endif
