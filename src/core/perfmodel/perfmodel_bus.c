@@ -79,11 +79,11 @@ static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
 #endif
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
 #ifdef STARPU_USE_CUDA
 
@@ -516,7 +516,6 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 
 static void benchmark_all_gpu_devices(void)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i;
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	int j;
@@ -595,7 +594,6 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus is done.\n");
-#endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
 	was_benchmarked = 1;
 }
