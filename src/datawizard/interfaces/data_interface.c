@@ -274,6 +274,9 @@ static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_inte
 
 	}
 
+	handle->tag = -1;
+	handle->rank = -1;
+
 	return handle;
 }
 

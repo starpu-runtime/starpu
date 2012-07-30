@@ -311,10 +311,11 @@ static struct starpu_data_interface_ops interface_complex_ops =
 To save the programmer from having to explicit all communications, StarPU
 provides an "MPI Insert Task Utility". The principe is that the application
 decides a distribution of the data over the MPI nodes by allocating it and
-notifying StarPU of that decision, i.e. tell StarPU which MPI node "owns" which
-data. All MPI nodes then process the whole task graph, and StarPU automatically
-determines which node actually execute which task, as well as the required MPI
-transfers.
+notifying StarPU of that decision, i.e. tell StarPU which MPI node "owns"
+which data. It also decides, for each handle, an MPI tag which will be used to
+exchange the content of the handle. All MPI nodes then process the whole task
+graph, and StarPU automatically determines which node actually execute which
+task, and trigger the required MPI transfers.
 
 @deftypefun int starpu_data_set_tag (starpu_data_handle_t @var{handle}, int @var{tag})
 Tell StarPU-MPI which MPI tag to use when exchanging the data.
