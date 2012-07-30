@@ -21,6 +21,7 @@ Changes:
   * Add starpu_block_shadow_filter_func_vector and an example.
   * Add tag dependency in trace-generated DAG.
   * Fix CPU binding for optimized CPU-GPU transfers.
+  * Fix parallel tasks CPU binding and combined worker generation.
 
 StarPU 1.0.1 (svn revision 6659)
 ==============================================
