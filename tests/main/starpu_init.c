@@ -30,12 +30,13 @@ int main(int argc, char **argv)
 static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 {
 	int ret;
+	char *string;
 
 	FPRINTF(stderr, "Testing with env=%d - conf=%d\n", env_cpu, conf_cpu);
 
 	if (env_cpu != -1)
 	{
-		char string[50];
+		string = malloc(50);
 		sprintf(string, "STARPU_NCPUS=%d", env_cpu);
 		putenv(string);
 	}
@@ -57,6 +58,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	if (env_cpu != -1)
 	{
 		unsetenv("STARPU_NCPUS");
+		free(string);
 	}
 
 	if (expected_cpu == -1)
