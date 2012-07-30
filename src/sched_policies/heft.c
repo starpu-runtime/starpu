@@ -258,6 +258,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	{
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
+
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
 			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
@@ -265,12 +271,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (exp_end[worker][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker][nimpl];
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
-
-			if (!starpu_worker_can_execute_task(worker, task, nimpl))
-			{
-				/* no one on that queue may execute this task */
-				continue;
-			}
 
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 			unsigned memory_node = starpu_worker_get_memory_node(worker);
