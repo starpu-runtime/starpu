@@ -507,7 +507,7 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, cu
 			errormsg = "unknown error";
 			break;
 	}
-	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	fprintf(stderr, "oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
