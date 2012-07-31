@@ -865,14 +865,12 @@ int starpu_perfmodel_list(FILE *output)
                                 fprintf(output, "file: <%s>\n", ep->d_name);
                 }
                 closedir (dp);
-                return 0;
         }
         else
 	{
 		_STARPU_DISP("Could not open the perfmodel directory <%s>\n", path);
-                perror("Error");
-                return 1;
         }
+	return 0;
 }
 
 /* This function is intended to be used by external tools that should read the
