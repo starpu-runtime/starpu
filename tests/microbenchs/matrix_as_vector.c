@@ -204,9 +204,7 @@ int main(int argc, char **argv)
 	devices = starpu_cuda_worker_get_count();
 	if (devices)
 	{
-		starpu_helper_cublas_init();
 		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
-		starpu_helper_cublas_shutdown();
 		if (ret) goto error;
 	}
 	devices = starpu_opencl_worker_get_count();
