@@ -304,13 +304,20 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 static struct _starpu_worker*
 _starpu_get_worker_from_driver(struct starpu_driver *d)
 {
-	int workers[d->id.cuda_id + 1];
-	int nworkers;
-	nworkers = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, workers, d->id.cuda_id+1);
-	if (nworkers >= 0 && (unsigned) nworkers < d->id.cuda_id)
-		return NULL; // No device was found.
-	
-	return _starpu_get_worker_struct(workers[d->id.cuda_id]);
+	unsigned nworkers = starpu_worker_get_count();
+	unsigned  workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		if (starpu_worker_get_type(workerid) == d->type)
+		{
+			struct _starpu_worker *worker;
+			worker = _starpu_get_worker_struct(workerid);
+			if (worker->devid == d->id.cuda_id)
+				return worker;
+		}
+	}
+
+	return NULL;
 }
 
 /* XXX Should this be merged with _starpu_init_cuda ? */
