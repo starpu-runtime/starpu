@@ -67,7 +67,12 @@ static int
 run(struct starpu_sched_policy *p)
 {
 	int ret;
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+
+	(void) starpu_conf_init(&conf);
+	conf.sched_policy = p;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 
