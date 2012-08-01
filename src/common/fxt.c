@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,6 +96,15 @@ void _starpu_start_fxt_profiling(void)
 		_starpu_fxt_started = 1;
 		_starpu_profile_set_tracefile(NULL);
 	}
+
+#ifdef HAVE_ENABLE_FUT_FLUSH
+	// when the event buffer is full, fxt stops recording events.
+	// The trace may thus be incomplete.
+	// Enable the fut_flush function which is called when the
+	// fxt event buffer is full to flush the buffer to disk,
+	// therefore allowing to record the remaining events.
+	enable_fut_flush();
+#endif
 
 	threadid = _starpu_gettid();
 

@@ -863,6 +863,8 @@ AC_SUBST(STARPU_USE_FXT, $use_fxt)
 AM_CONDITIONAL(STARPU_USE_FXT, test x$use_fxt = xyes)
 
 if test x$use_fxt = xyes; then
+   	AC_CHECK_FUNCS([enable_fut_flush])
+	AC_CHECK_DECLS([enable_fut_flush])
 	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
 	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
 
