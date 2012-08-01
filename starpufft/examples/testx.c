@@ -127,6 +127,7 @@ int main(int argc, char *argv[])
 #endif
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (argc == 1)
