@@ -230,7 +230,8 @@ int main(int argc, char *argv[])
 					argv[i] = strtok(NULL, " ");
 				}
 				argv[i] = test_name;
-				argv[i+1] = NULL;
+				argv[i+1] = test_args;
+				argv[i+2] = NULL;
 				execvp(*argv, argv);
 			}
 			else
