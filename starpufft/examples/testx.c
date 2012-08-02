@@ -222,7 +222,8 @@ int main(int argc, char *argv[])
 	printf("CUDA took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
 
-	STARPUFFT(execute)(plan, in, out);
+	ret = STARPUFFT(execute)(plan, in, out);
+	if (ret == 1) return 77;
 	STARPUFFT(showstats)(stdout);
 
 #ifdef STARPU_HAVE_FFTW
@@ -236,7 +237,8 @@ int main(int argc, char *argv[])
 	starpu_vector_data_register(&in_handle, 0, (uintptr_t) in, size, sizeof(*in));
 	starpu_vector_data_register(&out_handle, 0, (uintptr_t) out, size, sizeof(*out));
 
-	STARPUFFT(execute_handle)(plan, in_handle, out_handle);
+	ret = STARPUFFT(execute_handle)(plan, in_handle, out_handle);
+	if (ret == 1) return 77;
 
 	starpu_data_unregister(in_handle);
 	starpu_data_unregister(out_handle);
