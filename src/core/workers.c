@@ -858,6 +858,11 @@ struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &config.workers[id];
 }
 
+unsigned starpu_worker_is_combined_worker(int id)
+{
+	return id >= (int)config.topology.nworkers;
+}
+
 struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
         STARPU_ASSERT(id <= STARPU_NMAX_SCHED_CTXS);

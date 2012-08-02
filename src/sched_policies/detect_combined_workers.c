@@ -277,8 +277,15 @@ static unsigned find_and_assign_combinations_with_hwloc_recursive(struct _starpu
     {
 	gather_trees(tree, subtrees, obj->arity);
 
-	int ret = starpu_combined_worker_assign_workerid(nb_workers, workers);
-	STARPU_ASSERT(ret >= 0);
+	unsigned sched_ctx_id = starpu_get_sched_ctx();
+	int i;
+	for(i = 0; i < nb_workers; i++)
+		if(!starpu_worker_belongs_to_sched_ctx(workers[i], sched_ctx_id))
+			return 0;
+	struct worker_collection* workers_coll = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	int newworkerid = starpu_combined_worker_assign_workerid(nb_workers, workers);
+	STARPU_ASSERT(newworkerid >= 0);
+	workers_coll->add(workers_coll, newworkerid);
 	nb_workers = 0;
     }
 
@@ -361,7 +368,7 @@ static void get_min_max_sizes(unsigned int *min_size, unsigned int *max_size, st
 
 /* find_and_assign_combinations_with_hwloc
  * =======================================
- * Purpose
+ * * Purpose
  * =======
  * Launches find_and_assign_combinations_with_hwloc_recursive function on the root
  * of the hwloc tree to gather and assign combined cpu workers in an efficient manner.
@@ -376,8 +383,17 @@ static void get_min_max_sizes(unsigned int *min_size, unsigned int *max_size, st
  *			to get the hwloc tree.
  */
 
-static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topology *topology)
+static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers)
 {
+    struct _starpu_machine_config *config = _starpu_get_machine_config();
+    struct starpu_machine_topology *topology = &config->topology;
+
+    unsigned sched_ctx_id  = starpu_get_sched_ctx();
+    if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+	    sched_ctx_id = 0; 
+
+    struct worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+
     unsigned nb_workers;
     unsigned int min_size, max_size;
 
@@ -404,8 +420,9 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
 	 * while there are enough workers to assign regarding the min_size value */
 	STARPU_ASSERT(nb_workers <= max_size);
 
-	int ret = starpu_combined_worker_assign_workerid(nb_workers, tree.workers);
-	STARPU_ASSERT(ret >= 0);
+	int newworkerid = starpu_combined_worker_assign_workerid(nb_workers, tree.workers);
+	STARPU_ASSERT(newworkerid >= 0);
+	workers->add(workers, newworkerid);
     }
 
     free(tree.workers);
@@ -413,19 +430,27 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
 
 #else /* STARPU_HAVE_HWLOC */
 
-static void find_and_assign_combinations_without_hwloc(struct starpu_machine_topology *topology)
+static void find_and_assign_combinations_without_hwloc(int *workerids, int nworkers)
 {
-    struct _starpu_machine_config *config = _starpu_get_machine_config();
+    unsigned sched_ctx_id  = starpu_get_sched_ctx();
+    if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+	    sched_ctx_id = 0; 
+
+    struct worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+
 
     /* We put the id of all CPU workers in this array */
     int cpu_workers[STARPU_NMAXWORKERS];
     unsigned ncpus = 0;
 
+    struct _starpu_worker *worker;
     unsigned i;
-    for (i = 0; i < topology->nworkers; i++)
+    for (i = 0; i < nworkers; i++)
     {
-	if (config->workers[i].perf_arch == STARPU_CPU_DEFAULT)
-	    cpu_workers[ncpus++] = i;
+	    worker = _starpu_get_worker_struct(workerids[i]);
+	   
+	    if (worker.perf_arch == STARPU_CPU_DEFAULT)
+		    cpu_workers[ncpus++] = i;
     }
 
     unsigned size;
@@ -442,9 +467,10 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 		    workerids[i] = cpu_workers[first_cpu + i];
 
 		/* We register this combination */
-		int ret;
-		ret = starpu_combined_worker_assign_workerid(size, workerids);
-		STARPU_ASSERT(ret >= 0);
+		int newworkerid;
+		newworkerid = starpu_combined_worker_assign_workerid(size, workerids);
+		STARPU_ASSERT(newworkerid >= 0);
+		workers->add(workers, bewworkerid);
 	    }
 	}
     }
@@ -452,40 +478,47 @@ static void find_and_assign_combinations_without_hwloc(struct starpu_machine_top
 
 #endif /* STARPU_HAVE_HWLOC */
 
-static void combine_all_cpu_workers(struct starpu_machine_topology *topology)
+
+static void combine_all_cpu_workers(int *workerids, int nworkers)
 {
-    struct _starpu_machine_config *config = _starpu_get_machine_config();
-
-    int cpu_workers[STARPU_NMAXWORKERS];
-    unsigned ncpus = 0;
-
-    unsigned i;
-    for (i = 0; i < topology->nworkers; i++)
-    {
-	if (config->workers[i].perf_arch == STARPU_CPU_DEFAULT)
-	    cpu_workers[ncpus++] = i;
-    }
-
-    for (i = 1; i <= ncpus; i++)
-    {
-	int ret;
-	ret = starpu_combined_worker_assign_workerid(i, cpu_workers);
-	STARPU_ASSERT(ret >= 0);
-    }
+	unsigned sched_ctx_id  = starpu_get_sched_ctx();
+	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+		sched_ctx_id = 0;
+	struct worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	int cpu_workers[STARPU_NMAXWORKERS];
+	unsigned ncpus = 0;
+	struct _starpu_worker *worker;
+	unsigned i;
+	for (i = 0; i < nworkers; i++)
+	{
+		worker = _starpu_get_worker_struct(workerids[i]);
+		
+		if (worker->perf_arch == STARPU_CPU_DEFAULT)
+			cpu_workers[ncpus++] = workerids[i];
+	}
+	
+	for (i = 1; i <= ncpus; i++)
+	{
+		int newworkerid;
+		newworkerid = starpu_combined_worker_assign_workerid(i, cpu_workers);
+		STARPU_ASSERT(newworkerid >= 0);
+		workers->add(workers, newworkerid);
+	}
 }
 
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology *topology)
+void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 {
     struct _starpu_machine_config *config = _starpu_get_machine_config();
 
+    
     if (config->conf->single_combined_worker > 0)
-	combine_all_cpu_workers(topology);
+	    combine_all_cpu_workers(workerids, nworkers);
     else
     {
 #ifdef STARPU_HAVE_HWLOC
-	find_and_assign_combinations_with_hwloc(topology);
+	    find_and_assign_combinations_with_hwloc(workerids, nworkers);
 #else
-	find_and_assign_combinations_without_hwloc(topology);
+	    find_and_assign_combinations_without_hwloc(workerids, nworkers);
 #endif
     }
 }

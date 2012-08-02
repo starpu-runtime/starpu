@@ -54,8 +54,10 @@ static void sort_workerid_array(int nworkers, int workerid_array[])
  * workerid_array array which has nworkers entries. This function returns
  * the identifier of the combined worker in case of success, a negative value
  * is returned otherwise. */
+
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 {
+	unsigned sched_ctx_id = starpu_get_sched_ctx();
 	int new_workerid;
 
 	/* Return the number of actual workers. */

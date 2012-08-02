@@ -50,7 +50,7 @@ static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct starpu_machine_topology *topology = &config->topology;
 
-	_starpu_sched_find_worker_combinations(topology);
+	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
 	unsigned workerid, i;
 	unsigned ncombinedworkers;

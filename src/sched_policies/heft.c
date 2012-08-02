@@ -479,7 +479,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	 *	and detect if there is some calibration that needs to be done.
 	 */
 
-	starpu_task_bundle_t bundle = NULL; //task->bundle;
+	starpu_task_bundle_t bundle = task->bundle;
 
 	if(workers->init_cursor)
 		workers->init_cursor(workers);

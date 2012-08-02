@@ -101,6 +101,7 @@ void starpu_shutdown(void);
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);
 unsigned starpu_combined_worker_get_count(void);
+unsigned starpu_worker_is_combined_worker(int id);
 
 unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);

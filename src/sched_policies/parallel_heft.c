@@ -34,7 +34,7 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
-static unsigned ncombinedworkers;
+//static unsigned ncombinedworkers;
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
 
@@ -93,9 +93,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
 	/* Is this a basic worker or a combined worker ? */
-	int nbasic_workers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
-	int is_basic_worker = (best_workerid < nbasic_workers);
-
 	unsigned memory_node;
 	memory_node = starpu_worker_get_memory_node(best_workerid);
 
@@ -104,7 +101,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	int ret = 0;
 
-	if (is_basic_worker)
+	if (!starpu_worker_is_combined_worker(best_workerid))
 	{
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
@@ -188,8 +185,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 static double compute_expected_end(int workerid, double length, unsigned sched_ctx_id)
 {
-	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
-	if (workerid < (int)nworkers)
+	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		/* This is a basic worker */
 		return worker_exp_start[workerid] + worker_exp_len[workerid] + length;
@@ -218,9 +214,8 @@ static double compute_expected_end(int workerid, double length, unsigned sched_c
 
 static double compute_ntasks_end(int workerid, unsigned sched_ctx_id)
 {
-	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
-	if (workerid < (int)nworkers)
+	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		/* This is a basic worker */
 		return ntasks[workerid] / starpu_worker_get_relative_speedup(perf_arch);
@@ -259,15 +254,15 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	   there is no performance prediction available yet */
 	int forced_best = -1, forced_best_ctx = -1, forced_nimpl = -1;
 
-	double local_task_length[nworkers_ctx + ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double local_data_penalty[nworkers_ctx + ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers_ctx + ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double local_exp_end[nworkers_ctx + ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double fitness[nworkers_ctx + ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
+	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	double max_exp_end = 0.0;
 
-	int skip_worker[nworkers_ctx + ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
+	int skip_worker[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	double best_exp_end = DBL_MAX;
 	//double penality_best = 0.0;
@@ -285,25 +280,26 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
         {
                 worker = workers->get_next(workers);
 
-		pthread_mutex_t *sched_mutex;
-		pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
-		/* Sometimes workers didn't take the tasks as early as we expected */
-		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
-		worker_exp_end[worker] = worker_exp_start[worker] + worker_exp_len[worker];
-		if (worker_exp_end[worker] > max_exp_end)
-			max_exp_end = worker_exp_end[worker];
-		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		if(!starpu_worker_is_combined_worker(worker))
+		{
+			pthread_mutex_t *sched_mutex;
+			pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+			/* Sometimes workers didn't take the tasks as early as we expected */
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+			worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
+			worker_exp_end[worker] = worker_exp_start[worker] + worker_exp_len[worker];
+			if (worker_exp_end[worker] > max_exp_end)
+				max_exp_end = worker_exp_end[worker];
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		}
 	}
 
 	unsigned nimpl;
 	worker_ctx = 0;
-	while((workers->has_next(workers) && worker_ctx < nworkers_ctx) || 
-	      (worker_ctx >= nworkers_ctx && worker_ctx < (nworkers_ctx + ncombinedworkers)))
+	while(workers->has_next(workers))
 	{
-                worker = (workers->has_next(workers) && worker_ctx < nworkers_ctx) ? 
-			workers->get_next(workers) : worker_ctx;
+                worker = workers->get_next(workers);
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -388,13 +384,10 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	if (forced_best == -1)
 	{
 		worker_ctx = 0;
-		while((workers->has_next(workers) && worker_ctx < nworkers_ctx) || 
-		      (worker_ctx >= nworkers_ctx && worker_ctx < (nworkers_ctx + ncombinedworkers)))
+		while(workers->has_next(workers))
 		{
-			worker = (workers->has_next(workers) && worker_ctx < nworkers_ctx) ? 
-				workers->get_next(workers) : worker_ctx;
+			worker = workers->get_next(workers);
 			
-
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (skip_worker[worker_ctx][nimpl])
@@ -427,6 +420,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			worker_ctx++;
 		}
 	}
+
+        if(workers->init_cursor)                                                                                                                                                                                                    workers->deinit_cursor(workers);
 
 	STARPU_ASSERT(forced_best != -1 || best != -1);
 
@@ -461,14 +456,15 @@ static int parallel_heft_push_task(struct starpu_task *task)
 	int ret_val = -1;
 
 	if (task->priority == STARPU_MAX_PRIO)
-	{  _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+	{  
+		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
                 nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
                 if(nworkers == 0)
                 {
                         _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
                         return ret_val;
                 }
-
+		
 		ret_val = _parallel_heft_push_task(task, 1, sched_ctx_id);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
                 return ret_val;
@@ -508,23 +504,25 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 
 		starpu_worker_init_sched_condition(sched_ctx_id, workerid);
 	}
+	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	_starpu_sched_find_worker_combinations(&config->topology);
+// start_unclear_part: not very clear where this is used
+/* 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config(); */
+/* 	ncombinedworkers = config->topology.ncombinedworkers; */
 
-	ncombinedworkers = config->topology.ncombinedworkers;
+/* 	/\* We pre-compute an array of all the perfmodel archs that are applicable *\/ */
+/* 	unsigned total_worker_count = nworkers + ncombinedworkers; */
 
-	/* We pre-compute an array of all the perfmodel archs that are applicable */
-	unsigned total_worker_count = nworkers + ncombinedworkers;
+/* 	unsigned used_perf_archtypes[STARPU_NARCH_VARIATIONS]; */
+/* 	memset(used_perf_archtypes, 0, sizeof(used_perf_archtypes)); */
 
-	unsigned used_perf_archtypes[STARPU_NARCH_VARIATIONS];
-	memset(used_perf_archtypes, 0, sizeof(used_perf_archtypes));
+/* 	for (workerid = 0; workerid < total_worker_count; workerid++) */
+/* 	{ */
+/* 		enum starpu_perf_archtype perf_archtype = starpu_worker_get_perf_archtype(workerid); */
+/* 		used_perf_archtypes[perf_archtype] = 1; */
+/* 	} */
 
-	for (workerid = 0; workerid < total_worker_count; workerid++)
-	{
-		enum starpu_perf_archtype perf_archtype = starpu_worker_get_perf_archtype(workerid);
-		used_perf_archtypes[perf_archtype] = 1;
-	}
+// end_unclear_part
 
 //	napplicable_perf_archtypes = 0;
 
