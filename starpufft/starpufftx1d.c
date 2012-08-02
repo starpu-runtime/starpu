@@ -772,8 +772,8 @@ if (PARALLEL) {
 }
 
 /* Actually submit all the tasks. */
-static struct starpu_task *
-STARPUFFT(start1dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
+static int
+STARPUFFT(start1dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out, struct starpu_task **ptask)
 {
 	STARPU_ASSERT(plan->type == C2C);
 	int z;
@@ -802,7 +802,8 @@ if (PARALLEL) {
 	ret = starpu_task_submit(plan->end_task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	return plan->end_task;
+	*ptask = plan->end_task;
+	return 0;
 } else /* !PARALLEL */ {
 	struct starpu_task *task;
 
@@ -815,8 +816,10 @@ if (PARALLEL) {
 	task->cl_arg = plan;
 
 	ret = starpu_task_submit(task);
+	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	return task;
+	*ptask = task;
+	return 0;
 }
 }
 

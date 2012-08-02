@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,11 +39,11 @@ starpufft(plan) starpufft(plan_dft_c2r_1d)(int n, unsigned flags); \
 void *starpufft(malloc)(size_t n); \
 void starpufft(free)(void *p); \
 \
-void starpufft(execute)(starpufft(plan) p, void *in, void *out); \
-struct starpu_task *starpufft(start)(starpufft(plan) p, void *in, void *out); \
+int starpufft(execute)(starpufft(plan) p, void *in, void *out); \
+int starpufft(start)(starpufft(plan) p, void *in, void *out, struct starpu_task **task); \
 \
-void starpufft(execute_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
-struct starpu_task *starpufft(start_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
+int starpufft(execute_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out); \
+int starpufft(start_handle)(starpufft(plan) p, starpu_data_handle_t in, starpu_data_handle_t out, struct starpu_task **ptask); \
 \
 void starpufft(cleanup)(starpufft(plan) p); \
 void starpufft(destroy_plan)(starpufft(plan) p); \
