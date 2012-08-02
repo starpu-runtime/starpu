@@ -222,7 +222,8 @@ int main(int argc, char *argv[])
 	printf("CUDA took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
 
-	STARPUFFT(execute)(plan, in, out);
+	ret = STARPUFFT(execute)(plan, in, out);
+	if (ret == -ENODEV) return 77;
 	STARPUFFT(showstats)(stdout);
 
 #ifdef STARPU_HAVE_FFTW
