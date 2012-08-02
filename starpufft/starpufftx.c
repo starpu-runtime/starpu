@@ -200,9 +200,10 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 #include "starpufftx1d.c"
 #include "starpufftx2d.c"
 
-int
-STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out, struct starpu_task **task)
+struct starpu_task *
+STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
+	struct starpu_task *task;
 	int z;
 
 	plan->in = _in;
@@ -223,8 +224,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out, struct starpu_task
 					for (z = 0; z < plan->totsize1; z++)
 						plan->twist1_tasks[z]->handles[0] = plan->in_handle;
 				}
-				int ret = STARPUFFT(start1dC2C)(plan, plan->in_handle, plan->out_handle, task);
-				if (ret == -ENODEV) return ret;
+				task = STARPUFFT(start1dC2C)(plan, plan->in_handle, plan->out_handle);
 				break;
 			default:
 				STARPU_ABORT();
@@ -241,14 +241,13 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out, struct starpu_task
 				for (z = 0; z < plan->totsize1; z++)
 					plan->twist1_tasks[z]->handles[0] = plan->in_handle;
 			}
-			int ret = STARPUFFT(start2dC2C)(plan, plan->in_handle, plan->out_handle, task);
-			if (ret == -ENODEV) return ret;
+			task = STARPUFFT(start2dC2C)(plan, plan->in_handle, plan->out_handle);
 			break;
 		default:
 			STARPU_ABORT();
 			break;
 	}
-	return 0;
+	return task;
 }
 
 void
@@ -263,13 +262,13 @@ STARPUFFT(cleanup)(STARPUFFT(plan) plan)
 	}
 }
 
-int
-STARPUFFT(start_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out, struct starpu_task **ptask)
+struct starpu_task *
+STARPUFFT(start_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
-     return STARPUFFT(start1dC2C)(plan, in, out, ptask);
+	return STARPUFFT(start1dC2C)(plan, in, out);
 }
 
-int
+void
 STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 {
 	int ret;
@@ -279,9 +278,7 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 
 	gettimeofday(&start, NULL);
 
-	struct starpu_task *task;
-	ret = STARPUFFT(start)(plan, in, out, &task);
-	if (ret == -ENODEV) return ret;
+	struct starpu_task *task = STARPUFFT(start)(plan, in, out);
 	gettimeofday(&submit_tasks, NULL);
 	ret = starpu_task_wait(task);
 	STARPU_ASSERT(ret == 0);
@@ -291,17 +288,14 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 	gettimeofday(&end, NULL);
 }
 
-int
+void
 STARPUFFT(execute_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
 	int ret;
 
-	struct starpu_task *task;
-	ret = STARPUFFT(start_handle)(plan, in, out, &task);
-	if (ret == -ENODEV) return ret;
+	struct starpu_task *task = STARPUFFT(start_handle)(plan, in, out);
 	ret = starpu_task_wait(task);
 	STARPU_ASSERT(ret == 0);
-	return 0;
 }
 
 /* Destroy FFTW plans, unregister and free buffers, and free tags */
