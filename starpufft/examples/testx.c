@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 #endif
 
 	ret = STARPUFFT(execute)(plan, in, out);
-	if (ret == 1) return 77;
+	if (ret == -1) return 77;
 	STARPUFFT(showstats)(stdout);
 
 #ifdef STARPU_HAVE_FFTW
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 	starpu_vector_data_register(&out_handle, 0, (uintptr_t) out, size, sizeof(*out));
 
 	ret = STARPUFFT(execute_handle)(plan, in_handle, out_handle);
-	if (ret == 1) return 77;
+	if (ret == -1) return 77;
 
 	starpu_data_unregister(in_handle);
 	starpu_data_unregister(out_handle);
