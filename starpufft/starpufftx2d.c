@@ -780,24 +780,31 @@ STARPUFFT(start2dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data
 if (PARALLEL) {
 	for (z=0; z < plan->totsize1; z++) {
 		ret = starpu_task_submit(plan->twist1_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		ret = starpu_task_submit(plan->fft1_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	ret = starpu_task_submit(plan->join_task);
+	if (ret == -ENODEV) return NULL;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	for (z=0; z < plan->totsize3; z++) {
 		ret = starpu_task_submit(plan->twist2_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		ret = starpu_task_submit(plan->fft2_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		ret = starpu_task_submit(plan->twist3_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	ret = starpu_task_submit(plan->end_task);
+	if (ret == -ENODEV) return NULL;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	return plan->end_task;
@@ -813,6 +820,7 @@ if (PARALLEL) {
 	task->cl_arg = plan;
 
 	ret = starpu_task_submit(task);
+	if (ret == -ENODEV) return NULL;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return task;
 }
