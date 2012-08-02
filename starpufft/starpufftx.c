@@ -289,7 +289,7 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 	STARPUFFT(cleanup)(plan);
 
 	gettimeofday(&end, NULL);
-	return (task == NULL ? 1 : 0);
+	return (task == NULL ? -1 : 0);
 }
 
 int
@@ -298,7 +298,7 @@ STARPUFFT(execute_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_
 	int ret;
 
 	struct starpu_task *task = STARPUFFT(start_handle)(plan, in, out);
-	if (!task) return 1;
+	if (!task) return -1;
 	ret = starpu_task_wait(task);
 	STARPU_ASSERT(ret == 0);
 	return 0;
