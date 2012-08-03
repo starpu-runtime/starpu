@@ -52,6 +52,7 @@ Changes:
   * Add tag dependency in trace-generated DAG.
   * Fix CPU binding for optimized CPU-GPU transfers.
   * Fix parallel tasks CPU binding and combined worker generation.
+  * Fix generating FXT traces bigger than 64MiB.
 
 StarPU 1.0.1 (svn revision 6659)
 ==============================================
