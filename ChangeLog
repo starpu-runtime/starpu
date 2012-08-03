@@ -43,6 +43,7 @@ Small changes:
 	still available for compatibility reasons.
   * include/starpu.h includes all include/starpu_*.h files, applications
 	therefore only need to have #include <starpu.h>
+  * Active task wait is now included in blocked time.
 
 StarPU 1.0.2 (svn revision xxx)
 ==============================================
