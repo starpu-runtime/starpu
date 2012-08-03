@@ -188,8 +188,7 @@ int check_size_on_device(uint32_t where, char *device_name)
 		if (ret != EXIT_SUCCESS) break;
 	}
 	return ret;
-
-};
+}
 
 int main(int argc, char **argv)
 {

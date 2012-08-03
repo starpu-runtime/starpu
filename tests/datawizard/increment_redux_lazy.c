@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 			task->cl = &increment_cl;
 			task->handles[0] = handle;
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
