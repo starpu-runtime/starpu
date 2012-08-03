@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -182,33 +182,31 @@ void _starpu_worker_reset_profiling_info(int workerid)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 }
 
-void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start)
+void _starpu_worker_restart_sleeping(int workerid)
 {
 	if (profiling)
 	{
+		struct timespec sleep_start_time;
+		_starpu_clock_gettime(&sleep_start_time);
+
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 		worker_registered_sleeping_start[workerid] = 1;
-		memcpy(&sleeping_start_date[workerid], sleeping_start, sizeof(struct timespec));
+		memcpy(&sleeping_start_date[workerid], &sleep_start_time, sizeof(struct timespec));
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
 
-void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start)
+void _starpu_worker_stop_sleeping(int workerid)
 {
 	if (profiling)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		worker_registered_executing_start[workerid] = 1;
-		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
-	}
-}
+		struct timespec *sleeping_start, sleep_end_time;
 
-void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec *sleeping_start, struct timespec *sleeping_end)
-{
-	if (profiling)
-	{
+		_starpu_clock_gettime(&sleep_end_time);
+
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+
+		sleeping_start = &sleeping_start_date[workerid];
 
                 /* Perhaps that profiling was enabled while the worker was
                  * already blocked, so we don't measure (end - start), but
@@ -222,12 +220,24 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 		}
 
 		struct timespec sleeping_time;
-		starpu_timespec_sub(sleeping_end, sleeping_start, &sleeping_time);
+		starpu_timespec_sub(&sleep_end_time, sleeping_start, &sleeping_time);
 
 		starpu_timespec_accumulate(&worker_info[workerid].sleeping_time, &sleeping_time);
 
 		worker_registered_sleeping_start[workerid] = 0;
 
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+
+	}
+}
+
+void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start)
+{
+	if (profiling)
+	{
+		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		worker_registered_executing_start[workerid] = 1;
+		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }

@@ -142,25 +142,44 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
-/* Workers may block when there is no work to do at all. We assume that the
- * mutex is hold when that function is called. */
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex)
+/* Workers may block when there is no work to do at all. */
+struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
-	struct timespec start_time, end_time;
+	struct starpu_task *task;
 
-	_STARPU_TRACE_WORKER_SLEEP_START
-	_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+	/* Note: we need to keep the sched condition mutex all along the path
+	 * from popping a task from the scheduler to blocking. Otherwise the
+	 * driver may go block just after the scheduler got a new task to be
+	 * executed, and thus hanging. */
+	_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
-	_starpu_clock_gettime(&start_time);
-	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
+	task = _starpu_pop_task(args);
 
-	_STARPU_PTHREAD_COND_WAIT(cond, mutex);
+	if (task == NULL)
+	{
+		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+		{
+			_STARPU_TRACE_WORKER_SLEEP_START
+			_starpu_worker_restart_sleeping(workerid);
+			_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+		}
 
-	_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
-	_STARPU_TRACE_WORKER_SLEEP_END
-	_starpu_clock_gettime(&end_time);
+		if (_starpu_worker_can_block(memnode))
+			_STARPU_PTHREAD_COND_WAIT(args->sched_cond, args->sched_mutex);
 
-	int profiling = starpu_profiling_status_get();
-	if (profiling)
-		_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+
+		return NULL;
+	}
+
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	{
+		_STARPU_TRACE_WORKER_SLEEP_END
+		_starpu_worker_stop_sleeping(workerid);
+		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
+	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+
+	return task;
 }

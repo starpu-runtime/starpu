@@ -151,6 +151,8 @@ static void init_context(int devid)
 	cudaError_t cures;
 	int workerid;
 
+	/* TODO: cudaSetDeviceFlag(cudaDeviceMapHost) */
+
 	starpu_cuda_set_device(devid);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
@@ -388,28 +390,14 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 	_starpu_datawizard_progress(memnode, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
-	/* Note: we need to keep the sched condition mutex all along the path
-	 * from popping a task from the scheduler to blocking. Otherwise the
-	 * driver may go block just after the scheduler got a new task to be
-	 * executed, and thus hanging. */
-	_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
-
-	struct starpu_task *task = _starpu_pop_task(args);
+	struct starpu_task *task;
 	struct _starpu_job *j = NULL;
 
-	if (task == NULL)
-	{
-		if (_starpu_worker_can_block(memnode))
-			_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
+	task = _starpu_get_worker_task(args, workerid, memnode);
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
-
+	if (!task)
 		return 0;
-	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
-
-	STARPU_ASSERT(task);
 	j = _starpu_get_job_associated_to_task(task);
 
 	/* can CUDA do that task ? */

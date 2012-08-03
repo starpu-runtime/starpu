@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,13 +34,13 @@ void _starpu_worker_reset_profiling_info(int workerid);
  * This tells StarPU how much time was spent doing computation. */
 void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_power);
 
-/* Update the per-worker profiling info when StarPU wakes up: this indicates
- * how much time was spent sleeping. */
-void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec *sleeping_start, struct timespec *sleeping_end);
-
 /* Record the date when the worker started to sleep. This permits to measure
- * how much time was spent sleeping when it becomes awake later on. */
-void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start);
+ * how much time was spent sleeping. */
+void _starpu_worker_restart_sleeping(int workerid);
+
+/* Record the date when the worker stopped sleeping. This permits to measure
+ * how much time was spent sleeping. */
+void _starpu_worker_stop_sleeping(int workerid);
 
 /* Record the date when the worker started to execute a piece of code. This
  * permits to measure how much time was really spent doing computation at the
