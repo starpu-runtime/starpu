@@ -143,8 +143,21 @@ This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environ
 
 @item @code{int disable_asynchronous_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
-CPUs and accelerators. This can also be specified with the
+CPUs and all accelerators. This can also be specified with the
 @code{STARPU_DISABLE_ASYNCHRONOUS_COPY} environment variable.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+@item @code{int disable_cuda_asynchronous_copy} (default = 0)
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and CUDA accelerators. This can also be specified with the
+@code{STARPU_DISABLE_CUDA_ASYNCHRONOUS_COPY} environment variable.
+
+@item @code{int disable_opencl_asynchronous_copy} (default = 0)
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and OpenCL accelerators. This can also be specified with the
+@code{STARPU_DISABLE_OPENCL_ASYNCHRONOUS_COPY} environment variable.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
@@ -187,6 +200,16 @@ guaranteed to be available until this method has been called.
 
 @deftypefun int starpu_asynchronous_copy_disabled ()
 Return 1 if asynchronous data transfers between CPU and accelerators
+are disabled.
+@end deftypefun
+
+@deftypefun int starpu_asynchronous_cuda_copy_disabled ()
+Return 1 if asynchronous data transfers between CPU and CUDA accelerators
+are disabled.
+@end deftypefun
+
+@deftypefun int starpu_asynchronous_opencl_copy_disabled ()
+Return 1 if asynchronous data transfers between CPU and OpenCL accelerators
 are disabled.
 @end deftypefun
 
