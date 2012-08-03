@@ -323,8 +323,8 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 		ops->copy_methods->ram_to_opencl_async = NULL;
 		ops->copy_methods->opencl_to_ram_async = NULL;
 		ops->copy_methods->opencl_to_opencl_async = NULL;
-#endif
 	}
+#endif
 
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
