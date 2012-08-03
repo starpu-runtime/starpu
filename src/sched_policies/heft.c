@@ -230,6 +230,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return starpu_push_local_task(best_workerid, task, prio);
 }
 
+/* TODO: Correct the bugs in the scheduling !!! */
 /* TODO: factorize with dmda!! */
 static void compute_all_performance_predictions(struct starpu_task *task,
 					double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
