@@ -142,13 +142,13 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "StarPU has found :\n");
 
-	fprintf(stdout, "\t%d CPU cores\n", ncpu);
+	fprintf(stdout, "\t%u CPU cores\n", ncpu);
 	display_worker_names(STARPU_CPU_WORKER);
 
-	fprintf(stdout, "\t%d CUDA devices\n", ncuda);
+	fprintf(stdout, "\t%u CUDA devices\n", ncuda);
 	display_worker_names(STARPU_CUDA_WORKER);
 
-	fprintf(stdout, "\t%d OpenCL devices\n", nopencl);
+	fprintf(stdout, "\t%u OpenCL devices\n", nopencl);
 	display_worker_names(STARPU_OPENCL_WORKER);
 
 	display_all_combined_workers();
