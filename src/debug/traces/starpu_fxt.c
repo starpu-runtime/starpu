@@ -742,7 +742,7 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 {
 	int rank = ev->param[0];
 
-	STARPU_ASSERT(rank == options->file_rank);
+	STARPU_ASSERT(rank == options->file_rank || options->file_rank == -1);
 
 	/* Add an event in the trace */
 	if (out_paje_file)
