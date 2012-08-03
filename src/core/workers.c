@@ -489,17 +489,29 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (conf->single_combined_worker == -1)
 	     conf->single_combined_worker = 0;
 
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_COPY)
+	conf->disable_asynchronous_copy = 1;
+#else
 	conf->disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
 	if (conf->disable_asynchronous_copy == -1)
 		conf->disable_asynchronous_copy = 0;
+#endif
 
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY)
+	conf->disable_asynchronous_cuda_copy = 1;
+#else
 	conf->disable_cuda_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_CUDA_ASYNCHRONOUS_COPY");
 	if (conf->disable_cuda_asynchronous_copy == -1)
 		conf->disable_cuda_asynchronous_copy = 0;
+#endif
 
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY)
+	conf->disable_asynchronous_opencl_copy = 1;
+#else
 	conf->disable_opencl_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_OPENCL_ASYNCHRONOUS_COPY");
 	if (conf->disable_opencl_asynchronous_copy == -1)
 		conf->disable_opencl_asynchronous_copy = 0;
+#endif
 
 	return 0;
 }
