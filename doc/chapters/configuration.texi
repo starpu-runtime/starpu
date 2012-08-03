@@ -118,6 +118,20 @@ Allow for at most @var{count} codelet implementations for the same
 target device.  This information is then available as the
 @code{STARPU_MAXIMPLEMENTATIONS} macro.
 
+@item --disable-asynchronous-copy
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+@item --disable-asynchronous-cuda-copy
+Disable asynchronous copies between CPU and CUDA devices.
+
+@item --disable-asynchronous-opencl-copy
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
 @end table
 
 @node Extension configuration
@@ -226,16 +240,19 @@ MKL website} provides a script to determine the linking flags.
 @subsection Configuring workers
 
 @menu
-* STARPU_NCPU::                	Number of CPU workers
-* STARPU_NCUDA::                	Number of CUDA workers
-* STARPU_NOPENCL::              	Number of OpenCL workers
-* STARPU_NGORDON::              	Number of SPU workers (Cell)
-* STARPU_WORKERS_NOBIND::       	Do not bind workers
-* STARPU_WORKERS_CPUID::        	Bind workers to specific CPUs
-* STARPU_WORKERS_CUDAID::       	Select specific CUDA devices
-* STARPU_WORKERS_OPENCLID::     	Select specific OpenCL devices
-* STARPU_SINGLE_COMBINED_WORKER:: 	Do not use concurrent workers
-* STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER::	 	Maximum arity between combined worker levels
+* STARPU_NCPU::                 Number of CPU workers
+* STARPU_NCUDA::                Number of CUDA workers
+* STARPU_NOPENCL::              Number of OpenCL workers
+* STARPU_NGORDON::              Number of SPU workers (Cell)
+* STARPU_WORKERS_NOBIND::       Do not bind workers
+* STARPU_WORKERS_CPUID::        Bind workers to specific CPUs
+* STARPU_WORKERS_CUDAID::       Select specific CUDA devices
+* STARPU_WORKERS_OPENCLID::     Select specific OpenCL devices
+* STARPU_SINGLE_COMBINED_WORKER::  Do not use concurrent workers
+* STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER::  Maximum arity between combined worker levels
+* STARPU_DISABLE_ASYNCHRONOUS_COPY::  
+* STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY::  
+* STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY::  
 @end menu
 
 @node STARPU_NCPU
@@ -341,6 +358,24 @@ is already a normal worker for it).
 
 The default, 2, thus makes StarPU tend to building a binary trees of combined
 workers.
+
+@node STARPU_DISABLE_ASYNCHRONOUS_COPY
+@subsubsection @code{STARPU_DISABLE_ASYNCHRONOUS_COPY}
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+@node STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
+@subsubsection @code{STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY}
+Disable asynchronous copies between CPU and CUDA devices.
+
+@node STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
+@subsubsection @code{STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY}
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
 
 @node Scheduling
 @subsection Configuring the Scheduling engine
