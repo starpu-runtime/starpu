@@ -347,7 +347,7 @@ int main(int argc, char **argv)
 	assert(x && y);
 
         starpu_srand48(0);
-	
+
 	DOT_TYPE reference_dot = 0.0;
 
 	unsigned long i;
@@ -357,8 +357,8 @@ int main(int argc, char **argv)
 		y[i] = (float)starpu_drand48();
 
 		reference_dot += (DOT_TYPE)x[i]*(DOT_TYPE)y[i];
-	} 
-	
+	}
+
 	unsigned block;
 	for (block = 0; block < nblocks; block++)
 	{
@@ -386,7 +386,7 @@ int main(int argc, char **argv)
 		task->handles[1] = y_handles[block];
 		task->handles[2] = dot_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_ASSERT(!ret);
 	}

@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 		task->handles[0] = sobol_qrng_direction_handle;
 		task->handles[1] = starpu_data_get_sub_data(cnt_array_handle, 1, i);
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 

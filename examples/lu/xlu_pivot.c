@@ -312,7 +312,6 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	gettimeofday(&start, NULL);
 	ret = starpu_task_submit(entry_task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	return ret;
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait_array(ndeps, tags);
