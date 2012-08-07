@@ -164,7 +164,7 @@ static void init_context(int devid)
 			cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
 			if (!cures && can) {
 				cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
-				if (cures)
+				if (!cures)
 					_STARPU_DEBUG("GPU-Direct %d -> %d\n", worker->devid, devid);
 			}
 		}
