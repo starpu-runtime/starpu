@@ -281,7 +281,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 			node = opencl_node;
 #endif
 		if (node == -EINVAL)
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;

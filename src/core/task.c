@@ -730,7 +730,7 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 					return 1;
 				case STARPU_SPU_LS: /* Not supported */
 				default:
-					STARPU_ASSERT(0);
+					STARPU_ABORT();
 			}
 			break;
 		case STARPU_CUDA_RAM:    /* Fall through */
@@ -744,12 +744,12 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 					return 0;
 				case STARPU_SPU_LS: /* Not supported */
 				default:
-					STARPU_ASSERT(0);
+					STARPU_ABORT();
 			}
 			break;
 		case STARPU_SPU_LS:            /* Not supported */
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 	/* that instruction should never be reached */
 	return -EINVAL;

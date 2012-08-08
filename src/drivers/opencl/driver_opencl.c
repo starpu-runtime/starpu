@@ -524,7 +524,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 				STARPU_ABORT();
 				return 0;
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 	}
 
