@@ -156,16 +156,18 @@ static void init_context(int devid)
 	starpu_cuda_set_device(devid);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	int nworkers = starpu_worker_get_count();
-	for (workerid = 0; workerid < nworkers; workerid++) {
-		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid) {
-			int can;
-			cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
-			if (!cures && can) {
-				cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
-				if (!cures)
-					_STARPU_DEBUG("GPU-Direct %d -> %d\n", worker->devid, devid);
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") > 0) {
+		int nworkers = starpu_worker_get_count();
+		for (workerid = 0; workerid < nworkers; workerid++) {
+			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+			if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid) {
+				int can;
+				cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
+				if (!cures && can) {
+					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
+					if (!cures)
+						_STARPU_DEBUG("GPU-Direct %d -> %d\n", worker->devid, devid);
+				}
 			}
 		}
 	}
