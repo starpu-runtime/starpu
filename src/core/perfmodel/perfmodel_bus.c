@@ -191,7 +191,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Initialize CUDA context on the source */
 	cudaSetDevice(src);
 
-	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") > 0) {
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
 		cures = cudaDeviceCanAccessPeer(&can, src, dst);
 		if (!cures && can) {
 			cures = cudaDeviceEnablePeerAccess(dst, 0);
@@ -209,7 +209,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Initialize CUDA context on the destination */
 	cudaSetDevice(dst);
 
-	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") > 0) {
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
 		cures = cudaDeviceCanAccessPeer(&can, dst, src);
 		if (!cures && can) {
 			cures = cudaDeviceEnablePeerAccess(src, 0);
