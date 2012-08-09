@@ -52,6 +52,8 @@ long _starpu_gettid()
 	long tid;
 	thr_self(&tid);
 	return tid;
+#elif defined(__MINGW32__)
+	return (long) GetCurrentThread();
 #else
 	return (long) pthread_self();
 #endif
