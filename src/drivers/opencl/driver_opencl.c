@@ -207,6 +207,8 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flag
 	clFinish(queues[worker->devid]);
 	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 		return err;
+	if (err == CL_OUT_OF_RESOURCES)
+		return err;
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 

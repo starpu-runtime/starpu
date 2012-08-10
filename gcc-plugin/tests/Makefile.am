@@ -65,7 +65,7 @@ EXTRA_DIST = ./run-test.in			\
 if RUN_GCC_PLUGIN_TESTS
 
 TESTS = $(gcc_tests)
-TESTS_ENVIRONMENT = ./run-test
+LOG_COMPILER = ./run-test
 
 else !RUN_GCC_PLUGIN_TESTS
 

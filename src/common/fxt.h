@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,6 +106,19 @@
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
+
+/* Some versions of FxT do not include the declaration of the function */
+#ifdef HAVE_ENABLE_FUT_FLUSH
+#if !HAVE_DECL_ENABLE_FUT_FLUSH
+void enable_fut_flush();
+#endif
+#endif
+#ifdef HAVE_FUT_SET_FILENAME
+#if !HAVE_DECL_FUT_SET_FILENAME
+void fut_set_filename(char *filename);
+#endif
+#endif
+
 
 /* Initialize the FxT library. */
 void _starpu_start_fxt_profiling(void);
