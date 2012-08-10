@@ -22,12 +22,12 @@
 
 int main(int argc, char *argv[])
 {
-	char *prog, *arch, *def, *version, *lib;
+	char *prog, *arch, *def, *effective_version, *version, *lib;
 	char s[1024];
 	char name[16];
 	int current, age, revision;
 
-	if (argc != 6)
+	if (argc != 7)
 	{
 		fprintf(stderr,"bad number of arguments");
 		exit(EXIT_FAILURE);
@@ -36,13 +36,14 @@ int main(int argc, char *argv[])
 	prog = argv[1];
 	arch = argv[2];
 	def = argv[3];
-	version = argv[4];
-	lib = argv[5];
+	effective_version = argv[4];
+	version = argv[5];
+	lib = argv[6];
 
 	if (sscanf(version, "%d:%d:%d", &current, &revision, &age) != 3)
 		exit(EXIT_FAILURE);
 
-	_snprintf(name, sizeof(name), "libstarpu-%d", current - age);
+	_snprintf(name, sizeof(name), "libstarpu-%s-%d", effective_version, current - age);
 	printf("using soname %s\n", name);
 
 	_snprintf(s, sizeof(s), "\"%s\" /machine:%s /def:%s /name:%s /out:%s",
