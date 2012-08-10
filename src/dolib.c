@@ -22,7 +22,7 @@
 
 int main(int argc, char *argv[])
 {
-	char *prog, *arch, *def, *name, *version, *lib;
+	char *prog, *arch, *def, *version, *lib;
 	char s[1024];
 	char name[16];
 	int current, age, revision;
