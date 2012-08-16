@@ -67,10 +67,13 @@ libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 
 examplebindir = $(libdir)/starpu/examples/starpufft
-examplebin_PROGRAMS =				\
+
+examplebin_PROGRAMS =
+if BUILD_EXAMPLES
+examplebin_PROGRAMS +=				\
 	examples/testf \
 	examples/test
-
+endif
 check_PROGRAMS = examples/testf
 examples_testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 

@@ -1398,6 +1398,11 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--enable-build-examples],
+			[enable building of examples])],
+			enable_build_examples=$enableval, enable_build_examples=no)
+# check stuff for examples (todo)
+AM_CONDITIONAL(BUILD_EXAMPLES, [test x$enable_build_examples != xno])
 AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
 			[enable OpenGL rendering of some examples])],
 			enable_opengl_render=$enableval, enable_opengl_render=no)

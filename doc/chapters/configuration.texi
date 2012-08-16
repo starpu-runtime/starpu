@@ -226,6 +226,9 @@ that the
 @url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/,
 MKL website} provides a script to determine the linking flags.
 
+@item --disable-build-examples
+Disable the build of examples.
+
 @end table
 
 @node Execution configuration through environment variables

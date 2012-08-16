@@ -94,7 +94,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 ###################
 # Stencil example #
 ###################
-
+if BUILD_EXAMPLES
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
@@ -219,6 +219,7 @@ examples_complex_mpi_complex_LDADD =		\
 
 check_PROGRAMS	+=	\
 	examples/complex/mpi_complex
+endif
 
 ########################
 # Unit testcases       #
