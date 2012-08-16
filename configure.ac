@@ -1102,13 +1102,13 @@ fi
 AC_ARG_ENABLE([starpu-top],
   [AS_HELP_STRING([--disable-starpu-top],
     [build StarPU-Top])],
-  [enable_starpu_top="no"],
+  [enable_starpu_top="$enableval"],
   [enable_starpu_top="maybe"])
 
 # Check whether StarPU-Top can be built
 AC_MSG_CHECKING(for StarPU-Top)
 
-if test "x$enable_starpu_top" = "xmaybe" ; then
+if test "x$enable_starpu_top" != "xno" ; then
 	can_build_starpu_top=no
 	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
 	if test x$QMAKE != xnot-found; then
@@ -1150,7 +1150,7 @@ if test "x$enable_starpu_top" = "xmaybe" ; then
 	fi
 fi
 
-if test "x$enable_starpu_top" = "xmaybe" ; then
+if test "x$enable_starpu_top" != "xno" ; then
   build_starpu_top=$can_build_starpu_top
 else
   build_starpu_top=no
