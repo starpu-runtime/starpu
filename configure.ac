@@ -1526,6 +1526,12 @@ if test x$blas_lib = xmaybe; then
      if test x$use_system_blas = xyes; then
         AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use refblas library])
 	blas_lib=system
+     elif test x"$BLAS_LIBS" != x; then
+        AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use user defined library])
+        STARPU_BLAS_LDFLAGS="$BLAS_LIBS"
+        AC_SUBST(STARPU_BLAS_LDFLAGS)
+        blas_lib=system
+        AC_ARG_VAR([BLAS_LIBS], [linker flags for blas])
      else
 	blas_lib=none
      fi
