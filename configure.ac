@@ -831,7 +831,7 @@ if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
-	CFLAGS="$CFLAGS -O3"
+	CFLAGS="-O3 $CFLAGS"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
 
