@@ -38,8 +38,9 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 
 MAINTAINERCLEANFILES = starpu.pdf
 
-EXTRA_DIST = starpu.pdf \
-	starpu.css
+EXTRA_DIST = starpu.css
+
+dist_pdf_DATA = starpu.pdf
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 
