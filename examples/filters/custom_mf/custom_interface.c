@@ -341,7 +341,6 @@ void custom_data_register(starpu_data_handle_t *handle,
 				 uint32_t nx,
 				 struct starpu_multiformat_data_interface_ops *format_ops)
 {
-	/* XXX Deprecated fields ? */
 	struct custom_data_interface custom =
 	{
 		.cpu_ptr = ptr,
