@@ -214,7 +214,6 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f)
 {
-	/* TODO */
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
