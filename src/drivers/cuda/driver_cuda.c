@@ -335,7 +335,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(args->bindid);
 
-	unsigned memnode = args->memnode;
+	unsigned memnode = args->memory_node;
 	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CUDA_KEY, devid, memnode);
 #endif
 
