@@ -793,6 +793,7 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 
 	# now we enable Gordon if and only if a proper setup is available
 	enable_gordon=$have_valid_gordon
+	AC_DEFINE(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices])
 fi
 
 AC_MSG_CHECKING(whether GORDON should be used)
