@@ -267,7 +267,20 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			STARPU_ASSERT_MSG(0, "XXX multiformat not supported on OpenCL yet (TODO)");
+			if (multiformat_interface->cpu_ptr)
+			{
+				cl_int err = clReleaseMemObject(multiformat_interface->cpu_ptr);
+				if (err != CL_SUCCESS)
+					STARPU_OPENCL_REPORT_ERROR(err);
+				multiformat_interface->cpu_ptr = NULL;
+			}
+			if (multiformat_interface->opencl_ptr)
+			{
+				cl_int err = clReleaseMemObject(multiformat_interface->opencl_ptr);
+				if (err != CL_SUCCESS)
+					STARPU_OPENCL_REPORT_ERROR(err);
+				multiformat_interface->opencl_ptr = NULL;
+			}
 			break;
 #endif
 		default:
