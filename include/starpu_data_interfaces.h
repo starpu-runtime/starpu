@@ -21,10 +21,6 @@
 
 #include <starpu.h>
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-#include <starpu_opencl.h>
-#endif
-
 #ifdef STARPU_USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
 #include <gordon.h>
