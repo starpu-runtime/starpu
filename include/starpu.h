@@ -35,6 +35,10 @@ typedef unsigned long long uint64_t;
 #include <windows.h>
 #endif
 
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#include <starpu_opencl.h>
+#endif
+
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>
@@ -57,10 +61,6 @@ typedef unsigned long long uint64_t;
 #ifdef __cplusplus
 extern "C"
 {
-#endif
-
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-#include <starpu_opencl.h>
 #endif
 
 enum starpu_archtype
