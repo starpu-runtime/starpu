@@ -221,4 +221,10 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);
 
+int starpu_asynchronous_copy_disabled();
+
+int starpu_asynchronous_cuda_copy_disabled();
+
+int starpu_asynchronous_opencl_copy_disabled();
+
 #endif // __WORKERS_H__
