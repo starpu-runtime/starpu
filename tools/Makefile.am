@@ -36,6 +36,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 #####################################
 
 STARPU_TOOLS	=
+TESTS		= $(STARPU_TOOLS)
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(STARPU_TOOLS)
