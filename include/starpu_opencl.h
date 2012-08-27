@@ -25,6 +25,7 @@
 #include <CL/cl.h>
 #endif
 #include <starpu_config.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C"
