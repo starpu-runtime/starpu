@@ -34,11 +34,13 @@ static struct starpu_perfmodel nlrb_model =
 	.symbol = "valid_model_non_linear_regression_based"
 };
 
+#if 0
 static struct starpu_perfmodel hb_model =
 {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "valid_model_history_based"
 };
+#endif
 
 static struct starpu_codelet codelet =
 {
@@ -121,7 +123,9 @@ int main(int argc, char **argv)
 	ret = submit(&codelet, &nlrb_model);
 	if (ret) return ret;
 
-#warning history based model cannot be validated with regression.nsample
+#ifdef STARPU_DEVEL
+#  warning history based model cannot be validated with regression.nsample
+#endif
 #if 0
 	/* Use a history model */
 	ret = submit(&codelet, &hb_model);
