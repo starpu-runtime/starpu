@@ -130,6 +130,7 @@ static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
 static const char output_attribute_name[] = "output";
 static const char heap_allocated_attribute_name[] = "heap_allocated";
+static const char registered_attribute_name[] = "registered";
 
 /* Names of attributes used internally.  */
 static const char task_codelet_attribute_name[] = ".codelet";
@@ -183,6 +184,7 @@ static bool implicit_cpu_task_implementation_p (const_tree fn);
 static int task_implementation_target_to_int (const_tree target);
 
 static bool heap_allocated_p (const_tree var_decl);
+static bool registered_p (const_tree var_decl);
 
 static tree declare_codelet (tree task_decl);
 
@@ -2002,6 +2004,7 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
       /* Turn VAR into a pointer that feels like an array.  This is what's
 	 done for PARM_DECLs that have an array type.  */
 
+      location_t loc = DECL_SOURCE_LOCATION (var);
       tree array_type = TREE_TYPE (var);
       tree element_type = TREE_TYPE (array_type);
       tree pointer_type = build_pointer_type (element_type);
@@ -2025,7 +2028,6 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
 				    build_addr (var, current_function_decl),
 				    TYPE_SIZE_UNIT (array_type));
       TREE_SIDE_EFFECTS (alloc) = true;
-      add_stmt (alloc);
 
       /* Add a destructor for VAR.  Instead of consing the `cleanup'
 	 attribute for VAR, directly use `push_cleanup'.  This guarantees
@@ -2037,7 +2039,99 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
       static tree cleanup_decl;
       LOOKUP_STARPU_FUNCTION (cleanup_decl, "starpu_free");
 
-      push_cleanup (var, build_call_expr (cleanup_decl, 1, var), false);
+      if (registered_p (var))
+	{
+	  /* A `registered' attribute has already been processed, and thus a
+	     cleanup for it has been pushed.  However, we want that cleanup
+	     to appear before ours, and our allocation to appear before the
+	     registration, so swap them.  */
+	  tree_stmt_iterator it;
+	  tree parent, try_finally, registration;
+
+#ifdef stmt_list_stack
+	  parent = VEC_last (tree, stmt_list_stack);
+#else  /* 4.6 and before */
+	  parent = TREE_CHAIN (cur_stmt_list);
+#endif
+
+	  gcc_assert (parent != NULL_TREE
+		      && TREE_CODE (parent) == STATEMENT_LIST);
+
+	  it = tsi_last (parent);
+	  try_finally = tsi_stmt (it);
+	  gcc_assert (TREE_CODE (try_finally) == TRY_FINALLY_EXPR);
+
+	  tsi_prev (&it);
+	  registration =
+	    build_data_register_call (loc, var,
+				      array_type_element_count
+				       (loc, array_type));
+
+	  add_stmt (registration);
+	  *tsi_stmt_ptr (it) = alloc;
+
+	  push_cleanup (var, build_data_unregister_call (loc, var), false);
+	  TREE_OPERAND (try_finally, 1) = build_call_expr (cleanup_decl, 1, var);
+	}
+      else
+	{
+	  /* Push the allocation and cleanup in order.  */
+	  add_stmt (alloc);
+	  push_cleanup (var, build_call_expr (cleanup_decl, 1, var), false);
+	}
+
+      /* Keep the attribute.  */
+      *no_add_attrs = false;
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle the `registered' attribute on variable *NODE.  */
+
+static tree
+handle_registered_attribute (tree *node, tree name, tree args,
+			     int flags, bool *no_add_attrs)
+{
+  location_t loc;
+  tree var = *node;
+
+  loc = DECL_SOURCE_LOCATION (var);
+
+  bool heap_p = heap_allocated_p (var);
+
+  /* When VAR has the `heap_allocated' attribute, we know it has a complete
+     array type.  */
+
+  if (heap_p
+      || automatic_array_variable_p (registered_attribute_name, var))
+    {
+      /* FIXME: This warning cannot be emitted here, because the
+	 `heap_allocated' attribute may be processed later.  */
+      /* if (!heap_p */
+      /* 	  && !MAIN_NAME_P (DECL_NAME (current_function_decl))) */
+      /* 	warning_at (loc, 0, "using an on-stack array as a task input " */
+      /* 		    "considered unsafe"); */
+
+      tree ptr_type, heap_attr =
+	lookup_attribute (heap_allocated_orig_type_attribute_name,
+			  DECL_ATTRIBUTES (var));
+
+      if (heap_attr != NULL_TREE)
+	/* PTR is `heap_allocated' so use its original array type to
+	   determine its size.  */
+	ptr_type = TREE_VALUE (heap_attr);
+      else
+	ptr_type = TREE_TYPE (var);
+
+      tree count = array_type_element_count (loc, ptr_type);
+
+      add_stmt (build_data_register_call (loc, var, count));
+
+      push_cleanup (var,
+		    build_data_unregister_call (DECL_SOURCE_LOCATION (var),
+						var),
+		    false);
     }
 
   return NULL_TREE;
@@ -2252,6 +2346,17 @@ heap_allocated_p (const_tree var_decl)
 			   DECL_ATTRIBUTES (var_decl)) != NULL_TREE;
 }
 
+/* Return true when VAR_DECL has the `registered' attribute.  */
+
+static bool
+registered_p (const_tree var_decl)
+{
+  gcc_assert (TREE_CODE (var_decl) == VAR_DECL);
+
+  return lookup_attribute (registered_attribute_name,
+			   DECL_ATTRIBUTES (var_decl)) != NULL_TREE;
+}
+
 /* Return true if TYPE is `output'-qualified.  */
 
 static bool
@@ -2306,6 +2411,12 @@ register_task_attributes (void *gcc_data, void *user_data)
 #endif
     };
 
+  static const struct attribute_spec registered_attr =
+    {
+      registered_attribute_name, 0, 0, true, false, false,
+      handle_registered_attribute
+    };
+
   static const struct attribute_spec output_attr =
     {
       output_attribute_name, 0, 0, true, true, false,
@@ -2318,6 +2429,7 @@ register_task_attributes (void *gcc_data, void *user_data)
   register_attribute (&task_attr);
   register_attribute (&task_implementation_attr);
   register_attribute (&heap_allocated_attr);
+  register_attribute (&registered_attr);
   register_attribute (&output_attr);
 }
 

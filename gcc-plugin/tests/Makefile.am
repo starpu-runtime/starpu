@@ -21,6 +21,8 @@ gcc_tests =					\
   output-pointer-errors.c			\
   register.c					\
   register-errors.c				\
+  registered.c					\
+  registered-errors.c				\
   acquire.c					\
   acquire-errors.c				\
   release.c					\
