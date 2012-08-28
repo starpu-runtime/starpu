@@ -100,8 +100,13 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
+
+if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER		=	$(LOADER_BIN)
+else
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
 endif
 
 TESTS = $(noinst_PROGRAMS)
