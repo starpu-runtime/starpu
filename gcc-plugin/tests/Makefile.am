@@ -91,9 +91,9 @@ if RUN_GCC_PLUGIN_TESTS
 
 TESTS = $(gcc_tests)
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT = ./run-test
-else
 LOG_COMPILER = ./run-test
+else
+TESTS_ENVIRONMENT = ./run-test
 endif
 
 else !RUN_GCC_PLUGIN_TESTS
