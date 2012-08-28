@@ -295,8 +295,10 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 
 	if (n_cpus == -1) /* First time here */
 	{
-		/* XXX Dont check them all at once. */
-		/* XXX Error checking */
+		/* We do not check the return values of the calls to
+		 * starpu_worker_get_ids_by_type now, because it is simpler to
+		 * detect a problem in the switch that comes right after this 
+		 * block of code. */
 		n_cpus = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
 							cpu_workers,
 							STARPU_MAXCPUS);
