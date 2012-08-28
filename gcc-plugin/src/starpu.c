@@ -2415,6 +2415,9 @@ register_task_attributes (void *gcc_data, void *user_data)
     {
       registered_attribute_name, 0, 0, true, false, false,
       handle_registered_attribute
+#ifdef HAVE_ATTRIBUTE_SPEC_AFFECTS_TYPE_IDENTITY
+      , false
+#endif
     };
 
   static const struct attribute_spec output_attr =
