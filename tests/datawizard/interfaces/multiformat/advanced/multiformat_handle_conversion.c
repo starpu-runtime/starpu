@@ -203,12 +203,11 @@ main(void)
 {
 #ifdef STARPU_USE_CPU
 	int ret;
-	struct starpu_conf conf =
-	{
-		.ncpus   = -1,
-		.ncuda   = 2,
-		.nopencl = 1
-	};
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	conf.ncuda = 2;
+	conf.nopencl = 1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

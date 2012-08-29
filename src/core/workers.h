@@ -69,7 +69,7 @@ struct _starpu_worker
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
 	int worker_size; /* size of the worker in case we use a combined worker */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
-	unsigned memory_node; /* which memory node is associated that worker to ? */
+	unsigned memory_node; /* which memory node is the worker associated with ? */
 	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
@@ -172,6 +172,9 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
+
+	/* this flag is set until the application is finished submitting tasks */
+	unsigned submitting;
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];

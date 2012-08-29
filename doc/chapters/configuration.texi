@@ -219,10 +219,6 @@ By default, it is disabled.
 * Misc::                        Miscellaneous and debug
 @end menu
 
-Note: the values given in @code{starpu_conf} structure passed when
-calling @code{starpu_init} will override the values of the environment
-variables.
-
 @node Workers
 @subsection Configuring workers
 

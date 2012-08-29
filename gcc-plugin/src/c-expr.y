@@ -109,7 +109,8 @@
   TK (CPP_MULT)					\
   TK (CPP_DIV)					\
   TK (CPP_DOT)					\
-  TK (CPP_DEREF)
+  TK (CPP_DEREF)				\
+  TK (CPP_STRING)
 
 #ifndef __cplusplus
 
@@ -165,6 +166,7 @@
 %token YCPP_DIV "/"
 %token YCPP_DOT "."
 %token YCPP_DEREF "->"
+%token YCPP_STRING "string"
 
 %% /* Grammar rules.  */
 
@@ -184,15 +186,15 @@ sequence: expression {
       }
 ;
 
-expression: identifier | binary_expression | unary_expression;
+expression: binary_expression
+;
 
 /* XXX: `ensure_bound' below leads to errors raised even for non-significant
    arguments---e.g., junk after pragma.  */
 identifier: YCPP_NAME  { $$ = ensure_bound (loc, $1); }
 ;
 
-binary_expression: multiplicative_expression
-     | additive_expression
+binary_expression: additive_expression
 ;
 
 multiplicative_expression: multiplicative_expression YCPP_MULT cast_expression {
@@ -217,9 +219,7 @@ cast_expression: unary_expression
 		 /* XXX: No support for '(' TYPE-NAME ')' UNARY-EXPRESSION.  */
 ;
 
-unary_expression:
-       primary_expression
-     | postfix_expression
+unary_expression: postfix_expression
      | YCPP_AND cast_expression {
        $$ = build_addr (ensure_bound (loc, $2), current_function_decl);
      }
@@ -250,10 +250,14 @@ postfix_expression:
 
 primary_expression: identifier
      | constant
+     | string_literal
      | YCPP_OPEN_PAREN expression YCPP_CLOSE_PAREN { $$ = $2; }
 ;
 
 constant: YCPP_NUMBER { $$ = $1; }
+;
+
+string_literal: YCPP_STRING { $$ = $1; }
 ;
 
 %%

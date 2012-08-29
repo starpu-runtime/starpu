@@ -36,9 +36,27 @@ Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
 indicates that no worker was available (so that StarPU was not initialized).
 @end deftypefun
 
+@deftp {Data Type} {struct starpu_driver}
+@table @asis
+@item @code{enum starpu_archtype type}
+The type of the driver. Only STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are
+currently supported.
+@item @code{union id}
+@deftp {Data type} {anonymous union}
+@table @asis
+@item @code{unsigned cuda_id}
+Should only be used if type is STARPU_CUDA_WORKER.
+@item @code{cl_device_id opencl_id}
+Should only be used if type is STARPU_OPENCL_WORKER.
+@end table
+@end deftp
+@end table
+@end deftp
+
+
 @deftp {Data Type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
-to configure StarPU.
+to configure StarPU. It has to be initialized with @code{starpu_conf_init}.
 When the default value is used, StarPU automatically selects the number of
 processing units and takes the default scheduling policy. The environment
 variables overwrite the equivalent parameters.
@@ -122,6 +140,22 @@ CPUs and accelerators. This can also be specified with the
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
+
+@item @code{int *cuda_opengl_interoperability} (default = NULL)
+This can be set to an array of CUDA device identifiers for which
+@code{cudaGLSetGLDevice} should be called instead of @code{cudaSetDevice}. Its
+size is specified by the @code{n_cuda_opengl_interoperability} field below
+
+@item @code{int *n_cuda_opengl_interoperability} (default = 0)
+This has to be set to the size of the array pointed to by the
+@code{cuda_opengl_interoperability} field.
+
+@item @code{struct starpu_driver *not_launched_drivers}
+The drivers that should not be launched by StarPU.
+
+@item @code{unsigned nnot_launched_drivers}
+The number of StarPU drivers that should not be launched by StarPU.
+
 @end table
 @end deftp
 
@@ -1414,9 +1448,10 @@ codelets, where the @code{cl_arg} pointer is given as such.
 @item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback
-function is executed @emph{on the host} after the execution of the task. The
-callback is passed the value contained in the @code{callback_arg} field. No
-callback is executed if the field is set to @code{NULL}.
+function is executed @emph{on the host} after the execution of the task. Tasks
+which depend on it might already be executing. The callback is passed the
+value contained in the @code{callback_arg} field. No callback is executed if the
+field is set to @code{NULL}.
 
 @item @code{void *callback_arg} (optional) (default: @code{NULL})
 This is the pointer passed to the callback function. This field is ignored if
@@ -1582,6 +1617,10 @@ function for instance.
 In case of success, this function returns 0, a return value of @code{-ENODEV}
 means that there is no worker able to process this task (e.g. there is no GPU
 available and this task is only implemented for CUDA devices).
+
+starpu_task_submit() can be called from anywhere, including codelet
+functions and callbacks, provided that the @code{synchronous} field of the
+@code{starpu_task} structure is left to 0.
 @end deftypefun
 
 @deftypefun int starpu_task_wait_for_all (void)
@@ -1686,6 +1725,14 @@ This function is similar to @code{starpu_tag_wait} except that it blocks until
 terminated.
 @end deftypefun
 
+@deftypefun void starpu_tag_restart (unsigned @var{id})
+This function can be used to clear the "already notified" status
+of a tag which is not associated with a task. Before that, calling
+@code{starpu_tag_notify_from_apps} again will not notify the successors. After
+that, the next call to @code{starpu_tag_notify_from_apps} will notify the
+successors.
+@end deftypefun
+
 @deftypefun void starpu_tag_remove (starpu_tag_t @var{id})
 This function releases the resources associated to tag @var{id}. It can be
 called once the corresponding task has been executed and when there is
@@ -1697,7 +1744,10 @@ This function explicitly unlocks tag @var{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
 tasks (e.g. third-party libraries).  It is also provided as a
 convenient tool for the programmer, for instance to entirely construct the task
-DAG before actually giving StarPU the opportunity to execute the tasks.
+DAG before actually giving StarPU the opportunity to execute the tasks. When
+called several times on the same tag, notification will be done only on first
+call, thus implementing "OR" dependencies, until the tag is restarted using
+@code{starpu_tag_restart}.
 @end deftypefun
 
 @node Implicit Data Dependencies
@@ -2105,6 +2155,23 @@ Report a CUDA error.
 Calls starpu_cuda_report_error, passing the current function, file and line
 position.
 @end defmac
+
+@deftypefun int starpu_cuda_copy_async_sync ({void *}@var{src_ptr}, unsigned @var{src_node}, {void *}@var{dst_ptr}, unsigned @var{dst_node}, size_t @var{ssize}, cudaStream_t @var{stream}, {enum cudaMemcpyKind} @var{kind})
+Copy @var{ssize} bytes from the pointer @var{src_ptr} on
+@var{src_node} to the pointer @var{dst_ptr} on @var{dst_node}.
+The function first tries to copy the data asynchronous (unless
+@var{stream} is @code{NULL}. If the asynchronous copy fails or if
+@var{stream} is @code{NULL}, it copies the data synchronously.
+The function returns @code{-EAGAIN} if the asynchronous copy was
+successfull. It returns 0 if the synchronous copy was successful, or
+fails otherwise.
+@end deftypefun
+
+@deftypefun void starpu_cuda_set_device (int@var{devid})
+Calls @code{cudaSetDevice(devid)} or @code{cudaGLSetGLDevice(devid)}, according to
+whether @code{devid} is among the @code{cuda_opengl_interoperability} field of
+the @code{starpu_conf} structure.
+@end deftypefun
 
 @deftypefun void starpu_helper_cublas_init (void)
 This function initializes CUBLAS on every CUDA device.

@@ -130,6 +130,7 @@ noinst_PROGRAMS =				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_regenerate		\
+	main/subgraph_repeat_regenerate_tag	\
 	main/empty_task				\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\
@@ -141,7 +142,8 @@ noinst_PROGRAMS =				\
 	main/declare_deps_after_submission_synchronous	\
 	main/get_current_task			\
 	main/starpu_init			\
-	main/starpu_worker_exists               \
+	main/starpu_worker_exists		\
+	main/submit				\
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
@@ -207,6 +209,7 @@ noinst_PROGRAMS =				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
+	microbenchs/matrix_as_vector		\
 	overlap/overlap				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\

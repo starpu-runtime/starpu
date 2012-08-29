@@ -456,16 +456,14 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	/* That code is not even working!! */
 	struct cudaExtent extent = make_cudaExtent(128, 128, 128);
 
-	cures = cudaSetDevice(src_dev);
-	STARPU_ASSERT(cures == cudaSuccess);
+	starpu_cuda_set_device(src_dev);
 
 	struct cudaPitchedPtr mem_device1;
 	cures = cudaMalloc3D(&mem_device1, extent);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cures = cudaSetDevice(dst_dev);
-	STARPU_ASSERT(cures == cudaSuccess);
+	starpu_cuda_set_device(dst_dev);
 
 	struct cudaPitchedPtr mem_device2;
 	cures = cudaMalloc3D(&mem_device2, extent);
