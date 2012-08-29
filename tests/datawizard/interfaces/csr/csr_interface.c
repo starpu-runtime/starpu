@@ -59,7 +59,7 @@ struct test_config csr_config =
 #endif
 	.handle        = &csr_handle,
 	.dummy_handle  = &csr2_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "csr_interface"
 };
 
@@ -130,7 +130,7 @@ test_csr_cpu_func(void *buffers[], void *args)
 	{
 		if (val[i] != (i+1) * factor)
 		{
-			csr_config.copy_failed = 1;
+			csr_config.copy_failed = FAILURE;
 			return;
 		}
 		val[i] *= -1;

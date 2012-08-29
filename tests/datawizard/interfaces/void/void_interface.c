@@ -37,7 +37,7 @@ struct test_config void_config =
 #endif
 	.handle        = &void_handle,
 	.dummy_handle  = &void2_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "void_interface"
 };
 

@@ -44,7 +44,7 @@ struct test_config multiformat_config =
 #endif
 	.handle        = &multiformat_handle,
 	.dummy_handle  = &multiformat_dummy_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "multiformat_interface"
 };
 
@@ -66,7 +66,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 			FPRINTF(stderr, "(%d %d) [%d]", aos[i].x, aos[i].y, factor);
 		if (aos[i].x != i * factor || aos[i].y != i * factor)
 		{
-			multiformat_config.copy_failed = 1;
+			multiformat_config.copy_failed = FAILURE;
 		}
 		aos[i].x = -aos[i].x;
 		aos[i].y = -aos[i].y;

@@ -83,7 +83,7 @@ struct test_config bcsr_config =
 #endif /* !STARPU_USE_OPENCL */
 	.handle        = &bcsr_handle,
 	.dummy_handle  = &bcsr2_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "bcsr_interface"
 };
 
@@ -136,7 +136,7 @@ test_bcsr_cpu_func(void *buffers[], void *args)
  	uint32_t c   = ((struct starpu_bcsr_interface *)buffers[0])->c;
 	if (r != R || c != C)
 	{
-		bcsr_config.copy_failed = 1;
+		bcsr_config.copy_failed = FAILURE;
 		return;
 	}
 	nnz *= (r*c);
@@ -148,7 +148,7 @@ test_bcsr_cpu_func(void *buffers[], void *args)
 	{
 		if (val[i] != i * factor)
 		{
-			bcsr_config.copy_failed = 1;
+			bcsr_config.copy_failed = FAILURE;
 			return;
 		}
 		val[i] *= -1;
