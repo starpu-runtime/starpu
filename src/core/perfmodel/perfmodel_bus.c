@@ -520,7 +520,9 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 
 static void benchmark_all_gpu_devices(void)
 {
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i;
+#endif
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	int j;
 #endif
