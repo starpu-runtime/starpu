@@ -450,7 +450,7 @@ static void synthesize_intermediate_workers(struct starpu_machine_topology *topo
 	/* Not too many children, do not synthesize */
 	return;
 
-    _STARPU_DEBUG("%d children > %d, synthesizing intermediate combined workers of size %d\n", n, synthesize_arity, chunk_size);
+    _STARPU_DEBUG("%u children > %u, synthesizing intermediate combined workers of size %u\n", n, synthesize_arity, chunk_size);
 
     n = 0;
     j = 0;
@@ -460,7 +460,7 @@ static void synthesize_intermediate_workers(struct starpu_machine_topology *topo
     {
 	if (children[i]->userdata) {
 	    n++;
-	    _STARPU_DEBUG("child %d\n", i);
+	    _STARPU_DEBUG("child %u\n", i);
 	    find_workers(children[i], cpu_workers, &nworkers);
 	    j++;
 	}
