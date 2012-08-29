@@ -160,13 +160,13 @@ test_bcsr_cpu_func(void *buffers[], void *args)
 	uint32_t *col = STARPU_BCSR_GET_COLIND(buffers[0]);
 	for (i = 0; i < NNZ_BLOCKS; i++)
 		if (col[i] != colind[i])
-			bcsr_config.copy_failed = 1;
+			bcsr_config.copy_failed = FAILURE;
 
 	/* Check rowptr */
 	uint32_t *row = STARPU_BCSR_GET_ROWPTR(buffers[0]);
 	for (i = 0; i < 1 + WIDTH/R; i++)
 		if (row[i] != rowptr[i])
-			bcsr_config.copy_failed = 1;
+			bcsr_config.copy_failed = FAILURE;
 #endif
 }
 
