@@ -40,10 +40,10 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 				 void *dst_interface, unsigned dst_node);
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event);
+				    cl_event *event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event);
+				    cl_event *event);
 #endif /* !STARPU_USE_OPENCL */
 
 static struct starpu_data_copy_methods custom_copy_data_methods_s =
@@ -477,7 +477,7 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event)
+				    cl_event *event)
 {
 	ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
@@ -520,7 +520,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event)
+				    cl_event *event)
 {
 	ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;

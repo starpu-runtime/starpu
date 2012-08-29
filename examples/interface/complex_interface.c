@@ -238,11 +238,10 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node, void *
 #endif
 
 #ifdef STARPU_USE_OPENCL
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *_event)
+static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
-	cl_event *event = (cl_event *)_event;
 	cl_int err;
 	int ret;
 
@@ -278,11 +277,10 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_
         return copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *_event)
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
-	cl_event *event = (cl_event *)_event;
 	cl_int err;
 	int ret;
 
