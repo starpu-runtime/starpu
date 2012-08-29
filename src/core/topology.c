@@ -900,7 +900,7 @@ void starpu_topology_print(FILE *output)
 	unsigned ncombinedworkers = topology->ncombinedworkers;
 
 	for (core = 0; core < topology->nhwcpus; core++) {
-		fprintf(output, "core %d\t", core);
+		fprintf(output, "core %u\t", core);
 		for (worker = 0; worker < nworkers + ncombinedworkers; worker++)
 		{
 			if (worker < nworkers)
@@ -920,7 +920,7 @@ void starpu_topology_print(FILE *output)
 				for (i = 0; i < worker_size; i++)
 				{
 					if (topology->workers_bindid[combined_workerid[i]] == core)
-						fprintf(output, "comb %d\t", worker-nworkers);
+						fprintf(output, "comb %u\t", worker-nworkers);
 				}
 			}
 		}
