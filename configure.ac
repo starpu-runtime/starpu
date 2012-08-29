@@ -1695,3 +1695,11 @@ AC_MSG_NOTICE([
 	       SOCL enabled:  $build_socl
                Scheduler Hypervisor: $build_sched_ctx_hypervisor
 ])
+
+if test x"$have_valid_hwloc" = xno
+then
+  AC_MSG_NOTICE([
+WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
+performance may be impacted a lot.  It is strongly recommended to install
+hwloc])
+fi

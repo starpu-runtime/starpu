@@ -41,15 +41,13 @@ indicates that no worker was available (so that StarPU was not initialized).
 @item @code{enum starpu_archtype type}
 The type of the driver. Only STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are
 currently supported.
-@item @code{union id}
-@deftp {Data type} {anonymous union}
+@item @code{union id} Anonymous union
 @table @asis
 @item @code{unsigned cuda_id}
 Should only be used if type is STARPU_CUDA_WORKER.
 @item @code{cl_device_id opencl_id}
 Should only be used if type is STARPU_OPENCL_WORKER.
 @end table
-@end deftp
 @end table
 @end deftp
 
@@ -1725,7 +1723,7 @@ This function is similar to @code{starpu_tag_wait} except that it blocks until
 terminated.
 @end deftypefun
 
-@deftypefun void starpu_tag_restart (unsigned @var{id})
+@deftypefun void starpu_tag_restart (starpu_tag_t @var{id})
 This function can be used to clear the "already notified" status
 of a tag which is not associated with a task. Before that, calling
 @code{starpu_tag_notify_from_apps} again will not notify the successors. After
@@ -2167,7 +2165,7 @@ successfull. It returns 0 if the synchronous copy was successful, or
 fails otherwise.
 @end deftypefun
 
-@deftypefun void starpu_cuda_set_device (int@var{devid})
+@deftypefun void starpu_cuda_set_device (int @var{devid})
 Calls @code{cudaSetDevice(devid)} or @code{cudaGLSetGLDevice(devid)}, according to
 whether @code{devid} is among the @code{cuda_opengl_interoperability} field of
 the @code{starpu_conf} structure.
