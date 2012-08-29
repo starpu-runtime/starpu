@@ -33,22 +33,6 @@ int starpu_get_prefetch_flag(void)
 	return use_prefetch;
 }
 
-/*
- *	Predefined policies
- */
-
-extern struct starpu_sched_policy _starpu_sched_ws_policy;
-extern struct starpu_sched_policy _starpu_sched_prio_policy;
-extern struct starpu_sched_policy _starpu_sched_random_policy;
-extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
-extern struct starpu_sched_policy _starpu_sched_heft_policy;
-
 static struct starpu_sched_policy *predefined_policies[] =
 {
 	&_starpu_sched_ws_policy,
