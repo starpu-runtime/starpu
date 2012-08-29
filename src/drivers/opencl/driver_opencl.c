@@ -37,7 +37,6 @@ static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
-extern char *_starpu_opencl_program_dir;
 
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
@@ -326,7 +325,7 @@ void _starpu_opencl_init(void)
 		     device_type |= CL_DEVICE_TYPE_CPU;
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (err != CL_SUCCESS) nb_platforms=0;
-                _STARPU_DEBUG("Platforms detected: %d\n", nb_platforms);
+                _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
 
                 // Get devices
                 nb_devices = 0;
@@ -372,7 +371,7 @@ void _starpu_opencl_init(void)
 					else
 					{
 						if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-						_STARPU_DEBUG("  %d devices detected\n", num);
+						_STARPU_DEBUG("  %u devices detected\n", num);
 						nb_devices += num;
 					}
 				}
@@ -460,8 +459,8 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	/* get the device's name */
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
-	snprintf(args->name, sizeof(args->name), "OpenCL %d (%s)", args->devid, devname);
-	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %d", args->devid);
+	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", args->devid, devname);
+	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", args->devid);
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
@@ -675,7 +674,7 @@ int _starpu_run_opencl(struct starpu_driver *d)
 		return -ENODEV;
 
 	struct _starpu_worker *workerarg = _starpu_get_worker_struct(i);
-	_STARPU_DEBUG("Running OpenCL %d from the application\n", workerarg->devid);
+	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
 
 	workerarg->set = NULL;
 	workerarg->worker_is_initialized = 0;

@@ -31,6 +31,9 @@
 #endif
 
 extern
+char *_starpu_opencl_program_dir;
+
+extern
 int _starpu_opencl_init_context(int devid);
 
 extern
