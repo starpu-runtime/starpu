@@ -155,14 +155,15 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 	switch (model->type)
 	{
 		case STARPU_PER_ARCH:
-		case STARPU_COMMON:
+			_starpu_load_per_arch_based_model(model);
 			break;
-
+		case STARPU_COMMON:
+			_starpu_load_common_based_model(model);
+			break;
 		case STARPU_HISTORY_BASED:
 		case STARPU_NL_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 1);
 			break;
-
 		case STARPU_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 0);
 			break;
