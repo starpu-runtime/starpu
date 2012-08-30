@@ -1034,6 +1034,12 @@ AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
 if test x$use_mpi = xyes; then
 	cc_or_mpicc=$mpicc_path
+        # For some reason, libtool uses gcc instead of mpicc when linking
+        # libstarpumpi.
+        # On Darwin (and maybe other systems ?) the linker will fail (undefined
+        # references to MPI_*). We manually add the required flags to fix this
+        # issue.
+        AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
 else
 	cc_or_mpicc=$CC
 fi
