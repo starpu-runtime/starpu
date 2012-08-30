@@ -68,7 +68,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
 			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
@@ -156,7 +156,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
 			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
@@ -241,7 +241,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
