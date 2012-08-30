@@ -215,7 +215,11 @@ noinst_PROGRAMS =				\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	perfmodels/regression_based		\
-	perfmodels/non_linear_regression_based 
+	perfmodels/non_linear_regression_based  \
+	sched_policies/data_locality            \
+	sched_policies/execute_all_tasks        \
+	sched_policies/simple_deps              \
+	sched_policies/simple_cpu_gpu_sched
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
@@ -542,6 +546,8 @@ if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
 endif
+
+sched_policies_execute_all_tasks_LDFLAGS = -lm
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
