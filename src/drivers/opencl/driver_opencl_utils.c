@@ -330,13 +330,13 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	return 0;
 }
 
-void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
+const char *starpu_opencl_error_string(cl_int status)
 {
 	const char *errormsg;
 	switch (status)
 	{
 	case CL_SUCCESS:
-		errormsg = "success";
+		errormsg = "Success";
 		break;
 	case CL_DEVICE_NOT_FOUND:
 		errormsg = "Device not found";
@@ -479,13 +479,16 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 		break;
 #endif
 	default:
-		errormsg = "unknown error";
+		errormsg = "unknown OpenCL error";
 		break;
 	}
-	if (msg)
-		printf("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg, errormsg, status);
-	else
-		printf("oops in %s (%s:%d) ... <%s> (%d) \n", func, file, line, errormsg, status);
+	return errormsg;
+}
+
+void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
+{
+	printf("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg,
+	       starpu_opencl_error_string (status), status);
 
 }
 
