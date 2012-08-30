@@ -78,7 +78,6 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
 
    /* Waiting for kernel to terminate */
    clWaitForEvents(1, &event);
-   clReleaseEvent(event);
 }
 
 static void cleaning_task_callback(void *args) {
@@ -97,9 +96,25 @@ static void cleaning_task_callback(void *args) {
 		gc_entity_unstore(&cmd->buffers[i]);
 
 	free(cmd->buffers);
-	void * co = cmd->codelet;
+
+	free(cmd->codelet);
 	cmd->codelet = NULL;
-	free(co);
+
+	if (cmd->global_work_offset != NULL) {
+	  free((void*)cmd->global_work_offset);
+	  cmd->global_work_offset = NULL;
+	}
+
+	if (cmd->global_work_size != NULL) {
+	  free((void*)cmd->global_work_size);
+	  cmd->global_work_size = NULL;
+	}
+
+	if (cmd->local_work_size != NULL) {
+	  free((void*)cmd->local_work_size);
+	  cmd->local_work_size = NULL;
+	}
+
 }
 
 static struct starpu_perfmodel perf_model = {
@@ -131,7 +146,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 			cl_mem buf = *(cl_mem*)cmd->args[i];
 
 			gc_entity_store(&cmd->buffers[cmd->num_buffers], buf);
-			task->buffers[cmd->num_buffers].handle = buf->handle;
+			task->handles[cmd->num_buffers] = buf->handle;
 
 			/* Determine best StarPU buffer access mode */
 			int mode;
@@ -149,7 +164,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 				mode = STARPU_RW;
 				buf->scratch = 0;
 			}
-			task->buffers[cmd->num_buffers].mode = mode; 
+			codelet->modes[cmd->num_buffers] = mode; 
 
 			cmd->num_buffers += 1;
 		}
@@ -160,7 +175,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	/* Enqueue a cleaning task */
 	//FIXME: execute this in the callback?
-	starpu_task cleaning_task = task_create_cpu(cleaning_task_callback, cmd,1);
+	starpu_task cleaning_task = task_create_cpu(cleaning_task_callback, cmd,0);
 	cl_event ev = command_event_get(cmd);
 	task_depends_on(cleaning_task, 1, &ev);
 	task_submit(cleaning_task, cmd);

@@ -63,6 +63,7 @@ static struct starpu_codelet codelet_copybuffer = {
    .model = NULL,
    .cpu_funcs = { &soclEnqueueCopyBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueCopyBuffer_opencl_task, NULL },
+   .modes = {STARPU_R, STARPU_RW},
    .nbuffers = 2
 };
 
@@ -79,10 +80,8 @@ cl_int command_copy_buffer_submit(command_copy_buffer cmd) {
 
 	task = task_create(CL_COMMAND_COPY_BUFFER);
 
-	task->buffers[0].handle = src_buffer->handle;
-	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = dst_buffer->handle;
-	task->buffers[1].mode = STARPU_RW;
+	task->handles[0] = src_buffer->handle;
+	task->handles[1] = dst_buffer->handle;
 	task->cl = &codelet_copybuffer;
 
 	arg = (struct arg_copybuffer*)malloc(sizeof(struct arg_copybuffer));

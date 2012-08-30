@@ -63,6 +63,7 @@ static struct starpu_codelet codelet_readbuffer = {
    .model = NULL,
    .cpu_funcs = { &soclEnqueueReadBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueReadBuffer_opencl_task, NULL },
+   .modes = {STARPU_R},
    .nbuffers = 1
 };
 
@@ -78,8 +79,7 @@ cl_int command_read_buffer_submit(command_read_buffer cmd) {
 
 	task = task_create(CL_COMMAND_READ_BUFFER);
 
-	task->buffers[0].handle = buffer->handle;
-	task->buffers[0].mode = STARPU_R;
+	task->handles[0] = buffer->handle;
 	task->cl = &codelet_readbuffer;
 
 	arg = (struct arg_readbuffer*)malloc(sizeof(struct arg_readbuffer));

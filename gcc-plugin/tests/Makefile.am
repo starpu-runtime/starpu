@@ -15,32 +15,65 @@
 
 
 gcc_tests =					\
-  base.c					\
-  pointers.c					\
-  output-pointer.c				\
   output-pointer-errors.c			\
-  register.c					\
   register-errors.c				\
-  acquire.c					\
   acquire-errors.c				\
-  release.c					\
   release-errors.c				\
-  unregister.c					\
   unregister-errors.c				\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\
   external-task-impl.c				\
   no-initialize.c				\
-  lib-user.c					\
   wait-errors.c					\
-  heap-allocated.c				\
   heap-allocated-errors.c			\
   verbose.c					\
   debug-tree.c					\
   shutdown-errors.c
 
-#  opencl-types.c				
+EXTRA_DIST =
+
+if !STARPU_USE_OPENCL
+
+# XXX: This test simulates a buggy OpenCL implementation, and thus
+# cannot be run then a real <cl_platform.h> is included.
+gcc_tests += opencl-types.c
+
+# This test simulates errors when lacking an OpenCL implementation.
+gcc_tests += opencl-lacking.c
+
+gcc_tests +=  					\
+  base.c 					\
+  pointers.c 					\
+  output-pointer.c				\
+  register.c					\
+  acquire.c					\
+  release.c					\
+  unregister.c					\
+  lib-user.c					\
+  heap-allocated.c				\
+  opencl.c					\
+  opencl-errors.c
+
+else STARPU_USE_OPENCL
+
+EXTRA_DIST +=					\
+  base.c					\
+  pointers.c					\
+  opencl-types.c				\
+  opencl-lacking.c				\
+  output-pointer.c				\
+  register.c					\
+  acquire.c					\
+  release.c					\
+  unregister.c					\
+  lib-user.c					\
+  heap-allocated.c				\
+  opencl.c					\
+  opencl-errors.c
+
+endif STARPU_USE_OPENCL
+
 
 dist_noinst_HEADERS = mocks.h
 
@@ -55,11 +88,13 @@ CLEANFILES = *.gimple *.o			\
   output-pointer				\
   unregister					\
   heap-allocated				\
-  acquire
+  acquire					\
+  opencl
 
 
-EXTRA_DIST = ./run-test.in			\
+EXTRA_DIST += ./run-test.in			\
   my-lib.h my-lib.c				\
+  test.cl					\
   $(gcc_tests)
 
 # The test suite assumes that the CPU back-end is available.

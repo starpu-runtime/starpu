@@ -111,7 +111,8 @@ command_ndrange_kernel command_ndrange_kernel_create (
 	struct starpu_codelet * codelet = cmd->codelet;
 	codelet->where = STARPU_OPENCL;
 	codelet->power_model = NULL;
-	codelet->opencl_func = &soclEnqueueNDRangeKernel_task;
+	codelet->opencl_funcs[0] = &soclEnqueueNDRangeKernel_task;
+	codelet->opencl_funcs[1] = NULL;
 	codelet->model = NULL;
 
    	/* Kernel is mutable, so we duplicate its parameters... */

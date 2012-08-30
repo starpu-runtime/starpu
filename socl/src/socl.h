@@ -100,14 +100,12 @@ struct _cl_platform_id {};
 	if ((blocking) == CL_TRUE) {\
 		cl_event ev = command_event_get(cmd);\
 		soclWaitForEvents(1, &ev);\
-		gc_entity_release(ev);\
 	}
 
 #define MAY_BLOCK_CUSTOM(blocking,event) \
 	if ((blocking) == CL_TRUE) {\
 		cl_event ev = (event);\
 		soclWaitForEvents(1, &ev);\
-		gc_entity_release(ev);\
 	}
 
 /* Constants */

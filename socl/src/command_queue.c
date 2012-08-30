@@ -129,6 +129,8 @@ void command_queue_dependencies(
 	memcpy(evs, implicit_events, sizeof(cl_event) * implicit_num_events);
 	memcpy(&evs[implicit_num_events], events, sizeof(cl_event) * num_events);
 
+	free(implicit_events);
+
 	*ret_num_events = ndeps;
 	*ret_events = evs;
 }
@@ -159,6 +161,9 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	/* Make all dependencies explicit for the command */
 	cmd->num_events = all_num_events;
 	cmd->events = all_events;
+
+	/* Increment event ref count */
+	gc_entity_retain(cmd->event);
 
 	/* Insert command in the queue */
 	command_queue_insert(cq, cmd, is_barrier);

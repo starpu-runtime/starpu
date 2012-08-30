@@ -61,8 +61,7 @@ static void * gc_thread_routine(void *UNUSED(arg)) {
 
       /* Release entity */
       entity next = r->next;
-#warning FIXME: free memory
-//      free(r);
+      free(r);
 
       r = next;
     }
