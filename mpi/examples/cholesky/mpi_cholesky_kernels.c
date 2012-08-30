@@ -63,7 +63,8 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 					-1.0f, left, ld21, right, ld12,
 					 1.0f, center, ld22);
 			st = cublasGetError();
-			STARPU_ASSERT(!st);
+			if (STARPU_UNLIKELY(st != CUBLAS_STATUS_SUCCESS))
+				STARPU_CUBLAS_REPORT_ERROR(st);
 
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
