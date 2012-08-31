@@ -163,9 +163,5 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling)
-	{
-		struct timespec sleeping_time;
-		starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
 		_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
-	}
 }
