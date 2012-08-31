@@ -422,7 +422,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 		switch (starpu_node_get_kind(handle->mf_node))
 		{
 		case STARPU_CPU_RAM:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
@@ -443,7 +443,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 #endif
 		default:
 			fprintf(stderr, "Oops : %u\n", handle->mf_node);
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 		break;
 #ifdef STARPU_USE_CUDA
@@ -466,7 +466,7 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 #endif
 	case STARPU_SPU_LS: /* Not supported */
 	default:
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 	conversion_task->cl->modes[0] = STARPU_RW;

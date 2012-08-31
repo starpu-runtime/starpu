@@ -87,7 +87,7 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 		{
 			fprintf(stderr,"Error making StarPU directory %s:\n", path);
 			perror("mkdir");
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 
 		/* make sure that it is actually a directory */
@@ -96,7 +96,7 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 		if (!S_ISDIR(sb.st_mode))
 		{
 			fprintf(stderr,"Error: %s is not a directory:\n", path);
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 	}
 }

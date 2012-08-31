@@ -66,7 +66,7 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, unsigned 
 	if (ret)
 	{
 		fprintf(stderr, "Could not submit task save: %d\n", ret);
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 }
 
@@ -155,7 +155,7 @@ void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank)
 		{ /* R(z) != local & R(z+d) != local We don't have
 			      the saved data and don't need it, we shouldn't
 			      even have been called! */
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 	}
 #else /* !STARPU_USE_MPI */
@@ -208,7 +208,7 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 	if (ret)
 	{
 		fprintf(stderr, "Could not submit task update block: %d\n", ret);
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 }
 
@@ -243,7 +243,7 @@ void create_start_task(int z, int dir)
 	if (ret)
 	{
 		fprintf(stderr, "Could not submit task initial wait: %d\n", ret);
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 }
 

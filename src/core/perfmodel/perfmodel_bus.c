@@ -191,11 +191,13 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Initialize CUDA context on the source */
 	cudaSetDevice(src);
 
-	cures = cudaDeviceCanAccessPeer(&can, src, dst);
-	if (!cures && can) {
-		cures = cudaDeviceEnablePeerAccess(dst, 0);
-		if (!cures)
-			_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
+		cures = cudaDeviceCanAccessPeer(&can, src, dst);
+		if (!cures && can) {
+			cures = cudaDeviceEnablePeerAccess(dst, 0);
+			if (!cures)
+				_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
+		}
 	}
 
 	/* Allocate a buffer on the device */
@@ -207,11 +209,13 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Initialize CUDA context on the destination */
 	cudaSetDevice(dst);
 
-	cures = cudaDeviceCanAccessPeer(&can, dst, src);
-	if (!cures && can) {
-		cures = cudaDeviceEnablePeerAccess(src, 0);
-		if (!cures)
-			_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
+		cures = cudaDeviceCanAccessPeer(&can, dst, src);
+		if (!cures && can) {
+			cures = cudaDeviceEnablePeerAccess(src, 0);
+			if (!cures)
+				_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
+		}
 	}
 
 	/* Allocate a buffer on the device */

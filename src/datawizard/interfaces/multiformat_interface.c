@@ -127,7 +127,7 @@ static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t
 			return multiformat_interface->opencl_ptr;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 	return NULL;
 }
@@ -448,7 +448,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__
 			break;
 		}
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	return 0;
@@ -514,7 +514,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node __attri
 			break;
 		}
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	return 0;
@@ -589,7 +589,7 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 					     dst_interface, dst_node,
 					     NULL);
 #else
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 #endif
 	}
 }
@@ -611,7 +611,7 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 					     dst_interface, dst_node,
 					     stream);
 #else
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 #endif
 	}
 }

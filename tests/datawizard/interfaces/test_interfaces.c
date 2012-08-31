@@ -191,8 +191,8 @@ get_field(struct data_interface_test_summary *s, int async, enum operation op)
 	case OPENCL_TO_CPU:
 		return async?&s->opencl_to_cpu_async:&s->opencl_to_cpu;
 #endif /* !STARPU_USE_OPENCL */
-		default:
-			STARPU_ASSERT(0);
+	default:
+		STARPU_ABORT();
 	}
 	/* that instruction should never be reached */
 	return NULL;
@@ -222,7 +222,7 @@ set_field(struct data_interface_test_summary *s, int async,
 			*field = TASK_SUBMISSION_FAILURE;
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 }
 

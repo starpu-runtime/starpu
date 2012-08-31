@@ -134,7 +134,7 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, uint32
 		}
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	if (fail)

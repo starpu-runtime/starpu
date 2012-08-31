@@ -943,6 +943,7 @@ if test x$use_fxt = xyes; then
 	if test x$use_fxt_from_system = xno; then
 		FXT_CFLAGS="-I$fxtdir/include/ "
 		FXT_LDFLAGS="-L$fxtdir/lib/"
+		AC_ARG_VAR(FXT_LDFLAGS)
 		FXT_LIBS="-lfxt"
 	else
 	    PKG_CHECK_MODULES([FXT],  [fxt])

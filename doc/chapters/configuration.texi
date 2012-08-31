@@ -344,6 +344,10 @@ The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 
+@item @code{STARPU_DISABLE_CUDA_GPU_GPU_DIRECT}
+Disable direct CUDA transfers from GPU to GPU, and let CUDA copy through RAM
+instead. This permits to test the performance effect of GPU-Direct.
+
 @end table
 
 >>>>>>> .merge-right.r7182

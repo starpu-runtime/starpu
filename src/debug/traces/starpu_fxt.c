@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/uthash.h>
 
 #ifdef STARPU_USE_FXT
 #include "starpu_fxt.h"
@@ -124,46 +125,41 @@ static float get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_option
 
 static int nworkers = 0;
 
+struct worker_entry
+{
+	UT_hash_handle hh;
+	unsigned long tid;
+	int workerid;
+} *worker_ids;
+
 static int register_worker_id(unsigned long tid)
 {
 	int workerid = nworkers++;
+	struct worker_entry *entry;
 
-	/* create a new key in the htable */
-	char *tidstr = malloc(16*sizeof(char));
-	sprintf(tidstr, "%lu", tid);
-
-	ENTRY item;
-		item.key = tidstr;
-		item.data = (void *)(uintptr_t)workerid;
-
-	ENTRY *res;
-	res = hsearch(item, FIND);
+	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
 
 	/* only register a thread once */
-	STARPU_ASSERT(res == NULL);
+	STARPU_ASSERT(entry == NULL);
 
-	res = hsearch(item, ENTER);
-	STARPU_ASSERT(res);
+	entry = malloc(sizeof(*entry));
+	entry->tid = tid;
+	entry->workerid = workerid;
+
+	HASH_ADD(hh, worker_ids, tid, sizeof(tid), entry);
 
 	return workerid;
 }
 
 static int find_worker_id(unsigned long tid)
 {
-	char tidstr[16];
-	sprintf(tidstr, "%lu", tid);
+	struct worker_entry *entry;
 
-	ENTRY item;
-		item.key = tidstr;
-		item.data = NULL;
-	ENTRY *res;
-	res = hsearch(item, FIND);
-	if (!res)
+	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
+	if (!entry)
 		return -1;
 
-	int id = (uintptr_t)(res->data);
-
-	return id;
+	return entry->workerid;
 }
 
 static void update_accumulated_time(int worker, double sleep_time, double exec_time, double current_timestamp, int forceflush)
@@ -782,7 +778,7 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 {
 	int rank = ev->param[0];
 
-	STARPU_ASSERT(rank == options->file_rank);
+	STARPU_ASSERT(rank == options->file_rank || options->file_rank == -1);
 
 	/* Add an event in the trace */
 	if (out_paje_file)
@@ -871,9 +867,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
-
-	/* create a htable to identify each worker(tid) */
-	hcreate(STARPU_NMAXWORKERS);
 
 	symbol_list = _starpu_symbol_name_list_new();
 	communication_list = _starpu_communication_list_new();
@@ -1080,8 +1073,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 		}
 	}
-
-	hdestroy();
 
 	/* Close the trace file */
 	if (close(fd_in))

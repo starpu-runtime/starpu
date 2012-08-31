@@ -156,16 +156,18 @@ static void init_context(int devid)
 	starpu_cuda_set_device(devid);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	int nworkers = starpu_worker_get_count();
-	for (workerid = 0; workerid < nworkers; workerid++) {
-		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid) {
-			int can;
-			cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
-			if (!cures && can) {
-				cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
-				if (cures)
-					_STARPU_DEBUG("GPU-Direct %d -> %d\n", worker->devid, devid);
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
+		int nworkers = starpu_worker_get_count();
+		for (workerid = 0; workerid < nworkers; workerid++) {
+			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+			if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid) {
+				int can;
+				cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
+				if (!cures && can) {
+					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
+					if (!cures)
+						_STARPU_DEBUG("GPU-Direct %d -> %d\n", worker->devid, devid);
+				}
 			}
 		}
 	}
@@ -187,7 +189,7 @@ static void init_context(int devid)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (props[devid].computeMode == cudaComputeModeExclusive) {
 		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 #endif
 
@@ -535,14 +537,14 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, cu
 			break;
 	}
 	fprintf(stderr, "oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	STARPU_ABORT();
 }
 
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
 	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	STARPU_ABORT();
 }
 
 int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
