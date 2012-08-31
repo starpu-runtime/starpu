@@ -116,13 +116,14 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	cpu_worker = _starpu_get_worker_from_driver(d);
 	STARPU_ASSERT(cpu_worker);
 
-	unsigned memnode = cpu_worker->memory_node;
 	int devid = cpu_worker->devid;
 
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(cpu_worker->bindid);
-#endif
+
+	unsigned memnode = cpu_worker->memory_node;
 	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CPU_KEY, devid, memnode);
+#endif
 
 	_starpu_bind_thread_on_cpu(cpu_worker->config, cpu_worker->bindid);
 

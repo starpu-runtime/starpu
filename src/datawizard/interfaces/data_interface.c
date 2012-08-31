@@ -22,6 +22,7 @@
 #include <common/uthash.h>
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry

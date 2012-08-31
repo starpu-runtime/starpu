@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2012       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,8 +38,8 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					v
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
 static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, void *_event);
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, void *_event);
+static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, cl_event *event);
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, cl_event *event);
 #endif
 
 static struct starpu_data_copy_methods multiformat_copy_data_methods_s =
@@ -214,7 +215,6 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f)
 {
-	/* TODO */
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
@@ -267,7 +267,20 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			STARPU_ASSERT_MSG(0, "XXX multiformat not supported on OpenCL yet (TODO)");
+			if (multiformat_interface->cpu_ptr)
+			{
+				cl_int err = clReleaseMemObject(multiformat_interface->cpu_ptr);
+				if (err != CL_SUCCESS)
+					STARPU_OPENCL_REPORT_ERROR(err);
+				multiformat_interface->cpu_ptr = NULL;
+			}
+			if (multiformat_interface->opencl_ptr)
+			{
+				cl_int err = clReleaseMemObject(multiformat_interface->opencl_ptr);
+				if (err != CL_SUCCESS)
+					STARPU_OPENCL_REPORT_ERROR(err);
+				multiformat_interface->opencl_ptr = NULL;
+			}
 			break;
 #endif
 		default:
@@ -620,7 +633,7 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *_event)
+				    cl_event *event)
 {
 	int err, ret;
 	size_t size;
@@ -643,7 +656,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 					       dst_node,
 					       size,
 					       0,
-					       (cl_event *) _event,
+					       event,
 					       &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
@@ -654,7 +667,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *_event)
+				    cl_event *event)
 {
 	int err, ret;
 	size_t size;
@@ -681,7 +694,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 					       dst_node,
 					       size,
 					       0,
-					       (cl_event *)_event,
+					       event,
 					       &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);

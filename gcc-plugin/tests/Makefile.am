@@ -21,6 +21,8 @@ gcc_tests =					\
   output-pointer-errors.c			\
   register.c					\
   register-errors.c				\
+  registered.c					\
+  registered-errors.c				\
   acquire.c					\
   acquire-errors.c				\
   release.c					\
@@ -88,7 +90,11 @@ EXTRA_DIST += ./run-test.in			\
 if RUN_GCC_PLUGIN_TESTS
 
 TESTS = $(gcc_tests)
+if STARPU_HAVE_AM111
+LOG_COMPILER = ./run-test
+else
 TESTS_ENVIRONMENT = ./run-test
+endif
 
 else !RUN_GCC_PLUGIN_TESTS
 

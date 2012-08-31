@@ -35,6 +35,10 @@ typedef unsigned long long uint64_t;
 #include <windows.h>
 #endif
 
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#include <starpu_opencl.h>
+#endif
+
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>
@@ -59,10 +63,6 @@ extern "C"
 {
 #endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-#include <starpu_opencl.h>
-#endif
-
 enum starpu_archtype
 {
 	STARPU_CPU_WORKER,    /* CPU core */
@@ -82,7 +82,7 @@ struct starpu_driver
 		cl_device_id opencl_id;
 #endif
 		/*
-		 * TODO: handle CPUs:
+		 * HOWTO: add a new kind of device to the starpu_driver structure.
 		 * 1) Add a member to this union.
 		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
 		 *    not always launched.

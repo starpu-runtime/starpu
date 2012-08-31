@@ -29,6 +29,8 @@ New features:
   * New functionnality to wrapper starpu_insert_task to pass a array of
 	data_handles via the parameter STARPU_DATA_ARRAY
   * Enable GPU-GPU direct transfers.
+  * GCC plug-in
+	- Add `registered' attribute
 
 Changes:
   * The FxT code can now be used on systems other than Linux.
@@ -267,3 +269,9 @@ Changes:
    - transparent data coherency management
    - High-level expressive interface
 
+
+# Local Variables:
+# mode: text
+# coding: utf-8
+# ispell-local-dictionary: "american"
+# End:

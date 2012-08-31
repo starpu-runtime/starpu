@@ -62,7 +62,7 @@ struct _starpu_worker
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
-	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
+	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
@@ -244,6 +244,12 @@ unsigned _starpu_execute_registered_progression_hooks(void);
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
 int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+
+int starpu_asynchronous_copy_disabled();
+
+int starpu_asynchronous_cuda_copy_disabled();
+
+int starpu_asynchronous_opencl_copy_disabled();
 
 #endif // __WORKERS_H__
 

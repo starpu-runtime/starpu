@@ -1214,7 +1214,11 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 	starpu_fxt_paje_file_init(options);
 
-	if (options->ninputfiles == 1)
+	if (options->ninputfiles == 0)
+	{
+	     return;
+	}
+	else if (options->ninputfiles == 1)
 	{
 		/* we usually only have a single trace */
 		uint64_t file_start_time = starpu_fxt_find_start_time(options->filenames[0]);

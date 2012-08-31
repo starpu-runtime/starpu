@@ -283,7 +283,6 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 {
 	unsigned ret;
 	unsigned archmin = 0;
-	unsigned max_gordondevs = 1; /* XXX : we need a STARPU_MAXGORDONDEVS cst */
 	unsigned narchs;
 
 	/* We could probably write a clean loop here, but the code would not
@@ -343,8 +342,8 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	{
 		parse_arch(f, model, scan_history,
 			   archmin,
-			   archmin + max_gordondevs,
-			   narchs > max_gordondevs ? narchs - max_gordondevs : 0);
+			   archmin + STARPU_MAXGORDONDEVS,
+			   narchs > STARPU_MAXGORDONDEVS ? narchs - STARPU_MAXGORDONDEVS : 0);
 	}
 }
 

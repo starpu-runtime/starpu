@@ -823,6 +823,7 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 
 	# now we enable Gordon if and only if a proper setup is available
 	enable_gordon=$have_valid_gordon
+	AC_DEFINE(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices])
 fi
 
 AC_MSG_CHECKING(whether GORDON should be used)
@@ -861,7 +862,7 @@ if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
-	CFLAGS="$CFLAGS -O3"
+	CFLAGS="-O3 $CFLAGS"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
 
@@ -1199,13 +1200,13 @@ fi
 AC_ARG_ENABLE([starpu-top],
   [AS_HELP_STRING([--disable-starpu-top],
     [build StarPU-Top])],
-  [enable_starpu_top="no"],
+  [enable_starpu_top="$enableval"],
   [enable_starpu_top="maybe"])
 
 # Check whether StarPU-Top can be built
 AC_MSG_CHECKING(for StarPU-Top)
 
-if test "x$enable_starpu_top" = "xmaybe" ; then
+if test "x$enable_starpu_top" != "xno" ; then
 	can_build_starpu_top=no
 	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
 	if test x$QMAKE != xnot-found; then
@@ -1247,7 +1248,7 @@ if test "x$enable_starpu_top" = "xmaybe" ; then
 	fi
 fi
 
-if test "x$enable_starpu_top" = "xmaybe" ; then
+if test "x$enable_starpu_top" != "xno" ; then
   build_starpu_top=$can_build_starpu_top
 else
   build_starpu_top=no
@@ -1428,6 +1429,11 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--enable-build-examples],
+			[enable building of examples])],
+			enable_build_examples=$enableval, enable_build_examples=no)
+# check stuff for examples (todo)
+AM_CONDITIONAL(BUILD_EXAMPLES, [test x$enable_build_examples != xno])
 AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
 			[enable OpenGL rendering of some examples])],
 			enable_opengl_render=$enableval, enable_opengl_render=no)
@@ -1551,6 +1557,12 @@ if test x$blas_lib = xmaybe; then
      if test x$use_system_blas = xyes; then
         AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use refblas library])
 	blas_lib=system
+     elif test x"$BLAS_LIBS" != x; then
+        AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use user defined library])
+        STARPU_BLAS_LDFLAGS="$BLAS_LIBS"
+        AC_SUBST(STARPU_BLAS_LDFLAGS)
+        blas_lib=system
+        AC_ARG_VAR([BLAS_LIBS], [linker flags for blas])
      else
 	blas_lib=none
      fi
@@ -1706,6 +1718,18 @@ AC_CHECK_MEMBER([struct cudaDeviceProp.pciDomainID],
 AC_CHECK_MEMBER([struct cudaDeviceProp.pciBusID],
   AC_DEFINE([STARPU_HAVE_BUSID],[1],[Define to 1 if CUDA device properties include BusID]),
   , [[#include <cuda_runtime_api.h>]])
+
+dnl Set this condition when Automake 1.11 or later is being used.
+dnl Automake 1.11 introduced `silent-rules', hence the check.
+m4_ifdef([AM_SILENT_RULES],
+  AM_CONDITIONAL([STARPU_HAVE_AM111], [true]),
+  AM_CONDITIONAL([STARPU_HAVE_AM111], [false]))
+
+###############################################################################
+#                                                                             #
+#                                Final settings                               #
+#                                                                             #
+###############################################################################
 
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [

@@ -235,6 +235,8 @@ MKL website} provides a script to determine the linking flags.
 Enables the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hypervisor}). 
 By default, it is disabled.
 
+@item --disable-build-examples
+Disable the build of examples.
 @end table
 
 @node Execution configuration through environment variables

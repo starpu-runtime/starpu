@@ -18,7 +18,11 @@ CC=$(MPICC)
 CCLD=$(MPICC)
 
 if STARPU_MPI_CHECK
-TESTS_ENVIRONMENT	=	$(MPIEXEC) -np 2
+if STARPU_HAVE_AM111
+LOG_COMPILER	 	=	$(MPIEXEC) -np 2
+else
+TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 2
+endif
 TESTS			=	$(check_PROGRAMS)
 endif
 
@@ -94,7 +98,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 ###################
 # Stencil example #
 ###################
-
+if BUILD_EXAMPLES
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
@@ -219,6 +223,7 @@ examples_complex_mpi_complex_LDADD =		\
 
 check_PROGRAMS	+=	\
 	examples/complex/mpi_complex
+endif
 
 ########################
 # Unit testcases       #

@@ -13,7 +13,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SUBDIRS = src tests examples
+SUBDIRS = src tests
+if BUILD_EXAMPLES
+SUBDIRS += examples
+endif
 
 EXTRA_DIST = COPYING README ChangeLog
 
