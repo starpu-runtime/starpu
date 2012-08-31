@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -74,6 +74,7 @@ given perfmodel\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
+        fprintf(stderr, "\n");
 }
 
 static void parse_args(int argc, char **argv)
@@ -147,6 +148,14 @@ static void parse_args(int argc, char **argv)
 			continue;
 		}
 	}
+
+	if (!symbol && !list)
+	{
+		fprintf(stderr, "Incorrect usage, aborting\n");
+                usage(argv);
+		exit(-1);
+	}
+
 }
 
 static void print_comma(FILE *gnuplot_file, int *first)
@@ -412,13 +421,6 @@ int main(int argc, char **argv)
                 }
 		return 0;
         }
-
-	/* We need at least a symbol name */
-	if (!symbol)
-	{
-		fprintf(stderr, "No symbol was specified\n");
-		return 1;
-	}
 
 	/* Load the performance model associated to the symbol */
 	ret = starpu_load_history_debug(symbol, &model);

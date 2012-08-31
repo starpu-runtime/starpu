@@ -240,6 +240,10 @@ int main(int argc, const char** argv) {
 			devs[p] = 0;
 			continue;
 		}
+		if (devs[p] == 0) {
+		     printf("No OpenCL device found\n");
+		     exit(77);
+		}
 		check(err);
 		if (devs[p] == 0)
 			continue;

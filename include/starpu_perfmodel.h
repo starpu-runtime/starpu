@@ -35,7 +35,7 @@ extern "C"
 
 struct starpu_task;
 
-struct starpu_htbl32_node;
+struct starpu_history_table;
 struct starpu_history_list;
 struct starpu_buffer_descr;
 
@@ -155,7 +155,7 @@ struct starpu_per_arch_perfmodel
 	size_t (*size_base)(struct starpu_task *, enum starpu_perf_archtype arch, unsigned nimpl);
 
 	/* internal variables */
-	struct starpu_htbl32_node *history;
+	struct starpu_history_table *history;
 	struct starpu_history_list *list;
 	struct starpu_regression_model regression;
 #ifdef STARPU_MODEL_DEBUG
@@ -211,7 +211,6 @@ int starpu_list_models(FILE *output);
 double starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, uint32_t footprint);
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 
-void starpu_force_bus_sampling(void);
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
 

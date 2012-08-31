@@ -76,7 +76,6 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			
 noinst_HEADERS =					\
 	starpu_mpi_private.h				\
 	starpu_mpi_fxt.h				\
-	starpu_mpi_insert_task_cache.h			\
 	starpu_mpi_stats.h
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
@@ -89,7 +88,6 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
 	starpu_mpi_insert_task.c			\
-	starpu_mpi_insert_task_cache.c			\
 	starpu_mpi_collective.c				\
 	starpu_mpi_stats.c
 

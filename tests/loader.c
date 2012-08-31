@@ -130,7 +130,7 @@ static void decode(char **src, char *motif, char *value)
 
 	       to = strncpy(to, *src, strlen(*src)-strlen(y)); to += strlen(*src)-strlen(y);
 	       to = strcpy(to, value); to += strlen(value);
-	       to = stpcpy(to, y+strlen(motif));
+	       strcpy(to, y+strlen(motif));
 
 	       *src = strdup(neo);
 	       y = strstr(*src, motif);
@@ -163,6 +163,17 @@ int main(int argc, char *argv[])
 	{
 		test_args = (char *) malloc(150*sizeof(char));
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
+	}
+
+	if (strstr(test_name, "starpu_perfmodel_display"))
+	{
+		test_args = (char *) malloc(5*sizeof(char));
+		sprintf(test_args, "-l");
+	}
+	if (strstr(test_name, "starpu_perfmodel_plot"))
+	{
+		test_args = (char *) malloc(5*sizeof(char));
+		sprintf(test_args, "-l");
 	}
 
 	/* get launcher program */

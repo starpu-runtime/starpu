@@ -249,6 +249,7 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 #define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
 #define STARPU_HYPERVISOR_TAG	(1<<11)	/* Used to tag a task after whose execution we'll execute  a code */
 #define STARPU_HYPERVISOR_FLOPS	(1<<12)	/* Used to specify the number of flops needed to be executed by a task */
+#define STARPU_DATA_ARRAY       (1<<13) /* Array of data handles */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(struct starpu_codelet *cl, ...);

@@ -58,7 +58,6 @@ noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
-	core/dependencies/htable.h				\
 	core/dependencies/implicit_data_deps.h			\
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
@@ -91,8 +90,6 @@ noinst_HEADERS = 						\
 	datawizard/interfaces/data_interface.h			\
 	common/barrier.h					\
 	common/timing.h						\
-	common/htable32.h					\
-	common/htable64.h					\
 	common/list.h						\
 	common/rwlock.h						\
 	common/starpu_spinlock.h				\
@@ -123,8 +120,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
 	common/barrier_counter.c				\
 	common/hash.c 						\
-	common/htable32.c					\
-	common/htable64.c					\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
 	common/timing.c						\
@@ -144,7 +139,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/dependencies/implicit_data_deps.c			\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
-	core/dependencies/htable.c				\
 	core/dependencies/data_concurrency.c			\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +15,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
-#include <common/list.h>
+#include <pthread.h>
+#include "socl.h"
+#include "gc.h"
+#include "mem_objects.h"
 
-#define _STARPU_MPI_CLEAR_SENT_DATA     0
-#define _STARPU_MPI_CLEAR_RECEIVED_DATA 1
+extern int _starpu_init_failed;
+extern volatile int _starpu_init;
+/**
+ * Initialize StarPU
+ */
 
-extern struct starpu_htbl64_node **sent_data;
-extern struct starpu_htbl64_node **received_data;
-
-void _starpu_mpi_clear_cache_request(starpu_data_handle_t data_handle, int rank, int mode);
+void socl_init_starpu(void);

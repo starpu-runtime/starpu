@@ -123,8 +123,16 @@ contains the logical identifiers of the OpenCL devices to be used.
 
 @item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. If this value is equal to -1, the default value is used. This
-can also be specified with the @code{STARPU_CALIBRATE} environment variable.
+executing tasks. If this value is equal to @code{-1}, the default value is
+used. If the value is equal to @code{1}, it will force continuing
+calibration. If the value is equal to @code{2}, the existing performance
+models will be overwritten. This can also be specified with the
+@code{STARPU_CALIBRATE} environment variable.
+
+@item @code{int bus_calibrate} (default = 0)
+If this flag is set, StarPU will recalibrate the bus.  If this value is equal
+to @code{-1}, the default value is used.  This can also be specified with the
+@code{STARPU_BUS_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
 By default, StarPU executes parallel tasks concurrently.
@@ -165,7 +173,7 @@ with the default values. In case some configuration parameters are already
 specified through environment variables, @code{starpu_conf_init} initializes
 the fields of the structure according to the environment variables. For
 instance if @code{STARPU_CALIBRATE} is set, its value is put in the
-@code{.ncuda} field of the structure passed as argument.
+@code{.calibrate} field of the structure passed as argument.
 
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
 indicates that the argument was NULL.
@@ -201,8 +209,8 @@ StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
 @deftypefun int starpu_worker_get_count_by_type ({enum starpu_archtype} @var{type})
-Returns the number of workers of the given type indicated by the argument. A positive
-(or null) value is returned in case of success, @code{-EINVAL} indicates that
+Returns the number of workers of the given @var{type}. A positive
+(or @code{NULL}) value is returned in case of success, @code{-EINVAL} indicates that
 the type is not valid otherwise.
 @end deftypefun
 
@@ -431,6 +439,10 @@ access to the handle must be performed in write-only mode. Accessing an
 invalidated data in read-mode results in undefined behaviour.
 @end deftypefun
 
+@deftypefun void starpu_data_invalidate_submit (starpu_data_handle_t @var{handle})
+Submits invalidation of the data handle after completion of previously submitted tasks.
+@end deftypefun
+
 @c TODO create a specific sections about user interaction with the DSM ?
 
 @deftypefun void starpu_data_set_wt_mask (starpu_data_handle_t @var{handle}, uint32_t @var{wt_mask})
@@ -486,7 +498,7 @@ be consistent with the access mode specified in the @var{mode} argument.
 access the piece of data anymore.  Note that implicit data
 dependencies are also enforced by @code{starpu_data_acquire}, i.e.
 @code{starpu_data_acquire} will wait for all tasks scheduled to work on
-the data, unless that they have not been disabled explictly by calling
+the data, unless they have been disabled explictly by calling
 @code{starpu_data_set_default_sequential_consistency_flag} or
 @code{starpu_data_set_sequential_consistency_flag}.
 @code{starpu_data_acquire} is a blocking call, so that it cannot be called from
@@ -497,16 +509,26 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 
 @deftypefun int starpu_data_acquire_cb (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
-@code{starpu_data_release}. When the data specified in the first argument is
+@code{starpu_data_acquire}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
 The application may access the requested data during the execution of this
 callback. The callback function must call @code{starpu_data_release} once the
 application does not need to access the piece of data anymore.
 Note that implicit data dependencies are also enforced by
-@code{starpu_data_acquire_cb} in case they are enabled.
+@code{starpu_data_acquire_cb} in case they are not disabled.
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
+@end deftypefun
+
+@deftypefun int starpu_data_acquire_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode})
+This is the same as @code{starpu_data_acquire}, except that the data will be
+available on the given memory node instead of main memory.
+@end deftypefun
+
+@deftypefun int starpu_data_acquire_on_node_cb (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+This is the same as @code{starpu_data_acquire_cb}, except that the data will be
+available on the given memory node instead of main memory.
 @end deftypefun
 
 @defmac STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
@@ -1054,7 +1076,8 @@ starpu_data_partition(A_handle, &f);
 
 @deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, uint32_t @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
-collected back into one big piece in the @var{gathering_node} (usually 0).
+collected back into one big piece in the @var{gathering_node} (usually 0). Tasks
+working on the partitioned data must be already finished when calling @code{starpu_data_unpartition}.
 @cartouche
 @smallexample
 starpu_data_unpartition(A_handle, 0);
@@ -1277,7 +1300,9 @@ unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
 @item @code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)} (optional)
-Defines a function which should return 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
+Defines a function which should return 1 if the worker designated by
+@var{workerid} can execute the @var{nimpl}th implementation of the
+given @var{task}, 0 otherwise.
 
 @item @code{enum starpu_codelet_type type} (optional)
 The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
@@ -1943,10 +1968,6 @@ returns the path to the debugging information for the performance model.
 
 @deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen}, unsigned nimpl)
 returns the architecture name for @var{arch}.
-@end deftypefun
-
-@deftypefun void starpu_force_bus_sampling (void)
-forces sampling the bus performance model again.
 @end deftypefun
 
 @deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})

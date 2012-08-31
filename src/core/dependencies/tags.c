@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,23 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/dependencies/tags.h>
-#include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
+#include <common/uthash.h>
 
-static struct _starpu_htbl_node *tag_htbl = NULL;
+struct _starpu_tag_table
+{
+	UT_hash_handle hh;
+	starpu_tag_t id;
+	struct _starpu_tag *tag;
+};
+
+#define HASH_ADD_UINT64_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint64_t),add)
+#define HASH_FIND_UINT64_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint64_t),out)
+
+static struct _starpu_tag_table *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
@@ -114,15 +124,16 @@ static void _starpu_tag_free(void *_tag)
 
 void starpu_tag_remove(starpu_tag_t id)
 {
-	struct _starpu_tag *tag;
+	struct _starpu_tag_table *entry;
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
-	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(&tag_htbl, id);
+	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
+	if (entry) HASH_DEL(tag_htbl, entry);
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
-	_starpu_tag_free(tag);
+	if (entry)_starpu_tag_free(entry->tag);
 }
 
 void _starpu_tag_clear(void)
@@ -133,7 +144,13 @@ void _starpu_tag_clear(void)
 	 * the global rwlock. This contradicts the lock order of
 	 * starpu_tag_wait_array. Should not be a problem in practice since
 	 * _starpu_tag_clear is called at shutdown only. */
-	_starpu_htbl_clear_tags(&tag_htbl, 0, _starpu_tag_free);
+	struct _starpu_tag_table *entry, *tmp;
+
+	HASH_ITER(hh, tag_htbl, entry, tmp)
+	{
+		HASH_DEL(tag_htbl, entry);
+		_starpu_tag_free(entry->tag);
+	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 }
@@ -143,18 +160,24 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	/* search if the tag is already declared or not */
+	struct _starpu_tag_table *entry;
 	struct _starpu_tag *tag;
-	tag = (struct _starpu_tag *) _starpu_htbl_search_tag(tag_htbl, id);
 
-	if (tag == NULL)
+	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
+	if (entry != NULL)
+	     tag = entry->tag;
+	else
 	{
 		/* the tag does not exist yet : create an entry */
 		tag = _starpu_tag_init(id);
 
-		void *old;
-		old = _starpu_htbl_insert_tag(&tag_htbl, id, tag);
-		/* there was no such tag before */
-		STARPU_ASSERT(old == NULL);
+		struct _starpu_tag_table *entry2;
+		entry2 = (struct _starpu_tag_table *) malloc(sizeof(*entry2));
+		STARPU_ASSERT(entry2 != NULL);
+		entry2->id = id;
+		entry2->tag = tag;
+
+		HASH_ADD_UINT64_T(tag_htbl, id, entry2);
 	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);

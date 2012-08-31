@@ -86,8 +86,10 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       if (num_devices != 0)
          break;
    }
-   if (num_devices == 0)
-      error("No OpenCL device found\n");
+   if (num_devices == 0) {
+      printf("No OpenCL device found\n");
+      exit(77);
+   }
 
    printf("Creating context...\n");
    cl_context_properties properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[platform_idx], 0};

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +26,7 @@ const cl_uint __attribute__ ((aligned (16))) SOCL_DEVICE_VENDOR_ID = 666;
 
 const struct _cl_device_id socl_devices[] = {
    { 
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_CPU,
       .max_compute_units = 1,
       .max_work_item_dimensions = 3,
@@ -56,6 +59,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,
@@ -88,6 +92,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,
@@ -120,6 +125,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,
@@ -152,6 +158,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,
@@ -184,6 +191,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,
@@ -216,6 +224,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,
@@ -248,6 +257,7 @@ const struct _cl_device_id socl_devices[] = {
       .extensions = ""
    },
    {
+      .dispatch = &socl_master_dispatch,
       .type = CL_DEVICE_TYPE_GPU,
       .max_compute_units = 12,
       .max_work_item_dimensions = 3,

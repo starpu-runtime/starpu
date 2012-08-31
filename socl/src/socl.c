@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,13 +18,140 @@
 
 #include "socl.h"
 
-struct _cl_platform_id socl_platform = {};
+struct _cl_icd_dispatch socl_master_dispatch = {
+  soclGetPlatformIDs,
+  soclGetPlatformInfo,
+  soclGetDeviceIDs,
+  soclGetDeviceInfo,
+  soclCreateContext,
+  soclCreateContextFromType,
+  soclRetainContext,
+  soclReleaseContext,
+  soclGetContextInfo,
+  soclCreateCommandQueue,
+  soclRetainCommandQueue,
+  soclReleaseCommandQueue,
+  soclGetCommandQueueInfo,
+  soclSetCommandQueueProperty,
+  soclCreateBuffer,
+  soclCreateImage2D,
+  soclCreateImage3D,
+  soclRetainMemObject,
+  soclReleaseMemObject,
+  soclGetSupportedImageFormats,
+  soclGetMemObjectInfo,
+  soclGetImageInfo,
+  soclCreateSampler,
+  soclRetainSampler,
+  soclReleaseSampler,
+  soclGetSamplerInfo,
+  soclCreateProgramWithSource,
+  soclCreateProgramWithBinary,
+  soclRetainProgram,
+  soclReleaseProgram,
+  soclBuildProgram,
+  soclUnloadCompiler,
+  soclGetProgramInfo,
+  soclGetProgramBuildInfo,
+  soclCreateKernel,
+  soclCreateKernelsInProgram,
+  soclRetainKernel,
+  soclReleaseKernel,
+  soclSetKernelArg,
+  soclGetKernelInfo,
+  soclGetKernelWorkGroupInfo,
+  soclWaitForEvents,
+  soclGetEventInfo,
+  soclRetainEvent,
+  soclReleaseEvent,
+  soclGetEventProfilingInfo,
+  soclFlush,
+  soclFinish,
+  soclEnqueueReadBuffer,
+  soclEnqueueWriteBuffer,
+  soclEnqueueCopyBuffer,
+  soclEnqueueReadImage,
+  soclEnqueueWriteImage,
+  soclEnqueueCopyImage,
+  soclEnqueueCopyImageToBuffer,
+  soclEnqueueCopyBufferToImage,
+  soclEnqueueMapBuffer,
+  soclEnqueueMapImage,
+  soclEnqueueUnmapMemObject,
+  soclEnqueueNDRangeKernel,
+  soclEnqueueTask,
+  soclEnqueueNativeKernel,
+  soclEnqueueMarker,
+  soclEnqueueWaitForEvents,
+  soclEnqueueBarrier,
+  soclGetExtensionFunctionAddress,
+  (void *) NULL, //  clCreateFromGLBuffer,
+  (void *) NULL, //  clCreateFromGLTexture2D,
+  (void *) NULL, //  clCreateFromGLTexture3D,
+  (void *) NULL, //  clCreateFromGLRenderbuffer,
+  (void *) NULL, //  clGetGLObjectInfo,
+  (void *) NULL, //  clGetGLTextureInfo,
+  (void *) NULL, //  clEnqueueAcquireGLObjects,
+  (void *) NULL, //  clEnqueueReleaseGLObjects,
+  (void *) NULL, //  clGetGLContextInfoKHR,
+  (void *) NULL, //
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL, //  clSetEventCallback,
+  (void *) NULL, //  clCreateSubBuffer,
+  (void *) NULL, //  clSetMemObjectDestructorCallback,
+  (void *) NULL, //  clCreateUserEvent,
+  (void *) NULL, //  clSetUserEventStatus,
+  (void *) NULL, //  clEnqueueReadBufferRect,
+  (void *) NULL, //  clEnqueueWriteBufferRect,
+  (void *) NULL, //  clEnqueueCopyBufferRect,
+  (void *) NULL, //  clCreateSubDevicesEXT,
+  (void *) NULL, //  clRetainDeviceEXT,
+  (void *) NULL, //  clReleaseDeviceEXT,
+  (void *) NULL,
+  (void *) NULL, //  clCreateSubDevices,
+  (void *) NULL, //  clRetainDevice,
+  (void *) NULL, //  clReleaseDevice,
+  (void *) NULL, //  clCreateImage,
+  (void *) NULL, //  clCreateProgramWithBuiltInKernels,
+  (void *) NULL, //  clCompileProgram,
+  (void *) NULL, //  clLinkProgram,
+  (void *) NULL, //  clUnloadPlatformCompiler,
+  (void *) NULL, //  clGetKernelArgInfo,
+  (void *) NULL, //  clEnqueueFillBuffer,
+  (void *) NULL, //  clEnqueueFillImage,
+  (void *) NULL, //  clEnqueueMigrateMemObjects,
+  (void *) NULL, //  clEnqueueMarkerWithWaitList,
+  (void *) NULL, //  clEnqueueBarrierWithWaitList,
+  (void *) NULL, //  clGetExtensionFunctionAddressForPlatform,
+  (void *) NULL, //  clCreateFromGLTexture,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL,
+  (void *) NULL
+};
 
-const char * __attribute__ ((aligned (16))) SOCL_PROFILE = "FULL_PROFILE" ;
+
+struct _cl_platform_id socl_platform = {&socl_master_dispatch};
+
+const char * __attribute__ ((aligned (16))) SOCL_PROFILE = "FULL_PROFILE";
 const char * __attribute__ ((aligned (16))) SOCL_VERSION = "OpenCL 1.0 StarPU Edition (0.0.1)";
 const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_NAME    = "StarPU Platform";
 const char * __attribute__ ((aligned (16))) SOCL_VENDOR  = "INRIA";
-const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_EXTENSIONS = "";
+const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_EXTENSIONS = "cl_khr_icd";
+const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_ICD_SUFFIX_KHR ="SOCL";
 
 
 /* Command queues with profiling enabled

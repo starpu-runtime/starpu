@@ -294,6 +294,10 @@ __kernel void opencl_kernel(__global int *vector, unsigned offset)
 @end smallexample
 @end cartouche
 
+StarPU provides various interfaces and filters for matrices, vectors, etc.,
+but applications can also write their own data interfaces and filters, see
+@code{examples/interface} and @code{examples/filters/custom_mf} for an example.
+
 @node Performance model example
 @section Performance model example
 
@@ -486,11 +490,16 @@ The arguments following the codelets can be of the following types:
 @item
 @code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
 @item
+@code{STARPU_DATA_ARRAY} followed by an array of data handles and its number of elements;
+@item
 the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
 @code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
 @code{STARPU_PRIORITY}, followed by the appropriated objects as
 defined below.
 @end itemize
+
+When using @code{STARPU_DATA_ARRAY}, the access mode of the data
+handles is not defined.
 
 Parameters to be passed to the codelet implementation are defined
 through the type @code{STARPU_VALUE}. The function
@@ -589,6 +598,16 @@ starpu_codelet_pack_args(&arg_buffer, &arg_buffer_size,
 task->cl_arg = arg_buffer;
 task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
+@end smallexample
+
+Here a similar call using @code{STARPU_DATA_ARRAY}.
+
+@smallexample
+starpu_insert_task(&mycodelet,
+                   STARPU_DATA_ARRAY, data_handles, 2,
+                   STARPU_VALUE, &ifactor, sizeof(ifactor),
+                   STARPU_VALUE, &ffactor, sizeof(ffactor),
+                   0);
 @end smallexample
 
 If some part of the task insertion depends on the value of some computation,
@@ -711,7 +730,7 @@ and destroy it on unregistration.
 
 In addition to that, it can be tedious for the application to have to unregister
 the data, since it will not use its content anyway. The unregistration can be
-done lazily by using the @code{starpu_data_unregister_lazy(handle)} function,
+done lazily by using the @code{starpu_data_unregister_submit(handle)} function,
 which will record that no more tasks accessing the handle will be submitted, so
 that it can be freed as soon as the last task accessing it is over.
 
@@ -724,7 +743,7 @@ starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
 starpu_insert_task(&produce_data, STARPU_W, handle, 0);
 starpu_insert_task(&compute_data, STARPU_RW, handle, 0);
 starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
-starpu_data_unregister_lazy(handle);
+starpu_data_unregister_submit(handle);
 @end smallexample
 
 @subsection Scratch data
@@ -1010,7 +1029,8 @@ constraints: peer memcpy has to be disabled, and the thread that runs OpenGL has
 to be the one that runs CUDA computations for that GPU.
 
 To achieve this with StarPU, pass the @code{--disable-cuda-memcpy-peer} option
-to @code{./configure} (TODO: make it dynamic), the interoperability mode has to
+to @code{./configure} (TODO: make it dynamic), OpenGL/GLUT has to be initialized
+first, and the interoperability mode has to
 be enabled by using the @code{cuda_opengl_interoperability} field of the
 @code{starpu_conf} structure, and the driver loop has to be run by
 the application, by using the @code{not_launched_drivers} field of
@@ -1026,14 +1046,24 @@ the CUDA pointer at registration, for instance:
 
 @cartouche
 @smallexample
+/* Get the CUDA worker id */
 for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
         if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
                 break;
 
+/* Build a CUDA pointer pointing at the OpenGL buffer */
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
+
+/* And register it to StarPU */
 starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
 
+/* The handle can now be used as usual */
 starpu_insert_task(&cl, STARPU_RW, handle, 0);
+
+/* ... */
+
+/* This gets back data into the OpenGL buffer */
+starpu_data_unregister(handle);
 @end smallexample
 @end cartouche
 

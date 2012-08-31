@@ -22,7 +22,6 @@
 #include <common/config.h>
 #include <starpu.h>
 #include <starpu_perfmodel.h>
-#include <common/htable32.h>
 #include <core/task_bundle.h>
 #include <pthread.h>
 #include <stdio.h>
