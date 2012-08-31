@@ -34,7 +34,7 @@
 
 #include <common/fxt.h>
 #include <common/list.h>
-#include "../mpi/starpu_mpi_fxt.h"
+#include "../mpi/src/starpu_mpi_fxt.h"
 #include <starpu.h>
 #include "../../../include/starpu_fxt.h"
 

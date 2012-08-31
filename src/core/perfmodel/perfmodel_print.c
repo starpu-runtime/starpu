@@ -77,7 +77,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_arc
 		/* no specific parameter was requested, so we display everything */
 		if (arch_model->regression.nsample)
 		{
-			fprintf(output, "\tRegression : #sample = %d\n", arch_model->regression.nsample);
+			fprintf(output, "\tRegression : #sample = %u\n", arch_model->regression.nsample);
 		}
 
 		/* Only display the regression model if we could actually build a model */

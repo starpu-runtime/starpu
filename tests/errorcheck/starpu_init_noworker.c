@@ -60,9 +60,9 @@ int main(int argc, char **argv)
 		unsigned ncuda = starpu_cuda_worker_get_count();
 		unsigned nopencl = starpu_opencl_worker_get_count();
 		FPRINTF(stderr, "StarPU has found :\n");
-		FPRINTF(stderr, "\t%d CPU cores\n", ncpu);
-		FPRINTF(stderr, "\t%d CUDA devices\n", ncuda);
-		FPRINTF(stderr, "\t%d OpenCL devices\n", nopencl);
+		FPRINTF(stderr, "\t%u CPU cores\n", ncpu);
+		FPRINTF(stderr, "\t%u CUDA devices\n", ncuda);
+		FPRINTF(stderr, "\t%u OpenCL devices\n", nopencl);
 		return EXIT_FAILURE;
 	}
 

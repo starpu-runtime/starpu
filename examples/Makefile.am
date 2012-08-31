@@ -144,7 +144,8 @@ noinst_HEADERS = 				\
 	pi/SobolQRNG/sobol_gold.h		\
 	pi/SobolQRNG/sobol_gpu.h		\
 	pi/SobolQRNG/sobol_primitives.h         \
-	reductions/dot_product.h
+	reductions/dot_product.h                \
+	basic_examples/vector_scal_cpu_template.h
 
 #####################################
 # What to install and what to check #
@@ -315,7 +316,6 @@ basic_examples_vector_scal_SOURCES =		\
 if STARPU_HAVE_ICC
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
-basic_examples/vector_scal_cpu_icc.o: CFLAGS += -Dscal_cpu_func=scal_cpu_func_icc -Dscal_sse_func=scal_sse_func_icc
 endif
 
 if STARPU_USE_CUDA

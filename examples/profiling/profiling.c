@@ -70,10 +70,10 @@ int main(int argc, char **argv)
 		/* We will destroy the task structure by hand so that we can
 		 * query the profiling info before the task is destroyed. */
 		task->destroy = 0;
-		
+
 		tasks[i] = task;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			FPRINTF(stderr, "No worker may execute this task\n");
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
 		struct starpu_worker_profiling_info worker_info;
-		int ret = starpu_worker_get_profiling_info(worker, &worker_info);
+		ret = starpu_worker_get_profiling_info(worker, &worker_info);
 		STARPU_ASSERT(!ret);
 
 		double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);

@@ -143,12 +143,7 @@ int main(int argc, char **argv)
 
         if (plist)
 	{
-                int ret = starpu_perfmodel_list(stdout);
-                if (ret)
-		{
-                        fprintf(stderr, "The performance model directory is invalid\n");
-                        return 1;
-                }
+                starpu_perfmodel_list(stdout);
         }
         else
 	{

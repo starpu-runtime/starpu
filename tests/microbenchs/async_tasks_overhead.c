@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)
 	{
-		int ret = starpu_task_submit(tasks[i]);
+		ret = starpu_task_submit(tasks[i]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

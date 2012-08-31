@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 			task->execute_on_a_specific_worker = 1;
 			task->workerid = worker;
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}

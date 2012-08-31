@@ -271,7 +271,6 @@ AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
 			enable_cpu=$enableval, enable_cpu=yes)
 AC_MSG_RESULT($enable_cpu)
 AC_SUBST(STARPU_USE_CPU, $enable_cpu)
-
 AM_CONDITIONAL(STARPU_USE_CPU, test x$enable_cpu = xyes)
 
 if test x$enable_cpu = xyes; then
@@ -733,6 +732,51 @@ fi
 
 ###############################################################################
 #                                                                             #
+# General GPU settings                                                        #
+#                                                                             #
+###############################################################################
+AC_MSG_CHECKING(whether asynchronous copy should be disabled)
+AC_ARG_ENABLE(asynchronous-copy, [AS_HELP_STRING([--disable-asynchronous-copy],
+			[disable asynchronous copy between CPU and GPU])],
+			enable_asynchronous_copy=$enableval, enable_asynchronous_copy=yes)
+disable_asynchronous_copy=no
+if test x$enable_asynchronous_copy = xno ; then
+   disable_asynchronous_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_copy)
+if test x$disable_asynchronous_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and GPU devices])
+fi
+
+AC_MSG_CHECKING(whether asynchronous CUDA copy should be disabled)
+AC_ARG_ENABLE(asynchronous-cudacopy, [AS_HELP_STRING([--disable-asynchronous-cuda-copy],
+			[disable asynchronous copy between CPU and CUDA devices])],
+			enable_asynchronous_cuda_copy=$enableval, enable_asynchronous_cuda_copy=yes)
+disable_asynchronous_cuda_copy=no
+if test x$enable_asynchronous_cuda_copy = xno ; then
+   disable_asynchronous_cuda_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_cuda_copy)
+if test x$disable_asynchronous_cuda_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and CUDA devices])
+fi
+
+AC_MSG_CHECKING(whether asynchronous OpenCL copy should be disabled)
+AC_ARG_ENABLE(asynchronous-openclcopy, [AS_HELP_STRING([--disable-asynchronous-opencl-copy],
+			[disable asynchronous copy between CPU and OPENCL devices])],
+			enable_asynchronous_opencl_copy=$enableval, enable_asynchronous_opencl_copy=yes)
+disable_asynchronous_opencl_copy=no
+if test x$enable_asynchronous_opencl_copy = xno ; then
+   disable_asynchronous_opencl_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_opencl_copy)
+if test x$disable_asynchronous_opencl_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and OpenCL devices])
+fi
+
+
+###############################################################################
+#                                                                             #
 #                                 Cell settings                               #
 #                                                                             #
 ###############################################################################
@@ -897,11 +941,25 @@ if test x$use_fxt = xyes; then
 	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
 
 	if test x$use_fxt_from_system = xno; then
-		CPPFLAGS="${CPPFLAGS} -I$fxtdir/include/ "
-		LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ -lfxt"
+		FXT_CFLAGS="-I$fxtdir/include/ "
+		FXT_LDFLAGS="-L$fxtdir/lib/"
+		FXT_LIBS="-lfxt"
 	else
 	    PKG_CHECK_MODULES([FXT],  [fxt])
 	fi
+	save_LIBS="$LIBS"
+	LIBS="$LIBS $FXT_LIBS"
+	save_LDFLAGS="$LDFLAGS"
+	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
+   	AC_CHECK_FUNCS([enable_fut_flush])
+   	AC_CHECK_FUNCS([fut_set_filename])
+	LDFLAGS="$save_LDFLAGS"
+	LIBS="$save_LIBS"
+	save_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $FXT_CFLAGS"
+	AC_CHECK_DECLS([enable_fut_flush])
+	AC_CHECK_DECLS([fut_set_filename])
+	CFLAGS="$save_CFLAGS"
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)

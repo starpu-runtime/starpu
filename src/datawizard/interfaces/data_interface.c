@@ -274,6 +274,9 @@ static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_inte
 
 	}
 
+	handle->tag = -1;
+	handle->rank = -1;
+
 	return handle;
 }
 
@@ -302,6 +305,26 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 		ops->copy_methods->opencl_to_opencl_async = NULL;
 #endif
 	}
+
+#ifdef STARPU_USE_CUDA
+	int asynchronous_cuda_copy_disabled = starpu_asynchronous_cuda_copy_disabled();
+	if (STARPU_UNLIKELY(asynchronous_cuda_copy_disabled))
+	{
+		ops->copy_methods->ram_to_cuda_async = NULL;
+		ops->copy_methods->cuda_to_ram_async = NULL;
+		ops->copy_methods->cuda_to_cuda_async = NULL;
+	}
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	int asynchronous_opencl_copy_disabled = starpu_asynchronous_opencl_copy_disabled();
+	if (STARPU_UNLIKELY(asynchronous_opencl_copy_disabled))
+	{
+		ops->copy_methods->ram_to_opencl_async = NULL;
+		ops->copy_methods->opencl_to_ram_async = NULL;
+		ops->copy_methods->opencl_to_opencl_async = NULL;
+	}
+#endif
 
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
