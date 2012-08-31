@@ -115,6 +115,7 @@ noinst_PROGRAMS =				\
 	starpu_machine_display			\
 	main/deprecated_func			\
 	main/deprecated_buffer			\
+	main/driver_api/init_run_deinit         \
 	main/restart				\
 	main/execute_on_a_specific_worker	\
 	main/insert_task			\

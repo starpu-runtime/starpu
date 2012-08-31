@@ -34,9 +34,9 @@
 #define TYPE float
 
 // Basic Matrix dimensions
-#define WA (1024L * BLOCK_SIZE) // Matrix A width
+#define WA (128L * BLOCK_SIZE) // Matrix A width
 #define HA (512L * BLOCK_SIZE) // Matrix A height
-#define WB (1024L * BLOCK_SIZE) // Matrix B width
+#define WB (128L * BLOCK_SIZE) // Matrix B width
 #define HB WA  // Matrix B height
 #define WC WB  // Matrix C width 
 #define HC HA  // Matrix C height
@@ -115,10 +115,8 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 	}
 }
 
-#define shrLog(...) fprintf(stderr, __VA_ARGS__);
-
 // Round Up Division function
-size_t shrRoundUp(int group_size, int global_size) {
+size_t roundUp(int group_size, int global_size) {
 	int r = global_size % group_size;
 	if(r == 0) {
 		return global_size;
@@ -127,18 +125,18 @@ size_t shrRoundUp(int group_size, int global_size) {
 	}
 }
 
-void fillArray(TYPE* pfData, int iSize) {
+void fillArray(TYPE* data, int size) {
 	int i;
 	const TYPE fScale = (TYPE)(1.0f / (float)RAND_MAX);
-	for (i = 0; i < iSize; ++i) {
-		pfData[i] = fScale * rand();
+	for (i = 0; i < size; ++i) {
+		data[i] = fScale * rand();
 	}
 }
 
-void shrPrintArray(float* pfData, int iSize) {
+void printArray(float* data, int size) {
 	int i;
-	for (i = 0; i < iSize; ++i) {
-		shrLog("%d: %.3f\n", i, pfData[i]);
+	for (i = 0; i < size; ++i) {
+		printf("%d: %.3f\n", i, data[i]);
 	}
 }
 
@@ -222,8 +220,10 @@ int main(int argc, const char** argv) {
 	parse_args(argc, argv);
 
 	check(clGetPlatformIDs(5, platforms, &platform_count));
-	if (platform_count == 0)
-		error("No platform found\n");
+	if (platform_count == 0) {
+		printf("No platform found\n");
+		exit(77);
+	}
 
 	cl_uint device_count;
 	cl_uint devs[platform_count];
@@ -350,7 +350,7 @@ int main(int argc, const char** argv) {
 		check(clSetKernelArg(multiplicationKernel[p], 4, sizeof(cl_mem), (void *) &d_B[d]));
 		check(clSetKernelArg(multiplicationKernel[p], 5, sizeof(cl_mem), (void *) &d_C[i]));
 
-		size_t globalWorkSize[] = {shrRoundUp(BLOCK_SIZE,WC), shrRoundUp(BLOCK_SIZE,workSize[i])};
+		size_t globalWorkSize[] = {roundUp(BLOCK_SIZE,WC), roundUp(BLOCK_SIZE,workSize[i])};
 
 		check(clEnqueueNDRangeKernel(commandQueue[p][dev], multiplicationKernel[p], 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &GPUExecution[i]));
 
@@ -430,26 +430,26 @@ int main(int argc, const char** argv) {
 	return 0;
 }
 
-void printDiff(TYPE *data1, TYPE *data2, int width, int height, int iListLength, TYPE fListTol) {
-	shrLog("Listing first %d Differences > %.6f...\n", iListLength, fListTol);
+void printDiff(TYPE *data1, TYPE *data2, int width, int height, int listLength, TYPE listTol) {
+	printf("Listing first %d Differences > %.6f...\n", listLength, listTol);
 	int i,j,k;
 	int error_count=0;
 	for (j = 0; j < height; j++) {
-		if (error_count < iListLength) {
-			shrLog("\n  Row %d:\n", j);
+		if (error_count < listLength) {
+			printf("\n  Row %d:\n", j);
 		}
 		for (i = 0; i < width; i++) {
 			k = j * width + i;
-			float fDiff = fabs(data1[k] - data2[k]);
-			if (fDiff > fListTol) {                
-				if (error_count < iListLength) {
-					shrLog("    Loc(%d,%d)\tCPU=%.5f\tGPU=%.5f\tDiff=%.6f\n", i, j, data1[k], data2[k], fDiff);
+			float diff = fabs(data1[k] - data2[k]);
+			if (diff > listTol) {                
+				if (error_count < listLength) {
+					printf("    Loc(%d,%d)\tCPU=%.5f\tGPU=%.5f\tDiff=%.6f\n", i, j, data1[k], data2[k], diff);
 				}
 				error_count++;
 			}
 		}
 	}
-	shrLog(" \n  Total Errors = %d\n\n", error_count);
+	printf(" \n  Total Errors = %d\n\n", error_count);
 }
 
 /**

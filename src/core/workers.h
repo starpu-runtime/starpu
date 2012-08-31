@@ -81,6 +81,7 @@ struct _starpu_worker
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[48];
 	char short_name[10];
+	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
 	struct _starpu_sched_ctx **sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/

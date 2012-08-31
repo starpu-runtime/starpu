@@ -19,8 +19,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_C
 lib_LTLIBRARIES = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la
 
 EXTRA_DIST =			\
-	float.h			\
-	double.h		\
+	starpufft-float.h	\
+	starpufft-double.h	\
 	cudax_kernels.h		\
 	starpufftx.c		\
 	starpufftx1d.c		\
