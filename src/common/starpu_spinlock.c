@@ -26,7 +26,7 @@ int _starpu_spin_init(struct _starpu_spinlock *lock)
 //	memcpy(&lock->errcheck_lock, PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP, sizeof(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP));
 	int ret;
 	ret = pthread_mutexattr_init(&lock->errcheck_attr);
-	STARPU_ASSERT(!ret);
+	STARPU_CHECK_RETURN_VALUE(ret, "pthread_mutexattr_init");
 
 	ret = pthread_mutexattr_settype(&lock->errcheck_attr, PTHREAD_MUTEX_ERRORCHECK);
 	STARPU_ASSERT(!ret);
