@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 		/* Simulate Slow GPU */
 		starpu_perfmodel_update_history(&model, &task, STARPU_CUDA_DEFAULT + 1, 0, 0, measured_slow);
 		starpu_perfmodel_update_history(&nl_model, &task, STARPU_CUDA_DEFAULT + 1, 0, 0, measured_slow);
-		starpu_task_deinit(&task);
+		starpu_task_clean(&task);
 		starpu_data_unregister(handle);
 	}
 

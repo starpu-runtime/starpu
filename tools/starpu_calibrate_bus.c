@@ -78,7 +78,12 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+	if (starpu_init(NULL) == -ENODEV)
+		return 0; /* Nothing to calibrate, so this is a success :) */
+
 	starpu_force_bus_sampling();
+
+	starpu_shutdown();
 
 	return 0;
 }

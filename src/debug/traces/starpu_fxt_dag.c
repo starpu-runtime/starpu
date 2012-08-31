@@ -67,7 +67,7 @@ void _starpu_fxt_dag_terminate(void)
 void _starpu_fxt_dag_add_tag(uint64_t tag, unsigned long job_id)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"tag_%llx\"->\"task_%llx\"->\"tag_%llx\"\n",
+		fprintf(out_file, "\t \"tag_%llx\"->\"task_%llx\"->\"tag_%llx\" [style=dashed]\n",
 			(unsigned long long)tag, (unsigned long long)job_id, (unsigned long long) tag);
 }
 

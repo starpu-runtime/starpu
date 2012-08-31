@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,25 +22,14 @@
 #include <common/config.h>
 #include <starpu.h>
 #include <starpu_perfmodel.h>
-//#include <core/jobs.h>
 #include <common/htable32.h>
 #include <core/task_bundle.h>
-//#include <core/workers.h>
 #include <pthread.h>
 #include <stdio.h>
 
 struct starpu_buffer_descr;
 struct _starpu_job;
 enum starpu_perf_archtype;
-
-///* File format */
-//struct model_file_format
-// {
-//	unsigned ncore_entries;
-//	unsigned ncuda_entries;
-//	/* contains core entries, then cuda ones */
-//	struct starpu_history_entry entries[];
-//}
 
 void _starpu_get_perf_model_dir(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);

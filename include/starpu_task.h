@@ -193,6 +193,12 @@ struct starpu_task
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
+
+	/* the magic field is set when initialising the task.
+	 * starpu_task_submit will fail if the field does not have the
+	 * right value. This will hence avoid submitting tasks which
+	 * have not been properly initialised.
+	 */
 	int magic;
 
 	/* Scheduling context */
@@ -285,9 +291,11 @@ void starpu_task_init(struct starpu_task *task);
 
 /* Release all the structures automatically allocated to execute the task. This
  * is called implicitely by starpu_task_destroy, but the task structure itself
- * is not freed. This should be used for statically allocated tasks for
- * instance. */
-void starpu_task_deinit(struct starpu_task *task);
+ * is not freed. Values previously set by the user remain unchanged.
+ * This should be used for statically allocated tasks for instance.
+ * It should also be used for submitting the same task several times.
+ */
+void starpu_task_clean(struct starpu_task *task);
 
 /* Allocate a task structure and initialize it with default values. Tasks
  * allocated dynamically with starpu_task_create are automatically freed when

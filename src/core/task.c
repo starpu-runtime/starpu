@@ -77,8 +77,10 @@ void starpu_task_init(struct starpu_task *task)
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
- * structure itself (this is required for statically allocated tasks). */
-void starpu_task_deinit(struct starpu_task *task)
+ * structure itself (this is required for statically allocated tasks).
+ * All values previously set by the user, like codelet and handles, remain
+ * unchanged */
+void starpu_task_clean(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 
@@ -135,7 +137,7 @@ void _starpu_task_destroy(struct starpu_task *task)
    }
    else
    {
-	   starpu_task_deinit(task);
+	   starpu_task_clean(task);
 	   /* TODO handle the case of task with detach = 1 and destroy = 1 */
 	   /* TODO handle the case of non terminated tasks -> return -EINVAL */
 	   free(task);

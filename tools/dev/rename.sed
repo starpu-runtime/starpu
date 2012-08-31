@@ -17,6 +17,7 @@
 s/\bstarpu_access_mode\b/enum starpu_access_mode/g
 s/\bstruct starpu_codelet_t\b/struct starpu_codelet/g
 s/\bstarpu_codelet\b/struct starpu_codelet/g
+s/\bstarpu_codelet_t\b/struct starpu_codelet/g
 s/\bstarpu_data_handle\b/starpu_data_handle_t/g
 s/\bstarpu_block_interface_t\b/struct starpu_block_interface/g
 s/\bstarpu_matrix_interface_t\b/struct starpu_matrix_interface/g
@@ -141,3 +142,4 @@ s/\bstarpu_get_handle_interface_id\b/starpu_handle_get_interface_id/g
 s/\bstarpu_get_current_task\b/starpu_task_get_current/g
 s/\bstarpu_pack_cl_args\b/starpu_codelet_pack_args/g
 s/\bstarpu_unpack_cl_args\b/starpu_codelet_unpack_args/g
+s/\bstarpu_task_deinit\b/starpu_task_clean/g

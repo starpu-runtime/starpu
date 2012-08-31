@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,6 +55,8 @@ static void eager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id) 
 {
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: you are running the default eager scheduler, which does not include optimizations. Make sure to read the StarPU documentation about adding performance models in order to be able to use the heft or dmda schedulers instead.\n");
+
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
 
 	eager_center_policy_data *data = (eager_center_policy_data*)malloc(sizeof(eager_center_policy_data));
