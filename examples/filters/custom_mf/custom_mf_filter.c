@@ -16,9 +16,6 @@
 #include <starpu.h>
 #include "custom_interface.h"
 #include "custom_types.h"
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif /* !STARPU_USE_OPENCL */
 
 #define N 12
 

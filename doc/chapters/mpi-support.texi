@@ -20,10 +20,11 @@ distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
 @menu
-* The API::
-* Simple Example::
-* MPI Insert Task Utility::
-* MPI Collective Operations::
+* The API::                     
+* Simple Example::              
+* Exchanging User Defined Data Interface::  
+* MPI Insert Task Utility::     
+* MPI Collective Operations::   
 @end menu
 
 @node The API
@@ -238,6 +239,68 @@ int main(int argc, char **argv)
         fprintf(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
         STARPU_ASSERT(token == nloops*size);
     @}
+@end smallexample
+@end cartouche
+
+@page
+@node Exchanging User Defined Data Interface
+@section Exchanging User Defined Data Interface
+
+New data interfaces defined as explained in @ref{An example
+of data interface} can also be used within StarPU-MPI and exchanged
+between nodes. Two functions needs to be defined through
+the type @code{struct starpu_data_interface_ops} (@pxref{Data
+Interface API}). The pack function takes a handle and returns a
+contiguous memory buffer where data to be conveyed to another node
+should be copied. The reversed operation is implemented in the unpack
+function which takes a contiguous memory buffer and recreates the data
+handle.
+
+@cartouche
+@smallexample
+static int complex_pack_data(starpu_data_handle_t handle, uint32_t node, void **ptr)
+@{
+  STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+  struct starpu_complex_interface *complex_interface =
+    (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
+
+  *ptr = malloc(complex_get_size(handle));
+  memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
+  memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary,
+         complex_interface->nx*sizeof(double));
+
+  return 0;
+@}
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+static int complex_unpack_data(starpu_data_handle_t handle, uint32_t node, void *ptr)
+@{
+  STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+  struct starpu_complex_interface *complex_interface =
+    (struct starpu_complex_interface *)	starpu_data_get_interface_on_node(handle, node);
+
+  memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
+  memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double),
+         complex_interface->nx*sizeof(double));
+
+  return 0;
+@}
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+static struct starpu_data_interface_ops interface_complex_ops =
+@{
+  ...
+  .pack_data = complex_pack_data,
+  .unpack_data = complex_unpack_data
+@};
 @end smallexample
 @end cartouche
 

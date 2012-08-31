@@ -30,9 +30,6 @@
 #include <starpu.h>
 #include <unistd.h>
 #include <GL/glut.h>
-#ifdef STARPU_USE_CUDA
-#include <starpu_cuda.h>
-#endif
 
 void dummy(void *buffers[], void *cl_arg)
 {
@@ -146,7 +143,8 @@ int main(int argc, char **argv)
 	glutIdleFunc(idle);
 	/* Now run the glut loop */
 	glutMainLoop();
-	starpu_driver_run(&drivers[0]);
+	/* And deinitialize driver */
+	starpu_driver_deinit(&drivers[0]);
 	printf("finished running the driver\n");
 
 	starpu_shutdown();

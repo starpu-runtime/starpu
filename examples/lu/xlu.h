@@ -19,12 +19,7 @@
 #define __XLU_H__
 
 #include <sys/time.h>
-
-/* for STARPU_USE_CUDA */
-#include <starpu_config.h>
 #include <starpu.h>
-#include <starpu_cuda.h>
-
 #include <common/blas.h>
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)

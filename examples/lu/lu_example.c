@@ -21,8 +21,6 @@
 #include <time.h>
 #include <math.h>
 #include <starpu.h>
-#include <starpu_profiling.h>
-#include <starpu_bound.h>
 #include "xlu.h"
 #include "xlu_kernels.h"
 

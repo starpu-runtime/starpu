@@ -19,9 +19,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-
 #include <starpu.h>
-#include <starpu_profiling.h>
 #include "../helper.h"
 
 static unsigned ntasks = 65536;

@@ -36,7 +36,6 @@
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 #include <starpu.h>
-#include <starpu_opencl.h>
 
 #define    NX    2048
 

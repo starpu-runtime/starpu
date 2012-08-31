@@ -81,7 +81,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 
 /* Shadow width */
 #define SHADOWX 3

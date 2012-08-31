@@ -13,8 +13,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
-#include <starpu_cuda.h>
 #include "../test_interfaces.h"
 
 extern struct test_config variable_config;

@@ -42,9 +42,17 @@ typedef unsigned long long uint64_t;
 #include <starpu_perfmodel.h>
 #include <starpu_task.h>
 #include <starpu_task_list.h>
+#include <starpu_task_util.h>
 #include <starpu_scheduler.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
+#include <starpu_cuda.h>
+#include <starpu_cublas.h>
+#include <starpu_bound.h>
+#include <starpu_hash.h>
+#include <starpu_profiling.h>
+#include <starpu_top.h>
+#include <starpu_fxt.h>
 
 #ifdef __cplusplus
 extern "C"

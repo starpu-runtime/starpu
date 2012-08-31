@@ -27,10 +27,6 @@
 
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
-#include <starpu_cuda.h>
-#endif
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 #endif
 
 #include "axpy.h"

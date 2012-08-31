@@ -22,7 +22,6 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 struct starpu_opencl_program opencl_program;
 #endif

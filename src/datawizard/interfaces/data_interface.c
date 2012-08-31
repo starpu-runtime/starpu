@@ -654,3 +654,20 @@ int starpu_data_interface_get_next_id()
 	_data_interface_number += 1;
 	return _data_interface_number-1;
 }
+
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr)
+{
+	STARPU_ASSERT(handle->ops->pack_data);
+	return handle->ops->pack_data(handle, _starpu_get_local_memory_node(), ptr);
+}
+
+int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr)
+{
+	STARPU_ASSERT(handle->ops->unpack_data);
+	return handle->ops->unpack_data(handle, _starpu_get_local_memory_node(), ptr);
+}
+
+size_t starpu_handle_get_size(starpu_data_handle_t handle)
+{
+	return handle->ops->get_size(handle);
+}

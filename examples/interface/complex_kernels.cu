@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 #include "complex_interface.h"
 
 static __global__ void complex_copy_cuda(double *o_real, double *o_imaginary, double *i_real, double *i_imaginary, unsigned n)

@@ -703,6 +703,23 @@ if @var{handle}'s interface does not have data allocated locally
 Return the unique identifier of the interface associated with the given @var{handle}.
 @end deftypefun
 
+@deftypefun size_t starpu_handle_get_size (starpu_data_handle_t @var{handle})
+Return the size of the data associated with @var{handle}
+@end deftypefun
+
+@deftypefun int starpu_handle_pack_data (starpu_data_handle_t @var{handle}, {void **}@var{ptr})
+Allocates a buffer large enough at @var{ptr} and copy to the newly
+allocated buffer the data associated to @var{handle}. The interface of
+the data registered at @var{handle} must define a packing operation
+(@pxref{struct starpu_data_interface_ops}).
+@end deftypefun
+
+@deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr})
+Copy in @var{handle} the data located at @var{ptr} as described by the
+interface of the data. The interface registered at @var{handle} must
+define a unpacking operation (@pxref{struct starpu_data_interface_ops}).
+@end deftypefun
+
 @node Accessing Variable Data Interfaces
 @subsubsection Variable Data Interfaces
 

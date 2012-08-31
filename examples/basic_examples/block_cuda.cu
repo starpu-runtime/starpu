@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 
 static __global__ void cuda_block(float *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float multiplier)
 {

@@ -19,14 +19,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#include <starpu_cuda.h>
-#endif
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
-
 #define INIT_VALUE	42
 #define NTASKS		10000
 

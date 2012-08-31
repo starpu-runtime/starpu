@@ -16,7 +16,6 @@
 
 #define _externC extern "C"
 #include "stencil.h"
-#include <starpu_cuda.h>
 
 /* Perform replication of data on X and Y edges, to fold the domain on 
    itself through mere replication of the source state. */

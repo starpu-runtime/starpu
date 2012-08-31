@@ -54,7 +54,6 @@ void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 struct starpu_opencl_program opencl_code;

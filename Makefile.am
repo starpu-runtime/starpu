@@ -53,6 +53,7 @@ versinclude_HEADERS = 				\
 	include/starpu_task.h			\
 	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
+	include/starpu_task_util.h		\
 	include/starpu_data.h			\
 	include/starpu_perfmodel.h		\
 	include/starpu_util.h			\
@@ -66,7 +67,8 @@ versinclude_HEADERS = 				\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\
-	include/starpu_rand.h
+	include/starpu_rand.h			\
+	include/starpu_cublas.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

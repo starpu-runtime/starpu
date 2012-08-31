@@ -1,5 +1,4 @@
 #include <starpu.h>
-#include <starpu_profiling.h>
 
 #include "../helper.h"
 
