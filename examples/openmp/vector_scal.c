@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 
 	/* Most OpenMP implementations do not support concurrent parallel
-	 * sections, so only create one big worker */
+	 * sections, so only enable one combined worker at a time.  */
 	conf.single_combined_worker = 1;
 	conf.sched_policy_name = "pheft";
 

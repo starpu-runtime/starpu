@@ -28,6 +28,10 @@
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 
+#include <drivers/cpu/driver_cpu.h>
+#include <drivers/cuda/driver_cuda.h>
+#include <drivers/opencl/driver_opencl.h>
+
 #ifdef __MINGW32__
 #include <windows.h>
 #endif
@@ -471,7 +475,11 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
 	 * not defined */
-	conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
+	/* Backward compatibility: check the value of STARPU_NCPUS if
+	 * STARPU_NCPU is not set. */
+	conf->ncpus = starpu_get_env_number("STARPU_NCPU");
+	if (conf->ncpus == -1)
+		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nspus = starpu_get_env_number("STARPU_NGORDON");
@@ -514,6 +522,7 @@ static void _starpu_conf_check_environment(struct starpu_conf *conf)
 	}
 
 	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
+	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
 	_starpu_conf_set_value_against_environment("STARPU_NGORDON", &conf->nspus);
@@ -1115,16 +1124,6 @@ struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 	return &config.sched_ctxs[0];
 }
 
-#ifdef STARPU_USE_CPU
-extern int _starpu_run_cpu(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_CUDA
-extern int _starpu_run_cuda(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_run_opencl(struct starpu_driver *);
-#endif
-
 int
 starpu_driver_run(struct starpu_driver *d)
 {
@@ -1150,22 +1149,6 @@ starpu_driver_run(struct starpu_driver *d)
 		return -EINVAL;
 	}
 }
-
-#ifdef STARPU_USE_CPU
-extern int _starpu_cpu_driver_init(struct starpu_driver *);
-extern int _starpu_cpu_driver_run_once(struct starpu_driver *);
-extern int _starpu_cpu_driver_deinit(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_CUDA
-extern int _starpu_cuda_driver_init(struct starpu_driver *);
-extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
-extern int _starpu_cuda_driver_deinit(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_opencl_driver_init(struct starpu_driver *);
-extern int _starpu_opencl_driver_run_once(struct starpu_driver *);
-extern int _starpu_opencl_driver_deinit(struct starpu_driver *);
-#endif
 
 int
 starpu_driver_init(struct starpu_driver *d)

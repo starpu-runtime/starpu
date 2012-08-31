@@ -219,7 +219,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		_STARPU_DEBUG("Parsing arch %u\n", arch);
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &nimpls);
-		_STARPU_DEBUG("%u implementations\n", nimpls);
+		_STARPU_DEBUG("%d implementations\n", nimpls);
 		STARPU_ASSERT(ret == 1);
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
@@ -243,7 +243,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		{
 			_STARPU_DEBUG("skipping arch %u\n", arch);
 			ret = fscanf(f, "%d\n", &nimpls);
-			_STARPU_DEBUG("%u implementations\n", nimpls);
+			_STARPU_DEBUG("%d implementations\n", nimpls);
 			STARPU_ASSERT(ret == 1);
 			implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 			skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
@@ -1158,4 +1158,14 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 #endif
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 	}
+}
+
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured) {
+	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+
+	_starpu_load_perfmodel(model);
+	/* Record measurement */
+	_starpu_update_perfmodel_history(job, model, arch, cpuid, measured, nimpl);
+	/* and save perfmodel on termination */
+	_starpu_set_calibrate_flag(1);
 }

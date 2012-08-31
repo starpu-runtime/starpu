@@ -23,25 +23,24 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define _STARPU_HTBL32_NODE_SIZE	8
+#define _STARPU_HTBL64_NODE_SIZE	8 
 
 /* Hierarchical table: all nodes have a 2^8 arity . */
-/* Note: this struct is used in include/starpu_perfmodel.h */
-struct starpu_htbl32_node {
+struct starpu_htbl64_node {
 	unsigned nentries;
-	struct starpu_htbl32_node *children[1<<_STARPU_HTBL32_NODE_SIZE];
+	struct starpu_htbl64_node *children[1ULL<<_STARPU_HTBL64_NODE_SIZE];
 };
 
-/* Look for a 32bit key into the hierchical table. Returns the entry if
+/* Look for a 64bit key into the hierchical table. Returns the entry if
  * something is found, NULL otherwise. */
-void *_starpu_htbl_search_32(struct starpu_htbl32_node *htbl, uint32_t key);
+void *_starpu_htbl_search_64(struct starpu_htbl64_node *htbl, uint64_t key);
 
-/* Insert an entry indexed by the 32bit key into the hierarchical table.
+/* Insert an entry indexed by the 64bit key into the hierarchical table.
  * Returns the entry that was previously associated to that key if any, NULL
  * otherwise. */
-void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, void *entry);
+void *_starpu_htbl_insert_64(struct starpu_htbl64_node **htbl, uint64_t key, void *entry);
 
 /* Delete the content of the table, `remove' being called on each element */
-void _starpu_htbl_destroy_32(struct starpu_htbl32_node *htbl, void (*remove)(void*));
+void _starpu_htbl_destroy_64(struct starpu_htbl64_node *htbl, void (*remove)(void*));
 
 #endif // __GENERIC_HTABLE_H__

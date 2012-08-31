@@ -18,9 +18,9 @@
 #include "devices.h"
 
 // OpenCL 1.0 : Mandatory format: major_number.minor_number
-const char * SOCL_DRIVER_VERSION = "0.1";
+const char * __attribute__ ((aligned (16))) SOCL_DRIVER_VERSION = "0.1";
 
-const cl_uint SOCL_DEVICE_VENDOR_ID = 666;
+const cl_uint __attribute__ ((aligned (16))) SOCL_DEVICE_VENDOR_ID = 666;
 
 const struct _cl_device_id socl_devices[] = {
    { 

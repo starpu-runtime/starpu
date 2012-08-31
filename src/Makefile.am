@@ -92,6 +92,7 @@ noinst_HEADERS = 						\
 	common/barrier.h					\
 	common/timing.h						\
 	common/htable32.h					\
+	common/htable64.h					\
 	common/list.h						\
 	common/rwlock.h						\
 	common/starpu_spinlock.h				\
@@ -123,6 +124,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier_counter.c				\
 	common/hash.c 						\
 	common/htable32.c					\
+	common/htable64.c					\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
 	common/timing.c						\

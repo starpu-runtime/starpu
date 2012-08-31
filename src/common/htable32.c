@@ -106,7 +106,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node **htbl, uint32_t key, voi
 static void _starpu_htbl_destroy_32_bit(struct starpu_htbl32_node *htbl, unsigned bit, void (*remove)(void*))
 {
 	unsigned keysize = sizeof(uint32_t)*8;
-	int i;
+	unsigned i;
 
 	if (!htbl)
 		return;

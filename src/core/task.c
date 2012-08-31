@@ -114,8 +114,10 @@ void starpu_task_deinit(struct starpu_task *task)
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
-	if (j)
+	if (j) {
 		_starpu_job_destroy(j);
+		task->starpu_private = NULL;
+	}
 }
 
 struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
@@ -215,6 +217,9 @@ struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
  * already counted. */
 int _starpu_submit_job(struct _starpu_job *j)
 {
+
+	struct starpu_task *task = j->task;
+
         _STARPU_LOG_IN();
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
@@ -231,6 +236,17 @@ int _starpu_submit_job(struct _starpu_job *j)
 		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint);
 	}
 #endif
+
+	/* We retain handle reference count */
+	if (task->cl) {
+		unsigned i;
+		for (i=0; i<task->cl->nbuffers; i++) {
+			starpu_data_handle_t handle = task->handles[i];
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count++;
+			_starpu_spin_unlock(&handle->header_lock);
+		}
+	}
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
@@ -663,11 +679,6 @@ starpu_drivers_request_termination(void)
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-}
-
-void _starpu_check_nsubmitted_tasks(void)
-{
-
 }
 
 static void _starpu_increment_nsubmitted_tasks(void)

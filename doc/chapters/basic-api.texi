@@ -72,7 +72,7 @@ if @code{sched_policy_name} is set.
 
 @item @code{int ncpus} (default = -1)
 This is the number of CPU cores that StarPU can use. This can also be
-specified with the @code{STARPU_NCPUS} environment variable.
+specified with the @code{STARPU_NCPU} environment variable.
 
 @item @code{int ncuda} (default = -1)
 This is the number of CUDA devices that StarPU can use. This can also
@@ -127,7 +127,7 @@ executing tasks. If this value is equal to -1, the default value is used. This
 can also be specified with the @code{STARPU_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
-By default, StarPU parallel tasks concurrently.
+By default, StarPU executes parallel tasks concurrently.
 Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
 makes StarPU only start one parallel task at a time.
@@ -615,8 +615,8 @@ Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of @var{nnz} non-zero blocks of elements of size
 @var{elemsize} stored in @var{nzval} and initializes @var{handle} to represent
 it. Blocks have size @var{r} * @var{c}. @var{nrow} is the number of rows (in
-terms of blocks), @var{colind[i]} is the block-column index for block @code{i}
-in @code{nzval}, @var{rowptr[i]} is the block-index (in nzval) of the first block of row @code{i}.
+terms of blocks), @code{colind[i]} is the block-column index for block @code{i}
+in @code{nzval}, @code{rowptr[i]} is the block-index (in nzval) of the first block of row @code{i}.
 @var{firstentry} is the index of the first entry of the given arrays (usually 0
 or 1).
 @end deftypefun
@@ -1259,7 +1259,9 @@ always only define the field @code{opencl_funcs}.
 
 @deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
-targets. For compatibility, make sure to initialize the whole structure to zero.
+targets. For compatibility, make sure to initialize the whole structure to zero,
+either by using explicit memset, or by letting the compiler implicitly do it in
+e.g. static storage case.
 
 @table @asis
 @item @code{uint32_t where} (optional)
@@ -1826,7 +1828,11 @@ The possible values are:
 @anchor{struct starpu_perfmodel}
 contains all information about a performance model. At least the
 @code{type} and @code{symbol} fields have to be filled when defining a
-performance model for a codelet. If not provided, other fields have to be zero.
+performance model for a codelet. For compatibility, make sure to initialize the
+whole structure to zero, either by using explicit memset, or by letting the
+compiler implicitly do it in e.g. static storage case.
+
+If not provided, other fields have to be zero.
 
 @table @asis
 @item @code{type}
@@ -1950,6 +1956,18 @@ prints a list of all performance models on @var{output}.
 
 @deftypefun void starpu_bus_print_bandwidth ({FILE *}@var{f})
 prints a matrix of bus bandwidths on @var{f}.
+@end deftypefun
+
+@deftypefun void starpu_bus_print_affinity ({FILE *}@var{f})
+prints the affinity devices on @var{f}.
+@end deftypefun
+
+@deftypefun void starpu_perfmodel_update_history ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{cpuid}, unsigned @var{nimpl}, double @var{measured});
+This feeds the performance model @var{model} with an explicit measurement
+@var{measured}, in addition to measurements done by StarPU itself. This can be
+useful when the application already has an existing set of measurements done
+in good conditions, that StarPU could benefit from instead of doing on-line
+measurements. And example of use can be see in @ref{Performance model example}.
 @end deftypefun
 
 @node Profiling API
