@@ -80,6 +80,7 @@ soclCreateProgramWithSource(cl_context      context,
       *errcode_ret = CL_SUCCESS;
 
    device_count = starpu_opencl_worker_get_count();
+   assert(device_count > 0);
    DEBUG_MSG("Worker count: %d\n", device_count);
 
    /* Check arguments */

@@ -29,8 +29,10 @@
 #include <windows.h>
 #endif
 
-#ifdef __FreeBSD__
-#include <sys/thr.h> /* for thr_self() */
+#ifdef __linux__
+#include <sys/syscall.h>   /* for SYS_gettid */
+#elif defined(__FreeBSD__)
+#include <sys/thr.h>       /* for thr_self() */
 #endif
 
 #define _STARPU_PROF_BUFFER_SIZE  (8*1024*1024)

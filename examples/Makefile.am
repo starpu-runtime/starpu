@@ -181,6 +181,7 @@ examplebin_PROGRAMS +=				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
+	filters/shadow				\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -190,6 +191,7 @@ examplebin_PROGRAMS +=				\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	binary/binary				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
@@ -254,6 +256,7 @@ STARPU_EXAMPLES +=				\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	binary/binary				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
@@ -730,6 +733,17 @@ incrementer_incrementer_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_kernel.cl
+endif
+
+##################
+# Binary example #
+##################
+
+binary_binary_SOURCES =	\
+	binary/binary.c
+if STARPU_USE_OPENCL
+binary_binary_SOURCES +=	\
+	incrementer/incrementer_kernels_opencl.c
 endif
 
 #####################

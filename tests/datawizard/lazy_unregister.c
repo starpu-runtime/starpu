@@ -56,6 +56,8 @@ int main(void)
 	starpu_task_declare_deps_array(t2, 1, &t1);
 
 	ret = starpu_task_submit(t2);
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	starpu_data_unregister_lazy(handle);
 
@@ -63,10 +65,12 @@ int main(void)
 		return EXIT_FAILURE;
 
 	ret = starpu_task_submit(t1);
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	ret = starpu_task_wait(t2);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	while (starpu_data_lookup(buffer) != NULL)
+		usleep(100000);
 
 	if (starpu_data_lookup(buffer) != NULL)
 		return EXIT_FAILURE;

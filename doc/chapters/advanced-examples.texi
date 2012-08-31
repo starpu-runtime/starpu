@@ -235,7 +235,7 @@ starpu_data_partition(handle, &f);
 @end smallexample
 @end cartouche
 
-The task submission then uses @code{starpu_data_get_sub_data} to retrive the
+The task submission then uses @code{starpu_data_get_sub_data} to retrieve the
 sub-handles to be passed as tasks parameters.
 
 @cartouche

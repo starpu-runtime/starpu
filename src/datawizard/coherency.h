@@ -42,7 +42,7 @@ enum _starpu_cache_state
 LIST_TYPE(_starpu_data_replicate,
 	starpu_data_handle_t handle;
 
-	/* describe the actual data layout */
+	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */
 	void *data_interface;
 
 	unsigned memory_node;

@@ -54,7 +54,9 @@
 #define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
 
 int _starpu_mkpath(const char *s, mode_t mode);
+void _starpu_mkpath_and_check(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
+char *_starpu_get_home_path();
 
 /* If FILE is currently on a comment line, eat it.  */
 void _starpu_drop_comments(FILE *f);
