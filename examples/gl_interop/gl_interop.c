@@ -70,7 +70,7 @@ void callback_func(void *foo) {
 	printf("rendering done\n");
 
 	/* Tell it was already the last submitted task */
-	starpu_set_end_of_submissions();
+	starpu_drivers_request_termination();
 }
 
 int main(int argc, char **argv)

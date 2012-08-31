@@ -39,10 +39,12 @@ indicates that no worker was available (so that StarPU was not initialized).
 @deftp {Data Type} {struct starpu_driver}
 @table @asis
 @item @code{enum starpu_archtype type}
-The type of the driver. Only STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are
-currently supported.
+The type of the driver. Only STARPU_CPU_DRIVER, STARPU_CUDA_DRIVER and
+STARPU_OPENCL_DRIVER are currently supported.
 @item @code{union id} Anonymous union
 @table @asis
+@item @code{unsigned cpu_id}
+Should only be used if type is STARPU_CPU_WORKER.
 @item @code{unsigned cuda_id}
 Should only be used if type is STARPU_CUDA_WORKER.
 @item @code{cl_device_id opencl_id}

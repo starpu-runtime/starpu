@@ -20,6 +20,9 @@ StarPU 1.1.0 (svn revision xxxx)
 New features:
   * OpenGL interoperability support.
 
+Changes:
+  * The FxT code can now be used on systems other than Linux.
+
 StarPU 1.0.0 (svn revision 6306)
 ==============================================
 The extensions-again release

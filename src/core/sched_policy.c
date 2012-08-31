@@ -88,17 +88,7 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 #endif
         struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 
-	policy->init_sched = sched_policy->init_sched;
-	policy->deinit_sched = sched_policy->deinit_sched;
-	policy->push_task = sched_policy->push_task;
-	policy->pop_task = sched_policy->pop_task;
-	policy->pre_exec_hook = sched_policy->pre_exec_hook;
-	policy->post_exec_hook = sched_policy->post_exec_hook;
-	policy->pop_every_task = sched_policy->pop_every_task;
-	policy->push_task_notify = sched_policy->push_task_notify;
-	policy->policy_name = sched_policy->policy_name;
-	policy->add_workers = sched_policy->add_workers;
-	policy->remove_workers = sched_policy->remove_workers;
+	memcpy(&policy, sched_policy, sizeof(policy));
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)

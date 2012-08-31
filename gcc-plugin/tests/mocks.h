@@ -469,6 +469,15 @@ struct load_opencl_arguments
 /* Expected arguments.  */
 static struct load_opencl_arguments expected_load_opencl_arguments;
 
+struct cl_enqueue_kernel_arguments
+{
+  size_t * global_work_size;
+};
+
+/* Variable describing the expected `clEnqueueNDRangeKernel' arguments. */
+static struct cl_enqueue_kernel_arguments expected_cl_enqueue_kernel_arguments;
+
+
 int
 starpu_opencl_load_opencl_from_string (const char *source,
 				       struct starpu_opencl_program *program,
@@ -551,7 +560,9 @@ clEnqueueNDRangeKernel(cl_command_queue command_queue,
                        const cl_event * event_wait_list,
                        cl_event *       event)
 {
-  assert (*global_work_size == 1 && *local_work_size == 1);
+  assert (*local_work_size == 1);
+  assert (*global_work_size == *expected_cl_enqueue_kernel_arguments.global_work_size);
+
   opencl_enqueue_calls++;
   return 0;
 }
