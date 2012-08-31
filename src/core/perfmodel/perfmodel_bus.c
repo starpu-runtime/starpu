@@ -792,8 +792,10 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 
 void starpu_bus_print_affinity(FILE *f)
 {
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned cpu;
 	int gpu;
+#endif
 
 	fprintf(f, "# GPU\tCPU in preference order (logical index)\n");
 
@@ -1108,7 +1110,7 @@ void starpu_bus_print_bandwidth(FILE *f)
         maxnode += nopencl;
 #endif
 
-	fprintf(f, "from to\t");
+	fprintf(f, "from/to\t");
 	fprintf(f, "RAM\t");
 	for (dst = 0; dst < ncuda; dst++)
 		fprintf(f, "CUDA %d\t", dst);
@@ -1130,6 +1132,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		fprintf(f, "\n");
 	}
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
 	for (src = 1; src <= maxnode; src++)
 	{
@@ -1138,6 +1141,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		int ncpus = _starpu_topology_get_nhwcpu(config);
 		int cpu;
 
+#ifdef STARPU_USE_CUDA
 		if (src <= ncuda)
 		{
 			fprintf(f, "CUDA %d\t", src-1);
@@ -1150,7 +1154,11 @@ void starpu_bus_print_bandwidth(FILE *f)
 					fprintf(f, "%d\t", cuda_affinity_matrix[src-1][cpu]);
 			}
 		}
+#ifdef STARPU_USE_OPENCL
 		else
+#endif
+#endif
+#ifdef STARPU_USE_OPENCL
 		{
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
 			for (cpu = 0; cpu < ncpus; cpu++)
@@ -1162,8 +1170,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 					fprintf(f, "%d\t", opencl_affinity_matrix[src-1][cpu]);
 			}
 		}
+#endif
 		fprintf(f, "\n");
 	}
+#endif
 }
 
 static void generate_bus_bandwidth_file(void)
@@ -1297,6 +1307,7 @@ static void generate_bus_config_file()
 
 static void starpu_force_bus_sampling(void)
 {
+	_STARPU_DEBUG("Force bus sampling ...\n");
 	_starpu_create_sampling_directory_if_needed();
 
 	generate_bus_affinity_file();

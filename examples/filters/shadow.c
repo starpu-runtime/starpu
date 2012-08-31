@@ -16,9 +16,28 @@
  */
 
 /*
- * This examplifies the use of the shadow filter: a source vector of NX
- * elements (plus 2*SHADOW wrap-around elements) is copied into a destination
- * vector of NX+NPARTS*2*SHADOW elements, thus showing how shadowing shows up.
+ * This examplifies the use of the shadow filter: a source "vector" of NX
+ * elements (plus 2*SHADOW wrap-around elements) is partitioned into vectors
+ * with some shadowing, and these are copied into a destination "vector2" of
+ * NRPARTS*(NX/NPARTS+2*SHADOW) elements, partitioned in the traditionnal way,
+ * thus showing how shadowing shows up.
+ *
+ * For instance, with NX=8, SHADOW=1, and NPARTS=4:
+ *
+ * vector
+ * x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
+ *
+ * is partitioned into 4 pieces:
+ *
+ * x0 x1 x2 x3
+ *       x2 x3 x4 x5
+ *             x4 x5 x6 x7
+ *                   x6 x7 x8 x9
+ *
+ * which are copied into the 4 destination subparts of vector2, thus getting in
+ * the end:
+ *
+ * x0 x1 x2 x3 x2 x3 x4 x5 x4 x5 x6 x7 x6 x7 x8 x9
  */
 
 #include <starpu.h>
@@ -66,7 +85,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
-	cudaMemcpy(val2, val, n*sizeof(*val), cudaMemcpyDeviceToDevice);
+	cudaMemcpyAsync(val2, val, n*sizeof(*val), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
@@ -77,7 +96,6 @@ int main(int argc, char **argv)
         int vector[NX + 2*SHADOW];
         int vector2[NX + PARTS*2*SHADOW];
 	starpu_data_handle_t handle, handle2;
-        int factor=1;
 	int ret;
 
         struct starpu_codelet cl =
@@ -114,6 +132,9 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle2, 0, (uintptr_t)vector2, NX + PARTS*2*SHADOW, sizeof(vector[0]));
 
         /* Partition the source vector in PARTS sub-vectors with shadows */
+	/* NOTE: the resulting handles should only be used in read-only mode,
+	 * as StarPU will not know how the overlapping parts would have to be
+	 * combined. */
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_shadow_filter_func_vector,
@@ -137,13 +158,10 @@ int main(int argc, char **argv)
                 starpu_data_handle_t sub_handle2 = starpu_data_get_sub_data(handle2, 1, i);
                 struct starpu_task *task = starpu_task_create();
 
-                factor *= 10;
 		task->handles[0] = sub_handle;
 		task->handles[1] = sub_handle2;
                 task->cl = &cl;
                 task->synchronous = 1;
-                task->cl_arg = &factor;
-                task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;

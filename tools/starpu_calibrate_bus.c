@@ -71,6 +71,7 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int ret;
 	struct starpu_conf conf;
 
 	parse_args(argc, argv);
@@ -78,7 +79,10 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.bus_calibrate = 1;
 
-	starpu_init(&conf);
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return 77;
+	if (ret != 0) return ret;
+
 	starpu_shutdown();
 
 	return 0;

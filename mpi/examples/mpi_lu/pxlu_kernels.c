@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -70,7 +70,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_ABORT();
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -175,7 +175,7 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_ABORT();
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -282,7 +282,7 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -381,8 +381,8 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
-				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
-				cudaStreamSynchronize(0);
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				STARPU_ASSERT(pivot != 0.0);
 				
@@ -394,7 +394,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 						&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif

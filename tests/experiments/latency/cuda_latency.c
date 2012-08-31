@@ -96,7 +96,7 @@ void recv_data(unsigned src, unsigned dst)
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice, stream[dst]);
 	STARPU_ASSERT(!cures);
-	cures = cudaThreadSynchronize();
+	cures = cudaStreamSynchronize(stream[dst]);
 	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);

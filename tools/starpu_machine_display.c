@@ -118,6 +118,7 @@ PROGNAME);
 
 int main(int argc, char **argv)
 {
+	int ret;
 	int force = 0;
 	struct starpu_conf conf;
 
@@ -129,7 +130,11 @@ int main(int argc, char **argv)
 
 	/* Even if starpu_init returns -ENODEV, we should go on : we will just
 	 * print that we found no device. */
-	(void) starpu_init(&conf);
+	ret = starpu_init(&conf);
+	if (ret != 0 && ret != -ENODEV)
+	{
+		return ret;
+	}
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
 	unsigned ncuda = starpu_cuda_worker_get_count();

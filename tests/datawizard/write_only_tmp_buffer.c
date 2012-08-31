@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,10 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+
+#ifdef STARPU_USE_CUDA
+#include <starpu_cuda.h>
+#endif
 
 #define VECTORSIZE	1024
 
@@ -53,7 +57,8 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	cudaMemset(buf, 42, 1);
+	cudaMemsetAsync(buf, 42, 1, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 

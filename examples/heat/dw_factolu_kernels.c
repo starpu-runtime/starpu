@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -137,7 +137,7 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attr
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -202,7 +202,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -264,7 +264,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ABORT();
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -344,8 +344,8 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;
-				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
-				cudaStreamSynchronize(0);
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				STARPU_ASSERT(pivot != 0.0f);
 				
@@ -357,7 +357,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 								&sub11[(z+1) + (z+1)*ld],ld);
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif

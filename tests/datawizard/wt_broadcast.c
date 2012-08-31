@@ -60,13 +60,13 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	unsigned host_token;
 
 	/* This is a dummy technique of course */
-	cudaMemcpy(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	host_token++;
 
-	cudaMemcpy(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 

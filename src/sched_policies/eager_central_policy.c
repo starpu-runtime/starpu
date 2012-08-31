@@ -55,7 +55,7 @@ static void eager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id) 
 {
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: you are running the default eager scheduler, which does not include optimizations. Make sure to read the StarPU documentation about adding performance models in order to be able to use the heft or dmda schedulers instead.\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: you are running the default eager scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the heft or dmda schedulers instead.\n");
 
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
 

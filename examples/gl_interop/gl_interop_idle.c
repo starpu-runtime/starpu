@@ -30,13 +30,17 @@
 #include <starpu.h>
 #include <unistd.h>
 #include <GL/glut.h>
+#ifdef STARPU_USE_CUDA
+#include <starpu_cuda.h>
+#endif
 
 void dummy(void *buffers[], void *cl_arg)
 {
 	float *v = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	printf("Codelet running\n");
-	cudaMemset(v, 0, STARPU_VECTOR_GET_NX(buffers[0]) * sizeof(float));
+	cudaMemsetAsync(v, 0, STARPU_VECTOR_GET_NX(buffers[0]) * sizeof(float), starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	printf("Codelet done\n");
 }
 

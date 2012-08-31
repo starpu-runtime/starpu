@@ -20,6 +20,7 @@
 
 #ifdef STARPU_USE_CUDA
 #  include <cublas.h>
+#  include <starpu_cuda.h>
 #endif
 
 #define LOOPS 100
@@ -46,11 +47,10 @@ void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float sum = cublasSasum(nx, matrix, 1);
-	cudaThreadSynchronize();
 	sum /= nx;
 
-	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -78,11 +78,10 @@ void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 
 	float sum = cublasSasum(nx*ny, matrix, 1);
-	cudaThreadSynchronize();
 	sum /= nx*ny;
 
-	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -195,6 +194,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	starpu_helper_cublas_init();
 
 	devices = starpu_cpu_worker_get_count();
 	if (devices)
@@ -219,6 +219,7 @@ int main(int argc, char **argv)
 
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
+	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }

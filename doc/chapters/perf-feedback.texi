@@ -383,7 +383,7 @@ performance models. It also writes a @code{.gp} file in the current directory,
 to be run in the @code{gnuplot} tool, which shows the corresponding curve.
 
 The same can also be achieved by using StarPU's library API, see
-@ref{Performance Model API} and notably the @code{starpu_load_history_debug}
+@ref{Performance Model API} and notably the @code{starpu_perfmodel_load_symbol}
 function. The source code of the @code{starpu_perfmodel_display} tool can be a
 useful example.
 
