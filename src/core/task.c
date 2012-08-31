@@ -50,38 +50,20 @@ void starpu_task_init(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 
-	task->cl = NULL;
-	task->cl_arg = NULL;
-	task->cl_arg_size = 0;
+	/* As most of the fields must be initialised at NULL, let's put 0
+	 * everywhere */
+	memset(task, 0, sizeof(struct starpu_task));
 
-	task->callback_func = NULL;
-	task->callback_arg = NULL;
-
+	/* Now we can initialise fields which recquire custom value */
 	task->priority = STARPU_DEFAULT_PRIO;
-	task->use_tag = 0;
-	task->synchronous = 0;
-
-	task->execute_on_a_specific_worker = 0;
-
-	task->bundle = NULL;
 
 	task->detach = 1;
 
-	/* by default, we do not let StarPU free the task structure since
-	 * starpu_task_init is likely to be used only for statically allocated
-	 * tasks */
-	task->destroy = 0;
-
-	task->regenerate = 0;
-
 	task->status = STARPU_TASK_INVALID;
-
-	task->profiling_info = NULL;
 
 	task->predicted = NAN;
 	task->predicted_transfer = NAN;
 
-	task->starpu_private = NULL;
 	task->magic = 42;
 	task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
 	
@@ -124,7 +106,7 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 {
 	struct starpu_task *task;
 
-	task = (struct starpu_task *) calloc(1, sizeof(struct starpu_task));
+	task = (struct starpu_task *) malloc(sizeof(struct starpu_task));
 	STARPU_ASSERT(task);
 
 	starpu_task_init(task);
@@ -544,6 +526,15 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	if (task->cl->power_model)
 		_starpu_load_perfmodel(task->cl->power_model);
 
+	/* We retain handle reference count */
+	unsigned i;
+	for (i=0; i<task->cl->nbuffers; i++) {
+		starpu_data_handle_t handle = task->handles[i];
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
+	}
+
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
@@ -551,7 +542,6 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
 
-	unsigned i;
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
 		j->ordered_buffers[i].handle = j->task->handles[i];
