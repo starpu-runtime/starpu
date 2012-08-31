@@ -70,9 +70,8 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 
 	}
 #endif
-        struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 
-	memcpy(&policy, sched_policy, sizeof(policy));
+	memcpy(sched_ctx->sched_policy, sched_policy, sizeof(*sched_policy));
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
