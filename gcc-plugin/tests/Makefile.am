@@ -70,6 +70,7 @@ CLEANFILES = *.gimple *.o			\
   base						\
   pointers					\
   register					\
+  registered					\
   release					\
   scalar-tasks					\
   pointer-tasks					\

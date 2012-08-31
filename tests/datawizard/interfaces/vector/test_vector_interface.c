@@ -44,7 +44,7 @@ struct test_config vector_config =
 #endif
 	.handle        = &vector_handle,
 	.dummy_handle  = &vector2_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "vector_interface"
 };
 
@@ -92,7 +92,7 @@ static void test_vector_cpu_func(void *buffers[], void *args)
 	{
 		if (val[i] != i*factor)
 		{
-			vector_config.copy_failed = 1;
+			vector_config.copy_failed = FAILURE;
 			return;
 		}
 		val[i] = -val[i];

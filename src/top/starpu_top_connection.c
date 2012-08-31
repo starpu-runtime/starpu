@@ -41,8 +41,6 @@
 const char *STARPU_TOP_PORT = "2011";
 const int STARPU_TOP_BUFFER_SIZE=1024;
 
-extern struct _starpu_top_message_queue*  _starpu_top_mt;
-
 //client socket after fopen
 FILE* starpu_top_socket_fd_read;
 FILE* starpu_top_socket_fd_write;

@@ -43,6 +43,8 @@ void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl);
 int _starpu_register_model(struct starpu_perfmodel *model);
+void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model);
+void _starpu_load_common_based_model(struct starpu_perfmodel *model);
 void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned scan_history);
 void _starpu_load_perfmodel(struct starpu_perfmodel *model);
 void _starpu_initialize_registered_performance_models(void);

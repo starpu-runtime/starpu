@@ -157,7 +157,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	sprintf(message, "%s\n", server_name);
 	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(25);
-	sprintf(message, "%lld\n", current_timestamp());
+	sprintf(message, "%llu\n", current_timestamp());
 	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(strlen("/SERVERINFO\n")+1);
 	sprintf(message,"%s", "/SERVERINFO\n");
@@ -490,7 +490,7 @@ void starpu_top_update_data_boolean(const struct starpu_top_data* data, int valu
 	{
 		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
-				"U;%u;%d;%lld\n",
+				"U;%u;%d;%llu\n",
 				data->id,
 				(value?1:0),
 				current_timestamp());
@@ -506,7 +506,7 @@ void starpu_top_update_data_integer(const struct starpu_top_data* data, int valu
 	{
 		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
-				"U;%u;%d;%lld\n",
+				"U;%u;%d;%llu\n",
 				data->id,
 				value,
 				current_timestamp());
@@ -522,7 +522,7 @@ void starpu_top_update_data_float(const struct starpu_top_data* data, double val
 	{
 		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
-				"U;%u;%f;%lld\n",
+				"U;%u;%f;%llu\n",
 				data->id, value,
 				current_timestamp());
 		_starpu_top_message_add(_starpu_top_mt,message);
@@ -541,7 +541,7 @@ void starpu_top_update_parameter(const struct starpu_top_param* param)
 		case STARPU_TOP_PARAM_INTEGER:
 		case STARPU_TOP_PARAM_ENUM:
 			sprintf(message,
-					"SET;%u;%d;%lld\n",
+					"SET;%u;%d;%llu\n",
 					param->id,
 					*((int*)param->value),
 					current_timestamp());
@@ -549,7 +549,7 @@ void starpu_top_update_parameter(const struct starpu_top_param* param)
 
 		case STARPU_TOP_PARAM_FLOAT:
 			sprintf(message,
-					"SET;%u;%f;%lld\n",
+					"SET;%u;%f;%llu\n",
 					param->id,
 					*((double*)param->value),
 					current_timestamp());

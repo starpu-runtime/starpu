@@ -2044,7 +2044,13 @@ handle_heap_allocated_attribute (tree *node, tree name, tree args,
 	  tree parent, try_finally, registration;
 
 #ifdef stmt_list_stack
-	  parent = VEC_last (tree, stmt_list_stack);
+# ifdef VEC_index /* 4.7 */
+	  gcc_assert (VEC_length (tree, stmt_list_stack) > 1);
+	  parent = VEC_index (tree, stmt_list_stack,
+			      VEC_length (tree, stmt_list_stack) - 2);
+# else
+#  error not ported to 4.8!
+# endif
 #else  /* 4.6 and before */
 	  parent = TREE_CHAIN (cur_stmt_list);
 #endif

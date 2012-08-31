@@ -1120,6 +1120,12 @@ AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
 if test x$use_mpi = xyes; then
 	cc_or_mpicc=$mpicc_path
+        # For some reason, libtool uses gcc instead of mpicc when linking
+        # libstarpumpi.
+        # On Darwin (and maybe other systems ?) the linker will fail (undefined
+        # references to MPI_*). We manually add the required flags to fix this
+        # issue.
+        AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
 else
 	cc_or_mpicc=$CC
 fi
@@ -1429,9 +1435,9 @@ fi
 #                                                                             #
 ###############################################################################
 
-AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--enable-build-examples],
-			[enable building of examples])],
-			enable_build_examples=$enableval, enable_build_examples=no)
+AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--disable-build-examples],
+			[disable building of examples])],
+			enable_build_examples=$enableval, enable_build_examples=yes)
 # check stuff for examples (todo)
 AM_CONDITIONAL(BUILD_EXAMPLES, [test x$enable_build_examples != xno])
 AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],

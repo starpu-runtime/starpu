@@ -751,6 +751,67 @@ void _starpu_deinitialize_registered_performance_models(void)
 	_STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 }
 
+/*
+ * XXX: We should probably factorize the beginning of the _starpu_load_*_model
+ * functions. This is a bit tricky though, because we must be sure to unlock
+ * registered_models_rwlock at the right place.
+ */
+void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model)
+{
+	STARPU_ASSERT(model && model->symbol);
+
+	int already_loaded;
+
+	_STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	already_loaded = model->is_loaded;
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
+	if (already_loaded)
+		return;
+
+	/* The model is still not loaded so we grab the lock in write mode, and
+	 * if it's not loaded once we have the lock, we do load it. */
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
+	/* Was the model initialized since the previous test ? */
+	if (model->is_loaded)
+	{
+		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return;
+	}
+
+	_STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+}
+
+void _starpu_load_common_based_model(struct starpu_perfmodel *model)
+{
+	STARPU_ASSERT(model && model->symbol);
+
+	int already_loaded;
+
+	_STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	already_loaded = model->is_loaded;
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
+	if (already_loaded)
+		return;
+
+	/* The model is still not loaded so we grab the lock in write mode, and
+	 * if it's not loaded once we have the lock, we do load it. */
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
+	/* Was the model initialized since the previous test ? */
+	if (model->is_loaded)
+	{
+		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return;
+	}
+
+	_STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+}
+
 /* We first try to grab the global lock in read mode to check whether the model
  * was loaded or not (this is very likely to have been already loaded). If the
  * model was not loaded yet, we take the lock in write mode, and if the model

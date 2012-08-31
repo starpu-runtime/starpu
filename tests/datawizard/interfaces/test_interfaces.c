@@ -33,20 +33,6 @@ static struct test_config *current_config;
 - OpenCL to OpenCL support
 */
 
-/*
- * Users do not know about this enum. They only know that SUCCESS is 0, and
- * FAILURE is 1. Therefore, the values of SUCCESS and FAILURE shall not be
- * changed.
- */
-enum exit_code
-{
-	SUCCESS                 = 0,
-	FAILURE                 = 1,
-	UNTESTED                = 2,
-	TASK_CREATION_FAILURE   = 3,
-	TASK_SUBMISSION_FAILURE = 4
-};
-
 static char *
 enum_to_string(int exit_code)
 {
