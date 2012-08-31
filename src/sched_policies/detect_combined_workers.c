@@ -449,7 +449,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
     {
 	    worker = _starpu_get_worker_struct(workerids[i]);
 	   
-	    if (worker.perf_arch == STARPU_CPU_DEFAULT)
+	    if (worker->perf_arch == STARPU_CPU_DEFAULT)
 		    cpu_workers[ncpus++] = i;
     }
 
@@ -470,7 +470,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 		int newworkerid;
 		newworkerid = starpu_combined_worker_assign_workerid(size, workerids);
 		STARPU_ASSERT(newworkerid >= 0);
-		workers->add(workers, bewworkerid);
+		workers->add(workers, newworkerid);
 	    }
 	}
     }
