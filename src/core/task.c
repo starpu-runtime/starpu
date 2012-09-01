@@ -467,7 +467,7 @@ int _starpu_task_submit_internally(struct starpu_task *task)
 int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	task->sched_ctx = sched_ctx_id;
-	starpu_task_submit(task);
+	return starpu_task_submit(task);
 }
 
 /* The StarPU core can submit tasks directly to the scheduler or a worker,
