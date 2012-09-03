@@ -29,10 +29,19 @@ struct progression_hook
 };
 
 /* protect the hook table */
-static pthread_rwlock_t progression_hook_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+static pthread_rwlock_t progression_hook_rwlock;
 
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 static int active_hook_cnt = 0;
+
+/*
+ * Staticly initializing progression_hook_rwlock seems to lead to weird errors
+ * on Darwin, so we do it dynamically.
+ */
+void _starpu_init_progression_hooks(void)
+{
+	_STARPU_PTHREAD_RWLOCK_INIT(&progression_hook_rwlock, NULL);
+}
 
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {

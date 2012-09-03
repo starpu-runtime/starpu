@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <core/progress_hook.h>
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/task.h>
@@ -659,6 +660,10 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	/* Launch "basic" workers (ie. non-combined workers) */
 	_starpu_launch_drivers(&config);
+
+	_starpu_init_progression_hooks();
+
+	_starpu_init_tags();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;

@@ -36,7 +36,7 @@ struct _starpu_tag_table
 #define HASH_FIND_UINT64_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint64_t),out)
 
 static struct _starpu_tag_table *tag_htbl = NULL;
-static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+static pthread_rwlock_t tag_global_rwlock;
 
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {
@@ -120,6 +120,15 @@ static void _starpu_tag_free(void *_tag)
 
 		free(tag);
 	}
+}
+
+/*
+ * Staticly initializing tag_global_rwlock seems to lead to weird errors
+ * on Darwin, so we do it dynamically.
+ */
+void _starpu_init_tags(void)
+{
+	_STARPU_PTHREAD_RWLOCK_INIT(&tag_global_rwlock, NULL);
 }
 
 void starpu_tag_remove(starpu_tag_t id)

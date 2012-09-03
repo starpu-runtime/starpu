@@ -61,6 +61,8 @@ struct _starpu_tag
 	unsigned is_submitted;
 };
 
+void _starpu_init_tags(void);
+
 void _starpu_notify_dependencies(struct _starpu_job *j);
 void _starpu_notify_tag_dependencies(struct _starpu_tag *tag);
 

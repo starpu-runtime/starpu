@@ -60,6 +60,7 @@ noinst_HEADERS = 						\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
 	core/dependencies/implicit_data_deps.h			\
+	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
