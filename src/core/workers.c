@@ -623,6 +623,10 @@ int starpu_init(struct starpu_conf *user_conf)
 	}
 	_starpu_conf_check_environment(config.conf);
 
+	_starpu_init_progression_hooks();
+
+	_starpu_init_tags();
+
 #ifdef STARPU_USE_FXT
 	_starpu_start_fxt_profiling();
 #endif
@@ -660,10 +664,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	/* Launch "basic" workers (ie. non-combined workers) */
 	_starpu_launch_drivers(&config);
-
-	_starpu_init_progression_hooks();
-
-	_starpu_init_tags();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
