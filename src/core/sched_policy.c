@@ -267,12 +267,11 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
-		int k;
-		for (k = 0; k < worker_size; k++)
+		for (i = 0; i < worker_size; i++)
 		{
 			struct starpu_task *alias = _starpu_create_task_alias(task);
 
-			worker = _starpu_get_worker_struct(combined_workerid[k]);
+			worker = _starpu_get_worker_struct(combined_workerid[i]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
 
