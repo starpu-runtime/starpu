@@ -106,12 +106,34 @@ static struct starpu_perfmodel STARPU_LU(model_22) =
 #endif
 };
 
+#ifdef STARPU_USE_CUDA
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl) {
+	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+		return 1;
+
+	/* Cuda device */
+	const struct cudaDeviceProp *props;
+	props = starpu_cuda_get_device_properties(workerid);
+	if (props->major >= 2 || props->minor >= 3)
+	{
+		/* At least compute capability 1.3, supports doubles */
+		return 1;
+	}
+	else
+	{
+		/* Old card does not support doubles */
+		return 0;
+	}
+}
+#endif
+
 struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
@@ -199,6 +221,7 @@ struct starpu_codelet cl12 =
 	.cpu_funcs = {STARPU_LU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -283,6 +306,7 @@ struct starpu_codelet cl21 =
 	.cpu_funcs = {STARPU_LU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -382,6 +406,7 @@ struct starpu_codelet cl11 =
 	.cpu_funcs = {STARPU_LU(cpu_u11), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -522,6 +547,7 @@ struct starpu_codelet cl11_pivot =
 	.cpu_funcs = {STARPU_LU(cpu_u11_pivot), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11_pivot), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -611,6 +637,7 @@ struct starpu_codelet cl_pivot =
 	.cpu_funcs = {STARPU_LU(cpu_pivot), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
