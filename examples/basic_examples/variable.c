@@ -86,7 +86,8 @@ int main(int argc, char **argv)
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
+			starpu_data_unregister(float_array_handle);
+			goto enodev;
 		}
 	}
 
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return (foo == niter) ? EXIT_SUCCESS:EXIT_FAILURE;
 
 enodev:
 	starpu_shutdown();
