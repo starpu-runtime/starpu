@@ -131,7 +131,7 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 		&reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta,
 		&reg_model->nsample,
 		&reg_model->minx, &reg_model->maxx);
-	STARPU_ASSERT(res == 9);
+	STARPU_ASSERT_MSG(res == 9, "Incorrect performance model file");
 
 	/* If any of the parameters describing the linear regression model is NaN, the model is invalid */
 	unsigned invalid = (isnan(reg_model->alpha)||isnan(reg_model->beta));
@@ -144,7 +144,7 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	_starpu_drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\n", &reg_model->a, &reg_model->b, &reg_model->c);
-	STARPU_ASSERT(res == 3);
+	STARPU_ASSERT_MSG(res == 3, "Incorrect performance model file");
 
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
@@ -181,7 +181,7 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	"z"
 #endif
 	"u\t%le\t%le\t%le\t%le\t%u\n", &footprint, &size, &mean, &deviation, &sum, &sum2, &nsample);
-	STARPU_ASSERT(res == 7);
+	STARPU_ASSERT_MSG(res == 7, "Incorrect performance model file");
 
 	if (entry)
 	{
@@ -202,7 +202,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 	_starpu_drop_comments(f);
 
 	int res = fscanf(f, "%u\n", &nentries);
-	STARPU_ASSERT(res == 1);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
 	scan_reg_model(f, &per_arch_model->regression);
 
@@ -237,7 +237,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &nimpls);
 		_STARPU_DEBUG("%d implementations\n", nimpls);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
 		for (impl = 0; impl < implmax; impl++)
@@ -261,7 +261,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 			_STARPU_DEBUG("skipping arch %u\n", arch);
 			ret = fscanf(f, "%d\n", &nimpls);
 			_STARPU_DEBUG("%d implementations\n", nimpls);
-			STARPU_ASSERT(ret == 1);
+			STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 			implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 			skipimpl = nimpls - STARPU_MAXIMPLEMENTATIONS;
 			for (impl = 0; impl < implmax; impl++)
@@ -291,7 +291,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	/* Parsing CPUs */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &narchs);
-	STARPU_ASSERT(ret == 1);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 	_STARPU_DEBUG("Parsing %u CPUs\n", narchs);
 	if (narchs > 0)
@@ -305,7 +305,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	/* Parsing CUDA devs */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &narchs);
-	STARPU_ASSERT(ret == 1);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 	archmin += STARPU_MAXCPUS;
 	_STARPU_DEBUG("Parsing %u CUDA devices\n", narchs);
 	if (narchs > 0)
@@ -319,7 +319,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	/* Parsing OpenCL devs */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &narchs);
-	STARPU_ASSERT(ret == 1);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 	archmin += STARPU_MAXCUDADEVS;
 	_STARPU_DEBUG("Parsing %u OpenCL devices\n", narchs);
@@ -334,7 +334,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	/* Parsing Gordon implementations */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &narchs);
-	STARPU_ASSERT(ret == 1);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 	archmin += STARPU_MAXOPENCLDEVS;
 	_STARPU_DEBUG("Parsing %u Gordon devices\n", narchs);
