@@ -1474,6 +1474,7 @@ AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GotoBLAS
 
 if test x$blas_lib = xgoto; then
 STARPU_CHECK_LIB(BLAS, gfortran, main,,)
+STARPU_CHECK_LIB(BLAS, ifcore, main,,)
 # Perhaps that GotoBLAS2 is available instead (so that we have libgotoblas2.{so,a})
 STARPU_CHECK_LIB(BLAS, goto2, sgemm_,, [havegoto2=no], [$STARPU_BLAS_LDFLAGS])
 if test x$havegoto2 = xno; then
