@@ -211,7 +211,7 @@ Store performance models under @var{dir}, instead of the current user's
 home.
 
 @item --with-goto-dir=@var{prefix}
-Search for GotoBLAS under @var{prefix}.
+Search for GotoBLAS under @var{prefix}, which should notably contain @file{libgoto.so} or @file{libgoto2.so}.
 
 @item --with-atlas-dir=@var{prefix}
 Search for ATLAS under @var{prefix}, which should notably contain
