@@ -31,12 +31,14 @@ void starpu_block_filter_func_block(void *father_interface, void *child_interfac
 
 	STARPU_ASSERT(nparts <= nx);
 
-	uint32_t chunk_size = (nx + nparts - 1)/nparts;
+	uint32_t chunk_size = nx/nparts;
 	size_t offset = id*chunk_size*elemsize;
 
-        uint32_t child_nx = STARPU_MIN(chunk_size, nx - id*chunk_size);
+	/* The last submatrix contains the remaining columns. */
+	if (STARPU_UNLIKELY(id + 1 == nparts))
+		chunk_size += (nx % nparts);
 
-	block_child->nx = child_nx;
+	block_child->nx = chunk_size;
 	block_child->ny = ny;
 	block_child->nz = nz;
 	block_child->elemsize = elemsize;
