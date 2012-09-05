@@ -122,6 +122,7 @@ run(struct starpu_sched_policy *policy)
 	{
 		if (tasks[i]->profiling_info->workerid != workerid)
 		{
+			FPRINTF(stderr, "Error for task %d. Worker id %u different from expected worker id %u\n", i, tasks[i]->profiling_info->workerid, workerid);
 			ret = 1;
 			break;
 		}
