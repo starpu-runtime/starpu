@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		else
 			task->cl = &r_cl;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
