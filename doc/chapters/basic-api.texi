@@ -573,6 +573,11 @@ This function releases the piece of data acquired by the application either by
 @code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
 @end deftypefun
 
+@deftypefun void starpu_data_release_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node})
+This is the same as @code{starpu_data_release}, except that the data will be
+available on the given memory node instead of main memory.
+@end deftypefun
+
 @node Data Interfaces
 @section Data Interfaces
 

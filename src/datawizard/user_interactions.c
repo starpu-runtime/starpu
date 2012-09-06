@@ -315,8 +315,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mod
 
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
-static
-void _starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
+void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(handle);
 
@@ -329,7 +328,7 @@ void _starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
 
 void starpu_data_release(starpu_data_handle_t handle)
 {
-	_starpu_data_release_on_node(handle, 0);
+	starpu_data_release_on_node(handle, 0);
 }
 
 static void _prefetch_data_on_node(void *arg)
