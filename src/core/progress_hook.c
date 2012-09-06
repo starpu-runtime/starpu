@@ -18,7 +18,7 @@
 #include <pthread.h>
 #include <core/workers.h>
 #include <common/utils.h>
-#include <core/progress_hooks.h>
+#include <core/progress_hook.h>
 
 #define NMAXHOOKS	16
 
