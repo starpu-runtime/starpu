@@ -28,10 +28,8 @@
 //#define STARPU_MPI_VERBOSE 1
 #include <starpu_mpi_private.h>
 
+#ifdef STARPU_MPI_CACHE
 /* Whether we are allowed to keep copies of remote data. */
-#define MPI_CACHE 1
-
-#ifdef MPI_CACHE
 struct _starpu_data_entry
 {
 	UT_hash_handle hh;
@@ -40,11 +38,11 @@ struct _starpu_data_entry
 
 struct _starpu_data_entry **sent_data = NULL;
 struct _starpu_data_entry **received_data = NULL;
-#endif /* MPI_CACHE */
+#endif /* STARPU_MPI_CACHE */
 
 static void _starpu_mpi_tables_init()
 {
-#ifdef MPI_CACHE
+#ifdef STARPU_MPI_CACHE
 	if (sent_data == NULL) {
 		int nb_nodes;
 		int i;
@@ -56,7 +54,7 @@ static void _starpu_mpi_tables_init()
 		received_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
 		for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
 	}
-#endif /* MPI_CACHE */
+#endif /* STARPU_MPI_CACHE */
 }
 
 static
@@ -124,7 +122,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		/* The task needs to read this data */
 		if (do_execute && mpi_rank != me && mpi_rank != -1) {
 			/* I will have to execute but I don't have the data, receive */
-#ifdef MPI_CACHE
+#ifdef STARPU_MPI_CACHE
 			struct _starpu_data_entry *already_received;
 			HASH_FIND_PTR(received_data[mpi_rank], &data, already_received);
 			if (already_received == NULL) {
@@ -144,7 +142,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		}
 		if (!do_execute && mpi_rank == me) {
 			/* Somebody else will execute it, and I have the data, send it. */
-#ifdef MPI_CACHE
+#ifdef STARPU_MPI_CACHE
 			struct _starpu_data_entry *already_sent;
 			HASH_FIND_PTR(sent_data[dest], &data, already_sent);
 			if (already_sent == NULL) {
@@ -194,7 +192,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 
 void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int do_execute, MPI_Comm comm)
 {
-#ifdef MPI_CACHE
+#ifdef STARPU_MPI_CACHE
 	if (mode & STARPU_W) {
 		if (do_execute) {
 			/* Note that all copies I've sent to neighbours are now invalid */

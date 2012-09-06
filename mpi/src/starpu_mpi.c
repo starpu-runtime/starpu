@@ -781,6 +781,10 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static
 int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 {
+#ifndef STARPU_MPI_CACHE
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --disable-mpi-cache\n");
+#endif
+
 	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_finished, NULL);
