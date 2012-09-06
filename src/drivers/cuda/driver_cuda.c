@@ -360,10 +360,10 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #ifdef STARPU_HAVE_BUSID
 #ifdef STARPU_HAVE_DOMAINID
 	if (props[devid].pciDomainID)
-		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 	else
 #endif
-		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
 	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB)", args->devid, devname, size);
 #endif
@@ -505,14 +505,14 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, cu
 			errormsg = "unknown error";
 			break;
 	}
-	fprintf(stderr, "oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	fprintf(stderr, "oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ABORT();
 }
 
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ABORT();
 }
 
@@ -551,7 +551,7 @@ int _starpu_run_cuda(struct starpu_driver *d)
 	if (nworkers >= 0 && (unsigned) nworkers < d->id.cuda_id)
 		return -ENODEV;
 	
-	_STARPU_DEBUG("Running cuda %d from the application\n", d->id.cuda_id);
+	_STARPU_DEBUG("Running cuda %u from the application\n", d->id.cuda_id);
 
 	struct _starpu_worker *workerarg = _starpu_get_worker_struct(workers[d->id.cuda_id]);
 
