@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 			}
 			task->handles[0] = handle;
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		if (var != ntasks *(loop+1))
 		{
-			_STARPU_DEBUG("%d != %d\n", var, ntasks*(loop+1));
+			_STARPU_DEBUG("%u != %u\n", var, ntasks*(loop+1));
 			starpu_data_release(handle);
 			starpu_data_unregister(handle);
 			goto err;
@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle);
 	if (var != ntasks *nloops)
 	{
-		_STARPU_DEBUG("%d != %d\n", var, ntasks*nloops);
+		_STARPU_DEBUG("%u != %u\n", var, ntasks*nloops);
 		goto err;
 	}
 

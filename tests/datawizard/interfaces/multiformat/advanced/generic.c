@@ -124,20 +124,20 @@ void
 print_stats(struct stats *s)
 {
 #ifdef STARPU_USE_CPU
-	FPRINTF(stderr, "cpu         : %d\n", s->cpu);
+	FPRINTF(stderr, "cpu         : %u\n", s->cpu);
 #endif /* !STARPU_USE_CPU */
 #ifdef STARPU_USE_CUDA
-	FPRINTF(stderr, "cuda        : %d\n" 
-			"cpu->cuda   : %d\n"
-			"cuda->cpu   : %d\n",
+	FPRINTF(stderr, "cuda        : %u\n" 
+			"cpu->cuda   : %u\n"
+			"cuda->cpu   : %u\n",
 			s->cuda,
 			s->cpu_to_cuda,
 			s->cuda_to_cpu);
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
-	FPRINTF(stderr, "opencl      : %d\n" 
-			"cpu->opencl : %d\n"
-			"opencl->cpu : %d\n",
+	FPRINTF(stderr, "opencl      : %u\n" 
+			"cpu->opencl : %u\n"
+			"opencl->cpu : %u\n",
 			s->opencl,
 			s->cpu_to_opencl,
 			s->opencl_to_cpu);

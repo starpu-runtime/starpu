@@ -70,7 +70,7 @@ check_result(unsigned *t, size_t size)
 	{
 		if (t[i] != i*2)
 		{
-			FPRINTF(stderr,"t[%d] is %d instead of %d\n", i, t[i], 2*i);
+			FPRINTF(stderr,"t[%d] is %u instead of %d\n", i, t[i], 2*i);
 			return 1;
 		}
 	}

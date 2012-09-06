@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 	if (var != ntasks*nloops)
 	{
 		ret = EXIT_FAILURE;
-		FPRINTF(stderr, "VAR is %d should be %d\n", var, ntasks);
+		FPRINTF(stderr, "VAR is %u should be %u\n", var, ntasks);
 	}
 
 	starpu_shutdown();

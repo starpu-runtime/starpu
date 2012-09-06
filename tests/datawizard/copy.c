@@ -67,7 +67,6 @@ int main(int argc, char **argv)
         for (i = 0; i < nloops; i++)
         {
 		struct starpu_task *task_cpu, *task_gpu;
-                int ret;
 
 		task_cpu = starpu_task_create();
 		task_gpu = starpu_task_create();

@@ -117,7 +117,6 @@ int main(int argc, char **argv)
 	unsigned iter;
 	for (iter = 0; iter < k; iter++)
 	{
-		int ret;
 		unsigned ind;
 		for (ind = 0; ind < n; ind++)
 		{

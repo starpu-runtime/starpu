@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	{
 		if (A[i] != NLOOPS)
 		{
-			FPRINTF(stderr, "Error: Incorrect value A[%d] = %u != %d\n", i, A[i], NLOOPS);
+			FPRINTF(stderr, "Error: Incorrect value A[%u] = %u != %d\n", i, A[i], NLOOPS);
 			ret = EXIT_FAILURE;
 			break;
 		}

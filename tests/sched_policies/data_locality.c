@@ -117,12 +117,12 @@ run(struct starpu_sched_policy *policy)
 
 	/* All tasks should have been executed on the same GPU. */
 	ret = 0;
-	unsigned workerid = tasks[0]->profiling_info->workerid;
+	int workerid = tasks[0]->profiling_info->workerid;
 	for (i = 0; i < NTASKS; i++)
 	{
 		if (tasks[i]->profiling_info->workerid != workerid)
 		{
-			FPRINTF(stderr, "Error for task %d. Worker id %u different from expected worker id %u\n", i, tasks[i]->profiling_info->workerid, workerid);
+			FPRINTF(stderr, "Error for task %d. Worker id %d different from expected worker id %d\n", i, tasks[i]->profiling_info->workerid, workerid);
 			ret = 1;
 			break;
 		}
