@@ -443,7 +443,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 					break;
 				}
 		}
-		else if (model->type == STARPU_REGRESSION_BASED)
+		else if (model->type == STARPU_REGRESSION_BASED || model->type == STARPU_PER_ARCH || model->type == STARPU_COMMON)
 		{
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 				if (model->per_arch[arch][nimpl].regression.nsample)
@@ -453,7 +453,9 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				}
 		}
 		else
+		{
 			STARPU_ASSERT_MSG(0, "Unknown history-based performance model");
+		}
 	}
 
 	/* Writing stuff */
@@ -509,7 +511,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				if (get_n_entries(model, arch, nimpl))
 					max_impl = nimpl + 1;
 		}
-		else if (model->type == STARPU_REGRESSION_BASED)
+		else if (model->type == STARPU_REGRESSION_BASED || model->type == STARPU_PER_ARCH || model->type == STARPU_COMMON)
 		{
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 				if (model->per_arch[arch][nimpl].regression.nsample)
