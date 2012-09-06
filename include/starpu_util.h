@@ -40,16 +40,16 @@ extern "C"
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (!(x)) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); *(int*)NULL = 0; }} while(0)
+#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); } ; assert(x); } while(0)
+#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); } ; assert(x); } while(0)
 
 #  endif
 #endif
 
 #define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "%s:%d %s\n", __FILE__, __LINE__, __func__); \
+	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __func__); \
 	abort();                                                     \
 } while(0)
 
