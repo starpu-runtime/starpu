@@ -23,7 +23,7 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	unsigned *x = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-        FPRINTF(stdout, "VALUES: %d %d\n", *x, *y);
+        FPRINTF(stdout, "VALUES: %u %u\n", *x, *y);
         *x = (*x + *y) / 2;
 }
 
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
                 FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < Y; y++)
 		{
-                        FPRINTF(stdout, "%3d ", matrix[x][y]);
+                        FPRINTF(stdout, "%3u ", matrix[x][y]);
                 }
                 FPRINTF(stdout, "\n");
         }
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
                 FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < Y; y++)
 		{
-                        FPRINTF(stdout, "%3d ", matrix[x][y]);
+                        FPRINTF(stdout, "%3u ", matrix[x][y]);
                 }
                 FPRINTF(stdout, "\n");
         }
