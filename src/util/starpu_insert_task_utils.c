@@ -95,6 +95,10 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_TAG)
+		{
+			(void)va_arg(varg_list, starpu_tag_t);
+		}
 	}
 
 	va_end(varg_list);
@@ -164,6 +168,10 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_TAG)
+		{
+			(void)va_arg(varg_list, starpu_tag_t);
 		}
 	}
 
@@ -264,6 +272,12 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_TAG)
+		{
+			starpu_tag_t tag = va_arg(varg_list, starpu_tag_t);
+			(*task)->tag_id = tag;
+			(*task)->use_tag = 1;
 		}
 	}
 

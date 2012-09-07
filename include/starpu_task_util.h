@@ -43,6 +43,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_EXECUTE_ON_NODE	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
 #define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
 #define STARPU_DATA_ARRAY       (1<<11) /* Array of data handles */
+#define STARPU_TAG       (1<<12) /* Tag */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
