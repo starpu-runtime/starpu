@@ -48,6 +48,11 @@ Enable flags for the @code{gcov} coverage tool.
 
 @end table
 
+Additionally, the @command{configure} script recognize many variables, which
+can be listed by typing @code{./configure --help}. For example,
+@code{./configure NVCCFLAGS="-arch sm_13"} adds a flag for the compilation of
+CUDA kernels.
+
 @node Configuring workers
 @subsection Configuring workers
 

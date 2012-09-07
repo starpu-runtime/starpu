@@ -542,6 +542,8 @@ if test x$enable_cuda = xyes; then
     AC_SUBST(STARPU_CUDA_CPPFLAGS)
 fi
 
+AC_ARG_VAR([NVCCFLAGS], [CUDA compiler flags])
+
 ###############################################################################
 #                                                                             #
 #                                 OpenCL settings                             #
