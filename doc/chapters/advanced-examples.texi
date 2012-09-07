@@ -499,8 +499,8 @@ The arguments following the codelets can be of the following types:
 @item
 the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
 @code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
-@code{STARPU_PRIORITY}, followed by the appropriated objects as
-defined below.
+@code{STARPU_PRIORITY}, @code{STARPU_TAG}, followed by the appropriated objects
+as defined below.
 @end itemize
 
 When using @code{STARPU_DATA_ARRAY}, the access mode of the data
@@ -539,6 +539,11 @@ to using both @code{STARPU_CALLBACK} and
 @defmac STARPU_PRIORITY
 this macro is used when calling @code{starpu_insert_task}, and must be
 followed by a integer defining a priority level
+@end defmac
+
+@defmac STARPU_TAG
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a tag.
 @end defmac
 
 @deftypefun void starpu_codelet_pack_args ({char **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
