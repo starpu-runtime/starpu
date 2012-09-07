@@ -111,7 +111,10 @@ run(struct starpu_sched_policy *p)
 		task_len = starpu_timing_timespec_delay_us(&pi->start_time, &pi->end_time);
 		if (task_len < TASK_DURATION/2)
 		{
-			FPRINTF(stderr, "Failed with task length: %fµs\n", task_len);
+			char name[48];
+			starpu_worker_get_name(pi->workerid, name, 48);
+			FPRINTF(stderr, "Task %d, executed by %s, lasted %fµs\n",
+				i, name, task_len);
 			return 1;
 		}
 
