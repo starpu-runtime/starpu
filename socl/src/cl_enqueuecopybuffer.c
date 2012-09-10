@@ -84,6 +84,12 @@ cl_int command_copy_buffer_submit(command_copy_buffer cmd) {
 	task->handles[1] = dst_buffer->handle;
 	task->cl = &codelet_copybuffer;
 
+	/* Execute the task on a specific worker? */
+	if (cmd->_command.cq->device != &socl_virtual_device) {
+	  task->execute_on_a_specific_worker = 1;
+	  task->workerid = (int)(intptr_t)cmd->_command.cq->device;
+	}
+
 	arg = (struct arg_copybuffer*)malloc(sizeof(struct arg_copybuffer));
 	arg->src_offset = src_offset;
 	arg->dst_offset = dst_offset;
