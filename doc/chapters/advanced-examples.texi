@@ -762,7 +762,7 @@ Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but that would be costly. It could also
 allocate one buffer per worker (similarly to @ref{Per-worker library
-initialization }), but that would make them systematic and permanent. A more
+initialization}), but that would make them systematic and permanent. A more
 optimized way is to use the SCRATCH data access mode, as examplified below,
 which provides per-worker buffers without content consistency.
 
