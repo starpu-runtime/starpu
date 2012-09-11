@@ -138,7 +138,7 @@ int main(int argc, char **argv)
         /* Submit a task on each sub-block */
         for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
         {
-                int ret,multiplier=i;
+                int multiplier=i;
                 struct starpu_task *task = starpu_task_create();
 
                 FPRINTF(stderr,"Dealing with sub-block %d\n", i);

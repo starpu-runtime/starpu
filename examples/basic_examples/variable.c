@@ -74,7 +74,6 @@ int main(int argc, char **argv)
 	for (i = 0; i < niter; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-                int ret;
 
 		task->cl = &cl;
 

@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 		task->handles[0] = x_handles[block];
 		task->handles[1] = minmax_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret)
 		{
 			STARPU_ASSERT(ret == -ENODEV);
