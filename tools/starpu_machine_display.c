@@ -65,7 +65,7 @@ static void display_all_combined_workers(void)
 
 	unsigned nworkers = starpu_worker_get_count();
 
-	fprintf(stdout, "\t%d Combined workers\n", ncombined_workers);
+	fprintf(stdout, "\t%u Combined workers\n", ncombined_workers);
 
 	unsigned i;
 	for (i = 0; i < ncombined_workers; i++)
