@@ -105,7 +105,7 @@ cl_int command_write_buffer_submit(command_write_buffer cmd) {
 	task->cl_arg_size = sizeof(struct arg_writebuffer);
 
 	/* Execute the task on a specific worker? */
-	if (cmd->_command.cq->device != &socl_virtual_device) {
+	if (cmd->_command.cq->device != NULL) {
 	  task->execute_on_a_specific_worker = 1;
 	  task->workerid = (int)(intptr_t)cmd->_command.cq->device;
 	}

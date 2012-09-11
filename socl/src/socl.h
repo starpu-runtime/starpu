@@ -51,7 +51,6 @@ typedef struct entity * entity;
 #include "command_list.h"
 #include "command_queue.h"
 #include "debug.h"
-#include "devices.h"
 #include "event.h"
 #include "gc.h"
 #include "mem_objects.h"

@@ -28,7 +28,6 @@ noinst_HEADERS =				\
   command_list.h				\
   command_queue.h				\
   debug.h					\
-  devices.h					\
   event.h					\
   gc.h						\
   getinfo.h					\
@@ -56,7 +55,6 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   command_list.c \
   command_queue.c \
   debug.c \
-  devices.c \
   event.c \
   gc.c \
   init.c \

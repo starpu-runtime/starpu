@@ -50,18 +50,13 @@ soclGetDeviceIDs(cl_platform_id   platform,
       && (device_type != CL_DEVICE_TYPE_ALL))
       return CL_INVALID_DEVICE_TYPE;
 
-   unsigned int num = 0;
-   if (socl_virtual_device.type & device_type) {
-      if (devices != NULL && num < num_entries) devices[num] = (cl_device_id)&socl_virtual_device;
-      num++;
-   }
-
    int ndevs = starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
 
    int workers[ndevs];
    starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, ndevs);
 
    int i;
+   unsigned int num = 0;
    for (i=0; i < ndevs; i++) {
       int devid = starpu_worker_get_devid(workers[i]);
       cl_device_id dev;
