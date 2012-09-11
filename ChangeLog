@@ -31,6 +31,8 @@ New features:
   * Enable GPU-GPU direct transfers.
   * GCC plug-in
 	- Add `registered' attribute
+  * SOCL
+  - Manual mapping of commands on specific devices is now possible
 
 Changes:
   * The FxT code can now be used on systems other than Linux.
@@ -39,6 +41,10 @@ Changes:
     default.
   * Improve starpu_machine_display output.
   * Standardize objects name in the performance model API
+  * SOCL
+  - Virtual SOCL device has been removed
+  - Automatic scheduling still available with command queues not assigned to
+    any device
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
