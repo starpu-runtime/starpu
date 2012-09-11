@@ -106,6 +106,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_access
 	return 0;
 }
 
+static
 void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int dest, int do_execute, MPI_Comm comm)
 {
 	if (data && mode & STARPU_R) {
@@ -164,6 +165,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 	}
 }
 
+static
 void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int xrank, int dest, int do_execute, MPI_Comm comm)
 {
 	if (mode & STARPU_W) {
@@ -347,7 +349,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 	}
 
-	STARPU_ASSERT(do_execute != -1 && "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
+	STARPU_ASSERT_MSG(do_execute != -1, "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
 	if (inconsistent_execute == 1) {
 		if (xrank == -1) {

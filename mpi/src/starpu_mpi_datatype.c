@@ -146,5 +146,4 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype
 		*datatype = MPI_BYTE;
 		return 1;
 	}
-	return 0;
 }
