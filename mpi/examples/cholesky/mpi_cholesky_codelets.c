@@ -165,8 +165,7 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 	if (rank == 0)
 	{
 		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-		fprintf(stderr, "Computation took (in ms)\n");
-		fprintf(stdout, "%2.2f\n", timing/1000);
+		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
 
 		double flop = (1.0f*size*size*size)/3.0f;
 		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
