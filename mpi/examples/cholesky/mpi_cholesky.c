@@ -36,17 +36,11 @@ int main(int argc, char **argv)
 	 * */
 
 	float ***bmat;
-	int rank, nodes;
+	int rank, nodes, ret;
 
 	parse_args(argc, argv);
 
-	struct starpu_conf conf;
-	starpu_conf_init(&conf);
-
-	conf.sched_policy_name = "heft";
-	conf.calibrate = 1;
-
-	int ret = starpu_init(&conf);
+	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_mpi_initialize_extended(&rank, &nodes);
