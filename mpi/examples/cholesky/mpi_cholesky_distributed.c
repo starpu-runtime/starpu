@@ -24,7 +24,8 @@
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
 {
-	return (x+y) % nb_nodes;
+	//return (x+y) % nb_nodes;
+	return (x%dblockx)+(y%dblocky)*dblockx;
 }
 
 int main(int argc, char **argv)
@@ -43,6 +44,22 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	starpu_mpi_initialize_extended(&rank, &nodes);
 	starpu_helper_cublas_init();
+
+	if (dblockx == -1 || dblocky == -1)
+	{
+	     int factor;
+	     dblockx = nodes;
+	     dblocky = 1;
+	     for(factor=sqrt(nodes) ; factor>1 ; factor--)
+	     {
+		  if (nodes % factor == 0)
+		  {
+		       dblockx = nodes/factor;
+		       dblocky = factor;
+		       break;
+		  }
+	     }
+	}
 
 	unsigned i,j,x,y;
 	bmat = malloc(nblocks * sizeof(float *));
