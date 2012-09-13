@@ -15,8 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DW_CHOLESKY_H__
-#define __DW_CHOLESKY_H__
+#ifndef __MPI_CHOLESKY_H__
+#define __MPI_CHOLESKY_H__
 
 #include <string.h>
 #include <math.h>
@@ -103,4 +103,4 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 	if (nblocks > size) nblocks = size;
 }
 
-#endif // __DW_CHOLESKY_H__
+#endif // __MPI_CHOLESKY_H__

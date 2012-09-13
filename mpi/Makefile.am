@@ -43,6 +43,7 @@ EXTRA_DIST = 					\
 	examples/mpi_lu/pxlu_kernels.c		\
 	examples/cholesky/mpi_cholesky.h	\
 	examples/cholesky/mpi_cholesky_models.h \
+	examples/cholesky/mpi_cholesky_codelets.h \
 	tests/helper.h
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -156,20 +157,22 @@ examples_cholesky_mpi_cholesky_SOURCES	=		\
 	examples/cholesky/mpi_cholesky.c		\
 	examples/cholesky/mpi_cholesky_models.c		\
 	examples/cholesky/mpi_cholesky_kernels.c	\
+	examples/cholesky/mpi_cholesky_codelets.c	\
 	$(top_srcdir)/examples/common/blas.c
 
 examples_cholesky_mpi_cholesky_LDADD =			\
-	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la					\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS)
 
 examples_cholesky_mpi_cholesky_distributed_SOURCES =	\
 	examples/cholesky/mpi_cholesky_distributed.c	\
 	examples/cholesky/mpi_cholesky_models.c		\
 	examples/cholesky/mpi_cholesky_kernels.c	\
+	examples/cholesky/mpi_cholesky_codelets.c	\
 	$(top_srcdir)/examples/common/blas.c
 
 examples_cholesky_mpi_cholesky_distributed_LDADD =	\
-	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la					\
+	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS)
 
 check_PROGRAMS +=					\
