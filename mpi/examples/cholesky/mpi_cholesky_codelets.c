@@ -66,7 +66,7 @@ extern int my_distrib(int x, int y, int nb_nodes);
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
-void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, int rank, int nodes)
+void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, int rank, int nodes, double *timing, double *flops)
 {
 	struct timeval start;
 	struct timeval end;

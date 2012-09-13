@@ -84,9 +84,17 @@ int main(int argc, char **argv)
 		}
 	}
 
-	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes);
+	double timing, flops;
+	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
+
+	if (rank == 0)
+	{
+		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
+		fprintf(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
+	}
+
 
 	for(x=0 ; x<nblocks ; x++)
 	{

@@ -110,7 +110,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes);
+	double timing, flops;
+	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
 
@@ -213,6 +214,7 @@ int main(int argc, char **argv)
 							{
 								fprintf(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
 								correctness = 0;
+								flops = 0;
 								break;
 							}
 						}
@@ -238,5 +240,12 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	assert(correctness);
+
+	if (rank == 0)
+	{
+		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
+		fprintf(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
+	}
+
 	return 0;
 }

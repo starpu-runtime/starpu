@@ -22,6 +22,6 @@
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
-void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, int rank, int nodes);
+void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, int rank, int nodes, double *timing, double *flops);
 
 #endif /* __MPI_CHOLESKY_CODELETS_H__ */
