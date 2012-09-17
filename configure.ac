@@ -1620,12 +1620,11 @@ AC_CHECK_MEMBER([struct cudaDeviceProp.pciBusID],
   AC_DEFINE([STARPU_HAVE_BUSID],[1],[Define to 1 if CUDA device properties include BusID]),
   , [[#include <cuda_runtime_api.h>]])
 
-dnl Check automake version is greater or equal to 1.11
-dnl Automake 1.11 introduced `silent-rules'. Test its availability to check the version of automake
+dnl Set this condition when Automake 1.11 or later is being used.
+dnl Automake 1.11 introduced `silent-rules', hence the check.
 m4_ifdef([AM_SILENT_RULES],
   AM_CONDITIONAL([STARPU_HAVE_AM111], [true]),
-  AM_CONDITIONAL([STARPU_HAVE_AM111], [false])
-)
+  AM_CONDITIONAL([STARPU_HAVE_AM111], [false]))
 
 ###############################################################################
 #                                                                             #
