@@ -200,6 +200,9 @@ default, it is enabled when an OpenCL implementation is found.
 Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
 is enabled when the required dependencies are found.
 
+@item --disable-build-examples
+Disable the build of examples.
+
 @end table
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
