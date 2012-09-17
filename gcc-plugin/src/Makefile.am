@@ -28,10 +28,11 @@ AM_CPPFLAGS =						\
   -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1 \
   $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 
-AM_LDFLAGS = -module --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
+AM_LDFLAGS = -module
 
 # Use either `gcc' or `g++', whichever is appropriate to build
 # plug-ins for this version of GCC.
+AM_LIBTOOLFLAGS = --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
 CC = $(GCC_FOR_PLUGIN)
 
 showcheck:
