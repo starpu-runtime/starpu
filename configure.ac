@@ -1627,6 +1627,12 @@ m4_ifdef([AM_SILENT_RULES],
   AM_CONDITIONAL([STARPU_HAVE_AM111], [false])
 )
 
+###############################################################################
+#                                                                             #
+#                                Final settings                               #
+#                                                                             #
+###############################################################################
+
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
