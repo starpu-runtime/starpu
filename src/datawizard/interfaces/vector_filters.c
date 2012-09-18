@@ -19,7 +19,6 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/filters.h>
-#include <datawizard/interfaces/filter_utils.h>
 
 void starpu_block_filter_func_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
