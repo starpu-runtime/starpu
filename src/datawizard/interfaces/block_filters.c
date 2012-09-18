@@ -33,7 +33,7 @@ void starpu_block_filter_func_block(void *father_interface, void *child_interfac
 
 	uint32_t chunk_size;
 	size_t offset;
-	_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
 				       &chunk_size, &offset);
 
 	block_child->nx = chunk_size;
@@ -70,7 +70,7 @@ void starpu_block_shadow_filter_func_block(void *father_interface, void *child_i
 
 	uint32_t child_nx;
 	size_t offset;
-	_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
 						     &child_nx, &offset);
 	
 
@@ -105,7 +105,7 @@ void starpu_vertical_block_filter_func_block(void *father_interface, void *child
 
 	uint32_t child_ny;
 	size_t offset;
-	_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy,
 				       &child_ny, &offset);
 
 	block_child->nx = nx;
@@ -143,7 +143,7 @@ void starpu_vertical_block_shadow_filter_func_block(void *father_interface, void
 	uint32_t child_ny;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id,
 						     block_father->ldy,
 						     &child_ny, &offset);
 
@@ -179,7 +179,7 @@ void starpu_depth_block_filter_func_block(void *father_interface, void *child_in
 	uint32_t child_nz;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
 				       block_father->ldz, &child_nz, &offset);
 
 	block_child->nx = nx;
@@ -217,7 +217,7 @@ void starpu_depth_block_shadow_filter_func_block(void *father_interface, void *c
 	uint32_t child_nz;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
 						     block_father->ldz,
 						     &child_nz, &offset);
 

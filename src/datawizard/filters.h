@@ -26,7 +26,7 @@
 #include <common/config.h>
 
 void
-_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+_starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,
 					     unsigned ld, unsigned *chunk_size,
 					     size_t *offset);

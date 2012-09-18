@@ -40,7 +40,7 @@ void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_i
 	  STARPU_MIN(chunk_size, nrow - id*chunk_size);
 	/* TODO: the formula for the chunk size is probably wrong: we should
 	 * probably do this instead, and write a test.
-	_filter_nparts_compute_chunk_size_and_offset(nrow, nparts, elemsize,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nparts, elemsize,
 						     id, 1, &chunk_size, NULL);
 	 */
 

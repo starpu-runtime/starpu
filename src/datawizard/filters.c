@@ -454,7 +454,7 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
  * and LD, the leading dimension.
  */
 void
-_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+_starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,
 					     unsigned ld, unsigned *chunk_size,
 					     size_t *offset)

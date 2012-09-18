@@ -37,7 +37,7 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 	uint32_t child_nx;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 
 	/* update the child's interface */
@@ -76,7 +76,7 @@ void starpu_block_shadow_filter_func(void *father_interface, void *child_interfa
 	uint32_t child_nx;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 
 	child_nx += 2 * shadow_size;
@@ -111,7 +111,7 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	uint32_t child_ny;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
 						     matrix_father->ld,
 						     &child_ny, &offset);
 
@@ -147,7 +147,7 @@ void starpu_vertical_block_shadow_filter_func(void *father_interface, void *chil
 	uint32_t child_ny;
 	size_t offset;
 
-	_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
 						     matrix_father->ld,
 						     &child_ny, &offset);
 	child_ny += 2 * shadow_size;

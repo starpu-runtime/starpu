@@ -32,7 +32,7 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 
 	uint32_t child_nx;
 	size_t offset;
-	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 
 	vector_child->nx = child_nx;
@@ -63,7 +63,7 @@ void starpu_block_shadow_filter_func_vector(void *father_interface, void *child_
 
 	uint32_t child_nx;
 	size_t offset;
-	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 	child_nx += 2*shadow_size;
 
