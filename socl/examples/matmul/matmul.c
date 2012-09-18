@@ -244,7 +244,10 @@ int main(int argc, const char** argv) {
 		     printf("No OpenCL device found\n");
 		     exit(77);
 		}
-		check(err);
+		if (err != CL_SUCCESS) {
+			fprintf(stderr, "OpenCL Error (%d) in clGetDeviceIDs()\n", err);
+			exit(EXIT_FAILURE);
+		}
 		if (devs[p] == 0)
 			continue;
 
