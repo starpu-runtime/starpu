@@ -73,7 +73,7 @@ register_data(void)
 		nzval2[i-1] = 42;
 
 		colind[i-1] = i % WIDTH;
-		colind2[i-1] = colind[i];
+		colind2[i-1] = colind[i-1];
 	}
 
 	rowptr[0] = 1;
