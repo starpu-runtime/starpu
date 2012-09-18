@@ -19,6 +19,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/filters.h>
+#include <datawizard/interfaces/filter_utils.h>
 
 void starpu_block_filter_func_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
@@ -30,11 +31,10 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 
 	STARPU_ASSERT(nchunks <= nx);
 
-	uint32_t chunk_size = (nx + nchunks - 1)/nchunks;
-	size_t offset = id*chunk_size*elemsize;
-
-	uint32_t child_nx =
-	  STARPU_MIN(chunk_size, nx - id*chunk_size);
+	uint32_t child_nx;
+	size_t offset;
+	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+						     &child_nx, &offset);
 
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
@@ -62,11 +62,11 @@ void starpu_block_shadow_filter_func_vector(void *father_interface, void *child_
 
 	STARPU_ASSERT(nchunks <= nx);
 
-	uint32_t chunk_size = (nx + nchunks - 1)/nchunks;
-	size_t offset = id*chunk_size*elemsize;
-
-	uint32_t child_nx =
-	  STARPU_MIN(chunk_size, nx - id*chunk_size) + 2 * shadow_size;
+	uint32_t child_nx;
+	size_t offset;
+	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+						     &child_nx, &offset);
+	child_nx += 2*shadow_size;
 
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;

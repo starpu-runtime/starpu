@@ -34,11 +34,11 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 
 	STARPU_ASSERT(nchunks <= nx);
 
-	size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
-	size_t offset = (size_t)id*chunk_size*elemsize;
+	uint32_t child_nx;
+	size_t offset;
 
-	uint32_t child_nx =
-	  STARPU_MIN(chunk_size, (size_t)nx - (size_t)id*chunk_size);
+	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+						     &child_nx, &offset);
 
 	/* update the child's interface */
 	matrix_child->nx = child_nx;
@@ -73,11 +73,13 @@ void starpu_block_shadow_filter_func(void *father_interface, void *child_interfa
 
 	STARPU_ASSERT(nchunks <= nx);
 
-	size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
-	size_t offset = (size_t)id*chunk_size*elemsize;
+	uint32_t child_nx;
+	size_t offset;
 
-	uint32_t child_nx =
-	  STARPU_MIN(chunk_size, (size_t)nx - (size_t)id*chunk_size) + 2 * shadow_size;
+	_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+						     &child_nx, &offset);
+
+	child_nx += 2 * shadow_size;
 
 	/* update the child's interface */
 	matrix_child->nx = child_nx;
@@ -106,9 +108,12 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 
 	STARPU_ASSERT(nchunks <= ny);
 
-	size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
-	size_t child_ny =
-	  STARPU_MIN(chunk_size, (size_t)ny - (size_t)id*chunk_size);
+	uint32_t child_ny;
+	size_t offset;
+
+	_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
+						     matrix_father->ld,
+						     &child_ny, &offset);
 
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
@@ -117,7 +122,6 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)
 	{
-		size_t offset = (size_t)id*chunk_size*matrix_father->ld*elemsize;
 		if (matrix_father->ptr)
 			matrix_child->ptr = matrix_father->ptr + offset;
 		matrix_child->ld = matrix_father->ld;
@@ -140,9 +144,13 @@ void starpu_vertical_block_shadow_filter_func(void *father_interface, void *chil
 
 	STARPU_ASSERT(nchunks <= ny);
 
-	size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
-	size_t child_ny =
-	  STARPU_MIN(chunk_size, (size_t)ny - (size_t)id*chunk_size) + 2 * shadow_size;
+	uint32_t child_ny;
+	size_t offset;
+
+	_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
+						     matrix_father->ld,
+						     &child_ny, &offset);
+	child_ny += 2 * shadow_size;
 
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
@@ -151,7 +159,6 @@ void starpu_vertical_block_shadow_filter_func(void *father_interface, void *chil
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)
 	{
-		size_t offset = (size_t)id*chunk_size*matrix_father->ld*elemsize;
 		if (matrix_father->ptr)
 			matrix_child->ptr = matrix_father->ptr + offset;
 		matrix_child->ld = matrix_father->ld;

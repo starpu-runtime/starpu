@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/filters.h>
+#include <datawizard/interfaces/filter_utils.h>
 
 void starpu_block_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
@@ -31,12 +32,10 @@ void starpu_block_filter_func_block(void *father_interface, void *child_interfac
 
 	STARPU_ASSERT(nparts <= nx);
 
-	uint32_t chunk_size = nx/nparts;
-	size_t offset = id*chunk_size*elemsize;
-
-	/* The last submatrix contains the remaining columns. */
-	if (STARPU_UNLIKELY(id + 1 == nparts))
-		chunk_size += (nx % nparts);
+	uint32_t chunk_size;
+	size_t offset;
+	_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
+				       &chunk_size, &offset);
 
 	block_child->nx = chunk_size;
 	block_child->ny = ny;
@@ -70,12 +69,13 @@ void starpu_block_shadow_filter_func_block(void *father_interface, void *child_i
 
 	STARPU_ASSERT(nparts <= nx);
 
-	uint32_t chunk_size = (nx + nparts - 1)/nparts;
-	size_t offset = id*chunk_size*elemsize;
+	uint32_t child_nx;
+	size_t offset;
+	_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
+						     &child_nx, &offset);
+	
 
-        uint32_t child_nx = STARPU_MIN(chunk_size, nx - id*chunk_size) + 2 * shadow_size;
-
-	block_child->nx = child_nx;
+	block_child->nx = child_nx + 2 * shadow_size;
 	block_child->ny = ny;
 	block_child->nz = nz;
 	block_child->elemsize = elemsize;
@@ -104,10 +104,10 @@ void starpu_vertical_block_filter_func_block(void *father_interface, void *child
 
 	STARPU_ASSERT(nparts <= ny);
 
-	uint32_t chunk_size = (ny + nparts - 1)/nparts;
-	size_t offset = id*chunk_size*block_father->ldy*elemsize;
-
-        uint32_t child_ny = STARPU_MIN(chunk_size, ny - id*chunk_size);
+	uint32_t child_ny;
+	size_t offset;
+	_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy,
+				       &child_ny, &offset);
 
 	block_child->nx = nx;
 	block_child->ny = child_ny;
@@ -141,13 +141,15 @@ void starpu_vertical_block_shadow_filter_func_block(void *father_interface, void
 
 	STARPU_ASSERT(nparts <= ny);
 
-	uint32_t chunk_size = (ny + nparts - 1)/nparts;
-	size_t offset = id*chunk_size*block_father->ldy*elemsize;
+	uint32_t child_ny;
+	size_t offset;
 
-        uint32_t child_ny = STARPU_MIN(chunk_size, ny - id*chunk_size) + 2 * shadow_size;
+	_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id,
+						     block_father->ldy,
+						     &child_ny, &offset);
 
 	block_child->nx = nx;
-	block_child->ny = child_ny;
+	block_child->ny = child_ny + 2 * shadow_size;
 	block_child->nz = nz;
 	block_child->elemsize = elemsize;
 
@@ -175,10 +177,11 @@ void starpu_depth_block_filter_func_block(void *father_interface, void *child_in
 
 	STARPU_ASSERT(nparts <= nz);
 
-	uint32_t chunk_size = (nz + nparts - 1)/nparts;
-	size_t offset = id*chunk_size*block_father->ldz*elemsize;
+	uint32_t child_nz;
+	size_t offset;
 
-        uint32_t child_nz = STARPU_MIN(chunk_size, nz - id*chunk_size);
+	_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
+				       block_father->ldz, &child_nz, &offset);
 
 	block_child->nx = nx;
 	block_child->ny = ny;
@@ -212,14 +215,16 @@ void starpu_depth_block_shadow_filter_func_block(void *father_interface, void *c
 
 	STARPU_ASSERT(nparts <= nz);
 
-	uint32_t chunk_size = (nz + nparts - 1)/nparts;
-	size_t offset = id*chunk_size*block_father->ldz*elemsize;
+	uint32_t child_nz;
+	size_t offset;
 
-        uint32_t child_nz = STARPU_MIN(chunk_size, nz - id*chunk_size) + 2 * shadow_size;
+	_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
+						     block_father->ldz,
+						     &child_nz, &offset);
 
 	block_child->nx = nx;
 	block_child->ny = ny;
-	block_child->nz = child_nz;
+	block_child->nz = child_nz + 2 * shadow_size;
 	block_child->elemsize = elemsize;
 
 	if (block_father->dev_handle)
