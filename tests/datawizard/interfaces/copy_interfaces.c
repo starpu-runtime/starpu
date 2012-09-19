@@ -39,7 +39,6 @@ static int check_copy(starpu_data_handle_t handle, char *header)
 	if (new_handle->ops->compare(old_interface, new_interface) == 0)
 	{
 		FPRINTF(stderr, "Error when copying %s data\n", header);
-		assert(0);
 		ret = 1;
 	}
 	starpu_data_unregister(handle);
