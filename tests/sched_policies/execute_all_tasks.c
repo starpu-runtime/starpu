@@ -25,7 +25,7 @@
  */
 
 #define NTASKS           8
-#define TASK_DURATION    1e6 /* In microseconds */
+#define TASK_DURATION    999000 /* In microseconds */
 
 extern struct starpu_sched_policy _starpu_sched_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_prio_policy;
@@ -60,7 +60,7 @@ dummy(void *buffers[], void *args)
 	(void) buffers;
 	(void) args;
 
-	usleep(TASK_DURATION);
+	STARPU_ASSERT(usleep(TASK_DURATION) == 0);
 }
 
 static int
