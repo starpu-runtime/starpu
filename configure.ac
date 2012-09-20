@@ -1749,6 +1749,9 @@ AC_OUTPUT([
 	tests/Makefile
 	doc/Makefile
 	mpi/Makefile
+	mpi/src/Makefile
+	mpi/tests/Makefile
+	mpi/examples/Makefile
 	starpu-top/StarPU-Top.pro
 	starpu-top/StarPU-Top-qwt-embed.pri
 	starpu-top/StarPU-Top-qwt-system.pri
