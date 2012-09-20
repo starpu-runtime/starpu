@@ -792,6 +792,8 @@ reductions_dot_product_SOURCES =		\
 if STARPU_USE_CUDA
 reductions_dot_product_SOURCES +=		\
 	reductions/dot_product_kernels.cu
+reductions/dot_product_kernels.o: reductions/dot_product_kernels.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
