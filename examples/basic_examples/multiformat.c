@@ -253,7 +253,7 @@ struct starpu_opencl_program opencl_conversion_program;
 #endif
 
 static int
-gpus_available()
+gpus_available(void)
 {
 #ifdef STARPU_USE_CUDA
 	if (ncuda > 0)

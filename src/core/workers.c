@@ -894,17 +894,17 @@ unsigned starpu_spu_worker_get_count(void)
 	return config.topology.ngordon_spus;
 }
 
-int starpu_asynchronous_copy_disabled()
+int starpu_asynchronous_copy_disabled(void)
 {
 	return config.conf->disable_asynchronous_copy;
 }
 
-int starpu_asynchronous_cuda_copy_disabled()
+int starpu_asynchronous_cuda_copy_disabled(void)
 {
 	return config.conf->disable_cuda_asynchronous_copy;
 }
 
-int starpu_asynchronous_opencl_copy_disabled()
+int starpu_asynchronous_opencl_copy_disabled(void)
 {
 	return config.conf->disable_opencl_asynchronous_copy;
 }

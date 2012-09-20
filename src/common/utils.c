@@ -119,7 +119,7 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
 	return 1;
 }
 
-char *_starpu_get_home_path()
+char *_starpu_get_home_path(void)
 {
 	char *path = getenv("XDG_CACHE_HOME");
 	if (!path)

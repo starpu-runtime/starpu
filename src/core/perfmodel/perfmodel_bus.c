@@ -1212,7 +1212,7 @@ static void get_config_path(char *path, size_t maxlen)
 	get_bus_path("config", path, maxlen);
 }
 
-static void check_bus_config_file()
+static void check_bus_config_file(void)
 {
         int res;
         char path[256];
@@ -1298,7 +1298,7 @@ static void write_bus_config_file_content(void)
         fclose(f);
 }
 
-static void generate_bus_config_file()
+static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();

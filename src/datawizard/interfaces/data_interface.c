@@ -37,7 +37,7 @@ static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
 
-void _starpu_data_interface_init()
+void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
 }
@@ -673,7 +673,7 @@ void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned me
 	return handle->per_node[memory_node].data_interface;
 }
 
-int starpu_data_interface_get_next_id()
+int starpu_data_interface_get_next_id(void)
 {
 	_data_interface_number += 1;
 	return _data_interface_number-1;

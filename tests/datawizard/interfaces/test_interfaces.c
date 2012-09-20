@@ -441,7 +441,7 @@ cuda_to_ram(void)
 
 #ifdef STARPU_USE_OPENCL
 static enum exit_code
-ram_to_opencl()
+ram_to_opencl(void)
 {
 	int err;
 	struct starpu_task *task;
@@ -459,7 +459,7 @@ ram_to_opencl()
 }
 
 static enum exit_code
-opencl_to_ram()
+opencl_to_ram(void)
 {
 	int err;
 	struct starpu_task *task;

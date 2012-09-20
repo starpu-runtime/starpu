@@ -44,7 +44,7 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
-long _starpu_gettid()
+long _starpu_gettid(void)
 {
 #if defined(__linux__)
 	return syscall(SYS_gettid);

@@ -97,7 +97,7 @@ void * message_to_ui(void * p)
 	return NULL;
 }
 
-void _starpu_top_communications_threads_launcher()
+void _starpu_top_communications_threads_launcher(void)
 {
 	pthread_t from_ui;
 	pthread_t to_ui;
