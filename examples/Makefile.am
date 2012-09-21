@@ -673,6 +673,8 @@ cg_cg_SOURCES =					\
 if STARPU_USE_CUDA
 cg_cg_SOURCES +=				\
 	cg/cg_dot_kernel.cu
+cg/cg_dot_kernel.o: cg/cg_dot_kernel.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 cg_cg_LDADD =					\
