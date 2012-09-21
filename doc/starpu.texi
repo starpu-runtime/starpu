@@ -230,6 +230,8 @@ was last updated on @value{UPDATED}.
 @c Indices
 @c ---------------------------------------------------------------------
 
+@c comment it out for now, it is too small to be kept for now. See how
+@c it can be merged with the glossary section in the introduction
 @node Concept Index
 @unnumbered Concept Index
 @printindex cp
