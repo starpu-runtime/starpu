@@ -113,3 +113,6 @@ showcheck:
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \
 	done
+
+ctags-local:
+	$(CTAGS) -R -I LIST_TYPE
