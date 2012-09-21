@@ -73,7 +73,11 @@ static void release_callback_event(void * e) {
   cmd->num_events = 0;
 
   /* Destruct object */
-  //FIXME: we cannot release tag because it makes StarPU crash
+  //FIXME
   //starpu_tag_remove(event->id);
+  if (event->profiling_info != NULL) {
+    free(event->profiling_info);
+    event->profiling_info = NULL;
+  }
 }
 

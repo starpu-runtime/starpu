@@ -30,10 +30,11 @@ soclGetDeviceInfo(cl_device_id    device,
    /* if (device != &socl_virtual_device && device is not a valid StarPU worker identifier)
       return CL_INVALID_DEVICE;*/
 
-  int devid = starpu_worker_get_devid((int)(intptr_t)device);
+  int devid = device->device_id;
+
   cl_device_id dev;
-  
   starpu_opencl_get_device(devid, &dev);
+
   int ret = clGetDeviceInfo(dev, param_name, param_value_size, param_value, param_value_size_ret);
 
   return ret;

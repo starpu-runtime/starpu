@@ -55,16 +55,28 @@ soclGetDeviceIDs(cl_platform_id   platform,
    int workers[ndevs];
    starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, ndevs);
 
+   if (socl_devices == NULL) {
+      socl_devices = malloc(sizeof(struct _cl_device_id) * ndevs);
+      int i;
+      for (i=0; i < ndevs; i++) {
+         int devid = starpu_worker_get_devid(workers[i]);
+         socl_devices[i].dispatch = &socl_master_dispatch;
+         socl_devices[i].worker_id = workers[i];
+         socl_devices[i].device_id = devid;
+      }
+   }
+  
+
    int i;
    unsigned int num = 0;
    for (i=0; i < ndevs; i++) {
-      int devid = starpu_worker_get_devid(workers[i]);
+      int devid = socl_devices[i].device_id;
       cl_device_id dev;
       starpu_opencl_get_device(devid, &dev);
       cl_device_type typ;
       clGetDeviceInfo(dev, CL_DEVICE_TYPE, sizeof(typ), &typ, NULL);
       if (typ & device_type) {
-         if (devices != NULL && num < num_entries) devices[num] = (cl_device_id)(intptr_t)workers[i];
+         if (devices != NULL && num < num_entries) devices[num] = &socl_devices[i];
          num++;
       }
    }

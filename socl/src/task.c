@@ -19,8 +19,8 @@
 #include "event.h"
 
 static void task_release_callback(void *arg) {
-  starpu_task task = starpu_task_get_current();
   cl_command cmd = (cl_command)arg;
+  starpu_task task = cmd->task;
   
   cl_event ev = command_event_get(cmd);
   ev->status = CL_COMPLETE;
@@ -36,7 +36,8 @@ static void task_release_callback(void *arg) {
   gc_entity_release(ev);
 
   /* Release the command */
-  //TODO
+  //FIXME
+  //free(cmd);
 }
 
 
@@ -50,8 +51,8 @@ starpu_task task_create() {
 	task = starpu_task_create();
 
 	/* Set task common settings */
-	task->destroy = 1;
-	task->detach = 1;
+	task->destroy = 0;
+	task->detach = 0;
 
 	task->use_tag = 1;
 	task->tag_id = event_unique_id();

@@ -90,4 +90,9 @@ __attribute__((destructor)) static void socl_shutdown() {
   if( _starpu_init )
     starpu_shutdown();
   pthread_mutex_unlock(&_socl_mutex);
+
+  if (socl_devices != NULL) {
+    free(socl_devices);
+    socl_devices = NULL;
+  }
 }

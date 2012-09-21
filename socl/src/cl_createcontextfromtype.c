@@ -21,14 +21,23 @@
 
 CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContextFromType(const cl_context_properties * properties,
-                        cl_device_type                UNUSED(device_type),
+                        cl_device_type                device_type,
                         void (*pfn_notify)(const char *, const void *, size_t, void *),
                         void *                        user_data,
                         cl_int *                      errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
    if( ! _starpu_init )
       socl_init_starpu(); 
-   //We assume clCreateContext doesn't support devices
-   //TODO:use devices
-   return soclCreateContext(properties, 0, NULL, pfn_notify, user_data, errcode_ret);
+
+
+   //TODO: appropriate error messages
+
+   int num_devices;
+
+   soclGetDeviceIDs(&socl_platform, device_type, 0, NULL, &num_devices);
+
+   cl_device_id devices[num_devices];
+   soclGetDeviceIDs(&socl_platform, device_type, num_devices, devices, NULL);
+   
+   return soclCreateContext(properties, num_devices, devices, pfn_notify, user_data, errcode_ret);
 }

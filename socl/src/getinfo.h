@@ -30,12 +30,12 @@
    INFO_CASE_EX2(var)
 
 #define INFO_CASE_STRING_EX2(var) if (param_value != NULL) { \
-      if (param_value_size < strlen(var)) \
+      if (param_value_size < strlen(var)+1) \
          return CL_INVALID_VALUE; \
       strcpy(param_value, var); \
    } \
    if (param_value_size_ret != NULL) \
-      *param_value_size_ret = strlen(var); \
+      *param_value_size_ret = strlen(var)+1; \
    break;
 
 #define INFO_CASE_STRING(param, var) case param: \

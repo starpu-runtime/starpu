@@ -159,3 +159,5 @@ const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_ICD_SUFFIX_KHR ="SOCL"
  * is equal to 0
  */
 int __attribute__ ((aligned (16))) profiling_queue_count = 0;
+
+struct _cl_device_id * socl_devices = NULL;

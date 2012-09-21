@@ -77,6 +77,7 @@ struct entity {
 
 
 struct _cl_platform_id {struct _cl_icd_dispatch *dispatch;};
+struct _cl_device_id {struct _cl_icd_dispatch *dispatch; int device_id; int worker_id;};
 
 #define RETURN_EVENT(cmd, event) \
 	if (event != NULL) { \
@@ -748,4 +749,6 @@ soclIcdGetPlatformIDsKHR(cl_uint          /* num_entries */,
 
 struct _cl_icd_dispatch socl_master_dispatch;
 struct _cl_platform_id socl_platform;
+struct _cl_device_id * socl_devices;
+
 #endif /* SOCL_H */

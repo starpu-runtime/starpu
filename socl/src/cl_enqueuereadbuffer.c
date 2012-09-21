@@ -85,7 +85,7 @@ cl_int command_read_buffer_submit(command_read_buffer cmd) {
 	/* Execute the task on a specific worker? */
 	if (cmd->_command.cq->device != NULL) {
 	  task->execute_on_a_specific_worker = 1;
-	  task->workerid = (int)(intptr_t)cmd->_command.cq->device;
+	  task->workerid = cmd->_command.cq->device->worker_id;
 	}
 
 	arg = (struct arg_readbuffer*)malloc(sizeof(struct arg_readbuffer));
