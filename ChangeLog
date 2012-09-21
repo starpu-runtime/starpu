@@ -47,6 +47,7 @@ Changes:
   - Virtual SOCL device has been removed
   - Automatic scheduling still available with command queues not assigned to
     any device
+  * Fix main memory leak on multiple unregister/re-register.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

@@ -353,7 +353,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 			if (local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
-				_starpu_request_mem_chunk_removal(&root_handle->children[child], node);
+				_starpu_request_mem_chunk_removal(&root_handle->children[child], node, 1);
 		}
 
 		if (!root_handle->per_node[node].allocated)
@@ -363,7 +363,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(root_handle, node);
+			_starpu_request_mem_chunk_removal(root_handle, node, 1);
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
