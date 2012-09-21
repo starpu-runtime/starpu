@@ -153,7 +153,7 @@ future CRC computation. This is used for computing data size footprint.
 @node An example of data interface
 @subsection An example of data interface
 
-@deftypefun int starpu_data_interface_get_next_id ()
+@deftypefun int starpu_data_interface_get_next_id (void)
 Returns the next available id for a newly created data interface.
 @end deftypefun
 

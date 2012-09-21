@@ -204,17 +204,17 @@ application: statistics and other post-mortem debugging information are not
 guaranteed to be available until this method has been called.
 @end deftypefun
 
-@deftypefun int starpu_asynchronous_copy_disabled ()
+@deftypefun int starpu_asynchronous_copy_disabled (void)
 Return 1 if asynchronous data transfers between CPU and accelerators
 are disabled.
 @end deftypefun
 
-@deftypefun int starpu_asynchronous_cuda_copy_disabled ()
+@deftypefun int starpu_asynchronous_cuda_copy_disabled (void)
 Return 1 if asynchronous data transfers between CPU and CUDA accelerators
 are disabled.
 @end deftypefun
 
-@deftypefun int starpu_asynchronous_opencl_copy_disabled ()
+@deftypefun int starpu_asynchronous_opencl_copy_disabled (void)
 Return 1 if asynchronous data transfers between CPU and OpenCL accelerators
 are disabled.
 @end deftypefun
@@ -2107,7 +2107,7 @@ prints a list of all performance models on @var{output}.
 todo
 @end deftypefun
 
-@deftypefun int starpu_perfmodel_print_all ({struct starpu_perfmodel *}@var{model}, {char *}@var{arch}, @var{char *}parameter,  {uint32_t *}@var{footprint}, {FILE *}@var{output})
+@deftypefun int starpu_perfmodel_print_all ({struct starpu_perfmodel *}@var{model}, {char *}@var{arch}, @var{char *}parameter, {uint32_t *}@var{footprint}, {FILE *}@var{output})
 todo
 @end deftypefun
 
@@ -2501,7 +2501,7 @@ the directory where it has been located. Otherwise, they are both set
 to the empty string.
 @end deftypefun
 
-@deftypefun int starpu_opencl_compile_opencl_from_file ({const char *}@var{source_file_name}, {const char*} @var{build_options})
+@deftypefun int starpu_opencl_compile_opencl_from_file ({const char *}@var{source_file_name}, {const char *} @var{build_options})
 Compile the OpenCL kernel stored in the file @code{source_file_name}
 with the given options @code{build_options} and stores the result in
 the directory @code{$STARPU_HOME/.starpu/opencl} with the same
