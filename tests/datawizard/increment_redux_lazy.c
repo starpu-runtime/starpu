@@ -244,8 +244,6 @@ int main(int argc, char **argv)
 	ret = starpu_data_acquire(handle, STARPU_R);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 	var = (unsigned*) starpu_variable_get_local_ptr(handle);
-	starpu_data_release(handle);
-	starpu_data_unregister(handle);
 
 	if (*var != ntasks*nloops)
 	{
@@ -253,6 +251,9 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "Value %u != Expected value %u\n", *var, ntasks * (loop+1));
 		goto err;
 	}
+
+	starpu_data_release(handle);
+	starpu_data_unregister(handle);
 
 err:
 	starpu_shutdown();
