@@ -546,7 +546,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		/* free the data copy in a lazy fashion */
-		_starpu_request_mem_chunk_removal(handle, node);
+		_starpu_request_mem_chunk_removal(handle, node, 1);
 	}
 
 	_starpu_data_requester_list_delete(handle->req_list);
@@ -583,7 +583,7 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 		if (local->allocated && local->automatically_allocated)
 		{
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, node);
+			_starpu_request_mem_chunk_removal(handle, node, 0);
 		}
 
 		local->state = STARPU_INVALID;

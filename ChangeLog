@@ -22,6 +22,7 @@ Changes:
   * Bug fixes in source code for non-Linux systems
   * Fix generating FXT traces bigger than 64MiB.
   * Improve ENODEV error detections in StarPU FFT
+  * Fix main memory leak on multiple unregister/re-register.
 
 StarPU 1.0.2 (svn revision 7210)
 ==============================================
