@@ -559,6 +559,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 void starpu_data_unregister(starpu_data_handle_t handle)
 {
+	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data must not be unregistered twice");
 	_starpu_data_unregister(handle, 1);
 }
 
