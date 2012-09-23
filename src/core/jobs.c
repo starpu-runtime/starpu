@@ -267,6 +267,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	struct _starpu_cg_list *tag_successors = &tag->tag_successors;
 
 	_starpu_spin_lock(&tag->lock);
+	STARPU_ASSERT_MSG(tag->is_assigned == 1 || !tag_successors->ndeps, "a tag can be assigned only one task to wake");
 
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
