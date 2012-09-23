@@ -268,13 +268,19 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 	job->task->use_tag = 1;
 
 	struct _starpu_tag *tag= gettag_struct(id);
+
+	_starpu_spin_lock(&tag->lock);
+
+	/* Note: a tag can be shared by several tasks, when it is used to
+	 * detect when either of them are finished. We however don't allow
+	 * several tasks to share a tag when it is used to wake them by
+	 * dependency */
 	tag->job = job;
-	tag->is_assigned = 1;
+	tag->is_assigned++;
 
 	job->tag = tag;
-
 	/* the tag is now associated to a job */
-	_starpu_spin_lock(&tag->lock);
+
 	/* When the same tag may be signaled several times by different tasks,
 	 * and it's already done, we should not reset the "done" state.
 	 * When the tag is simply used by the same task several times, we have
