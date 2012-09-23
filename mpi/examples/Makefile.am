@@ -44,7 +44,7 @@ EXTRA_DIST = 					\
 	cholesky/mpi_cholesky.h	\
 	cholesky/mpi_cholesky_models.h \
 	cholesky/mpi_cholesky_codelets.h \
-	tests/helper.h
+	../tests/helper.h
 
 examplebindir = $(libdir)/starpu/mpi
 
