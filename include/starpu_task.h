@@ -225,7 +225,7 @@ struct starpu_task
 	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
 	.magic = 42                  			\
-};
+}
 
 /*
  * handle task dependencies: it is possible to associate a task with a unique
