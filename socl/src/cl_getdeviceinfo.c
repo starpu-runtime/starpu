@@ -35,7 +35,20 @@ soclGetDeviceInfo(cl_device_id    device,
   cl_device_id dev;
   starpu_opencl_get_device(devid, &dev);
 
-  int ret = clGetDeviceInfo(dev, param_name, param_value_size, param_value, param_value_size_ret);
+  int ret = CL_SUCCESS;
+
+  switch (param_name) {
+    case CL_DEVICE_PLATFORM: {
+      cl_platform_id p = &socl_platform;
+      INFO_CASE_EX2(p);
+    }
+    case CL_DEVICE_IMAGE_SUPPORT: {
+      cl_bool res = CL_FALSE;
+      INFO_CASE_EX2(res);
+    }
+    default:
+      ret = clGetDeviceInfo(dev, param_name, param_value_size, param_value, param_value_size_ret);
+  }
 
   return ret;
 

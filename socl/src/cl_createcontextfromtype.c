@@ -32,7 +32,7 @@ soclCreateContextFromType(const cl_context_properties * properties,
 
    //TODO: appropriate error messages
 
-   int num_devices;
+   cl_uint num_devices;
 
    soclGetDeviceIDs(&socl_platform, device_type, 0, NULL, &num_devices);
 
