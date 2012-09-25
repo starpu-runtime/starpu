@@ -14,9 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <math.h>
-#include <unistd.h>
 #include <starpu.h>
+#include <core/jobs.h>
 #include "../helper.h"
 
 /*
@@ -25,7 +24,6 @@
  */
 
 #define NTASKS           8
-#define TASK_DURATION    999000 /* In microseconds */
 
 extern struct starpu_sched_policy _starpu_sched_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_prio_policy;
@@ -59,8 +57,6 @@ dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-
-	STARPU_ASSERT(usleep(TASK_DURATION) == 0);
 }
 
 static int
@@ -75,8 +71,6 @@ run(struct starpu_sched_policy *p)
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
-
-	starpu_profiling_status_set(1);
 
 	struct starpu_task *tasks[NTASKS] = { NULL };
 	struct starpu_codelet cl = 
@@ -104,21 +98,9 @@ run(struct starpu_sched_policy *p)
 
 	for (i = 0; i < NTASKS; i++)
 	{
-		struct starpu_task_profiling_info *pi;
-		double task_len;
-
-		pi = tasks[i]->profiling_info;
-		task_len = starpu_timing_timespec_delay_us(&pi->start_time, &pi->end_time);
-		if (task_len < TASK_DURATION/2)
-		{
-			char name[48];
-			starpu_worker_get_name(pi->workerid, name, 48);
-			FPRINTF(stderr, "Task %d, executed by %s, lasted %fµs\n",
-				i, name, task_len);
+		struct _starpu_job *j = tasks[i]->starpu_private;
+		if (j == NULL || j->terminated == 0)
 			return 1;
-		}
-
-		starpu_task_destroy(tasks[i]);
 	}
 
 	starpu_shutdown();
