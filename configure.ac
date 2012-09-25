@@ -1609,39 +1609,66 @@ AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 ##########################################
 
 AC_ARG_WITH([hwloc],
-	[AS_HELP_STRING([--without-hwloc],
-	[Disable hwloc (enabled by default)])],
-	[hwloc_dir="$withval"])
+	[AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])],
+	[
+		if test x$withval != xno; then
+			if test "$withval" = "yes" ; then
+				use_hwloc_from_system=yes
+				use_hwloc=yes
+			else
+				# use specified path
+				use_hwloc_from_system=no
+				if test ! -d "$withval" ; then
+				   AC_MSG_ERROR("Directory specified for hwloc <$withval> does not exist")
+				fi
+				hwloc_dir=$withval
+				use_hwloc=yes
+			fi
+		else
+			use_hwloc=no
+		fi
+	],
+	[
+		use_hwloc=maybe
+		use_hwloc_from_system=yes
+	])
 SAVED_LDFLAGS="${LDFLAGS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
-AS_IF([test "x$with_hwloc" != "xno"], [
-	PKG_CHECK_MODULES([HWLOC],[hwloc], [
-		have_valid_hwloc=yes
+AS_IF([test "$use_hwloc_from_system" = "yes"],
+	[PKG_CHECK_MODULES([HWLOC],[hwloc], [
+	    	have_valid_hwloc=yes
 		have_pkgconfig_hwloc=yes], [
 		have_valid_hwloc=no
 		have_pkgconfig_hwloc=no])
-	AS_IF([test "$have_valid_hwloc" = "no"], [
-		if test "$hwloc_dir" != "" ; then CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include" ; fi
-		AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-		if test "$hwloc_dir" != "" ; then LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib" ; fi
-		AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-		])
-    ],
-    have_valid_hwloc="no")
-AS_IF([test "$have_valid_hwloc" = "yes"], [
-	AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
-	HWLOC_REQUIRES=hwloc
-	AC_SUBST([STARPU_HAVE_HWLOC], [1])
-	AS_IF([test "$have_pkgconfig_hwloc" = "no"], [
-		HWLOC_CFLAGS="-I$hwloc_dir/include"
-		HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"])
+	],
+	#else
+	[have_pkgconfig_hwloc=no
+	 CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
+	 AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
+	 LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
+	 AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 	])
+# in case hwloc was explicitely required, but is not available, this is an error
+AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
+      [AC_MSG_ERROR([cannot find hwloc])]
+     )
+# in case hwloc is not available but was not explicitely disabled, this is an error
+AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
+      [AC_MSG_ERROR([hwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install hwloc. However, if you really want to use StarPU without enabling hwloc, please restart configure by specifying the option '--without-hwloc'.])]
+     )
+
+AS_IF([test "$have_valid_hwloc" = "yes"],
+      [AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
+       HWLOC_REQUIRES=hwloc
+       AC_SUBST([STARPU_HAVE_HWLOC], [1])
+       AS_IF([test "$have_pkgconfig_hwloc" = "no"],
+             [HWLOC_CFLAGS="-I$hwloc_dir/include"
+	      HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"]
+       )
+      ])
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
 
-if test "$have_valid_hwloc" = "no" -a "$hwloc_dir" != "no" ; then
-   AC_MSG_ERROR([hwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install hwloc. However, if you really want to use StarPU without enabling hwloc, please restart configure by specifying the option '--without-hwloc'.])
-fi
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)
