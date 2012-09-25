@@ -924,7 +924,9 @@ The solution is then to use only one combined worker at a time.  This can be
 done by setting @code{single_combined_worker} to 1 in the @code{starpu_conf}
 structure, or setting the @code{STARPU_SINGLE_COMBINED_WORKER} environment
 variable to 1. StarPU will then run only one parallel task at a time (but other
-CPU and GPU tasks are not affected and can be run concurrently)
+CPU and GPU tasks are not affected and can be run concurrently). The parallel
+task scheduler will however still however still try varying combined worker
+sizes to look for the most efficient ones.
 
 @node Debugging
 @section Debugging
