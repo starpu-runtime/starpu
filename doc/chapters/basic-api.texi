@@ -138,7 +138,8 @@ to @code{-1}, the default value is used.  This can also be specified with the
 By default, StarPU executes parallel tasks concurrently.
 Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
-makes StarPU only start one parallel task at a time.
+makes StarPU only start one parallel task at a time (but other
+CPU and GPU tasks are not affected and can be run concurrently).
 This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environment variable.
 
 @item @code{int disable_asynchronous_copy} (default = 0)
