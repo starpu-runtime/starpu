@@ -99,7 +99,7 @@ test_cpu(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[CPU] Var = %d\n", var);
+	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
 	ret = !!(var != 1);
 
 out:
@@ -152,7 +152,7 @@ test_cuda(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[CUDA] Var = %d\n", var);
+	FPRINTF(stderr, "[CUDA] Var = %d (expected value: 1)\n", var);
 	ret = !!(var != 1);
 
 out:
@@ -220,7 +220,7 @@ test_opencl(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[OpenCL] Var = %d\n", var);
+	FPRINTF(stderr, "[OpenCL] Var = %d (expected value: 1)\n", var);
 	ret = !!(var != 1);
 
 out:
