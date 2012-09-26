@@ -14,6 +14,13 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.0.4 (svn revision xxxx)
+==============================================
+
+Changes:
+  * Fix main memory leak on multiple unregister/re-register.
+  * Fix compilation with FxT enabled in a non standard location
+
 StarPU 1.0.3 (svn revision 7379)
 ==============================================
 
@@ -22,7 +29,6 @@ Changes:
   * Bug fixes in source code for non-Linux systems
   * Fix generating FXT traces bigger than 64MiB.
   * Improve ENODEV error detections in StarPU FFT
-  * Fix main memory leak on multiple unregister/re-register.
 
 StarPU 1.0.2 (svn revision 7210)
 ==============================================
