@@ -32,7 +32,7 @@ New features:
   * GCC plug-in
 	- Add `registered' attribute
   * SOCL
-  - Manual mapping of commands on specific devices is now possible
+        - Manual mapping of commands on specific devices is now possible
 
 Changes:
   * Fix the block filter functions.
@@ -48,6 +48,7 @@ Changes:
   - Automatic scheduling still available with command queues not assigned to
     any device
   * Fix main memory leak on multiple unregister/re-register.
+  * Improve hwloc detection by configure
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
