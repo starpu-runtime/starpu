@@ -32,7 +32,17 @@ static void soclBuildProgram_task(void *data) {
 
    DEBUG_MSG("[Worker %d] Building program...\n", wid);
 
-   err = clBuildProgram(d->program->cl_programs[range], 1, &device, d->options, NULL, NULL);
+   cl_device_type dev_type;
+   clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &dev_type, NULL);
+   char * dev_type_str = (dev_type == CL_DEVICE_TYPE_CPU ? "CPU" :
+                          dev_type == CL_DEVICE_TYPE_GPU ? "GPU" :
+                          dev_type == CL_DEVICE_TYPE_ACCELERATOR ? "ACCELERATOR" : "UNKNOWN");
+
+   char opts[4096];
+   sprintf(opts, "-DSOCL_DEVICE_TYPE_%s %s",
+    dev_type_str, (d->options != NULL ? d->options : ""));
+
+   err = clBuildProgram(d->program->cl_programs[range], 1, &device, opts, NULL, NULL);
    if (err != CL_SUCCESS) {
       size_t len;
       clGetProgramBuildInfo(d->program->cl_programs[range], device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);

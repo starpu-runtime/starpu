@@ -37,11 +37,22 @@
 #define REALSIZE (SIZE * sizeof(TYPE))
 
 const char * kernel_src = "__kernel void add(__global float*s1, __global float*s2, __global float*d) { \
-   size_t x = get_global_id(0);\
-   size_t y = get_global_id(1);\
-   size_t w = get_global_size(0); \
-   int idx = y*w+x; \
-   d[idx] = s1[idx] + s2[idx];\
+   size_t x = get_global_id(0);\n\
+   size_t y = get_global_id(1);\n\
+   size_t w = get_global_size(0); \n\
+   int idx = y*w+x; \n\
+#ifdef SOCL_DEVICE_TYPE_GPU \n\
+   d[idx] = s1[idx] + s2[idx];\n\
+#endif \n\
+#ifdef SOCL_DEVICE_TYPE_CPU \n\
+   d[idx] = s1[idx] + 2* s2[idx];\n\
+#endif \n\
+#ifdef SOCL_DEVICE_TYPE_ACCELERATOR \n\
+   d[idx] = s1[idx] + 3 * s2[idx];\n\
+#endif \n\
+#ifdef SOCL_DEVICE_TYPE_UNKNOWN \n\
+   d[idx] = s1[idx] + 4 * s2[idx];\n\
+#endif \n\
 }";
 
 
