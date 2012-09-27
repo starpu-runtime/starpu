@@ -105,7 +105,7 @@ test_cpu(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	FPRINTF(stderr, "[CPU] Var is %d\n", var);
+	FPRINTF(stderr, "[CPU] Var is %d (expected value: %d)\n", var, NTASKS);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_CPU */
@@ -158,7 +158,7 @@ test_cuda(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	FPRINTF(stderr, "[CUDA] Var is %d\n", var);
+	FPRINTF(stderr, "[CUDA] Var is %d (expected value: %d)\n", var, NTASKS);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_CUDA */
@@ -229,7 +229,7 @@ test_opencl(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	FPRINTF(stderr, "[OpenCL] Var is %d\n", var);
+	FPRINTF(stderr, "[OpenCL] Var is %d (expected value: %d)\n", var, NTASKS);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_OPENCL */
