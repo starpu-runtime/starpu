@@ -77,7 +77,10 @@ test_cpu(void)
 	conf.ncpus = 1;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "WARNING: No CPU worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	ret = pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret != 0)
@@ -95,6 +98,7 @@ test_cpu(void)
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
+		FPRINTF(stderr, "WARNING: No worker can execute this task\n");
 		ret = STARPU_TEST_SKIPPED;
 		goto out;
 	}
@@ -130,7 +134,10 @@ test_cuda(void)
 	conf.ncuda = 1;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cuda_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	ret = pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
@@ -148,6 +155,7 @@ test_cuda(void)
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
+		FPRINTF(stderr, "WARNING: No worker can execute this task\n");
 		ret = STARPU_TEST_SKIPPED;
 		goto out;
 	}
@@ -177,13 +185,19 @@ test_opencl(void)
         cl_platform_id platform;
         err = clGetPlatformIDs(1, &platform, &dummy);
         if (err != CL_SUCCESS)
+	{
+		FPRINTF(stderr, "WARNING: No OpenCL platform found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	cl_device_id device_id;
 	int device_type = CL_DEVICE_TYPE_GPU; /* TODO Support CPU */
         err = clGetDeviceIDs(platform, device_type, 1, &device_id, NULL);
         if (err != CL_SUCCESS)
+	{
+		FPRINTF(stderr, "WARNING: No GPU devices found on OpenCL platform\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	struct starpu_driver d =
 	{
@@ -198,7 +212,10 @@ test_opencl(void)
 	conf.nopencl = 1;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_opencl_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	ret = pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
@@ -216,6 +233,7 @@ test_opencl(void)
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
+		FPRINTF(stderr, "WARNING: No worker can execute the task\n");
 		ret = STARPU_TEST_SKIPPED;
 		goto out;
 	}
