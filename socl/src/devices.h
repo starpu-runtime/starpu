@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,13 +17,14 @@
 
 #ifndef SOCL_DEVICES_H
 #define SOCL_DEVICES_H
-
+#include "socl.h"
 // OpenCL 1.0 : Mandatory format: major_number.minor_number
 const char * SOCL_DRIVER_VERSION;
 
 const cl_uint SOCL_DEVICE_VENDOR_ID;
 
 struct _cl_device_id {
+   struct _cl_icd_dispatch * dispatch;
    cl_device_type    type;
    cl_uint           max_compute_units;        //OpenCL 1.0: minimum value is 1
    cl_uint           max_work_item_dimensions; //OpenCL 1.0: minimum value is 3
