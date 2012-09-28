@@ -60,8 +60,6 @@ struct _cl_device_id {
    char              extensions[100];          //Array size has been arbitrarily defined
 };
 
-const struct _cl_device_id socl_devices[100];
-
-const int socl_device_count;
+const struct _cl_device_id socl_virtual_device;
 
 #endif /* SOCL_DEVICES_H */

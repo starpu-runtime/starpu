@@ -146,8 +146,8 @@ struct _cl_icd_dispatch socl_master_dispatch = {
 struct _cl_platform_id socl_platform = {&socl_master_dispatch};
 
 const char * __attribute__ ((aligned (16))) SOCL_PROFILE = "FULL_PROFILE";
-const char * __attribute__ ((aligned (16))) SOCL_VERSION = "OpenCL 1.0 StarPU Edition (0.0.1)";
-const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_NAME    = "StarPU Platform";
+const char * __attribute__ ((aligned (16))) SOCL_VERSION = "OpenCL 1.0 SOCL Edition (0.1.0)";
+const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_NAME    = "SOCL Platform";
 const char * __attribute__ ((aligned (16))) SOCL_VENDOR  = "INRIA";
 const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_EXTENSIONS = "cl_khr_icd";
 const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_ICD_SUFFIX_KHR ="SOCL";

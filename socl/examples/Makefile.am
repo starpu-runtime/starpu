@@ -50,19 +50,17 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
-	clinfo/clinfo
-
-#	mandelbrot/mandelbrot
+	clinfo/clinfo \
+	mansched/mansched
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
-	clinfo/clinfo
-
-#	mandelbrot/mandelbrot
+	clinfo/clinfo		\
+	mansched/mansched
 
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
-#mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
+mansched_mansched_SOURCES = mansched/mansched.c
 
 #mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
 #if HAVE_X11

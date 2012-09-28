@@ -81,7 +81,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    printf("Querying devices...\n");
    unsigned int platform_idx;
    for (platform_idx=0; platform_idx<num_platforms; platform_idx++) {
-      err = clGetDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, sizeof(devices)/sizeof(cl_device_id), devices, &num_devices);
+      err = clGetDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_ACCELERATOR, sizeof(devices)/sizeof(cl_device_id), devices, &num_devices);
       check(err, "clGetDeviceIDs");
       if (num_devices != 0)
          break;
