@@ -67,7 +67,7 @@ deinit_driver(struct starpu_driver *d)
 static int
 test_cpu(void)
 {
-	int var = 0, ret;
+	int var = 0, ret, ncpu;
 	struct starpu_conf conf;
 
 	ret = starpu_conf_init(&conf);
@@ -86,7 +86,17 @@ test_cpu(void)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No CPU worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
+
+	ncpu = starpu_cpu_worker_get_count();
+	if (ncpu == 0)
+	{
+		FPRINTF(stderr, "WARNING: No CPU worker found\n");
+		return STARPU_TEST_SKIPPED;
+	}
 
 	init_driver(&d);
 	int i;
@@ -135,11 +145,17 @@ test_cuda(void)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	ncuda = starpu_cuda_worker_get_count();
 	if (ncuda == 0)
+	{
+		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	init_driver(&d);
 	int i;
@@ -175,6 +191,7 @@ test_opencl(void)
         err = clGetPlatformIDs(1, &platform, &dummy);
         if (err != CL_SUCCESS)
         {
+		FPRINTF(stderr, "WARNING: No OpenCL platform found\n");
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -182,6 +199,7 @@ test_opencl(void)
         err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
         if (err != CL_SUCCESS)
         {
+		FPRINTF(stderr, "WARNING: No GPU devices found on OpenCL platform\n");
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -205,11 +223,17 @@ test_opencl(void)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	nopencl = starpu_opencl_worker_get_count();
 	if (nopencl == 0)
+	{
+		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	init_driver(&d);
 	int i;
