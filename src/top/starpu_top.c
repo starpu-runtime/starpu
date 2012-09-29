@@ -29,7 +29,7 @@
 #include <common/utils.h>
 
 extern struct _starpu_top_message_queue*  _starpu_top_mt;
-int starpu_top = 0;
+int _starpu_top = 0;
 int starpu_top_debug_on = 0;
 unsigned int starpu_top_data_cpt = 0;
 unsigned int starpu_top_param_cpt = 0;
@@ -44,7 +44,7 @@ pthread_cond_t starpu_top_wait_for_continue_cond = PTHREAD_COND_INITIALIZER;
 
 int _starpu_top_status_get(void)
 {
-	return starpu_top;
+	return _starpu_top;
 }
 
 static
@@ -133,7 +133,7 @@ static void starpu_top_send_devices_info(void)
 
 void starpu_top_init_and_wait(const char* server_name)
 {
-	starpu_top=1;
+	_starpu_top=1;
 	sem_init(&starpu_top_wait_for_go,0,0);
 
 	_STARPU_PTHREAD_MUTEX_INIT(&starpu_top_wait_for_continue_mutex, NULL);

@@ -100,6 +100,10 @@ int starpu_profiling_status_set(int status);
 /* Return the current profiling status or a negative value in case there was an
  * error. */
 int starpu_profiling_status_get(void);
+#ifdef BUILDING_STARPU
+extern int _starpu_profiling;
+#define starpu_profiling_status_get() _starpu_profiling
+#endif
 
 /* Get the profiling info associated to a worker, and reset the profiling
  * measurements. If worker_info is NULL, we only reset the counters. */
