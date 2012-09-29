@@ -42,9 +42,9 @@ starpu_data_handle_t data_handles[8];
 float *buffers[8];
 
 #ifdef STARPU_SLOW_MACHINE
-static unsigned ntasks = 1000;
-#else
 static unsigned ntasks = 10;
+#else
+static unsigned ntasks = 1000;
 #endif
 static unsigned nbuffers = 0;
 
