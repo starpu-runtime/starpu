@@ -58,7 +58,7 @@ static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *b
  */
 
 /* Disabled by default */
-static int _starpu_profiling = 0;
+int _starpu_profiling = 0;
 
 int starpu_profiling_status_set(int status)
 {
