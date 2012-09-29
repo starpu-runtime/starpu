@@ -172,14 +172,14 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		return NULL;
 	}
 
+	_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+
 	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
 	{
 		_STARPU_TRACE_WORKER_SLEEP_END
 		_starpu_worker_stop_sleeping(workerid);
 		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	}
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 	return task;
 }
