@@ -75,6 +75,7 @@ was last updated on @value{UPDATED}.
 * StarPU FFT support::          How to perform FFT computations with StarPU
 * C Extensions::                Easier StarPU programming with GCC
 * SOCL OpenCL Extensions::      How to use OpenCL on top of StarPU
+* Benchmarks::                  Benchmarks worth running
 * StarPU Basic API::            The Basic API to use StarPU
 * StarPU Advanced API::         Advanced use of StarPU
 * Configuring StarPU::          How to configure StarPU
@@ -125,6 +126,14 @@ was last updated on @value{UPDATED}.
 @node Advanced Examples
 @chapter Advanced Examples
 @include chapters/advanced-examples.texi
+
+@c ---------------------------------------------------------------------
+@c Benchmarks
+@c ---------------------------------------------------------------------
+
+@node Benchmarks
+@chapter Benchmarks
+@include chapters/benchmarks.texi
 
 @c ---------------------------------------------------------------------
 @c Performance options

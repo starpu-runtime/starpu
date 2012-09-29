@@ -51,6 +51,8 @@ CLEANFILES = 					\
 BUILT_SOURCES =
 SUBDIRS =
 
+examplebindir = $(libdir)/starpu/examples
+
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA =
 endif
@@ -233,6 +235,13 @@ noinst_PROGRAMS =				\
 	sched_policies/execute_all_tasks        \
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
+
+examplebin_PROGRAMS = \
+	microbenchs/tasks_size_overhead		\
+	microbenchs/local_pingpong
+examplebin_SCRIPTS = \
+	microbenchs/tasks_size_overhead.gp \
+	microbenchs/tasks_size_overhead.sh
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
