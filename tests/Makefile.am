@@ -216,6 +216,7 @@ noinst_PROGRAMS =				\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
+	microbenchs/tasks_size_overhead		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
