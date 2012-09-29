@@ -14,5 +14,5 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define STARPU_TASK_LIST_INLINE
+#define STARPU_INLINE
 #include <starpu.h>

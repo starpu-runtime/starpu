@@ -195,7 +195,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	util/starpu_data_cpy.c					\
 	util/starpu_insert_task.c				\
 	util/starpu_insert_task_utils.c				\
-	util/starpu_task_list.c					\
+	util/starpu_inlines.c					\
 	debug/traces/starpu_fxt.c				\
 	debug/traces/starpu_fxt_mpi.c				\
 	debug/traces/starpu_fxt_dag.c				\

@@ -16,18 +16,18 @@
 
 #include <starpu.h>
 
-#ifndef STARPU_TASK_LIST_INLINE
-#define STARPU_TASK_LIST_INLINE extern inline
+#ifndef STARPU_INLINE
+#define STARPU_INLINE extern inline
 #endif
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 void starpu_task_list_init(struct starpu_task_list *list)
 {
 	list->head = NULL;
 	list->tail = NULL;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 void starpu_task_list_push_front(struct starpu_task_list *list,
 				struct starpu_task *task)
 {
@@ -45,7 +45,7 @@ void starpu_task_list_push_front(struct starpu_task_list *list,
 	list->head = task;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 void starpu_task_list_push_back(struct starpu_task_list *list,
 				struct starpu_task *task)
 {
@@ -63,25 +63,25 @@ void starpu_task_list_push_back(struct starpu_task_list *list,
 	list->tail = task;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_front(struct starpu_task_list *list)
 {
 	return list->head;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_back(struct starpu_task_list *list)
 {
 	return list->tail;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 int starpu_task_list_empty(struct starpu_task_list *list)
 {
 	return (list->head == NULL);
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 void starpu_task_list_erase(struct starpu_task_list *list,
 				struct starpu_task *task)
 {
@@ -109,7 +109,7 @@ void starpu_task_list_erase(struct starpu_task_list *list,
 	task->next = NULL;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list)
 {
 	struct starpu_task *task = list->head;
@@ -120,7 +120,7 @@ struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list)
 	return task;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list)
 {
 	struct starpu_task *task = list->tail;
@@ -131,19 +131,19 @@ struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list)
 	return task;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_begin(struct starpu_task_list *list)
 {
 	return list->head;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_end(struct starpu_task_list *list __attribute__ ((unused)))
 {
 	return NULL;
 }
 
-STARPU_TASK_LIST_INLINE
+STARPU_INLINE
 struct starpu_task *starpu_task_list_next(struct starpu_task *task)
 {
 	return task->next;
