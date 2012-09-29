@@ -276,7 +276,9 @@ void feed(void) @{
         starpu_data_handle_t handle;
 	starpu_vector_data_register(&handle, -1, 0, measure->size, sizeof(float));
 	task.handles[0] = handle;
-	starpu_perfmodel_update_history(&perf_model, &task, STARPU_CUDA_DEFAULT + measure->cudadev, 0, measure->implementation, measure->time);
+	starpu_perfmodel_update_history(&perf_model, &task,
+	                                STARPU_CUDA_DEFAULT + measure->cudadev, 0,
+	                                measure->implementation, measure->time);
 	starpu_task_clean(&task);
 	starpu_data_unregister(handle);
     @}

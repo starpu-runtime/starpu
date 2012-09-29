@@ -739,7 +739,8 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     unsigned threads_per_block = 64;
     unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-@i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>(val, n, *factor);}
+@i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>}
+@i{                    (val, n, *factor);}
 
 @i{    cudaStreamSynchronize(starpu_cuda_get_local_stream());}
 @}
@@ -803,7 +804,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    @{}
 @i{        size_t global=n;}
 @i{        size_t local=1;}
-@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);}
+@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL,}
+@i{                                     &global, &local, 0, NULL, &event);}
 @i{        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 @i{    @}}
 

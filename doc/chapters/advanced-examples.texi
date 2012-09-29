@@ -228,7 +228,8 @@ int vector[NX];
 starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
-starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+starpu_vector_data_register(&handle, 0, (uintptr_t)vector,
+                            NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
 starpu_filter f =
@@ -630,7 +631,8 @@ instance, assuming that the index variable @code{i} was registered as handle
 starpu_insert_task(&which_index, STARPU_W, i_handle, 0);
 
 /* And submit the corresponding task */
-STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R, starpu_insert_task(&work, STARPU_RW, A_handle[i], 0));
+STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
+                       starpu_insert_task(&work, STARPU_RW, A_handle[i], 0));
 @end smallexample
 
 The @code{STARPU_DATA_ACQUIRE_CB} macro submits an asynchronous request for
@@ -769,7 +771,8 @@ which provides per-worker buffers without content consistency.
 @smallexample
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
 for (i = 0; i < N; i++)
-    starpu_insert_task(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
+    starpu_insert_task(&compute, STARPU_R, input[i],
+                       STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
 @end smallexample
 
 StarPU will make sure that the buffer is allocated before executing the task,
@@ -1065,7 +1068,8 @@ for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
 
 /* And register it to StarPU */
-starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
+starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid),
+                            output, num_bytes / sizeof(float4), sizeof(float4));
 
 /* The handle can now be used as usual */
 starpu_insert_task(&cl, STARPU_RW, handle, 0);
