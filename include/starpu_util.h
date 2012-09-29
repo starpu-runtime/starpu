@@ -29,48 +29,6 @@ extern "C"
 {
 #endif
 
-#define STARPU_POISON_PTR	((void *)0xdeadbeef)
-
-#define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
-#define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
-
-#ifdef STARPU_NO_ASSERT
-#define STARPU_ASSERT(x)		do { (void) (x);} while(0)
-#define STARPU_ASSERT_MSG(x, msg)	do { (void) (x);} while(0)
-#else
-#  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
-#    define STARPU_ASSERT(x)		do { if (!(x)) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); *(int*)NULL = 0; }} while(0)
-#  else
-#    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); } ; assert(x); } while(0)
-
-#  endif
-#endif
-
-#define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __func__); \
-	abort();                                                     \
-} while(0)
-
-#if defined(STARPU_HAVE_STRERROR_R)
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err != 0) { \
-			char xmessage[256]; strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
-			STARPU_ABORT(); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
-			char xmessage[256]; strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
-			STARPU_ABORT(); }}
-#else
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err != 0) {		\
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
-			STARPU_ABORT(); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
-			STARPU_ABORT(); }}
-#endif /* STARPU_HAVE_STRERROR_R */
-
 /* Return true (non-zero) if GCC version MAJ.MIN or later is being used
  * (macro taken from glibc.)  */
 #if defined __GNUC__ && defined __GNUC_MINOR__
@@ -103,6 +61,48 @@ extern "C"
 #else
 #define STARPU_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
+
+#define STARPU_POISON_PTR	((void *)0xdeadbeef)
+
+#define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
+#define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
+
+#ifdef STARPU_NO_ASSERT
+#define STARPU_ASSERT(x)		do { (void) (x);} while(0)
+#define STARPU_ASSERT_MSG(x, msg)	do { (void) (x);} while(0)
+#else
+#  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
+#    define STARPU_ASSERT_MSG(x, msg)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); *(int*)NULL = 0; }} while(0)
+#  else
+#    define STARPU_ASSERT(x)		assert(x)
+#    define STARPU_ASSERT_MSG(x, msg)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); } ; assert(x); } while(0)
+
+#  endif
+#endif
+
+#define STARPU_ABORT() do {                                          \
+	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __func__); \
+	abort();                                                     \
+} while(0)
+
+#if defined(STARPU_HAVE_STRERROR_R)
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (STARPU_UNLIKELY(err != 0)) { \
+			char xmessage[256]; strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			STARPU_ABORT(); }}
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (STARPU_UNLIKELY(err != value)) { \
+			char xmessage[256]; strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			STARPU_ABORT(); }}
+#else
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (STARPU_UNLIKELY(err != 0)) {		\
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+			STARPU_ABORT(); }}
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (STARPU_UNLIKELY(err != value)) { \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+			STARPU_ABORT(); }}
+#endif /* STARPU_HAVE_STRERROR_R */
 
 #if defined(__i386__) || defined(__x86_64__)
 
@@ -170,6 +170,17 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("mfence" ::: "memory")
 #elif defined(__ppc__) || defined(__ppc64__)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
+#endif
+
+#if defined(__i386__)
+#define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
+#elif defined(__x86_64__)
+#define STARPU_RMB() __asm__ __volatile__("lfence" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
+#elif defined(__ppc__) || defined(__ppc64__)
+#define STARPU_RMB() __asm__ __volatile__("sync" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
 #ifdef __cplusplus
