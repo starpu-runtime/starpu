@@ -122,7 +122,8 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0)
 		{
-			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
+			fprintf(stderr,"usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
+			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
 		}
 	}
 }
