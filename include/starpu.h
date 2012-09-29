@@ -46,6 +46,9 @@ typedef unsigned long long uint64_t;
 #include <starpu_perfmodel.h>
 #include <starpu_task.h>
 #include <starpu_task_list.h>
+#ifdef BUILDING_STARPU
+#include <util/starpu_task_list_inline.h>
+#endif
 #include <starpu_task_util.h>
 #include <starpu_scheduler.h>
 #include <starpu_expert.h>
