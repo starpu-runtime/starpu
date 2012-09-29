@@ -1749,6 +1749,16 @@ m4_ifdef([AM_SILENT_RULES],
 #                                                                             #
 ###############################################################################
 
+# these are the flags needed for static linking
+LIBSTARPU_LDFLAGS="$STARPU_GLPK_LDFLAGS"
+AC_SUBST([LIBSTARPU_LDFLAGS])
+
+LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
+if test x$enable_perf_debug = xyes; then
+	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $HWLOC_LIBS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
+fi
+AC_SUBST([LIBSTARPU_LINK])
+
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
