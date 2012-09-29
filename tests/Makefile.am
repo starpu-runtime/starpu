@@ -24,6 +24,8 @@ EXTRA_DIST =					\
 	helper.h				\
 	datawizard/scal.h			\
 	microbenchs/null_kernel_gordon.c	\
+	microbenchs/tasks_size_overhead.sh	\
+	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
