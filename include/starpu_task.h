@@ -51,6 +51,7 @@ enum starpu_codelet_type
 enum starpu_task_status
 {
 	STARPU_TASK_INVALID,
+#define STARPU_TASK_INVALID 0
 	STARPU_TASK_BLOCKED,
 	STARPU_TASK_READY,
 	STARPU_TASK_RUNNING,

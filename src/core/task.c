@@ -46,6 +46,8 @@ static pthread_key_t current_task_key;
 
 void starpu_task_init(struct starpu_task *task)
 {
+	/* TODO: memcpy from a template instead? benchmark it */
+
 	STARPU_ASSERT(task);
 
 	/* As most of the fields must be initialised at NULL, let's put 0
@@ -53,11 +55,15 @@ void starpu_task_init(struct starpu_task *task)
 	memset(task, 0, sizeof(struct starpu_task));
 
 	/* Now we can initialise fields which recquire custom value */
+#if STARPU_DEFAULT_PRIO != 0
 	task->priority = STARPU_DEFAULT_PRIO;
+#endif
 
 	task->detach = 1;
 
+#if STARPU_TASK_INVALID != 0
 	task->status = STARPU_TASK_INVALID;
+#endif
 
 	task->predicted = NAN;
 	task->predicted_transfer = NAN;
