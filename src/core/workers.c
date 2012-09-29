@@ -254,6 +254,40 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 	return 1;
 }
 
+#ifdef STARPU_PERF_DEBUG
+struct itimerval prof_itimer;
+#endif
+
+void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
+{
+	(void) fut_key;
+	int devid = worker->devid;
+	(void) devid;
+
+#ifdef STARPU_PERF_DEBUG
+	setitimer(ITIMER_PROF, &prof_itimer, NULL);
+#endif
+
+#ifdef STARPU_USE_FXT
+	_starpu_fxt_register_thread(worker->bindid);
+
+	unsigned memnode = worker->memory_node;
+	_STARPU_TRACE_WORKER_INIT_START(fut_key, devid, memnode);
+#endif
+
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid);
+
+        _STARPU_DEBUG("worker %d is ready on logical cpu %d\n", devid, worker->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(worker->initial_hwloc_cpu_set));
+#endif
+
+	_starpu_set_local_memory_node_key(&worker->memory_node);
+
+	_starpu_set_local_worker_key(worker);
+
+}
+
 static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 {
 	config->running = 1;
@@ -266,6 +300,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	/* Launch workers asynchronously (except for SPUs) */
 	unsigned cpu = 0, cuda = 0;
 	unsigned worker;
+
+#ifdef STARPU_PERF_DEBUG
+	/* Get itimer of the main thread, to set it for the worker threads */
+	getitimer(ITIMER_PROF, &prof_itimer);
+#endif
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];

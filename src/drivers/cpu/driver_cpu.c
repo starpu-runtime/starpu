@@ -115,23 +115,7 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 
 	int devid = cpu_worker->devid;
 
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_register_thread(cpu_worker->bindid);
-
-	unsigned memnode = cpu_worker->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CPU_KEY, devid, memnode);
-#endif
-
-	_starpu_bind_thread_on_cpu(cpu_worker->config, cpu_worker->bindid);
-
-        _STARPU_DEBUG("cpu worker %d is ready on logical cpu %d\n", devid, cpu_worker->bindid);
-#ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("cpu worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(cpu_worker->initial_hwloc_cpu_set));
-#endif
-
-	_starpu_set_local_memory_node_key(&cpu_worker->memory_node);
-
-	_starpu_set_local_worker_key(cpu_worker);
+	_starpu_worker_init(cpu_worker, _STARPU_FUT_CPU_KEY);
 
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);

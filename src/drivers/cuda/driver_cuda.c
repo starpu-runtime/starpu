@@ -332,18 +332,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 
 	int devid = args->devid;
 
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_register_thread(args->bindid);
-
-	unsigned memnode = args->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CUDA_KEY, devid, memnode);
-#endif
-
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
-
-	_starpu_set_local_memory_node_key(&args->memory_node);
-
-	_starpu_set_local_worker_key(args);
+	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
 
 	init_context(devid);
 

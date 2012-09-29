@@ -195,6 +195,9 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
  * */
 void _starpu_set_local_worker_key(struct _starpu_worker *worker);
 
+/* This function initializes the current thread for the given worker */
+void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key);
+
 /* Returns the _starpu_worker structure that describes the state of the
  * current worker. */
 struct _starpu_worker *_starpu_get_local_worker_key(void);

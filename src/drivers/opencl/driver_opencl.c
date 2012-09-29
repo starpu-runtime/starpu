@@ -436,18 +436,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 
 	int devid = args->devid;
 
-#ifdef USE_FXT
-	fxt_register_thread(args->bindid);
-
-	unsigned memnode = args->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_OPENCL_KEY, devid, memnode);
-#endif
-
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
-
-	_starpu_set_local_memory_node_key(&args->memory_node);
-
-	_starpu_set_local_worker_key(args);
+	_starpu_worker_init(args, _STARPU_FUT_OPENCL_KEY);
 
 	_starpu_opencl_init_context(devid);
 
