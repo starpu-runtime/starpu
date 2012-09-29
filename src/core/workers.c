@@ -779,7 +779,7 @@ out:
 unsigned _starpu_machine_is_running(void)
 {
 	/* running is just protected by a memory barrier */
-	STARPU_SYNCHRONIZE();
+	STARPU_RMB();
 	return config.running;
 }
 
@@ -808,7 +808,7 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
 	/* running is just protected by a memory barrier */
-	STARPU_SYNCHRONIZE();
+	STARPU_WMB();
 	starpu_wake_all_blocked_workers();
 }
 
