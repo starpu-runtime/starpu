@@ -32,12 +32,20 @@
 
 #define START 1000
 #define STOP 1000000
+#ifdef STARPU_SLOW_MACHINE
 #define FACTOR 4
+#else
+#define FACTOR 2
+#endif
 
 starpu_data_handle_t data_handles[8];
 float *buffers[8];
 
+#ifdef STARPU_SLOW_MACHINE
 static unsigned ntasks = 1000;
+#else
+static unsigned ntasks = 10;
+#endif
 static unsigned nbuffers = 0;
 
 struct starpu_task *tasks;
@@ -118,13 +126,14 @@ int main(int argc, char **argv)
 	for (size = START; size < STOP; size *= FACTOR)
 		FPRINTF(stdout, "%d iters(us)\ttotal(s)\t", size);
 	FPRINTF(stdout, "\n");
-	FPRINTF(stdout, "\"\"\t");
+	FPRINTF(stdout, "\"seq\"\t");
 	for (size = START; size < STOP; size *= FACTOR) {
 		double start,end;
 		start = starpu_timing_now();
-		func(NULL, (void*) (uintptr_t) size);
+		for (i = 0; i < ntasks; i++)
+			func(NULL, (void*) (uintptr_t) size);
 		end = starpu_timing_now();
-		FPRINTF(stdout, "%.0f       \t\"        \"\t", end-start);
+		FPRINTF(stdout, "%.0f       \t%f\t", (end-start)/ntasks, (end-start)/1000000);
 	}
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
