@@ -68,33 +68,21 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 
 	job = _starpu_job_new();
 
-	job->nimpl =0; /* best implementation */
-	job->task = task;
+	/* As most of the fields must be initialized at NULL, let's put 0
+	 * everywhere */
+	memset(job, 0, sizeof(*job));
 
-	job->footprint_is_computed = 0;
-	job->submitted = 0;
-	job->terminated = 0;
+	job->task = task;
 
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording || _starpu_top_status_get())
 #endif
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
-#ifdef STARPU_USE_FXT
-	/* display all tasks by default */
-        job->model_name = NULL;
-#endif
-	job->exclude_from_dag = 0;
-
-	job->reduction_task = 0;
 
 	_starpu_cg_list_init(&job->job_successors);
 
-	job->implicit_dep_handle = NULL;
-
 	_STARPU_PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&job->sync_cond, NULL);
-
-	job->bound_task = NULL;
 
 	/* By default we have sequential tasks */
 	job->task_size = 1;
