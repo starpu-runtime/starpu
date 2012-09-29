@@ -88,6 +88,7 @@ int starpu_profiling_status_set(int status)
 	return prev_value;
 }
 
+#undef starpu_profiling_status_get
 int starpu_profiling_status_get(void)
 {
 	return _starpu_profiling;

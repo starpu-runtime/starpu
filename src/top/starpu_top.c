@@ -42,6 +42,7 @@ sem_t starpu_top_wait_for_go;
 pthread_mutex_t starpu_top_wait_for_continue_mutex;
 pthread_cond_t starpu_top_wait_for_continue_cond = PTHREAD_COND_INITIALIZER;
 
+#undef _starpu_top_status_get
 int _starpu_top_status_get(void)
 {
 	return _starpu_top;
