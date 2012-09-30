@@ -62,12 +62,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 						      enum starpu_archtype arch)
 {
 	int i;
-	int nworkers = starpu_worker_get_count_by_type(arch);
-	int workers[nworkers];
-	STARPU_ASSERT(nworkers != -EINVAL);
-	(void) starpu_worker_get_ids_by_type(arch, workers, nworkers);
+	int nworkers = starpu_worker_get_count();
 	for (i = 0; i < nworkers; i++)
-		if (task->cl->can_execute(workers[i], task, 0))
+		if (starpu_worker_get_type(i) == arch &&
+		    task->cl->can_execute(i, task, 0))
 			return 1;
 	return 0;
 }
