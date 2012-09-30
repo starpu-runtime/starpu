@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef __STARPU_TASK_LIST_INLINE_H
+#define __STARPU_TASK_LIST_INLINE_H
 #include <starpu.h>
 
 #ifndef STARPU_INLINE
@@ -148,3 +150,4 @@ struct starpu_task *starpu_task_list_next(struct starpu_task *task)
 {
 	return task->next;
 }
+#endif /* __STARPU_TASK_LIST_INLINE_H */
