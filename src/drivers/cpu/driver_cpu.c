@@ -132,10 +132,10 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	return 0;
 }
 
-int _starpu_cpu_driver_run_once(struct starpu_driver *d)
+int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_worker_from_driver(d);
+	cpu_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(cpu_worker);
 
 	unsigned memnode = cpu_worker->memory_node;
@@ -226,12 +226,12 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d)
 	return 0;
 }
 
-int _starpu_cpu_driver_deinit(struct starpu_driver *d)
+int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START
 
 	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_worker_from_driver(d);
+	cpu_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(cpu_worker);
 
 	unsigned memnode = cpu_worker->memory_node;
