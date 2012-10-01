@@ -19,16 +19,6 @@ EXTRA_DIST = README
 
 libsocl_la_includedir=$(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)/socl/CL
 
-libsocl_la_include_HEADERS = \
-  include/CL/cl.h \
-  include/CL/cl_ext.h \
-  include/CL/cl_gl.h \
-  include/CL/cl_gl_ext.h \
-  include/CL/cl_platform.h \
-  include/CL/cl_starpu.h \
-  include/CL/opencl.h \
-  include/CL/cl.hpp
-
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = socl-1.0.pc
 

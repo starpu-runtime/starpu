@@ -51,7 +51,7 @@ main(void) {
    {
       unsigned int i;
       for (i=0; i<num_platforms; i++) {
-         char str[256];
+         char str[4096];
          err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_PROFILE)");
          printf("  Plaform Profile:\t\t\t\t %s\n", str);
@@ -80,7 +80,7 @@ main(void) {
    {
       unsigned int i;
       for (i=0; i<num_platforms; i++) {
-         char str[256];
+         char str[4096];
          cl_uint num_devices;
 
          err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), &str, NULL);

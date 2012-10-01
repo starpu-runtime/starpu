@@ -68,11 +68,11 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    cl_mem s1m, s2m, dm;
    cl_command_queue cq;
    cl_int err;
+   unsigned int i;
 
    TYPE s1[SIZE],s2[SIZE],d[SIZE];
 
    {
-      int i;
       for (i=0; i<SIZE; i++) {
          s1[i] = 2.0;
          s2[i] = 7.0;
@@ -86,17 +86,29 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       printf("No OpenCL platform found.\n");
       exit(77);
    }
+
    err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
    check(err, "clGetPlatformIDs");
 
+   unsigned int platform_idx = -1;
+   for (i=0; i<num_platforms;i++) {
+    char vendor[256];
+    clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+    if (strcmp(vendor, "INRIA") ==  0) {
+      platform_idx = i;
+    }
+  }
+
+  if (platform_idx == -1) {
+      printf("SOCL platform not found.\n");
+      exit(77);
+  }
+
+
    printf("Querying devices...\n");
-   unsigned int platform_idx;
-   for (platform_idx=0; platform_idx<num_platforms; platform_idx++) {
-      err = clGetDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_ALL, sizeof(devices)/sizeof(cl_device_id), devices, &num_devices);
-      check(err, "clGetDeviceIDs");
-      if (num_devices != 0)
-         break;
-   }
+   err = clGetDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_ALL, sizeof(devices)/sizeof(cl_device_id), devices, &num_devices);
+   check(err, "clGetDeviceIDs");
+
    if (num_devices == 0) {
       printf("No OpenCL device found\n");
       exit(77);
