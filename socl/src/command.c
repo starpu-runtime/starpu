@@ -15,6 +15,7 @@
  */
 
 #include "socl.h"
+#include <string.h>
 
 void command_init_ex(cl_command cmd, cl_command_type typ) {
 	cmd->typ = typ;
@@ -113,7 +114,10 @@ command_ndrange_kernel command_ndrange_kernel_create (
 	codelet->power_model = NULL;
 	codelet->opencl_funcs[0] = &soclEnqueueNDRangeKernel_task;
 	codelet->opencl_funcs[1] = NULL;
-	codelet->model = NULL;
+	codelet->model = malloc(sizeof(struct starpu_perfmodel));
+   memset(codelet->model, 0, sizeof(struct starpu_perfmodel));
+   codelet->model->type = STARPU_HISTORY_BASED;
+   codelet->model->symbol = kernel->kernel_name;
 
    	/* Kernel is mutable, so we duplicate its parameters... */
 	cmd->num_args = kernel->num_args;
