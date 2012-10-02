@@ -44,9 +44,11 @@ Changes:
   * Improve starpu_machine_display output.
   * Standardize objects name in the performance model API
   * SOCL
-  - Virtual SOCL device has been removed
-  - Automatic scheduling still available with command queues not assigned to
-    any device
+    - Virtual SOCL device has been removed
+    - Automatic scheduling still available with command queues not
+      assigned to any device
+    - Remove modified OpenCL headers. ICD is now the only supported
+      way to use SOCL.
   * Fix main memory leak on multiple unregister/re-register.
   * Improve hwloc detection by configure
 
