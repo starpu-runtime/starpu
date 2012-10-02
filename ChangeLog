@@ -59,6 +59,15 @@ Small changes:
 	therefore only need to have #include <starpu.h>
   * Active task wait is now included in blocked time.
 
+StarPU 1.0.3 (svn revision 7379)
+==============================================
+
+Changes:
+  * Several bug fixes in the build system
+  * Bug fixes in source code for non-Linux systems
+  * Fix generating FXT traces bigger than 64MiB.
+  * Improve ENODEV error detections in StarPU FFT
+
 StarPU 1.0.2 (svn revision xxx)
 ==============================================
 
