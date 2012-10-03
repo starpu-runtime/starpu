@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,11 @@ struct starpu_task_list
 	struct starpu_task *head;
 	struct starpu_task *tail;
 };
+
+/* If we are building starpu and not using gnu inline, we have to avoid
+ * declaring the functions extern, as in that case the compiler will compile
+ * the inline into all .o files! */
+#if !defined(BUILDING_STARPU) || defined(__GNUC_GNU_INLINE__)
 
 /* Initialize a list structure */
 void starpu_task_list_init(struct starpu_task_list *list);
@@ -65,6 +70,7 @@ struct starpu_task *starpu_task_list_end(struct starpu_task_list *list);
 
 /* Get the next task of the list. This is not erase-safe. */
 struct starpu_task *starpu_task_list_next(struct starpu_task *task);
+#endif
 
 #ifdef __cplusplus
 }

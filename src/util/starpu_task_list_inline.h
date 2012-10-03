@@ -19,7 +19,11 @@
 #include <starpu.h>
 
 #ifndef STARPU_INLINE
+#ifdef __GNUC_GNU_INLINE__
 #define STARPU_INLINE extern inline
+#else
+#define STARPU_INLINE inline
+#endif
 #endif
 
 STARPU_INLINE
