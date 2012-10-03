@@ -130,6 +130,7 @@ noinst_PROGRAMS =				\
 	main/restart				\
 	main/execute_on_a_specific_worker	\
 	main/insert_task			\
+	main/insert_task_nullcodelet			\
 	main/insert_task_array			\
 	main/multithreaded			\
 	main/multithreaded_init			\

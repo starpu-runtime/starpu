@@ -209,6 +209,8 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 			enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
 
+         STARPU_ASSERT(cl != NULL);
+
 			(*task)->handles[current_buffer] = handle;
 			if (cl->modes[current_buffer])
 				STARPU_ASSERT(cl->modes[current_buffer] == mode);
@@ -283,7 +285,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 	va_end(varg_list);
 
-	STARPU_ASSERT(current_buffer == cl->nbuffers);
+	STARPU_ASSERT(cl == NULL || current_buffer == cl->nbuffers);
 
 	(*task)->cl = cl;
 	(*task)->cl_arg = arg_buffer;
@@ -300,6 +302,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 	{
 		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
 			*task, (*task)->cl,
+			(cl == NULL) ? "none" :
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
 		free(cl_arg_wrapper->arg_stack);
