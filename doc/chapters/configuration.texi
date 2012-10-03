@@ -252,6 +252,7 @@ Disable the build of examples.
 @menu
 * Workers::                     Configuring workers
 * Scheduling::                  Configuring the Scheduling engine
+* Extensions::
 * Misc::                        Miscellaneous and debug
 @end menu
 
@@ -406,6 +407,18 @@ the coefficient to be applied to it before adding it to the communication part.
 To estimate the cost of a task StarPU takes into account the estimated
 data transfer time (obtained thanks to performance models). The beta factor is
 the coefficient to be applied to it before adding it to the computation part.
+
+@end table
+
+@node Extensions
+@subsection Extensions
+
+@table @code
+
+@item @code{SOCL_OCL_LIB_OPENCL}
+THE SOCL test suite is only run when the environment variable
+@code{SOCL_OCL_LIB_OPENCL} is defined. It should contain the location
+of the libOpenCL.so file of the OCL ICD implementation.
 
 @end table
 
