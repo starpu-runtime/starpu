@@ -126,7 +126,7 @@ struct _cl_icd_dispatch socl_master_dispatch = {
   (void *) NULL, //  clEnqueueMigrateMemObjects,
   (void *) NULL, //  clEnqueueMarkerWithWaitList,
   (void *) NULL, //  clEnqueueBarrierWithWaitList,
-  (void *) NULL, //  clGetExtensionFunctionAddressForPlatform,
+  (void *) soclGetExtensionFunctionAddressForPlatform, //  clGetExtensionFunctionAddressForPlatform,
   (void *) NULL, //  clCreateFromGLTexture,
   (void *) NULL,
   (void *) NULL,

@@ -20,6 +20,9 @@
 #include "gc.h"
 #include "mem_objects.h"
 
+#ifndef SOCL_INIT_H
+#define SOCL_INIT_H
+
 extern int _starpu_init_failed;
 extern volatile int _starpu_init;
 /**
@@ -27,3 +30,6 @@ extern volatile int _starpu_init;
  */
 
 void socl_init_starpu(void);
+void soclShutdown(void);
+
+#endif /* SOCL_INIT_H */

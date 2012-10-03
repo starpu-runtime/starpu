@@ -741,6 +741,9 @@ soclEnqueueBarrier(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_
 extern CL_API_ENTRY void * CL_API_CALL
 soclGetExtensionFunctionAddress(const char * /* func_name */) CL_API_SUFFIX__VERSION_1_0;
 
+extern void * CL_API_CALL
+soclGetExtensionFunctionAddressForPlatform(cl_platform_id p, const char * func_name) CL_API_SUFFIX__VERSION_1_2;
+
 extern CL_API_ENTRY cl_int CL_API_CALL
 soclIcdGetPlatformIDsKHR(cl_uint          /* num_entries */,
                  cl_platform_id * /* platforms */,

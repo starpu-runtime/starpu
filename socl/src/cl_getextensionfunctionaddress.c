@@ -18,12 +18,26 @@
 
 #include <string.h>
 #include "socl.h"
+#include "init.h"
 
 CL_API_ENTRY void * CL_API_CALL
-soclGetExtensionFunctionAddress(const char * UNUSED(func_name)) CL_API_SUFFIX__VERSION_1_0
+soclGetExtensionFunctionAddress(const char * func_name) CL_API_SUFFIX__VERSION_1_0
 {
-   //TODO
+   if (func_name != NULL && strcmp(func_name, "clShutdown") == 0) {
+      return (void*)soclShutdown;
+   }
+
    return NULL;
+}
+
+CL_API_ENTRY void * CL_API_CALL
+soclGetExtensionFunctionAddressForPlatform(cl_platform_id p, const char * func_name) CL_API_SUFFIX__VERSION_1_2
+{
+
+   if (p != &socl_platform) 
+      return NULL;
+
+   return soclGetExtensionFunctionAddress(func_name);
 }
 
 CL_API_ENTRY void * CL_API_CALL clGetExtensionFunctionAddress(

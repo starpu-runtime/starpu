@@ -17,6 +17,7 @@
  */
 
 #include <pthread.h>
+#include <stdlib.h>
 #include "socl.h"
 #include "gc.h"
 #include "mem_objects.h"
@@ -69,30 +70,40 @@ __attribute__((constructor)) static void socl_init() {
   gc_start();
 }
 
+
+void soclShutdown() {
+   pthread_mutex_lock(&_socl_mutex);
+   if( _starpu_init )
+      starpu_task_wait_for_all();
+
+   gc_stop();
+
+   if( _starpu_init )
+      starpu_task_wait_for_all();
+
+   int active_entities = gc_active_entity_count();
+
+   if (active_entities != 0)
+      DEBUG_MSG("Unreleased entities: %d\n", active_entities);
+
+   if( _starpu_init )
+      starpu_shutdown();
+   pthread_mutex_unlock(&_socl_mutex);
+
+   if (socl_devices != NULL) {
+      free(socl_devices);
+      socl_devices = NULL;
+   }
+}
+
 /**
  * Shutdown SOCL
  */
 __attribute__((destructor)) static void socl_shutdown() {
-  pthread_mutex_lock(&_socl_mutex);
-  if( _starpu_init )
-    starpu_task_wait_for_all();
 
-  gc_stop();
+  char * skip_str = getenv("SOCL_SKIP_DESTRUCTOR");
+  int skip = (skip_str != NULL) || atoi(skip_str);
 
-  if( _starpu_init )
-    starpu_task_wait_for_all();
+  if (!skip) soclShutdown();
 
-  int active_entities = gc_active_entity_count();
-
-  if (active_entities != 0)
-    DEBUG_MSG("Unreleased entities: %d\n", active_entities);
-
-  if( _starpu_init )
-    starpu_shutdown();
-  pthread_mutex_unlock(&_socl_mutex);
-
-  if (socl_devices != NULL) {
-    free(socl_devices);
-    socl_devices = NULL;
-  }
 }
