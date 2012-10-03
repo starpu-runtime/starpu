@@ -72,27 +72,33 @@ __attribute__((constructor)) static void socl_init() {
 
 
 void soclShutdown() {
-   pthread_mutex_lock(&_socl_mutex);
-   if( _starpu_init )
-      starpu_task_wait_for_all();
+   static int shutdown = 0;
 
-   gc_stop();
+   if (!shutdown) {
+      shutdown = 1;
 
-   if( _starpu_init )
-      starpu_task_wait_for_all();
+      pthread_mutex_lock(&_socl_mutex);
+      if( _starpu_init )
+         starpu_task_wait_for_all();
 
-   int active_entities = gc_active_entity_count();
+      gc_stop();
 
-   if (active_entities != 0)
-      DEBUG_MSG("Unreleased entities: %d\n", active_entities);
+      if( _starpu_init )
+         starpu_task_wait_for_all();
 
-   if( _starpu_init )
-      starpu_shutdown();
-   pthread_mutex_unlock(&_socl_mutex);
+      int active_entities = gc_active_entity_count();
 
-   if (socl_devices != NULL) {
-      free(socl_devices);
-      socl_devices = NULL;
+      if (active_entities != 0)
+         DEBUG_MSG("Unreleased entities: %d\n", active_entities);
+
+      if( _starpu_init )
+         starpu_shutdown();
+      pthread_mutex_unlock(&_socl_mutex);
+
+      if (socl_devices != NULL) {
+         free(socl_devices);
+         socl_devices = NULL;
+      }
    }
 }
 
@@ -102,7 +108,7 @@ void soclShutdown() {
 __attribute__((destructor)) static void socl_shutdown() {
 
   char * skip_str = getenv("SOCL_SKIP_DESTRUCTOR");
-  int skip = (skip_str != NULL) || atoi(skip_str);
+  int skip = (skip_str != NULL ? atoi(skip_str) : 0);
 
   if (!skip) soclShutdown();
 
