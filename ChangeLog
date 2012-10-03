@@ -49,6 +49,9 @@ Changes:
       assigned to any device
     - Remove modified OpenCL headers. ICD is now the only supported
       way to use SOCL.
+    - SOCL test suite is only run when environment variable
+      SOCL_OCL_LIB_OPENCL is defined. It should contain the location
+      of the libOpenCL.so file of the OCL ICD implementation.
   * Fix main memory leak on multiple unregister/re-register.
   * Improve hwloc detection by configure
 

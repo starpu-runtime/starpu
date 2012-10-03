@@ -1397,6 +1397,14 @@ AC_MSG_RESULT($build_socl)
 AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
+if test "$build_socl" = "yes" ; then
+   if test -z "$SOCL_OCL_LIB_OPENCL" ; then
+      run_socl_check=no
+   else
+       run_socl_check=yes
+       AC_SUBST(SOCL_OCL_LIB_OPENCL)
+   fi
+fi
 ###############################################################################
 #                                                                             #
 #                                 Debugging                                   #
@@ -1845,7 +1853,16 @@ AC_MSG_NOTICE([
 	       GCC plug-in: $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
+               SOCL test suite: $run_socl_check
 ])
+
+if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
+	AC_MSG_NOTICE([
+WARNING: SOCL test suite will not be run as the environment variable SOCL_OCL_LIB_OPENCL is not defined.
+To run the tests, you need to install the OCL implementation of ICD
+(https://forge.imag.fr/projects/ocl-icd/ or Debian package ocl-icd-libopencl1)
+and set the variable SOCL_OCL_LIB_OPENCL to the location of the libOpenCL.so.])
+fi
 
 if test x"$have_valid_hwloc" = xno
 then

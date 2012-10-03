@@ -16,7 +16,7 @@
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/socl/src/libsocl-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) 
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
 
 
 SOCL_EXAMPLES	=
@@ -36,10 +36,10 @@ LOADER_BIN		=	$(abs_top_builddir)/socl/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	LD_PRELOAD="@SOCL_OCL_LIB_OPENCL@" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER		=	$(LOADER_BIN)
 else
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+TESTS_ENVIRONMENT	=	LD_PRELOAD="@SOCL_OCL_LIB_OPENCL@" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 endif
@@ -49,17 +49,16 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
-	clinfo/clinfo \
-  matmul/matmul \
-  mansched/mansched
+	clinfo/clinfo 		\
+	matmul/matmul 		\
+	mansched/mansched
 
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
-	clinfo/clinfo\
-  matmul/matmul \
-  mansched/mansched
-
+	clinfo/clinfo		\
+	matmul/matmul		 \
+	mansched/mansched
 
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
