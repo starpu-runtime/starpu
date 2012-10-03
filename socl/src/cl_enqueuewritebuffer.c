@@ -60,9 +60,14 @@ static void soclEnqueueWriteBuffer_opencl_task(void *descr[], void *args) {
    free(args);
 }
 
+static struct starpu_perfmodel write_buffer_perfmodel = {
+  .type = STARPU_HISTORY_BASED,
+  .symbol = "SOCL_WRITE_BUFFER"
+};
+
 static struct starpu_codelet codelet_writebuffer = {
    .where = STARPU_OPENCL,
-   .model = NULL,
+   .model = &write_buffer_perfmodel,
    .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
    .modes = {STARPU_W},
@@ -71,7 +76,7 @@ static struct starpu_codelet codelet_writebuffer = {
 
 static struct starpu_codelet codelet_writebuffer_partial = {
    .where = STARPU_OPENCL,
-   .model = NULL,
+   .model = &write_buffer_perfmodel,
    .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
    .modes = {STARPU_RW},

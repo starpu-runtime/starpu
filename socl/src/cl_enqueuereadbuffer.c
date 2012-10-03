@@ -58,9 +58,14 @@ static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
    free(args);
 }
 
+static struct starpu_perfmodel read_buffer_perfmodel = {
+  .type = STARPU_HISTORY_BASED,
+  .symbol = "SOCL_READ_BUFFER"
+};
+
 static struct starpu_codelet codelet_readbuffer = {
    .where = STARPU_OPENCL,
-   .model = NULL,
+   .model = &read_buffer_perfmodel,
    .cpu_funcs = { &soclEnqueueReadBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueReadBuffer_opencl_task, NULL },
    .modes = {STARPU_R},

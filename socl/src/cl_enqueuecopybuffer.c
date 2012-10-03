@@ -58,9 +58,14 @@ static void soclEnqueueCopyBuffer_cpu_task(void *descr[], void *args) {
    free(arg);
 }
 
+static struct starpu_perfmodel copy_buffer_perfmodel = {
+  .type = STARPU_HISTORY_BASED,
+  .symbol = "SOCL_COPY_BUFFER"
+};
+
 static struct starpu_codelet codelet_copybuffer = {
    .where = STARPU_CPU | STARPU_OPENCL,
-   .model = NULL,
+   .model = &copy_buffer_perfmodel,
    .cpu_funcs = { &soclEnqueueCopyBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueCopyBuffer_opencl_task, NULL },
    .modes = {STARPU_R, STARPU_RW},
