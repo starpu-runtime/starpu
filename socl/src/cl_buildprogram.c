@@ -19,14 +19,27 @@
 struct bp_data {
    cl_program program;
    char * options;
+   const cl_device_id * device_list;
+   cl_uint num_devices;
 };
 
 static void soclBuildProgram_task(void *data) {
    struct bp_data *d = (struct bp_data*)data;
    cl_device_id device;
    cl_int err;
+   unsigned int i;
 
    int wid = starpu_worker_get_id();
+
+   /* Check if the kernel has to be built for this device */
+   for (i=0; i <= d->num_devices; i++) {
+      if (i == d->num_devices)
+         return;
+
+      if (d->device_list[i]->worker_id == wid)
+        break;
+   }
+
    int range = starpu_worker_get_range();
    starpu_opencl_get_device(wid, &device);
 
@@ -60,8 +73,8 @@ static void soclBuildProgram_task(void *data) {
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclBuildProgram(cl_program         program,
-               cl_uint              UNUSED(num_devices),
-               const cl_device_id * UNUSED(device_list),
+               cl_uint              num_devices,
+               const cl_device_id * device_list,
                const char *         options, 
                void (*pfn_notify)(cl_program program, void * user_data),
                void *               user_data) CL_API_SUFFIX__VERSION_1_0
@@ -75,8 +88,19 @@ soclBuildProgram(cl_program         program,
    gc_entity_store(&data->program, program);
    data->options = (char*)options;
 
+   /* If the device list is empty, we compile for every device in the context associated to the program */
+   if (device_list == NULL) {
+      num_devices = program->context->num_devices;
+      device_list = program->context->devices;
+   }
+
+   data->num_devices = num_devices;
+   data->device_list = device_list;
+
    /*FIXME: starpu_execute_on_each_worker is synchronous.
-    * However pfn_notify may be useful only because build is supposed to be asynchronous
+    * However pfn_notify is useful only because build is supposed to be asynchronous
+    *
+    * We shouldn't execute on every worker as device list may be specified.
     */
    starpu_execute_on_each_worker(soclBuildProgram_task, data, STARPU_OPENCL);
 
