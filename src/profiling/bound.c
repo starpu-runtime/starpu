@@ -142,14 +142,26 @@ void starpu_bound_start(int deps, int prio)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	for ( ; tp; tp = tp->next)
+	while (tp != NULL)
+	{
+		struct bound_task_pool *next = tp->next;
 		free(tp);
+		tp = next;
+	}
 
-	for ( ; t; t = t->next)
+	while (t != NULL)
+	{
+		struct bound_task *next = t->next;
 		free(t);
+		t = next;
+	}
 
-	for ( ; td; td = td->next)
+	while (td != NULL)
+	{
+		struct bound_tag_dep *next = td->next;
 		free(td);
+		td = next;
+	}
 }
 
 static int good_job(struct _starpu_job *j)
