@@ -1000,11 +1000,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 	history = per_arch_model->history;
-	if (!history) {
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
-		return NAN;
-	}
-
 	entry = (struct starpu_history_entry *) _starpu_htbl_search_32(history, key);
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
