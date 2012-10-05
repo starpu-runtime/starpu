@@ -44,6 +44,23 @@ static void print_matrix_from_descr(unsigned nx, unsigned ny, unsigned ld, TYPE 
 }
 #endif
 
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+	enum starpu_archtype type = starpu_worker_get_type(workerid);
+	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER)
+		return 1;
+
+#ifdef STARPU_USE_CUDA
+	/* Cuda device */
+	const struct cudaDeviceProp *props;
+	props = starpu_cuda_get_device_properties(workerid);
+	if (props->major >= 2 || props->minor >= 3)
+		/* At least compute capability 1.3, supports doubles */
+		return 1;
+#endif
+	/* Old card, does not support doubles */
+	return 0;
+}
 
 /*
  *	Reduction accumulation methods
@@ -76,6 +93,7 @@ static struct starpu_perfmodel accumulate_variable_model =
 
 struct starpu_codelet accumulate_variable_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {accumulate_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -114,6 +132,7 @@ static struct starpu_perfmodel accumulate_vector_model =
 
 struct starpu_codelet accumulate_vector_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {accumulate_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -154,6 +173,7 @@ static struct starpu_perfmodel bzero_variable_model =
 
 struct starpu_codelet bzero_variable_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {bzero_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -191,6 +211,7 @@ static struct starpu_perfmodel bzero_vector_model =
 
 struct starpu_codelet bzero_vector_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {bzero_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -246,6 +267,7 @@ static struct starpu_perfmodel dot_kernel_model =
 
 static struct starpu_codelet dot_kernel_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dot_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -321,6 +343,7 @@ static struct starpu_perfmodel scal_kernel_model =
 
 static struct starpu_codelet scal_kernel_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {scal_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -394,6 +417,7 @@ static struct starpu_perfmodel gemv_kernel_model =
 
 static struct starpu_codelet gemv_kernel_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
@@ -493,6 +517,7 @@ static struct starpu_perfmodel scal_axpy_kernel_model =
 
 static struct starpu_codelet scal_axpy_kernel_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {scal_axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
@@ -567,6 +592,7 @@ static struct starpu_perfmodel axpy_kernel_model =
 
 static struct starpu_codelet axpy_kernel_cl =
 {
+	.can_execute = can_execute,
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
