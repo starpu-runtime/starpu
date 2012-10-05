@@ -1089,11 +1089,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 	history = per_arch_model->history;
-	if (!history) {
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
-		return NAN;
-	}
-
 	HASH_FIND_UINT32_T(history, &key, elt);
 	entry = (elt == NULL) ? NULL : elt->history_entry;
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
