@@ -16,48 +16,35 @@
 
 #include "socl.h"
 
-struct arg_writebuffer {
-   size_t offset;
-   size_t cb;
-   const void * ptr;
-   cl_mem buffer;
-};
 
 static void soclEnqueueWriteBuffer_cpu_task(void *descr[], void *args) {
-   struct arg_writebuffer *arg;
-   arg = (struct arg_writebuffer*)args;
+   command_write_buffer cmd = (command_write_buffer)args;
+
    void * ptr = (void*)STARPU_VARIABLE_GET_PTR(descr[0]);
-   DEBUG_MSG("[Buffer %d] Writing %ld bytes from %p to %p\n", arg->buffer->id, arg->cb, arg->ptr, ptr+arg->offset);
+   DEBUG_MSG("[Buffer %d] Writing %ld bytes from %p to %p\n", cmd->buffer->id, cmd->cb, cmd->ptr, ptr+cmd->offset);
 
    //FIXME: Fix for people who use USE_HOST_PTR, modify data at host_ptr and use WriteBuffer to commit the change.
    // StarPU may have erased host mem at host_ptr (for instance by retrieving current buffer data at host_ptr)
    // Buffer mapping facilities should be used instead
    // Maybe we should report the bug here... for now, we just avoid memcpy crash due to overlapping regions...
-   if (ptr+arg->offset != arg->ptr)
-      memcpy(ptr+arg->offset, arg->ptr, arg->cb);
-
-   gc_entity_unstore(&arg->buffer);
-   free(args);
+   if (ptr+cmd->offset != cmd->ptr)
+      memcpy(ptr+cmd->offset, cmd->ptr, cmd->cb);
 }
 
 static void soclEnqueueWriteBuffer_opencl_task(void *descr[], void *args) {
-   struct arg_writebuffer *arg;
-   arg = (struct arg_writebuffer*)args;
+   command_write_buffer cmd = (command_write_buffer)args;
 
    cl_mem mem = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-   DEBUG_MSG("[Buffer %d] Writing %ld bytes to offset %ld from %p\n", arg->buffer->id, arg->cb, arg->offset, arg->ptr);
+   DEBUG_MSG("[Buffer %d] Writing %ld bytes to offset %ld from %p\n", cmd->buffer->id, cmd->cb, cmd->offset, cmd->ptr);
 
    int wid = starpu_worker_get_id();
    cl_command_queue cq;
    starpu_opencl_get_queue(wid, &cq);
 
-   cl_int err = clEnqueueWriteBuffer(cq, mem, CL_TRUE, arg->offset, arg->cb, arg->ptr, 0, NULL, NULL);
+   cl_int err = clEnqueueWriteBuffer(cq, mem, CL_TRUE, cmd->offset, cmd->cb, cmd->ptr, 0, NULL, NULL);
    if (err != CL_SUCCESS)
       DEBUG_CL("clEnqueueWriteBuffer", err);
-
-   gc_entity_unstore(&arg->buffer);
-   free(args);
 }
 
 static struct starpu_perfmodel write_buffer_perfmodel = {
@@ -86,12 +73,9 @@ static struct starpu_codelet codelet_writebuffer_partial = {
 cl_int command_write_buffer_submit(command_write_buffer cmd) {
 	/* Aliases */
 	cl_mem buffer = cmd->buffer;
-	size_t offset = cmd->offset;
 	size_t cb = cmd->cb;
-	const void * ptr = cmd->ptr;
 
 	struct starpu_task *task;
-	struct arg_writebuffer *arg;
 
 	task = task_create(CL_COMMAND_WRITE_BUFFER);
 
@@ -102,12 +86,8 @@ cl_int command_write_buffer_submit(command_write_buffer cmd) {
 	else 
 		task->cl = &codelet_writebuffer;
 
-	arg = (struct arg_writebuffer*)malloc(sizeof(struct arg_writebuffer));
-	arg->offset = offset;
-	arg->cb = cb;
-	arg->ptr = ptr;
-	task->cl_arg = arg;
-	task->cl_arg_size = sizeof(struct arg_writebuffer);
+	task->cl_arg = cmd;
+	task->cl_arg_size = sizeof(*cmd);
 
 	/* Execute the task on a specific worker? */
 	if (cmd->_command.cq->device != NULL) {
@@ -115,10 +95,8 @@ cl_int command_write_buffer_submit(command_write_buffer cmd) {
 	  task->workerid = cmd->_command.cq->device->worker_id;
 	}
 
-	gc_entity_store(&arg->buffer, buffer);
-
 	//The buffer now contains meaningful data
-	arg->buffer->scratch = 0;
+	cmd->buffer->scratch = 0;
 
 	task_submit(task, cmd);
 

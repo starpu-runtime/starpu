@@ -16,46 +16,33 @@
 
 #include "socl.h"
 
-struct arg_readbuffer {
-   size_t offset;
-   size_t cb;
-   void * ptr;
-   cl_mem buffer;
-};
-
 static void soclEnqueueReadBuffer_cpu_task(void *descr[], void *args) {
-   struct arg_readbuffer *arg;
-   arg = (struct arg_readbuffer*)args;
+   command_read_buffer cmd = (command_read_buffer)args;
+
    void * ptr = (void*)STARPU_VARIABLE_GET_PTR(descr[0]);
-   DEBUG_MSG("[Buffer %d] Reading %ld bytes from %p to %p\n", arg->buffer->id, arg->cb, ptr+arg->offset, arg->ptr);
+   DEBUG_MSG("[Buffer %d] Reading %ld bytes from %p to %p\n", cmd->buffer->id, cmd->cb, ptr+cmd->offset, cmd->ptr);
 
    //This fix is for people who use USE_HOST_PTR and still use ReadBuffer to sync the buffer in host mem at host_ptr.
    //They should use buffer mapping facilities instead.
-   if (ptr+arg->offset != arg->ptr)
-      memcpy(arg->ptr, ptr+arg->offset, arg->cb);
-
-   gc_entity_unstore(&arg->buffer);
-   free(args);
+   if (ptr+cmd->offset != cmd->ptr)
+      memcpy(cmd->ptr, ptr+cmd->offset, cmd->cb);
 }
 
 static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
-   struct arg_readbuffer *arg;
-   arg = (struct arg_readbuffer*)args;
+   command_read_buffer cmd = (command_read_buffer)args;
 
    cl_mem mem = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-   DEBUG_MSG("[Buffer %d] Reading %ld bytes from offset %ld into %p\n", arg->buffer->id, arg->cb, arg->offset, arg->ptr);
+   DEBUG_MSG("[Buffer %d] Reading %ld bytes from offset %ld into %p\n", cmd->buffer->id, cmd->cb, cmd->offset, cmd->ptr);
 
    int wid = starpu_worker_get_id();
    cl_command_queue cq;
    starpu_opencl_get_queue(wid, &cq);
 
-   cl_int ret = clEnqueueReadBuffer(cq, mem, CL_TRUE, arg->offset, arg->cb, arg->ptr, 0, NULL, NULL);
+   cl_int ret = clEnqueueReadBuffer(cq, mem, CL_TRUE, cmd->offset, cmd->cb, cmd->ptr, 0, NULL, NULL);
    if (ret != CL_SUCCESS)
       DEBUG_CL("clEnqueueReadBuffer", ret);
 
-   gc_entity_unstore(&arg->buffer);
-   free(args);
 }
 
 static struct starpu_perfmodel read_buffer_perfmodel = {
@@ -73,18 +60,10 @@ static struct starpu_codelet codelet_readbuffer = {
 };
 
 cl_int command_read_buffer_submit(command_read_buffer cmd) {
-	/* Aliases */
-	cl_mem buffer = cmd->buffer;
-	size_t offset = cmd->offset;
-	size_t cb = cmd->cb;
-	void * ptr = cmd->ptr;
 
-	struct starpu_task *task;
-	struct arg_readbuffer *arg;
+	struct starpu_task * task = task_create(CL_COMMAND_READ_BUFFER);
 
-	task = task_create(CL_COMMAND_READ_BUFFER);
-
-	task->handles[0] = buffer->handle;
+	task->handles[0] = cmd->buffer->handle;
 	task->cl = &codelet_readbuffer;
 
 	/* Execute the task on a specific worker? */
@@ -93,14 +72,8 @@ cl_int command_read_buffer_submit(command_read_buffer cmd) {
 	  task->workerid = cmd->_command.cq->device->worker_id;
 	}
 
-	arg = (struct arg_readbuffer*)malloc(sizeof(struct arg_readbuffer));
-	arg->offset = offset;
-	arg->cb = cb;
-	arg->ptr = ptr;
-	task->cl_arg = arg;
-	task->cl_arg_size = sizeof(struct arg_readbuffer);
-
-	gc_entity_store(&arg->buffer, buffer);
+	task->cl_arg = cmd;
+	task->cl_arg_size = sizeof(*cmd);
 
 	task_submit(task, cmd);
 
