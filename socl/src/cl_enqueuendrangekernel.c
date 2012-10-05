@@ -97,9 +97,6 @@ static void cleaning_task_callback(void *args) {
 
 	free(cmd->buffers);
 
-	free(cmd->codelet);
-	cmd->codelet = NULL;
-
 	if (cmd->global_work_offset != NULL) {
 	  free((void*)cmd->global_work_offset);
 	  cmd->global_work_offset = NULL;
@@ -123,7 +120,8 @@ static void cleaning_task_callback(void *args) {
 cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	starpu_task task = task_create();
-	task->cl = cmd->codelet;
+	task->cl = &cmd->codelet;
+	task->cl->model = cmd->kernel->perfmodel;
 	task->cl_arg = cmd;
 	task->cl_arg_size = sizeof(cmd);
 
@@ -133,7 +131,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 	  task->workerid = cmd->_command.cq->device->worker_id;
 	}
 
-	struct starpu_codelet * codelet = cmd->codelet;
+	struct starpu_codelet * codelet = task->cl;
 
 	/* We need to detect which parameters are OpenCL's memory objects and
 	 * we retrieve their corresponding StarPU buffers */

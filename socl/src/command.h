@@ -67,6 +67,7 @@ typedef struct command_ndrange_kernel_t {
 	CL_COMMAND
 
 	cl_kernel        kernel;
+	struct starpu_codelet codelet;
 	cl_uint          work_dim;
 	const size_t *   global_work_offset;
 	const size_t *   global_work_size;
@@ -75,7 +76,6 @@ typedef struct command_ndrange_kernel_t {
 	size_t *	 arg_sizes;
 	enum kernel_arg_type * arg_types;
 	void **		 args;
-	struct starpu_codelet * codelet;
 	cl_uint		 num_buffers;
 	cl_mem *	 buffers;
 } * command_ndrange_kernel;

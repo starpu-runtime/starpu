@@ -248,6 +248,9 @@ struct _cl_kernel {
   /* Associated program */
   cl_program program;
 
+  /* StarPU codelet */
+  struct starpu_perfmodel * perfmodel;
+
   /* Kernel name */
   char * kernel_name;
 

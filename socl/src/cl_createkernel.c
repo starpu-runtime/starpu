@@ -16,7 +16,6 @@
 
 #include "socl.h"
 
-
 static void soclCreateKernel_task(void *data) {
    struct _cl_kernel *k = (struct _cl_kernel *)data;
 
@@ -92,6 +91,9 @@ static void release_callback_kernel(void * e) {
   //Release real kernels...
   starpu_execute_on_each_worker(rk_task, kernel, STARPU_OPENCL);
 
+  //Release perfmodel
+  free(kernel->perfmodel);
+
   gc_entity_unstore(&kernel->program);
 
   free(kernel->kernel_name);
@@ -125,6 +127,12 @@ soclCreateKernel(cl_program    program,
    
    gc_entity_store(&k->program, program);
    k->kernel_name = strdup(kernel_name);
+
+   k->perfmodel = malloc(sizeof(struct starpu_perfmodel));
+   memset(k->perfmodel, 0, sizeof(struct starpu_perfmodel));
+   k->perfmodel->type = STARPU_HISTORY_BASED;
+   k->perfmodel->symbol = k->kernel_name;
+
    k->num_args = 0;
    k->arg_value = NULL;
    k->arg_size = NULL;

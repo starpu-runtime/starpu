@@ -17,6 +17,9 @@
 #include "socl.h"
 #include <string.h>
 
+/* Forward extern declaration */
+extern void soclEnqueueNDRangeKernel_task(void *descr[], void *args);
+
 void command_init_ex(cl_command cmd, cl_command_type typ) {
 	cmd->typ = typ;
 	cmd->num_events = 0;
@@ -88,8 +91,6 @@ void command_graph_dump_ex(cl_command cmd) {
 #define dup(name) cmd->name = name
 #define dupEntity(name) do { cmd->name = name; gc_entity_retain(name); } while (0);
 
-void soclEnqueueNDRangeKernel_task(void *descr[], void *args);
-
 command_ndrange_kernel command_ndrange_kernel_create (
 		cl_kernel        kernel,
 		cl_uint          work_dim,
@@ -106,20 +107,13 @@ command_ndrange_kernel command_ndrange_kernel_create (
 	nullOrDup(global_work_size, work_dim*sizeof(size_t));
 	nullOrDup(local_work_size, work_dim*sizeof(size_t));
 
-   	/* Codelet */
-   	cmd->codelet = (struct starpu_codelet*)malloc(sizeof(struct starpu_codelet));
-	starpu_codelet_init(cmd->codelet);
-	struct starpu_codelet * codelet = cmd->codelet;
-	codelet->where = STARPU_OPENCL;
-	codelet->power_model = NULL;
-	codelet->opencl_funcs[0] = &soclEnqueueNDRangeKernel_task;
-	codelet->opencl_funcs[1] = NULL;
-	codelet->model = malloc(sizeof(struct starpu_perfmodel));
-   memset(codelet->model, 0, sizeof(struct starpu_perfmodel));
-   codelet->model->type = STARPU_HISTORY_BASED;
-   codelet->model->symbol = kernel->kernel_name;
+	starpu_codelet_init(&cmd->codelet);
+	cmd->codelet.where = STARPU_OPENCL;
+	cmd->codelet.power_model = NULL;
+	cmd->codelet.opencl_funcs[0] = &soclEnqueueNDRangeKernel_task;
+	cmd->codelet.opencl_funcs[1] = NULL;
 
-   	/* Kernel is mutable, so we duplicate its parameters... */
+	/* Kernel is mutable, so we duplicate its parameters... */
 	cmd->num_args = kernel->num_args;
 	cmd->arg_sizes = memdup(kernel->arg_size, sizeof(size_t) * kernel->num_args);
 	cmd->arg_types = memdup(kernel->arg_type, sizeof(enum kernel_arg_type) * kernel->num_args);
