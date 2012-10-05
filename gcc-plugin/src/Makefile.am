@@ -27,10 +27,11 @@ AM_CPPFLAGS =						\
   -I$(top_srcdir)/include				\
   -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1
 
-AM_LDFLAGS = -module --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
+AM_LDFLAGS = -module
 
 # Use either `gcc' or `g++', whichever is appropriate to build
 # plug-ins for this version of GCC.
+AM_LIBTOOLFLAGS = --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
 CC = $(GCC_FOR_PLUGIN)
 
 showcheck:
