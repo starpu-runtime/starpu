@@ -202,14 +202,10 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	struct timespec codelet_start, codelet_end;
 
 	int profiling = starpu_profiling_status_get();
-	unsigned calibrate_model = 0;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
-
-	if (cl->model && cl->model->benchmarking)
-		calibrate_model = 1;
 
 	ret = _starpu_fetch_task_input(j, mask);
 	if (ret != 0)
@@ -218,13 +214,6 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		 * the codelet cannot be fetched ... put the
 		 * codelet back, and try it later */
 		return -EAGAIN;
-	}
-
-	if (calibrate_model)
-	{
-		cures = cudaStreamSynchronize(starpu_cuda_get_local_transfer_stream());
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
 	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
