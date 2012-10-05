@@ -1543,25 +1543,29 @@ AC_ARG_WITH([hwloc],
 		fi
 	],
 	[
+	AC_MSG_NOTICE("MAYBE HWLOC")
 		use_hwloc=maybe
 		use_hwloc_from_system=yes
 	])
 SAVED_LDFLAGS="${LDFLAGS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
-AS_IF([test "$use_hwloc_from_system" = "yes"],
-	[PKG_CHECK_MODULES([HWLOC],[hwloc], [
-	    	have_valid_hwloc=yes
+AS_IF([test "$use_hwloc" = "no"],
+  [have_valid_hwloc=no],
+  [AS_IF([test "$use_hwloc_from_system" = "yes"],
+  	  [PKG_CHECK_MODULES([HWLOC],[hwloc], [
+	      	have_valid_hwloc=yes
 		have_pkgconfig_hwloc=yes], [
 		have_valid_hwloc=no
 		have_pkgconfig_hwloc=no])
-	],
-	#else
-	[have_pkgconfig_hwloc=no
-	 CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
-	 AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-	 LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
-	 AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-	])
+	  ],
+	  #else
+	  [have_pkgconfig_hwloc=no
+	   CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
+	   AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
+	   LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
+	   AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
+	  ])
+  ])
 # in case hwloc was explicitely required, but is not available, this is an error
 AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
       [AC_MSG_ERROR([cannot find hwloc])]
