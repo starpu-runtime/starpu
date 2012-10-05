@@ -352,10 +352,6 @@ void _starpu_opencl_init(void)
 						platform_valid = 0;
 					}
 				}
-				if(strcmp(name, "SOCL Platform") == 0) {
-					platform_valid = 0;
-					_STARPU_DEBUG("Skipping SOCL Platform\n");
-				}
 #ifdef STARPU_VERBOSE
 				if (platform_valid)
 					_STARPU_DEBUG("Platform: %s - %s\n", name, vendor);

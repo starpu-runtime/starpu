@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
- * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
+ * Copyright (C) 2010,2011 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +15,7 @@
  */
 
 #include "socl.h"
-#include "init.h"
+
 
 /**
  * \brief Return one device of each kind
@@ -26,19 +24,11 @@
  */
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetDeviceIDs(cl_platform_id   platform,
-               cl_device_type   device_type,
-               cl_uint          num_entries,
-               cl_device_id *   devices,
+               cl_device_type   device_type, 
+               cl_uint          num_entries, 
+               cl_device_id *   devices, 
                cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0
 {
-   if( ! _starpu_init )
-      socl_init_starpu();
-
-   if (_starpu_init_failed) {
-      *num_devices = 0;
-      return CL_SUCCESS;
-   }
-
    if (platform != NULL && platform != &socl_platform)
       return CL_INVALID_PLATFORM;
 
@@ -50,32 +40,19 @@ soclGetDeviceIDs(cl_platform_id   platform,
       && (device_type != CL_DEVICE_TYPE_ALL))
       return CL_INVALID_DEVICE_TYPE;
 
-   unsigned int num = 0;
-   if (socl_virtual_device.type & device_type) {
-      if (devices != NULL && num < num_entries) devices[num] = (cl_device_id)&socl_virtual_device;
-      num++;
-   }
-
-   int ndevs = starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
-
-   int workers[ndevs];
-   starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, ndevs);
-
-   int i;
-   for (i=0; i < ndevs; i++) {
-      int devid = starpu_worker_get_devid(workers[i]);
-      cl_device_id dev;
-      starpu_opencl_get_device(devid, &dev);
-      cl_device_type typ;
-      clGetDeviceInfo(dev, CL_DEVICE_TYPE, sizeof(typ), &typ, NULL);
-      if (typ & device_type) {
-         if (devices != NULL && num < num_entries) devices[num] = (cl_device_id)(intptr_t)workers[i];
-         num++;
+   {
+      int i;
+      unsigned int num = 0;
+      for (i=0; i<socl_device_count; i++) {
+         if (socl_devices[i].type & device_type) {
+            if (devices != NULL && num < num_entries)
+               devices[num] = (cl_device_id)&socl_devices[i];
+            num++;
+         }
       }
+      if (num_devices != NULL)
+         *num_devices = num;
    }
-
-   if (num_devices != NULL)
-      *num_devices = num;
 
    return CL_SUCCESS;
 }
