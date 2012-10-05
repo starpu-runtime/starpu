@@ -357,7 +357,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 	enum starpu_node_kind kind = async_channel->type;
-	unsigned success;
+	unsigned success = 0;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 #endif
@@ -391,7 +391,6 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();
-		success = 0;
 	}
 
 	return success;
