@@ -45,6 +45,16 @@ any value.
 @item --enable-coverage
 Enable flags for the @code{gcov} coverage tool.
 
+@item --with-hwloc
+Specify hwloc should be used by StarPU. hwloc should be found by the
+means of the tools @code{pkg-config}.
+
+@item --with-hwloc=@var{prefix}
+Specify hwloc should be used by StarPU. hwloc should be found in the
+directory specified by @var{prefix}.
+
+@item --without-hwloc
+Specify hwloc should not be used by StarPU.
 @end table
 
 @node Configuring workers
