@@ -364,7 +364,6 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 {
 	unsigned ret;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{

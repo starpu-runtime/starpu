@@ -154,6 +154,7 @@ noinst_PROGRAMS =				\
 	main/declare_deps_in_callback		\
 	main/declare_deps_after_submission	\
 	main/declare_deps_after_submission_synchronous	\
+	main/tag_task_data_deps			\
 	main/get_current_task			\
 	main/starpu_init			\
 	main/starpu_worker_exists		\

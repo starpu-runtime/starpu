@@ -209,6 +209,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	_starpu_spin_unlock(&tag->lock);
 
 	/* enforce data dependencies */
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_enforce_deps_starting_from_task(j);
 
 	_starpu_spin_lock(&tag->lock);
