@@ -82,12 +82,6 @@ cl_int command_read_buffer_submit(command_read_buffer cmd) {
 	task->buffers[0].mode = STARPU_R;
 	task->cl = &codelet_readbuffer;
 
-	/* Execute the task on a specific worker? */
-	if (cmd->_command.cq->device != &socl_virtual_device) {
-	  task->execute_on_a_specific_worker = 1;
-	  task->workerid = (int)(intptr_t)cmd->_command.cq->device;
-	}
-
 	arg = (struct arg_readbuffer*)malloc(sizeof(struct arg_readbuffer));
 	arg->offset = offset;
 	arg->cb = cb;
