@@ -93,9 +93,11 @@ STARPUFFT(fft1_1d_plan_gpu)(void *args)
 	cufftResult cures;
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan1_cuda, n2, _CUFFT_C2C, 1);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 	cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 }
 
 static void
@@ -116,7 +118,8 @@ STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
 	task_per_worker[workerid]++;
 
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 
 	STARPUFFT(cuda_twiddle_1d_host)(out, roots, n2, i);
 
@@ -137,9 +140,11 @@ STARPUFFT(fft2_1d_plan_gpu)(void *args)
 	int workerid = starpu_worker_get_id();
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 	cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 }
 
 static void
@@ -158,7 +163,8 @@ STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 
 	/* NOTE using batch support */
 	cures = _cufftExecC2C(plan->plans[workerid].plan2_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
@@ -412,9 +418,11 @@ STARPUFFT(fft_1d_plan_gpu)(void *args)
 	int workerid = starpu_worker_get_id();
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, n, _CUFFT_C2C, 1);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 	cufftSetStream(plan->plans[workerid].plan_cuda, starpu_cuda_get_local_stream());
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 }
 
 static void
@@ -431,7 +439,8 @@ STARPUFFT(fft_1d_kernel_gpu)(void *descr[], void *args)
 	task_per_worker[workerid]++;
 
 	cures = _cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures == CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

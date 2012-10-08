@@ -464,3 +464,53 @@ STARPUFFT(showstats)(FILE *out)
 		}
 	}
 }
+
+#ifdef STARPU_USE_CUDA
+void
+STARPUFFT(report_error)(const char *func, const char *file, int line, cufftResult status)
+{
+	char *errormsg;
+	switch (status)
+	{
+	case CUFFT_SUCCESS:
+		errormsg = "success"; /* It'd be weird to get here. */
+		break;
+	case CUFFT_INVALID_PLAN:
+		errormsg = "invalid plan";
+		break;
+	case CUFFT_ALLOC_FAILED:
+		errormsg = "alloc failed";
+		break;
+	case CUFFT_INVALID_TYPE:
+		errormsg = "invalid type";
+		break;
+	case CUFFT_INVALID_VALUE:
+		errormsg = "invalid value";
+		break;
+	case CUFFT_INTERNAL_ERROR:
+		errormsg = "internal error";
+		break;
+	case CUFFT_EXEC_FAILED:
+		errormsg = "exec failed";
+		break;
+	case CUFFT_SETUP_FAILED:
+		errormsg = "setup failed";
+		break;
+	case CUFFT_INVALID_SIZE:
+		errormsg = "invalid size";
+		break;
+	case CUFFT_UNALIGNED_DATA:
+		errormsg = "unaligned data";
+		break;
+	default:
+		errormsg = "unknown error";
+		break;
+	}
+	fprintf(stderr, "oops in %s (%s:%d)... %d: %s\n",
+			func, file, line, status, errormsg);
+	STARPU_ABORT();
+}
+
+#define STARPU_CUFFT_REPORT_ERROR(status) \
+	STARPUFFT(report_error)(__starpu_func__, __FILE__, __LINE__, status)
+#endif /* !STARPU_USE_CUDA */

@@ -18,6 +18,9 @@
 #include <stdio.h>
 #include <complex.h>
 #include <starpu.h>
+#ifdef STARPU_USE_CUDA
+#include <cufft.h>
+#endif /* !STARPU_USE_CUDA */
 
 #define STARPUFFT_FORWARD -1
 #define STARPUFFT_INVERSE 1
@@ -50,7 +53,8 @@ void starpufft(destroy_plan)(starpufft(plan) p); \
 \
 void starpufft(startstats)(void); \
 void starpufft(stopstats)(void); \
-void starpufft(showstats)(FILE *out);
+void starpufft(showstats)(FILE *out); \
+void starpufft(report_error)(const char *func, const char *file, int line, cufftResult status);
 
 __STARPUFFT_INTERFACE(__STARPUFFT, double)
 __STARPUFFT_INTERFACE(__STARPUFFTF, float)
