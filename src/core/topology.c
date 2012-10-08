@@ -38,102 +38,27 @@
 
 static unsigned topology_is_initialized = 0;
 
-static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *config);
-
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+
 struct handle_entry
 {
 	UT_hash_handle hh;
 	unsigned gpuid;
 };
+
 #  ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config);
 /* Entry in the `devices_using_cuda' hash table.  */
 static struct handle_entry *devices_using_cuda;
 #  endif
-#  ifdef STARPU_USE_OPENCL
-static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_config *config);
-#  endif
-static void _starpu_initialize_workers_gpuid(int *explicit_workers_gpuid,
-                                             int *current, int *workers_gpuid, const char *varname, unsigned nhwgpus);
+
 static unsigned may_bind_automatically = 0;
-#endif
+
+#endif // defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+
 
 /*
  * Discover the topology of the machine
  */
-
-#ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
-{
-	struct starpu_machine_topology *topology = &config->topology;
-
-        _starpu_initialize_workers_gpuid(config->conf->use_explicit_workers_cuda_gpuid==0?NULL:(int *)config->conf->workers_cuda_gpuid,
-                                         &(config->current_cuda_gpuid), (int *)topology->workers_cuda_gpuid, "STARPU_WORKERS_CUDAID",
-                                         topology->nhwcudagpus);
-}
-#endif
-
-#ifdef STARPU_USE_OPENCL
-static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_config *config)
-{
-	struct starpu_machine_topology *topology = &config->topology;
-
-        _starpu_initialize_workers_gpuid(config->conf->use_explicit_workers_opencl_gpuid==0?NULL:(int *)config->conf->workers_opencl_gpuid,
-                                         &(config->current_opencl_gpuid), (int *)topology->workers_opencl_gpuid, "STARPU_WORKERS_OPENCLID",
-                                         topology->nhwopenclgpus);
-
-#ifdef STARPU_USE_CUDA
-        // Detect devices which are already used with CUDA
-        {
-                unsigned tmp[STARPU_NMAXWORKERS];
-                unsigned nb=0;
-                int i;
-                for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
-		{
-			struct handle_entry *entry;
-			int devid = config->topology.workers_opencl_gpuid[i];
-
-			HASH_FIND_INT(devices_using_cuda, &devid, entry);
-			if (entry == NULL)
-			{
-                                tmp[nb] = topology->workers_opencl_gpuid[i];
-                                nb++;
-                        }
-                }
-                for(i=nb ; i<STARPU_NMAXWORKERS ; i++) tmp[i] = -1;
-                memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
-        }
-#endif /* STARPU_USE_CUDA */
-        {
-                // Detect identical devices
-		struct handle_entry *devices_already_used = NULL;
-                unsigned tmp[STARPU_NMAXWORKERS];
-                unsigned nb=0;
-                int i;
-
-                for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
-		{
-			int devid = topology->workers_opencl_gpuid[i];
-			struct handle_entry *entry;
-			HASH_FIND_INT(devices_already_used, &devid, entry);
-			if (entry == NULL)
-			{
-				struct handle_entry *entry2;
-				entry2 = (struct handle_entry *) malloc(sizeof(*entry2));
-				STARPU_ASSERT(entry2 != NULL);
-				entry2->gpuid = devid;
-				HASH_ADD_INT(devices_already_used, gpuid, entry2);
-                                tmp[nb] = devid;
-                                nb ++;
-                        }
-                }
-                for(i=nb ; i<STARPU_NMAXWORKERS ; i++) tmp[i] = -1;
-                memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
-        }
-}
-#endif
-
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void _starpu_initialize_workers_gpuid(int *explicit_workers_gpuid,
@@ -212,6 +137,79 @@ static void _starpu_initialize_workers_gpuid(int *explicit_workers_gpuid,
 #endif
 
 #ifdef STARPU_USE_CUDA
+static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
+{
+	struct starpu_machine_topology *topology = &config->topology;
+
+        _starpu_initialize_workers_gpuid(config->conf->use_explicit_workers_cuda_gpuid==0?NULL:(int *)config->conf->workers_cuda_gpuid,
+                                         &(config->current_cuda_gpuid), (int *)topology->workers_cuda_gpuid, "STARPU_WORKERS_CUDAID",
+                                         topology->nhwcudagpus);
+}
+#endif
+
+#ifdef STARPU_USE_OPENCL
+static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_config *config)
+{
+	struct starpu_machine_topology *topology = &config->topology;
+
+        _starpu_initialize_workers_gpuid(config->conf->use_explicit_workers_opencl_gpuid==0?NULL:(int *)config->conf->workers_opencl_gpuid,
+                                         &(config->current_opencl_gpuid), (int *)topology->workers_opencl_gpuid, "STARPU_WORKERS_OPENCLID",
+                                         topology->nhwopenclgpus);
+
+#ifdef STARPU_USE_CUDA
+        // Detect devices which are already used with CUDA
+        {
+                unsigned tmp[STARPU_NMAXWORKERS];
+                unsigned nb=0;
+                int i;
+                for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
+		{
+			struct handle_entry *entry;
+			int devid = config->topology.workers_opencl_gpuid[i];
+
+			HASH_FIND_INT(devices_using_cuda, &devid, entry);
+			if (entry == NULL)
+			{
+                                tmp[nb] = topology->workers_opencl_gpuid[i];
+                                nb++;
+                        }
+                }
+                for(i=nb ; i<STARPU_NMAXWORKERS ; i++) tmp[i] = -1;
+                memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+        }
+#endif /* STARPU_USE_CUDA */
+        {
+                // Detect identical devices
+		struct handle_entry *devices_already_used = NULL;
+                unsigned tmp[STARPU_NMAXWORKERS];
+                unsigned nb=0;
+                int i;
+
+                for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
+		{
+			int devid = topology->workers_opencl_gpuid[i];
+			struct handle_entry *entry;
+			HASH_FIND_INT(devices_already_used, &devid, entry);
+			if (entry == NULL)
+			{
+				struct handle_entry *entry2;
+				entry2 = (struct handle_entry *) malloc(sizeof(*entry2));
+				STARPU_ASSERT(entry2 != NULL);
+				entry2->gpuid = devid;
+				HASH_ADD_INT(devices_already_used, gpuid, entry2);
+                                tmp[nb] = devid;
+                                nb ++;
+                        }
+                }
+                for(i=nb ; i<STARPU_NMAXWORKERS ; i++) tmp[i] = -1;
+                memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+        }
+}
+#endif
+
+
+
+#ifdef STARPU_USE_CUDA
 static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
 {
 	unsigned i = ((config->current_cuda_gpuid++) % config->topology.ncudagpus);
@@ -269,6 +267,80 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #endif
 
 		topology_is_initialized = 1;
+	}
+}
+
+/*
+ * Bind workers on the different processors
+ */
+static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *config)
+{
+	char *strval;
+	unsigned i;
+
+	struct starpu_machine_topology *topology = &config->topology;
+
+	config->current_bindid = 0;
+
+	/* conf->workers_bindid indicates the successive cpu identifier that
+	 * should be used to bind the workers. It should be either filled
+	 * according to the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
+	 * round-robin policy is used to distributed the workers over the
+	 * cpus. */
+
+	/* what do we use, explicit value, env. variable, or round-robin ? */
+	if ((strval = getenv("STARPU_WORKERS_CPUID")))
+	{
+		/* STARPU_WORKERS_CPUID certainly contains less entries than
+		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
+		 * fashion: "1 2" is equivalent to "1 2 1 2 1 2 .... 1 2". */
+		unsigned wrap = 0;
+		unsigned number_of_entries = 0;
+
+		char *endptr;
+		/* we use the content of the STARPU_WORKERS_CUDAID env. variable */
+		for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		{
+			if (!wrap)
+			{
+				long int val;
+				val = strtol(strval, &endptr, 10);
+				if (endptr != strval)
+				{
+					topology->workers_bindid[i] = (unsigned)(val % topology->nhwcpus);
+					strval = endptr;
+				}
+				else
+				{
+					/* there must be at least one entry */
+					STARPU_ASSERT(i != 0);
+					number_of_entries = i;
+
+					/* there is no more values in the string */
+					wrap = 1;
+
+					topology->workers_bindid[i] = topology->workers_bindid[0];
+				}
+			}
+			else
+			{
+				topology->workers_bindid[i] = topology->workers_bindid[i % number_of_entries];
+			}
+		}
+	}
+	else if (config->conf->use_explicit_workers_bindid)
+	{
+		/* we use the explicit value from the user */
+		memcpy(topology->workers_bindid,
+			config->conf->workers_bindid,
+			STARPU_NMAXWORKERS*sizeof(unsigned));
+	}
+	else
+	{
+		/* by default, we take a round robin policy */
+		for (i = 0; i < STARPU_NMAXWORKERS; i++)
+			topology->workers_bindid[i] = (unsigned)(i % topology->nhwcpus);
 	}
 }
 
@@ -511,79 +583,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config)
 	return 0;
 }
 
-/*
- * Bind workers on the different processors
- */
-static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *config)
-{
-	char *strval;
-	unsigned i;
-
-	struct starpu_machine_topology *topology = &config->topology;
-
-	config->current_bindid = 0;
-
-	/* conf->workers_bindid indicates the successive cpu identifier that
-	 * should be used to bind the workers. It should be either filled
-	 * according to the user's explicit parameters (from starpu_conf) or
-	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
-	 * round-robin policy is used to distributed the workers over the
-	 * cpus. */
-
-	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = getenv("STARPU_WORKERS_CPUID")))
-	{
-		/* STARPU_WORKERS_CPUID certainly contains less entries than
-		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
-		 * fashion: "1 2" is equivalent to "1 2 1 2 1 2 .... 1 2". */
-		unsigned wrap = 0;
-		unsigned number_of_entries = 0;
-
-		char *endptr;
-		/* we use the content of the STARPU_WORKERS_CUDAID env. variable */
-		for (i = 0; i < STARPU_NMAXWORKERS; i++)
-		{
-			if (!wrap)
-			{
-				long int val;
-				val = strtol(strval, &endptr, 10);
-				if (endptr != strval)
-				{
-					topology->workers_bindid[i] = (unsigned)(val % topology->nhwcpus);
-					strval = endptr;
-				}
-				else
-				{
-					/* there must be at least one entry */
-					STARPU_ASSERT(i != 0);
-					number_of_entries = i;
-
-					/* there is no more values in the string */
-					wrap = 1;
-
-					topology->workers_bindid[i] = topology->workers_bindid[0];
-				}
-			}
-			else
-			{
-				topology->workers_bindid[i] = topology->workers_bindid[i % number_of_entries];
-			}
-		}
-	}
-	else if (config->conf->use_explicit_workers_bindid)
-	{
-		/* we use the explicit value from the user */
-		memcpy(topology->workers_bindid,
-			config->conf->workers_bindid,
-			STARPU_NMAXWORKERS*sizeof(unsigned));
-	}
-	else
-	{
-		/* by default, we take a round robin policy */
-		for (i = 0; i < STARPU_NMAXWORKERS; i++)
-			topology->workers_bindid[i] = (unsigned)(i % topology->nhwcpus);
-	}
-}
 
 /* This function gets the identifier of the next cpu on which to bind a
  * worker. In case a list of preferred cpus was specified, we look for a an
