@@ -145,6 +145,13 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
                                          &(config->current_cuda_gpuid), (int *)topology->workers_cuda_gpuid, "STARPU_WORKERS_CUDAID",
                                          topology->nhwcudagpus);
 }
+
+static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
+{
+	unsigned i = ((config->current_cuda_gpuid++) % config->topology.ncudagpus);
+
+	return (int)config->topology.workers_cuda_gpuid[i];
+}
 #endif
 
 #ifdef STARPU_USE_OPENCL
@@ -205,20 +212,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
                 memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
         }
 }
-#endif
 
-
-
-#ifdef STARPU_USE_CUDA
-static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
-{
-	unsigned i = ((config->current_cuda_gpuid++) % config->topology.ncudagpus);
-
-	return (int)config->topology.workers_cuda_gpuid[i];
-}
-#endif
-
-#ifdef STARPU_USE_OPENCL
 static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *config)
 {
 	unsigned i = ((config->current_opencl_gpuid++) % config->topology.nopenclgpus);
@@ -226,6 +220,7 @@ static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *c
 	return (int)config->topology.workers_opencl_gpuid[i];
 }
 #endif
+
 
 static void _starpu_init_topology(struct _starpu_machine_config *config)
 {
@@ -342,6 +337,51 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 			topology->workers_bindid[i] = (unsigned)(i % topology->nhwcpus);
 	}
+}
+
+/* This function gets the identifier of the next cpu on which to bind a
+ * worker. In case a list of preferred cpus was specified, we look for a an
+ * available cpu among the list if possible, otherwise a round-robin policy is
+ * used. */
+static inline int _starpu_get_next_bindid(struct _starpu_machine_config *config,
+				int *preferred_binding, int npreferred)
+{
+	struct starpu_machine_topology *topology = &config->topology;
+
+	unsigned found = 0;
+	int current_preferred;
+
+	for (current_preferred = 0; current_preferred < npreferred; current_preferred++)
+	{
+		if (found)
+			break;
+
+		unsigned requested_cpu = preferred_binding[current_preferred];
+
+		/* can we bind the worker on the requested cpu ? */
+		unsigned ind;
+		for (ind = config->current_bindid; ind < topology->nhwcpus; ind++)
+		{
+			if (topology->workers_bindid[ind] == requested_cpu)
+			{
+				/* the cpu is available, we  use it ! In order
+				 * to make sure that it will not be used again
+				 * later on, we remove the entry from the list
+				 * */
+				topology->workers_bindid[ind] =
+					topology->workers_bindid[config->current_bindid];
+				topology->workers_bindid[config->current_bindid] = requested_cpu;
+
+				found = 1;
+
+				break;
+			}
+		}
+	}
+
+	unsigned i = ((config->current_bindid++) % STARPU_NMAXWORKERS);
+
+	return (int)topology->workers_bindid[i];
 }
 
 unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
@@ -584,50 +624,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config)
 }
 
 
-/* This function gets the identifier of the next cpu on which to bind a
- * worker. In case a list of preferred cpus was specified, we look for a an
- * available cpu among the list if possible, otherwise a round-robin policy is
- * used. */
-static inline int _starpu_get_next_bindid(struct _starpu_machine_config *config,
-				int *preferred_binding, int npreferred)
-{
-	struct starpu_machine_topology *topology = &config->topology;
-
-	unsigned found = 0;
-	int current_preferred;
-
-	for (current_preferred = 0; current_preferred < npreferred; current_preferred++)
-	{
-		if (found)
-			break;
-
-		unsigned requested_cpu = preferred_binding[current_preferred];
-
-		/* can we bind the worker on the requested cpu ? */
-		unsigned ind;
-		for (ind = config->current_bindid; ind < topology->nhwcpus; ind++)
-		{
-			if (topology->workers_bindid[ind] == requested_cpu)
-			{
-				/* the cpu is available, we  use it ! In order
-				 * to make sure that it will not be used again
-				 * later on, we remove the entry from the list
-				 * */
-				topology->workers_bindid[ind] =
-					topology->workers_bindid[config->current_bindid];
-				topology->workers_bindid[config->current_bindid] = requested_cpu;
-
-				found = 1;
-
-				break;
-			}
-		}
-	}
-
-	unsigned i = ((config->current_bindid++) % STARPU_NMAXWORKERS);
-
-	return (int)topology->workers_bindid[i];
-}
 
 void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, unsigned cpuid)
 {
