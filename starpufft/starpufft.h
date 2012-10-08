@@ -20,6 +20,8 @@
 #include <starpu.h>
 #ifdef STARPU_USE_CUDA
 #include <cufft.h>
+#define STARPU_CUFFT_REPORT_ERROR(status) \
+	STARPUFFT(report_error)(__starpu_func__, __FILE__, __LINE__, status)
 #endif /* !STARPU_USE_CUDA */
 
 #define STARPUFFT_FORWARD -1

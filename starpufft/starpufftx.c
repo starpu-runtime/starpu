@@ -510,7 +510,4 @@ STARPUFFT(report_error)(const char *func, const char *file, int line, cufftResul
 			func, file, line, status, errormsg);
 	STARPU_ABORT();
 }
-
-#define STARPU_CUFFT_REPORT_ERROR(status) \
-	STARPUFFT(report_error)(__starpu_func__, __FILE__, __LINE__, status)
 #endif /* !STARPU_USE_CUDA */
