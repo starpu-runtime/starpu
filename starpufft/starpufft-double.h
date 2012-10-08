@@ -48,4 +48,8 @@ typedef cufftDoubleComplex _cufftComplex;
 #define STARPUFFT(name) starpufft_##name
 #define _FFTW(name) fftw_##name
 
+#ifdef STARPU_USE_CUDA
+void STARPUFFT(report_error)(const char *func, const char *file, int line, cufftResult status);
+#endif /* !STARPU_USE_CUDA */
+
 #define TYPE ""

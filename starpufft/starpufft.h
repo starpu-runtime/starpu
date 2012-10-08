@@ -55,8 +55,7 @@ void starpufft(destroy_plan)(starpufft(plan) p); \
 \
 void starpufft(startstats)(void); \
 void starpufft(stopstats)(void); \
-void starpufft(showstats)(FILE *out); \
-void starpufft(report_error)(const char *func, const char *file, int line, cufftResult status);
+void starpufft(showstats)(FILE *out);
 
 __STARPUFFT_INTERFACE(__STARPUFFT, double)
 __STARPUFFT_INTERFACE(__STARPUFFTF, float)
