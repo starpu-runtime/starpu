@@ -30,6 +30,9 @@
 #include <CL/cl.h>
 #endif
 
+struct _starpu_machine_config;
+void
+_starpu_opencl_discover_devices(struct _starpu_machine_config *config);
 extern
 char *_starpu_opencl_program_dir;
 
@@ -74,6 +77,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *);
 
 extern
 int _starpu_opencl_driver_deinit(struct starpu_driver *);
-
+#else
+#define _starpu_opencl_discover_devices(config) ((void) (config))
 #endif // STARPU_USE_OPENCL
 #endif //  __DRIVER_OPENCL_H__

@@ -33,5 +33,6 @@ int _starpu_run_cpu(struct starpu_driver *);
 int _starpu_cpu_driver_init(struct starpu_driver *);
 int _starpu_cpu_driver_run_once(struct starpu_driver *);
 int _starpu_cpu_driver_deinit(struct starpu_driver *);
+void _starpu_cpu_discover_devices(struct _starpu_machine_config *config);
 
 #endif //  __DRIVER_CPU_H__

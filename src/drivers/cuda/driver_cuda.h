@@ -41,6 +41,7 @@
 unsigned _starpu_get_cuda_device_count(void);
 
 #ifdef STARPU_USE_CUDA
+void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
 cudaStream_t starpu_cuda_get_local_transfer_stream(void);
@@ -49,6 +50,8 @@ int _starpu_run_cuda(struct starpu_driver *);
 int _starpu_cuda_driver_init(struct starpu_driver *);
 int _starpu_cuda_driver_run_once(struct starpu_driver *);
 int _starpu_cuda_driver_deinit(struct starpu_driver *);
+#else
+#  define _starpu_cuda_discover_devices(config) ((void) config)
 #endif
 
 #endif //  __DRIVER_CUDA_H__

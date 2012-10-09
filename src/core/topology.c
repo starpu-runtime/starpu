@@ -266,40 +266,10 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 		return;
 
 	topology->nhwcpus = 0;
-#ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_init(&topology->hwtopology);
-	hwloc_topology_load(topology->hwtopology);
 
-	config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
-						  HWLOC_OBJ_CORE);
-
-	/* Would be very odd */
-	STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
-
-	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
-		/* unknown, using logical procesors as fallback */
-		config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
-							  HWLOC_OBJ_PU);
-
-	topology->nhwcpus = hwloc_get_nbobjs_by_depth (topology->hwtopology,
-						       config->cpu_depth);
-#elif defined(__MINGW32__) || defined(__CYGWIN__)
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo(&sysinfo);
-	topology->nhwcpus += sysinfo.dwNumberOfProcessors;
-#elif defined(HAVE_SYSCONF)
-	topology->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
-#else
-#warning no way to know number of cores, assuming 1
-	topology->nhwcpus = 1;
-#endif
-
-#ifdef STARPU_USE_CUDA
-	config->topology.nhwcudagpus = _starpu_get_cuda_device_count();
-#endif
-#ifdef STARPU_USE_OPENCL
-	config->topology.nhwopenclgpus = _starpu_opencl_get_device_count();
-#endif
+	_starpu_cpu_discover_devices(config);
+	_starpu_cuda_discover_devices(config);
+	_starpu_opencl_discover_devices(config);
 
 	topology_is_initialized = 1;
 }
@@ -439,6 +409,8 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 unsigned
 _starpu_topology_get_nhwcpu (struct _starpu_machine_config *config)
 {
+	_starpu_opencl_init();
+	_starpu_init_cuda();
 	_starpu_init_topology(config);
 
 	return config->topology.nhwcpus;
@@ -455,6 +427,8 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
+	_starpu_opencl_init();
+	_starpu_init_cuda();
 	_starpu_init_topology(config);
 
 	_starpu_initialize_workers_bindid(config);
@@ -715,6 +689,8 @@ _starpu_bind_thread_on_cpu (
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
+	_starpu_opencl_init();
+	_starpu_init_cuda();
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support (config->topology.hwtopology);
@@ -773,6 +749,8 @@ _starpu_bind_thread_on_cpus (
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
+	_starpu_opencl_init();
+	_starpu_init_cuda();
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support(config->topology.hwtopology);

@@ -17,14 +17,88 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
+
 #include <math.h>
 #include <starpu.h>
+#include <starpu_scheduler.h> /* XXX For starpu_machine_topology */
 #include <starpu_profiling.h>
 #include <drivers/driver_common/driver_common.h>
 #include <common/utils.h>
 #include <core/debug.h>
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#endif
+
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+
+#ifdef STARPU_HAVE_HWLOC
+void
+_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
+{
+	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
+	 * accordingly. */
+
+	struct starpu_machine_topology *topology = &config->topology;
+
+	// FIXME: This should already be set.
+	topology->nhwcpus = 0;
+
+	hwloc_topology_init(&topology->hwtopology);
+	hwloc_topology_load(topology->hwtopology);
+
+	config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
+						  HWLOC_OBJ_CORE);
+
+	/* Would be very odd */
+	STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
+
+	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+		/* unknown, using logical procesors as fallback */
+		config->cpu_depth = hwloc_get_type_depth(topology->hwtopology,
+							 HWLOC_OBJ_PU);
+
+	topology->nhwcpus = hwloc_get_nbobjs_by_depth (topology->hwtopology,
+						       config->cpu_depth);
+}
+
+#elif defined(HAVE_SYSCONF)
+void
+_starpu_cpu_discover_cpus(struct _starpu_machine_config *config)
+{
+	/* Discover the CPUs relying on the sysconf(3) function and fills
+	 * CONFIG accordingly. */
+
+	config->topology->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+#elif defined(__MINGW32__) || defined(__CYGWIN__)
+void
+_starpu_cpu_discover_cpus(struct _starpu_machine_config *config)
+{
+	/* Discover the CPUs on Cygwin and MinGW systems. */
+
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	config->topology->nhwcpus += sysinfo.dwNumberOfProcessors;
+}
+#else
+#warning no way to know number of cores, assuming 1
+void
+_starpu_cpu_discover_cpus(struct _starpu_machine_config *config)
+{
+	config->topology->nhwcpus = 1;
+}
+#endif
+
 
 /* Actually launch the job on a cpu worker.
  * Handle binding CPUs on cores.

@@ -38,6 +38,16 @@ static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
 
+void
+_starpu_opencl_discover_devices(struct _starpu_machine_config *config)
+{
+	/* Discover the number of OpenCL devices. Fill the result in CONFIG. */
+	/* As OpenCL must have been initialized before calling this function,
+	 * `nb_device' is ensured to be correctly set. */
+	STARPU_ASSERT(init_done == 1);
+	config->topology.nhwopenclgpus = nb_devices;
+}
+
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
  * is launched. */
