@@ -22,6 +22,7 @@
 #include <core/debug.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
+#include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
 #include <common/uthash.h>
 
@@ -409,8 +410,12 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 unsigned
 _starpu_topology_get_nhwcpu (struct _starpu_machine_config *config)
 {
+#ifdef STARPU_USE_OPENCL
 	_starpu_opencl_init();
+#endif
+#ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
+#endif
 	_starpu_init_topology(config);
 
 	return config->topology.nhwcpus;
@@ -427,8 +432,12 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
+#ifdef STARPU_USE_OPENCL
 	_starpu_opencl_init();
+#endif
+#ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
+#endif
 	_starpu_init_topology(config);
 
 	_starpu_initialize_workers_bindid(config);
@@ -689,8 +698,12 @@ _starpu_bind_thread_on_cpu (
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
+#ifdef STARPU_USE_OPENCL
 	_starpu_opencl_init();
+#endif
+#ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
+#endif
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support (config->topology.hwtopology);
@@ -749,8 +762,12 @@ _starpu_bind_thread_on_cpus (
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
+#ifdef STARPU_USE_OPENC
 	_starpu_opencl_init();
+#endif
+#ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
+#endif
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support(config->topology.hwtopology);
