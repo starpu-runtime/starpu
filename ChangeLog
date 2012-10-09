@@ -31,6 +31,8 @@ New features:
   * Enable GPU-GPU direct transfers.
   * GCC plug-in
 	- Add `registered' attribute
+	- A new pass was added that warns about the use of possibly
+	  unregistered memory buffers.
   * SOCL
         - Manual mapping of commands on specific devices is now possible
 
