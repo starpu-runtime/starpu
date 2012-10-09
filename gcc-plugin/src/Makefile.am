@@ -20,8 +20,14 @@ gccplugin_LTLIBRARIES = starpu.la
 starpu_la_SOURCES =				\
   c-expr.y					\
   starpu.c					\
-  utils.c					\
-  warn-unregistered.c
+  utils.c
+
+if HAVE_PTR_DEREFS_MAY_ALIAS_P
+
+# Only for GCC >= 4.6.
+starpu_la_SOURCES += warn-unregistered.c
+
+endif
 
 noinst_HEADERS =				\
   utils.h					\

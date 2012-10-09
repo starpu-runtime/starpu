@@ -159,13 +159,19 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     dnl   build_array_ref           -- present but undeclared in 4.6.1
     dnl   build_zero_cst            -- not in GCC 4.5.x; appears in 4.6
     dnl   builtin_decl_explicit     -- new in 4.7, replaces `built_in_decls'
+    dnl   ptr_derefs_may_alias_p    -- new in 4.6, nothing equivalent in 4.5
     dnl   .affects_type_identity    -- new field in 4.7
     _STARPU_WITH_GCC_PLUGIN_API([
       AC_CHECK_DECLS([build_call_expr_loc_array, build_call_expr_loc_vec,
                       build_array_ref, build_zero_cst,
-		      builtin_decl_explicit],
+		      builtin_decl_explicit,
+		      ptr_derefs_may_alias_p],
         [], [], [#include <gcc-plugin.h>
-	         #include <tree.h>])
+	         #include <tree.h>
+		 #include <tree-ssa-alias.h>])
+
+      AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
+        [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
 
       dnl Work around header naming issues introduced upstream and in Debian
       dnl (see <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=631082>).
@@ -179,7 +185,6 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
 	[],
 	[#include <gcc-plugin.h>
 	 #include <tree.h>])
-
     ])
 
 

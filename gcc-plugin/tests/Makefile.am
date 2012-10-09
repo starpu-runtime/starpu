@@ -29,7 +29,6 @@ gcc_tests =					\
   release-errors.c				\
   unregister.c					\
   unregister-errors.c				\
-  warn-unregistered.c				\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\
@@ -46,6 +45,16 @@ gcc_tests =					\
   shutdown-errors.c
 
 EXTRA_DIST =
+
+if HAVE_PTR_DEREFS_MAY_ALIAS_P
+
+gcc_tests += warn-unregistered.c
+
+else !HAVE_PTR_DEREFS_MAY_ALIAS_P
+
+EXTRA_DIST += warn-unregistered.c
+
+endif !HAVE_PTR_DEREFS_MAY_ALIAS_P
 
 if !STARPU_USE_OPENCL
 

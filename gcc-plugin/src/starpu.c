@@ -3431,6 +3431,10 @@ plugin_init (struct plugin_name_args *plugin_info,
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP,
 		     NULL, &pass_info);
 
+#ifdef HAVE_DECL_PTR_DEREFS_MAY_ALIAS_P
+  /* This warning pass is only available when `ptr_derefs_may_alias_p' is
+     available, with GCC >= 4.6.  */
+
   struct register_pass_info pass_info2 =
     {
       designated_field_init (pass, &pass_warn_starpu_unregistered),
@@ -3448,6 +3452,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP,
 		     NULL, &pass_info2);
+#endif
 
   include_dir = getenv ("STARPU_GCC_INCLUDE_DIR");
   opencl_include_dirs = tree_cons (NULL_TREE, build_string (1, "."),
