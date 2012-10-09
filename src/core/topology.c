@@ -255,6 +255,11 @@ _starpu_get_next_opencl_gpuid (struct _starpu_machine_config *config)
 static void
 _starpu_init_topology (struct _starpu_machine_config *config)
 {
+	/* Discover the topology, meaning finding all the available PUs for
+	   the compiled drivers. These drivers MUST have been initialized
+	   before calling this function. The discovered topology is filled in
+	   CONFIG. */
+
 	struct starpu_machine_topology *topology = &config->topology;
 
 	if (topology_is_initialized)
