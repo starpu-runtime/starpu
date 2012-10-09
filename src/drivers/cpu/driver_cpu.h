@@ -28,11 +28,15 @@
 
 #include <starpu.h>
 
+#ifdef STARPU_USE_CPU
 void *_starpu_cpu_worker(void *);
 int _starpu_run_cpu(struct starpu_driver *);
 int _starpu_cpu_driver_init(struct starpu_driver *);
 int _starpu_cpu_driver_run_once(struct starpu_driver *);
 int _starpu_cpu_driver_deinit(struct starpu_driver *);
 void _starpu_cpu_discover_devices(struct _starpu_machine_config *config);
+#else
+#define _starpu_cpu_discover_devices(config) ((void) config)
+#endif /* !STARPU_USE_CPU */
 
 #endif //  __DRIVER_CPU_H__
