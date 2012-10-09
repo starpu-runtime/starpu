@@ -29,6 +29,7 @@ gcc_tests =					\
   release-errors.c				\
   unregister.c					\
   unregister-errors.c				\
+  warn-unregistered.c				\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\

@@ -71,7 +71,7 @@ main (int argc, char *argv[])
 #pragma starpu initialize
 
   static const unsigned char z = 0x77;
-  int x[] = { 42 };
+  static int x[] = { 42 };
   short *y;
 
   y = malloc (sizeof *y);
