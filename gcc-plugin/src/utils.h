@@ -64,5 +64,4 @@ extern tree xref_tag (enum tree_code, tree);
    <plugin-version.h>.  */
 
 static const struct plugin_gcc_version *starpu_gcc_version
-  __attribute__ ((__unused__));
-static const struct plugin_gcc_version *starpu_gcc_version = &gcc_version;
+  __attribute__ ((__unused__)) = &gcc_version;
