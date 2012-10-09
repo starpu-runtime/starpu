@@ -150,6 +150,10 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     fi
   ])
 
+  dnl FIXME Does this test really work ?
+  AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
+                 [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
+
   if test "x$ac_cv_have_gcc_plugins" = "xyes"; then
     dnl Check for specific features.
     dnl
@@ -170,8 +174,6 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
 	         #include <tree.h>
 		 #include <tree-ssa-alias.h>])
 
-      AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
-        [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
 
       dnl Work around header naming issues introduced upstream and in Debian
       dnl (see <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=631082>).
