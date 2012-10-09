@@ -257,51 +257,46 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 {
 	struct starpu_machine_topology *topology = &config->topology;
 
-	if (!topology_is_initialized)
-	{
-		topology->nhwcpus = 0;
+	if (topology_is_initialized)
+		return;
+
+	topology->nhwcpus = 0;
 #ifdef STARPU_HAVE_HWLOC
-		hwloc_topology_init(&topology->hwtopology);
-		hwloc_topology_load(topology->hwtopology);
+	hwloc_topology_init(&topology->hwtopology);
+	hwloc_topology_load(topology->hwtopology);
 
-		config->cpu_depth =
-			hwloc_get_type_depth (topology->hwtopology,
-					      HWLOC_OBJ_CORE);
+	config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
+						  HWLOC_OBJ_CORE);
 
-		/* Would be very odd */
-		STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
+	/* Would be very odd */
+	STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
 
-		if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
-			/* unknown, using logical procesors as fallback */
-			config->cpu_depth =
-				hwloc_get_type_depth (topology->hwtopology,
-						      HWLOC_OBJ_PU);
+	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+		/* unknown, using logical procesors as fallback */
+		config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
+							  HWLOC_OBJ_PU);
 
-		topology->nhwcpus =
-			hwloc_get_nbobjs_by_depth (topology->hwtopology,
-						   config->cpu_depth);
+	topology->nhwcpus = hwloc_get_nbobjs_by_depth (topology->hwtopology,
+						       config->cpu_depth);
 #elif defined(__MINGW32__) || defined(__CYGWIN__)
-		SYSTEM_INFO sysinfo;
-		GetSystemInfo(&sysinfo);
-		topology->nhwcpus += sysinfo.dwNumberOfProcessors;
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	topology->nhwcpus += sysinfo.dwNumberOfProcessors;
 #elif defined(HAVE_SYSCONF)
-		topology->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
+	topology->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
 #else
 #warning no way to know number of cores, assuming 1
-		topology->nhwcpus = 1;
+	topology->nhwcpus = 1;
 #endif
 
 #ifdef STARPU_USE_CUDA
-                config->topology.nhwcudagpus =
-			_starpu_get_cuda_device_count();
+	config->topology.nhwcudagpus = _starpu_get_cuda_device_count();
 #endif
 #ifdef STARPU_USE_OPENCL
-                config->topology.nhwopenclgpus =
-			_starpu_opencl_get_device_count();
+	config->topology.nhwopenclgpus = _starpu_opencl_get_device_count();
 #endif
 
-		topology_is_initialized = 1;
-	}
+	topology_is_initialized = 1;
 }
 
 /*
