@@ -252,7 +252,6 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 {
 	int ret;
 	uint32_t mask = 0;
-	cudaError_t cures;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
