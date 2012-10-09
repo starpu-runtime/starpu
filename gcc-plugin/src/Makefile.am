@@ -17,15 +17,24 @@
 # requires a name prefixed by `lib'.
 gccplugin_LTLIBRARIES = starpu.la
 
-starpu_la_SOURCES = starpu.c c-expr.y
+starpu_la_SOURCES =				\
+  c-expr.y					\
+  starpu.c					\
+  utils.c					\
+  warn-unregistered.c
+
+noinst_HEADERS =				\
+  utils.h					\
+  warn-unregistered.h
 
 # Use the Yacc-compatibility mode so that Bison doesn't error out upon
 # reduce/reduce conflicts.
 AM_YFLAGS = -y
 
 AM_CPPFLAGS =						\
+  -I$(srcdir)						\
   -I$(top_srcdir)/include				\
-  -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1 \
+  -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1	\
   $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 
 AM_LDFLAGS = -module

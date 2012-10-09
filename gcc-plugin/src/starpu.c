@@ -47,7 +47,6 @@
 #endif
 
 #include <tm.h>
-#include <gimple.h>
 #include <tree-pass.h>
 #include <tree-flow.h>
 #include <cgraph.h>
@@ -57,51 +56,20 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
+/* GCC-StarPU headers.  */
+#include <utils.h>
+#include <warn-unregistered.h>
+
 /* Don't include the dreaded proprietary headers that we don't need anyway.
    In particular, this waives the obligation to reproduce their silly
    disclaimer.  */
 #define STARPU_DONT_INCLUDE_CUDA_HEADERS
 
 
-
-/* GCC 4.7 requires compilation with `g++', and C++ lacks a number of GNU C
-   features, so work around that.  */
-
-#ifdef __cplusplus
-
-/* G++ doesn't implement nested functions, so use C++11 lambdas instead.  */
-
-# include <functional>
-
-# define local_define(ret, name, parms)     auto name = [=]parms
-# define function_parm(ret, name, parms)    std::function<ret parms> name
-
-/* G++ lacks designated initializers.  */
-# define designated_field_init(name, value) value /* XXX: cross fingers */
-
-#else  /* !__cplusplus */
-
-/* GNU C nested functions.  */
-
-# define local_define(ret, name, parms)	    ret name parms
-# define function_parm(ret, name, parms)    ret (*name) parms
-
-/* Designated field initializer.  */
-
-# define designated_field_init(name, value) .name = value
-
-#endif	/* !__cplusplus */
-
-
 /* C expression parser, possibly with C++ linkage.  */
 
 extern int yyparse (location_t, const char *, tree *);
 extern int yydebug;
-
-/* This declaration is from `c-tree.h', but that header doesn't get
-   installed.  */
-
-extern tree xref_tag (enum tree_code, tree);
 
 #ifndef STRINGIFY
 # define STRINGIFY_(x) # x
@@ -119,15 +87,11 @@ int plugin_is_GPL_compatible;
 /* The name of this plug-in.  */
 static const char plugin_name[] = "starpu";
 
-/* Whether to enable verbose output.  */
-static bool verbose_output_p = false;
-
 /* Search path for OpenCL source files for the `opencl' pragma, as a
    `TREE_LIST'.  */
 static tree opencl_include_dirs = NULL_TREE;
 
 /* Names of public attributes.  */
-static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
 static const char output_attribute_name[] = "output";
 static const char heap_allocated_attribute_name[] = "heap_allocated";
@@ -175,7 +139,6 @@ static void define_task (tree task_decl);
 static tree build_pointer_lookup (tree pointer);
 static tree type_decl_for_struct_tag (const char *tag);
 
-static bool task_p (const_tree decl);
 static bool task_implementation_p (const_tree decl);
 static tree task_implementation_task (const_tree task_impl);
 static int task_implementation_where (const_tree task_impl);
@@ -2180,16 +2143,6 @@ task_codelet_declaration (const_tree task_decl)
   return TREE_VALUE (cl_attr);
 }
 
-/* Return true if DECL is a task.  */
-
-static bool
-task_p (const_tree decl)
-{
-  return (TREE_CODE (decl) == FUNCTION_DECL &&
-	  lookup_attribute (task_attribute_name,
-			    DECL_ATTRIBUTES (decl)) != NULL_TREE);
-}
-
 /* Return true if DECL is a task implementation.  */
 
 static bool
@@ -3296,206 +3249,6 @@ validate_task_implementation (tree impl)
       }
 }
 
-/* Return true if there exists a `starpu_vector_data_register' call for VAR
-   before GSI in its basic block.  */
-
-static bool
-registration_in_bb_p (gimple_stmt_iterator gsi, tree var)
-{
-  gcc_assert (SSA_VAR_P (var));
-
-  tree register_fn_name;
-
-  register_fn_name = get_identifier ("starpu_vector_data_register");
-
-  local_define (bool, registration_function_p, (const_tree obj))
-  {
-    /* TODO: Compare against the real fndecl.  */
-    return (obj != NULL_TREE
-	    && TREE_CODE (obj) == FUNCTION_DECL
-	    && DECL_NAME (obj) == register_fn_name);
-  };
-
-  bool found;
-
-  for (found = false;
-       !gsi_end_p (gsi) && !found;
-       gsi_prev (&gsi))
-    {
-      gimple stmt;
-
-      stmt = gsi_stmt (gsi);
-      if (is_gimple_call (stmt))
-	{
-	  tree fn = gimple_call_fndecl (stmt);
-	  if (registration_function_p (fn))
-	    {
-	      tree arg = gimple_call_arg (stmt, 2);
-	      if (is_gimple_address (arg))
-	      	arg = TREE_OPERAND (arg, 0);
-
-	      if (((TREE_CODE (arg) == VAR_DECL
-		    || TREE_CODE (arg) == VAR_DECL)
-		   && refs_may_alias_p (arg, var))
-
-		  /* Both VAR and ARG should be SSA names, otherwise, if ARG
-		     is a VAR_DECL, `ptr_derefs_may_alias_p' will
-		     conservatively assume that they may alias.  */
-		  || (TREE_CODE (var) == SSA_NAME
-		      && TREE_CODE (arg) != VAR_DECL
-		      && ptr_derefs_may_alias_p (arg, var)))
-		{
-		  if (verbose_output_p)
-		    {
-		      var = TREE_CODE (var) == SSA_NAME ? SSA_NAME_VAR (var) : var;
-		      inform (gimple_location (stmt),
-			      "found registration of variable %qE",
-			      DECL_NAME (var));
-		    }
-		  found = true;
-		}
-	    }
-	}
-    }
-
-  return found;
-}
-
-/* Return true if BB is dominated by a registration of VAR.  */
-
-static bool
-dominated_by_registration (gimple_stmt_iterator gsi, tree var)
-{
-  /* Is there a registration call for VAR in GSI's basic block?  */
-  if (registration_in_bb_p (gsi, var))
-    return true;
-
-  edge e;
-  edge_iterator ei;
-  bool found = false;
-
-  /* If every incoming edge is dominated by a registration, then we're
-     fine.
-
-     FIXME: This triggers false positives when registration is done in a
-     loop, because there's always an edge through which no registration
-     happens--the edge corresponding to the case where the loop is not
-     entered.  */
-
-  FOR_EACH_EDGE (e, ei, gsi_bb (gsi)->preds)
-    {
-      if (!dominated_by_registration (gsi_last_bb (e->src), var))
-	return false;
-      else
-	found = true;
-    }
-
-  return found;
-}
-
-/* Return true if NAME aliases a global variable or a PARM_DECL.  Note that,
-   for the former, `ptr_deref_may_alias_global_p' is way too conservative,
-   hence this approach.  */
-
-static bool
-ssa_name_aliases_global_or_parm_p (const_tree name)
-{
-  gcc_assert (TREE_CODE (name) == SSA_NAME);
-
-  if (TREE_CODE (SSA_NAME_VAR (name)) == PARM_DECL)
-    return true;
-  else
-    {
-      gimple def_stmt;
-
-      def_stmt = SSA_NAME_DEF_STMT (name);
-      if (is_gimple_assign (def_stmt))
-	{
-	  tree rhs = gimple_assign_rhs1 (def_stmt);
-
-	  if (TREE_CODE (rhs) == VAR_DECL
-	      && (DECL_EXTERNAL (rhs) || TREE_STATIC (rhs)))
-	    return true;
-	}
-    }
-
-  return false;
-}
-
-
-/* Validate the arguments passed to tasks in FN's body.  */
-
-static void
-validate_task_invocations (tree fn)
-{
-  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
-
-  const struct cgraph_node *cgraph;
-  const struct cgraph_edge *callee;
-
-  cgraph = cgraph_get_node (fn);
-
-  /* When a definition of IMPL is available, check its callees.  */
-  if (cgraph != NULL)
-    for (callee = cgraph->callees;
-	 callee != NULL;
-	 callee = callee->next_callee)
-      {
-	if (task_p (callee->callee->decl))
-	  {
-	    unsigned i;
-	    gimple call_stmt = callee->call_stmt;
-
-	    for (i = 0; i < gimple_call_num_args (call_stmt); i++)
-	      {
-		tree arg = gimple_call_arg (call_stmt, i);
-
-		if (TREE_CODE (arg) == ADDR_EXPR
-		    && TREE_CODE (TREE_OPERAND (arg, 0)) == VAR_DECL
-		    && (TREE_CODE (TREE_TYPE (TREE_OPERAND (arg, 0)))
-			== ARRAY_TYPE))
-		  /* This is a "pointer-to-array" of a variable, so what we
-		     really care about is the variable itself.  */
-		  arg = TREE_OPERAND (arg, 0);
-
-		if ((POINTER_TYPE_P (TREE_TYPE (arg))
-		     || (TREE_CODE (TREE_TYPE (arg)) == ARRAY_TYPE))
-		    && ((TREE_CODE (arg) == VAR_DECL
-			 && !TREE_STATIC (arg)
-			 && !DECL_EXTERNAL (arg)
-			 && !TREE_NO_WARNING (arg))
-			|| (TREE_CODE (arg) == SSA_NAME
-			    && !ssa_name_aliases_global_or_parm_p (arg))))
-		  {
-		    if (!dominated_by_registration (gsi_for_stmt (call_stmt),
-						    arg))
-		      {
-			if (TREE_CODE (arg) == SSA_NAME)
-			  {
-			    tree var = SSA_NAME_VAR (arg);
-			    if (DECL_NAME (var) != NULL)
-			      arg = var;
-
-			    /* TODO: Check whether we can get the original
-			       variable name via ARG's DEF_STMT.  */
-			  }
-
-			if (TREE_CODE (arg) == VAR_DECL
-			    && DECL_NAME (arg) != NULL_TREE)
-			  warning_at (gimple_location (call_stmt), 0,
-				      "variable %qE may be used unregistered",
-				      DECL_NAME (arg));
-			else
-			  warning_at (gimple_location (call_stmt), 0,
-				      "argument %i may be used unregistered",
-				      i);
-		      }
-		  }
-	      }
-	  }
-      }
-}
-
 static unsigned int
 lower_starpu (void)
 {
@@ -3591,38 +3344,12 @@ lower_starpu (void)
   return 0;
 }
 
-/* A pass to warn about possibly unregistered task arguments.  */
-
-static unsigned int
-warn_starpu_unregistered (void)
-{
-  tree fndecl;
-
-  fndecl = current_function_decl;
-  gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
-
-  if (!task_p (fndecl))
-    validate_task_invocations (fndecl);
-
-  return 0;
-}
-
 static struct opt_pass pass_lower_starpu =
   {
     designated_field_init (type, GIMPLE_PASS),
     designated_field_init (name, "lower_starpu"),
     designated_field_init (gate, NULL),
     designated_field_init (execute, lower_starpu),
-
-    /* The rest is zeroed.  */
-  };
-
-static struct opt_pass pass_warn_starpu_unregistered =
-  {
-    designated_field_init (type, GIMPLE_PASS),
-    designated_field_init (name, "warn_starpu_unregistered"),
-    designated_field_init (gate, NULL),
-    designated_field_init (execute, warn_starpu_unregistered),
 
     /* The rest is zeroed.  */
   };
