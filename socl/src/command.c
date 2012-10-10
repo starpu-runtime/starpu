@@ -82,7 +82,19 @@ void command_graph_dump_ex(cl_command cmd) {
 	for (i=0; i<cmd->num_events; i++)
 		command_graph_dump_ex(cmd->events[i]->command);
 
-	printf("CMD %p TYPE %d DEPS", cmd, cmd->typ);
+	const char * typ_str = (cmd->typ == CL_COMMAND_NDRANGE_KERNEL ? "ndrange_kernel" :
+			cmd->typ == CL_COMMAND_TASK           ? "task"           :
+			cmd->typ == CL_COMMAND_READ_BUFFER    ? "read_buffer"    :
+			cmd->typ == CL_COMMAND_WRITE_BUFFER   ? "write_buffer"   :
+			cmd->typ == CL_COMMAND_COPY_BUFFER    ? "copy_buffer"    :
+			cmd->typ == CL_COMMAND_MAP_BUFFER     ? "map_buffer"     :
+			cmd->typ == CL_COMMAND_UNMAP_MEM_OBJECT ? "unmap_mem_object" :
+			cmd->typ == CL_COMMAND_MARKER         ? "marker"         :
+			cmd->typ == CL_COMMAND_BARRIER        ? "barrier"        : "unknown");
+
+
+
+	printf("CMD %p TYPE %s DEPS", cmd, typ_str);
 	for (i=0; i<cmd->num_events; i++)
 		printf(" %p", cmd->events[i]->command);
 	printf("\n");
