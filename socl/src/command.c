@@ -20,7 +20,8 @@
 /* Forward extern declaration */
 extern void soclEnqueueNDRangeKernel_task(void *descr[], void *args);
 
-void command_init_ex(cl_command cmd, cl_command_type typ) {
+void command_init_ex(cl_command cmd, cl_command_type typ, void (*cb)(void*)) {
+	gc_entity_init(&cmd->_entity, cb);
 	cmd->typ = typ;
 	cmd->num_events = 0;
 	cmd->events = NULL;
@@ -48,6 +49,7 @@ void command_submit_ex(cl_command cmd) {
 		SUBMIT(CL_COMMAND_MAP_BUFFER, command_map_buffer)
 		SUBMIT(CL_COMMAND_UNMAP_MEM_OBJECT, command_unmap_mem_object)
 		SUBMIT(CL_COMMAND_MARKER, command_marker)
+		SUBMIT(CL_COMMAND_BARRIER, command_barrier)
 		default:
 			ERROR_STOP("Trying to submit unknown command (type %x)", cmd->typ);
 	}
@@ -88,8 +90,23 @@ void command_graph_dump_ex(cl_command cmd) {
 }
 
 #define nullOrDup(name,size) cmd->name = memdup_safe(name,size)
+#define nullOrFree(name) if (cmd->name != NULL) free((void*)cmd->name)
 #define dup(name) cmd->name = name
-#define dupEntity(name) do { cmd->name = name; gc_entity_retain(name); } while (0);
+
+void command_ndrange_kernel_release(void * arg) {
+	command_ndrange_kernel cmd = (command_ndrange_kernel)arg;
+
+	gc_entity_unstore(&cmd->kernel);
+	nullOrFree(global_work_offset);
+	nullOrFree(global_work_size);
+	nullOrFree(local_work_size);
+	free(cmd->arg_sizes);
+	free(cmd->arg_types);
+	unsigned int i;
+	for (i=0; i<cmd->num_args; i++)
+		free(cmd->args[i]);
+	free(cmd->args);
+}
 
 command_ndrange_kernel command_ndrange_kernel_create (
 		cl_kernel        kernel,
@@ -99,9 +116,10 @@ command_ndrange_kernel command_ndrange_kernel_create (
 		const size_t *   local_work_size)
 {
 	command_ndrange_kernel cmd = calloc(1, sizeof(struct command_ndrange_kernel_t));
-	command_init(cmd, CL_COMMAND_NDRANGE_KERNEL);
+	command_init(cmd, CL_COMMAND_NDRANGE_KERNEL, command_ndrange_kernel_release);
 
-	dupEntity(kernel);
+	gc_entity_store(&cmd->kernel, kernel);
+
 	dup(work_dim);
 	nullOrDup(global_work_offset, work_dim*sizeof(size_t));
 	nullOrDup(global_work_size, work_dim*sizeof(size_t));
@@ -139,10 +157,10 @@ command_ndrange_kernel command_task_create (cl_kernel kernel) {
 	return cmd;
 }
 
-command_marker command_barrier_create () {
+command_barrier command_barrier_create () {
 
-	command_marker cmd = malloc(sizeof(struct command_marker_t));
-	command_init(cmd, CL_COMMAND_BARRIER);
+	command_barrier cmd = malloc(sizeof(struct command_barrier_t));
+	command_init(cmd, CL_COMMAND_BARRIER, NULL);
 
 	return cmd;
 }
@@ -150,9 +168,18 @@ command_marker command_barrier_create () {
 command_marker command_marker_create () {
 
 	command_marker cmd = malloc(sizeof(struct command_marker_t));
-	command_init(cmd, CL_COMMAND_MARKER);
+	command_init(cmd, CL_COMMAND_MARKER, NULL);
 
 	return cmd;
+}
+
+void command_map_buffer_release(void * arg) {
+	command_map_buffer cmd = (command_map_buffer)arg;
+
+	/* We DO NOT unstore (release) the buffer as unmap will do it
+	  gc_entity_unstore(&cmd->buffer); */
+
+	gc_entity_unstore(&cmd->event);
 }
 
 command_map_buffer command_map_buffer_create(
@@ -164,33 +191,46 @@ command_map_buffer command_map_buffer_create(
 		) {
 
 	command_map_buffer cmd = malloc(sizeof(struct command_map_buffer_t));
-	command_init(cmd, CL_COMMAND_MAP_BUFFER);
+	command_init(cmd, CL_COMMAND_MAP_BUFFER, command_map_buffer_release);
 
-	dupEntity(buffer);
+	gc_entity_store(&cmd->buffer, buffer);
 	dup(map_flags);
 	dup(offset);
 	dup(cb);
-	dupEntity(event);
+	gc_entity_store(&cmd->event, event);
 
 	return cmd;
 }
 
+void command_unmap_mem_object_release(void * arg) {
+	command_unmap_mem_object cmd = (command_unmap_mem_object)arg;
+
+	/* We release the buffer twice because map buffer command did not */
+	gc_entity_release(cmd->buffer);
+	gc_entity_unstore(&cmd->buffer);
+}
+
 command_unmap_mem_object command_unmap_mem_object_create(cl_mem buffer, void * ptr) {
 	command_unmap_mem_object cmd = malloc(sizeof(struct command_unmap_mem_object_t));
-	command_init(cmd, CL_COMMAND_UNMAP_MEM_OBJECT);
+	command_init(cmd, CL_COMMAND_UNMAP_MEM_OBJECT, command_unmap_mem_object_release);
 
-	dupEntity(buffer);
+	gc_entity_store(&cmd->buffer, buffer);
 	dup(ptr);
 
 	return cmd;
+}
+
+void command_read_buffer_release(void *arg) {
+	command_read_buffer cmd = (command_read_buffer)arg;
+	gc_entity_unstore(&cmd->buffer);
 }
 
 command_read_buffer command_read_buffer_create(cl_mem buffer, size_t offset, size_t cb, void * ptr) {
 
 	command_read_buffer cmd = malloc(sizeof(struct command_read_buffer_t));
-	command_init(cmd, CL_COMMAND_READ_BUFFER);
+	command_init(cmd, CL_COMMAND_READ_BUFFER, command_read_buffer_release);
 
-	dupEntity(buffer);
+	gc_entity_store(&cmd->buffer, buffer);
 	dup(offset);
 	dup(cb);
 	dup(ptr);
@@ -198,27 +238,38 @@ command_read_buffer command_read_buffer_create(cl_mem buffer, size_t offset, siz
 	return cmd;
 }
 
+void command_write_buffer_release(void *arg) {
+	command_write_buffer cmd = (command_write_buffer)arg;
+	gc_entity_unstore(&cmd->buffer);
+}
+
 command_write_buffer command_write_buffer_create(cl_mem buffer, size_t offset, size_t cb, const void * ptr) {
 
 	command_write_buffer cmd = malloc(sizeof(struct command_write_buffer_t));
-	command_init(cmd, CL_COMMAND_WRITE_BUFFER);
+	command_init(cmd, CL_COMMAND_WRITE_BUFFER, command_write_buffer_release);
 
-	dupEntity(buffer);
+	gc_entity_store(&cmd->buffer, buffer);
 	dup(offset);
 	dup(cb);
 	dup(ptr);
 
 	return cmd;
+}
+
+void command_copy_buffer_release(void *arg) {
+	command_copy_buffer cmd = (command_copy_buffer)arg;
+	gc_entity_unstore(&cmd->src_buffer);
+	gc_entity_unstore(&cmd->dst_buffer);
 }
 
 command_copy_buffer command_copy_buffer_create( cl_mem src_buffer, cl_mem dst_buffer,
 		size_t src_offset, size_t dst_offset, size_t cb)
 {
 	command_copy_buffer cmd = malloc(sizeof(struct command_copy_buffer_t));
-	command_init(cmd, CL_COMMAND_COPY_BUFFER);
+	command_init(cmd, CL_COMMAND_COPY_BUFFER, command_copy_buffer_release);
 
-	dupEntity(src_buffer);
-	dupEntity(dst_buffer);
+	gc_entity_store(&cmd->src_buffer, src_buffer);
+	gc_entity_store(&cmd->dst_buffer, dst_buffer);
 	dup(src_offset);
 	dup(dst_offset);
 	dup(cb);
@@ -229,7 +280,6 @@ command_copy_buffer command_copy_buffer_create( cl_mem src_buffer, cl_mem dst_bu
 #undef nullOrDup
 #undef nodeNullOrDup
 #undef dup
-#undef dupEntity
 #undef nodeDup
 #undef memdup
 

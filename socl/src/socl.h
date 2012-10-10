@@ -47,17 +47,6 @@ typedef struct starpu_task * starpu_task;
  */
 typedef struct entity * entity;
 
-#include "command.h"
-#include "command_list.h"
-#include "command_queue.h"
-#include "debug.h"
-#include "event.h"
-#include "gc.h"
-#include "mem_objects.h"
-#include "task.h"
-#include "util.h"
-
-
 struct entity {
   struct _cl_icd_dispatch * dispatch;
   /* Reference count */
@@ -74,6 +63,18 @@ struct entity {
 /* OpenCL entities (context, command queues, buffers...) must use
  * this macro as their first field */
 #define CL_ENTITY struct entity _entity;
+
+
+#include "command.h"
+#include "command_list.h"
+#include "command_queue.h"
+#include "debug.h"
+#include "event.h"
+#include "gc.h"
+#include "mem_objects.h"
+#include "task.h"
+#include "util.h"
+
 
 
 struct _cl_platform_id {struct _cl_icd_dispatch *dispatch;};

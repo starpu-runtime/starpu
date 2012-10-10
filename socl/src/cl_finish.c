@@ -19,7 +19,7 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclFinish(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0 {
 
-	command_marker cmd = command_barrier_create();
+	command_barrier cmd = command_barrier_create();
 
 	command_queue_enqueue(cq, cmd, 0, NULL);
 
