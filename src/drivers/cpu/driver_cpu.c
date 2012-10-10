@@ -72,30 +72,30 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 
 #elif defined(HAVE_SYSCONF)
 void
-_starpu_cpu_discover_cpus(struct _starpu_machine_config *config)
+_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the CPUs relying on the sysconf(3) function and fills
 	 * CONFIG accordingly. */
 
-	config->topology->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
+	config->topology.nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 #elif defined(__MINGW32__) || defined(__CYGWIN__)
 void
-_starpu_cpu_discover_cpus(struct _starpu_machine_config *config)
+_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the CPUs on Cygwin and MinGW systems. */
 
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
-	config->topology->nhwcpus += sysinfo.dwNumberOfProcessors;
+	config->topology.nhwcpus = sysinfo.dwNumberOfProcessors;
 }
 #else
 #warning no way to know number of cores, assuming 1
 void
-_starpu_cpu_discover_cpus(struct _starpu_machine_config *config)
+_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 {
-	config->topology->nhwcpus = 1;
+	config->topology.nhwcpus = 1;
 }
 #endif
 
