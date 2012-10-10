@@ -150,9 +150,6 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     fi
   ])
 
-  dnl FIXME Does this test really work ?
-  AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
-                 [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
 
   if test "x$ac_cv_have_gcc_plugins" = "xyes"; then
     dnl Check for specific features.
@@ -209,6 +206,9 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     fi
     AC_SUBST([GCC_FOR_PLUGIN_LIBTOOL_TAG])
   fi
+
+  AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
+                 [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
 
   AC_SUBST([GCC_PLUGIN_INCLUDE_DIR])
 ])
