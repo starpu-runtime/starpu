@@ -36,10 +36,14 @@
 #define ERROR_MSG_NOHEAD(...) fprintf(stderr, __VA_ARGS__)
 #define ERROR_STOP(...) do { ERROR_MSG(__VA_ARGS__); exit(1); } while(0);
 
+void ERROR_CL(char *s, cl_int err);
+
 #ifdef STARPU_VERBOSE
-void DEBUG_CL(char *s, cl_int err);
+   #define DEBUG_CL(args...) ERROR_CL(args) 
 #else
    #define DEBUG_CL(...) while(0);
 #endif
+
+
 
 #endif /* SOCL_DEBUG_H */

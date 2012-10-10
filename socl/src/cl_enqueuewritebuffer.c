@@ -42,9 +42,14 @@ static void soclEnqueueWriteBuffer_opencl_task(void *descr[], void *args) {
    cl_command_queue cq;
    starpu_opencl_get_queue(wid, &cq);
 
-   cl_int err = clEnqueueWriteBuffer(cq, mem, CL_TRUE, cmd->offset, cmd->cb, cmd->ptr, 0, NULL, NULL);
+   cl_event ev;
+
+   cl_int err = clEnqueueWriteBuffer(cq, mem, CL_TRUE, cmd->offset, cmd->cb, cmd->ptr, 0, NULL, &ev);
    if (err != CL_SUCCESS)
-      DEBUG_CL("clEnqueueWriteBuffer", err);
+      ERROR_CL("clEnqueueWriteBuffer", err);
+
+   clWaitForEvents(1, &ev);
+   clReleaseEvent(ev);
 }
 
 static struct starpu_perfmodel write_buffer_perfmodel = {

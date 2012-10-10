@@ -39,9 +39,13 @@ static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
    cl_command_queue cq;
    starpu_opencl_get_queue(wid, &cq);
 
-   cl_int ret = clEnqueueReadBuffer(cq, mem, CL_TRUE, cmd->offset, cmd->cb, cmd->ptr, 0, NULL, NULL);
+   cl_event ev;
+   cl_int ret = clEnqueueReadBuffer(cq, mem, CL_TRUE, cmd->offset, cmd->cb, cmd->ptr, 0, NULL, &ev);
    if (ret != CL_SUCCESS)
-      DEBUG_CL("clEnqueueReadBuffer", ret);
+      ERROR_CL("clEnqueueReadBuffer", ret);
+
+   clWaitForEvents(1, &ev);
+   clReleaseEvent(ev);
 
 }
 
