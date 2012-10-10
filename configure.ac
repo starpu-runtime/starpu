@@ -1331,6 +1331,8 @@ if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; the
 	AC_SUBST([GCC_PLUGIN_PKGCONFIG])
     fi
 fi
+AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
+               [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
 
 
 if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
