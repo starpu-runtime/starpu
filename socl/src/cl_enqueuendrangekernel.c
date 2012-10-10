@@ -174,10 +174,12 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	/* Enqueue a cleaning task */
 	//FIXME: execute this in the callback?
-	starpu_task cleaning_task = task_create_cpu(cleaning_task_callback, cmd,0);
 	cl_event ev = command_event_get(cmd);
-	task_depends_on(cleaning_task, 1, &ev);
-	task_submit(cleaning_task, cmd);
+
+	static struct starpu_codelet cdl = {
+		.name = "SOCL_NDRANGE_CLEANING_TASK"
+	};
+	cpu_task_submit(cmd, cleaning_task_callback, cmd, 0, &cdl, 1, &ev);
 
 	return CL_SUCCESS;
 }

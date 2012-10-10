@@ -124,23 +124,24 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
 
 }
 
-static struct starpu_codelet cputask_codelet = {
-   .where = STARPU_CPU,
-   .model = NULL,
-   .cpu_funcs = { &cputask_task, NULL }
-};
-
-starpu_task task_create_cpu(void (*callback)(void*), void *arg, int free_arg) {
+void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int free_arg, struct starpu_codelet * codelet, unsigned num_events, cl_event * events) {
   
   struct cputask_arg * a = malloc(sizeof(struct cputask_arg));
   a->callback = callback;
   a->arg = arg;
   a->free_arg = free_arg;
 
+  codelet->where = STARPU_CPU;
+  codelet->cpu_funcs[0] = &cputask_task;
+
   starpu_task task = task_create();
-  task->cl = &cputask_codelet;
+  task->cl = codelet;
   task->cl_arg = a;
 
-  return task;
+  if (num_events != 0) {
+     task_depends_on(task, num_events, events);
+  }
+
+  task_submit(task, cmd);
 }
 

@@ -21,9 +21,10 @@ cl_int command_unmap_mem_object_submit(command_unmap_mem_object cmd) {
 	cl_mem buffer = cmd->buffer;
 
 	//FIXME: use a callback
-	starpu_task task = task_create_cpu((void(*)(void*))starpu_data_release, buffer->handle, 0);
-
-	task_submit(task, cmd);
+	static struct starpu_codelet codelet = {
+		.name = "SOCL_UNMAP_MEM_OBJECT"
+	};
+	cpu_task_submit(cmd, (void(*)(void*))starpu_data_release, buffer->handle, 0, &codelet, 0, NULL);
 
 	return CL_SUCCESS;
 }
