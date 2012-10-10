@@ -53,7 +53,7 @@ static void release_callback_program(void * e) {
   cl_program program = (cl_program)e;
 
   /* Destruct object */
-  starpu_execute_on_each_worker(rp_task, program, STARPU_OPENCL);
+  starpu_execute_on_each_worker_ex(rp_task, program, STARPU_OPENCL, "SOCL_RELEASE_PROGRAM");
 
   /* Release references */
   gc_entity_unstore(&program->context);
@@ -135,7 +135,7 @@ soclCreateProgramWithSource(cl_context      context,
    data->errcodes = (cl_int*)malloc(sizeof(cl_int) * device_count);
 
    /* Init real cl_program for each OpenCL device */
-   starpu_execute_on_each_worker(soclCreateProgramWithSource_task, data, STARPU_OPENCL);
+   starpu_execute_on_each_worker_ex(soclCreateProgramWithSource_task, data, STARPU_OPENCL, "SOCL_CREATE_PROGRAM");
 
    if (errcode_ret != NULL) {
       int i;

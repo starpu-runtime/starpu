@@ -97,12 +97,15 @@ soclBuildProgram(cl_program         program,
    data->num_devices = num_devices;
    data->device_list = device_list;
 
-   /*FIXME: starpu_execute_on_each_worker is synchronous.
+   /*FIXME: starpu_execute_on_specific_workers is synchronous.
     * However pfn_notify is useful only because build is supposed to be asynchronous
-    *
-    * We shouldn't execute on every worker as device list may be specified.
     */
-   starpu_execute_on_each_worker(soclBuildProgram_task, data, STARPU_OPENCL);
+   unsigned workers[num_devices];
+   unsigned i;
+   for (i=0; i<num_devices; i++) {
+      workers[i] = device_list[i]->worker_id;
+   }
+   starpu_execute_on_specific_workers(soclBuildProgram_task, data, num_devices, workers, "SOCL_BUILD_PROGRAM");
 
 
    if (pfn_notify != NULL)

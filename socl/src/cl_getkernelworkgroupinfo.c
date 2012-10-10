@@ -108,7 +108,7 @@ soclGetKernelWorkGroupInfo(cl_kernel                kernel,
       case CL_KERNEL_WORK_GROUP_SIZE:
          /* We take the smallest value to be sure the kernel can be executed on any available device */
          data.work_group_size = SIZE_MAX;
-         starpu_execute_on_each_worker(gkwgi_task, &data, STARPU_OPENCL);
+         starpu_execute_on_each_worker_ex(gkwgi_task, &data, STARPU_OPENCL, "SOCL_GET_KERNEL_WORKGROUP_INFO");
          INFO_CASE_EX2(data.work_group_size);
       case CL_KERNEL_COMPILE_WORK_GROUP_SIZE: {
          struct starpu_task *task;
@@ -125,7 +125,7 @@ soclGetKernelWorkGroupInfo(cl_kernel                kernel,
       case CL_KERNEL_LOCAL_MEM_SIZE:
          /* We take the biggest value to be sure the kernel can be executed on any available device */
          data.local_mem_size = 0;
-         starpu_execute_on_each_worker(gkwgi_task, &data, STARPU_OPENCL);
+         starpu_execute_on_each_worker_ex(gkwgi_task, &data, STARPU_OPENCL, "SOCL_GET_KERNEL_WORKGROUP_INFO");
          INFO_CASE_EX2(data.local_mem_size);
       default:
          return CL_INVALID_OPERATION;

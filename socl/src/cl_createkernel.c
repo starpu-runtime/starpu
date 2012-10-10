@@ -59,9 +59,11 @@ static void rk_task(void *data) {
 
    int range = starpu_worker_get_range();
 
-   cl_int err = clReleaseKernel(k->cl_kernels[range]);
-   if (err != CL_SUCCESS)
-      DEBUG_CL("clReleaseKernel", err);
+   if (k->cl_kernels[range] != NULL) {
+      cl_int err = clReleaseKernel(k->cl_kernels[range]);
+      if (err != CL_SUCCESS)
+         DEBUG_CL("clReleaseKernel", err);
+   }
 }
 
 static void release_callback_kernel(void * e) {
@@ -89,7 +91,7 @@ static void release_callback_kernel(void * e) {
     free(kernel->arg_type);
 
   //Release real kernels...
-  starpu_execute_on_each_worker(rk_task, kernel, STARPU_OPENCL);
+  starpu_execute_on_each_worker_ex(rk_task, kernel, STARPU_OPENCL, "SOCL_RELEASE_KERNEL");
 
   //Release perfmodel
   free(kernel->perfmodel);
@@ -145,6 +147,7 @@ soclCreateKernel(cl_program    program,
    device_count = starpu_opencl_worker_get_count();
    k->cl_kernels = (cl_kernel*)malloc(device_count * sizeof(cl_kernel));
    k->errcodes = (cl_int*)malloc(device_count * sizeof(cl_int));
+
    {
       int i;
       for (i=0; i<device_count; i++) {
@@ -155,7 +158,7 @@ soclCreateKernel(cl_program    program,
 
    /* Create kernel on each device */
    DEBUG_MSG("[Kernel %d] Create %d kernels (name \"%s\")\n", k->id, starpu_opencl_worker_get_count(), kernel_name);
-   starpu_execute_on_each_worker(soclCreateKernel_task, k, STARPU_OPENCL);
+   starpu_execute_on_each_worker_ex(soclCreateKernel_task, k, STARPU_OPENCL, "SOCL_CREATE_KERNEL");
 
    if (errcode_ret != NULL) {
       int i;
