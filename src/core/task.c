@@ -381,8 +381,13 @@ int starpu_task_submit(struct starpu_task *task)
 		STARPU_ASSERT(task->cl->nbuffers <= STARPU_NMAXBUFS);
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
+			starpu_data_handle_t handle = task->handles[i];
 			/* Make sure handles are not partitioned */
-			STARPU_ASSERT(task->handles[i]->nchildren == 0);
+			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data can be used in a task");
+			/* Provide the home interface for now if any,
+			 * for can_execute hooks */
+			if (handle->home_node != -1)
+				task->interfaces[i] = starpu_data_get_interface_on_node(task->handles[i], handle->home_node);
 		}
 
 		/* In case we require that a task should be explicitely
