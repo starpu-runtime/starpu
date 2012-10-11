@@ -757,5 +757,6 @@ soclIcdGetPlatformIDsKHR(cl_uint          /* num_entries */,
 struct _cl_icd_dispatch socl_master_dispatch;
 struct _cl_platform_id socl_platform;
 struct _cl_device_id * socl_devices;
+extern unsigned int socl_device_count;
 
 #endif /* SOCL_H */

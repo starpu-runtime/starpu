@@ -22,11 +22,17 @@ static void soclCreateKernel_task(void *data) {
    int range = starpu_worker_get_range();
    cl_int err;
 
+   if (k->program->cl_programs[range] == NULL) {
+      k->errcodes[range] = CL_SUCCESS;
+      DEBUG_MSG("[Device %d] Kernel creation skipped: program has not been built for this device.\n", starpu_worker_get_id());
+      return;
+   }
+
    DEBUG_MSG("[Device %d] Creating kernel...\n", starpu_worker_get_id());
    k->cl_kernels[range] = clCreateKernel(k->program->cl_programs[range], k->kernel_name, &err);
    if (err != CL_SUCCESS) {
       k->errcodes[range] = err;
-      ERROR_STOP("[Device %d] Unable to create kernel. Aborting.\n", starpu_worker_get_id());
+      ERROR_STOP("[Device %d] Unable to create kernel. Error %d. Aborting.\n", starpu_worker_get_id(), err);
       return;
    }
 
@@ -54,32 +60,20 @@ static void soclCreateKernel_task(void *data) {
    }
 }
 
-static void rk_task(void *data) {
-   cl_kernel k = (cl_kernel)data;
-
-   int range = starpu_worker_get_range();
-
-   if (k->cl_kernels[range] != NULL) {
-      cl_int err = clReleaseKernel(k->cl_kernels[range]);
-      if (err != CL_SUCCESS)
-         DEBUG_CL("clReleaseKernel", err);
-   }
-}
-
 static void release_callback_kernel(void * e) {
   cl_kernel kernel = (cl_kernel)e;
 
   //Free args
-  unsigned int j;
-  for (j=0; j<kernel->num_args; j++) {
-    switch (kernel->arg_type[j]) {
+  unsigned int i;
+  for (i=0; i<kernel->num_args; i++) {
+    switch (kernel->arg_type[i]) {
       case Null:
         break;
       case Buffer:
-        gc_entity_unstore((cl_mem*)&kernel->arg_value[j]);
+        gc_entity_unstore((cl_mem*)&kernel->arg_value[i]);
         break;
       case Immediate:
-        free(kernel->arg_value[j]);
+        free(kernel->arg_value[i]);
         break;
     }
   }
@@ -91,7 +85,13 @@ static void release_callback_kernel(void * e) {
     free(kernel->arg_type);
 
   //Release real kernels...
-  starpu_execute_on_each_worker_ex(rk_task, kernel, STARPU_OPENCL, "SOCL_RELEASE_KERNEL");
+  for (i=0; i<socl_device_count; i++) {
+     if (kernel->cl_kernels[i] != NULL) {
+        cl_int err = clReleaseKernel(kernel->cl_kernels[i]);
+        if (err != CL_SUCCESS)
+           DEBUG_CL("clReleaseKernel", err);
+     }
+  }
 
   //Release perfmodel
   free(kernel->perfmodel);
@@ -109,7 +109,6 @@ soclCreateKernel(cl_program    program,
                cl_int *        errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
    cl_kernel k;
-   int device_count;
 
    if (program == NULL) {
       if (errcode_ret != NULL)
@@ -144,26 +143,25 @@ soclCreateKernel(cl_program    program,
    k->id = id++;
    #endif
    
-   device_count = starpu_opencl_worker_get_count();
-   k->cl_kernels = (cl_kernel*)malloc(device_count * sizeof(cl_kernel));
-   k->errcodes = (cl_int*)malloc(device_count * sizeof(cl_int));
+   k->cl_kernels = (cl_kernel*)malloc(socl_device_count * sizeof(cl_kernel));
+   k->errcodes = (cl_int*)malloc(socl_device_count * sizeof(cl_int));
 
    {
-      int i;
-      for (i=0; i<device_count; i++) {
+      unsigned int i;
+      for (i=0; i<socl_device_count; i++) {
          k->cl_kernels[i] = NULL;
          k->errcodes[i] = -9999;
       }
    }
 
    /* Create kernel on each device */
-   DEBUG_MSG("[Kernel %d] Create %d kernels (name \"%s\")\n", k->id, starpu_opencl_worker_get_count(), kernel_name);
+   DEBUG_MSG("[Kernel %d] Create %d kernels (name \"%s\")\n", k->id, socl_device_count, kernel_name);
    starpu_execute_on_each_worker_ex(soclCreateKernel_task, k, STARPU_OPENCL, "SOCL_CREATE_KERNEL");
 
    if (errcode_ret != NULL) {
-      int i;
+      unsigned int i;
       *errcode_ret = CL_SUCCESS;
-      for (i=0; i<device_count; i++) {
+      for (i=0; i<socl_device_count; i++) {
          switch (k->errcodes[i]) {
             #define CASE_RET(e) case e: *errcode_ret = e; return k;
             CASE_RET(CL_INVALID_PROGRAM)
@@ -175,6 +173,11 @@ soclCreateKernel(cl_program    program,
             CASE_RET(CL_OUT_OF_HOST_MEMORY)
             #undef CASE_RET
          }
+      }
+
+      if (k->num_args == 666) {
+         *errcode_ret = CL_INVALID_PROGRAM_EXECUTABLE;
+         return k;
       }
    }
 

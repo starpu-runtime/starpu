@@ -56,6 +56,7 @@ soclGetDeviceIDs(cl_platform_id   platform,
    starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, ndevs);
 
    if (socl_devices == NULL) {
+      socl_device_count = ndevs;
       socl_devices = malloc(sizeof(struct _cl_device_id) * ndevs);
       int i;
       for (i=0; i < ndevs; i++) {
