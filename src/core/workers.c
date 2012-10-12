@@ -57,16 +57,55 @@ struct _starpu_machine_config *_starpu_get_machine_config(void)
 }
 
 /* Makes sure that at least one of the workers of type <arch> can execute
- * <task>*/
+ * <task>, for at least one of its implementations. */
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 						      enum starpu_archtype arch)
 {
 	int i;
 	int nworkers = starpu_worker_get_count();
 	for (i = 0; i < nworkers; i++)
-		if (starpu_worker_get_type(i) == arch &&
-		    task->cl->can_execute(i, task, 0))
-			return 1;
+	{
+		if (starpu_worker_get_type(i) != arch)
+			continue;
+
+		unsigned impl;
+		for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+		{
+			/* We could call task->cl->can_execute(i, task, impl) 
+			   here, it would definitely work. It is probably
+			   cheaper to check whether it is necessary in order to
+			   avoid a useless function call, though. */
+			unsigned test_implementation = 0;
+			switch (arch)
+			{
+			case STARPU_CPU_WORKER:
+				if (task->cl->cpu_funcs[i] != NULL)
+					test_implementation = 1;
+				break;
+			case STARPU_CUDA_WORKER:
+				if (task->cl->cuda_funcs[i] != NULL)
+					test_implementation = 1;
+				break;
+			case STARPU_OPENCL_WORKER:
+				if (task->cl->opencl_funcs[i] != NULL)
+					test_implementation = 1;
+				break;
+			case STARPU_GORDON_WORKER:
+				if (task->cl->gordon_funcs[i] != 0)
+					test_implementation = 1;
+				break;
+			default:
+				STARPU_ABORT();
+			}
+
+			if (!test_implementation)
+				break;
+
+			if (task->cl->can_execute(i, task, impl))
+				return 1;
+		}
+	}
+
 	return 0;
 }
 
