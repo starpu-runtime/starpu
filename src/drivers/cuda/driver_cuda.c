@@ -52,7 +52,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 
 	cures = cudaGetDeviceCount (&cnt);
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
-		STARPU_CUDA_REPORT_ERROR(cures);
+		cnt = 0;
 	config->topology.nhwcudagpus = cnt;
 }
 
