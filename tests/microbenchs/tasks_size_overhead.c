@@ -63,7 +63,7 @@ static struct starpu_codelet codelet =
 	.where = STARPU_CPU,
 	.cpu_funcs = {func, NULL},
 	.nbuffers = 0,
-	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
+	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
 };
 
 static void parse_args(int argc, char **argv)
