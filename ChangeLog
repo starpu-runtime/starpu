@@ -21,6 +21,8 @@ Changes:
   * Fix main memory leak on multiple unregister/re-register.
   * Fix compilation with FxT enabled in a non standard location
   * Improve hwloc detection by configure
+  * Fix GCC plugin linking issues starting with GCC 4.7.
+  * Fix forcing calibration of never-calibrated archs.
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================
