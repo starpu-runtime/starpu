@@ -63,6 +63,10 @@ Small changes:
   * include/starpu.h includes all include/starpu_*.h files, applications
 	therefore only need to have #include <starpu.h>
   * Active task wait is now included in blocked time.
+  * Fix GCC plugin linking issues starting with GCC 4.7.
+  * Fix forcing calibration of never-calibrated archs.
+  * CUDA applications are no longer compiled with the "-arch sm_13"
+    option. It is specifically added to applications which need it.
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================
