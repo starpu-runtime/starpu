@@ -30,10 +30,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#define START 1000
-#define STOP 1000000
+#define START 4
+#define STOP 4096
 #ifdef STARPU_SLOW_MACHINE
-#define FACTOR 4
+#define FACTOR 8
 #else
 #define FACTOR 2
 #endif
@@ -52,10 +52,19 @@ struct starpu_task *tasks;
 
 static void func(void *descr[] __attribute__ ((unused)), void *arg)
 {
+	struct timeval tv1, tv2;
 	unsigned n = (uintptr_t)arg;
-	volatile unsigned i;
-	for (i = 0; i < n ; i++)
-		;
+	suseconds_t usec = 0;
+	gettimeofday(&tv1, NULL);
+	do {
+		gettimeofday(&tv2, NULL);
+		if (tv2.tv_usec < tv1.tv_usec) {
+			tv2.tv_usec += 1000000;
+			tv2.tv_sec--;
+		}
+		usec = (tv2.tv_sec-tv1.tv_sec)*1000000
+			+ (tv2.tv_usec - tv1.tv_usec);
+	} while (usec < n);
 }
 
 static struct starpu_codelet codelet = 
@@ -123,11 +132,11 @@ int main(int argc, char **argv)
 	/* Emit headers and compute raw tasks speed */
 	FPRINTF(stdout, "# tasks : %u buffers : %u\n", ntasks, nbuffers);
 	FPRINTF(stdout, "# ncpus\t");
-	for (size = START; size < STOP; size *= FACTOR)
-		FPRINTF(stdout, "%d iters(us)\ttotal(s)\t", size);
+	for (size = START; size <= STOP; size *= FACTOR)
+		FPRINTF(stdout, "%u iters(us)\ttotal(s)\t", size);
 	FPRINTF(stdout, "\n");
 	FPRINTF(stdout, "\"seq\"\t");
-	for (size = START; size < STOP; size *= FACTOR) {
+	for (size = START; size <= STOP; size *= FACTOR) {
 		double start,end;
 		start = starpu_timing_now();
 		for (i = 0; i < ntasks; i++)
@@ -140,7 +149,7 @@ int main(int argc, char **argv)
 
 	/* For each number of cpus, benchmark */
 	for (ncpus= 1; ncpus <= totcpus; ncpus++) {
-		FPRINTF(stdout, "%d\t", ncpus);
+		FPRINTF(stdout, "%u\t", ncpus);
 		fflush(stdout);
 
 		conf.ncpus = ncpus;
@@ -149,7 +158,7 @@ int main(int argc, char **argv)
 		for (buffer = 0; buffer < nbuffers; buffer++)
 			starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
 
-		for (size = START; size < STOP; size *= FACTOR)
+		for (size = START; size <= STOP; size *= FACTOR)
 		{
 			/* submit tasks */
 			gettimeofday(&start, NULL);
@@ -177,7 +186,7 @@ int main(int argc, char **argv)
 
 			timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-			FPRINTF(stdout, "%f\t%f\t", (timing*ncpus)/ntasks, timing/1000000);
+			FPRINTF(stdout, "%u\t%f\t", size, timing/1000000);
 			fflush(stdout);
 
 			{

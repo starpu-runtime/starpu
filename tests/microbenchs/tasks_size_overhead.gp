@@ -11,6 +11,7 @@ VAL7=$(echo "$VALS" | cut -d '	' -f 15)
 VAL8=$(echo "$VALS" | cut -d '	' -f 17)
 VAL9=$(echo "$VALS" | cut -d '	' -f 19)
 VAL10=$(echo "$VALS" | cut -d '	' -f 21)
+VAL11=$(echo "$VALS" | cut -d '	' -f 23)
 gnuplot << EOF
 set terminal eps
 set output "tasks_size_overhead.eps"
@@ -26,5 +27,6 @@ plot \
 	"$OUTPUT" using 1:($VAL8)/(\$17) with linespoints title columnheader(16), \
 	"$OUTPUT" using 1:($VAL9)/(\$19) with linespoints title columnheader(18), \
 	"$OUTPUT" using 1:($VAL10)/(\$21) with linespoints title columnheader(20), \
+	"$OUTPUT" using 1:($VAL11)/(\$23) with linespoints title columnheader(22), \
 	x title "linear"
 EOF
