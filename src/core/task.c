@@ -370,13 +370,6 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		unsigned i;
 
-		/* Check the type of worker(s) required by the task exist */
-		if (!_starpu_worker_exists(task))
-		{
-                        _STARPU_LOG_OUT_TAG("ENODEV");
-			return -ENODEV;
-                }
-
 		/* Check buffers */
 		STARPU_ASSERT(task->cl->nbuffers <= STARPU_NMAXBUFS);
 		for (i = 0; i < task->cl->nbuffers; i++)
@@ -389,6 +382,13 @@ int starpu_task_submit(struct starpu_task *task)
 			if (handle->home_node != -1)
 				task->interfaces[i] = starpu_data_get_interface_on_node(task->handles[i], handle->home_node);
 		}
+
+		/* Check the type of worker(s) required by the task exist */
+		if (!_starpu_worker_exists(task))
+		{
+                        _STARPU_LOG_OUT_TAG("ENODEV");
+			return -ENODEV;
+                }
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
