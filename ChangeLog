@@ -35,6 +35,7 @@ New features:
 	  unregistered memory buffers.
   * SOCL
         - Manual mapping of commands on specific devices is now possible
+  * New interface: COO matrix.
 
 Changes:
   * Fix the block filter functions.

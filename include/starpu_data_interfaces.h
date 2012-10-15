@@ -95,7 +95,8 @@ enum starpu_data_interface_id
 	STARPU_VARIABLE_INTERFACE_ID=5,
 	STARPU_VOID_INTERFACE_ID=6,
 	STARPU_MULTIFORMAT_INTERFACE_ID=7,
-	STARPU_MAX_INTERFACE_ID=8 /* maximum number of data interfaces */
+	STARPU_COO_INTERFACE_ID=8,
+	STARPU_MAX_INTERFACE_ID=9 /* maximum number of data interfaces */
 };
 
 struct starpu_data_interface_ops
@@ -194,6 +195,40 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_MATRIX_GET_LD(interface)	(((struct starpu_matrix_interface *)(interface))->ld)
 #define STARPU_MATRIX_GET_ELEMSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->elemsize)
 
+/*
+ * COO matrices.
+ */
+struct starpu_coo_interface
+{
+	uint32_t  *columns;
+	uint32_t  *rows;
+	uintptr_t values;
+	uint32_t  nx;
+	uint32_t  ny;
+	uint32_t  n_values;
+	size_t    elemsize;
+};
+
+void
+starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+			 uint32_t nx, uint32_t ny, uint32_t n_values,
+			 uint32_t *columns, uint32_t *rows,
+			 uintptr_t values, size_t elemsize);
+
+#define STARPU_COO_GET_COLUMNS(interface) \
+	(((struct starpu_coo_interface *)(interface))->columns)
+#define STARPU_COO_GET_ROWS(interface) \
+	(((struct starpu_coo_interface *)(interface))->rows)
+#define STARPU_COO_GET_VALUES(interface) \
+	(((struct starpu_coo_interface *)(interface))->values)
+#define STARPU_COO_GET_NX(interface) \
+	(((struct starpu_coo_interface *)(interface))->nx)
+#define STARPU_COO_GET_NY(interface) \
+	(((struct starpu_coo_interface *)(interface))->ny)
+#define STARPU_COO_GET_NVALUES(interface) \
+	(((struct starpu_coo_interface *)(interface))->n_values)
+#define STARPU_COO_GET_ELEMSIZE(interface) \
+	(((struct starpu_coo_interface *)(interface))->elemsize)
 
 /* BLOCK interface for 3D dense blocks */
 /* TODO: rename to 3dmatrix? */

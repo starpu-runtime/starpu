@@ -176,6 +176,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	datawizard/reduction.c					\
 	datawizard/interfaces/data_interface.c			\
 	datawizard/interfaces/bcsr_interface.c			\
+	datawizard/interfaces/coo_interface.c                   \
 	datawizard/interfaces/csr_interface.c			\
 	datawizard/interfaces/matrix_filters.c			\
 	datawizard/interfaces/matrix_interface.c		\

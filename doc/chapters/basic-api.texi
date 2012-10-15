@@ -686,6 +686,12 @@ Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
+@deftypefun void starpu_coo_data_register(starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{n_values}, uint32_t *@var{columns}, uint32_t *@var{rows}, uintptr_t @var{values}, size_t @var{elemsize});
+Register the @var{nx}x@var{ny} 2D matrix given in the COO format, using the
+@var{columns}, @var{rows}, @var{values} arrays, which must have @var{n_values}
+elements of size @var{elemsize}. Initialize @var{handleptr}.
+@end deftypefun
+
 @deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle_t @var{handle}, unsigned @var{memory_node})
 Return the interface associated with @var{handle} on @var{memory_node}.
 @end deftypefun
@@ -708,6 +714,7 @@ The different values are:
 @item @code{STARPU_VARIABLE_INTERFACE_ID}
 @item @code{STARPU_VOID_INTERFACE_ID}
 @item @code{STARPU_MULTIFORMAT_INTERFACE_ID}
+@item @code{STARPU_COO_INTERCACE_ID}
 @item @code{STARPU_NINTERFACES_ID}: number of data interfaces
 @end table
 @end deftp
@@ -720,6 +727,7 @@ The different values are:
 * Accessing Block Data Interfaces::
 * Accessing BCSR Data Interfaces::
 * Accessing CSR Data Interfaces::
+* Accessing COO Data Interfaces::
 @end menu
 
 @node Accessing Handle
@@ -1066,6 +1074,37 @@ of the @var{interface} start.
 
 @defmac STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
 Return the size of the elements registered into the matrix designated by @var{interface}.
+@end defmac
+
+
+@node Accessing COO Data Interfaces
+@subsubsection COO Data Interfaces
+@defmac STARPU_COO_GET_COLUMNS({void *}@var{interface})
+Return a pointer to the column array of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_ROWS(interface)
+Return a pointer to the rows array of the matrix designated by @var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_VALUES(interface)
+Return a pointer to the values array of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_NX(interface)
+Return the number of elements on the x-axis of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_NY(interface)
+Return the number of elements on the y-axis of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_NVALUES(interface)
+Return the number of values registered in the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_ELEMSIZE(interface)
+Return the size of the elements registered into the matrix designated by
+@var{interface}.
 @end defmac
 
 @node Data Partition
