@@ -66,11 +66,6 @@
 #define STARPU_DONT_INCLUDE_CUDA_HEADERS
 
 
-/* C expression parser, possibly with C++ linkage.  */
-
-extern int yyparse (location_t, const char *, tree *);
-extern int yydebug;
-
 #ifndef STRINGIFY
 # define STRINGIFY_(x) # x
 # define STRINGIFY(x)  STRINGIFY_ (x)
@@ -658,23 +653,6 @@ handle_pragma_wait (struct cpp_reader *reader)
 
       add_stmt (build_call_expr (fndecl, 0));
     }
-}
-
-/* The minimal C expression parser.  */
-
-/* Parse expressions from the CPP reader for PRAGMA, which is located at LOC.
-   Return a TREE_LIST of C expressions.  */
-
-static tree
-read_pragma_expressions (const char *pragma, location_t loc)
-{
-  tree expr = NULL_TREE;
-
-  if (yyparse (loc, pragma, &expr))
-    /* Parse error or memory exhaustion.  */
-    expr = NULL_TREE;
-
-  return expr;
 }
 
 /* Build a `starpu_vector_data_register' call for the COUNT elements pointed

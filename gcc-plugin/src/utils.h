@@ -51,6 +51,8 @@ extern bool verbose_output_p;
 extern const char task_attribute_name[];
 extern bool task_p (const_tree decl);
 
+extern tree read_pragma_expressions (const char *pragma, location_t loc);
+
 
 #include <tree.h>
 

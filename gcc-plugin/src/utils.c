@@ -42,3 +42,23 @@ task_p (const_tree decl)
 	  lookup_attribute (task_attribute_name,
 			    DECL_ATTRIBUTES (decl)) != NULL_TREE);
 }
+
+/* C expression parser, possibly with C++ linkage.  */
+
+extern int yyparse (location_t, const char *, tree *);
+extern int yydebug;
+
+/* Parse expressions from the CPP reader for PRAGMA, which is located at LOC.
+   Return a TREE_LIST of C expressions.  */
+
+tree
+read_pragma_expressions (const char *pragma, location_t loc)
+{
+  tree expr = NULL_TREE;
+
+  if (yyparse (loc, pragma, &expr))
+    /* Parse error or memory exhaustion.  */
+    expr = NULL_TREE;
+
+  return expr;
+}
