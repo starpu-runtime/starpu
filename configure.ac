@@ -1400,6 +1400,7 @@ AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 if test "$build_socl" = "yes" ; then
+   AC_CHECK_FUNCS([clGetExtensionFunctionAddressForPlatform])
    if test -z "$SOCL_OCL_LIB_OPENCL" ; then
       run_socl_check=no
    else

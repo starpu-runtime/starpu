@@ -234,13 +234,14 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    err = clReleaseContext(context);
    check(err, "clReleaseContext");
 
-
+#ifdef HAVE_CLGETEXTENSIONFUNCTIONADDRESSFORPLATFORM
    void (*clShutdown)(void) = clGetExtensionFunctionAddressForPlatform(platforms[platform_idx], "clShutdown");
 
    if (clShutdown != NULL) {
 	   printf("Calling clShutdown :)\n");
 	   clShutdown();
    }
+#endif
 
    return 0;
 }
