@@ -54,7 +54,7 @@ static void func(void *descr[] __attribute__ ((unused)), void *arg)
 {
 	struct timeval tv1, tv2;
 	unsigned n = (uintptr_t)arg;
-	suseconds_t usec = 0;
+	long usec = 0;
 	gettimeofday(&tv1, NULL);
 	do {
 		gettimeofday(&tv2, NULL);
@@ -137,12 +137,12 @@ int main(int argc, char **argv)
 	FPRINTF(stdout, "\n");
 	FPRINTF(stdout, "\"seq\"\t");
 	for (size = START; size <= STOP; size *= FACTOR) {
-		double start,end;
-		start = starpu_timing_now();
+		double dstart, dend;
+		dstart = starpu_timing_now();
 		for (i = 0; i < ntasks; i++)
 			func(NULL, (void*) (uintptr_t) size);
-		end = starpu_timing_now();
-		FPRINTF(stdout, "%.0f       \t%f\t", (end-start)/ntasks, (end-start)/1000000);
+		dend = starpu_timing_now();
+		FPRINTF(stdout, "%.0f       \t%f\t", (dend-dstart)/ntasks, (dend-dstart)/1000000);
 	}
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
