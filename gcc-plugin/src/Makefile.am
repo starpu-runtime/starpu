@@ -31,18 +31,13 @@ starpu_la_SOURCES += warn-unregistered.c
 
 endif
 
-noinst_HEADERS =				\
-  opencl.h					\
-  tasks.h					\
-  utils.h					\
-  warn-unregistered.h
-
 # Use the Yacc-compatibility mode so that Bison doesn't error out upon
 # reduce/reduce conflicts.
 AM_YFLAGS = -y
 
 AM_CPPFLAGS =						\
-  -I$(srcdir)						\
+  -I$(top_builddir)/gcc-plugin/include			\
+  -I$(top_srcdir)/gcc-plugin/include			\
   -I$(top_srcdir)/include				\
   -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1	\
   $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)

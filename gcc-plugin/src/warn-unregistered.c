@@ -17,7 +17,7 @@
 /* Use extensions of the GNU C Library.  */
 #define _GNU_SOURCE 1
 
-#include <starpu-gcc-config.h>
+#include <starpu-gcc/config.h>
 
 #include <gcc-plugin.h>
 #include <plugin-version.h>
@@ -30,8 +30,8 @@
 #include <diagnostic.h>
 #include <cgraph.h>
 
-#include <utils.h>
-#include <tasks.h>
+#include <starpu-gcc/utils.h>
+#include <starpu-gcc/tasks.h>
 
 /* Return true if there exists a `starpu_vector_data_register' call for VAR
    before GSI in its basic block.  */

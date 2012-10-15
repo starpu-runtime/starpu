@@ -23,7 +23,7 @@
 %debug
 
 %{
-  #include <starpu-gcc-config.h>
+  #include <starpu-gcc/config.h>
 
   #include <gcc-plugin.h>
   #include <plugin.h>

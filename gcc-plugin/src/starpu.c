@@ -17,7 +17,7 @@
 /* Use extensions of the GNU C Library.  */
 #define _GNU_SOURCE 1
 
-#include <starpu-gcc-config.h>
+#include <starpu-gcc/config.h>
 /* We must include starpu.h here, otherwise gcc will complain about a poisoned
    malloc in xmmintrin.h. */
 #include <starpu.h>  /* for `STARPU_CPU' & co.  */
@@ -55,11 +55,10 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
-/* GCC-StarPU headers.  */
-#include <utils.h>
-#include <tasks.h>
-#include <warn-unregistered.h>
-#include <opencl.h>
+#include <starpu-gcc/utils.h>
+#include <starpu-gcc/tasks.h>
+#include <starpu-gcc/warn-unregistered.h>
+#include <starpu-gcc/opencl.h>
 
 /* Don't include the dreaded proprietary headers that we don't need anyway.
    In particular, this waives the obligation to reproduce their silly

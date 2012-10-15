@@ -20,7 +20,7 @@
 #include <tree.h>
 #include <cpplib.h>
 
-#include <utils.h>
+#include <starpu-gcc/utils.h>
 
 extern tree opencl_include_dirs;
 

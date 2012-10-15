@@ -1789,7 +1789,7 @@ if test -d /etc/OpenCL/vendors; then
 fi
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/src/starpu-gcc-config.h starpu-top/config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
 
 AC_OUTPUT([
 	Makefile

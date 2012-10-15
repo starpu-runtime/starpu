@@ -18,9 +18,9 @@
 
 #pragma once
 
-#include <starpu-gcc-config.h>
+#include <starpu-gcc/config.h>
 
-#include <utils.h>
+#include <starpu-gcc/utils.h>
 #include <starpu.h>
 
 

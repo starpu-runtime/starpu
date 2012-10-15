@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <starpu-gcc-config.h>
+#include <starpu-gcc/config.h>
 
 #include <gcc-plugin.h>
 #include <plugin-version.h>
@@ -31,9 +31,9 @@
 # include <c-common.h>
 #endif
 
-#include <tasks.h>
-#include <utils.h>
-#include <opencl.h>
+#include <starpu-gcc/tasks.h>
+#include <starpu-gcc/utils.h>
+#include <starpu-gcc/opencl.h>
 #include <starpu.h>
 
 

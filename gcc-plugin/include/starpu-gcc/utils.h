@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <starpu-gcc-config.h>
+#include <starpu-gcc/config.h>
 
 #include <unistd.h>
 

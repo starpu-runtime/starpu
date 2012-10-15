@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <starpu-gcc-config.h>
+#include <starpu-gcc/config.h>
 
 #include <gcc-plugin.h>
 #include <plugin-version.h>
@@ -31,7 +31,7 @@
 # include <c-common.h>
 #endif
 
-#include <utils.h>
+#include <starpu-gcc/utils.h>
 #include <starpu.h>
 
 /* Whether to enable verbose output.  */
