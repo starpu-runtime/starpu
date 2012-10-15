@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,12 +48,6 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 	 * accordingly. */
 
 	struct starpu_machine_topology *topology = &config->topology;
-
-	// FIXME: This should already be set.
-	topology->nhwcpus = 0;
-
-	hwloc_topology_init(&topology->hwtopology);
-	hwloc_topology_load(topology->hwtopology);
 
 	config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
 						  HWLOC_OBJ_CORE);

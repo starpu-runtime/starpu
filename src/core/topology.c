@@ -268,6 +268,9 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 
 	topology->nhwcpus = 0;
 
+	hwloc_topology_init(&topology->hwtopology);
+	hwloc_topology_load(topology->hwtopology);
+
 	_starpu_cpu_discover_devices(config);
 	_starpu_cuda_discover_devices(config);
 	_starpu_opencl_discover_devices(config);
