@@ -19,7 +19,9 @@ gccplugin_LTLIBRARIES = starpu.la
 
 starpu_la_SOURCES =				\
   c-expr.y					\
+  opencl.c					\
   starpu.c					\
+  tasks.c					\
   utils.c
 
 if HAVE_PTR_DEREFS_MAY_ALIAS_P
@@ -30,6 +32,8 @@ starpu_la_SOURCES += warn-unregistered.c
 endif
 
 noinst_HEADERS =				\
+  opencl.h					\
+  tasks.h					\
   utils.h					\
   warn-unregistered.h
 

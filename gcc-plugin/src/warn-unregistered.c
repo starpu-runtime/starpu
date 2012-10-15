@@ -31,6 +31,7 @@
 #include <cgraph.h>
 
 #include <utils.h>
+#include <tasks.h>
 
 /* Return true if there exists a `starpu_vector_data_register' call for VAR
    before GSI in its basic block.  */
