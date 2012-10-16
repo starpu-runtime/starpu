@@ -85,8 +85,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle1, handle2;
 
 #ifdef STARPU_SLOW_MACHINE
-	duration = 0;
-	nloops /= 1024;
+	return STARPU_TEST_SKIPPED;
 #endif
 
 	ret = starpu_init(NULL);
