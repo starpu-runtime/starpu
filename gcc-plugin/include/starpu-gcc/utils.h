@@ -86,6 +86,20 @@ builtin_decl_explicit (enum built_in_function fncode)
 
 #endif
 
+#if !HAVE_DECL_BUILD_CALL_EXPR_LOC_ARRAY
+
+extern tree build_call_expr_loc_array (location_t loc, tree fndecl, int n,
+				       tree *argarray);
+
+#endif
+
+#if !HAVE_DECL_BUILD_CALL_EXPR_LOC_VEC
+
+extern tree build_call_expr_loc_vec (location_t loc, tree fndecl,
+				     VEC(tree,gc) *vec);
+
+#endif
+
 #if !HAVE_DECL_BUILD_ZERO_CST
 
 extern tree build_zero_cst (tree type);

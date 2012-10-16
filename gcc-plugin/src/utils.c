@@ -288,7 +288,7 @@ count (function_parm (bool, pred, (const_tree)), const_tree t)
 
 #if !HAVE_DECL_BUILD_CALL_EXPR_LOC_ARRAY
 
-static tree
+tree
 build_call_expr_loc_array (location_t loc, tree fndecl, int n, tree *argarray)
 {
   tree fntype = TREE_TYPE (fndecl);
@@ -301,7 +301,7 @@ build_call_expr_loc_array (location_t loc, tree fndecl, int n, tree *argarray)
 
 #if !HAVE_DECL_BUILD_CALL_EXPR_LOC_VEC
 
-static tree
+tree
 build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
 {
   return build_call_expr_loc_array (loc, fndecl, VEC_length (tree, vec),
