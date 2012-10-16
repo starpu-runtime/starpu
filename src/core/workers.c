@@ -383,8 +383,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				driver.id.cpu_id = cpu;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
-					pthread_create(&workerarg->worker_thread,
-							NULL, _starpu_cpu_worker, workerarg);
+					_STARPU_PTHREAD_CREATE(
+						&workerarg->worker_thread,
+						NULL,
+						_starpu_cpu_worker,
+						workerarg);
 				}
 				else
 				{
@@ -400,8 +403,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				driver.id.cuda_id = cuda;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
-					pthread_create(&workerarg->worker_thread,
-						       NULL, _starpu_cuda_worker, workerarg);
+					_STARPU_PTHREAD_CREATE(
+						&workerarg->worker_thread,
+						NULL,
+						_starpu_cuda_worker,
+						workerarg);
 				}
 				else
 				{
@@ -420,9 +426,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				}
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				pthread_create(&workerarg->worker_thread,
-						NULL, _starpu_opencl_worker, workerarg);
-
+				_STARPU_PTHREAD_CREATE(
+					&workerarg->worker_thread,
+					NULL,
+					_starpu_opencl_worker,
+					workerarg);
 				break;
 #endif
 #ifdef STARPU_USE_GORDON
@@ -436,8 +444,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 					gordon_worker_set.set_is_initialized = 0;
 
-					pthread_create(&gordon_worker_set.worker_thread, NULL,
-							_starpu_gordon_worker, &gordon_worker_set);
+					_STARPU_PTHREAD_CREATE(
+						&gordon_worker_set.worker_thread,
+						NULL,
+						_starpu_gordon_worker,
+						&gordon_worker_set);
 
 					_STARPU_PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
 					while (!gordon_worker_set.set_is_initialized)

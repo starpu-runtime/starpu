@@ -31,6 +31,7 @@
 #include <top/starpu_top_connection.h>
 #include <top/starpu_top_message_queue.h>
 #include <starpu_top.h>
+#include <common/utils.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -161,7 +162,7 @@ void _starpu_top_communications_threads_launcher(void)
 	pthread_attr_init(&threads_attr);
 	pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
 
-	pthread_create(&from_ui, &threads_attr, message_from_ui, NULL);
-	pthread_create(&to_ui, &threads_attr, message_to_ui, NULL);
+	_STARPU_PTHREAD_CREATE(&from_ui, &threads_attr, message_from_ui, NULL);
+	_STARPU_PTHREAD_CREATE(&to_ui, &threads_attr, message_to_ui, NULL);
 }
 

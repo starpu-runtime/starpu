@@ -795,7 +795,8 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 
         _STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
 
-	pthread_create(&progress_thread, NULL, progress_thread_func, (void *)&initialize_mpi);
+	_STARPU_PTHREAD_CREATE(&progress_thread, NULL,
+			       progress_thread_func, (void *)&initialize_mpi);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (!running)
