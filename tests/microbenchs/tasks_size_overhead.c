@@ -154,6 +154,8 @@ int main(int argc, char **argv)
 
 		conf.ncpus = ncpus;
 		ret = starpu_init(&conf);
+		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 		for (buffer = 0; buffer < nbuffers; buffer++)
 			starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
