@@ -16,12 +16,29 @@
 
 #include "policy_tools.h"
 
+unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
+{
+	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+
+	int i;
+	for(i = 0; i < nsched_ctxs; i++)
+		if(sched_ctxs[i] != sched_ctx && starpu_worker_belongs_to_sched_ctx(worker, sched_ctxs[i]))
+			return 1;
+	return 0;
+}
+
 void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	struct policy_config *config = sc_w->config;
 	if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
-		_resize_to_unknown_receiver(sched_ctx, 0);
+	{
+		if(worker_belong_to_other_sched_ctx(sched_ctx, worker))
+			sched_ctx_hypervisor_remove_workers_from_sched_ctx(&worker, 1, sched_ctx, 1);
+		else
+			_resize_to_unknown_receiver(sched_ctx, 0);
+	}
 }
 
 struct hypervisor_policy idle_policy = {

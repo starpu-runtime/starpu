@@ -433,6 +433,12 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 	double tmin = 0.0;
 	double old_tmax = 0.0;
 	unsigned found_sol = 0;
+
+	struct timeval start_time;
+	struct timeval end_time;
+	int nd = 0;
+	gettimeofday(&start_time, NULL);
+
 	/* we fix tmax and we do not treat it as an unknown
 	   we just vary by dichotomy its values*/
 	while(tmax > 1.0)
@@ -478,7 +484,17 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 			tmin = smallest_tmax;
 			tmax = _find_tmax(tmin, tmax);
 		}
+		nd++;
 	}
+	gettimeofday(&end_time, NULL);
+
+	long diff_s = end_time.tv_sec  - start_time.tv_sec;
+        long diff_us = end_time.tv_usec  - start_time.tv_usec;
+
+        float timing = (float)(diff_s*1000000 + diff_us)/1000;
+
+        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
+
 	return found_sol;
 }
 

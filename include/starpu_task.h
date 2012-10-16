@@ -211,6 +211,8 @@ struct starpu_task
 	double flops;
 
 	unsigned already_pushed;
+
+	unsigned scheduled;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -241,7 +243,8 @@ struct starpu_task
 	.control_task = 0,				\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
-		.already_pushed = 0			\
+	.already_pushed = 0,				\
+		.scheduled = 0				\
 };
 
 /*

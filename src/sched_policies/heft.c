@@ -290,12 +290,13 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 }
 
 /* TODO: factorize with dmda!! */
+
 static void compute_all_performance_predictions(struct starpu_task *task,
-						double (*local_task_length)[STARPU_MAXIMPLEMENTATIONS], 
-						double (*exp_end)[STARPU_MAXIMPLEMENTATIONS],
+						double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS], 
+						double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 						double *max_exp_endp, double *best_exp_endp,
-						double (*local_data_penalty)[STARPU_MAXIMPLEMENTATIONS],
-						double (*local_power)[STARPU_MAXIMPLEMENTATIONS], 
+						double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
+						double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS], 
 						int *forced_worker, int *forced_impl,
 						starpu_task_bundle_t bundle,
 						unsigned sched_ctx_id)
@@ -322,6 +323,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 			for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) 
 			{
+				if (!starpu_worker_can_execute_task(worker, task, nimpl))
+				{
+					/* no one on that queue may execute this task */
+//				worker_ctx++;
+					continue;
+				}
+		
 				/* Sometimes workers didn't take the tasks as early as we expected */
 				pthread_mutex_t *sched_mutex;
 				pthread_cond_t *sched_cond;
@@ -332,12 +340,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				if (exp_end[worker_ctx][nimpl] > max_exp_end)
 					max_exp_end = exp_end[worker_ctx][nimpl];
 				_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-				if (!starpu_worker_can_execute_task(worker, task, nimpl))
-				{
-					/* no one on that queue may execute this task */
-//				worker_ctx++;
-					continue;
-				}
 				
 				enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 				unsigned memory_node = starpu_worker_get_memory_node(worker);
@@ -358,10 +360,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 					if (conversion_time > 0.0)
 						local_task_length[worker_ctx][nimpl] += conversion_time;
+
 					//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker_ctx],local_power[worker_ctx],worker,nimpl);
 				}
-				
 				double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
+
+/* 				printf("**********%d/%d: len = %lf penalty = %lf \n", worker, worker_ctx,  */
+/* 				       local_task_length[worker_ctx][nimpl], local_data_penalty[worker_ctx][nimpl]); */
 				
 				if (ntasks_best == -1
 				    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better worker */
@@ -466,10 +471,10 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
 	unsigned nworkers_ctx = workers->nworkers;
-	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
+	double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
+	double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
+	double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
 	double max_exp_end = 0.0;
 
 	double best_exp_end;
@@ -504,6 +509,9 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 			push_conversion_tasks(task, forced_worker);
 			prio = 0;
 		}
+		unsigned memory_node = starpu_worker_get_memory_node(forced_worker);
+		double transfer_model_best = starpu_task_expected_data_transfer_time(memory_node, task);
+
 		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0, prio, sched_ctx_id);
 	}
 

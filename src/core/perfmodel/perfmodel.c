@@ -342,6 +342,7 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 }
 
 /* Return the expected duration of the entire task bundle in µs */
+
 double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	double expected_length = 0.0;
@@ -354,16 +355,18 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 
 	while (entry)
 	{
-		double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
-
-		/* In case the task is not calibrated, we consider the task
-		 * ends immediately. */
-		if (task_length > 0.0)
-			expected_length += task_length;
-
+		if(!entry->task->scheduled)
+		{
+			double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
+			
+			/* In case the task is not calibrated, we consider the task
+			 * ends immediately. */
+			if (task_length > 0.0)
+				expected_length += task_length;
+		}
+			
 		entry = entry->next;
 	}
-
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_length;

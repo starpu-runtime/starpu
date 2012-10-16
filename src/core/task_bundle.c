@@ -80,7 +80,7 @@ int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *t
 		item->next = entry;
 	}
 
-	/* Mark the task as belonging the bundle */
+	/* Mark the task as belonging to the bundle */
 	task->bundle = bundle;
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);

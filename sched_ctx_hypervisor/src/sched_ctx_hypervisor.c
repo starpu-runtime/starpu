@@ -650,7 +650,9 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
 		sc_w->current_idle_time[worker] += idle_time;
 		if(hypervisor.policy.handle_idle_cycle)
-				hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
+		{
+			hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
+		}
 	}		
 	return;
 }

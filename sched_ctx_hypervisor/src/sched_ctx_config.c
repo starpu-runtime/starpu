@@ -114,7 +114,7 @@ static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsig
 	int *workerids;
 	int nworkers;
 
-	while ((arg_type = va_arg(varg_list, int)) != -1) 
+	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL) 
 	{
 		switch(arg_type)
 		{
@@ -207,7 +207,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	int stop = 0;
 	int task_tag = -1;
 
-	while ((arg_type = va_arg(varg_list, int)) != -1) 
+	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL) 
 	{
 		switch(arg_type)
 		{

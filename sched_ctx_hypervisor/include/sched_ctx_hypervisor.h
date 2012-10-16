@@ -29,6 +29,7 @@
 #define HYPERVISOR_NEW_WORKERS_MAX_IDLE -9
 #define HYPERVISOR_TIME_TO_APPLY -10
 #define HYPERVISOR_EMPTY_CTX_MAX_IDLE -11
+#define HYPERVISOR_NULL -12
 
 pthread_mutex_t act_hypervisor_mutex;
 

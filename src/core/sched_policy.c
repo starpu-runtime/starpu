@@ -729,7 +729,11 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-	return _starpu_push_local_task(worker, task, back);
+	int ret =  _starpu_push_local_task(worker, task, back);
+	
+	task->scheduled = 1;
+
+	return ret;
 }
 
 

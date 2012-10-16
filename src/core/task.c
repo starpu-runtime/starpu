@@ -92,6 +92,8 @@ void starpu_task_init(struct starpu_task *task)
 	task->flops = 0.0;
 	
 	task->already_pushed = 0;
+
+	task->scheduled = 0;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
@@ -417,11 +419,30 @@ int starpu_task_submit(struct starpu_task *task)
 
 		_starpu_detect_implicit_data_deps(task);
 
-		if (task->cl->model)
-			_starpu_load_perfmodel(task->cl->model);
+		if(task->bundle)
+		{
+			struct _starpu_task_bundle_entry *entry;
+			entry = task->bundle->list;
 
-		if (task->cl->power_model)
-			_starpu_load_perfmodel(task->cl->power_model);
+			while(entry)
+			{
+				if (entry->task->cl->model)
+					_starpu_load_perfmodel(entry->task->cl->model);
+				
+				if (entry->task->cl->power_model)
+					_starpu_load_perfmodel(entry->task->cl->power_model);
+
+				entry = entry->next;
+			}
+		}
+		else
+		{
+			if (task->cl->model)
+				_starpu_load_perfmodel(task->cl->model);
+			
+			if (task->cl->power_model)
+				_starpu_load_perfmodel(task->cl->power_model);
+		}
 	}
 
 	/* If profiling is activated, we allocate a structure to store the

@@ -30,7 +30,22 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 		{ 
 			int total_nw[2];
 			_get_total_nw(NULL, -1, 2, total_nw);
+
+
+			struct timeval start_time;
+			struct timeval end_time;
+			gettimeofday(&start_time, NULL);
+
 			double vmax = _lp_get_nworkers_per_ctx(nsched_ctxs, 2, nworkers, total_nw);
+			gettimeofday(&end_time, NULL);
+
+			long diff_s = end_time.tv_sec  - start_time.tv_sec;
+			long diff_us = end_time.tv_usec  - start_time.tv_usec;
+
+			float timing = (float)(diff_s*1000000 + diff_us)/1000;
+
+			fprintf(stdout, "total time: %f ms \n", timing);
+
 			if(vmax != 0.0)
 			{
 //				printf("********resize\n");

@@ -15,7 +15,7 @@
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_builddir)/src/ -I$(top_srcdir)/src/ -I$(top_srcdir)/sched_ctx_hypervisor/include/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include/starpu/$(STARPU_EFFECTIVE_VERSION)/ -I$(top_builddir)/src/ -I$(top_srcdir)/src/ -I$(top_srcdir)/sched_ctx_hypervisor/include/
 
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
