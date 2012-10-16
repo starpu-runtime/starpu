@@ -42,7 +42,7 @@
   # include <c-pragma.h>
   #endif
 
-  #include <diagnostic-core.h>
+  #include <diagnostic.h>
 
   #if !HAVE_DECL_BUILD_ARRAY_REF
   /* This declaration is missing in GCC 4.6.1.  */

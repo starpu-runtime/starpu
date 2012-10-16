@@ -31,7 +31,7 @@
 # include <c-common.h>
 #endif
 
-#include <diagnostic-core.h>
+#include <diagnostic.h>
 
 #include <starpu-gcc/tasks.h>
 #include <starpu-gcc/utils.h>
