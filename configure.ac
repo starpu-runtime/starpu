@@ -434,7 +434,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <cuda.h>]],
 		[[]]
-		)],
+		),
 	    [have_valid_cuda="yes"],
 	    [have_valid_cuda="no"]
 	])
