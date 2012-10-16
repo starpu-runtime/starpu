@@ -686,7 +686,7 @@ Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun void starpu_coo_data_register(starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{n_values}, uint32_t *@var{columns}, uint32_t *@var{rows}, uintptr_t @var{values}, size_t @var{elemsize});
+@deftypefun void starpu_coo_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{n_values}, uint32_t *@var{columns}, uint32_t *@var{rows}, uintptr_t @var{values}, size_t @var{elemsize});
 Register the @var{nx}x@var{ny} 2D matrix given in the COO format, using the
 @var{columns}, @var{rows}, @var{values} arrays, which must have @var{n_values}
 elements of size @var{elemsize}. Initialize @var{handleptr}.
@@ -1079,30 +1079,30 @@ Return the size of the elements registered into the matrix designated by @var{in
 
 @node Accessing COO Data Interfaces
 @subsubsection COO Data Interfaces
-@defmac STARPU_COO_GET_COLUMNS({void *}@var{interface})
+@defmac STARPU_COO_GET_COLUMNS ({void *}@var{interface})
 Return a pointer to the column array of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_ROWS(interface)
+@defmac STARPU_COO_GET_ROWS (interface)
 Return a pointer to the rows array of the matrix designated by @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_VALUES(interface)
+@defmac STARPU_COO_GET_VALUES (interface)
 Return a pointer to the values array of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_NX(interface)
+@defmac STARPU_COO_GET_NX (interface)
 Return the number of elements on the x-axis of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_NY(interface)
+@defmac STARPU_COO_GET_NY (interface)
 Return the number of elements on the y-axis of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_NVALUES(interface)
+@defmac STARPU_COO_GET_NVALUES (interface)
 Return the number of values registered in the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_ELEMSIZE(interface)
+@defmac STARPU_COO_GET_ELEMSIZE (interface)
 Return the size of the elements registered into the matrix designated by
 @var{interface}.
 @end defmac
