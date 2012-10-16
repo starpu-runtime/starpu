@@ -77,11 +77,13 @@ struct starpu_data_copy_methods
 	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 #endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#ifdef STARPU_USE_OPENCL
 	/* for asynchronous OpenCL transfers */
-        int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
-	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
-	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
+	/* XXX we do not use a cl_event *event type for the last argument
+	 * because nvcc does not like when we have to include OpenCL headers */
+        int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);
+	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);
+	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);
 #endif
 };
 
@@ -121,7 +123,7 @@ struct starpu_data_interface_ops
 	void (*display)(starpu_data_handle_t handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 	/* Convert the data size to the spu size format */
-	int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
+	int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 	/* an identifier that is unique to each interface */
 	enum starpu_data_interface_id interfaceid;
@@ -130,11 +132,6 @@ struct starpu_data_interface_ops
 
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
-
-	/* Pack the data handle into a contiguous buffer at the address ptr */
-	int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr);
-	/* Unpack the data handle from the contiguous buffer at the address ptr */
-	int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr);
 };
 
 /* Return the next available id for a data interface */
@@ -378,10 +375,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, uint32_t hom
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
-
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr);
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr);
-size_t starpu_handle_get_size(starpu_data_handle_t handle);
 
 /* Lookup a ram pointer into a StarPU handle */
 extern starpu_data_handle_t starpu_data_lookup(const void *ptr);

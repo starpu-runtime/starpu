@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -23,8 +23,8 @@
 #include <core/debug.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
+#include <starpu_hash.h>
 #include <profiling/profiling.h>
-#include <common/uthash.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -36,21 +36,21 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+#ifndef HWLOC_BITMAP_H
+/* hwloc <1.1 does not offer the bitmap API yet */
+#define hwloc_bitmap_alloc hwloc_cpuset_alloc
+#define hwloc_bitmap_only hwloc_cpuset_cpu
+#define hwloc_bitmap_singlify hwloc_cpuset_singlify
+#endif
 
 static unsigned topology_is_initialized = 0;
 
 static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *config);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-struct handle_entry
-{
-	UT_hash_handle hh;
-	unsigned gpuid;
-};
 #  ifdef STARPU_USE_CUDA
 static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config);
-/* Entry in the `devices_using_cuda' hash table.  */
-static struct handle_entry *devices_using_cuda;
+static struct starpu_htbl32_node *devices_using_cuda = NULL;
 #  endif
 #  ifdef STARPU_USE_OPENCL
 static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_config *config);
@@ -92,11 +92,8 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
                 int i;
                 for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
 		{
-			struct handle_entry *entry;
-			int devid = config->topology.workers_opencl_gpuid[i];
-
-			HASH_FIND_INT(devices_using_cuda, &devid, entry);
-			if (entry == NULL)
+                        uint32_t key = starpu_crc32_be(config->topology.workers_opencl_gpuid[i], 0);
+                        if (_starpu_htbl_search_32(devices_using_cuda, key) == NULL)
 			{
                                 tmp[nb] = topology->workers_opencl_gpuid[i];
                                 nb++;
@@ -108,24 +105,18 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 #endif /* STARPU_USE_CUDA */
         {
                 // Detect identical devices
-		struct handle_entry *devices_already_used = NULL;
+                struct starpu_htbl32_node *devices_already_used = NULL;
                 unsigned tmp[STARPU_NMAXWORKERS];
                 unsigned nb=0;
                 int i;
 
                 for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
 		{
-			int devid = topology->workers_opencl_gpuid[i];
-			struct handle_entry *entry;
-			HASH_FIND_INT(devices_already_used, &devid, entry);
-			if (entry == NULL)
+                        uint32_t key = starpu_crc32_be(topology->workers_opencl_gpuid[i], 0);
+                        if (_starpu_htbl_search_32(devices_already_used, key) == NULL)
 			{
-				struct handle_entry *entry2;
-				entry2 = (struct handle_entry *) malloc(sizeof(*entry2));
-				STARPU_ASSERT(entry2 != NULL);
-				entry2->gpuid = devid;
-				HASH_ADD_INT(devices_already_used, gpuid, entry2);
-                                tmp[nb] = devid;
+                                _starpu_htbl_insert_32(&devices_already_used, key, config);
+                                tmp[nb] = topology->workers_opencl_gpuid[i];
                                 nb ++;
                         }
                 }
@@ -341,11 +332,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config)
 		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + cudagpu].workerid);
 		config->worker_mask |= STARPU_CUDA;
 
-		struct handle_entry *entry;
-		entry = (struct handle_entry *) malloc(sizeof(*entry));
-		STARPU_ASSERT(entry != NULL);
-		entry->gpuid = devid;
-		HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+                uint32_t key = starpu_crc32_be(devid, 0);
+                _starpu_htbl_insert_32(&devices_using_cuda, key, config);
         }
 
 	topology->nworkers += topology->ncudagpus;
@@ -649,7 +637,7 @@ void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config STARPU_ATT
 	if (support->cpubind->set_thisthread_cpubind)
 	{
 		hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->cpu_depth, cpuid);
-		hwloc_bitmap_t set = obj->cpuset;
+		hwloc_cpuset_t set = obj->cpuset;
 		int ret;
 
 		hwloc_bitmap_singlify(set);
@@ -700,7 +688,7 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 	support = hwloc_topology_get_support(config->topology.hwtopology);
 	if (support->cpubind->set_thisthread_cpubind)
 	{
-		hwloc_bitmap_t set = combined_worker->hwloc_cpu_set;
+		hwloc_cpuset_t set = combined_worker->hwloc_cpu_set;
 		int ret;
 
 		ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
@@ -832,15 +820,17 @@ static void _starpu_init_workers_binding(struct _starpu_machine_config *config)
 #endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
+		/* Clear the cpu set and set the cpu */
+		workerarg->initial_hwloc_cpu_set = hwloc_bitmap_alloc();
+		hwloc_bitmap_only(workerarg->initial_hwloc_cpu_set, workerarg->bindid);
+		workerarg->current_hwloc_cpu_set = hwloc_bitmap_alloc();
+		hwloc_bitmap_only(workerarg->current_hwloc_cpu_set, workerarg->bindid);
+
 		/* Put the worker descriptor in the userdata field of the hwloc object describing the CPU */
 		hwloc_obj_t worker_obj;
 		worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
 					config->cpu_depth, workerarg->bindid);
 		worker_obj->userdata = &config->workers[worker];
-
-		/* Clear the cpu set and set the cpu */
-		workerarg->initial_hwloc_cpu_set = hwloc_bitmap_dup(worker_obj->cpuset);
-		workerarg->current_hwloc_cpu_set = hwloc_bitmap_dup(worker_obj->cpuset);
 #endif
 	}
 }
@@ -883,12 +873,6 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config __attribute_
 
 	topology_is_initialized = 0;
 #ifdef STARPU_USE_CUDA
-	struct handle_entry *entry, *tmp;
-	HASH_ITER(hh, devices_using_cuda, entry, tmp)
-	{
-		HASH_DEL(devices_using_cuda, entry);
-		free(entry);
-	}
 	devices_using_cuda = NULL;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -896,40 +880,3 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config __attribute_
 #endif
 }
 
-void starpu_topology_print(FILE *output)
-{
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
-	unsigned core;
-	unsigned worker;
-	unsigned nworkers = starpu_worker_get_count();
-	unsigned ncombinedworkers = topology->ncombinedworkers;
-
-	for (core = 0; core < topology->nhwcpus; core++) {
-		fprintf(output, "core %u\t", core);
-		for (worker = 0; worker < nworkers + ncombinedworkers; worker++)
-		{
-			if (worker < nworkers)
-			{
-				if (topology->workers_bindid[worker] == core)
-				{
-					char name[256];
-					starpu_worker_get_name(worker, name, sizeof(name));
-					fprintf(output, "%s\t", name);
-				}
-			}
-			else
-			{
-				int worker_size, i;
-				int *combined_workerid;
-				starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
-				for (i = 0; i < worker_size; i++)
-				{
-					if (topology->workers_bindid[combined_workerid[i]] == core)
-						fprintf(output, "comb %u\t", worker-nworkers);
-				}
-			}
-		}
-		fprintf(output, "\n");
-	}
-}

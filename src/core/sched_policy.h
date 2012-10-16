@@ -45,21 +45,5 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 
 void _starpu_sched_pre_exec_hook(struct starpu_task *task);
 
-/*
- *	Predefined policies
- */
-extern struct starpu_sched_policy _starpu_sched_ws_policy;
-extern struct starpu_sched_policy _starpu_sched_prio_policy;
-extern struct starpu_sched_policy _starpu_sched_random_policy;
-extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
-extern struct starpu_sched_policy _starpu_sched_heft_policy;
-
-
 #endif // __SCHED_POLICY_H__
 

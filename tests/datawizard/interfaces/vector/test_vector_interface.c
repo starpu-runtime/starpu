@@ -44,7 +44,7 @@ struct test_config vector_config =
 #endif
 	.handle        = &vector_handle,
 	.dummy_handle  = &vector2_handle,
-	.copy_failed   = SUCCESS,
+	.copy_failed   = 0,
 	.name          = "vector_interface"
 };
 
@@ -92,7 +92,7 @@ static void test_vector_cpu_func(void *buffers[], void *args)
 	{
 		if (val[i] != i*factor)
 		{
-			vector_config.copy_failed = FAILURE;
+			vector_config.copy_failed = 1;
 			return;
 		}
 		val[i] = -val[i];
@@ -103,10 +103,12 @@ int
 main(void)
 {
 	data_interface_test_summary *summary;
-	struct starpu_conf conf;
-	starpu_conf_init(&conf);
-	conf.ncuda = 2;
-	conf.nopencl = 1;
+	struct starpu_conf conf =
+	{
+		.ncpus   = -1,
+		.ncuda   = 2,
+		.nopencl = 1
+	};
 
 	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;

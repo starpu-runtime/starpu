@@ -42,7 +42,7 @@ enum _starpu_cache_state
 LIST_TYPE(_starpu_data_replicate,
 	starpu_data_handle_t handle;
 
-	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */
+	/* describe the actual data layout */
 	void *data_interface;
 
 	unsigned memory_node;
@@ -110,7 +110,7 @@ struct _starpu_data_state
 	struct _starpu_spinlock header_lock;
 
 	/* Condition to make application wait for all transfers before freeing handle */
-	/* busy_count is the number of handle->refcnt, handle->per_node[*]->refcnt, number of starpu_data_requesters, and number of tasks that have released it but are still registered on the implicit data dependency lists. */
+	/* busy_count is the number of handle->refcnt, handle->per_node[*]->refcnt, and number of starpu_data_requesters */
 	/* Core code which releases busy_count has to call
 	 * _starpu_data_check_not_busy to let starpu_data_unregister proceed */
 	unsigned busy_count;
@@ -253,6 +253,8 @@ __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, uint32_t node);
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node);
+
 
 uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 

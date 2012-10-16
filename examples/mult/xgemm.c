@@ -28,6 +28,7 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#include <starpu_cuda.h>
 #endif
 
 static unsigned niter = 100;
@@ -304,7 +305,7 @@ int main(int argc, char **argv)
 			task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
 			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
 
-			ret = starpu_task_submit(task);
+			int ret = starpu_task_submit(task);
 			if (ret == -ENODEV)
 			{
 			     ret = 77;

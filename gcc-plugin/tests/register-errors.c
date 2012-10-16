@@ -54,7 +54,5 @@ main (int argc, char *argv[])
 
 #pragma starpu register void_pointer 123 /* (error "not allowed") */
 
-#pragma starpu register "hello"		   /* (error "invalid .*argument") */
-
   return EXIT_SUCCESS;
 }

@@ -268,7 +268,7 @@ STARPUFFT(start_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_da
 	return STARPUFFT(start1dC2C)(plan, in, out);
 }
 
-int
+void
 STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 {
 	int ret;
@@ -280,28 +280,22 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 
 	struct starpu_task *task = STARPUFFT(start)(plan, in, out);
 	gettimeofday(&submit_tasks, NULL);
-	if (task)
-	{
-	     ret = starpu_task_wait(task);
-	     STARPU_ASSERT(ret == 0);
-	}
+	ret = starpu_task_wait(task);
+	STARPU_ASSERT(ret == 0);
 
 	STARPUFFT(cleanup)(plan);
 
 	gettimeofday(&end, NULL);
-	return (task == NULL ? -1 : 0);
 }
 
-int
+void
 STARPUFFT(execute_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
 	int ret;
 
 	struct starpu_task *task = STARPUFFT(start_handle)(plan, in, out);
-	if (!task) return -1;
 	ret = starpu_task_wait(task);
 	STARPU_ASSERT(ret == 0);
-	return 0;
 }
 
 /* Destroy FFTW plans, unregister and free buffers, and free tags */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
@@ -18,6 +18,9 @@
 
 #include <config.h>
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include "../helper.h"
 
 #ifdef STARPU_USE_CUDA
@@ -28,8 +31,8 @@ static void memset_cuda(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cudaMemsetAsync(ptr, 42, n * sizeof(*ptr), starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemset(ptr, 42, n * sizeof(*ptr));
+	cudaThreadSynchronize();
 }
 #endif
 

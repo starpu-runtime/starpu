@@ -16,6 +16,7 @@
 
 #define _externC extern "C"
 #include "stencil.h"
+#include <starpu_cuda.h>
 
 /* Heart of the stencil computation: compute a new state from an old one. */
 

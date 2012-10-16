@@ -312,6 +312,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	gettimeofday(&start, NULL);
 	ret = starpu_task_submit(entry_task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait_array(ndeps, tags);
@@ -379,7 +380,7 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 	}
 #endif
 
-	double timing=0.0;
+	double timing;
 	int ret = dw_codelet_facto_pivot(&dataA, piv_description, nblocks, get_block_with_striding, &timing);
 
 	FPRINTF(stderr, "Computation took (in ms)\n");
@@ -434,7 +435,7 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 		piv_description[block].last = (block + 1) * (size / nblocks);
 	}
 
-	double timing=0.0;
+	double timing;
 	int ret = dw_codelet_facto_pivot(dataAp, piv_description, nblocks, get_block_with_no_striding, &timing);
 
 	FPRINTF(stderr, "Computation took (in ms)\n");

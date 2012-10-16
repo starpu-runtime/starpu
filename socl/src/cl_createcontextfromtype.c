@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
- * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
+ * Copyright (C) 2010,2011 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +15,6 @@
  */
 
 #include "socl.h"
-#include "init.h"
 
 CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContextFromType(const cl_context_properties * properties,
@@ -26,8 +23,6 @@ soclCreateContextFromType(const cl_context_properties * properties,
                         void *                        user_data,
                         cl_int *                      errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if( ! _starpu_init )
-      socl_init_starpu(); 
    //We assume clCreateContext doesn't support devices
    //TODO:use devices
    return soclCreateContext(properties, 0, NULL, pfn_notify, user_data, errcode_ret);

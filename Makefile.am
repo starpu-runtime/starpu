@@ -28,9 +28,7 @@ if BUILD_SOCL
 SUBDIRS += socl
 endif
 
-if BUILD_EXAMPLES
 SUBDIRS += examples
-endif
 
 if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
@@ -55,7 +53,6 @@ versinclude_HEADERS = 				\
 	include/starpu_task.h			\
 	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
-	include/starpu_task_util.h		\
 	include/starpu_data.h			\
 	include/starpu_perfmodel.h		\
 	include/starpu_util.h			\
@@ -69,8 +66,7 @@ versinclude_HEADERS = 				\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\
-	include/starpu_rand.h			\
-	include/starpu_cublas.h
+	include/starpu_rand.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
@@ -109,7 +105,7 @@ else
 txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README
-EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION build-aux/svn2cl.xsl
+EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION
 
 include starpu-top/extradist
 

@@ -21,8 +21,6 @@ gcc_tests =					\
   output-pointer-errors.c			\
   register.c					\
   register-errors.c				\
-  registered.c					\
-  registered-errors.c				\
   acquire.c					\
   acquire-errors.c				\
   release.c					\
@@ -40,29 +38,8 @@ gcc_tests =					\
   heap-allocated-errors.c			\
   verbose.c					\
   debug-tree.c					\
-  opencl.c					\
-  opencl-errors.c				\
-  shutdown-errors.c
-
-EXTRA_DIST =
-
-if !STARPU_USE_OPENCL
-
-# XXX: This test simulates a buggy OpenCL implementation, and thus
-# cannot be run then a real <cl_platform.h> is included.
-gcc_tests += opencl-types.c
-
-# This test simulates errors when lacking an OpenCL implementation.
-gcc_tests += opencl-lacking.c
-
-else STARPU_USE_OPENCL
-
-EXTRA_DIST +=					\
   opencl-types.c				\
-  opencl-lacking.c
-
-endif STARPU_USE_OPENCL
-
+  shutdown-errors.c
 
 dist_noinst_HEADERS = mocks.h
 
@@ -70,7 +47,6 @@ CLEANFILES = *.gimple *.o			\
   base						\
   pointers					\
   register					\
-  registered					\
   release					\
   scalar-tasks					\
   pointer-tasks					\
@@ -78,31 +54,28 @@ CLEANFILES = *.gimple *.o			\
   output-pointer				\
   unregister					\
   heap-allocated				\
-  acquire					\
-  opencl
+  acquire
 
 
-EXTRA_DIST += ./run-test.in			\
+EXTRA_DIST = ./run-test.in			\
   my-lib.h my-lib.c				\
-  test.cl					\
   $(gcc_tests)
 
 # The test suite assumes that the CPU back-end is available.
-if RUN_GCC_PLUGIN_TESTS
+if STARPU_USE_CPU
 
 TESTS = $(gcc_tests)
-if STARPU_HAVE_AM111
-LOG_COMPILER = ./run-test
-else
-TESTS_ENVIRONMENT = ./run-test
+
 endif
 
-else !RUN_GCC_PLUGIN_TESTS
+TESTS_ENVIRONMENT = ./run-test
+
+if !HAVE_GUILE
 
 check-hook:
-	-@echo "GNU Guile or CPU back-end not available, test suite not run."
+	-@echo "GNU Guile not available, test suite not run."
 
-endif !RUN_GCC_PLUGIN_TESTS
+endif !HAVE_GUILE
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

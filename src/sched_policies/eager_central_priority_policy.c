@@ -225,7 +225,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 	if (!chosen_task && skipped)
 		/* Notify another worker to do that task */
-		_STARPU_PTHREAD_COND_SIGNAL(&data->sched_cond);
+		_STARPU_PTHREAD_COND_SIGNAL(&data->sched_mutex);
 
 	return chosen_task;
 }

@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 #define MAXNBLOCKS	128
 #define MAXTHREADSPERBLOCK	256

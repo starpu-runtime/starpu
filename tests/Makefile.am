@@ -15,7 +15,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+AM_CFLAGS = $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
@@ -100,13 +100,7 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
 endif
 
 TESTS = $(noinst_PROGRAMS)
@@ -121,12 +115,9 @@ noinst_PROGRAMS =				\
 	starpu_machine_display			\
 	main/deprecated_func			\
 	main/deprecated_buffer			\
-	main/driver_api/init_run_deinit         \
-	main/driver_api/run_driver              \
 	main/restart				\
 	main/execute_on_a_specific_worker	\
 	main/insert_task			\
-	main/insert_task_array			\
 	main/multithreaded			\
 	main/multithreaded_init			\
 	main/starpu_task_bundle			\
@@ -139,7 +130,6 @@ noinst_PROGRAMS =				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_regenerate		\
-	main/subgraph_repeat_regenerate_tag	\
 	main/empty_task				\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\
@@ -151,8 +141,7 @@ noinst_PROGRAMS =				\
 	main/declare_deps_after_submission_synchronous	\
 	main/get_current_task			\
 	main/starpu_init			\
-	main/starpu_worker_exists		\
-	main/submit				\
+	main/starpu_worker_exists               \
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
@@ -184,7 +173,6 @@ noinst_PROGRAMS =				\
 	datawizard/increment_redux_lazy		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
-	datawizard/lazy_unregister		\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \
@@ -219,19 +207,12 @@ noinst_PROGRAMS =				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
-	microbenchs/matrix_as_vector		\
 	overlap/overlap				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	perfmodels/regression_based		\
-	perfmodels/non_linear_regression_based	\
-	perfmodels/feed				\
-	perfmodels/valid_model			\
-	sched_policies/data_locality            \
-	sched_policies/execute_all_tasks        \
-	sched_policies/simple_deps              \
-	sched_policies/simple_cpu_gpu_sched
+	perfmodels/non_linear_regression_based 
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
@@ -558,11 +539,6 @@ if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
 endif
-
-perfmodels_feed_SOURCES=\
-	perfmodels/feed.c
-
-sched_policies_execute_all_tasks_LDFLAGS = -lm
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

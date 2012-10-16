@@ -23,8 +23,6 @@ EXTRA_DIST = dolib.c
 
 ldflags =
 
-libstarpu_so_version = $(LIBSTARPU_INTERFACE_CURRENT):$(LIBSTARPU_INTERFACE_REVISION):$(LIBSTARPU_INTERFACE_AGE)
-
 if STARPU_HAVE_WINDOWS
 
 LC_MESSAGES=C
@@ -34,7 +32,7 @@ ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu-@STARPU_EFFECTIVE_VERS
 
 if STARPU_HAVE_MS_LIB
 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib: libstarpu-@STARPU_EFFECTIVE_VERSION@.la dolib
-	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def @STARPU_EFFECTIVE_VERSION@ $(libstarpu_so_version) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
+	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def libstarpu-0 .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 all-local: .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 endif STARPU_HAVE_MS_LIB
 
@@ -53,13 +51,14 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBU
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
-  -version-info $(libstarpu_so_version)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined									\
+  -version-info $(LIBSTARPU_INTERFACE_CURRENT):$(LIBSTARPU_INTERFACE_REVISION):$(LIBSTARPU_INTERFACE_AGE)
 
 noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
+	core/dependencies/htable.h				\
 	core/dependencies/implicit_data_deps.h			\
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
@@ -92,6 +91,7 @@ noinst_HEADERS = 						\
 	datawizard/interfaces/data_interface.h			\
 	common/barrier.h					\
 	common/timing.h						\
+	common/htable32.h					\
 	common/list.h						\
 	common/rwlock.h						\
 	common/starpu_spinlock.h				\
@@ -122,6 +122,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
 	common/barrier_counter.c				\
 	common/hash.c 						\
+	common/htable32.c					\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
 	common/timing.c						\
@@ -141,11 +142,11 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/dependencies/implicit_data_deps.c			\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
+	core/dependencies/htable.c				\
 	core/dependencies/data_concurrency.c			\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
-	core/perfmodel/perfmodel_print.c			\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
 	core/sched_ctx.c					\
@@ -194,6 +195,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
+	util/starpu_cublas.c					\
 	util/file.c						\
 	util/starpu_data_cpy.c					\
 	util/starpu_insert_task.c				\
@@ -221,8 +223,6 @@ endif
 if STARPU_USE_CUDA
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
-
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
 
 if STARPU_USE_GORDON
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/gordon/driver_gordon.c

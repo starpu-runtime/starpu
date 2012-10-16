@@ -161,9 +161,7 @@ struct starpu_codelet cl =
 
 A codelet is a structure that represents a computational kernel. Such a codelet
 may contain an implementation of the same kernel on different architectures
-(e.g. CUDA, Cell's SPU, x86, ...). For compatibility, make sure that the whole
-structure is initialized to zero, either by using memset, or by letting the
-compiler implicitly do it as examplified above.
+(e.g. CUDA, Cell's SPU, x86, ...).
 
 The @code{nbuffers} field specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
@@ -358,8 +356,9 @@ main (void)
 #define FACTOR 3.14
 
   @{
-    float vector[NX]
-       __attribute__ ((heap_allocated, registered));
+    float vector[NX] __attribute__ ((heap_allocated));
+
+#pragma starpu register vector
 
     size_t i;
     for (i = 0; i < NX; i++)
@@ -437,6 +436,9 @@ in our C file like this:
 
 @cartouche
 @smallexample
+/* Include StarPU's OpenCL integration.  */
+#include <starpu_opencl.h>
+
 /* The OpenCL programs, loaded from `main' (see below).  */
 static struct starpu_opencl_program cl_programs;
 
@@ -532,6 +534,7 @@ the CUDA Kernel}).
    with `nvcc'.  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <stdlib.h>
 
 static __global__ void
@@ -719,6 +722,7 @@ call.
 @cartouche
 @smallexample
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
@@ -772,6 +776,7 @@ important when using partitioning, see @ref{Partitioning Data}.
 @cartouche
 @smallexample
 #include <starpu.h>
+@i{#include <starpu_opencl.h>}
 
 @i{extern struct starpu_opencl_program programs;}
 
@@ -965,7 +970,7 @@ and to execute it, with the default configuration:
 or for example, by disabling CPU devices:
 
 @smallexample
-% STARPU_NCPU=0 ./vector_scal
+% STARPU_NCPUS=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 

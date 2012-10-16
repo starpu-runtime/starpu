@@ -172,7 +172,9 @@ main (void)
 #define FACTOR 3.14
 
   {
-    float vector[NX] __attribute__ ((heap_allocated, registered));
+    float vector[NX] __attribute__ ((heap_allocated));
+
+#pragma starpu register vector
 
     size_t i;
     for (i = 0; i < NX; i++)
@@ -181,6 +183,8 @@ main (void)
     vector_scal (NX, vector, FACTOR);
 
 #pragma starpu wait
+
+#pragma starpu unregister vector
 
     valid = check (NX, vector, FACTOR);
 

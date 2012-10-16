@@ -44,7 +44,7 @@ struct test_config multiformat_config =
 #endif
 	.handle        = &multiformat_handle,
 	.dummy_handle  = &multiformat_dummy_handle,
-	.copy_failed   = SUCCESS,
+	.copy_failed   = 0,
 	.name          = "multiformat_interface"
 };
 
@@ -66,7 +66,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 			FPRINTF(stderr, "(%d %d) [%d]", aos[i].x, aos[i].y, factor);
 		if (aos[i].x != i * factor || aos[i].y != i * factor)
 		{
-			multiformat_config.copy_failed = FAILURE;
+			multiformat_config.copy_failed = 1;
 		}
 		aos[i].x = -aos[i].x;
 		aos[i].y = -aos[i].y;
@@ -136,10 +136,12 @@ main(void)
 #ifdef STARPU_USE_CPU
 	int ret;
 	data_interface_test_summary *summary;
-	struct starpu_conf conf;
-	starpu_conf_init(&conf);
-	conf.ncuda = 2;
-	conf.nopencl = 1;
+	struct starpu_conf conf =
+	{
+		.ncpus   = -1,
+		.ncuda   = 2,
+		.nopencl = 1
+	};
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)

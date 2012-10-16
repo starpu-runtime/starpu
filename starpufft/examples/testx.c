@@ -127,7 +127,6 @@ int main(int argc, char *argv[])
 #endif
 
 	ret = starpu_init(NULL);
-	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (argc == 1)
@@ -222,8 +221,7 @@ int main(int argc, char *argv[])
 	printf("CUDA took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
 
-	ret = STARPUFFT(execute)(plan, in, out);
-	if (ret == -1) return 77;
+	STARPUFFT(execute)(plan, in, out);
 	STARPUFFT(showstats)(stdout);
 
 #ifdef STARPU_HAVE_FFTW
@@ -237,8 +235,7 @@ int main(int argc, char *argv[])
 	starpu_vector_data_register(&in_handle, 0, (uintptr_t) in, size, sizeof(*in));
 	starpu_vector_data_register(&out_handle, 0, (uintptr_t) out, size, sizeof(*out));
 
-	ret = STARPUFFT(execute_handle)(plan, in_handle, out_handle);
-	if (ret == -1) return 77;
+	STARPUFFT(execute_handle)(plan, in_handle, out_handle);
 
 	starpu_data_unregister(in_handle);
 	starpu_data_unregister(out_handle);

@@ -35,14 +35,7 @@ LOADER			=	loader
 loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/socl/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-
 endif
 
 examplebindir = $(libdir)/starpu/examples/socl/
@@ -50,21 +43,18 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
-	clinfo/clinfo \
-  matmul/matmul
+	clinfo/clinfo
 
 #	mandelbrot/mandelbrot
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
-	clinfo/clinfo\
-  matmul/matmul
+	clinfo/clinfo
 
 #	mandelbrot/mandelbrot
 
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
-matmul_matmul_SOURCES = matmul/matmul.c
 #mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
 
 #mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)

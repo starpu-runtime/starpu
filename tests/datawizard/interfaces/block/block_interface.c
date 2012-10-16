@@ -48,7 +48,7 @@ struct test_config block_config =
 #endif
 	.handle        = &block_handle,
 	.dummy_handle  = &block2_handle,
-	.copy_failed   = SUCCESS,
+	.copy_failed   = 0,
 	.name          = "block_interface"
 };
 
@@ -107,7 +107,7 @@ static void test_block_cpu_func(void *buffers[], void *args)
 	int *block = (int *) STARPU_BLOCK_GET_PTR(buffers[0]);
 	unsigned int i, j, k;
 	int val = 0;
-	block_config.copy_failed = SUCCESS;
+	block_config.copy_failed = 0;
 	for (k = 0; k < nz; k++)
 	{
 		for (j = 0; j < ny; j++)
@@ -116,7 +116,7 @@ static void test_block_cpu_func(void *buffers[], void *args)
 			{
                                 if (block[(k*ldz)+(j*ldy)+i] != factor * val)
 				{
-					block_config.copy_failed = FAILURE;
+					block_config.copy_failed = 1;
 					return;
 				}
 				else
@@ -133,10 +133,12 @@ int
 main(void)
 {
 	data_interface_test_summary *summary;
-	struct starpu_conf conf;
-	starpu_conf_init(&conf);
-	conf.ncuda = 2;
-	conf.nopencl = 1;
+	struct starpu_conf conf =
+	{
+		.ncpus   = -1,
+		.ncuda   = 2,
+		.nopencl = 1
+	};
 
 	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;

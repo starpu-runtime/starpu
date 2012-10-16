@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -135,9 +135,9 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attr
 					right, ld12, 1.0f, center, ld22);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_CUBLAS_REPORT_ERROR(status);
+				STARPU_ABORT();
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -200,9 +200,9 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 					1.0f, sub11, ld11, sub12, ld12);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_CUBLAS_REPORT_ERROR(status);
+				STARPU_ABORT();
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -262,9 +262,9 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_CUBLAS_REPORT_ERROR(status);
+				STARPU_ABORT();
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -344,8 +344,8 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;
-				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
+				cudaStreamSynchronize(0);
 
 				STARPU_ASSERT(pivot != 0.0f);
 				
@@ -357,7 +357,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 								&sub11[(z+1) + (z+1)*ld],ld);
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif

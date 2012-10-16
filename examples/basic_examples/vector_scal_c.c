@@ -26,6 +26,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_opencl.h>
 #include <stdio.h>
 
 

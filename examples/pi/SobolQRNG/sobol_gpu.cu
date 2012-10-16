@@ -40,6 +40,7 @@
 #include "sobol.h"
 #include "sobol_gpu.h"
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 #define k_2powneg32 2.3283064E-10F
 

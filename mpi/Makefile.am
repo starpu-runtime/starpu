@@ -18,11 +18,7 @@ CC=$(MPICC)
 CCLD=$(MPICC)
 
 if STARPU_MPI_CHECK
-if STARPU_HAVE_AM111
-LOG_COMPILER	 	=	$(MPIEXEC) -np 2
-else
-TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 2
-endif
+TESTS_ENVIRONMENT	=	$(MPIEXEC) -np 2
 TESTS			=	$(check_PROGRAMS)
 endif
 
@@ -33,8 +29,8 @@ BUILT_SOURCES =
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 EXTRA_DIST = 					\
-	examples/mpi_lu/mpi_lu-float.h		\
-	examples/mpi_lu/mpi_lu-double.h		\
+	examples/mpi_lu/float.h			\
+	examples/mpi_lu/double.h		\
 	examples/mpi_lu/plu_example.c		\
 	examples/mpi_lu/plu_solve.c		\
 	examples/mpi_lu/pxlu.h			\
@@ -68,37 +64,37 @@ endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 lib_LTLIBRARIES = libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined					\
-  -version-info $(LIBSTARPUMPI_INTERFACE_CURRENT):$(LIBSTARPUMPI_INTERFACE_REVISION):$(LIBSTARPUMPI_INTERFACE_AGE) \
-  $(MPICC_LDFLAGS)
+  -version-info $(LIBSTARPUMPI_INTERFACE_CURRENT):$(LIBSTARPUMPI_INTERFACE_REVISION):$(LIBSTARPUMPI_INTERFACE_AGE)
+
 noinst_HEADERS =					\
-	src/starpu_mpi_private.h				\
-	src/starpu_mpi_fxt.h				\
-	src/starpu_mpi_stats.h				\
-	src/starpu_mpi_datatype.h
+	starpu_mpi_private.h				\
+	starpu_mpi_fxt.h				\
+	starpu_mpi_insert_task_cache.h
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
-	include/starpu_mpi.h
+	starpu_mpi.h					\
+	starpu_mpi_datatype.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
-	src/starpu_mpi.c				\
-	src/starpu_mpi_helper.c				\
-	src/starpu_mpi_datatype.c			\
-	src/starpu_mpi_insert_task.c			\
-	src/starpu_mpi_collective.c			\
-	src/starpu_mpi_stats.c
+	starpu_mpi.c					\
+	starpu_mpi_helper.c				\
+	starpu_mpi_datatype.c				\
+	starpu_mpi_insert_task.c			\
+	starpu_mpi_insert_task_cache.c			\
+	starpu_mpi_collective.c
 
 ###################
 # Stencil example #
 ###################
-if BUILD_EXAMPLES
+
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
@@ -206,24 +202,6 @@ examples_reduction_mpi_reduction_LDADD =	\
 
 check_PROGRAMS +=		\
 	examples/reduction/mpi_reduction
-
-###################
-# complex example #
-###################
-
-examplebin_PROGRAMS +=				\
-	examples/complex/mpi_complex
-
-examples_complex_mpi_complex_SOURCES =		\
-	examples/complex/mpi_complex.c		\
-	../examples/interface/complex_interface.c
-
-examples_complex_mpi_complex_LDADD =		\
-	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
-check_PROGRAMS	+=	\
-	examples/complex/mpi_complex
-endif
 
 ########################
 # Unit testcases       #

@@ -16,9 +16,6 @@
 
 #include <starpu.h>
 
-#ifndef __COMPLEX_INTERFACE_H
-#define __COMPLEX_INTERFACE_H
-
 /* interface for complex numbers */
 struct starpu_complex_interface
 {
@@ -37,4 +34,3 @@ int starpu_complex_get_nx(starpu_data_handle_t handle);
 #define STARPU_COMPLEX_GET_IMAGINARY(interface)	(((struct starpu_complex_interface *)(interface))->imaginary)
 #define STARPU_COMPLEX_GET_NX(interface)	(((struct starpu_complex_interface *)(interface))->nx)
 
-#endif /* __COMPLEX_INTERFACE_H */

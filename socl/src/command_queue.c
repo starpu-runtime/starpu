@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
- * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
+ * Copyright (C) 2010,2011 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,11 +58,8 @@ void command_queue_dependencies_implicit(
 	 * Return dependencies
 	 *********************/
 
+	cl_event * evs = malloc(ndeps * sizeof(cl_event));
 	int n = 0;
-	cl_event * evs = NULL;
-	if (ndeps > 0)
-		evs = malloc(ndeps * sizeof(cl_event));
-
 
 	/* Add dependency to last barrier if applicable */
 	if (cq->barrier != NULL)
@@ -134,8 +129,6 @@ void command_queue_dependencies(
 	memcpy(evs, implicit_events, sizeof(cl_event) * implicit_num_events);
 	memcpy(&evs[implicit_num_events], events, sizeof(cl_event) * num_events);
 
-	free(implicit_events);
-
 	*ret_num_events = ndeps;
 	*ret_events = evs;
 }
@@ -146,8 +139,7 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	int is_barrier = 0;
 	if (cmd->typ == CL_COMMAND_BARRIER) {
 		is_barrier = 1;
-		/* OpenCL has no CL_COMMAND_BARRIER type, so we fall back on CL_COMMAND_MARKER 
-                   WARNING OpenCL has CL_COMMAND_BARRIER in 1.2*/
+		/* OpenCL has no CL_COMMAND_BARRIER type, so we fall back on CL_COMMAND_MARKER */
 		cmd->typ = CL_COMMAND_MARKER;
 	}
 
@@ -167,9 +159,6 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	/* Make all dependencies explicit for the command */
 	cmd->num_events = all_num_events;
 	cmd->events = all_events;
-
-	/* Increment event ref count */
-	gc_entity_retain(cmd->event);
 
 	/* Insert command in the queue */
 	command_queue_insert(cq, cmd, is_barrier);

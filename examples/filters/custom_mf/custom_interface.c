@@ -14,10 +14,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #include <starpu.h>
+#include <starpu_hash.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #include "custom_interface.h"
 #include "custom_types.h"
 
+static int copy_ram_to_ram(void *src_interface, unsigned src_node,
+			   void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
+static int copy_ram_to_cuda(void *src_interface, unsigned src_node,
+			    void *dst_interface, unsigned dst_node);
+static int copy_cuda_to_ram(void *src_interface, unsigned src_node,
+			    void *dst_interface, unsigned dst_node);
 static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node,
 				  void *dst_interface, unsigned dst_node,
 				  cudaStream_t stream);
@@ -40,19 +50,19 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 				 void *dst_interface, unsigned dst_node);
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    cl_event *event);
+				    void *event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    cl_event *event);
+				    void *event);
 #endif /* !STARPU_USE_OPENCL */
 
 static struct starpu_data_copy_methods custom_copy_data_methods_s =
 {
-	.ram_to_ram = NULL,
+	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
-	.ram_to_cuda        = NULL,
-	.cuda_to_ram        = NULL,
+	.ram_to_cuda        = copy_ram_to_cuda,
+	.cuda_to_ram        = copy_cuda_to_ram,
 	.ram_to_cuda_async  = copy_ram_to_cuda_async,
 	.cuda_to_ram_async  = copy_cuda_to_ram_async,
 	.cuda_to_cuda       = copy_cuda_to_cuda,
@@ -81,6 +91,7 @@ static void*    custom_handle_to_pointer(starpu_data_handle_t data_handle,
 static void     free_custom_buffer_on_node(void *data_interface, uint32_t node);
 static size_t   custom_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle);
+static int      custom_compare(void *data_interface_a, void *data_interface_b);
 static void     display_custom_interface(starpu_data_handle_t handle, FILE *f);
 static uint32_t custom_get_nx(starpu_data_handle_t handle);
 
@@ -102,7 +113,7 @@ static struct starpu_data_interface_ops interface_custom_ops =
 	.copy_methods          = &custom_copy_data_methods_s,
 	.get_size              = custom_interface_get_size,
 	.footprint             = footprint_custom_interface_crc32,
-	.compare               = NULL,
+	.compare               = custom_compare,
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon     = NULL,
 #endif
@@ -318,11 +329,16 @@ static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle)
 	return starpu_crc32_be(custom_get_nx(handle), 0);
 }
 
+static int custom_compare(void *data_interface_a, void *data_interface_b)
+{
+	/* TODO */
+	assert(0);
+}
+
 static void display_custom_interface(starpu_data_handle_t handle, FILE *f)
 {
-	struct custom_data_interface *ci = (struct custom_data_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
-	fprintf(f, "Custom interface of size %d", ci->nx);
+	/* TODO */
+	assert(0);
 }
 
 static uint32_t
@@ -341,6 +357,7 @@ void custom_data_register(starpu_data_handle_t *handle,
 				 uint32_t nx,
 				 struct starpu_multiformat_data_interface_ops *format_ops)
 {
+	/* XXX Deprecated fields ? */
 	struct custom_data_interface custom =
 	{
 		.cpu_ptr = ptr,
@@ -360,7 +377,26 @@ void custom_data_register(starpu_data_handle_t *handle,
 	starpu_data_register(handle, home_node, &custom, &interface_custom_ops);
 }
 
+static int copy_ram_to_ram(void *src_interface, unsigned src_node,
+			   void *dst_interface, unsigned dst_node)
+{
+	/* TODO */
+	assert(0);
+}
 #ifdef STARPU_USE_CUDA
+static int copy_ram_to_cuda(void *src_interface, unsigned src_node,
+			    void *dst_interface, unsigned dst_node)
+{
+	/* TODO */
+	assert(0);
+}
+static int copy_cuda_to_ram(void *src_interface, unsigned src_node,
+			    void *dst_interface, unsigned dst_node)
+{
+	/* TODO */
+	assert(0);
+}
+
 static int
 copy_cuda_common_async(void *src_interface, unsigned src_node,
 		       void *dst_interface, unsigned dst_node,
@@ -477,7 +513,7 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    cl_event *event)
+				    void *event)
 {
 	ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
@@ -520,7 +556,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    cl_event *event)
+				    void *event)
 {
 	ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;

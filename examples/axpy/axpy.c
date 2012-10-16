@@ -28,6 +28,9 @@
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 
 #include "axpy.h"
 
@@ -71,7 +74,7 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	CUBLASAXPY((int)n, alpha, block_x, 1, block_y, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaThreadSynchronize();
 }
 #endif
 

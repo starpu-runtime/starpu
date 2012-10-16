@@ -25,6 +25,8 @@ static void task_release_callback(void *arg) {
   cl_event ev = command_event_get(cmd);
   ev->status = CL_COMPLETE;
 
+  DEBUG_MSG("notifying tag %x as well as task tag %x\n", ev->id, task->tag_id);
+
   /* Trigger the tag associated to the command event */
   starpu_tag_notify_from_apps(ev->id);
 
@@ -56,6 +58,8 @@ starpu_task task_create() {
 	task->use_tag = 1;
 	task->tag_id = event_unique_id();
 
+	DEBUG_MSG("creating task with tag %x\n", task->tag_id);
+
 	return task;
 }
 
@@ -66,6 +70,9 @@ void task_depends_on(starpu_task task, cl_uint num_events, cl_event *events) {
 		cl_uint i;
 
 		starpu_tag_t * tags = malloc(num_events * sizeof(starpu_tag_t));	
+
+		if (num_events != 0)
+			DEBUG_MSG("Tag %d depends on %u tags:", task->tag_id, num_events);
 
 		for (i=0; i<num_events; i++) {
 			tags[i] = events[i]->id;
@@ -113,14 +120,13 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
 
   arg->callback(arg->arg);
 
-  if (arg->free_arg) {
-    assert(arg->arg != NULL);
+#warning FIXME: free memory
+/*
+  if (arg->free_arg)
     free(arg->arg);
-    arg->arg = NULL;
-  }
 
   free(arg);
-
+*/
 }
 
 static struct starpu_codelet cputask_codelet = {

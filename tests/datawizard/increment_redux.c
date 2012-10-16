@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,13 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
+
+#ifdef STARPU_USE_CUDA
+#include <starpu_cuda.h>
+#endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 
 static unsigned var = 0;
 static starpu_data_handle_t handle;
@@ -37,14 +44,14 @@ static void redux_cuda_kernel(void *descr[], void *arg)
 	unsigned host_dst, host_src;
 
 	/* This is a dummy technique of course */
-	cudaMemcpyAsync(&host_src, src, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaMemcpyAsync(&host_dst, dst, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(&host_src, src, sizeof(unsigned), cudaMemcpyDeviceToHost);
+	cudaMemcpy(&host_dst, dst, sizeof(unsigned), cudaMemcpyDeviceToHost);
+	cudaThreadSynchronize();
 
 	host_dst += host_src;
 
-	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice);
+	cudaThreadSynchronize();
 }
 
 static void neutral_cuda_kernel(void *descr[], void *arg)
@@ -55,8 +62,8 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 
 	/* This is a dummy technique of course */
 	unsigned host_dst = 0;
-	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice);
+	cudaThreadSynchronize();
 }
 #endif
 
@@ -176,13 +183,13 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	unsigned host_token;
 
 	/* This is a dummy technique of course */
-	cudaMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost);
+	cudaThreadSynchronize();
 
 	host_token++;
 
-	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice);
+	cudaThreadSynchronize();
 }
 #endif
 
@@ -235,7 +242,7 @@ int main(int argc, char **argv)
 			task->cl = &increment_cl;
 			task->handles[0] = handle;
 
-			ret = starpu_task_submit(task);
+			int ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}

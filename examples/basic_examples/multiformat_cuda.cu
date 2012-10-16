@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include "multiformat_types.h"
 
 static __global__ void multiformat_cuda(struct struct_of_arrays *soa, unsigned n)

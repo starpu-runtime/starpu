@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
- * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
+ * Copyright (C) 2010,2011 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +61,8 @@ static void * gc_thread_routine(void *UNUSED(arg)) {
 
       /* Release entity */
       entity next = r->next;
-      free(r);
+#warning FIXME: free memory
+//      free(r);
 
       r = next;
     }
@@ -114,7 +113,7 @@ int gc_entity_release_ex(entity e) {
   if (refs != 0)
     return 0;
 
-  DEBUG_MSG("Releasing entity %p\n", e);
+  DEBUG_MSG("Releasing entity %lx\n", e);
 
   GC_LOCK;
 
@@ -143,7 +142,6 @@ int gc_entity_release_ex(entity e) {
 void gc_entity_init(void *arg, void (*release_callback)(void*)) {
   struct entity * e = (entity)arg;
 
-  e->dispatch = &socl_master_dispatch;
   e->refs = 1;
   e->release_callback = release_callback;
   e->prev = NULL;

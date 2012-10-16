@@ -15,5 +15,5 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "lu-double.h"
+#include "double.h"
 #include "lu_example.c"

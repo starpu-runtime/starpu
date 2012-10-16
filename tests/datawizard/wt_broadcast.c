@@ -18,6 +18,13 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_USE_CUDA
+#include <starpu_cuda.h>
+#endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
+
 static unsigned var = 0;
 static starpu_data_handle_t handle;
 /*
@@ -53,13 +60,13 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	unsigned host_token;
 
 	/* This is a dummy technique of course */
-	cudaMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost);
+	cudaThreadSynchronize();
 
 	host_token++;
 
-	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice);
+	cudaThreadSynchronize();
 }
 #endif
 

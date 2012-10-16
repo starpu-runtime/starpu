@@ -30,13 +30,12 @@ int main(int argc, char **argv)
 static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 {
 	int ret;
-	char *string;
 
 	FPRINTF(stderr, "Testing with env=%d - conf=%d\n", env_cpu, conf_cpu);
 
 	if (env_cpu != -1)
 	{
-		string = malloc(50);
+		char string[50];
 		sprintf(string, "STARPU_NCPUS=%d", env_cpu);
 		putenv(string);
 	}
@@ -49,17 +48,16 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	}
 	ret = starpu_init(&user_conf);
 
-	if (env_cpu != -1)
-	{
-		unsetenv("STARPU_NCPUS");
-		free(string);
-	}
-
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	*cpu = starpu_cpu_worker_get_count();
 	starpu_shutdown();
+
+	if (env_cpu != -1)
+	{
+		unsetenv("STARPU_NCPUS");
+	}
 
 	if (expected_cpu == -1)
 	{

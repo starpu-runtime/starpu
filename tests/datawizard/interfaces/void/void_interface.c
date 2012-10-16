@@ -37,7 +37,7 @@ struct test_config void_config =
 #endif
 	.handle        = &void_handle,
 	.dummy_handle  = &void2_handle,
-	.copy_failed   = SUCCESS,
+	.copy_failed   = 0,
 	.name          = "void_interface"
 };
 
@@ -59,10 +59,12 @@ int
 main(void)
 {
 	data_interface_test_summary *summary;
-	struct starpu_conf conf;
-	starpu_conf_init(&conf);
-	conf.ncuda = 2;
-	conf.nopencl = 1;
+	struct starpu_conf conf =
+	{
+		.ncpus   = -1,
+		.ncuda   = 2,
+		.nopencl = 1
+	};
 
 	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;

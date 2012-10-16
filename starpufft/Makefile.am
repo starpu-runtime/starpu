@@ -19,8 +19,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_C
 lib_LTLIBRARIES = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la
 
 EXTRA_DIST =			\
-	starpufft-float.h	\
-	starpufft-double.h	\
+	float.h			\
+	double.h		\
 	cudax_kernels.h		\
 	starpufftx.c		\
 	starpufftx1d.c		\
@@ -67,13 +67,10 @@ libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 
 examplebindir = $(libdir)/starpu/examples/starpufft
-
-examplebin_PROGRAMS =
-if BUILD_EXAMPLES
-examplebin_PROGRAMS +=				\
+examplebin_PROGRAMS =				\
 	examples/testf \
 	examples/test
-endif
+
 check_PROGRAMS = examples/testf
 examples_testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 

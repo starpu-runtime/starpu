@@ -33,20 +33,9 @@ noinst_HEADERS =				\
   gc.h						\
   getinfo.h					\
   mem_objects.h					\
-  ocl_icd.h					\
   socl.h					\
   task.h					\
-  util.h					\
-  init.h					\
-  CL/cl_d3d10.h					\
-  CL/cl_ext.h					\
-  CL/cl.h					\
-  CL/cl_d3d11.h					\
-  CL/cl_gl_ext.h				\
-  CL/cl_platform.h				\
-  CL/cl_dx9_media_sharing.h			\
-  CL/cl_gl.h					\
-  CL/opencl.h
+  util.h
 
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
   -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
@@ -129,8 +118,7 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_enqueuendrangekernel.c \
   cl_enqueuenativekernel.c \
   cl_geteventprofilinginfo.c \
-  cl_getextensionfunctionaddress.c \
-  cl_icdgetplatformidskhr.c
+  cl_getextensionfunctionaddress.c
 
 
 

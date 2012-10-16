@@ -15,5 +15,5 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "lu-float.h"
+#include "float.h"
 #include "xlu.c"

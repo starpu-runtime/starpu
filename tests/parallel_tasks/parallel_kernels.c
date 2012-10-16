@@ -64,10 +64,18 @@ int main(int argc, char **argv)
 	starpu_data_handle_t v_handle;
 	unsigned *v;
 
-        struct starpu_conf conf;
-	starpu_conf_init(&conf);
-	conf.sched_policy_name = "pheft";
-	conf.calibrate = 1;
+        struct starpu_conf conf =
+	{
+                .sched_policy_name = "pheft",
+                .ncpus = -1,
+                .ncuda = -1,
+                .nopencl = -1,
+                .nspus = -1,
+                .use_explicit_workers_bindid = 0,
+                .use_explicit_workers_cuda_gpuid = 0,
+                .use_explicit_workers_opencl_gpuid = 0,
+                .calibrate = 1
+        };
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -89,7 +97,7 @@ int main(int argc, char **argv)
 
 			task->handles[0] = v_handle;
 
-			ret = starpu_task_submit(task);
+			int ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}

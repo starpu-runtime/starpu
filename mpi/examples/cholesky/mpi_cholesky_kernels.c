@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
+#include <starpu_config.h>
 #include "mpi_cholesky.h"
 #include "common/blas.h"
 #ifdef STARPU_USE_CUDA
@@ -63,10 +63,9 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 					-1.0f, left, ld21, right, ld12,
 					 1.0f, center, ld22);
 			st = cublasGetError();
-			if (STARPU_UNLIKELY(st != CUBLAS_STATUS_SUCCESS))
-				STARPU_CUBLAS_REPORT_ERROR(st);
+			STARPU_ASSERT(!st);
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -115,7 +114,7 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 #ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 			break;
 #endif
 		default:
@@ -189,15 +188,15 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 					fprintf(stderr, "Error in Magma: %d\n", ret);
 					STARPU_ABORT();
 				}
-				cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaError_t cures = cudaThreadSynchronize();
 				STARPU_ASSERT(!cures);
 			}
 #else
 			for (z = 0; z < nx; z++)
 			{
 				float lambda11;
-				cudaMemcpyAsync(&lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpy(&lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
+				cudaStreamSynchronize(0);
 
 				STARPU_ASSERT(lambda11 != 0.0f);
 
@@ -212,7 +211,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 #endif
 			break;
 #endif

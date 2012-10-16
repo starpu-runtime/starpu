@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,9 +68,9 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_CUBLAS_REPORT_ERROR(status);
+				STARPU_ABORT();
 
-			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -156,9 +156,9 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_CUBLAS_REPORT_ERROR(status);
+				STARPU_ABORT();
 
-			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -241,9 +241,9 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_CUBLAS_REPORT_ERROR(status);
+				STARPU_ABORT();
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -328,8 +328,8 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			{
 				TYPE pivot;
 				TYPE inv_pivot;
-				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
+				cudaStreamSynchronize(0);
 
 				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 				
@@ -342,7 +342,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -450,8 +450,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			{
 				TYPE pivot;
 				TYPE inv_pivot;
-				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
+				cudaStreamSynchronize(0);
 
 				if (fabs((double)(pivot)) < PIVOT_THRESHHOLD)
 				{
@@ -466,8 +466,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 						CUBLAS_SWAP(nx, (CUBLAS_TYPE*)&sub11[z*ld], 1, (CUBLAS_TYPE*)&sub11[(z+piv_ind)*ld], 1);
 					}
 
-					cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-					cudaStreamSynchronize(starpu_cuda_get_local_stream());
+					cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
+					cudaStreamSynchronize(0);
 				}
 
 				STARPU_ASSERT(pivot != 0.0);
@@ -482,7 +482,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 				
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -570,7 +570,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 				}
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaThreadSynchronize();
 
 			break;
 #endif

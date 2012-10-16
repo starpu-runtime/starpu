@@ -48,7 +48,6 @@ static void release_callback_event(void * e) {
   cl_event event = (cl_event)e;
 
   cl_command_queue cq = event->cq;
-  cl_command cmd = event->command;
 
   /* Remove from command queue */
   if (cq != NULL) {
@@ -60,17 +59,13 @@ static void release_callback_event(void * e) {
       cq->barrier = NULL;
 
     /* Remove from the list of out-of-order commands */
-    cq->commands = command_list_remove(cq->commands, cmd);
+    cq->commands = command_list_remove(cq->commands, event->command);
 
     /* Unlock command queue */
     pthread_mutex_unlock(&cq->mutex);
 
     gc_entity_unstore(&cq);
   }
-
-  free(cmd->events);
-  cmd->events = NULL;
-  cmd->num_events = 0;
 
   /* Destruct object */
   //FIXME: we cannot release tag because it makes StarPU crash

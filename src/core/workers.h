@@ -62,14 +62,14 @@ struct _starpu_worker
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
-	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
+	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
 	int worker_size; /* size of the worker in case we use a combined worker */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
-	unsigned memory_node; /* which memory node is the worker associated with ? */
+	unsigned memory_node; /* which memory node is associated that worker to ? */
 	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
@@ -81,7 +81,6 @@ struct _starpu_worker
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[48];
 	char short_name[10];
-	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
 	struct _starpu_sched_ctx **sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
@@ -99,8 +98,8 @@ struct _starpu_worker
 	cpu_set_t current_cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_bitmap_t initial_hwloc_cpu_set;
-	hwloc_bitmap_t current_hwloc_cpu_set;
+	hwloc_cpuset_t initial_hwloc_cpu_set;
+	hwloc_cpuset_t current_hwloc_cpu_set;
 #endif
 };
 
@@ -116,7 +115,7 @@ struct _starpu_combined_worker
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_bitmap_t hwloc_cpu_set;
+	hwloc_cpuset_t hwloc_cpu_set;
 #endif
 };
 
@@ -173,9 +172,6 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
-
-	/* this flag is set until the application is finished submitting tasks */
-	unsigned submitting;
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
@@ -244,12 +240,6 @@ unsigned _starpu_execute_registered_progression_hooks(void);
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
 int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
-
-int starpu_asynchronous_copy_disabled();
-
-int starpu_asynchronous_cuda_copy_disabled();
-
-int starpu_asynchronous_opencl_copy_disabled();
 
 #endif // __WORKERS_H__
 

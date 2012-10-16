@@ -289,7 +289,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return starpu_push_local_task(best_workerid, task, prio);
 }
 
-/* TODO: Correct the bugs in the scheduling !!! */
 /* TODO: factorize with dmda!! */
 static void compute_all_performance_predictions(struct starpu_task *task,
 						double (*local_task_length)[STARPU_MAXIMPLEMENTATIONS], 
@@ -323,13 +322,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 			for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) 
 			{
-				if (!starpu_worker_can_execute_task(worker, task, nimpl))
-				{
-					/* no one on that queue may execute this task */
-//				worker_ctx++;
-					continue;
-				}
-
 				/* Sometimes workers didn't take the tasks as early as we expected */
 				pthread_mutex_t *sched_mutex;
 				pthread_cond_t *sched_cond;
@@ -340,6 +332,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				if (exp_end[worker_ctx][nimpl] > max_exp_end)
 					max_exp_end = exp_end[worker_ctx][nimpl];
 				_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+				if (!starpu_worker_can_execute_task(worker, task, nimpl))
+				{
+					/* no one on that queue may execute this task */
+//				worker_ctx++;
+					continue;
+				}
 				
 				enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 				unsigned memory_node = starpu_worker_get_memory_node(worker);
@@ -643,7 +641,7 @@ static void heft_deinit(unsigned sched_ctx_id)
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }
 
-struct starpu_sched_policy _starpu_sched_heft_policy =
+struct starpu_sched_policy heft_policy = 
 {
 	.init_sched = heft_init,
 	.deinit_sched = heft_deinit,

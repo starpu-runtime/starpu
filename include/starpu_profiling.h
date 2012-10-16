@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -150,8 +150,8 @@ static inline void starpu_timespec_accumulate(struct timespec *result,
 }
 
 /* Computes result = a - b */
-static inline void starpu_timespec_sub(const struct timespec *a,
-					const struct timespec *b,
+static inline void starpu_timespec_sub(struct timespec *a,
+					struct timespec *b,
 					struct timespec *result)
 {
 	result->tv_sec = a->tv_sec - b->tv_sec;

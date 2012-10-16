@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,8 @@
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 
-#include <config.h>
 #include <starpu.h>
+#include <starpu_opencl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -66,7 +66,6 @@ static struct starpu_codelet cl =
 		, scal_sse_func_icc
 #endif
 #endif
-		, NULL
 	},
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
@@ -88,15 +87,8 @@ struct starpu_opencl_program opencl_program;
 
 static int approximately_equal(float a, float b)
 {
-#ifdef STARPU_HAVE_NEARBYINTF
 	int ai = (int) nearbyintf(a * 1000.0);
 	int bi = (int) nearbyintf(b * 1000.0);
-#elif defined(STARPU_HAVE_RINTF)
-	int ai = (int) rintf(a * 1000.0);
-	int bi = (int) rintf(b * 1000.0);
-#else
-#error "Please define either nearbyintf or rintf."
-#endif
 	return ai == bi;
 }
 

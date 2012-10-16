@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,12 +43,18 @@ int main(int argc, char **argv)
 	unset_env_variables();
 
 	/* We try to initialize StarPU without any worker */
-	struct starpu_conf conf;
-	starpu_conf_init(&conf);
-	conf.ncpus = 0;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nspus = 0;
+	struct starpu_conf conf =
+	{
+		.sched_policy_name = NULL, /* default */
+		.ncpus = 0,
+		.ncuda = 0,
+                .nopencl = 0,
+		.nspus = 0,
+		.use_explicit_workers_bindid = 0,
+		.use_explicit_workers_cuda_gpuid = 0,
+		.use_explicit_workers_opencl_gpuid = 0,
+		.calibrate = 0
+	};
 
 	/* starpu_init should return -ENODEV */
 	ret = starpu_init(&conf);
@@ -60,9 +66,9 @@ int main(int argc, char **argv)
 		unsigned ncuda = starpu_cuda_worker_get_count();
 		unsigned nopencl = starpu_opencl_worker_get_count();
 		FPRINTF(stderr, "StarPU has found :\n");
-		FPRINTF(stderr, "\t%u CPU cores\n", ncpu);
-		FPRINTF(stderr, "\t%u CUDA devices\n", ncuda);
-		FPRINTF(stderr, "\t%u OpenCL devices\n", nopencl);
+		FPRINTF(stderr, "\t%d CPU cores\n", ncpu);
+		FPRINTF(stderr, "\t%d CUDA devices\n", ncuda);
+		FPRINTF(stderr, "\t%d OpenCL devices\n", nopencl);
 		return EXIT_FAILURE;
 	}
 

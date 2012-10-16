@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,6 +24,11 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#include <starpu_cuda.h>
+#endif
+
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
 #endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -74,8 +79,8 @@ void init_cpu_func(void *descr[], void *cl_arg)
 void init_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	cudaMemsetAsync(dot, 0, sizeof(DOT_TYPE), starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemset(dot, 0, sizeof(DOT_TYPE));
+	cudaThreadSynchronize();
 }
 #endif
 
@@ -232,16 +237,20 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cudaMemcpyAsync(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaMemcpy(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost);
+
+	cudaThreadSynchronize();
 
 	local_dot = (DOT_TYPE)cublasSdot(n, local_x, 1, local_y, 1);
 
 	/* FPRINTF(stderr, "current_dot %f local dot %f -> %f\n", current_dot, local_dot, current_dot + local_dot); */
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	current_dot += local_dot;
 
-	cudaMemcpyAsync(dot, &current_dot, sizeof(DOT_TYPE), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaThreadSynchronize();
+
+	cudaMemcpy(dot, &current_dot, sizeof(DOT_TYPE), cudaMemcpyHostToDevice);
+
+	cudaThreadSynchronize();
 }
 #endif
 
@@ -347,7 +356,7 @@ int main(int argc, char **argv)
 	assert(x && y);
 
         starpu_srand48(0);
-
+	
 	DOT_TYPE reference_dot = 0.0;
 
 	unsigned long i;
@@ -357,8 +366,8 @@ int main(int argc, char **argv)
 		y[i] = (float)starpu_drand48();
 
 		reference_dot += (DOT_TYPE)x[i]*(DOT_TYPE)y[i];
-	}
-
+	} 
+	
 	unsigned block;
 	for (block = 0; block < nblocks; block++)
 	{
@@ -386,7 +395,7 @@ int main(int argc, char **argv)
 		task->handles[1] = y_handles[block];
 		task->handles[2] = dot_handle;
 
-		ret = starpu_task_submit(task);
+		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_ASSERT(!ret);
 	}

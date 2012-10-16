@@ -66,7 +66,7 @@ Allow resizing of a context
 The user can then provide information to the hypervisor concerning the conditions of resizing.
 
 @deftypefun void sched_ctx_hypervisor_ioctl (unsigned @var{sched_ctx}, ...)
-Inputs conditions to the context @var{sched_ctx} with the following arguments.  The argument list must be zero-terminated.
+Inputs conditions to the context @code{sched_ctx} with the following arguments.  The argument list must be zero-terminated.
 
 @defmac HYPERVISOR_MAX_IDLE
 This macro is used when calling sched_ctx_hypervisor_ioctl and must be followed by 3 arguments: 
@@ -257,11 +257,11 @@ Indicates the name of the policy, if there is not a custom policy, the policy co
 @item @code{unsigned custom}
 Indicates whether the policy is custom or not
 @item @code{void (*handle_idle_cycle)(unsigned sched_ctx, int worker)}
-It is called whenever the indicated worker executes another idle cycle in @var{sched_ctx}
+It is called whenever the indicated worker executes another idle cycle in @code{sched_ctx}
 @item @code{void (*handle_pushed_task)(unsigned sched_ctx, int worker)}
-It is called whenever a task is pushed on the worker's queue corresponding to the context @var{sched_ctx}
+It is called whenever a task is pushed on the worker's queue corresponding to the context @code{sched_ctx}
 @item @code{void (*handle_poped_task)(unsigned sched_ctx, int worker)}
-It is called whenever a task is poped from the worker's queue corresponding to the context @var{sched_ctx}
+It is called whenever a task is poped from the worker's queue corresponding to the context @code{sched_ctx}
 @item @code{void (*handle_idle_end)(unsigned sched_ctx, int worker)}
 It is called whenever a task is executed on the indicated worker and context after a long period of idle time
 @item @code{void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node* resize_requests, int task_tag)}
@@ -358,7 +358,7 @@ Gets the number of contexts managed by the hypervisor
 @end deftypefun
 
 @deftypefun {struct sched_ctx_wrapper*} sched_ctx_hypervisor_get_wrapper (unsigned @var{sched_ctx});
-Returns the wrapper corresponding the context @var{sched_ctx}
+Returns the wrapper corresponding the context @code{sched_ctx}
 @end deftypefun
 
 @deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx ({struct sched_ctx_wrapper*} @var{sc_w});

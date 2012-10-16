@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_opencl.h>
 
 #define NX    5
 #define NY    4

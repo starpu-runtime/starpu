@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	if (argc < 2) {
 	        fprintf(stderr, "Usage : %s input_filename [-o output_filename]\n", argv[0]);
-	        exit(77);
+	        exit(-1);
 	}
 	
 	filename = argv[1];

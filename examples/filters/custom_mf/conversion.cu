@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include "custom_types.h"
 #include "custom_interface.h"
 

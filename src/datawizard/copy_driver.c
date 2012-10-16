@@ -117,7 +117,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
 	{
 		int node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
-		starpu_cuda_set_device(_starpu_memory_node_to_devid(node));
+		cures = cudaSetDevice(_starpu_memory_node_to_devid(node));
+		STARPU_ASSERT(cures == cudaSuccess);
 	}
 #endif
 
@@ -382,10 +383,7 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		cl_event opencl_event = (*async_channel).event.opencl_event;
 		if (opencl_event == NULL) STARPU_ABORT();
 		cl_int err = clGetEventInfo(opencl_event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(event_status), &event_status, NULL);
-		if (err != CL_SUCCESS)
-			STARPU_OPENCL_REPORT_ERROR(err);
-		if (event_status < 0)
-			STARPU_OPENCL_REPORT_ERROR(event_status);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 		success = (event_status == CL_COMPLETE);
 		break;
 	}

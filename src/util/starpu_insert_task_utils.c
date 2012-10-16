@@ -58,11 +58,6 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_DATA_ARRAY)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t*);
-			(void)va_arg(varg_list, int);
-		}
 		else if (arg_type==STARPU_VALUE)
 		{
 			(void)va_arg(varg_list, void *);
@@ -121,11 +116,6 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_DATA_ARRAY)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t*);
-			(void)va_arg(varg_list, int);
-		}
 		else if (arg_type==STARPU_VALUE)
 		{
 			/* We have a constant value: this should be followed by a pointer to the cst value and the size of the constant */
@@ -182,7 +172,7 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+int _starpu_insert_task_create_and_submit(char *arg_buffer, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
         int arg_type;
 	unsigned current_buffer = 0;
@@ -212,20 +202,6 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 				cl->modes[current_buffer] = mode;
 
 			current_buffer++;
-		}
-		else if (arg_type == STARPU_DATA_ARRAY)
-		{
-			// Expect to find a array of handles and its size
-			starpu_data_handle_t *handles = va_arg(varg_list, starpu_data_handle_t *);
-			int nb_handles = va_arg(varg_list, int);
-
-			int i;
-			for(i=0 ; i<nb_handles ; i++)
-			{
-				(*task)->handles[current_buffer] = handles[i];
-				current_buffer++;
-			}
-
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -285,7 +261,6 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 	(*task)->cl = cl;
 	(*task)->cl_arg = arg_buffer;
-	(*task)->cl_arg_size = arg_buffer_size;
 
 	/* The callback will free the argument stack and execute the
 	 * application's callback, if any. */
@@ -296,7 +271,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s')\n",
 			*task, (*task)->cl,
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");

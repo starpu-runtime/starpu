@@ -92,8 +92,6 @@ void* start_bench(void *val){
 
 	rv[p->id].flops /= NSAMPLES;
 	rv[p->id].avg_timing /= NSAMPLES;
-
-	return NULL;
 }
 
 void start_2benchs(void (*bench)(unsigned, unsigned))

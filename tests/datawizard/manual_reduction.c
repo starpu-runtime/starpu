@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,13 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
+
+#ifdef STARPU_USE_CUDA
+#include <cuda.h>
+#endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 
 #define INIT_VALUE	42
 #define NTASKS		10000
@@ -118,11 +125,9 @@ static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	unsigned h_val;
-	cudaMemcpyAsync(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost);
 	h_val++;
-	cudaMemcpyAsync(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cudaMemcpy(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice);
 }
 #endif
 
@@ -202,7 +207,7 @@ int main(int argc, char **argv)
 		task->execute_on_a_specific_worker = 1;
 		task->workerid = (unsigned)workerid;
 
-		ret = starpu_task_submit(task);
+		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -217,7 +222,7 @@ int main(int argc, char **argv)
 		task->handles[0] = variable_handle;
 		task->handles[1] = per_worker_handle[worker];
 
-		ret = starpu_task_submit(task);
+		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

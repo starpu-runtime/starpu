@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
+#include <starpu_top.h>
 #include <stdlib.h>
 #include <time.h>
 

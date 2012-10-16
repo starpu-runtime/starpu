@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -60,26 +60,17 @@ void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters,
 /* for BCSR */
 void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-
-/* (filters for matrix interface) */
+/* (filters for BLAS interface) */
 void starpu_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_block_shadow_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_vertical_block_shadow_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /* for vector */
 void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_block_shadow_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /* for block */
 void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_block_shadow_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_vertical_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_vertical_block_shadow_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_depth_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-void starpu_depth_block_shadow_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 #ifdef __cplusplus
 }

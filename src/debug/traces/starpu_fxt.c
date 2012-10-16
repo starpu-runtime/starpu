@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,6 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <common/uthash.h>
 
 #ifdef STARPU_USE_FXT
 #include "starpu_fxt.h"
@@ -125,41 +124,46 @@ static float get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_option
 
 static int nworkers = 0;
 
-struct worker_entry
-{
-	UT_hash_handle hh;
-	unsigned long tid;
-	int workerid;
-} *worker_ids;
-
 static int register_worker_id(unsigned long tid)
 {
 	int workerid = nworkers++;
-	struct worker_entry *entry;
 
-	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
+	/* create a new key in the htable */
+	char *tidstr = malloc(16*sizeof(char));
+	sprintf(tidstr, "%lu", tid);
+
+	ENTRY item;
+		item.key = tidstr;
+		item.data = (void *)(uintptr_t)workerid;
+
+	ENTRY *res;
+	res = hsearch(item, FIND);
 
 	/* only register a thread once */
-	STARPU_ASSERT(entry == NULL);
+	STARPU_ASSERT(res == NULL);
 
-	entry = malloc(sizeof(*entry));
-	entry->tid = tid;
-	entry->workerid = workerid;
-
-	HASH_ADD(hh, worker_ids, tid, sizeof(tid), entry);
+	res = hsearch(item, ENTER);
+	STARPU_ASSERT(res);
 
 	return workerid;
 }
 
 static int find_worker_id(unsigned long tid)
 {
-	struct worker_entry *entry;
+	char tidstr[16];
+	sprintf(tidstr, "%lu", tid);
 
-	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
-	if (!entry)
+	ENTRY item;
+		item.key = tidstr;
+		item.data = NULL;
+	ENTRY *res;
+	res = hsearch(item, FIND);
+	if (!res)
 		return -1;
 
-	return entry->workerid;
+	int id = (uintptr_t)(res->data);
+
+	return id;
 }
 
 static void update_accumulated_time(int worker, double sleep_time, double exec_time, double current_timestamp, int forceflush)
@@ -682,17 +686,6 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	fprintf(activity_file, "cnt_submitted\t%f\t%lu\n", current_timestamp, nsubmitted);
 }
 
-static void handle_codelet_tag(struct fxt_ev_64 *ev)
-{
-	uint64_t tag;
-	unsigned long job;
-
-	tag = ev->param[0];
-	job = ev->param[1];
-
-	_starpu_fxt_dag_add_tag(tag, job);
-}
-
 static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
 {
 	uint64_t child;
@@ -778,7 +771,7 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 {
 	int rank = ev->param[0];
 
-	STARPU_ASSERT(rank == options->file_rank || options->file_rank == -1);
+	STARPU_ASSERT(rank == options->file_rank);
 
 	/* Add an event in the trace */
 	if (out_paje_file)
@@ -867,6 +860,9 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
+
+	/* create a htable to identify each worker(tid) */
+	hcreate(STARPU_NMAXWORKERS);
 
 	symbol_list = _starpu_symbol_name_list_new();
 	communication_list = _starpu_communication_list_new();
@@ -964,7 +960,7 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_TAG:
-				handle_codelet_tag(&ev);
+				/* XXX */
 				break;
 
 			case _STARPU_FUT_TAG_DEPS:
@@ -1073,6 +1069,8 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 		}
 	}
+
+	hdestroy();
 
 	/* Close the trace file */
 	if (close(fd_in))
@@ -1214,11 +1212,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 	starpu_fxt_paje_file_init(options);
 
-	if (options->ninputfiles == 0)
-	{
-	     return;
-	}
-	else if (options->ninputfiles == 1)
+	if (options->ninputfiles == 1)
 	{
 		/* we usually only have a single trace */
 		uint64_t file_start_time = starpu_fxt_find_start_time(options->filenames[0]);

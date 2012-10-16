@@ -260,11 +260,8 @@ static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 		return 0;
 }
 
-/* The header lock must already be taken by the caller.
- * This may free the handle if it was lazily unregistered (1 is returned in
- * that case). The handle pointer thus becomes invalid for the caller.
- */
-int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
+/* The header lock must already be taken by the caller */
+void _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 {
 	_starpu_spin_checklocked(&handle->header_lock);
 	/* A data access has finished so we remove a reference. */
@@ -272,9 +269,19 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 	handle->refcnt--;
 	STARPU_ASSERT(handle->busy_count > 0);
 	handle->busy_count--;
-	if (_starpu_data_check_not_busy(handle))
-		/* Handle was destroyed, nothing left to do.  */
-		return 1;
+	_starpu_data_check_not_busy(handle);
+
+	/* The handle has been destroyed in between (eg. this was a temporary
+	 * handle created for a reduction.) */
+	if (handle->lazy_unregister && handle->refcnt == 0)
+	{
+		_starpu_spin_unlock(&handle->header_lock);
+		starpu_data_unregister_no_coherency(handle);
+		/* Warning: in case we unregister the handle, we must be sure
+		 * that the caller will not try to unlock the header after
+		 * !*/
+		return;
+	}
 
 	/* In case there is a pending reduction, and that this is the last
 	 * requester, we may go back to a "normal" coherency model. */
@@ -351,10 +358,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 			_starpu_spin_lock(&handle->header_lock);
 			STARPU_ASSERT(handle->busy_count > 0);
 			handle->busy_count--;
-			if (_starpu_data_check_not_busy(handle))
-				return 1;
+			_starpu_data_check_not_busy(handle);
 		}
 	}
-
-	return 0;
 }

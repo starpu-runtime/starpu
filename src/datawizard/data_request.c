@@ -296,7 +296,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 		handle->busy_count--;
 	}
 
-	unsigned destroyed = _starpu_data_check_not_busy(handle);
+	_starpu_data_check_not_busy(handle);
 
 	r->refcnt--;
 
@@ -314,8 +314,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	if (do_delete)
 		starpu_data_request_destroy(r);
 
-	if (!destroyed)
-		_starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 
 	/* We do the callback once the lock is released so that they can do
 	 * blocking operations with the handle (eg. release it) */

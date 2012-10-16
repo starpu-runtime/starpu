@@ -32,13 +32,29 @@ int starpu_get_prefetch_flag(void)
 	return use_prefetch;
 }
 
+/*
+ *	Predefined policies
+ */
+
+extern struct starpu_sched_policy _starpu_sched_ws_policy;
+extern struct starpu_sched_policy _starpu_sched_prio_policy;
+extern struct starpu_sched_policy _starpu_sched_random_policy;
+extern struct starpu_sched_policy _starpu_sched_dm_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
+extern struct starpu_sched_policy _starpu_sched_eager_policy;
+extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
+extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
+extern struct starpu_sched_policy heft_policy;
+
 static struct starpu_sched_policy *predefined_policies[] =
 {
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_dm_policy,
 	&_starpu_sched_dmda_policy,
-	&_starpu_sched_heft_policy,
+	&heft_policy,
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_random_policy,
@@ -70,8 +86,19 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 
 	}
 #endif
+        struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 
-	memcpy(sched_ctx->sched_policy, sched_policy, sizeof(*sched_policy));
+	policy->init_sched = sched_policy->init_sched;
+	policy->deinit_sched = sched_policy->deinit_sched;
+	policy->push_task = sched_policy->push_task;
+	policy->pop_task = sched_policy->pop_task;
+	policy->pre_exec_hook = sched_policy->pre_exec_hook;
+	policy->post_exec_hook = sched_policy->post_exec_hook;
+	policy->pop_every_task = sched_policy->pop_every_task;
+	policy->push_task_notify = sched_policy->push_task_notify;
+	policy->policy_name = sched_policy->policy_name;
+	policy->add_workers = sched_policy->add_workers;
+	policy->remove_workers = sched_policy->remove_workers;
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
@@ -267,11 +294,12 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
-		for (i = 0; i < worker_size; i++)
+		int k;
+		for (k = 0; k < worker_size; k++)
 		{
 			struct starpu_task *alias = _starpu_create_task_alias(task);
 
-			worker = _starpu_get_worker_struct(combined_workerid[i]);
+			worker = _starpu_get_worker_struct(combined_workerid[k]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
 
@@ -398,57 +426,43 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	handle->busy_count++;
 	_starpu_spin_unlock(&handle->header_lock);
 
+	struct starpu_multiformat_data_interface_ops *mf_ops;
+	mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 	switch(node_kind)
 	{
 	case STARPU_CPU_RAM:
 		switch (starpu_node_get_kind(handle->mf_node))
 		{
 		case STARPU_CPU_RAM:
-			STARPU_ABORT();
+			STARPU_ASSERT(0);
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-		{
-			struct starpu_multiformat_data_interface_ops *mf_ops;
-			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 			conversion_task->cl = mf_ops->cuda_to_cpu_cl;
 			break;
-		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-		{
-			struct starpu_multiformat_data_interface_ops *mf_ops;
-			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 			conversion_task->cl = mf_ops->opencl_to_cpu_cl;
 			break;
-		}
 #endif
 		default:
 			fprintf(stderr, "Oops : %u\n", handle->mf_node);
-			STARPU_ABORT();
+			STARPU_ASSERT(0);
 		}
 		break;
 #ifdef STARPU_USE_CUDA
 	case STARPU_CUDA_RAM:
-		{
-			struct starpu_multiformat_data_interface_ops *mf_ops;
-			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-			conversion_task->cl = mf_ops->cpu_to_cuda_cl;
-			break;
-		}
+		conversion_task->cl = mf_ops->cpu_to_cuda_cl;
+		break;
 #endif
 #ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_RAM:
-	{
-		struct starpu_multiformat_data_interface_ops *mf_ops;
-		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 		conversion_task->cl = mf_ops->cpu_to_opencl_cl;
 		break;
-	}
 #endif
 	case STARPU_SPU_LS: /* Not supported */
 	default:
-		STARPU_ABORT();
+		STARPU_ASSERT(0);
 	}
 
 	conversion_task->cl->modes[0] = STARPU_RW;

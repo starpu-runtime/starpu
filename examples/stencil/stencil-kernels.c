@@ -18,6 +18,11 @@
 #include "stencil.h"
 #include <sys/time.h>
 
+#ifdef STARPU_USE_OPENCL
+#include <CL/cl.h>
+#include <starpu_opencl.h>
+#endif
+
 #ifndef timersub
 #define	timersub(x, y, res) \
 	do \

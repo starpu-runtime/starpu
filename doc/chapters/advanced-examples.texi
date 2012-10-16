@@ -15,7 +15,6 @@
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
 * Data reduction::  
-* Temporary buffers::  
 * Parallel Tasks::
 * Debugging::
 * The multiformat interface::
@@ -236,7 +235,7 @@ starpu_data_partition(handle, &f);
 @end smallexample
 @end cartouche
 
-The task submission then uses @code{starpu_data_get_sub_data} to retrieve the
+The task submission then uses @code{starpu_data_get_sub_data} to retrive the
 sub-handles to be passed as tasks parameters.
 
 @cartouche
@@ -294,10 +293,6 @@ __kernel void opencl_kernel(__global int *vector, unsigned offset)
 @end smallexample
 @end cartouche
 
-StarPU provides various interfaces and filters for matrices, vectors, etc.,
-but applications can also write their own data interfaces and filters, see
-@code{examples/interface} and @code{examples/filters/custom_mf} for an example.
-
 @node Performance model example
 @section Performance model example
 
@@ -307,9 +302,7 @@ a performance model, by defining a @code{starpu_perfmodel} structure and
 providing its address in the @code{model} field of the @code{struct starpu_codelet}
 structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel}
 are mandatory, to give a name to the model, and the type of the model, since
-there are several kinds of performance models. For compatibility, make sure to
-initialize the whole structure to zero, either by using explicit memset, or by
-letting the compiler implicitly do it as examplified below.
+there are several kinds of performance models.
 
 @itemize
 @item
@@ -324,13 +317,9 @@ and ouput sizes as an index.
 It will also save it in @code{~/.starpu/sampling/codelets}
 for further executions, and can be observed by using the
 @code{starpu_perfmodel_display} command, or drawn by using
-the @code{starpu_perfmodel_plot} (@pxref{Performance model calibration}).  The
-models are indexed by machine name. To
+the @code{starpu_perfmodel_plot}.  The models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
-@code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done
-when using a task scheduler which makes use of it, such as @code{heft} or
-@code{dmda}. Measurements can also be provided explicitly by the application, by
-using the @code{starpu_perfmodel_update_history} function.
+@code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done when using a task scheduler which makes use of it, such as @code{heft} or @code{dmda}.
 
 The following is a small code example.
 
@@ -360,37 +349,19 @@ struct starpu_codelet cl = @{
 
 @item
 Measured at runtime and refined by regression (@code{STARPU_*REGRESSION_BASED}
-model type). This still assumes performance regularity, but works
+model type). This still assumes performance regularity, but can work
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
 form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
-STARPU_REGRESSION_BASED, but costs a lot more to compute).
-
-For instance,
+STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
 @code{tests/perfmodels/regression_based.c} uses a regression-based performance
-model for the @code{memset} operation.
-
-Of course, the application has to issue
+model for the @code{memset} operation. Of course, the application has to issue
 tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
-and maximum observed input size. It can be useful to set the
-@code{STARPU_CALIBRATE} environment variable to @code{1} and run the application
-on varying input sizes, so as to feed the performance model for a variety of
-inputs, or to provide the measurements explictly by using
-@code{starpu_perfmodel_update_history}. The @code{starpu_perfmodel_display} and
-@code{starpu_perfmodel_plot}
-tools can be used to observe how much the performance model is calibrated (@pxref{Performance model calibration}); when
-their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
-StarPU use the resulting performance model without recording new measures. If
-the data input sizes vary a lot, it is really important to set
-@code{STARPU_CALIBRATE} to @code{0}, otherwise StarPU will continue adding the
-measures, and result with a very big performance model, which will take time a
-lot of time to load and save.
-
-For non-linear regression, since computing it
+and maximum observed input size. For non-linear regression, since computing it
 is quite expensive, it is only done at termination of the application. This
-means that the first execution of the application will use only history-based
-performance model to perform scheduling, without using regression.
+means that the first execution uses history-based performance model to perform
+scheduling.
 
 @item
 Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_function} field),
@@ -434,7 +405,7 @@ needs to be called to destroy the dummy task afterwards. See
 @node Theoretical lower bound on execution time
 @section Theoretical lower bound on execution time
 
-For kernels with history-based performance models (and provided that they are completely calibrated), StarPU can very easily provide a theoretical lower
+For kernels with history-based performance models, StarPU can very easily provide a theoretical lower
 bound for the execution time of a whole set of tasks. See for
 instance @code{examples/lu/lu_example.c}: before submitting tasks,
 call @code{starpu_bound_start}, and after complete execution, call
@@ -490,16 +461,11 @@ The arguments following the codelets can be of the following types:
 @item
 @code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
 @item
-@code{STARPU_DATA_ARRAY} followed by an array of data handles and its number of elements;
-@item
 the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
 @code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
 @code{STARPU_PRIORITY}, followed by the appropriated objects as
 defined below.
 @end itemize
-
-When using @code{STARPU_DATA_ARRAY}, the access mode of the data
-handles is not defined.
 
 Parameters to be passed to the codelet implementation are defined
 through the type @code{STARPU_VALUE}. The function
@@ -600,16 +566,6 @@ task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
 @end smallexample
 
-Here a similar call using @code{STARPU_DATA_ARRAY}.
-
-@smallexample
-starpu_insert_task(&mycodelet,
-                   STARPU_DATA_ARRAY, data_handles, 2,
-                   STARPU_VALUE, &ifactor, sizeof(ifactor),
-                   STARPU_VALUE, &ffactor, sizeof(ffactor),
-                   0);
-@end smallexample
-
 If some part of the task insertion depends on the value of some computation,
 the @code{STARPU_DATA_ACQUIRE_CB} macro can be very convenient. For
 instance, assuming that the index variable @code{i} was registered as handle
@@ -696,8 +652,8 @@ and dtq_handle can now be used in @code{STARPU_REDUX} mode for the dot products
 with partitioned vectors:
 
 @smallexample
-int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
-         starpu_data_handle_t s, unsigned nblocks)
+int dots(starpu_data_handle v1, starpu_data_handle v2,
+         starpu_data_handle s, unsigned nblocks)
 @{
     starpu_insert_task(&bzero_variable_cl, STARPU_W, s, 0);
     for (b = 0; b < nblocks; b++)
@@ -711,64 +667,6 @@ int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
 
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading
 to yet more relaxed dependencies and more parallelism.
-
-@node Temporary buffers
-@section Temporary buffers
-
-There are two kinds of temporary buffers: temporary data which just pass results
-from a task to another, and scratch data which are needed only internally by
-tasks.
-
-@subsection Temporary data
-
-Data can sometimes be entirely produced by a task, and entirely consumed by
-another task, without the need for other parts of the application to access
-it. In such case, registration can be done without prior allocation, by using
-the special -1 memory node number, and passing a zero pointer. StarPU will
-actually allocate memory only when the task creating the content gets scheduled,
-and destroy it on unregistration.
-
-In addition to that, it can be tedious for the application to have to unregister
-the data, since it will not use its content anyway. The unregistration can be
-done lazily by using the @code{starpu_data_unregister_submit(handle)} function,
-which will record that no more tasks accessing the handle will be submitted, so
-that it can be freed as soon as the last task accessing it is over.
-
-The following code examplifies both points: it registers the temporary
-data, submits three tasks accessing it, and records the data for automatic
-unregistration.
-
-@smallexample
-starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
-starpu_insert_task(&produce_data, STARPU_W, handle, 0);
-starpu_insert_task(&compute_data, STARPU_RW, handle, 0);
-starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
-starpu_data_unregister_submit(handle);
-@end smallexample
-
-@subsection Scratch data
-
-Some kernels sometimes need temporary data to achieve the computations, i.e. a
-workspace. The application could allocate it at the start of the codelet
-function, and free it at the end, but that would be costly. It could also
-allocate one buffer per worker (similarly to @ref{Per-worker library
-initialization }), but that would make them systematic and permanent. A more
-optimized way is to use the SCRATCH data access mode, as examplified below,
-which provides per-worker buffers without content consistency.
-
-@smallexample
-starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
-for (i = 0; i < N; i++)
-    starpu_insert_task(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
-@end smallexample
-
-StarPU will make sure that the buffer is allocated before executing the task,
-and make this allocation per-worker: for CPU workers, notably, each worker has
-its own buffer. This means that each task submitted above will actually have its
-own workspace, which will actually be the same for all tasks running one after
-the other on the same worker. Also, if for instance GPU memory becomes scarce,
-StarPU will notice that it can free such buffers easily, since the content does
-not matter.
 
 @node Parallel Tasks
 @section Parallel Tasks
@@ -889,20 +787,6 @@ topology (NUMA node, socket, cache, ...) a combined worker will be created. If
 some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
 intermediate sizes.
-The user can give some hints to StarPU about combined workers sizes to favor.
-This can be done by using the environment variables @code{STARPU_MIN_WORKERSIZE}
-and @code{STARPU_MAX_WORKERSIZE}. When set, they will force StarPU to create the
-biggest combined workers possible without overstepping the defined boundaries.
-However, StarPU will create the remaining combined workers without abiding by
-the rules if not possible.
-For example : if the user specifies a minimum and maximum combined workers size
-of 3 on a machine containing 8 CPUs, StarPU will create a combined worker of
-size 2 beside the combined workers of size 3.
-
-The combined workers actually produced can be seen in the output of the
-@code{starpu_machine_display} tool (the @code{STARPU_SCHED} environment variable
-has to be set to a combined worker-aware scheduler such as @code{pheft} or
-@code{pgreedy}).
 
 @subsection Concurrent parallel tasks
 
@@ -1029,50 +913,29 @@ Graphical-oriented applications need to draw the result of their computations,
 typically on the very GPU where these happened. Technologies such as OpenGL/CUDA
 interoperability permit to let CUDA directly work on the OpenGL buffers, making
 them thus immediately ready for drawing, by mapping OpenGL buffer, textures or
-renderbuffer objects into CUDA.  CUDA however imposes some technical
-constraints: peer memcpy has to be disabled, and the thread that runs OpenGL has
-to be the one that runs CUDA computations for that GPU.
-
-To achieve this with StarPU, pass the @code{--disable-cuda-memcpy-peer} option
-to @code{./configure} (TODO: make it dynamic), OpenGL/GLUT has to be initialized
-first, and the interoperability mode has to
-be enabled by using the @code{cuda_opengl_interoperability} field of the
-@code{starpu_conf} structure, and the driver loop has to be run by
-the application, by using the @code{not_launched_drivers} field of
-@code{starpu_conf} to prevent StarPU from running it in a separate thread, and
-by using @code{starpu_driver_run} to run the loop. The @code{gl_interop} and
-@code{gl_interop_idle} examples shows how it articulates in a simple case, where
-rendering is done in task callbacks. The former uses @code{glutMainLoopEvent}
-to make GLUT progress from the StarPU driver loop, while the latter uses
-@code{glutIdleFunc} to make StarPU progress from the GLUT main loop.
-
-Then, to use an OpenGL buffer as a CUDA data, StarPU simply needs to be given
-the CUDA pointer at registration, for instance:
+renderbuffer objects into CUDA. To achieve this with StarPU, it simply needs to
+be given the CUDA pointer at registration, for instance:
 
 @cartouche
 @smallexample
-/* Get the CUDA worker id */
 for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
         if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
                 break;
 
-/* Build a CUDA pointer pointing at the OpenGL buffer */
+cudaSetDevice(starpu_worker_get_devid(workerid));
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
-
-/* And register it to StarPU */
 starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
 
-/* The handle can now be used as usual */
 starpu_insert_task(&cl, STARPU_RW, handle, 0);
 
-/* ... */
-
-/* This gets back data into the OpenGL buffer */
 starpu_data_unregister(handle);
+
+cudaSetDevice(starpu_worker_get_devid(workerid));
+cudaGraphicsUnmapResources(1, &resource, 0);
+
+/* Now display it */
 @end smallexample
 @end cartouche
-
-and display it e.g. in the callback function.
 
 @node More examples
 @section More examples

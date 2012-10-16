@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,6 @@
 #include <common/uthash.h>
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
-#include <core/workers.h>
 
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry
@@ -275,9 +274,6 @@ static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_inte
 
 	}
 
-	handle->tag = -1;
-	handle->rank = -1;
-
 	return handle;
 }
 
@@ -306,26 +302,6 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 		ops->copy_methods->opencl_to_opencl_async = NULL;
 #endif
 	}
-
-#ifdef STARPU_USE_CUDA
-	int asynchronous_cuda_copy_disabled = starpu_asynchronous_cuda_copy_disabled();
-	if (STARPU_UNLIKELY(asynchronous_cuda_copy_disabled))
-	{
-		ops->copy_methods->ram_to_cuda_async = NULL;
-		ops->copy_methods->cuda_to_ram_async = NULL;
-		ops->copy_methods->cuda_to_cuda_async = NULL;
-	}
-#endif
-
-#ifdef STARPU_USE_OPENCL
-	int asynchronous_opencl_copy_disabled = starpu_asynchronous_opencl_copy_disabled();
-	if (STARPU_UNLIKELY(asynchronous_opencl_copy_disabled))
-	{
-		ops->copy_methods->ram_to_opencl_async = NULL;
-		ops->copy_methods->opencl_to_ram_async = NULL;
-		ops->copy_methods->opencl_to_opencl_async = NULL;
-	}
-#endif
 
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
@@ -429,11 +405,8 @@ struct _starpu_unregister_callback_arg
 
 /* Check whether we should tell starpu_data_unregister that the data handle is
  * not busy any more.
- * The header is supposed to be locked.
- * This may free the handle, if it was lazily unregistered (1 is returned in
- * that case).  The handle pointer thus becomes invalid for the caller.
- */
-int _starpu_data_check_not_busy(starpu_data_handle_t handle)
+ * The header is supposed to be locked */
+void _starpu_data_check_not_busy(starpu_data_handle_t handle)
 {
 	if (!handle->busy_count && handle->busy_waiting)
 	{
@@ -441,20 +414,6 @@ int _starpu_data_check_not_busy(starpu_data_handle_t handle)
 		_STARPU_PTHREAD_COND_BROADCAST(&handle->busy_cond);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 	}
-
-	/* The handle has been destroyed in between (eg. this was a temporary
-	 * handle created for a reduction.) */
-	if (handle->lazy_unregister && handle->busy_count == 0)
-	{
-		_starpu_spin_unlock(&handle->header_lock);
-		starpu_data_unregister_no_coherency(handle);
-		/* Warning: in case we unregister the handle, we must be sure
-		 * that the caller will not try to unlock the header after
-		 * !*/
-		return 1;
-	}
-
-	return 0;
 }
 
 static void _starpu_data_unregister_fetch_data_callback(void *_arg)
@@ -534,30 +493,24 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			struct starpu_codelet *cl = NULL;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);
 
+			struct starpu_multiformat_data_interface_ops *mf_ops;
+			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 			switch (node_kind)
 			{
 #ifdef STARPU_USE_CUDA
 				case STARPU_CUDA_RAM:
-				{
-					struct starpu_multiformat_data_interface_ops *mf_ops;
-					mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 					cl = mf_ops->cuda_to_cpu_cl;
 					break;
-				}
 #endif
 #ifdef STARPU_USE_OPENCL
 				case STARPU_OPENCL_RAM:
-				{
-					struct starpu_multiformat_data_interface_ops *mf_ops;
-					mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 					cl = mf_ops->opencl_to_cpu_cl;
 					break;
-				}
 #endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
 				case STARPU_SPU_LS:       /* Not supported */
 				default:
-					STARPU_ABORT();
+					STARPU_ASSERT(0);
 			}
 			buffers[0] = format_interface;
 
@@ -566,16 +519,14 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			func(buffers, NULL);
 		}
 	}
-
-	_starpu_spin_lock(&handle->header_lock);
-	if (!coherent) {
+	else
+	{
 		/* Should we postpone the unregister operation ? */
-		if ((handle->busy_count > 0) && handle->lazy_unregister) {
-			_starpu_spin_unlock(&handle->header_lock);
+		if ((handle->refcnt > 0) && handle->lazy_unregister)
 			return;
-		}
 	}
 
+	_starpu_spin_lock(&handle->header_lock);
 	/* Tell holders of references that we're starting waiting */
 	handle->busy_waiting = 1;
 	_starpu_spin_unlock(&handle->header_lock);
@@ -616,16 +567,12 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 	_starpu_data_unregister(handle, 0);
 }
 
-void starpu_data_unregister_submit(starpu_data_handle_t handle) {
-	_starpu_spin_lock(&handle->header_lock);
-	handle->lazy_unregister = 1;
-	_starpu_spin_unlock(&handle->header_lock);
-	_starpu_data_unregister(handle, 0);
-}
-
-static void _starpu_data_invalidate(void *data)
+void starpu_data_invalidate(starpu_data_handle_t handle)
 {
-	starpu_data_handle_t handle = data;
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire(handle, STARPU_W);
+
 	_starpu_spin_lock(&handle->header_lock);
 
 	unsigned node;
@@ -647,22 +594,6 @@ static void _starpu_data_invalidate(void *data)
 	starpu_data_release(handle);
 }
 
-void starpu_data_invalidate(starpu_data_handle_t handle)
-{
-	STARPU_ASSERT(handle);
-
-	starpu_data_acquire(handle, STARPU_W);
-
-	_starpu_data_invalidate(handle);
-}
-
-void starpu_data_invalidate_submit(starpu_data_handle_t handle)
-{
-	STARPU_ASSERT(handle);
-
-	starpu_data_acquire_cb(handle, STARPU_W, _starpu_data_invalidate, handle);
-}
-
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
@@ -677,21 +608,4 @@ int starpu_data_interface_get_next_id()
 {
 	_data_interface_number += 1;
 	return _data_interface_number-1;
-}
-
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr)
-{
-	STARPU_ASSERT(handle->ops->pack_data);
-	return handle->ops->pack_data(handle, _starpu_get_local_memory_node(), ptr);
-}
-
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr)
-{
-	STARPU_ASSERT(handle->ops->unpack_data);
-	return handle->ops->unpack_data(handle, _starpu_get_local_memory_node(), ptr);
-}
-
-size_t starpu_handle_get_size(starpu_data_handle_t handle)
-{
-	return handle->ops->get_size(handle);
 }

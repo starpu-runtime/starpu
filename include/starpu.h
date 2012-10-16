@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,10 +35,6 @@ typedef unsigned long long uint64_t;
 #include <windows.h>
 #endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-#include <starpu_opencl.h>
-#endif
-
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>
@@ -46,59 +42,17 @@ typedef unsigned long long uint64_t;
 #include <starpu_perfmodel.h>
 #include <starpu_task.h>
 #include <starpu_task_list.h>
-#include <starpu_task_util.h>
 #include <starpu_scheduler.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
-#include <starpu_cuda.h>
-#include <starpu_cublas.h>
-#include <starpu_bound.h>
-#include <starpu_hash.h>
-#include <starpu_profiling.h>
-#include <starpu_top.h>
-#include <starpu_fxt.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-enum starpu_archtype
-{
-	STARPU_CPU_WORKER,    /* CPU core */
-	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER, /* OpenCL device */
-	STARPU_GORDON_WORKER  /* Cell SPU */
-};
-
-struct starpu_driver
-{
-	enum starpu_archtype type;
-	union
-	{
-		unsigned cpu_id;
-		unsigned cuda_id;
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-		cl_device_id opencl_id;
-#endif
-		/*
-		 * HOWTO: add a new kind of device to the starpu_driver structure.
-		 * 1) Add a member to this union.
-		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
-		 *    not always launched.
-		 * 3) Edit starpu_driver_run() so that it can handle another
-		 *    kind of architecture.
-		 * 4) Write _starpu_run_foobar() in the corresponding driver.
-		 * 5) Test the whole thing :)
-		 */
-	} id;
-};
-
 struct starpu_conf
 {
-	/* Will be initialized by starpu_conf_init */
-	int magic;
-
 	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy_name;
 	struct starpu_sched_policy *sched_policy;
@@ -121,31 +75,14 @@ struct starpu_conf
 	unsigned use_explicit_workers_opencl_gpuid;
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
-	/* calibrate bus (-1 for default) */
-	int bus_calibrate;
-
 	/* calibrate performance models, if any (-1 for default) */
 	int calibrate;
 
 	/* Create only one combined worker, containing all CPU workers */
 	int single_combined_worker;
 
-        /* indicate if all asynchronous copies should be disabled */
+        /* indicate if the asynchronous copies should be disabled */
 	int disable_asynchronous_copy;
-
-        /* indicate if asynchronous copies to CUDA devices should be disabled */
-	int disable_cuda_asynchronous_copy;
-
-        /* indicate if asynchronous copies to OpenCL devices should be disabled */
-	int disable_opencl_asynchronous_copy;
-
-	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
-	int *cuda_opengl_interoperability;
-	unsigned n_cuda_opengl_interoperability;
-
-	/* A driver that the application will run in one of its own threads. */
-	struct starpu_driver *not_launched_drivers;
-	unsigned n_not_launched_drivers;
 };
 
 /* Initialize a starpu_conf structure with default values. */
@@ -159,9 +96,6 @@ int starpu_init(struct starpu_conf *conf);// STARPU_WARN_UNUSED_RESULT;
 /* Shutdown method: note that statistics are only generated once StarPU is
  * shutdown */
 void starpu_shutdown(void);
-
-/* Print topology configuration */
-void starpu_topology_print(FILE *output);
 
 /* This function returns the number of workers (ie. processing units executing
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
@@ -184,6 +118,15 @@ int starpu_worker_get_id(void);
 int starpu_combined_worker_get_id(void);
 int starpu_combined_worker_get_size(void);
 int starpu_combined_worker_get_rank(void);
+
+enum starpu_archtype
+{
+	STARPU_CPU_WORKER, /* CPU core */
+	STARPU_CUDA_WORKER, /* NVIDIA CUDA device */
+	STARPU_OPENCL_WORKER, /* OpenCL CUDA device */
+	STARPU_GORDON_WORKER, /* Cell SPU */
+	STARPU_ALL
+};
 
 /* This function returns the type of worker associated to an identifier (as
  * returned by the starpu_worker_get_id function). The returned value indicates
@@ -223,12 +166,6 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 int starpu_worker_get_devid(int id);
 void starpu_profiling_init();
 	void starpu_display_stats();
-int starpu_driver_run(struct starpu_driver *d);
-void starpu_drivers_request_termination(void);
-
-int starpu_driver_init(struct starpu_driver *d);
-int starpu_driver_run_once(struct starpu_driver *d);
-int starpu_driver_deinit(struct starpu_driver *d);
 #ifdef __cplusplus
 }
 #endif
