@@ -16,6 +16,10 @@
 
 #include <starpu-gcc/config.h>
 
+/* We must include starpu.h here, otherwise gcc will complain about a poisoned
+   malloc in xmmintrin.h.  */
+#include <starpu.h>
+
 #include <gcc-plugin.h>
 #include <plugin-version.h>
 #include <plugin.h>
@@ -35,8 +39,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
-
-#include <starpu.h>
 
 #include <starpu-gcc/utils.h>
 #include <starpu-gcc/tasks.h>

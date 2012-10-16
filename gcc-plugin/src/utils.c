@@ -16,6 +16,10 @@
 
 #include <starpu-gcc/config.h>
 
+/* We must include starpu.h here, otherwise gcc will complain about a poisoned
+   malloc in xmmintrin.h.  */
+#include <starpu.h>
+
 #include <gcc-plugin.h>
 #include <plugin-version.h>
 
@@ -32,7 +36,6 @@
 #endif
 
 #include <starpu-gcc/utils.h>
-#include <starpu.h>
 
 /* Whether to enable verbose output.  */
 bool verbose_output_p = false;
