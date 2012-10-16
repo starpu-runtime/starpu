@@ -272,8 +272,13 @@ static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree((void*)STARPU_VARIABLE_GET_PTR(data_interface));
+		{
+			cudaError_t err;
+			err = cudaFree((void*)STARPU_VARIABLE_GET_PTR(data_interface));
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
 			break;
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:

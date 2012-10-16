@@ -269,19 +269,22 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaMalloc((void **)&addr_nzval, nnz*elemsize);
-			if (!addr_nzval)
+		{
+			cudaError_t err;
+			err = cudaMalloc((void **)&addr_nzval, nnz*elemsize);
+			if (STARPU_UNLIKELY(err != cudaSuccess ||!addr_nzval))
 				goto fail_nzval;
 
-			cudaMalloc((void **)&addr_colind, nnz*sizeof(uint32_t));
-			if (!addr_colind)
+			err = cudaMalloc((void **)&addr_colind, nnz*sizeof(uint32_t));
+			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_colind))
 				goto fail_colind;
 
-			cudaMalloc((void **)&addr_rowptr, (nrow+1)*sizeof(uint32_t));
-			if (!addr_rowptr)
+			err = cudaMalloc((void **)&addr_rowptr, (nrow+1)*sizeof(uint32_t));
+			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_rowptr))
 				goto fail_rowptr;
 
 			break;
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
 	        case STARPU_OPENCL_RAM:

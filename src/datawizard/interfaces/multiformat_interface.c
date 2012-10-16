@@ -253,17 +253,24 @@ static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
+		{
+			cudaError_t err;
 			if (multiformat_interface->cpu_ptr)
 			{
-				cudaFree(multiformat_interface->cpu_ptr);
+				err = cudaFree(multiformat_interface->cpu_ptr);
+				if (STARPU_UNLIKELY(err != cudaSuccess))
+					STARPU_CUDA_REPORT_ERROR(err);
 				multiformat_interface->cpu_ptr = NULL;
 			}
 			if (multiformat_interface->cuda_ptr)
 			{
-				cudaFree(multiformat_interface->cuda_ptr);
+				err = cudaFree(multiformat_interface->cuda_ptr);
+				if (STARPU_UNLIKELY(err != cudaSuccess))
+					STARPU_CUDA_REPORT_ERROR(err);
 				multiformat_interface->cuda_ptr = NULL;
 			}
 			break;
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
