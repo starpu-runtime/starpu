@@ -20,6 +20,10 @@
 
 #include <starpu-gcc/config.h>
 
+/* Note: Users of this file must first include <starpu.h>, but we don't do
+   that here because it has to be done very early, to avoid the dreaded "use
+   of poisoned malloc" in xmmintrin.h.  */
+
 #include <starpu-gcc/utils.h>
 
 
