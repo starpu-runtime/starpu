@@ -16,11 +16,6 @@
 
 #include <starpu-gcc/config.h>
 
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <starpu.h>
-
 #include <gcc-plugin.h>
 #include <plugin-version.h>
 #include <plugin.h>
@@ -36,6 +31,12 @@
 #elif HAVE_C_COMMON_H
 # include <c-common.h>
 #endif
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
+#include <starpu.h>
 
 #include <starpu-gcc/utils.h>
 #include <starpu-gcc/tasks.h>

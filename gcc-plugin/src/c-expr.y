@@ -42,6 +42,8 @@
   # include <c-pragma.h>
   #endif
 
+  #include <diagnostic-core.h>
+
   #if !HAVE_DECL_BUILD_ARRAY_REF
   /* This declaration is missing in GCC 4.6.1.  */
   extern tree build_array_ref (location_t loc, tree array, tree index);

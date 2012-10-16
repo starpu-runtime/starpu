@@ -53,7 +53,6 @@
 #include <toplev.h>
 
 #include <stdio.h>
-#include <sys/mman.h>
 
 #include <starpu-gcc/utils.h>
 #include <starpu-gcc/tasks.h>

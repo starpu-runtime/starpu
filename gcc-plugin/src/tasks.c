@@ -31,6 +31,8 @@
 # include <c-common.h>
 #endif
 
+#include <diagnostic-core.h>
+
 #include <starpu-gcc/tasks.h>
 #include <starpu-gcc/utils.h>
 #include <starpu-gcc/opencl.h>
