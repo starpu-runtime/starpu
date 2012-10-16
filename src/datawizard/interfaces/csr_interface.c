@@ -337,8 +337,13 @@ fail_rowptr:
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void*)addr_colind);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void*)addr_colind);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();
@@ -362,8 +367,13 @@ fail_colind:
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void*)addr_nzval);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void*)addr_nzval);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();
@@ -405,10 +415,19 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void*)csr_interface->nzval);
-			clReleaseMemObject((void*)csr_interface->colind);
-			clReleaseMemObject((void*)csr_interface->rowptr);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void*)csr_interface->nzval);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
+			err = clReleaseMemObject((void*)csr_interface->colind);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
+			err = clReleaseMemObject((void*)csr_interface->rowptr);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();

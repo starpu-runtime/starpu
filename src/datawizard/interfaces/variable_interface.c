@@ -277,8 +277,13 @@ static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:
-                        clReleaseMemObject((void*)STARPU_VARIABLE_GET_PTR(data_interface));
+		{
+			cl_int err;
+                        err = clReleaseMemObject((void*)STARPU_VARIABLE_GET_PTR(data_interface));
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
                         break;
+		}
 #endif
 		default:
 			STARPU_ABORT();

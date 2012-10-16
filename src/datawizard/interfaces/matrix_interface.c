@@ -375,8 +375,13 @@ static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void *)matrix_interface->dev_handle);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void *)matrix_interface->dev_handle);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
                         break;
+		}
 #endif
 		default:
 			STARPU_ABORT();
