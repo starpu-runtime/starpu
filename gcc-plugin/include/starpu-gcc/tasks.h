@@ -21,7 +21,6 @@
 #include <starpu-gcc/config.h>
 
 #include <starpu-gcc/utils.h>
-#include <starpu.h>
 
 
 extern const char task_attribute_name[];
