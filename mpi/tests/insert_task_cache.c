@@ -23,7 +23,7 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	unsigned *x = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-        FPRINTF(stdout, "VALUES: %u %u\n", *x, *y);
+        FPRINTF(stdout, "VALUES: %d %d\n", *x, *y);
         *x = (*x + *y) / 2;
 }
 
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
                 FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < Y; y++)
 		{
-                        FPRINTF(stdout, "%3u ", matrix[x][y]);
+                        FPRINTF(stdout, "%3d ", matrix[x][y]);
                 }
                 FPRINTF(stdout, "\n");
         }
@@ -106,19 +106,12 @@ int main(int argc, char **argv)
                 }
         }
 
-	mycodelet.name = "codelet1";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1][1], STARPU_R, data_handles[0][1], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-
-	mycodelet.name = "codelet2";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-
-	mycodelet.name = "codelet3";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0][1], STARPU_R, data_handles[0][0], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-
-	mycodelet.name = "codelet4";
         ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 
@@ -142,7 +135,7 @@ int main(int argc, char **argv)
                 FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < Y; y++)
 		{
-                        FPRINTF(stdout, "%3u ", matrix[x][y]);
+                        FPRINTF(stdout, "%3d ", matrix[x][y]);
                 }
                 FPRINTF(stdout, "\n");
         }

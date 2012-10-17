@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         for(x = 0; x < SIZE; x++) {
                 FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < SIZE; y++) {
-                        FPRINTF(stdout, "%3u ", matrix[x+y*SIZE]);
+                        FPRINTF(stdout, "%3d ", matrix[x+y*SIZE]);
                 }
                 FPRINTF(stdout, "\n");
         }
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	{
                 FPRINTF(stdout, "[%d] ", rank);
                 for (y = 0; y < SIZE; y++) {
-                        FPRINTF(stdout, "%3u ", matrix[x+y*SIZE]);
+                        FPRINTF(stdout, "%3d ", matrix[x+y*SIZE]);
                 }
                 FPRINTF(stdout, "\n");
         }

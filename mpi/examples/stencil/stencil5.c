@@ -149,7 +149,7 @@ int main(int argc, char **argv)
                         fprintf(stdout, "[%d] ", my_rank);
                         for (y = 0; y < Y; y++)
 			{
-                                fprintf(stdout, "%3u ", matrix[x][y]);
+                                fprintf(stdout, "%3d ", matrix[x][y]);
                         }
                         fprintf(stdout, "\n");
                 }

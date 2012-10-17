@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		if (loop == 0 && rank == 0)
 		{
 			token = 0;
-			FPRINTF(stdout, "Start with token value %u\n", token);
+			FPRINTF(stdout, "Start with token value %d\n", token);
 		}
 		else
 		{
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		if (loop == last_loop && rank == last_rank)
 		{
 			starpu_data_acquire(token_handle, STARPU_R);
-			FPRINTF(stdout, "Finished : token value %u\n", token);
+			FPRINTF(stdout, "Finished : token value %d\n", token);
 			starpu_data_release(token_handle);
 		}
 		else
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 
 	if (rank == last_rank)
 	{
-                FPRINTF(stderr, "[%d] token = %u == %u * %d ?\n", rank, token, nloops, size);
+                FPRINTF(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
                 STARPU_ASSERT(token == nloops*size);
 	}
 
