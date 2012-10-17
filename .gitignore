@@ -23,7 +23,7 @@ Makefile.in
 .dirstamp
 stamp-h[0-9]*
 starpu.log
-/gcc-plugin/include/starpu-gcc/config.h
+/gcc-plugin/src/starpu-gcc-config.h
 /gcc-plugin/tests/*.c.[0-9]*.*
 /tests/datawizard/handle_to_pointer
 /tests/datawizard/data_lookup
@@ -287,5 +287,3 @@ starpu.log
 /tests/datawizard/interfaces/copy_interfaces
 /gcc-plugin/tests/release
 /gcc-plugin/tests/opencl
-/gcc-plugin/tests/registered
-/gcc-plugin/tests/warn-unregistered

@@ -383,6 +383,7 @@ int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
 
+<<<<<<< .working
 	return 0;
 }
 
@@ -401,6 +402,8 @@ _starpu_cpu_worker(void *arg)
 		_starpu_cpu_driver_run_once(&d);
 	_starpu_cpu_driver_deinit(&d);
 
+=======
+>>>>>>> .merge-right.r6541
 	return NULL;
 }
 

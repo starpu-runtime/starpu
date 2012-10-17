@@ -21,8 +21,6 @@ gcc_tests =					\
   output-pointer-errors.c			\
   register.c					\
   register-errors.c				\
-  registered.c					\
-  registered-errors.c				\
   acquire.c					\
   acquire-errors.c				\
   release.c					\
@@ -45,16 +43,6 @@ gcc_tests =					\
   shutdown-errors.c
 
 EXTRA_DIST =
-
-if HAVE_PTR_DEREFS_MAY_ALIAS_P
-
-gcc_tests += warn-unregistered.c
-
-else !HAVE_PTR_DEREFS_MAY_ALIAS_P
-
-EXTRA_DIST += warn-unregistered.c
-
-endif !HAVE_PTR_DEREFS_MAY_ALIAS_P
 
 if !STARPU_USE_OPENCL
 
@@ -80,7 +68,6 @@ CLEANFILES = *.gimple *.o			\
   base						\
   pointers					\
   register					\
-  registered					\
   release					\
   scalar-tasks					\
   pointer-tasks					\
@@ -98,21 +85,20 @@ EXTRA_DIST += ./run-test.in			\
   $(gcc_tests)
 
 # The test suite assumes that the CPU back-end is available.
-if RUN_GCC_PLUGIN_TESTS
+if STARPU_USE_CPU
 
 TESTS = $(gcc_tests)
-if STARPU_HAVE_AM111
-LOG_COMPILER = ./run-test
-else
-TESTS_ENVIRONMENT = ./run-test
+
 endif
 
-else !RUN_GCC_PLUGIN_TESTS
+TESTS_ENVIRONMENT = ./run-test
+
+if !HAVE_GUILE
 
 check-hook:
-	-@echo "GNU Guile or CPU back-end not available, test suite not run."
+	-@echo "GNU Guile not available, test suite not run."
 
-endif !RUN_GCC_PLUGIN_TESTS
+endif !HAVE_GUILE
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

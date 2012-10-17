@@ -68,6 +68,7 @@ extern "C"
 
 <<<<<<< .working
 <<<<<<< .working
+<<<<<<< .working
 enum starpu_archtype
 {
 	STARPU_CPU_WORKER,    /* CPU core */
@@ -138,6 +139,42 @@ struct starpu_driver
 };
 
 >>>>>>> .merge-right.r6541
+=======
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#include <starpu_opencl.h>
+#endif
+
+enum starpu_archtype
+{
+	STARPU_CPU_WORKER,    /* CPU core */
+	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
+	STARPU_OPENCL_WORKER, /* OpenCL device */
+	STARPU_GORDON_WORKER  /* Cell SPU */
+};
+
+struct starpu_driver
+{
+	enum starpu_archtype type;
+	union
+	{
+		unsigned cuda_id;
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+		cl_device_id opencl_id;
+#endif
+		/*
+		 * TODO: handle CPUs:
+		 * 1) Add a member to this union.
+		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
+		 *    not always launched.
+		 * 3) Edit starpu_driver_run() so that it can handle another
+		 *    kind of architecture.
+		 * 4) Write _starpu_run_foobar() in the corresponding driver.
+		 * 5) Test the whole thing :)
+		 */
+	} id;
+};
+
+>>>>>>> .merge-right.r6541
 struct starpu_conf
 {
 	/* Will be initialized by starpu_conf_init */
@@ -177,6 +214,7 @@ struct starpu_conf
         /* indicate if all asynchronous copies should be disabled */
 	int disable_asynchronous_copy;
 <<<<<<< .working
+<<<<<<< .working
 
         /* indicate if asynchronous copies to CUDA devices should be disabled */
 	int disable_cuda_asynchronous_copy;
@@ -191,6 +229,16 @@ struct starpu_conf
 	/* A driver that the application will run in one of its own threads. */
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
+=======
+
+	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
+	int *cuda_opengl_interoperability;
+	unsigned n_cuda_opengl_interoperability;
+
+	/* A driver that the application will run in one of its own threads. */
+	struct starpu_driver *not_launched_drivers;
+	unsigned n_not_launched_drivers;
+>>>>>>> .merge-right.r6541
 =======
 
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
@@ -245,6 +293,7 @@ int starpu_combined_worker_get_rank(void);
 <<<<<<< .working
 <<<<<<< .working
 <<<<<<< .working
+<<<<<<< .working
 enum starpu_archtype
 {
 	STARPU_CPU_WORKER, /* CPU core */
@@ -253,6 +302,8 @@ enum starpu_archtype
 	STARPU_GORDON_WORKER, /* Cell SPU */
 	STARPU_ALL
 };
+=======
+>>>>>>> .merge-right.r6541
 =======
 >>>>>>> .merge-right.r6541
 =======
@@ -305,6 +356,7 @@ void starpu_set_end_of_submissions(void);
 <<<<<<< .working
 <<<<<<< .working
 <<<<<<< .working
+<<<<<<< .working
 int starpu_driver_init(struct starpu_driver *d);
 int starpu_driver_run_once(struct starpu_driver *d);
 int starpu_driver_deinit(struct starpu_driver *d);
@@ -319,6 +371,14 @@ void starpu_drivers_request_termination(void);
 int starpu_driver_run(struct starpu_driver *d);
 void starpu_drivers_request_termination(void);
 >>>>>>> .merge-right.r7640
+
+int starpu_driver_init(struct starpu_driver *d);
+int starpu_driver_run_once(struct starpu_driver *d);
+int starpu_driver_deinit(struct starpu_driver *d);
+>>>>>>> .merge-right.r6541
+=======
+int starpu_driver_run(struct starpu_driver *);
+void starpu_set_end_of_submissions(void);
 
 int starpu_driver_init(struct starpu_driver *d);
 int starpu_driver_run_once(struct starpu_driver *d);

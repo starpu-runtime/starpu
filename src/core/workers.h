@@ -71,11 +71,15 @@ struct _starpu_worker
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 <<<<<<< .working
 <<<<<<< .working
+<<<<<<< .working
 	unsigned memory_node; /* which memory node is the worker associated with ? */
 	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 =======
 	unsigned memory_node; /* which memory node is the worker associated with ? */
+=======
+	unsigned memory_node; /* which memory node is the worker associated with ? */
+>>>>>>> .merge-right.r6541
 =======
 	unsigned memory_node; /* which memory node is the worker associated with ? */
 >>>>>>> .merge-right.r6541
@@ -186,9 +190,15 @@ struct _starpu_machine_config
 <<<<<<< .working
 <<<<<<< .working
 <<<<<<< .working
+<<<<<<< .working
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+=======
+
+	/* this flag is set until the application is finished submitting tasks */
+	unsigned submitting;
+>>>>>>> .merge-right.r6541
 =======
 
 	/* this flag is set until the application is finished submitting tasks */

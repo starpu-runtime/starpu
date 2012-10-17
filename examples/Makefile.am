@@ -852,6 +852,7 @@ pi_pi_redux_LDADD =				\
 	$(STARPU_CURAND_LDFLAGS)
 endif
 
+<<<<<<< .working
 ###########################
 # OpenGL interoperability #
 ###########################
@@ -887,6 +888,23 @@ pipeline_pipeline_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
 endif
 
+=======
+###########################
+# OpenGL interoperability #
+###########################
+
+if HAVE_OPENGL
+examplebin_PROGRAMS +=				\
+	gl_interop/gl_interop
+
+gl_interop_gl_interop_SOURCES =			\
+	gl_interop/gl_interop.c
+
+gl_interop_gl_interop_LDADD =			\
+	$(STARPU_OPENGL_RENDER_LDFLAGS)
+endif
+
+>>>>>>> .merge-right.r6541
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
 	for i in $(SUBDIRS) ; do \

@@ -94,8 +94,13 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	size_t size = SIZE;
 
 <<<<<<< .working
+<<<<<<< .working
 	/* Initialize CUDA context on the device */
 	cudaSetDevice(dev);
+=======
+	/* Initialize CUDA context on the device */
+	starpu_cuda_set_device(dev);
+>>>>>>> .merge-right.r6541
 =======
 	/* Initialize CUDA context on the device */
 	starpu_cuda_set_device(dev);
@@ -194,8 +199,13 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
 
 <<<<<<< .working
+<<<<<<< .working
 	/* Initialize CUDA context on the source */
 	cudaSetDevice(src);
+=======
+	/* Initialize CUDA context on the source */
+	starpu_cuda_set_device(src);
+>>>>>>> .merge-right.r6541
 =======
 	/* Initialize CUDA context on the source */
 	starpu_cuda_set_device(src);
@@ -217,8 +227,13 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cudaMemset(s_buffer, 0, size);
 
 <<<<<<< .working
+<<<<<<< .working
 	/* Initialize CUDA context on the destination */
 	cudaSetDevice(dst);
+=======
+	/* Initialize CUDA context on the destination */
+	starpu_cuda_set_device(dst);
+>>>>>>> .merge-right.r6541
 =======
 	/* Initialize CUDA context on the destination */
 	starpu_cuda_set_device(dst);

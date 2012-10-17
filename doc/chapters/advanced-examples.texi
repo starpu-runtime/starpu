@@ -903,6 +903,15 @@ some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
 intermediate sizes. The @code{STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER} variable
 permits to tune the maximum arity between levels of combined workers.
+The user can give some hints to StarPU about combined workers sizes to favor.
+This can be done by using the environment variables @code{STARPU_MIN_WORKERSIZE}
+and @code{STARPU_MAX_WORKERSIZE}. When set, they will force StarPU to create the
+biggest combined workers possible without overstepping the defined boundaries.
+However, StarPU will create the remaining combined workers without abiding by
+the rules if not possible.
+For example : if the user specifies a minimum and maximum combined workers size
+of 3 on a machine containing 8 CPUs, StarPU will create a combined worker of
+size 2 beside the combined workers of size 3.
 
 The combined workers actually produced can be seen in the output of the
 @code{starpu_machine_display} tool (the @code{STARPU_SCHED} environment variable
@@ -1041,6 +1050,7 @@ renderbuffer objects into CUDA.  CUDA however imposes some technical
 constraints: peer memcpy has to be disabled, and the thread that runs OpenGL has
 to be the one that runs CUDA computations for that GPU.
 
+<<<<<<< .working
 To achieve this with StarPU, pass the @code{--disable-cuda-memcpy-peer} option
 to @code{./configure} (TODO: make it dynamic), OpenGL/GLUT has to be initialized
 first, and the interoperability mode has to
@@ -1057,6 +1067,21 @@ to make GLUT progress from the StarPU driver loop, while the latter uses
 Then, to use an OpenGL buffer as a CUDA data, StarPU simply needs to be given
 the CUDA pointer at registration, for instance:
 
+=======
+To achieve this with StarPU, pass the @code{--disable-cuda-memcpy-peer} option
+to @code{./configure} (TODO: make it dynamic), the interoperability mode has to
+be enabled by using the @code{cuda_opengl_interoperability} field of the
+@code{starpu_conf} structure, and the driver loop has to be run by
+the application, by using the @code{not_launched_drivers} field of
+@code{starpu_conf} to prevent StarPU from running it in a separate thread, and
+by using @code{starpu_driver_run} to run the loop. The @code{gl_interop} example
+shows how it articulates in a simple case, where rendering is done in task
+callbacks. TODO: provide glutIdleFunc alternative.
+
+Then, to use an OpenGL buffer as a CUDA data, StarPU simply needs to be given
+the CUDA pointer at registration, for instance:
+
+>>>>>>> .merge-right.r6541
 @cartouche
 @smallexample
 /* Get the CUDA worker id */
@@ -1064,7 +1089,10 @@ for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
         if (starpu_worker_get_type(workerid) == STARPU_CUDA_WORKER)
                 break;
 
+<<<<<<< .working
 /* Build a CUDA pointer pointing at the OpenGL buffer */
+=======
+>>>>>>> .merge-right.r6541
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
 
 /* And register it to StarPU */
@@ -1073,11 +1101,14 @@ starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid),
 
 /* The handle can now be used as usual */
 starpu_insert_task(&cl, STARPU_RW, handle, 0);
+<<<<<<< .working
 
 /* ... */
 
 /* This gets back data into the OpenGL buffer */
 starpu_data_unregister(handle);
+=======
+>>>>>>> .merge-right.r6541
 @end smallexample
 @end cartouche
 
