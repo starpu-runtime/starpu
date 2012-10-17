@@ -59,7 +59,7 @@ struct test_config csr_config =
 #endif
 	.handle        = &csr_handle,
 	.dummy_handle  = &csr2_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "csr_interface"
 };
 
@@ -73,7 +73,7 @@ register_data(void)
 		nzval2[i-1] = 42;
 
 		colind[i-1] = i % WIDTH;
-		colind2[i-1] = colind[i];
+		colind2[i-1] = colind[i-1];
 	}
 
 	rowptr[0] = 1;
@@ -130,7 +130,7 @@ test_csr_cpu_func(void *buffers[], void *args)
 	{
 		if (val[i] != (i+1) * factor)
 		{
-			csr_config.copy_failed = 1;
+			csr_config.copy_failed = FAILURE;
 			return;
 		}
 		val[i] *= -1;
@@ -141,12 +141,11 @@ int
 main(void)
 {
 	data_interface_test_summary *summary;
-	struct starpu_conf conf =
-	{
-		.ncpus   = -1,
-		.ncuda   = 2,
-		.nopencl = 1
-	};
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	conf.ncuda = 2;
+	conf.nopencl = 1;
 
 	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;

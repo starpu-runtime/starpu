@@ -58,6 +58,13 @@ recommended.  It allows for topology aware scheduling, which improves
 performance.  @code{hwloc} is available in major free operating system
 distributions, and for most operating systems.
 
+If hwloc is not available on your system, the option
+@code{--without-hwloc} should be explicitely given when calling the
+configure script. If hwloc is installed with a @code{pkg-config} file,
+no option is required, it will be detected automatically, otherwise
+the @code{with-hwloc=prefix} should be used to specified the location
+of hwloc.
+
 @node Configuration of StarPU
 @section Configuration of StarPU
 

@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "../helper.h"
 #include "scal.h"
 
@@ -85,7 +84,7 @@ int main(int argc, char **argv)
 	ret = EXIT_SUCCESS;
 	for (i = 0; i < size; i++) {
 		if (foo[i] != i*2) {
-			FPRINTF(stderr,"value %d is %d instead of %d\n", i, foo[i], 2*i);
+			FPRINTF(stderr,"value %d is %u instead of %d\n", i, foo[i], 2*i);
 			ret = EXIT_FAILURE;
 		}
 	}

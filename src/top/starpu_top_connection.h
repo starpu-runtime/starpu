@@ -36,7 +36,7 @@ extern struct _starpu_top_message_queue* _starpu_top_mt;
  * About mt : mt MUST be allocated before call.
  * All messages in the queue are freed after used.
  */
-void _starpu_top_communications_threads_launcher();
+void _starpu_top_communications_threads_launcher(void);
 
 #ifdef __cplusplus
 }

@@ -33,18 +33,41 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 	chapters/fft-support.texi \
 	chapters/using.texi \
 	chapters/vector_scal_opencl.texi \
+<<<<<<< .working
 	chapters/socl.texi \
 	chapters/sched_ctx_hypervisor.texi
+=======
+	chapters/socl.texi \
+	chapters/version.texi
+>>>>>>> .merge-right.r7640
 
 MAINTAINERCLEANFILES = starpu.pdf
 
-EXTRA_DIST = starpu.pdf \
-	starpu.css
+EXTRA_DIST = starpu.css
+
+dist_pdf_DATA = starpu.pdf
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 
 uninstall-local:
 	$(RM) $(DESTDIR)$(infodir)/dir
+
+chapters/version.texi:
+	@-for f in $(starpu_TEXINFOS) ; do \
+                if test -f $(top_srcdir)/doc/$$f ; then stat --format=%Y $(top_srcdir)/doc/$$f 2>/dev/null ; fi \
+        done | sort -r | head -1 > timestamp
+	@-LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated 2>/dev/null
+	@-LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null
+	@if test -s timestamp_updated ; then \
+		echo "@set UPDATED " `cat timestamp_updated` > $(top_srcdir)/doc/chapters/version.texi;\
+		echo "@set UPDATED-MONTH" `cat timestamp_updated_month` >> $(top_srcdir)/doc/chapters/version.texi;\
+	else \
+		echo "@set UPDATED unknown_date" > $(top_srcdir)/doc/chapters/version.texi ;\
+		echo "@set UPDATED-MONTH unknown_date" >> $(top_srcdir)/doc/chapters/version.texi; \
+	fi
+	@echo "@set EDITION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
+	@echo "@set VERSION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
+	@$(RM) timestamp timestamp_updated timestamp_updated_month
 
 #$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 #vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c

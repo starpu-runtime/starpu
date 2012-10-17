@@ -19,8 +19,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_C
 lib_LTLIBRARIES = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la
 
 EXTRA_DIST =			\
-	float.h			\
-	double.h		\
+	starpufft-float.h	\
+	starpufft-double.h	\
 	cudax_kernels.h		\
 	starpufftx.c		\
 	starpufftx1d.c		\
@@ -41,7 +41,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS) $(FFTWF_LIBS) $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUFFT_LDFLAGS)
+libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS) $(FFTWF_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_CUFFT_LDFLAGS)
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(FFTWF_CFLAGS)
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined					\
   -version-info $(LIBSTARPUFFT_INTERFACE_CURRENT):$(LIBSTARPUFFT_INTERFACE_REVISION):$(LIBSTARPUFFT_INTERFACE_AGE)
@@ -57,7 +57,7 @@ am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS = cudaf_kernels.o starpuff
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 cuda_kernels.o: cuda_kernels.cu
-	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir} -arch sm_13
+	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cuda_kernels.cu
 am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS += cuda_kernels.o
@@ -67,10 +67,13 @@ libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 
 examplebindir = $(libdir)/starpu/examples/starpufft
-examplebin_PROGRAMS =				\
+
+examplebin_PROGRAMS =
+if BUILD_EXAMPLES
+examplebin_PROGRAMS +=				\
 	examples/testf \
 	examples/test
-
+endif
 check_PROGRAMS = examples/testf
 examples_testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 

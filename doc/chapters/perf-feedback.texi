@@ -64,7 +64,7 @@ function.
 It it worth noting that the application may directly access this structure from
 the callback executed at the end of the task. The @code{starpu_task} structure
 associated to the callback currently being executed is indeed accessible with
-the @code{starpu_get_current_task()} function.
+the @code{starpu_task_get_current()} function.
 
 @node Codelet feedback
 @subsection Per-codelet feedback
@@ -383,7 +383,7 @@ performance models. It also writes a @code{.gp} file in the current directory,
 to be run in the @code{gnuplot} tool, which shows the corresponding curve.
 
 The same can also be achieved by using StarPU's library API, see
-@ref{Performance Model API} and notably the @code{starpu_load_history_debug}
+@ref{Performance Model API} and notably the @code{starpu_perfmodel_load_symbol}
 function. The source code of the @code{starpu_perfmodel_display} tool can be a
 useful example.
 
@@ -415,7 +415,7 @@ Print the DAG that was recorded
 @end deftypefun
 
 @deftypefun void starpu_bound_compute ({double *}@var{res}, {double *}@var{integer_res}, int @var{integer})
-Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script)
+Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script). It returns 0 if some performance models are not calibrated.
 @end deftypefun
 
 @deftypefun void starpu_bound_print_lp ({FILE *}@var{output})

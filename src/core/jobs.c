@@ -69,33 +69,21 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 
 	job = _starpu_job_new();
 
-	job->nimpl =0; /* best implementation */
-	job->task = task;
+	/* As most of the fields must be initialized at NULL, let's put 0
+	 * everywhere */
+	memset(job, 0, sizeof(*job));
 
-	job->footprint_is_computed = 0;
-	job->submitted = 0;
-	job->terminated = 0;
+	job->task = task;
 
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording || _starpu_top_status_get())
 #endif
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
-#ifdef STARPU_USE_FXT
-	/* display all tasks by default */
-        job->model_name = NULL;
-#endif
-	job->exclude_from_dag = 0;
-
-	job->reduction_task = 0;
 
 	_starpu_cg_list_init(&job->job_successors);
 
-	job->implicit_dep_handle = NULL;
-
 	_STARPU_PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&job->sync_cond, NULL);
-
-	job->bound_task = NULL;
 
 	/* By default we have sequential tasks */
 	job->task_size = 1;
@@ -163,6 +151,21 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
+	/* We release handle reference count */
+	if (task->cl) {
+		unsigned i;
+		for (i=0; i<task->cl->nbuffers; i++) {
+			starpu_data_handle_t handle = task->handles[i];
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count--;
+			if (!_starpu_data_check_not_busy(handle))
+				_starpu_spin_unlock(&handle->header_lock);
+		}
+	}
+
+	/* Tell other tasks that we don't exist any more, thus no need for
+	 * implicit dependencies any more.  */
+	_starpu_release_task_enforce_sequential_consistency(j);
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us */
@@ -276,6 +279,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	struct _starpu_cg_list *tag_successors = &tag->tag_successors;
 
 	_starpu_spin_lock(&tag->lock);
+	STARPU_ASSERT_MSG(tag->is_assigned == 1 || !tag_successors->ndeps, "a tag can be assigned only one task to wake");
 
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
@@ -369,7 +373,6 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 {
 	unsigned ret;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{

@@ -18,6 +18,21 @@
 
 #include "../../helper.h"
 
+/*
+ * Users do not know about this enum. They only know that SUCCESS is 0, and
+ * FAILURE is 1. Therefore, the values of SUCCESS and FAILURE shall not be
+ * changed.
+ */
+enum exit_code
+{
+	SUCCESS                 = 0,
+	FAILURE                 = 1,
+	UNTESTED                = 2,
+	TASK_CREATION_FAILURE   = 3,
+	TASK_SUBMISSION_FAILURE = 4
+};
+
+
 struct test_config
 {
 	/* A pointer to a registered handle */
@@ -41,8 +56,8 @@ struct test_config
 #endif
 
 	/* The previous codelets must update this field at the end of their
-	 * execution. copy_failed must be 1 if the copy failed, 0 otherwise. */
-	int copy_failed;
+	 * execution. copy_failed must be FAILURE if the copy failed, SUCCESS otherwise. */
+	enum exit_code copy_failed;
 
 	/* A human-readable name for the test */
 	const char *name;

@@ -19,6 +19,7 @@ The following arguments can be given to the @code{configure} script.
 @menu
 * Common configuration::        
 * Configuring workers::         
+* Extension configuration::     
 * Advanced configuration::      
 @end menu
 
@@ -45,7 +46,22 @@ any value.
 @item --enable-coverage
 Enable flags for the @code{gcov} coverage tool.
 
+@item --with-hwloc
+Specify hwloc should be used by StarPU. hwloc should be found by the
+means of the tools @code{pkg-config}.
+
+@item --with-hwloc=@var{prefix}
+Specify hwloc should be used by StarPU. hwloc should be found in the
+directory specified by @var{prefix}.
+
+@item --without-hwloc
+Specify hwloc should not be used by StarPU.
 @end table
+
+Additionally, the @command{configure} script recognize many variables, which
+can be listed by typing @code{./configure --help}. For example,
+@code{./configure NVCCFLAGS="-arch sm_13"} adds a flag for the compilation of
+CUDA kernels.
 
 @node Configuring workers
 @subsection Configuring workers
@@ -122,6 +138,47 @@ Allow for at most @var{count} scheduling contexts
 This information is then available as the
 @code{STARPU_NMAX_SCHED_CTXS} macro.
 
+@item --disable-asynchronous-copy
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+@item --disable-asynchronous-cuda-copy
+Disable asynchronous copies between CPU and CUDA devices.
+
+@item --disable-asynchronous-opencl-copy
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+@end table
+
+@node Extension configuration
+@subsection Extension configuration
+
+@table @code
+
+@item --disable-socl
+Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
+default, it is enabled when an OpenCL implementation is found.
+
+@item --disable-starpu-top
+Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
+is enabled when the required dependencies are found.
+
+@item --disable-gcc-extensions
+Disable the GCC plug-in (@pxref{C Extensions}).  By default, it is
+enabled when the GCC compiler provides a plug-in support.
+
+@item --with-mpicc=@var{path}
+Use the @command{mpicc} compiler at @var{path}, for starpumpi
+(@pxref{StarPU MPI support}).
+
+@item --enable-comm-stats
+Enable communication statistics for starpumpi (@pxref{StarPU MPI
+support}).
+
 @end table
 
 @node Advanced configuration
@@ -173,12 +230,8 @@ notably contain @code{include/fxt/fxt.h}.
 Store performance models under @var{dir}, instead of the current user's
 home.
 
-@item --with-mpicc=@var{path}
-Use the @command{mpicc} compiler at @var{path}, for starpumpi
-(@pxref{StarPU MPI support}).
-
 @item --with-goto-dir=@var{prefix}
-Search for GotoBLAS under @var{prefix}.
+Search for GotoBLAS under @var{prefix}, which should notably contain @file{libgoto.so} or @file{libgoto2.so}.
 
 @item --with-atlas-dir=@var{prefix}
 Search for ATLAS under @var{prefix}, which should notably contain
@@ -193,13 +246,10 @@ that the
 @url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/,
 MKL website} provides a script to determine the linking flags.
 
-@item --disable-gcc-extensions
-Disable the GCC plug-in (@pxref{C Extensions}).  By default, it is
-enabled when the GCC compiler provides a plug-in support.
+@item --disable-build-examples
+Disable the build of examples.
 
-@item --disable-socl
-Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
-default, it is enabled when an OpenCL implementation is found.
+@end table
 
 @item --disable-starpu-top
 Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
@@ -210,68 +260,45 @@ Enables the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hyper
 By default, it is disabled.
 
 @end table
+
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
 
 @menu
 * Workers::                     Configuring workers
 * Scheduling::                  Configuring the Scheduling engine
+* Extensions::
 * Misc::                        Miscellaneous and debug
 @end menu
-
-Note: the values given in @code{starpu_conf} structure passed when
-calling @code{starpu_init} will override the values of the environment
-variables.
 
 @node Workers
 @subsection Configuring workers
 
-@menu
-* STARPU_NCPUS::                Number of CPU workers
-* STARPU_NCUDA::                Number of CUDA workers
-* STARPU_NOPENCL::              Number of OpenCL workers
-* STARPU_NGORDON::              Number of SPU workers (Cell)
-* STARPU_WORKERS_NOBIND::       Do not bind workers
-* STARPU_WORKERS_CPUID::        Bind workers to specific CPUs
-* STARPU_WORKERS_CUDAID::       Select specific CUDA devices
-* STARPU_WORKERS_OPENCLID::     Select specific OpenCL devices
-@end menu
+@table @code
 
-@node STARPU_NCPUS
-@subsubsection @code{STARPU_NCPUS} -- Number of CPU workers
-
+@item @code{STARPU_NCPU}
 Specify the number of CPU workers (thus not including workers dedicated to control acceleratores). Note that by default, StarPU will not allocate
 more CPU workers than there are physical CPUs, and that some CPUs are used to control
 the accelerators.
 
-@node STARPU_NCUDA
-@subsubsection @code{STARPU_NCUDA} -- Number of CUDA workers
-
+@item @code{STARPU_NCUDA}
 Specify the number of CUDA devices that StarPU can use. If
 @code{STARPU_NCUDA} is lower than the number of physical devices, it is
 possible to select which CUDA devices should be used by the means of the
 @code{STARPU_WORKERS_CUDAID} environment variable. By default, StarPU will
 create as many CUDA workers as there are CUDA devices.
 
-@node STARPU_NOPENCL
-@subsubsection @code{STARPU_NOPENCL} -- Number of OpenCL workers
-
+@item @code{STARPU_NOPENCL}
 OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 
-@node STARPU_NGORDON
-@subsubsection @code{STARPU_NGORDON} -- Number of SPU workers (Cell)
-
+@item @code{STARPU_NGORDON}
 Specify the number of SPUs that StarPU can use.
 
-@node STARPU_WORKERS_NOBIND
-@subsubsection @code{STARPU_WORKERS_NOBIND} -- Do not bind workers to specific CPUs
-
+@item @code{STARPU_WORKERS_NOBIND}
 Setting it to non-zero will prevent StarPU from binding its threads to
 CPUs. This is for instance useful when running the testsuite in parallel.
 
-@node STARPU_WORKERS_CPUID
-@subsubsection @code{STARPU_WORKERS_CPUID} -- Bind workers to specific CPUs
-
+@item @code{STARPU_WORKERS_CPUID}
 Passing an array of integers (starting from 0) in @code{STARPU_WORKERS_CPUID}
 specifies on which logical CPU the different workers should be
 bound. For instance, if @code{STARPU_WORKERS_CPUID = "0 1 4 5"}, the first
@@ -282,7 +309,7 @@ available.
 
 Note that the first workers correspond to the CUDA workers, then come the
 OpenCL and the SPU, and finally the CPU workers. For example if
-we have @code{STARPU_NCUDA=1}, @code{STARPU_NOPENCL=1}, @code{STARPU_NCPUS=2}
+we have @code{STARPU_NCUDA=1}, @code{STARPU_NOPENCL=1}, @code{STARPU_NCPU=2}
 and @code{STARPU_WORKERS_CPUID = "0 2 1 3"}, the CUDA device will be controlled
 by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
 the logical CPUs #1 and #3 will be used by the CPU workers.
@@ -295,9 +322,7 @@ third (resp. second and fourth) workers will be put on CPU #0 (resp. CPU #1).
 This variable is ignored if the @code{use_explicit_workers_bindid} flag of the
 @code{starpu_conf} structure passed to @code{starpu_init} is set.
 
-@node STARPU_WORKERS_CUDAID
-@subsubsection @code{STARPU_WORKERS_CUDAID} -- Select specific CUDA devices
-
+@item @code{STARPU_WORKERS_CUDAID}
 Similarly to the @code{STARPU_WORKERS_CPUID} environment variable, it is
 possible to select which CUDA devices should be used by StarPU. On a machine
 equipped with 4 GPUs, setting @code{STARPU_WORKERS_CUDAID = "1 3"} and
@@ -308,36 +333,67 @@ the one reported by CUDA).
 This variable is ignored if the @code{use_explicit_workers_cuda_gpuid} flag of
 the @code{starpu_conf} structure passed to @code{starpu_init} is set.
 
-@node STARPU_WORKERS_OPENCLID
-@subsubsection @code{STARPU_WORKERS_OPENCLID} -- Select specific OpenCL devices
-
+@item @code{STARPU_WORKERS_OPENCLID}
 OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 
 This variable is ignored if the @code{use_explicit_workers_opencl_gpuid} flag of
 the @code{starpu_conf} structure passed to @code{starpu_init} is set.
 
+@item @code{STARPU_SINGLE_COMBINED_WORKER}
+If set, StarPU will create several workers which won't be able to work
+concurrently. It will create combined workers which size goes from 1 to the
+total number of CPU workers in the system.
+
+@item @code{SYNTHESIZE_ARITY_COMBINED_WORKER}
+
+Let the user decide how many elements are allowed between combined workers
+created from hwloc information. For instance, in the case of sockets with 6
+cores without shared L2 caches, if @code{SYNTHESIZE_ARITY_COMBINED_WORKER} is
+set to 6, no combined worker will be synthesized beyond one for the socket
+and one per core. If it is set to 3, 3 intermediate combined workers will be
+synthesized, to divide the socket cores into 3 chunks of 2 cores. If it set to
+2, 2 intermediate combined workers will be synthesized, to divide the the socket
+cores into 2 chunks of 3 cores, and then 3 additional combined workers will be
+synthesized, to divide the former synthesized workers into a bunch of 2 cores,
+and the remaining core (for which no combined worker is synthesized since there
+is already a normal worker for it).
+
+The default, 2, thus makes StarPU tend to building a binary trees of combined
+workers.
+
+@item @code{STARPU_DISABLE_ASYNCHRONOUS_COPY}
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+@item @code{STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY}
+Disable asynchronous copies between CPU and CUDA devices.
+
+@item @code{STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY}
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+@item @code{STARPU_DISABLE_CUDA_GPU_GPU_DIRECT}
+Disable direct CUDA transfers from GPU to GPU, and let CUDA copy through RAM
+instead. This permits to test the performance effect of GPU-Direct.
+
+@end table
+
 @node Scheduling
 @subsection Configuring the Scheduling engine
 
-@menu
-* STARPU_SCHED::                Scheduling policy
-* STARPU_CALIBRATE::            Calibrate performance models
-* STARPU_PREFETCH::             Use data prefetch
-* STARPU_SCHED_ALPHA::          Computation factor
-* STARPU_SCHED_BETA::           Communication factor
-@end menu
+@table @code
 
-@node STARPU_SCHED
-@subsubsection @code{STARPU_SCHED} -- Scheduling policy
-
+@item @code{STARPU_SCHED}
 Choose between the different scheduling policies proposed by StarPU: work
 random, stealing, greedy, with performance models, etc.
 
 Use @code{STARPU_SCHED=help} to get the list of available schedulers.
 
-@node STARPU_CALIBRATE
-@subsubsection @code{STARPU_CALIBRATE} -- Calibrate performance models
-
+@item @code{STARPU_CALIBRATE}
 If this variable is set to 1, the performance models are calibrated during
 the execution. If it is set to 2, the previous values are dropped to restart
 calibration from scratch. Setting this variable to 0 disable calibration, this
@@ -345,9 +401,11 @@ is the default behaviour.
 
 Note: this currently only applies to @code{dm}, @code{dmda} and @code{heft} scheduling policies.
 
-@node STARPU_PREFETCH
-@subsubsection @code{STARPU_PREFETCH} -- Use data prefetch
+@item @code{STARPU_BUS_CALIBRATE}
+If this variable is set to 1, the bus is recalibrated during intialization.
 
+@item @code{STARPU_PREFETCH}
+@anchor{STARPU_PREFETCH}
 This variable indicates whether data prefetching should be enabled (0 means
 that it is disabled). If prefetching is enabled, when a task is scheduled to be
 executed e.g. on a GPU, StarPU will request an asynchronous transfer in
@@ -355,58 +413,54 @@ advance, so that data is already present on the GPU when the task starts. As a
 result, computation and data transfers are overlapped.
 Note that prefetching is enabled by default in StarPU.
 
-@node STARPU_SCHED_ALPHA
-@subsubsection @code{STARPU_SCHED_ALPHA} -- Computation factor
-
+@item @code{STARPU_SCHED_ALPHA}
 To estimate the cost of a task StarPU takes into account the estimated
 computation time (obtained thanks to performance models). The alpha factor is
 the coefficient to be applied to it before adding it to the communication part.
 
-@node STARPU_SCHED_BETA
-@subsubsection @code{STARPU_SCHED_BETA} -- Communication factor
-
+@item @code{STARPU_SCHED_BETA}
 To estimate the cost of a task StarPU takes into account the estimated
 data transfer time (obtained thanks to performance models). The beta factor is
 the coefficient to be applied to it before adding it to the computation part.
 
+@end table
+
+@node Extensions
+@subsection Extensions
+
+@table @code
+
+@item @code{SOCL_OCL_LIB_OPENCL}
+THE SOCL test suite is only run when the environment variable
+@code{SOCL_OCL_LIB_OPENCL} is defined. It should contain the location
+of the libOpenCL.so file of the OCL ICD implementation.
+
+@end table
+
 @node Misc
 @subsection Miscellaneous and debug
 
-@menu
-* STARPU_SILENT::               Disable verbose mode
-* STARPU_LOGFILENAME::          Select debug file name
-* STARPU_FXT_PREFIX::           FxT trace location
-* STARPU_LIMIT_GPU_MEM::        Restrict memory size on the GPUs
-* STARPU_GENERATE_TRACE::       Generate a Paje trace when StarPU is shut down
-@end menu
+@table @code
 
-@node STARPU_SILENT
-@subsubsection @code{STARPU_SILENT} -- Disable verbose mode
-
+@item @code{STARPU_SILENT}
 This variable allows to disable verbose mode at runtime when StarPU
 has been configured with the option @code{--enable-verbose}.
 
-@node STARPU_LOGFILENAME
-@subsubsection @code{STARPU_LOGFILENAME} -- Select debug file name
-
+@item @code{STARPU_LOGFILENAME}
 This variable specifies in which file the debugging output should be saved to.
 
-@node STARPU_FXT_PREFIX
-@subsubsection @code{STARPU_FXT_PREFIX} -- FxT trace location
-
+@item @code{STARPU_FXT_PREFIX}
 This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
 
-@node STARPU_LIMIT_GPU_MEM
-@subsubsection @code{STARPU_LIMIT_GPU_MEM} -- Restrict memory size on the GPUs
-
+@item @code{STARPU_LIMIT_GPU_MEM}
 This variable specifies the maximum number of megabytes that should be
 available to the application on each GPUs. In case this value is smaller than
 the size of the memory of a GPU, StarPU pre-allocates a buffer to waste memory
 on the device. This variable is intended to be used for experimental purposes
 as it emulates devices that have a limited amount of memory.
 
-@node STARPU_GENERATE_TRACE
-@subsubsection @code{STARPU_GENERATE_TRACE} -- Generate a Paje trace when StarPU is shut down
-
+@item @code{STARPU_GENERATE_TRACE}
 When set to 1, this variable indicates that StarPU should automatically
 generate a Paje trace when starpu_shutdown is called.
+
+@end table

@@ -17,25 +17,34 @@
 #include "socl.h"
 
 command_list command_list_cons(cl_command cmd, command_list ls) {
-	command_list e = malloc(sizeof(struct command_list_t));
-	e->cmd = cmd;
-	e->next = ls;
-	if (ls != NULL)
-		ls->prev = e;
-	return e;
+   command_list e = malloc(sizeof(struct command_list_t));
+   e->cmd = cmd;
+   e->next = ls;
+   e->prev = NULL;
+   if (ls != NULL)
+      ls->prev = e;
+   return e;
 }
 
+/**
+ * Remove every occurence of cmd in the list l
+ */
 command_list command_list_remove(command_list l, cl_command cmd) {
-	command_list e = l;
-	while (e != NULL) {
-		if (e->cmd == cmd) {
-			if (e->prev != NULL) e->prev->next = e->next;
-			if (e->next != NULL) e->next->prev = e->prev;
-			command_list next = e->next;
-			free(e);
-			if (e == l) return next;
-		}
-		e = e->next;
-	}
-	return l;
+   command_list e = l;
+   while (e != NULL) {
+      if (e->cmd == cmd) {
+         if (e->prev != NULL) e->prev->next = e->next;
+         if (e->next != NULL) e->next->prev = e->prev;
+         command_list old = e;
+         if (l == old) { // list head has been removed
+            l = old->next;
+         }
+         e = old->next;
+         free(old);
+      }
+      else {
+         e = e->next;
+      }
+   }
+   return l;
 }

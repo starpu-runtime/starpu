@@ -78,7 +78,6 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
 
    /* Waiting for kernel to terminate */
    clWaitForEvents(1, &event);
-   clReleaseEvent(event);
 }
 
 static void cleaning_task_callback(void *args) {
@@ -97,15 +96,23 @@ static void cleaning_task_callback(void *args) {
 		gc_entity_unstore(&cmd->buffers[i]);
 
 	free(cmd->buffers);
-	void * co = cmd->codelet;
-	cmd->codelet = NULL;
-	free(co);
-}
 
-static struct starpu_perfmodel perf_model = {
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "perf_model"
-};
+	if (cmd->global_work_offset != NULL) {
+	  free((void*)cmd->global_work_offset);
+	  cmd->global_work_offset = NULL;
+	}
+
+	if (cmd->global_work_size != NULL) {
+	  free((void*)cmd->global_work_size);
+	  cmd->global_work_size = NULL;
+	}
+
+	if (cmd->local_work_size != NULL) {
+	  free((void*)cmd->local_work_size);
+	  cmd->local_work_size = NULL;
+	}
+
+}
 
 /**
  * Real kernel enqueuing command
@@ -113,11 +120,18 @@ static struct starpu_perfmodel perf_model = {
 cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	starpu_task task = task_create();
-	task->cl = cmd->codelet;
+	task->cl = &cmd->codelet;
+	task->cl->model = cmd->kernel->perfmodel;
 	task->cl_arg = cmd;
 	task->cl_arg_size = sizeof(cmd);
 
-	struct starpu_codelet * codelet = cmd->codelet;
+	/* Execute the task on a specific worker? */
+	if (cmd->_command.cq->device != NULL) {
+	  task->execute_on_a_specific_worker = 1;
+	  task->workerid = cmd->_command.cq->device->worker_id;
+	}
+
+	struct starpu_codelet * codelet = task->cl;
 
 	/* We need to detect which parameters are OpenCL's memory objects and
 	 * we retrieve their corresponding StarPU buffers */
@@ -131,7 +145,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 			cl_mem buf = *(cl_mem*)cmd->args[i];
 
 			gc_entity_store(&cmd->buffers[cmd->num_buffers], buf);
-			task->buffers[cmd->num_buffers].handle = buf->handle;
+			task->handles[cmd->num_buffers] = buf->handle;
 
 			/* Determine best StarPU buffer access mode */
 			int mode;
@@ -149,7 +163,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 				mode = STARPU_RW;
 				buf->scratch = 0;
 			}
-			task->buffers[cmd->num_buffers].mode = mode; 
+			codelet->modes[cmd->num_buffers] = mode; 
 
 			cmd->num_buffers += 1;
 		}
@@ -160,10 +174,12 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	/* Enqueue a cleaning task */
 	//FIXME: execute this in the callback?
-	starpu_task cleaning_task = task_create_cpu(cleaning_task_callback, cmd,1);
 	cl_event ev = command_event_get(cmd);
-	task_depends_on(cleaning_task, 1, &ev);
-	task_submit(cleaning_task, cmd);
+
+	static struct starpu_codelet cdl = {
+		.name = "SOCL_NDRANGE_CLEANING_TASK"
+	};
+	cpu_task_submit(cmd, cleaning_task_callback, cmd, 0, &cdl, 1, &ev);
 
 	return CL_SUCCESS;
 }

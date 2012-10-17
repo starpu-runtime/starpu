@@ -19,9 +19,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-
 #include <starpu.h>
-#include <starpu_profiling.h>
 #include "../helper.h"
 
 static unsigned ntasks = 65536;
@@ -76,26 +74,13 @@ static void init_gordon_kernel(void)
 //	STARPU_ASSERT(!ret);
 //}
 
-static struct starpu_conf conf =
-{
-	.sched_policy_name = NULL,
-	.ncpus = -1,
-	.ncuda = -1,
-        .nopencl = -1,
-	.nspus = -1,
-	.use_explicit_workers_bindid = 0,
-	.use_explicit_workers_cuda_gpuid = 0,
-	.use_explicit_workers_opencl_gpuid = 0,
-	.calibrate = 0
-};
-
 static void usage(char **argv)
 {
 	fprintf(stderr, "%s [-i ntasks] [-p sched_policy] [-h]\n", argv[0]);
 	exit(-1);
 }
 
-static void parse_args(int argc, char **argv)
+static void parse_args(int argc, char **argv, struct starpu_conf *conf)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:p:h")) != -1)
@@ -105,7 +90,7 @@ static void parse_args(int argc, char **argv)
 			ntasks = atoi(optarg);
 			break;
 		case 'p':
-			conf.sched_policy_name = optarg;
+			conf->sched_policy_name = optarg;
 			break;
 		case 'h':
 			usage(argv);
@@ -121,7 +106,10 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 
-	parse_args(argc, argv);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	parse_args(argc, argv, &conf);
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -148,7 +136,7 @@ int main(int argc, char **argv)
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)
 	{
-		int ret = starpu_task_submit(tasks[i]);
+		ret = starpu_task_submit(tasks[i]);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

@@ -46,7 +46,7 @@ struct test_config variable_config =
 #endif
 	.handle       = &variable_handle,
 	.dummy_handle = &variable2_handle,
-	.copy_failed  = 0,
+	.copy_failed  = SUCCESS,
 	.name         = "variable_interface"
 };
 
@@ -62,7 +62,7 @@ test_variable_cpu_func(void *buffers[], void *args)
 	factor = *(int *)args;
 
 	if (*val != 42 * factor)
-		variable_config.copy_failed = 1;
+		variable_config.copy_failed = FAILURE;
 	else
 		*val *= -1;
 }
@@ -93,12 +93,11 @@ main(void)
 	int ret;
 	data_interface_test_summary *summary;
 
-	struct starpu_conf conf =
-	{
-		.ncpus = -1,
-		.ncuda = 2,
-		.nopencl = 1
-	};
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	conf.ncuda = 2;
+	conf.nopencl = 1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)

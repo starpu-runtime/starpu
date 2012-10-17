@@ -26,7 +26,7 @@ functions=$(spatch -very_quiet -sp_file tools/dev/starpu_funcs.cocci $(find incl
 for func in $functions ; do
 	fname=$(echo $func|awk -F ',' '{print $1}')
 	location=$(echo $func|awk -F ',' '{print $2}')
-	x=$(grep $fname doc/starpu.texi doc/chapters/*texi | grep deftypefun)
+	x=$(grep "$fname (" doc/starpu.texi doc/chapters/*texi | grep deftypefun)
 	if test "$x" == "" ; then
 		echo "function ${redcolor}${fname}${stcolor} at location ${redcolor}$location${stcolor} is not (or incorrectly) documented"
 #	else
@@ -56,7 +56,7 @@ done
 
 echo
 
-macros=$(grep "define\b" include/*|grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
+macros=$(grep "define\b" include/*.h |grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
 for macro in $macros ; do
     x=$(grep "$macro\b" doc/starpu.texi doc/chapters/*texi | grep defmac)
     if test "$x" == "" ; then

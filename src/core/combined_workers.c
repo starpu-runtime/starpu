@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,12 +27,6 @@
 
 #ifdef __MINGW32__
 #include <windows.h>
-#endif
-
-#ifndef HWLOC_BITMAP_H
-/* hwloc <1.1 does not offer the bitmap API yet */
-#define hwloc_bitmap_alloc hwloc_cpuset_alloc
-#define hwloc_bitmap_or hwloc_cpuset_or
 #endif
 
 static int compar_int(const void *pa, const void *pb)

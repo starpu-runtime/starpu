@@ -32,9 +32,11 @@ static void mapbuffer_task(void *args) {
 }
 
 cl_int command_map_buffer_submit(command_map_buffer cmd) {
-	starpu_task task = task_create_cpu(mapbuffer_task, cmd, 0);
+	static struct starpu_codelet codelet = {
+		.name = "SOCL_MAP_BUFFER"
+	};
 
-	task_submit(task, cmd);
+	cpu_task_submit(cmd, mapbuffer_task, cmd, 0, &codelet, 0, NULL);
 
 	return CL_SUCCESS;
 }

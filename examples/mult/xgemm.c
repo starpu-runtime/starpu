@@ -28,15 +28,20 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
-#include <starpu_cuda.h>
 #endif
 
-static unsigned niter = 100;
+static unsigned niter = 10;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
+#ifdef STARPU_SLOW_MACHINE
 static unsigned xdim = 256;
 static unsigned ydim = 256;
 static unsigned zdim = 64;
+#else
+static unsigned xdim = 1024;
+static unsigned ydim = 1024;
+static unsigned zdim = 1024;
+#endif
 static unsigned check = 0;
 
 static TYPE *A, *B, *C;
@@ -219,50 +224,57 @@ static void parse_args(int argc, char **argv)
 			nslicesy = nslicesx;
 		}
 
-		if (strcmp(argv[i], "-nblocksx") == 0)
+		else if (strcmp(argv[i], "-nblocksx") == 0)
 		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocksy") == 0)
+		else if (strcmp(argv[i], "-nblocksy") == 0)
 		{
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-x") == 0)
+		else if (strcmp(argv[i], "-x") == 0)
 		{
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-y") == 0)
+		else if (strcmp(argv[i], "-y") == 0)
 		{
 			char *argptr;
 			ydim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-z") == 0)
+		else if (strcmp(argv[i], "-z") == 0)
 		{
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-iter") == 0)
+		else if (strcmp(argv[i], "-iter") == 0)
 		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0)
+		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-spmd") == 0)
+		else if (strcmp(argv[i], "-spmd") == 0)
 		{
 			cl.type = STARPU_SPMD;
+		}
+
+		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+		{
+			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-z z] [-iter iter] [-check] [-spmd]\n", argv[0]);
+			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
+			exit(EXIT_SUCCESS);
 		}
 	}
 }
@@ -305,7 +317,7 @@ int main(int argc, char **argv)
 			task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
 			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV)
 			{
 			     ret = 77;

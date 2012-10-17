@@ -289,6 +289,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return starpu_push_local_task(best_workerid, task, prio);
 }
 
+/* TODO: Correct the bugs in the scheduling !!! */
 /* TODO: factorize with dmda!! */
 
 static void compute_all_performance_predictions(struct starpu_task *task,
@@ -320,7 +321,24 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		worker = workers->get_next(workers);
 		if(starpu_is_ctxs_turn(worker, sched_ctx_id) || sched_ctx_id == 0)
 		{
+<<<<<<< .working
+=======
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
 
+			/* Sometimes workers didn't take the tasks as early as we expected */
+			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
+			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
+			exp_end[worker][nimpl] = exp_start[worker] + exp_len[worker];
+			if (exp_end[worker][nimpl] > max_exp_end)
+				max_exp_end = exp_end[worker][nimpl];
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
+>>>>>>> .merge-right.r7640
+
+<<<<<<< .working
 			for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) 
 			{
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))
@@ -361,6 +379,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					if (conversion_time > 0.0)
 						local_task_length[worker_ctx][nimpl] += conversion_time;
 
+=======
+>>>>>>> .merge-right.r7640
 					//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker_ctx],local_power[worker_ctx],worker,nimpl);
 				}
 				double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
@@ -642,7 +662,11 @@ static int heft_push_task(struct starpu_task *task)
 	return ret_val;
 }
 
+<<<<<<< .working
 static void heft_deinit(unsigned sched_ctx_id) 
+=======
+struct starpu_sched_policy _starpu_sched_heft_policy =
+>>>>>>> .merge-right.r7640
 {
 	heft_data *ht = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	free(ht);

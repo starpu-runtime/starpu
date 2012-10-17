@@ -29,7 +29,6 @@ extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 struct starpu_opencl_program opencl_program;
 #endif
@@ -75,7 +74,6 @@ int main(int argc, char **argv)
 	for (i = 0; i < niter; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-                int ret;
 
 		task->cl = &cl;
 
@@ -87,7 +85,8 @@ int main(int argc, char **argv)
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
+			starpu_data_unregister(float_array_handle);
+			goto enodev;
 		}
 	}
 
@@ -100,7 +99,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	return 0;
+	return (foo == niter) ? EXIT_SUCCESS:EXIT_FAILURE;
 
 enodev:
 	starpu_shutdown();

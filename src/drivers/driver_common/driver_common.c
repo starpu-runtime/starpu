@@ -27,6 +27,10 @@
 #include <core/sched_policy.h>
 #include <top/starpu_top_core.h>
 
+
+struct timespec start_time[STARPU_NMAXWORKERS], end_time[STARPU_NMAXWORKERS];
+unsigned idle[STARPU_NMAXWORKERS];
+
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
@@ -143,29 +147,67 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
-/* Workers may block when there is no work to do at all. We assume that the
- * mutex is hold when that function is called. */
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex)
+/* Workers may block when there is no work to do at all. */
+struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
-	struct timespec start_time, end_time;
+	struct starpu_task *task;
 
-	_STARPU_TRACE_WORKER_SLEEP_START
-	_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+	pthread_cond_t *sched_cond = &args->sched_cond;
+	pthread_mutex_t *sched_mutex = &args->sched_mutex;
 
-	_starpu_clock_gettime(&start_time);
-	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
+	task = _starpu_pop_task(args);
 
-	_STARPU_PTHREAD_COND_WAIT(cond, mutex);
-
-	_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
-	_STARPU_TRACE_WORKER_SLEEP_END
-	_starpu_clock_gettime(&end_time);
-
-	int profiling = starpu_profiling_status_get();
-	if (profiling)
+	if (task == NULL)
 	{
-		struct timespec sleeping_time;
-		starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
-		_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
+		/*TODO: check this out after the merge */
+
+
+		/* Note: we need to keep the sched condition mutex all along the path
+		 * from popping a task from the scheduler to blocking. Otherwise the
+		 * driver may go block just after the scheduler got a new task to be
+		 * executed, and thus hanging. */
+		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
+
+		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+		{
+			_STARPU_TRACE_WORKER_SLEEP_START
+			_starpu_worker_restart_sleeping(workerid);
+			_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+		}
+
+		if (_starpu_worker_can_block(memnode))
+			_STARPU_PTHREAD_COND_WAIT(args->sched_cond, args->sched_mutex);
+		else
+		{
+			_starpu_clock_gettime(&start_time[workerid]);
+			_starpu_worker_register_sleeping_start_date(workerid, &start_time[workerid]);
+			idle[workerid] = 1;
+			
+		}
+		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+
+		return NULL;
 	}
+	if(idle[workerid])
+	{
+		_starpu_clock_gettime(&end_time[workerid]);
+		
+		int profiling = starpu_profiling_status_get();
+		if (profiling)
+		{
+			struct timespec sleeping_time;
+			starpu_timespec_sub(&end_time[workerid], &start_time[workerid], &sleeping_time);
+			_starpu_worker_update_profiling_info_sleeping(workerid, &start_time[workerid], &end_time[workerid]);
+		}
+		idle[workerid] = 0;
+	}
+
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	{
+		_STARPU_TRACE_WORKER_SLEEP_END
+		_starpu_worker_stop_sleeping(workerid);
+		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
+	}
+
+	return task;
 }

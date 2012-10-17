@@ -43,7 +43,7 @@ static struct starpu_codelet cl =
 	.modes = {STARPU_W}
 };
 
-static int test_lazy_allocation()
+static int test_lazy_allocation(void)
 {
 	static const size_t count = 123;
 
@@ -94,7 +94,7 @@ static int test_lazy_allocation()
 
 #define VECTOR_SIZE     123
 
-static void test_filters()
+static void test_filters(void)
 {
 #define CHILDREN_COUNT 10
 	int ret, i;

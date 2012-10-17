@@ -105,12 +105,11 @@ main(void)
 {
 #if defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
 	int ret;
-	struct starpu_conf conf =
-	{
-		.ncpus   = -1,
-		.ncuda   = 1,
-		.nopencl = 1
-	};
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	conf.ncuda = 1;
+	conf.nopencl = 1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)

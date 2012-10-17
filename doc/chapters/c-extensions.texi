@@ -295,6 +295,7 @@ The following pragmas are provided:
 @item #pragma starpu register @var{ptr} [@var{size}]
 Register @var{ptr} as a @var{size}-element buffer.  When @var{ptr} has
 an array type whose size is known, @var{size} may be omitted.
+Alternatively, the @code{registered} attribute can be used (see below.)
 
 @item #pragma starpu unregister @var{ptr}
 Unregister the previously-registered memory area pointed to by
@@ -311,17 +312,25 @@ making it available to the tasks.
 
 @end table
 
-Additionally, the @code{heap_allocated} variable attribute offers a
-simple way to allocate storage for arrays on the heap:
+Additionally, the following attributes offer a simple way to allocate
+and register storage for arrays:
 
 @table @code
+
+@item registered
+@cindex @code{registered} attribute
+This attributes applies to local variables with an array type.  Its
+effect is to automatically register the array's storage, as per
+@code{#pragma starpu register}.  The array is automatically unregistered
+when the variable's scope is left.  This attribute is typically used in
+conjunction with the @code{heap_allocated} attribute, described below.
 
 @item heap_allocated
 @cindex @code{heap_allocated} attribute
 This attributes applies to local variables with an array type.  Its
 effect is to automatically allocate the array's storage on
 the heap, using @code{starpu_malloc} under the hood (@pxref{Basic Data
-Library API, starpu_malloc}).  The heap-allocated array is automatically
+Management API, starpu_malloc}).  The heap-allocated array is automatically
 freed when the variable's scope is left, as with
 automatic variables.
 
@@ -351,16 +360,13 @@ main (int argc, char *argv[])
 
   @{
     float matrix[nblocks][nblocks][size]
-      __attribute__ ((heap_allocated));
-
-#pragma starpu register matrix
+      __attribute__ ((heap_allocated, registered));
 
     cholesky (nblocks, size, matrix);
 
 #pragma starpu wait
-#pragma starpu unregister matrix
 
-  @}   /* MATRIX is automatically freed here.  */
+  @}   /* MATRIX is automatically unregistered & freed here.  */
 
 #pragma starpu shutdown
 

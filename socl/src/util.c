@@ -16,13 +16,17 @@
 
 #include "socl.h"
 
-int starpu_worker_get_range() {
-   int id = starpu_worker_get_id();
+int starpu_worker_get_range_by_id(int id) {
    int i, oid = 0;
    for (i=0; i<id; i++)
       if (starpu_worker_get_type(i) == STARPU_OPENCL_WORKER) oid++;
 
    return oid;
+}
+
+int starpu_worker_get_range() {
+   int id = starpu_worker_get_id();
+   return starpu_worker_get_range_by_id(id);
 }
 
 void * memdupa(const void *p, size_t size) {

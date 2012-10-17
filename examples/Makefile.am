@@ -18,9 +18,9 @@
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) 
 
 SUBDIRS = stencil
 
@@ -68,7 +68,7 @@ CLEANFILES += *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS) -arch sm_13
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
@@ -115,8 +115,8 @@ noinst_HEADERS = 				\
 	heat/dw_factolu.h			\
 	lu/xlu.h				\
 	lu/xlu_kernels.h			\
-	lu/float.h				\
-	lu/double.h				\
+	lu/lu-float.h				\
+	lu/lu-double.h				\
 	lu/complex_float.h			\
 	lu/complex_double.h			\
 	lu/blas_complex.h			\
@@ -138,12 +138,14 @@ noinst_HEADERS = 				\
 	filters/custom_mf/custom_interface.h    \
 	filters/custom_mf/custom_types.h	\
 	interface/complex_interface.h		\
+	interface/complex_codelet.h		\
 	pi/pi.h					\
 	pi/SobolQRNG/sobol.h			\
 	pi/SobolQRNG/sobol_gold.h		\
 	pi/SobolQRNG/sobol_gpu.h		\
 	pi/SobolQRNG/sobol_primitives.h         \
-	reductions/dot_product.h
+	reductions/dot_product.h                \
+	basic_examples/vector_scal_cpu_template.h
 
 #####################################
 # What to install and what to check #
@@ -166,7 +168,14 @@ LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
+
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER		=	$(LOADER_BIN)
+else
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
+
 endif
 
 examplebin_PROGRAMS +=				\
@@ -181,6 +190,9 @@ examplebin_PROGRAMS +=				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
+	filters/shadow				\
+	filters/shadow2d			\
+	filters/shadow3d			\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -190,13 +202,13 @@ examplebin_PROGRAMS +=				\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	binary/binary				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
-	mandelbrot/mandelbrot			\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
 
@@ -219,7 +231,8 @@ examplebin_PROGRAMS +=				\
 	lu/lu_implicit_example_float		\
 	lu/lu_implicit_example_double		\
 	heat/heat				\
-	cg/cg
+	cg/cg					\
+	pipeline/pipeline
 endif
 
 if MKL_BLAS_LIB
@@ -255,6 +268,7 @@ STARPU_EXAMPLES +=				\
 	spmv/spmv				\
 	callback/callback			\
 	incrementer/incrementer			\
+	binary/binary				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
@@ -281,7 +295,8 @@ STARPU_EXAMPLES +=				\
 	lu/lu_implicit_example_float		\
 	lu/lu_implicit_example_double		\
 	heat/heat				\
-	cg/cg
+	cg/cg					\
+	pipeline/pipeline
 endif
 
 if MKL_BLAS_LIB
@@ -308,7 +323,6 @@ basic_examples_vector_scal_SOURCES =		\
 if STARPU_HAVE_ICC
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
-basic_examples/vector_scal_cpu_icc.o: CFLAGS += -Dscal_cpu_func=scal_cpu_func_icc -Dscal_sse_func=scal_sse_func_icc
 endif
 
 if STARPU_USE_CUDA
@@ -662,6 +676,8 @@ cg_cg_SOURCES =					\
 if STARPU_USE_CUDA
 cg_cg_SOURCES +=				\
 	cg/cg_dot_kernel.cu
+cg/cg_dot_kernel.o: cg/cg_dot_kernel.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 cg_cg_LDADD =					\
@@ -733,6 +749,17 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_kernel.cl
 endif
 
+##################
+# Binary example #
+##################
+
+binary_binary_SOURCES =	\
+	binary/binary.c
+if STARPU_USE_OPENCL
+binary_binary_SOURCES +=	\
+	incrementer/incrementer_kernels_opencl.c
+endif
+
 #####################
 # interface example #
 #####################
@@ -770,6 +797,8 @@ reductions_dot_product_SOURCES =		\
 if STARPU_USE_CUDA
 reductions_dot_product_SOURCES +=		\
 	reductions/dot_product_kernels.cu
+reductions/dot_product_kernels.o: reductions/dot_product_kernels.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
@@ -779,12 +808,6 @@ endif
 ##################
 # Mandelbrot Set #
 ##################
-
-mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
-if HAVE_X11
-mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
-mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) -lX11
-endif
 
 ################
 # Top Examples #
@@ -827,6 +850,41 @@ pi_pi_redux_SOURCES +=				\
 	pi/pi_redux_kernel.cu
 pi_pi_redux_LDADD =				\
 	$(STARPU_CURAND_LDFLAGS)
+endif
+
+###########################
+# OpenGL interoperability #
+###########################
+
+if HAVE_OPENGL
+examplebin_PROGRAMS +=				\
+	gl_interop/gl_interop			\
+	gl_interop/gl_interop_idle
+
+gl_interop_gl_interop_SOURCES =			\
+	gl_interop/gl_interop.c
+
+gl_interop_gl_interop_LDADD =			\
+	$(STARPU_OPENGL_RENDER_LDFLAGS)
+
+gl_interop_gl_interop_idle_SOURCES =		\
+	gl_interop/gl_interop_idle.c
+
+gl_interop_gl_interop_idle_LDADD =		\
+	$(STARPU_OPENGL_RENDER_LDFLAGS)
+endif
+
+####################
+# pipeline example #
+####################
+
+if !NO_BLAS_LIB
+pipeline_pipeline_SOURCES	=	\
+	pipeline/pipeline.c		\
+	common/blas.c
+
+pipeline_pipeline_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
 endif
 
 showcheck:

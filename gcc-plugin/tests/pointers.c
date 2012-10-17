@@ -32,12 +32,14 @@ static void
 my_pointer_task_cpu (const int *x, short *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
+  assert (*x == 42 && *y == 77);
 }
 
 static void
 my_pointer_task_opencl (const int *x, short *y)
 {
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
+  assert (*x == 42 && *y == 77);
 }
 
 
@@ -69,7 +71,7 @@ main (int argc, char *argv[])
 #pragma starpu initialize
 
   static const unsigned char z = 0x77;
-  int x[] = { 42 };
+  static int x[] = { 42 };
   short *y;
 
   y = malloc (sizeof *y);

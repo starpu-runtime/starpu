@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 		task->callback_func = callback;
 		task->callback_arg = NULL;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

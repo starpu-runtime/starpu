@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -58,12 +58,12 @@ static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *b
  */
 
 /* Disabled by default */
-static int profiling = 0;
+int _starpu_profiling = 0;
 
 int starpu_profiling_status_set(int status)
 {
-	int prev_value = profiling;
-	profiling = status;
+	int prev_value = _starpu_profiling;
+	_starpu_profiling = status;
 
 	_STARPU_TRACE_SET_PROFILING(status);
 
@@ -88,9 +88,10 @@ int starpu_profiling_status_set(int status)
 	return prev_value;
 }
 
+#undef starpu_profiling_status_get
 int starpu_profiling_status_get(void)
 {
-	return profiling;
+	return _starpu_profiling;
 }
 
 void _starpu_profiling_init(void)
@@ -103,7 +104,7 @@ void _starpu_profiling_init(void)
 		_starpu_worker_reset_profiling_info(worker);
 	}
 	if ((env = getenv("STARPU_PROFILING")) && atoi(env))
-		profiling = 1;
+		_starpu_profiling = 1;
 }
 
 void _starpu_profiling_terminate(void)
@@ -120,7 +121,7 @@ struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(str
 	struct starpu_task_profiling_info *info = NULL;
 
 	/* If we are benchmarking, we need room for the power consumption */
-	if (profiling || (task->cl && task->cl->power_model && (task->cl->power_model->benchmarking || _starpu_get_calibrate_flag())))
+	if (_starpu_profiling || (task->cl && task->cl->power_model && (task->cl->power_model->benchmarking || _starpu_get_calibrate_flag())))
 	{
 		info = (struct starpu_task_profiling_info *) calloc(1, sizeof(struct starpu_task_profiling_info));
 		STARPU_ASSERT(info);
@@ -182,33 +183,31 @@ void _starpu_worker_reset_profiling_info(int workerid)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 }
 
-void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start)
+void _starpu_worker_restart_sleeping(int workerid)
 {
-	if (profiling)
+	if (_starpu_profiling)
 	{
+		struct timespec sleep_start_time;
+		_starpu_clock_gettime(&sleep_start_time);
+
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 		worker_registered_sleeping_start[workerid] = 1;
-		memcpy(&sleeping_start_date[workerid], sleeping_start, sizeof(struct timespec));
+		memcpy(&sleeping_start_date[workerid], &sleep_start_time, sizeof(struct timespec));
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
 
-void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start)
+void _starpu_worker_stop_sleeping(int workerid)
 {
-	if (profiling)
+	if (_starpu_profiling)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		worker_registered_executing_start[workerid] = 1;
-		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
-	}
-}
+		struct timespec *sleeping_start, sleep_end_time;
 
-void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec *sleeping_start, struct timespec *sleeping_end)
-{
-	if (profiling)
-	{
+		_starpu_clock_gettime(&sleep_end_time);
+
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+
+		sleeping_start = &sleeping_start_date[workerid];
 
                 /* Perhaps that profiling was enabled while the worker was
                  * already blocked, so we don't measure (end - start), but
@@ -222,12 +221,24 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 		}
 
 		struct timespec sleeping_time;
-		starpu_timespec_sub(sleeping_end, sleeping_start, &sleeping_time);
+		starpu_timespec_sub(&sleep_end_time, sleeping_start, &sleeping_time);
 
 		starpu_timespec_accumulate(&worker_info[workerid].sleeping_time, &sleeping_time);
 
 		worker_registered_sleeping_start[workerid] = 0;
 
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+
+	}
+}
+
+void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start)
+{
+	if (_starpu_profiling)
+	{
+		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		worker_registered_executing_start[workerid] = 1;
+		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
@@ -235,7 +246,7 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 
 void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed)
 {
-	if (profiling)
+	if (_starpu_profiling)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
@@ -255,7 +266,7 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 
 int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *info)
 {
-	if (!profiling)
+	if (!_starpu_profiling)
 	{
 		/* Not thread safe, shouldn't be too much a problem */
 		info->executed_tasks = worker_info[workerid].executed_tasks;
@@ -302,7 +313,7 @@ int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profilin
 /* When did the task reach the scheduler  ? */
 void _starpu_profiling_set_task_push_start_time(struct starpu_task *task)
 {
-	if (!profiling)
+	if (!_starpu_profiling)
 		return;
 
 	struct starpu_task_profiling_info *profiling_info;
@@ -314,7 +325,7 @@ void _starpu_profiling_set_task_push_start_time(struct starpu_task *task)
 
 void _starpu_profiling_set_task_push_end_time(struct starpu_task *task)
 {
-	if (!profiling)
+	if (!_starpu_profiling)
 		return;
 
 	struct starpu_task_profiling_info *profiling_info;

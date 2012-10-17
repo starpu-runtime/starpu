@@ -295,19 +295,22 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaMalloc((void **)&addr_nzval, nnz*r*c*elemsize);
-			if (!addr_nzval)
+		{
+			cudaError_t err;
+			err = cudaMalloc((void **)&addr_nzval, nnz*r*c*elemsize);
+			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_nzval))
 				goto fail_nzval;
 
-			cudaMalloc((void **)&addr_colind, nnz*sizeof(uint32_t));
-			if (!addr_colind)
+			err = cudaMalloc((void **)&addr_colind, nnz*sizeof(uint32_t));
+			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_colind))
 				goto fail_colind;
 
-			cudaMalloc((void **)&addr_rowptr, (nrow+1)*sizeof(uint32_t));
-			if (!addr_rowptr)
+			err = cudaMalloc((void **)&addr_rowptr, (nrow+1)*sizeof(uint32_t));
+			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_rowptr))
 				goto fail_rowptr;
 
 			break;
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
@@ -353,13 +356,23 @@ fail_rowptr:
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree((void*)addr_colind);
+		{
+			cudaError_t err;
+			err = cudaFree((void*)addr_colind);
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
 			break;
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void*)addr_colind);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void*)addr_colind);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();
@@ -373,13 +386,23 @@ fail_colind:
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree((void*)addr_nzval);
+		{
+			cudaError_t err;
+			err = cudaFree((void*)addr_nzval);
 			break;
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void*)addr_nzval);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void*)addr_nzval);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();
@@ -405,17 +428,35 @@ static void free_bcsr_buffer_on_node(void *data_interface, uint32_t node)
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree((void*)bcsr_interface->nzval);
-			cudaFree((void*)bcsr_interface->colind);
-			cudaFree((void*)bcsr_interface->rowptr);
+		{
+			cudaError_t err;
+			err = cudaFree((void*)bcsr_interface->nzval);
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+			err = cudaFree((void*)bcsr_interface->colind);
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+			err = cudaFree((void*)bcsr_interface->rowptr);
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
 			break;
+		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void*)bcsr_interface->nzval);
-			clReleaseMemObject((void*)bcsr_interface->colind);
-			clReleaseMemObject((void*)bcsr_interface->rowptr);
+		{
+			cl_int err;
+			err = clReleaseMemObject((void*)bcsr_interface->nzval);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
+			err = clReleaseMemObject((void*)bcsr_interface->colind);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
+			err = clReleaseMemObject((void*)bcsr_interface->rowptr);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();

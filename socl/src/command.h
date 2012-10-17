@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "socl.h"
+
 #ifndef SOCL_COMMANDS_H
 #define SOCL_COMMANDS_H
 
@@ -25,9 +27,9 @@ typedef struct cl_command_t * cl_command;
  * Command constructors for each kind of command use this method
  * Implicit and explicit dependencies must be passed as parameters
  */
-void command_init_ex(cl_command cmd, cl_command_type typ);
-#define command_init(cmd,typ) \
-	command_init_ex((cl_command)cmd,typ)
+void command_init_ex(cl_command cmd, cl_command_type typ, void (*cb)(void*));
+#define command_init(cmd,typ,cb) \
+	command_init_ex((cl_command)cmd,typ,cb)
 
 /** Submit a command for execution */
 void command_submit_ex(cl_command cmd);
@@ -45,6 +47,7 @@ void command_graph_dump_ex(cl_command cmd);
  * OpenCL Commands
  **************************/
 struct cl_command_t {
+	CL_ENTITY;
 	cl_command_type	typ;	 	/* Command type */
 	cl_uint 	num_events;	/* Number of dependencies */
 	cl_event * 	events;		/* Dependencies */
@@ -67,6 +70,7 @@ typedef struct command_ndrange_kernel_t {
 	CL_COMMAND
 
 	cl_kernel        kernel;
+	struct starpu_codelet codelet;
 	cl_uint          work_dim;
 	const size_t *   global_work_offset;
 	const size_t *   global_work_size;
@@ -75,7 +79,6 @@ typedef struct command_ndrange_kernel_t {
 	size_t *	 arg_sizes;
 	enum kernel_arg_type * arg_types;
 	void **		 args;
-	struct starpu_codelet * codelet;
 	cl_uint		 num_buffers;
 	cl_mem *	 buffers;
 } * command_ndrange_kernel;
@@ -135,6 +138,10 @@ typedef struct command_marker_t {
 	CL_COMMAND
 } * command_marker;
 
+typedef struct command_barrier_t {
+	CL_COMMAND
+} * command_barrier;
+
 /*************************
  * Constructor functions
  *************************/
@@ -148,7 +155,7 @@ command_ndrange_kernel command_ndrange_kernel_create (
 
 command_ndrange_kernel command_task_create (cl_kernel kernel);
 
-command_marker command_barrier_create ();
+command_barrier command_barrier_create ();
 
 command_marker command_marker_create ();
 
@@ -192,6 +199,7 @@ cl_int command_copy_buffer_submit(command_copy_buffer cmd);
 cl_int command_map_buffer_submit(command_map_buffer cmd);
 cl_int command_unmap_mem_object_submit(command_unmap_mem_object cmd);
 cl_int command_marker_submit(command_marker cmd);
+cl_int command_barrier_submit(command_barrier cmd);
 
 
 #endif /* SOCL_COMMANDS_H */

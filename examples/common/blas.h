@@ -24,8 +24,8 @@
 #include <cblas.h>
 #endif
 
-void SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, float *A, int lda, 
-		float *B, int ldb, float beta, float *C, int ldc);
+void SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, const float *A, int lda, 
+		const float *B, int ldb, float beta, float *C, int ldc);
 void DGEMM(char *transa, char *transb, int M, int N, int K, double alpha, double *A, int lda, 
 		double *B, int ldb, double beta, double *C, int ldc);
 void SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,

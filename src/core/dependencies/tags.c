@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,14 +19,24 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/dependencies/tags.h>
-#include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
+#include <common/uthash.h>
 
-static struct _starpu_htbl_node *tag_htbl = NULL;
-static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+struct _starpu_tag_table
+{
+	UT_hash_handle hh;
+	starpu_tag_t id;
+	struct _starpu_tag *tag;
+};
+
+#define HASH_ADD_UINT64_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint64_t),add)
+#define HASH_FIND_UINT64_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint64_t),out)
+
+static struct _starpu_tag_table *tag_htbl = NULL;
+static pthread_rwlock_t tag_global_rwlock;
 
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {
@@ -112,17 +122,27 @@ static void _starpu_tag_free(void *_tag)
 	}
 }
 
+/*
+ * Staticly initializing tag_global_rwlock seems to lead to weird errors
+ * on Darwin, so we do it dynamically.
+ */
+void _starpu_init_tags(void)
+{
+	_STARPU_PTHREAD_RWLOCK_INIT(&tag_global_rwlock, NULL);
+}
+
 void starpu_tag_remove(starpu_tag_t id)
 {
-	struct _starpu_tag *tag;
+	struct _starpu_tag_table *entry;
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
-	tag = (struct _starpu_tag *) _starpu_htbl_remove_tag(&tag_htbl, id);
+	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
+	if (entry) HASH_DEL(tag_htbl, entry);
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
-	_starpu_tag_free(tag);
+	if (entry)_starpu_tag_free(entry->tag);
 }
 
 void _starpu_tag_clear(void)
@@ -133,7 +153,13 @@ void _starpu_tag_clear(void)
 	 * the global rwlock. This contradicts the lock order of
 	 * starpu_tag_wait_array. Should not be a problem in practice since
 	 * _starpu_tag_clear is called at shutdown only. */
-	_starpu_htbl_clear_tags(&tag_htbl, 0, _starpu_tag_free);
+	struct _starpu_tag_table *entry, *tmp;
+
+	HASH_ITER(hh, tag_htbl, entry, tmp)
+	{
+		HASH_DEL(tag_htbl, entry);
+		_starpu_tag_free(entry->tag);
+	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 }
@@ -143,18 +169,24 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	/* search if the tag is already declared or not */
+	struct _starpu_tag_table *entry;
 	struct _starpu_tag *tag;
-	tag = (struct _starpu_tag *) _starpu_htbl_search_tag(tag_htbl, id);
 
-	if (tag == NULL)
+	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
+	if (entry != NULL)
+	     tag = entry->tag;
+	else
 	{
 		/* the tag does not exist yet : create an entry */
 		tag = _starpu_tag_init(id);
 
-		void *old;
-		old = _starpu_htbl_insert_tag(&tag_htbl, id, tag);
-		/* there was no such tag before */
-		STARPU_ASSERT(old == NULL);
+		struct _starpu_tag_table *entry2;
+		entry2 = (struct _starpu_tag_table *) malloc(sizeof(*entry2));
+		STARPU_ASSERT(entry2 != NULL);
+		entry2->id = id;
+		entry2->tag = tag;
+
+		HASH_ADD_UINT64_T(tag_htbl, id, entry2);
 	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
@@ -177,6 +209,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	_starpu_spin_unlock(&tag->lock);
 
 	/* enforce data dependencies */
+	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_enforce_deps_starting_from_task(j);
 
 	_starpu_spin_lock(&tag->lock);
@@ -213,6 +246,16 @@ void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 	_starpu_spin_unlock(&tag->lock);
 }
 
+void starpu_tag_restart(starpu_tag_t id)
+{
+	struct _starpu_tag *tag = gettag_struct(id);
+
+	_starpu_spin_lock(&tag->lock);
+	STARPU_ASSERT_MSG(tag->state == STARPU_DONE, "Only completed tags can be restarted");
+	tag->state = STARPU_BLOCKED;
+	_starpu_spin_unlock(&tag->lock);
+}
+
 void starpu_tag_notify_from_apps(starpu_tag_t id)
 {
 	struct _starpu_tag *tag = gettag_struct(id);
@@ -226,13 +269,19 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 	job->task->use_tag = 1;
 
 	struct _starpu_tag *tag= gettag_struct(id);
+
+	_starpu_spin_lock(&tag->lock);
+
+	/* Note: a tag can be shared by several tasks, when it is used to
+	 * detect when either of them are finished. We however don't allow
+	 * several tasks to share a tag when it is used to wake them by
+	 * dependency */
 	tag->job = job;
-	tag->is_assigned = 1;
+	tag->is_assigned++;
 
 	job->tag = tag;
-
 	/* the tag is now associated to a job */
-	_starpu_spin_lock(&tag->lock);
+
 	/* When the same tag may be signaled several times by different tasks,
 	 * and it's already done, we should not reset the "done" state.
 	 * When the tag is simply used by the same task several times, we have

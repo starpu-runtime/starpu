@@ -16,6 +16,7 @@
 
 #include <common/config.h>
 
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -130,7 +131,7 @@ static void decode(char **src, char *motif, char *value)
 
 	       to = strncpy(to, *src, strlen(*src)-strlen(y)); to += strlen(*src)-strlen(y);
 	       to = strcpy(to, value); to += strlen(value);
-	       to = stpcpy(to, y+strlen(motif));
+	       strcpy(to, y+strlen(motif));
 
 	       *src = strdup(neo);
 	       y = strstr(*src, motif);
@@ -148,6 +149,10 @@ int main(int argc, char *argv[])
 	char *launcher_args;
 	char *top_srcdir;
 	struct sigaction sa;
+	int   ret;
+	struct timeval start;
+	struct timeval end;
+	double timing;
 
 	test_args = NULL;
 	timeout = 0;
@@ -163,6 +168,17 @@ int main(int argc, char *argv[])
 	{
 		test_args = (char *) malloc(150*sizeof(char));
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
+	}
+
+	if (strstr(test_name, "starpu_perfmodel_display"))
+	{
+		test_args = (char *) malloc(5*sizeof(char));
+		sprintf(test_args, "-l");
+	}
+	if (strstr(test_name, "starpu_perfmodel_plot"))
+	{
+		test_args = (char *) malloc(5*sizeof(char));
+		sprintf(test_args, "-l");
 	}
 
 	/* get launcher program */
@@ -219,7 +235,8 @@ int main(int argc, char *argv[])
 					argv[i] = strtok(NULL, " ");
 				}
 				argv[i] = test_name;
-				argv[i+1] = NULL;
+				argv[i+1] = test_args;
+				argv[i+2] = NULL;
 				execvp(*argv, argv);
 			}
 			else
@@ -242,6 +259,8 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	ret = EXIT_SUCCESS;
+	gettimeofday(&start, NULL);
 	alarm(timeout);
 	if (child_pid == waitpid(child_pid, &child_exit_status, 0))
 	{
@@ -257,7 +276,7 @@ int main(int argc, char *argv[])
 				if (status != AUTOTEST_SKIPPED_TEST)
 					fprintf(stdout, "`%s' exited with return code %d\n",
 						test_name, status);
-				return status;
+				ret = status;
 			}
 		}
 		else if (WIFSIGNALED(child_exit_status))
@@ -265,15 +284,19 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "[error] `%s' killed with signal %d; test marked as failed\n",
 				test_name, WTERMSIG(child_exit_status));
 			launch_gdb(test_name);
-			return EXIT_FAILURE;
+			ret = EXIT_FAILURE;
 		}
 		else
 		{
 			fprintf(stderr, "[error] `%s' did not terminate normally; test marked as failed\n",
 				test_name);
-			return EXIT_FAILURE;
+			ret = EXIT_FAILURE;
 		}
 	}
 
-	return EXIT_SUCCESS;
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	fprintf(stderr, "Execution of test '%s' took %f s\n", test_name, timing/1000000);
+
+	return ret;
 }

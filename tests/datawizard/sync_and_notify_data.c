@@ -55,7 +55,6 @@ void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 struct starpu_opencl_program opencl_code;
@@ -118,7 +117,6 @@ int main(int argc, char **argv)
 	unsigned iter;
 	for (iter = 0; iter < k; iter++)
 	{
-		int ret;
 		unsigned ind;
 		for (ind = 0; ind < n; ind++)
 		{

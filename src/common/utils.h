@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 #ifdef STARPU_VERBOSE
 #  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); fflush(stderr); }} while(0)
 #else
-#  define _STARPU_DEBUG(fmt, args ...)
+#  define _STARPU_DEBUG(fmt, args ...) do { } while (0)
 #endif
 
 #ifdef STARPU_VERBOSE0
@@ -54,10 +54,21 @@
 #define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
 
 int _starpu_mkpath(const char *s, mode_t mode);
+void _starpu_mkpath_and_check(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
+char *_starpu_get_home_path(void);
 
 /* If FILE is currently on a comment line, eat it.  */
 void _starpu_drop_comments(FILE *f);
+
+#define _STARPU_PTHREAD_CREATE(thread, attr, routine, arg) do {                \
+	int p_ret = pthread_create((thread), (attr), (routine), (arg));	       \
+	if (STARPU_UNLIKELY(p_ret != 0)) {                                     \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_create: %s\n",                          \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+	}                                                                      \
+} while (0)
 
 #define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) {                              \
 	int p_ret = pthread_mutex_init((mutex), (attr));                       \

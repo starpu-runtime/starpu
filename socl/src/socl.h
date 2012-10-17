@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,20 +18,13 @@
 #ifndef SOCL_H
 #define SOCL_H
 
-#ifndef CL_HEADERS
-#include "CL/cl.h"
-#else
-#include CL_HEADERS "CL/cl.h"
-#endif
-
-/* Additional command type */
-#define CL_COMMAND_BARRIER 0x99987
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "CL/cl.h"
+#include "ocl_icd.h"
 
 #include <starpu.h>
 #include <starpu_opencl.h>
@@ -53,19 +47,8 @@ typedef struct starpu_task * starpu_task;
  */
 typedef struct entity * entity;
 
-#include "command.h"
-#include "command_list.h"
-#include "command_queue.h"
-#include "debug.h"
-#include "devices.h"
-#include "event.h"
-#include "gc.h"
-#include "mem_objects.h"
-#include "task.h"
-#include "util.h"
-
-
 struct entity {
+  struct _cl_icd_dispatch * dispatch;
   /* Reference count */
   size_t refs;
 
@@ -81,7 +64,21 @@ struct entity {
  * this macro as their first field */
 #define CL_ENTITY struct entity _entity;
 
-struct _cl_platform_id {};
+
+#include "command.h"
+#include "command_list.h"
+#include "command_queue.h"
+#include "debug.h"
+#include "event.h"
+#include "gc.h"
+#include "mem_objects.h"
+#include "task.h"
+#include "util.h"
+
+
+
+struct _cl_platform_id {struct _cl_icd_dispatch *dispatch;};
+struct _cl_device_id {struct _cl_icd_dispatch *dispatch; int device_id; int worker_id;};
 
 #define RETURN_EVENT(cmd, event) \
 	if (event != NULL) { \
@@ -100,23 +97,20 @@ struct _cl_platform_id {};
 	if ((blocking) == CL_TRUE) {\
 		cl_event ev = command_event_get(cmd);\
 		soclWaitForEvents(1, &ev);\
-		gc_entity_release(ev);\
 	}
 
 #define MAY_BLOCK_CUSTOM(blocking,event) \
 	if ((blocking) == CL_TRUE) {\
-		cl_event ev = (event);\
-		soclWaitForEvents(1, &ev);\
-		gc_entity_release(ev);\
+		soclWaitForEvents(1, &(event));\
 	}
 
 /* Constants */
-struct _cl_platform_id socl_platform;
 const char * SOCL_PROFILE;
 const char * SOCL_VERSION;
 const char * SOCL_PLATFORM_NAME;
 const char * SOCL_VENDOR;
 const char * SOCL_PLATFORM_EXTENSIONS;
+const char * SOCL_PLATFORM_ICD_SUFFIX_KHR;
 
 struct _cl_context {
   CL_ENTITY;
@@ -254,6 +248,9 @@ struct _cl_kernel {
 
   /* Associated program */
   cl_program program;
+
+  /* StarPU codelet */
+  struct starpu_perfmodel * perfmodel;
 
   /* Kernel name */
   char * kernel_name;
@@ -747,5 +744,19 @@ soclEnqueueBarrier(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_
  */
 extern CL_API_ENTRY void * CL_API_CALL
 soclGetExtensionFunctionAddress(const char * /* func_name */) CL_API_SUFFIX__VERSION_1_0;
+
+extern void * CL_API_CALL
+soclGetExtensionFunctionAddressForPlatform(cl_platform_id p, const char * func_name) CL_API_SUFFIX__VERSION_1_2;
+
+extern CL_API_ENTRY cl_int CL_API_CALL
+soclIcdGetPlatformIDsKHR(cl_uint          /* num_entries */,
+                 cl_platform_id * /* platforms */,
+                 cl_uint *        /* num_platforms */) CL_EXT_SUFFIX__VERSION_1_0;
+
+
+struct _cl_icd_dispatch socl_master_dispatch;
+struct _cl_platform_id socl_platform;
+struct _cl_device_id * socl_devices;
+extern unsigned int socl_device_count;
 
 #endif /* SOCL_H */

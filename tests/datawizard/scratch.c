@@ -20,9 +20,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <stdlib.h>
 #include "../helper.h"
 
@@ -126,7 +123,7 @@ int main(int argc, char **argv)
 	{
 		if (A[i] != NLOOPS)
 		{
-			FPRINTF(stderr, "Error: Incorrect value A[%d] = %u != %d\n", i, A[i], NLOOPS);
+			FPRINTF(stderr, "Error: Incorrect value A[%u] = %u != %d\n", i, A[i], NLOOPS);
 			ret = EXIT_FAILURE;
 			break;
 		}

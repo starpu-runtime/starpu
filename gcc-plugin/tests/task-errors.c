@@ -78,6 +78,22 @@ void my_task_with_too_many_pointer_params (/* (error "maximum .* exceeded") */
   __attribute__ ((task));
 
 
+static void my_task_without_any_parameters (void)
+  __attribute__ ((task));
+
+static void my_task_without_any_parameters_gordon (void)
+  __attribute__ ((task_implementation ("gordon", my_task_without_any_parameters)));
+
+void
+my_task_without_any_parameters (void)
+{
+}
+
+void
+my_task_without_any_parameters_gordon (void)
+{
+}
+
 
 static void
 my_task_cpu (int foo, float *bar)

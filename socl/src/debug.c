@@ -16,9 +16,8 @@
 
 #include "socl.h"
 
-#ifdef STARPU_VERBOSE
-void DEBUG_CL(char *s, cl_int err) {
-   #define ERR_CASE(a) case a: DEBUG_MSG("[OpenCL] %s CL error: %s\n", s, #a); break;
+void ERROR_CL(char *s, cl_int err) {
+   #define ERR_CASE(a) case a: ERROR_MSG("[OpenCL] %s CL error: %s\n", s, #a); break;
    switch(err) {
       case CL_SUCCESS:
          DEBUG_MSG("[OpenCL] %s SUCCESS.\n", s);
@@ -70,7 +69,6 @@ void DEBUG_CL(char *s, cl_int err) {
       ERR_CASE(CL_INVALID_MIP_LEVEL)
       ERR_CASE(CL_INVALID_GLOBAL_WORK_SIZE)
       default:
-         DEBUG_MSG("%s CL error: Error message not supported by DEBUG_CL macro (%d).\n", s, err);
+         ERROR_MSG("%s CL error: Error message not supported by ERROR_CL function (%d).\n", s, err);
    }
 }
-#endif

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,9 +68,9 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -106,12 +106,34 @@ static struct starpu_perfmodel STARPU_LU(model_22) =
 #endif
 };
 
+#ifdef STARPU_USE_CUDA
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl) {
+	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+		return 1;
+
+	/* Cuda device */
+	const struct cudaDeviceProp *props;
+	props = starpu_cuda_get_device_properties(workerid);
+	if (props->major >= 2 || props->minor >= 3)
+	{
+		/* At least compute capability 1.3, supports doubles */
+		return 1;
+	}
+	else
+	{
+		/* Old card does not support doubles */
+		return 0;
+	}
+}
+#endif
+
 struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
@@ -156,9 +178,9 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -199,6 +221,7 @@ struct starpu_codelet cl12 =
 	.cpu_funcs = {STARPU_LU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -241,9 +264,9 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -283,6 +306,7 @@ struct starpu_codelet cl21 =
 	.cpu_funcs = {STARPU_LU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -328,8 +352,8 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			{
 				TYPE pivot;
 				TYPE inv_pivot;
-				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
-				cudaStreamSynchronize(0);
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 				
@@ -342,7 +366,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -382,6 +406,7 @@ struct starpu_codelet cl11 =
 	.cpu_funcs = {STARPU_LU(cpu_u11), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -450,8 +475,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			{
 				TYPE pivot;
 				TYPE inv_pivot;
-				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
-				cudaStreamSynchronize(0);
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				if (fabs((double)(pivot)) < PIVOT_THRESHHOLD)
 				{
@@ -466,8 +491,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 						CUBLAS_SWAP(nx, (CUBLAS_TYPE*)&sub11[z*ld], 1, (CUBLAS_TYPE*)&sub11[(z+piv_ind)*ld], 1);
 					}
 
-					cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
-					cudaStreamSynchronize(0);
+					cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+					cudaStreamSynchronize(starpu_cuda_get_local_stream());
 				}
 
 				STARPU_ASSERT(pivot != 0.0);
@@ -482,7 +507,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 				
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -522,6 +547,7 @@ struct starpu_codelet cl11_pivot =
 	.cpu_funcs = {STARPU_LU(cpu_u11_pivot), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11_pivot), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -570,7 +596,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 				}
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -611,6 +637,7 @@ struct starpu_codelet cl_pivot =
 	.cpu_funcs = {STARPU_LU(cpu_pivot), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
+	CAN_EXECUTE
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,6 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <starpu_config.h>
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define PI	3.14159265358979323846
@@ -29,7 +28,6 @@
 #ifdef STARPU_HAVE_CURAND
 #include <cuda.h>
 #include <curand.h>
-#include <starpu_cuda.h>
 #endif
 
 #define NSHOT_PER_TASK	(1024*1024)
@@ -48,7 +46,7 @@ static unsigned do_warmup = 0;
 #ifdef STARPU_HAVE_CURAND
 /* RNG for the CURAND library */
 static curandGenerator_t curandgens[STARPU_NMAXWORKERS];
-#endif 
+#endif
 
 /* state for the erand48 function : note the huge padding to avoid false-sharing */
 #define PADDING	1024
@@ -134,7 +132,7 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 
 	unsigned short *worker_xsub;
 	worker_xsub = &xsubi[PADDING*workerid];
-	
+
 	struct drand48_data *buffer;
 	buffer = &randbuffer[PADDING*workerid];
 
@@ -167,7 +165,7 @@ extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *
 #ifdef STARPU_HAVE_CURAND
 static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 {
-	curandStatus_t res;	
+	curandStatus_t res;
 
 	int workerid = starpu_worker_get_id();
 
@@ -235,8 +233,8 @@ static void init_cpu_func(void *descr[], void *cl_arg)
 static void init_cuda_func(void *descr[], void *cl_arg)
 {
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
-        cudaMemset(val, 0, sizeof(unsigned long));
-        cudaThreadSynchronize();
+        cudaMemsetAsync(val, 0, sizeof(unsigned long), starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -262,14 +260,16 @@ static void redux_cuda_func(void *descr[], void *cl_arg)
 	unsigned long *d_b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	unsigned long h_a, h_b;
-	
-	cudaMemcpy(&h_a, d_a, sizeof(h_a), cudaMemcpyDeviceToHost);
-	cudaMemcpy(&h_b, d_b, sizeof(h_b), cudaMemcpyDeviceToHost);
+
+	cudaMemcpyAsync(&h_a, d_a, sizeof(h_a), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaMemcpyAsync(&h_b, d_b, sizeof(h_b), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	h_a += h_b;
 
-	cudaMemcpy(d_a, &h_a, sizeof(h_a), cudaMemcpyHostToDevice);
-};
+	cudaMemcpyAsync(d_a, &h_a, sizeof(h_a), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+}
 #endif
 
 static void redux_cpu_func(void *descr[], void *cl_arg)
@@ -278,7 +278,7 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 	unsigned long *b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	*a = *a + *b;
-};
+}
 
 static struct starpu_codelet redux_codelet =
 {
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
 		task->handles[0] = xy_scratchpad_handle;
 		task->handles[1] = shot_cnt_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
 		task->handles[0] = xy_scratchpad_handle;
 		task->handles[1] = shot_cnt_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 

@@ -40,9 +40,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(token_handle);
 
         FPRINTF(stderr, "Token: %u\n", token);
-        STARPU_ASSERT(token == 42);
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	return (token == 42) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

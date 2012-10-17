@@ -17,6 +17,7 @@
 #ifndef SOCL_UTIL_H
 #define SOCL_UTIL_H
 
+int starpu_worker_get_range_by_id(int id);
 int starpu_worker_get_range();
 
 /**

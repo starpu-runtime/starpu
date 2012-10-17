@@ -123,12 +123,11 @@ main(void)
 {
 #ifdef STARPU_USE_CPU
 	int ret;
-	struct starpu_conf conf =
-	{
-		.ncpus = -1,
-		.ncuda = 1,
-		.nopencl = 1
-	};
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	conf.ncuda = 1;
+	conf.nopencl = 1;
 	memset(&global_stats, 0, sizeof(global_stats));
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;

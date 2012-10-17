@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	STARPU_ATTRIBUTE_INTERNAL;
 
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
-extern void _starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL;
+extern int _starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL;
 extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
 
 extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,

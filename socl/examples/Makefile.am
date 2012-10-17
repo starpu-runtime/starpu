@@ -15,9 +15,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/socl/src/libsocl-@STARPU_EFFECTIVE_VERSION@.la
-AM_CPPFLAGS = -I$(top_srcdir)/socl/include/ 
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
+LIBS = $(top_builddir)/socl/src/libsocl-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
 
 
 SOCL_EXAMPLES	=
@@ -35,7 +34,14 @@ LOADER			=	loader
 loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/socl/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	LD_PRELOAD="@SOCL_OCL_LIB_OPENCL@" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER		=	$(LOADER_BIN)
+else
+TESTS_ENVIRONMENT	=	LD_PRELOAD="@SOCL_OCL_LIB_OPENCL@" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
+
 endif
 
 examplebindir = $(libdir)/starpu/examples/socl/
@@ -43,19 +49,21 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
-	clinfo/clinfo
+	clinfo/clinfo 		\
+	matmul/matmul 		\
+	mansched/mansched
 
-#	mandelbrot/mandelbrot
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
-	clinfo/clinfo
-
-#	mandelbrot/mandelbrot
+	clinfo/clinfo		\
+	matmul/matmul		 \
+	mansched/mansched
 
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
-#mandelbrot_mandelbrot_SOURCES = mandelbrot/mandelbrot.c
+matmul_matmul_SOURCES = matmul/matmul.c
+mansched_mansched_SOURCES = mansched/mansched.c
 
 #mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
 #if HAVE_X11

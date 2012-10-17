@@ -71,14 +71,19 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-#ifdef __MINGW32__
-	WSADATA wsadata;
-	WSAStartup(MAKEWORD(1,0), &wsadata);
-#endif
+	int ret;
+	struct starpu_conf conf;
 
 	parse_args(argc, argv);
 
-	starpu_force_bus_sampling();
+	starpu_conf_init(&conf);
+	conf.bus_calibrate = 1;
+
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return 77;
+	if (ret != 0) return ret;
+
+	starpu_shutdown();
 
 	return 0;
 }

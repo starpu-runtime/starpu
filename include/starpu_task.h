@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -52,6 +52,7 @@ enum starpu_codelet_type
 enum starpu_task_status
 {
 	STARPU_TASK_INVALID,
+#define STARPU_TASK_INVALID 0
 	STARPU_TASK_BLOCKED,
 	STARPU_TASK_READY,
 	STARPU_TASK_RUNNING,
@@ -115,10 +116,6 @@ struct starpu_codelet
 
 	const char *name;
 };
-
-#ifdef STARPU_GCC_PLUGIN
-typedef struct starpu_codelet starpu_codelet_gcc;
-#endif /* STARPU_GCC_PLUGIN */
 
 struct starpu_task
 {
@@ -197,6 +194,12 @@ struct starpu_task
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
+
+	/* the magic field is set when initialising the task.
+	 * starpu_task_submit will fail if the field does not have the
+	 * right value. This will hence avoid submitting tasks which
+	 * have not been properly initialised.
+	 */
 	int magic;
 
 	/* Scheduling context */
@@ -238,6 +241,7 @@ struct starpu_task
 	.predicted = -1.0,				\
 	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
+<<<<<<< .working
 	.magic = 42,                  			\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
@@ -245,7 +249,11 @@ struct starpu_task
 	.flops = 0.0,					\
 	.already_pushed = 0,				\
 		.scheduled = 0				\
-};
+}
+=======
+	.magic = 42                  			\
+}
+>>>>>>> .merge-right.r7640
 
 /*
  * handle task dependencies: it is possible to associate a task with a unique
@@ -281,6 +289,9 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 /* The application can feed a tag explicitely */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
 
+/* To reuse a tag not associated with a task */
+void starpu_tag_restart(starpu_tag_t id);
+
 /* To release resources, tags should be freed after use */
 void starpu_tag_remove(starpu_tag_t id);
 
@@ -289,9 +300,11 @@ void starpu_task_init(struct starpu_task *task);
 
 /* Release all the structures automatically allocated to execute the task. This
  * is called implicitely by starpu_task_destroy, but the task structure itself
- * is not freed. This should be used for statically allocated tasks for
- * instance. */
-void starpu_task_deinit(struct starpu_task *task);
+ * is not freed. Values previously set by the user remain unchanged.
+ * This should be used for statically allocated tasks for instance.
+ * It should also be used for submitting the same task several times.
+ */
+void starpu_task_clean(struct starpu_task *task);
 
 /* Allocate a task structure and initialize it with default values. Tasks
  * allocated dynamically with starpu_task_create are automatically freed when

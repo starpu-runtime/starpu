@@ -29,7 +29,7 @@
 #include <common/utils.h>
 
 extern struct _starpu_top_message_queue*  _starpu_top_mt;
-int starpu_top = 0;
+int _starpu_top = 0;
 int starpu_top_debug_on = 0;
 unsigned int starpu_top_data_cpt = 0;
 unsigned int starpu_top_param_cpt = 0;
@@ -42,13 +42,14 @@ sem_t starpu_top_wait_for_go;
 pthread_mutex_t starpu_top_wait_for_continue_mutex;
 pthread_cond_t starpu_top_wait_for_continue_cond = PTHREAD_COND_INITIALIZER;
 
-int _starpu_top_status_get()
+#undef _starpu_top_status_get
+int _starpu_top_status_get(void)
 {
-	return starpu_top;
+	return _starpu_top;
 }
 
 static
-unsigned long long current_timestamp();
+unsigned long long current_timestamp(void);
 
 /*********************************************
 *****************INIT FUNC********************
@@ -65,7 +66,7 @@ char *message_for_topparam_init(struct starpu_top_param* param);
  * running
  */
 static
-void copy_data_and_param()
+void copy_data_and_param(void)
 {
 	printf("%s:%d trace\n", __FILE__, __LINE__);
 	//copying datas
@@ -107,7 +108,7 @@ static void starpu_top_get_device_type(int id, char* type)
 	}
 }
 
-static void starpu_top_send_devices_info()
+static void starpu_top_send_devices_info(void)
 {
 	char* message=(char *)malloc(5*sizeof(char));
 	snprintf(message,5,"DEV\n");
@@ -133,7 +134,7 @@ static void starpu_top_send_devices_info()
 
 void starpu_top_init_and_wait(const char* server_name)
 {
-	starpu_top=1;
+	_starpu_top=1;
 	sem_init(&starpu_top_wait_for_go,0,0);
 
 	_STARPU_PTHREAD_MUTEX_INIT(&starpu_top_wait_for_continue_mutex, NULL);
@@ -157,7 +158,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	sprintf(message, "%s\n", server_name);
 	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(25);
-	sprintf(message, "%lld\n", current_timestamp());
+	sprintf(message, "%llu\n", current_timestamp());
 	_starpu_top_message_add(_starpu_top_mt,message);
 	message = (char *) malloc(strlen("/SERVERINFO\n")+1);
 	sprintf(message,"%s", "/SERVERINFO\n");
@@ -490,7 +491,7 @@ void starpu_top_update_data_boolean(const struct starpu_top_data* data, int valu
 	{
 		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
-				"U;%u;%d;%lld\n",
+				"U;%u;%d;%llu\n",
 				data->id,
 				(value?1:0),
 				current_timestamp());
@@ -506,7 +507,7 @@ void starpu_top_update_data_integer(const struct starpu_top_data* data, int valu
 	{
 		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
-				"U;%u;%d;%lld\n",
+				"U;%u;%d;%llu\n",
 				data->id,
 				value,
 				current_timestamp());
@@ -522,7 +523,7 @@ void starpu_top_update_data_float(const struct starpu_top_data* data, double val
 	{
 		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
-				"U;%u;%f;%lld\n",
+				"U;%u;%f;%llu\n",
 				data->id, value,
 				current_timestamp());
 		_starpu_top_message_add(_starpu_top_mt,message);
@@ -541,7 +542,7 @@ void starpu_top_update_parameter(const struct starpu_top_param* param)
 		case STARPU_TOP_PARAM_INTEGER:
 		case STARPU_TOP_PARAM_ENUM:
 			sprintf(message,
-					"SET;%u;%d;%lld\n",
+					"SET;%u;%d;%llu\n",
 					param->id,
 					*((int*)param->value),
 					current_timestamp());
@@ -549,7 +550,7 @@ void starpu_top_update_parameter(const struct starpu_top_param* param)
 
 		case STARPU_TOP_PARAM_FLOAT:
 			sprintf(message,
-					"SET;%u;%f;%lld\n",
+					"SET;%u;%f;%llu\n",
 					param->id,
 					*((double*)param->value),
 					current_timestamp());
@@ -629,7 +630,7 @@ void starpu_top_debug_lock(const char* debug_message)
  **************TIME FUNCTION****************
  *******************************************/
 
-unsigned long long current_timestamp()
+unsigned long long current_timestamp(void)
 {
 	struct timespec now;
 	_starpu_clock_gettime(&now);
@@ -665,7 +666,7 @@ enum starpu_top_message_type starpu_top_get_message_type(const char* message)
 }
 
 static
-void starpu_top_unlock_starpu()
+void starpu_top_unlock_starpu(void)
 {
 	sem_post(&starpu_top_wait_for_go);
 	printf("%s:%d starpu started\n", __FILE__, __LINE__);
@@ -739,7 +740,7 @@ void starpu_top_change_debug_mode(const char*message)
  * Unlock starpu if it was locked in debug state
 */
 static
-void starpu_top_debug_next_step()
+void starpu_top_debug_next_step(void)
 {
 	_STARPU_PTHREAD_COND_SIGNAL(&starpu_top_wait_for_continue_cond);
 }

@@ -30,7 +30,7 @@
 #ifdef STARPU_ATLAS
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
-			float alpha, float *A, int lda, float *B, int ldb, 
+			float alpha, const float *A, int lda, const float *B, int ldb, 
 			float beta, float *C, int ldc)
 {
 	enum CBLAS_TRANSPOSE ta = (toupper(transa[0]) == 'N')?CblasNoTrans:CblasTrans;
@@ -241,7 +241,7 @@ void DSWAP(const int n, double *x, const int incx, double *y, const int incy)
 #elif defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
-			float alpha, float *A, int lda, float *B, int ldb, 
+			float alpha, const float *A, int lda, const float *B, int ldb, 
 			float beta, float *C, int ldc)
 {
 	sgemm_(transa, transb, &M, &N, &K, &alpha,

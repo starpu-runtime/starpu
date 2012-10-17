@@ -133,19 +133,22 @@ main (int argc, char *argv[])
 
   my_scalar_task (42, y_as_long_int, 99);
 
+  assert (tasks_submitted == 9);
+
   struct insert_task_argument expected2[] =
     {
       { STARPU_VALUE, &x, sizeof x },
       { 0, 0, 0 }
     };
 
+  tasks_submitted = 0;
   expected_insert_task_arguments = expected2;
 
   my_other_task (42);
+  assert (tasks_submitted == 1);
 
   my_task_with_body (42);
-
-  assert (tasks_submitted == 11);
+  assert (tasks_submitted == 2);
 
 #pragma starpu shutdown
   assert (initialized == 0);

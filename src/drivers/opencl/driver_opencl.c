@@ -38,7 +38,16 @@ static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
-extern char *_starpu_opencl_program_dir;
+
+void
+_starpu_opencl_discover_devices(struct _starpu_machine_config *config)
+{
+	/* Discover the number of OpenCL devices. Fill the result in CONFIG. */
+	/* As OpenCL must have been initialized before calling this function,
+	 * `nb_device' is ensured to be correctly set. */
+	STARPU_ASSERT(init_done == 1);
+	config->topology.nhwopenclgpus = nb_devices;
+}
 
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
@@ -208,6 +217,8 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flag
 	clFinish(queues[worker->devid]);
 	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 		return err;
+	if (err == CL_OUT_OF_RESOURCES)
+		return err;
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -325,7 +336,7 @@ void _starpu_opencl_init(void)
 		     device_type |= CL_DEVICE_TYPE_CPU;
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (err != CL_SUCCESS) nb_platforms=0;
-                _STARPU_DEBUG("Platforms detected: %d\n", nb_platforms);
+                _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
 
                 // Get devices
                 nb_devices = 0;
@@ -351,6 +362,10 @@ void _starpu_opencl_init(void)
 						platform_valid = 0;
 					}
 				}
+				if(strcmp(name, "SOCL Platform") == 0) {
+					platform_valid = 0;
+					_STARPU_DEBUG("Skipping SOCL Platform\n");
+				}
 #ifdef STARPU_VERBOSE
 				if (platform_valid)
 					_STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
@@ -367,7 +382,7 @@ void _starpu_opencl_init(void)
 					else
 					{
 						if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-						_STARPU_DEBUG("  %d devices detected\n", num);
+						_STARPU_DEBUG("  %u devices detected\n", num);
 						nb_devices += num;
 					}
 				}
@@ -399,25 +414,40 @@ void _starpu_opencl_init(void)
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args);
 
-void *_starpu_opencl_worker(void *arg)
+static struct _starpu_worker*
+_starpu_opencl_get_worker_from_driver(struct starpu_driver *d)
 {
-	struct _starpu_worker* args = arg;
+	int nworkers;
+	int workers[STARPU_MAXOPENCLDEVS];
+	nworkers = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, STARPU_MAXOPENCLDEVS);
+	if (nworkers == 0)
+		return NULL;
+
+	int i;
+	for (i = 0; i < nworkers; i++)
+	{
+		cl_device_id device;
+		int devid = starpu_worker_get_devid(workers[i]);
+		starpu_opencl_get_device(devid, &device);
+		if (device == d->id.opencl_id)
+			break;
+	}
+
+	if (i == nworkers)
+		return NULL;
+
+	return _starpu_get_worker_struct(workers[i]);
+}
+
+int _starpu_opencl_driver_init(struct starpu_driver *d)
+{
+	struct _starpu_worker* args;
+	args = _starpu_opencl_get_worker_from_driver(d);
+	STARPU_ASSERT(args);
 
 	int devid = args->devid;
-	int workerid = args->workerid;
 
-#ifdef USE_FXT
-	fxt_register_thread(args->bindid);
-#endif
-
-	unsigned memnode = args->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_OPENCL_KEY, devid, memnode);
-
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
-
-	_starpu_set_local_memory_node_key(&memnode);
-
-	_starpu_set_local_worker_key(args);
+	_starpu_worker_init(args, _STARPU_FUT_OPENCL_KEY);
 
 	_starpu_opencl_init_context(devid);
 
@@ -429,8 +459,8 @@ void *_starpu_opencl_worker(void *arg)
 	/* get the device's name */
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
-	snprintf(args->name, sizeof(args->name), "OpenCL %d (%s)", args->devid, devname);
-	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %d", args->devid);
+	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", args->devid, devname);
+	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", args->devid);
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
@@ -442,10 +472,23 @@ void *_starpu_opencl_worker(void *arg)
 	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-	struct _starpu_job * j;
+	return 0;
+}
+
+int _starpu_opencl_driver_run_once(struct starpu_driver *d)
+{
+	struct _starpu_worker* args;
+	args = _starpu_opencl_get_worker_from_driver(d);
+	STARPU_ASSERT(args);
+
+	int workerid = args->workerid;
+	unsigned memnode = args->memory_node;
+
+	struct _starpu_job *j;
 	struct starpu_task *task;
 	int res;
 
+<<<<<<< .working
 	pthread_cond_t *sched_cond = &args->sched_cond;
     pthread_mutex_t *sched_mutex = &args->sched_mutex;
 
@@ -454,63 +497,109 @@ void *_starpu_opencl_worker(void *arg)
 		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);
+=======
+	_STARPU_TRACE_START_PROGRESS(memnode);
+	_starpu_datawizard_progress(memnode, 1);
+	_STARPU_TRACE_END_PROGRESS(memnode);
+>>>>>>> .merge-right.r7640
 
-		task = _starpu_pop_task(args);
+<<<<<<< .working
+=======
+	task = _starpu_get_worker_task(args, workerid, memnode);
+
+>>>>>>> .merge-right.r7640
+	if (task == NULL)
+		return 0;
+<<<<<<< .working
 		
 		if (task == NULL) 
 		{
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, sched_cond, sched_mutex);
+=======
 
+	j = _starpu_get_job_associated_to_task(task);
+>>>>>>> .merge-right.r7640
+
+<<<<<<< .working
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+=======
+	/* can OpenCL do that task ? */
+	if (!_STARPU_OPENCL_MAY_PERFORM(j))
+	{
+		/* this is not a OpenCL task */
+		_starpu_push_task(j);
+		return 0;
+	}
+>>>>>>> .merge-right.r7640
 
-			continue;
-		};
+	_starpu_set_current_task(j->task);
+	args->current_task = j->task;
 
-		STARPU_ASSERT(task);
-		j = _starpu_get_job_associated_to_task(task);
+<<<<<<< .working
+=======
+	res = _starpu_opencl_execute_job(j, args);
 
-		/* can OpenCL do that task ? */
-		if (!_STARPU_OPENCL_MAY_PERFORM(j))
+>>>>>>> .merge-right.r7640
+	_starpu_set_current_task(NULL);
+	args->current_task = NULL;
+
+	if (res)
+	{
+		switch (res)
 		{
-			/* this is not a OpenCL task */
-			_starpu_push_task(j);
-			continue;
+			case -EAGAIN:
+				_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
+				_starpu_push_task(j);
+				STARPU_ABORT();
+				return 0;
+			default:
+				STARPU_ABORT();
 		}
-
-		_starpu_set_current_task(j->task);
-		args->current_task = j->task;
-
-		res = _starpu_opencl_execute_job(j, args);
-
-		_starpu_set_current_task(NULL);
-		args->current_task = NULL;
-
-                if (res)
-		{
-			switch (res)
-			{
-				case -EAGAIN:
-					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-					_starpu_push_task(j);
-					STARPU_ABORT();
-					continue;
-				default:
-					STARPU_ASSERT(0);
-			}
-		}
-
-		_starpu_handle_job_termination(j, workerid);
 	}
 
+	_starpu_handle_job_termination(j);
+	return 0;
+}
+
+int _starpu_opencl_driver_deinit(struct starpu_driver *d)
+{
 	_STARPU_TRACE_WORKER_DEINIT_START
 
+	struct _starpu_worker* args;
+	args = _starpu_opencl_get_worker_from_driver(d);
+	STARPU_ASSERT(args);
+
+	unsigned devid   = args->devid;
+	unsigned memnode = args->memory_node;
+
+<<<<<<< .working
+		_starpu_handle_job_termination(j, workerid);
+	}
+=======
 	_starpu_handle_all_pending_node_data_requests(memnode);
-
         _starpu_opencl_deinit_context(devid);
+>>>>>>> .merge-right.r7640
 
-	pthread_exit(NULL);
+	return 0;
+}
+
+void *_starpu_opencl_worker(void *arg)
+{
+	cl_device_id id;
+	struct _starpu_worker* args = arg;
+
+	starpu_opencl_get_device(args->devid, &id);
+	struct starpu_driver d = {
+		.type         = STARPU_OPENCL_WORKER,
+		.id.opencl_id = id
+	};
+
+	_starpu_opencl_driver_init(&d);
+	while (_starpu_machine_is_running())
+		_starpu_opencl_driver_run_once(&d);
+	_starpu_opencl_driver_deinit(&d);
 
 	return NULL;
 }
@@ -594,4 +683,43 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	_starpu_push_task_output(j, mask);
 
 	return EXIT_SUCCESS;
+}
+
+int _starpu_run_opencl(struct starpu_driver *d)
+{
+	STARPU_ASSERT(d && d->type == STARPU_OPENCL_WORKER);
+
+	int nworkers;
+	int workers[STARPU_MAXOPENCLDEVS];
+	nworkers = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, STARPU_MAXOPENCLDEVS);
+	if (nworkers == 0)
+		return -ENODEV;
+
+	int i;
+	for (i = 0; i < nworkers; i++)
+	{
+		cl_device_id device;
+		int devid = starpu_worker_get_devid(workers[i]);
+		starpu_opencl_get_device(devid, &device);
+		if (device == d->id.opencl_id)
+			break;
+	}
+
+	if (i == nworkers)
+		return -ENODEV;
+
+	struct _starpu_worker *workerarg = _starpu_get_worker_struct(i);
+	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
+
+	workerarg->set = NULL;
+	workerarg->worker_is_initialized = 0;
+
+	/* Let's go ! */
+	_starpu_opencl_worker(workerarg);
+
+	/* XXX: Should we wait for the driver to be ready, as it is done when
+	 * launching it the usual way ? Cf. the end of _starpu_launch_drivers()
+	 */
+
+	return 0;
 }

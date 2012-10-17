@@ -249,8 +249,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the free method of each
 			 * interface. */
-			cudaError_t err = cudaSetDevice(_starpu_memory_node_to_devid(node));
-			STARPU_ASSERT(err == cudaSuccess);
+			starpu_cuda_set_device(_starpu_memory_node_to_devid(node));
 		}
 #endif
 
@@ -667,8 +666,11 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, size_t 
 
 /* This function is called when the handle is destroyed (eg. when calling
  * unregister or unpartition). It puts all the memchunks that refer to the
- * specified handle into the cache. */
-void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node)
+ * specified handle into the cache.
+ * handle_deleted specifies whether the handle is deleted or not (and thus we
+ * need to update it)
+ */
+void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, int handle_deleted)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
@@ -683,13 +685,24 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 		if (mc->data == handle)
 		{
 			/* we found the data */
-			mc->data_was_deleted = 1;
+			mc->data_was_deleted = handle_deleted;
 
 			/* remove it from the main list */
 			_starpu_mem_chunk_list_erase(mc_list[node], mc);
 
-			/* put it in the list of buffers to be removed */
-			_starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
+			/* We would never flush the node 0 cache, unless
+			 * malloc() returns NULL, which is very unlikely... */
+			/* This is particularly important when
+			 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
+			 * wouldn't even re-use these allocations! */
+			if (starpu_node_get_kind(node) == STARPU_CPU_RAM) {
+				free_memory_on_node(mc, node);
+
+				free(mc->chunk_interface);
+				_starpu_mem_chunk_delete(mc);
+			} else
+				/* put it in the list of buffers to be removed */
+				_starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
 
 			/* Note that we do not stop here because there can be
 			 * multiple replicates associated to the same handle on
@@ -792,8 +805,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the malloc method of each
 			 * interface. */
-			cudaError_t err = cudaSetDevice(_starpu_memory_node_to_devid(dst_node));
-			STARPU_ASSERT(err == cudaSuccess);
+			starpu_cuda_set_device(_starpu_memory_node_to_devid(dst_node));
 		}
 #endif
 

@@ -18,13 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#ifdef STARPU_USE_CUDA
-#include <starpu_cuda.h>
-#endif
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
-
 static starpu_data_handle_t handle;
 
 /*
@@ -40,14 +33,14 @@ static void redux_cuda_kernel(void *descr[], void *arg)
 	unsigned host_dst, host_src;
 
 	/* This is a dummy technique of course */
-	cudaMemcpy(&host_src, src, sizeof(unsigned), cudaMemcpyDeviceToHost);
-	cudaMemcpy(&host_dst, dst, sizeof(unsigned), cudaMemcpyDeviceToHost);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(&host_src, src, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaMemcpyAsync(&host_dst, dst, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	host_dst += host_src;
 
-	cudaMemcpy(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 static void neutral_cuda_kernel(void *descr[], void *arg)
@@ -56,8 +49,8 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 
 	/* This is a dummy technique of course */
 	unsigned host_dst = 0;
-	cudaMemcpy(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -165,13 +158,13 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	unsigned host_token;
 
 	/* This is a dummy technique of course */
-	cudaMemcpy(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	host_token++;
 
-	cudaMemcpy(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -223,7 +216,7 @@ int main(int argc, char **argv)
 			task->cl = &increment_cl;
 			task->handles[0] = handle;
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
@@ -244,8 +237,6 @@ int main(int argc, char **argv)
 	ret = starpu_data_acquire(handle, STARPU_R);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 	var = (unsigned*) starpu_variable_get_local_ptr(handle);
-	starpu_data_release(handle);
-	starpu_data_unregister(handle);
 
 	if (*var != ntasks*nloops)
 	{
@@ -253,6 +244,9 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "Value %u != Expected value %u\n", *var, ntasks * (loop+1));
 		goto err;
 	}
+
+	starpu_data_release(handle);
+	starpu_data_unregister(handle);
 
 err:
 	starpu_shutdown();

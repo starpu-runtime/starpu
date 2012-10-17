@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "axpy.h"
 
 extern struct starpu_opencl_program opencl_program;

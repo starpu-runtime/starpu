@@ -27,7 +27,6 @@ extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 struct starpu_opencl_program opencl_program;
 #endif
@@ -95,7 +94,7 @@ int main(int argc, char **argv)
 
 		task->handles[0] = float_array_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			FPRINTF(stderr, "No worker may execute this task\n");

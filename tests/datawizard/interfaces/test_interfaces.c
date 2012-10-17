@@ -13,10 +13,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 
 /* XXX Why cant we dereference a handle without this one ? */
 #include <core/sched_policy.h>
@@ -34,20 +32,6 @@ static struct test_config *current_config;
 /* TODO :
 - OpenCL to OpenCL support
 */
-
-/*
- * Users do not know about this enum. They only know that SUCCESS is 0, and
- * FAILURE is 1. Therefore, the values of SUCCESS and FAILURE shall not be
- * changed.
- */
-enum exit_code
-{
-	SUCCESS                 = 0,
-	FAILURE                 = 1,
-	UNTESTED                = 2,
-	TASK_CREATION_FAILURE   = 3,
-	TASK_SUBMISSION_FAILURE = 4
-};
 
 static char *
 enum_to_string(int exit_code)
@@ -156,13 +140,15 @@ data_interface_test_summary_success(data_interface_test_summary *s)
 
 enum operation
 {
-	CPU_TO_CPU,
+	CPU_TO_CPU
 #ifdef STARPU_USE_CUDA
+	,
 	CPU_TO_CUDA,
 	CUDA_TO_CUDA,
-	CUDA_TO_CPU,
+	CUDA_TO_CPU
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
+	,
 	CPU_TO_OPENCL,
 	OPENCL_TO_CPU
 #endif /* !STARPU_USE_OPENCL */
@@ -191,8 +177,8 @@ get_field(struct data_interface_test_summary *s, int async, enum operation op)
 	case OPENCL_TO_CPU:
 		return async?&s->opencl_to_cpu_async:&s->opencl_to_cpu;
 #endif /* !STARPU_USE_OPENCL */
-		default:
-			STARPU_ASSERT(0);
+	default:
+		STARPU_ABORT();
 	}
 	/* that instruction should never be reached */
 	return NULL;
@@ -222,7 +208,7 @@ set_field(struct data_interface_test_summary *s, int async,
 			*field = TASK_SUBMISSION_FAILURE;
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 }
 
@@ -295,8 +281,10 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 
 	if (n_cpus == -1) /* First time here */
 	{
-		/* XXX Dont check them all at once. */
-		/* XXX Error checking */
+		/* We do not check the return values of the calls to
+		 * starpu_worker_get_ids_by_type now, because it is simpler to
+		 * detect a problem in the switch that comes right after this 
+		 * block of code. */
 		n_cpus = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
 							cpu_workers,
 							STARPU_MAXCPUS);
@@ -453,7 +441,7 @@ cuda_to_ram(void)
 
 #ifdef STARPU_USE_OPENCL
 static enum exit_code
-ram_to_opencl()
+ram_to_opencl(void)
 {
 	int err;
 	struct starpu_task *task;
@@ -471,7 +459,7 @@ ram_to_opencl()
 }
 
 static enum exit_code
-opencl_to_ram()
+opencl_to_ram(void)
 {
 	int err;
 	struct starpu_task *task;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,8 +28,6 @@
 starpu_data_handle_t v_handle;
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-
 static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -42,6 +40,7 @@ static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_a
 
         starpu_opencl_get_queue(devid, &queue);
         clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
+	clFinish(queue);
 }
 #endif
 
@@ -52,7 +51,8 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	cudaMemset(buf, 42, 1);
+	cudaMemsetAsync(buf, 42, 1, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -72,7 +72,7 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	if (*buf != 42)
 	{
-		FPRINTF(stderr, "Value = %c (should be %c)\n", *buf, 42);
+		FPRINTF(stderr, "Value = <%c> (should be <%c>)\n", *buf, 42);
 		exit(-1);
 	}
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,14 +52,23 @@ struct starpu_data_interface_ops;
 void starpu_data_unregister(starpu_data_handle_t handle);
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 
+/* Destroy the data handle once it is not needed anymore by any submitted task.
+ * No coherency is assumed.
+ */
+void starpu_data_unregister_submit(starpu_data_handle_t handle);
+
 /* Destroy all data replicates. After data invalidation, the first access to
  * the handle must be performed in write-only mode. */
 void starpu_data_invalidate(starpu_data_handle_t handle);
+/* Same, but waits for previous task completion */
+void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important);
 
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mode);
+int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_access_mode mode);
 int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_access_mode mode, void (*callback)(void *), void *arg);
+int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, enum starpu_access_mode mode, void (*callback)(void *), void *arg);
 #ifdef __GCC__
 #  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do \
 	{ \						\
@@ -74,6 +83,7 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_access_mode 
 #endif
 
 void starpu_data_release(starpu_data_handle_t handle);
+void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node);
 
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
@@ -124,6 +134,8 @@ int starpu_data_get_rank(starpu_data_handle_t handle);
 
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag);
 int starpu_data_get_tag(starpu_data_handle_t handle);
+
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node);
 
 #ifdef __cplusplus
 }

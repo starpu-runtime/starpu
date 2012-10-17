@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2012  Université de Bordeaux 1
+# Copyright (C) 2010-2011  Université de Bordeaux 1
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,13 +13,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(HWLOC_LIBS) @LIBS@
+AM_CFLAGS = $(HWLOC_CFLAGS)
+LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 if USE_MPI
-LIBS += $(top_builddir)/mpi/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+LIBS += $(top_builddir)/mpi/libstarpumpi.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/
 endif
 
@@ -35,7 +34,7 @@ NVCCFLAGS += $(HWLOC_CFLAGS)
 
 .cu.o:
 	$(MKDIR_P) `dirname $@`
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(NVCCFLAGS)
+	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/
 
 
 endif
@@ -47,7 +46,7 @@ endif
 check_PROGRAMS =				\
 	stencil
 
-examplebindir = $(libdir)/starpu/examples/stencil
+examplebindir = $(libdir)/starpu/examples/
 
 examplebin_PROGRAMS =				\
 	stencil
@@ -113,6 +112,3 @@ CLEANFILES = *.xpm
 
 view:
 	feh --zoom 800 -F 0.xpm 0.5.xpm 1.xpm 2.xpm 3.xpm 4.xpm 6.xpm mpi.xpm
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,12 @@
 #include <windows.h>
 #endif
 
+#ifdef __linux__
+#include <sys/syscall.h>   /* for SYS_gettid */
+#elif defined(__FreeBSD__)
+#include <sys/thr.h>       /* for thr_self() */
+#endif
+
 #define _STARPU_PROF_BUFFER_SIZE  (8*1024*1024)
 
 static char _STARPU_PROF_FILE_USER[128];
@@ -37,6 +43,21 @@ static int _starpu_fxt_started = 0;
 static int _starpu_written = 0;
 
 static int _starpu_id;
+
+long _starpu_gettid(void)
+{
+#if defined(__linux__)
+	return syscall(SYS_gettid);
+#elif defined(__FreeBSD__)
+	long tid;
+	thr_self(&tid);
+	return tid;
+#elif defined(__MINGW32__)
+	return (long) GetCurrentThreadId();
+#else
+	return (long) pthread_self();
+#endif
+}
 
 static void _starpu_profile_set_tracefile(void *last, ...)
 {
@@ -78,7 +99,19 @@ void _starpu_start_fxt_profiling(void)
 		_starpu_profile_set_tracefile(NULL);
 	}
 
-	threadid = syscall(SYS_gettid);
+#ifdef HAVE_FUT_SET_FILENAME
+	fut_set_filename(_STARPU_PROF_FILE_USER);
+#endif
+#ifdef HAVE_ENABLE_FUT_FLUSH
+	// when the event buffer is full, fxt stops recording events.
+	// The trace may thus be incomplete.
+	// Enable the fut_flush function which is called when the
+	// fxt event buffer is full to flush the buffer to disk,
+	// therefore allowing to record the remaining events.
+	enable_fut_flush();
+#endif
+
+	threadid = _starpu_gettid();
 
 	atexit(_starpu_stop_fxt_profiling);
 
@@ -140,7 +173,7 @@ void _starpu_stop_fxt_profiling(void)
 
 void _starpu_fxt_register_thread(unsigned cpuid)
 {
-	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, syscall(SYS_gettid));
+	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, _starpu_gettid());
 }
 
 #endif // STARPU_USE_FXT

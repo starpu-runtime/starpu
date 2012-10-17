@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -29,9 +29,14 @@ Name: starpu
 Description: offers support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@
+<<<<<<< .working
 Libs: -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@
 @STARPU_CUDA_LDFLAGS@ @STARPU_OPENCL_LDFLAGS@
 @STARPU_SCHED_CTX_HYPERVISOR@
-Libs.private: @LDFLAGS@ @LIBS@
+Libs.private: @LDFLAGS@ @LIBS@ @LIBSTARPU_LDFLAGS@
+=======
+Libs: -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_LDFLAGS@ @STARPU_OPENCL_LDFLAGS@
+Libs.private: @LDFLAGS@ @LIBS@ @LIBSTARPU_LDFLAGS@
+>>>>>>> .merge-right.r7640
 Requires: @HWLOC_REQUIRES@
 Requires.private: @GORDON_REQUIRES@

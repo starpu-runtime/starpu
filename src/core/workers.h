@@ -62,16 +62,26 @@ struct _starpu_worker
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
-	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
+	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
 	int worker_size; /* size of the worker in case we use a combined worker */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
-	unsigned memory_node; /* which memory node is associated that worker to ? */
+<<<<<<< .working
+<<<<<<< .working
+	unsigned memory_node; /* which memory node is the worker associated with ? */
 	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
+=======
+	unsigned memory_node; /* which memory node is the worker associated with ? */
+=======
+	unsigned memory_node; /* which memory node is the worker associated with ? */
+>>>>>>> .merge-right.r6541
+	pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
+	pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
+>>>>>>> .merge-right.r6541
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task *current_task; /* task currently executed by this worker */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
@@ -81,6 +91,7 @@ struct _starpu_worker
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[48];
 	char short_name[10];
+	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
 	struct _starpu_sched_ctx **sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
@@ -98,8 +109,8 @@ struct _starpu_worker
 	cpu_set_t current_cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_cpuset_t initial_hwloc_cpu_set;
-	hwloc_cpuset_t current_hwloc_cpu_set;
+	hwloc_bitmap_t initial_hwloc_cpu_set;
+	hwloc_bitmap_t current_hwloc_cpu_set;
 #endif
 };
 
@@ -115,7 +126,7 @@ struct _starpu_combined_worker
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_cpuset_t hwloc_cpu_set;
+	hwloc_bitmap_t hwloc_cpu_set;
 #endif
 };
 
@@ -172,9 +183,27 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
+<<<<<<< .working
+<<<<<<< .working
+<<<<<<< .working
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+=======
+
+	/* this flag is set until the application is finished submitting tasks */
+	unsigned submitting;
+>>>>>>> .merge-right.r6541
+=======
+
+	/* this flag is set until the application is finished submitting tasks */
+	unsigned submitting;
+>>>>>>> .merge-right.r6541
+=======
+
+	/* this flag is set until the application is finished submitting tasks */
+	unsigned submitting;
+>>>>>>> .merge-right.r6541
 };
 
 /* Has starpu_shutdown already been called ? */
@@ -205,6 +234,9 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
  * This function sets the pthread key which stores a pointer to this structure.
  * */
 void _starpu_set_local_worker_key(struct _starpu_worker *worker);
+
+/* This function initializes the current thread for the given worker */
+void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key);
 
 /* Returns the _starpu_worker structure that describes the state of the
  * current worker. */

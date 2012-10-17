@@ -353,7 +353,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 			if (local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
-				_starpu_request_mem_chunk_removal(&root_handle->children[child], node);
+				_starpu_request_mem_chunk_removal(&root_handle->children[child], node, 1);
 		}
 
 		if (!root_handle->per_node[node].allocated)
@@ -363,7 +363,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(root_handle, node);
+			_starpu_request_mem_chunk_removal(root_handle, node, 1);
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
@@ -446,4 +446,40 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 	/* this handle now has children */
 	handle->nchildren = nchildren;
 }
+<<<<<<< .working
 
+=======
+
+/*
+ * Given an integer N, NPARTS the number of parts it must be divided in, ID the
+ * part currently considered, determines the CHUNK_SIZE and the OFFSET, taking
+ * into account the size of the elements stored in the data structure ELEMSIZE
+ * and LD, the leading dimension.
+ */
+void
+_starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+					     size_t elemsize, unsigned id,
+					     unsigned ld, unsigned *chunk_size,
+					     size_t *offset)
+{
+	*chunk_size = n/nparts;
+	unsigned remainder = n % nparts;
+	if (id < remainder)
+		(*chunk_size)++;
+	/*
+	 * Computing the total offset. The formula may not be really clear, but
+	 * it really just is:
+	 *
+	 * total = 0;
+	 * for (i = 0; i < id; i++)
+	 * {
+	 * 	total += n/nparts;
+	 * 	if (i < n%nparts)
+	 *		total++;
+	 * }
+	 * offset = total * elemsize * ld;
+	 */
+	if (offset != NULL)
+		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
+}
+>>>>>>> .merge-right.r7640

@@ -25,7 +25,6 @@ extern "C" void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args
 #endif
 
 #ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
 extern "C" void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 struct starpu_opencl_program opencl_program;
 #endif

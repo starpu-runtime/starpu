@@ -16,9 +16,6 @@
  */
 
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <sys/time.h>
 #include <math.h>
 #include <limits.h>

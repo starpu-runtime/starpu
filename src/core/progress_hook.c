@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <core/workers.h>
 #include <common/utils.h>
+#include <core/progress_hook.h>
 
 #define NMAXHOOKS	16
 
@@ -29,10 +30,19 @@ struct progression_hook
 };
 
 /* protect the hook table */
-static pthread_rwlock_t progression_hook_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+static pthread_rwlock_t progression_hook_rwlock;
 
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 static int active_hook_cnt = 0;
+
+/*
+ * Staticly initializing progression_hook_rwlock seems to lead to weird errors
+ * on Darwin, so we do it dynamically.
+ */
+void _starpu_init_progression_hooks(void)
+{
+	_STARPU_PTHREAD_RWLOCK_INIT(&progression_hook_rwlock, NULL);
+}
 
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {

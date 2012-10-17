@@ -96,7 +96,7 @@ void recv_data(unsigned src, unsigned dst)
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice, stream[dst]);
 	STARPU_ASSERT(!cures);
-	cures = cudaThreadSynchronize();
+	cures = cudaStreamSynchronize(stream[dst]);
 	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);
@@ -113,7 +113,7 @@ void *launch_gpu_thread(void *arg)
 	unsigned *idptr = arg;
 	unsigned id = *idptr;
 
-	cudaSetDevice(id);
+	starpu_cuda_set_device(id);
 	cudaFree(0);
 
 	cudaMalloc(&gpu_buffer[id], buffer_size);

@@ -44,7 +44,7 @@
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
-#define MAXCPUS	32
+static void starpu_force_bus_sampling(void);
 
 /* timing is in Âµs per byte (i.e. slowness, inverse of bandwidth) */
 struct dev_timing
@@ -54,8 +54,8 @@ struct dev_timing
 	double timing_dtoh;
 };
 
-static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{NAN}};
-static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{NAN}};
+static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
+static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
 static int ncuda = 0;
@@ -64,40 +64,46 @@ static int nopencl = 0;
 /* Benchmarking the performance of the bus */
 
 #ifdef STARPU_USE_CUDA
-static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
+static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 #ifdef HAVE_CUDA_MEMCPY_PEER
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
-static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
+static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 #ifdef STARPU_USE_OPENCL
-static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][MAXCPUS];
+static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
-static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
+static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
-
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
 #endif
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+
 #ifdef STARPU_USE_CUDA
+
 static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
 	size_t size = SIZE;
 
-	/* Initiliaze CUDA context on the device */
+<<<<<<< .working
+	/* Initialize CUDA context on the device */
 	cudaSetDevice(dev);
+=======
+	/* Initialize CUDA context on the device */
+	starpu_cuda_set_device(dev);
+>>>>>>> .merge-right.r6541
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
-
+	
 	/* hack to force the initialization */
 	cudaFree(0);
 
@@ -149,7 +155,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod = timing/NITER/size;
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
 	gettimeofday(&start, NULL);
@@ -161,7 +167,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Free buffers */
 	cudaFreeHost(h_buffer);
@@ -174,10 +180,12 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 {
 	size_t size = SIZE;
+	int can;
 
         /* Get the maximum size which can be allocated on the device */
 	struct cudaDeviceProp prop;
 	cudaError_t cures;
+
 	cures = cudaGetDeviceProperties(&prop, src);
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
@@ -185,8 +193,22 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
 
-	/* Initiliaze CUDA context on the source */
+<<<<<<< .working
+	/* Initialize CUDA context on the source */
 	cudaSetDevice(src);
+=======
+	/* Initialize CUDA context on the source */
+	starpu_cuda_set_device(src);
+>>>>>>> .merge-right.r6541
+
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
+		cures = cudaDeviceCanAccessPeer(&can, src, dst);
+		if (!cures && can) {
+			cures = cudaDeviceEnablePeerAccess(dst, 0);
+			if (!cures)
+				_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
+		}
+	}
 
 	/* Allocate a buffer on the device */
 	unsigned char *s_buffer;
@@ -194,8 +216,22 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	STARPU_ASSERT(s_buffer);
 	cudaMemset(s_buffer, 0, size);
 
-	/* Initiliaze CUDA context on the destination */
+<<<<<<< .working
+	/* Initialize CUDA context on the destination */
 	cudaSetDevice(dst);
+=======
+	/* Initialize CUDA context on the destination */
+	starpu_cuda_set_device(dst);
+>>>>>>> .merge-right.r6541
+
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
+		cures = cudaDeviceCanAccessPeer(&can, dst, src);
+		if (!cures && can) {
+			cures = cudaDeviceEnablePeerAccess(src, 0);
+			if (!cures)
+				_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
+		}
+	}
 
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
@@ -222,7 +258,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	/* Free buffers */
 	cudaFree(d_buffer);
-	cudaSetDevice(src);
+	starpu_cuda_set_device(src);
 	cudaFree(s_buffer);
 
 	cudaThreadExit();
@@ -237,12 +273,18 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         cl_command_queue queue;
         cl_int err=0;
 	size_t size = SIZE;
+	int not_initialized;
 
         struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
 
-	/* Initialize OpenCL context on the device */
-        _starpu_opencl_init_context(dev);
+	/* Is the context already initialised ? */
+        starpu_opencl_get_context(dev, &context);
+	not_initialized = (context == NULL);
+	if (not_initialized == 1)
+	     _starpu_opencl_init_context(dev);
+
+	/* Get context and queue */
         starpu_opencl_get_context(dev, &context);
         starpu_opencl_get_queue(dev, &queue);
 
@@ -300,7 +342,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod = timing/NITER/size;
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
 	gettimeofday(&start, NULL);
@@ -312,14 +354,15 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Free buffers */
 	clReleaseMemObject(d_buffer);
 	free(h_buffer);
 
 	/* Uninitiliaze OpenCL context on the device */
-        _starpu_opencl_deinit_context(dev);
+	if (not_initialized == 1)
+	     _starpu_opencl_deinit_context(dev);
 }
 #endif
 
@@ -334,11 +377,11 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	double right_dtoh = right->timing_dtoh;
 	double right_htod = right->timing_htod;
 
-	double bandwidth_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
-	double bandwidth_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
+	double timing_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
+	double timing_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
 
 	/* it's for a decreasing sorting */
-	return (bandwidth_sum2_left < bandwidth_sum2_right);
+	return (timing_sum2_left > timing_sum2_right);
 }
 
 #ifdef STARPU_HAVE_HWLOC
@@ -363,7 +406,7 @@ static int find_numa_node(hwloc_obj_t obj)
 }
 #endif
 
-static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *dev_timing_per_cpu, char type)
+static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *dev_timing_per_cpu, char *type)
 {
 	/* Either we have hwloc and we measure the bandwith between each GPU
 	 * and each NUMA node, or we don't have such NUMA information and we
@@ -399,7 +442,7 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 	unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
-		dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id = cpu;
+		dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].cpu_id = cpu;
 
 #ifdef STARPU_HAVE_HWLOC
 		int numa_id = 0;
@@ -413,9 +456,9 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 			if (is_available_per_numa_node[numa_id])
 			{
 				/* We reuse the previous numbers for that NUMA node */
-				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod =
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod =
 					dev_timing_htod_per_numa_node[numa_id];
-				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh =
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh =
 					dev_timing_dtoh_per_numa_node[numa_id];
 				continue;
 			}
@@ -423,11 +466,11 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 #endif
 
 #ifdef STARPU_USE_CUDA
-                if (type == 'C')
+                if (strncmp(type, "CUDA", 4) == 0)
                         measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(dev, cpu, dev_timing_per_cpu);
 #endif
 #ifdef STARPU_USE_OPENCL
-                if (type == 'O')
+                if (strncmp(type, "OpenCL", 6) == 0)
                         measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(dev, cpu, dev_timing_per_cpu);
 #endif
 
@@ -436,9 +479,9 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 		{
 			/* Save the results for that NUMA node */
 			dev_timing_htod_per_numa_node[numa_id] =
-				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod;
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod;
 			dev_timing_dtoh_per_numa_node[numa_id] =
-				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh;
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh;
 
 			is_available_per_numa_node[numa_id] = 1;
 		}
@@ -456,12 +499,12 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 }
 
 static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_htod, double *dev_timing_dtoh,
-                                                   struct dev_timing *dev_timing_per_cpu, char type)
+                                                   struct dev_timing *dev_timing_per_cpu, char *type)
 {
 	measure_bandwidth_between_cpus_and_dev(dev, dev_timing_per_cpu, type);
 
 	/* sort the results */
-	qsort(&(dev_timing_per_cpu[(dev+1)*MAXCPUS]), ncpus,
+	qsort(&(dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS]), ncpus,
               sizeof(struct dev_timing),
 			compar_dev_timing);
 
@@ -469,24 +512,24 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
         unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
-		unsigned current_cpu = dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id;
-		double bandwidth_dtoh = dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh;
-		double bandwidth_htod = dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod;
+		unsigned current_cpu = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].cpu_id;
+		double bandwidth_dtoh = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh;
+		double bandwidth_htod = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod;
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		_STARPU_DISP("BANDWIDTH GPU %d CPU %u - htod %f - dtoh %f - %f\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
+		_STARPU_DISP("(%10s) BANDWIDTH GPU %d CPU %u - htod %f - dtoh %f - %f\n", type, dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
 	}
 
-	unsigned best_cpu = dev_timing_per_cpu[(dev+1)*MAXCPUS+0].cpu_id;
+	unsigned best_cpu = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].cpu_id;
 
-	_STARPU_DISP("BANDWIDTH GPU %d BEST CPU %u\n", dev, best_cpu);
+	_STARPU_DISP("(%10s) BANDWIDTH GPU %d BEST CPU %u\n", type, dev, best_cpu);
 #endif
 
 	/* The results are sorted in a decreasing order, so that the best
 	 * measurement is currently the first entry. */
-	dev_timing_dtoh[dev+1] = dev_timing_per_cpu[(dev+1)*MAXCPUS+0].timing_dtoh;
-	dev_timing_htod[dev+1] = dev_timing_per_cpu[(dev+1)*MAXCPUS+0].timing_htod;
+	dev_timing_dtoh[dev+1] = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].timing_dtoh;
+	dev_timing_htod[dev+1] = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].timing_htod;
 }
 #endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
@@ -494,6 +537,7 @@ static void benchmark_all_gpu_devices(void)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i;
+#endif
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	int j;
 #endif
@@ -506,7 +550,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_cpuset_t former_cpuset = hwloc_bitmap_alloc();
+	hwloc_bitmap_t former_cpuset = hwloc_bitmap_alloc();
 	hwloc_get_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 #elif __linux__
 	/* Save the current cpu binding */
@@ -529,16 +573,16 @@ static void benchmark_all_gpu_devices(void)
 	ncuda = _starpu_get_cuda_device_count();
 	for (i = 0; i < ncuda; i++)
 	{
-		fprintf(stderr," CUDA %d...", i);
+		_STARPU_DISP("CUDA %d...\n", i);
 		/* measure bandwidth between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, 'C');
+		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, "CUDA");
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 		for (j = 0; j < ncuda; j++)
 			if (i != j)
 			{
-				fprintf(stderr," CUDA %d -> %d...", i, j);
+				_STARPU_DISP("CUDA %d -> %d...\n", i, j);
 				/* measure bandwidth between Host and Device i */
 				measure_bandwidth_between_dev_and_dev_cuda(i, j);
 			}
@@ -548,9 +592,9 @@ static void benchmark_all_gpu_devices(void)
         nopencl = _starpu_opencl_get_device_count();
 	for (i = 0; i < nopencl; i++)
 	{
-		fprintf(stderr," OpenCL %d...", i);
+		_STARPU_DISP("OpenCL %d...\n", i);
 		/* measure bandwith between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_timing_dtoh, opencldev_timing_per_cpu, 'O');
+		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_timing_dtoh, opencldev_timing_per_cpu, "OpenCL");
 	}
 #endif
 
@@ -571,7 +615,6 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus is done.\n");
-#endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
 	was_benchmarked = 1;
 }
@@ -579,7 +622,6 @@ static void benchmark_all_gpu_devices(void)
 static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir_bus(path, maxlen);
-	strncat(path, type, maxlen);
 
 	char hostname[32];
 	char *forced_hostname = getenv("STARPU_HOSTNAME");
@@ -587,8 +629,9 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
 		snprintf(hostname, sizeof(hostname), "%s", forced_hostname);
 	else
 		gethostname(hostname, sizeof(hostname));
-	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
+	strncat(path, ".", maxlen);
+	strncat(path, type, maxlen);
 }
 
 /*
@@ -667,7 +710,7 @@ static void load_bus_affinity_file_content(void)
 #endif /* !STARPU_USE_OPENCL */
 
 	fclose(f);
-#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
+#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
 
 }
 
@@ -703,7 +746,7 @@ static void write_bus_affinity_file_content(void)
 
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
-			fprintf(f, "%d\t", cudadev_timing_per_cpu[(gpu+1)*MAXCPUS+cpu].cpu_id);
+			fprintf(f, "%d\t", cudadev_timing_per_cpu[(gpu+1)*STARPU_MAXCPUS+cpu].cpu_id);
 		}
 
 		fprintf(f, "\n");
@@ -716,7 +759,7 @@ static void write_bus_affinity_file_content(void)
 
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
-                        fprintf(f, "%d\t", opencldev_timing_per_cpu[(gpu+1)*MAXCPUS+cpu].cpu_id);
+                        fprintf(f, "%d\t", opencldev_timing_per_cpu[(gpu+1)*STARPU_MAXCPUS+cpu].cpu_id);
 		}
 
 		fprintf(f, "\n");
@@ -765,6 +808,41 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid)
         return opencl_affinity_matrix[gpuid];
 }
 #endif /* STARPU_USE_OPENCL */
+
+void starpu_bus_print_affinity(FILE *f)
+{
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+	unsigned cpu;
+	int gpu;
+#endif
+
+	fprintf(f, "# GPU\tCPU in preference order (logical index)\n");
+
+#ifdef STARPU_USE_CUDA
+	fprintf(f, "# CUDA\n");
+	for(gpu = 0 ; gpu<ncuda ; gpu++)
+	{
+		fprintf(f, "%d\t", gpu);
+		for (cpu = 0; cpu < ncpus; cpu++)
+		{
+			fprintf(f, "%d\t", cuda_affinity_matrix[gpu][cpu]);
+		}
+		fprintf(f, "\n");
+	}
+#endif
+#ifdef STARPU_USE_OPENCL
+	fprintf(f, "# OpenCL\n");
+	for(gpu = 0 ; gpu<nopencl ; gpu++)
+	{
+		fprintf(f, "%d\t", gpu);
+		for (cpu = 0; cpu < ncpus; cpu++)
+		{
+			fprintf(f, "%d\t", opencl_affinity_matrix[gpu][cpu]);
+		}
+		fprintf(f, "\n");
+	}
+#endif
+}
 
 /*
  *	Latency
@@ -941,7 +1019,7 @@ static int load_bus_bandwidth_file_content(void)
 			n = fscanf(f, "%lf", &bandwidth);
 			if (n != 1)
 			{
-				fprintf(stderr,"didn't get a number\n");
+				fprintf(stderr,"Error while reading sampling file <%s>. Expected a number\n", path);
 				fclose(f);
 				return 0;
 			}
@@ -1051,12 +1129,12 @@ void starpu_bus_print_bandwidth(FILE *f)
         maxnode += nopencl;
 #endif
 
-	fprintf(f, "from\t");
-	fprintf(f, "to RAM\t\t");
+	fprintf(f, "from/to\t");
+	fprintf(f, "RAM\t");
 	for (dst = 0; dst < ncuda; dst++)
-		fprintf(f, "to CUDA %d\t", dst);
+		fprintf(f, "CUDA %d\t", dst);
 	for (dst = 0; dst < nopencl; dst++)
-		fprintf(f, "to OpenCL %d\t", dst);
+		fprintf(f, "OpenCL%d\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src <= maxnode; src++)
@@ -1068,10 +1146,54 @@ void starpu_bus_print_bandwidth(FILE *f)
 		else
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
 		for (dst = 0; dst <= maxnode; dst++)
-			fprintf(f, "%f\t", bandwidth_matrix[src][dst]);
+			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
 		fprintf(f, "\n");
 	}
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+	if (ncuda != 0 || nopencl != 0)
+		fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
+	for (src = 1; src <= maxnode; src++)
+	{
+		struct dev_timing *timing;
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
+		int ncpus = _starpu_topology_get_nhwcpu(config);
+		int cpu;
+
+#ifdef STARPU_USE_CUDA
+		if (src <= ncuda)
+		{
+			fprintf(f, "CUDA %d\t", src-1);
+			for (cpu = 0; cpu < ncpus; cpu++)
+			{
+				timing = &cudadev_timing_per_cpu[src*STARPU_MAXCPUS+cpu];
+				if (timing->timing_htod)
+					fprintf(f, "%2d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
+				else
+					fprintf(f, "%2d\t", cuda_affinity_matrix[src-1][cpu]);
+			}
+		}
+#ifdef STARPU_USE_OPENCL
+		else
+#endif
+#endif
+#ifdef STARPU_USE_OPENCL
+		{
+			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+			for (cpu = 0; cpu < ncpus; cpu++)
+			{
+				timing = &opencldev_timing_per_cpu[(src-ncuda)*STARPU_MAXCPUS+cpu];
+				if (timing->timing_htod)
+					fprintf(f, "%2d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
+				else
+					fprintf(f, "%2d\t", opencl_affinity_matrix[src-1][cpu]);
+			}
+		}
+#endif
+		fprintf(f, "\n");
+	}
+#endif
 }
 
 static void generate_bus_bandwidth_file(void)
@@ -1105,25 +1227,27 @@ static void get_config_path(char *path, size_t maxlen)
 	get_bus_path("config", path, maxlen);
 }
 
-static void check_bus_config_file()
+static void check_bus_config_file(void)
 {
         int res;
         char path[256];
+        struct _starpu_machine_config *config = _starpu_get_machine_config();
 
         get_config_path(path, 256);
         res = access(path, F_OK);
-        if (res)
+	if (res || config->conf->bus_calibrate > 0)
 	{
-		fprintf(stderr, "No performance model for the bus, calibrating...");
+		if (res)
+			_STARPU_DISP("No performance model for the bus, calibrating...\n");
 		starpu_force_bus_sampling();
-		fprintf(stderr, "done\n");
+		if (res)
+			_STARPU_DISP("... done\n");
         }
         else
 	{
                 FILE *f;
                 int ret, read_cuda = -1, read_opencl = -1;
                 unsigned read_cpus = -1;
-                struct _starpu_machine_config *config = _starpu_get_machine_config();
 
                 // Loading configuration from file
                 f = fopen(path, "r");
@@ -1189,7 +1313,7 @@ static void write_bus_config_file_content(void)
         fclose(f);
 }
 
-static void generate_bus_config_file()
+static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
@@ -1201,8 +1325,9 @@ static void generate_bus_config_file()
  *	Generic
  */
 
-void starpu_force_bus_sampling(void)
+static void starpu_force_bus_sampling(void)
 {
+	_STARPU_DEBUG("Force bus sampling ...\n");
 	_starpu_create_sampling_directory_if_needed();
 
 	generate_bus_affinity_file();

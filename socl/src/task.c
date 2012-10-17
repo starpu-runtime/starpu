@@ -19,13 +19,11 @@
 #include "event.h"
 
 static void task_release_callback(void *arg) {
-  starpu_task task = starpu_task_get_current();
   cl_command cmd = (cl_command)arg;
+  starpu_task task = cmd->task;
   
   cl_event ev = command_event_get(cmd);
   ev->status = CL_COMPLETE;
-
-  DEBUG_MSG("notifying tag %x as well as task tag %x\n", ev->id, task->tag_id);
 
   /* Trigger the tag associated to the command event */
   starpu_tag_notify_from_apps(ev->id);
@@ -38,7 +36,8 @@ static void task_release_callback(void *arg) {
   gc_entity_release(ev);
 
   /* Release the command */
-  //TODO
+  //FIXME
+  //free(cmd);
 }
 
 
@@ -52,13 +51,11 @@ starpu_task task_create() {
 	task = starpu_task_create();
 
 	/* Set task common settings */
-	task->destroy = 1;
-	task->detach = 1;
+	task->destroy = 0;
+	task->detach = 0;
 
 	task->use_tag = 1;
 	task->tag_id = event_unique_id();
-
-	DEBUG_MSG("creating task with tag %x\n", task->tag_id);
 
 	return task;
 }
@@ -70,9 +67,6 @@ void task_depends_on(starpu_task task, cl_uint num_events, cl_event *events) {
 		cl_uint i;
 
 		starpu_tag_t * tags = malloc(num_events * sizeof(starpu_tag_t));	
-
-		if (num_events != 0)
-			DEBUG_MSG("Tag %d depends on %u tags:", task->tag_id, num_events);
 
 		for (i=0; i<num_events; i++) {
 			tags[i] = events[i]->id;
@@ -120,32 +114,34 @@ static void cputask_task(__attribute__((unused)) void *descr[], void *args) {
 
   arg->callback(arg->arg);
 
-#warning FIXME: free memory
-/*
-  if (arg->free_arg)
+  if (arg->free_arg) {
+    assert(arg->arg != NULL);
     free(arg->arg);
+    arg->arg = NULL;
+  }
 
   free(arg);
-*/
+
 }
 
-static struct starpu_codelet cputask_codelet = {
-   .where = STARPU_CPU,
-   .model = NULL,
-   .cpu_funcs = { &cputask_task, NULL }
-};
-
-starpu_task task_create_cpu(void (*callback)(void*), void *arg, int free_arg) {
+void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int free_arg, struct starpu_codelet * codelet, unsigned num_events, cl_event * events) {
   
   struct cputask_arg * a = malloc(sizeof(struct cputask_arg));
   a->callback = callback;
   a->arg = arg;
   a->free_arg = free_arg;
 
+  codelet->where = STARPU_CPU;
+  codelet->cpu_funcs[0] = &cputask_task;
+
   starpu_task task = task_create();
-  task->cl = &cputask_codelet;
+  task->cl = codelet;
   task->cl_arg = a;
 
-  return task;
+  if (num_events != 0) {
+     task_depends_on(task, num_events, events);
+  }
+
+  task_submit(task, cmd);
 }
 

@@ -47,3 +47,12 @@
    ...
 }
 
+{
+   fscanf error
+   Memcheck:Cond
+   ...
+   fun:fscanf
+   fun:_starpu_load_bus_performance_files
+   ...
+}
+

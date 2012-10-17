@@ -23,7 +23,7 @@
 %debug
 
 %{
-  #include <starpu-gcc-config.h>
+  #include <starpu-gcc/config.h>
 
   #include <gcc-plugin.h>
   #include <plugin.h>
@@ -41,6 +41,8 @@
   #elif HAVE_C_PRAGMA_H
   # include <c-pragma.h>
   #endif
+
+  #include <diagnostic.h>
 
   #if !HAVE_DECL_BUILD_ARRAY_REF
   /* This declaration is missing in GCC 4.6.1.  */
@@ -89,6 +91,24 @@
     sorry ("struct field access not implemented yet"); /* XXX */
     return error_mark_node;
   }
+
+  /* Interpret the string beneath CST, and return a new string constant.  */
+  static tree
+  interpret_string (const_tree cst)
+  {
+    gcc_assert (TREE_CODE (cst) == STRING_CST);
+
+    cpp_string input, interpreted;
+    input.text = (unsigned char *) TREE_STRING_POINTER (cst);
+    input.len = TREE_STRING_LENGTH (cst);
+
+    bool success;
+    success = cpp_interpret_string (parse_in, &input, 1, &interpreted,
+				    CPP_STRING);
+    gcc_assert (success);
+
+    return build_string (interpreted.len, (char *) interpreted.text);
+  }
 %}
 
 %code {
@@ -109,7 +129,8 @@
   TK (CPP_MULT)					\
   TK (CPP_DIV)					\
   TK (CPP_DOT)					\
-  TK (CPP_DEREF)
+  TK (CPP_DEREF)				\
+  TK (CPP_STRING)
 
 #ifndef __cplusplus
 
@@ -131,6 +152,8 @@
   yylex (YYSTYPE *lvalp)
   {
     int ret;
+    enum cpp_ttype type;
+    location_t loc;
 
 #ifdef __cplusplus
     if (cpplib_bison_token_map[CPP_NAME] != YCPP_NAME)
@@ -142,11 +165,30 @@
       }
 #endif
 
-    ret = pragma_lex (lvalp);
-    if (ret < sizeof cpplib_bison_token_map / sizeof cpplib_bison_token_map[0])
-      ret = cpplib_bison_token_map[ret];
-    else
+    /* First check whether EOL is reached, because the EOL token needs to be
+       left to the C parser.  */
+    type = cpp_peek_token (parse_in, 0)->type;
+    if (type == CPP_PRAGMA_EOL)
       ret = -1;
+    else
+      {
+	/* Tell the lexer to not concatenate adjacent strings like cpp and
+	   `pragma_lex' normally do, because we want to be able to
+	   distinguish adjacent STRING_CST.  */
+	type = c_lex_with_flags (lvalp, &loc, NULL, C_LEX_STRING_NO_JOIN);
+
+	if (type == CPP_STRING)
+	  /* XXX: When using `C_LEX_STRING_NO_JOIN', `c_lex_with_flags'
+	     doesn't call `cpp_interpret_string', leaving us with an
+	     uninterpreted string (with quotes, etc.)  This hack works around
+	     that.  */
+	  *lvalp = interpret_string (*lvalp);
+
+	if (type < sizeof cpplib_bison_token_map / sizeof cpplib_bison_token_map[0])
+	  ret = cpplib_bison_token_map[type];
+	else
+	  ret = -1;
+      }
 
     return ret;
   }
@@ -165,6 +207,7 @@
 %token YCPP_DIV "/"
 %token YCPP_DOT "."
 %token YCPP_DEREF "->"
+%token YCPP_STRING "string"
 
 %% /* Grammar rules.  */
 
@@ -184,15 +227,15 @@ sequence: expression {
       }
 ;
 
-expression: identifier | binary_expression | unary_expression;
+expression: binary_expression
+;
 
 /* XXX: `ensure_bound' below leads to errors raised even for non-significant
    arguments---e.g., junk after pragma.  */
 identifier: YCPP_NAME  { $$ = ensure_bound (loc, $1); }
 ;
 
-binary_expression: multiplicative_expression
-     | additive_expression
+binary_expression: additive_expression
 ;
 
 multiplicative_expression: multiplicative_expression YCPP_MULT cast_expression {
@@ -217,9 +260,7 @@ cast_expression: unary_expression
 		 /* XXX: No support for '(' TYPE-NAME ')' UNARY-EXPRESSION.  */
 ;
 
-unary_expression:
-       primary_expression
-     | postfix_expression
+unary_expression: postfix_expression
      | YCPP_AND cast_expression {
        $$ = build_addr (ensure_bound (loc, $2), current_function_decl);
      }
@@ -250,10 +291,14 @@ postfix_expression:
 
 primary_expression: identifier
      | constant
+     | string_literal
      | YCPP_OPEN_PAREN expression YCPP_CLOSE_PAREN { $$ = $2; }
 ;
 
 constant: YCPP_NUMBER { $$ = $1; }
+;
+
+string_literal: YCPP_STRING { $$ = $1; }
 ;
 
 %%

@@ -17,7 +17,6 @@
 
 #include <config.h>
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "../../../helper.h"
 
 #define KERNEL_LOCATION "tests/datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl"

@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_task_wait_for_all();
 	for (i = 0; i < K; i++)
-		starpu_task_deinit(&task[i]);
+		starpu_task_clean(&task[i]);
 
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 

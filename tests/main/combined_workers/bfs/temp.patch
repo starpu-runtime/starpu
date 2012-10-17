@@ -1,0 +1,20 @@
+Index: src/core/topology.c
+===================================================================
+--- src/core/topology.c	(revision 6542)
++++ src/core/topology.c	(working copy)
+@@ -682,10 +682,13 @@
+ 	support = hwloc_topology_get_support(config->topology.hwtopology);
+ 	if (support->cpubind->set_thisthread_cpubind)
+ 	{
+-		hwloc_cpuset_t set = combined_worker->hwloc_cpu_set;
++		hwloc_cpuset_t set = hwloc_bitmap_alloc();
++		hwloc_bitmap_zero(set);
++		hwloc_bitmap_set_range(set, 0, 12);
++		//hwloc_cpuset_t set = combined_worker->hwloc_cpu_set;
+ 		int ret;
+ 
+-		ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
++		ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_PROCESS | HWLOC_CPUBIND_NOMEMBIND);
+ 		if (ret)
+ 		{
+ 			perror("binding thread");

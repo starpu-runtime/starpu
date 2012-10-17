@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -16,10 +16,15 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
-#include <starpu_cuda.h>
 #include "../helper.h"
 #include "scal.h"
+
+#if ! (defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA))
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 
 static int
 submit_tasks(starpu_data_handle_t handle, int pieces, int n)
@@ -65,7 +70,7 @@ check_result(unsigned *t, size_t size)
 	{
 		if (t[i] != i*2)
 		{
-			FPRINTF(stderr,"t[%d] is %d instead of %d\n", i, t[i], 2*i);
+			FPRINTF(stderr,"t[%d] is %u instead of %d\n", i, t[i], 2*i);
 			return 1;
 		}
 	}
@@ -95,7 +100,7 @@ test_cuda(void)
 	size = 10 * n;
 
 	devid = starpu_worker_get_devid(chosen);
-	cudaSetDevice(devid);
+	starpu_cuda_set_device(devid);
 	cudaMalloc((void**)&foo_gpu, size * sizeof(*foo_gpu));
 
 	foo = calloc(size, sizeof(*foo));
@@ -133,7 +138,7 @@ test_cuda(void)
 	starpu_data_unpartition(handle, starpu_worker_get_memory_node(chosen));
 	starpu_data_unregister(handle);
 
-	cudaSetDevice(devid);
+	starpu_cuda_set_device(devid);
 	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
@@ -292,3 +297,5 @@ fail:
 	starpu_shutdown();
 	return EXIT_FAILURE;
 }
+
+#endif /* defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) */

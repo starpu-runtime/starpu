@@ -21,6 +21,7 @@ virtual report
 
 @initialize:python depends on report || org@
 d = {
+'pthread_create'          : '_STARPU_PTHREAD_CREATE',
 'pthread_mutex_init'      : '_STARPU_PTHREAD_MUTEX_INIT',
 'pthread_mutex_lock'      : '_STARPU_PTHREAD_MUTEX_LOCK',
 'pthread_mutex_unlock'    : '_STARPU_PTHREAD_MUTEX_UNLOCK',
@@ -76,6 +77,12 @@ else:
 //
 // Patch mode.
 //
+@pthread_ depends on patch@
+expression E1, E2, E3, E4;
+@@
+- pthread_create(E1, E2, E3, E4);
++ _STARPU_PTHREAD_CREATE(E1, E2, E3, E4);
+
 @pthread_mutex_ depends on patch@
 expression E1, E2;
 @@
