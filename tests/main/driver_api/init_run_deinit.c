@@ -107,6 +107,7 @@ test_cpu(void)
 		cl.where = STARPU_CPU;
 		task->cl = &cl;
 		task->cl_arg = &var;
+		task->synchronous = 1;
 
 		run(task, &d);
 	}
@@ -166,6 +167,7 @@ test_cuda(void)
 		cl.where = STARPU_CUDA;
 		task->cl = &cl;
 		task->cl_arg = &var;
+		task->synchronous = 1;
 
 		run(task, &d);
 	}
@@ -244,6 +246,7 @@ test_opencl(void)
 		cl.where = STARPU_OPENCL;
 		task->cl = &cl;
 		task->cl_arg = &var;
+		task->synchronous = 1;
 
 		run(task, &d);
 	}
