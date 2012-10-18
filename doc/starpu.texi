@@ -47,10 +47,10 @@ Free Documentation License''.
 @contents
 @page
 
+@ifnottex
 @node Top
-@ifinfo
 @top StarPU Handbook
-@end ifinfo
+@end ifnottex
 
 This manual documents the usage of StarPU version @value{VERSION}.  It
 was last updated on @value{UPDATED}.
@@ -70,6 +70,7 @@ was last updated on @value{UPDATED}.
 * Using StarPU::                How to run StarPU application
 * Basic Examples::              Basic examples of the use of StarPU
 * Advanced Examples::           Advanced examples of the use of StarPU
+* Benchmarks::                  Benchmarks worth running
 * Performance optimization::    How to optimize performance with StarPU
 * Performance feedback::        Performance debugging tools
 * Tips and Tricks::             Tips and tricks to know about
@@ -77,7 +78,6 @@ was last updated on @value{UPDATED}.
 * StarPU FFT support::          How to perform FFT computations with StarPU
 * C Extensions::                Easier StarPU programming with GCC
 * SOCL OpenCL Extensions::      How to use OpenCL on top of StarPU
-* Benchmarks::                  Benchmarks worth running
 * StarPU Basic API::            The Basic API to use StarPU
 * StarPU Advanced API::         Advanced use of StarPU
 * Configuring StarPU::          How to configure StarPU
