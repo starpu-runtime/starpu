@@ -1405,6 +1405,8 @@ if test "$build_socl" = "yes" ; then
        run_socl_check=yes
        AC_SUBST(SOCL_OCL_LIB_OPENCL)
    fi
+else
+   run_socl_check=no
 fi
 ###############################################################################
 #                                                                             #
