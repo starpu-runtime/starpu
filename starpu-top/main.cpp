@@ -56,8 +56,7 @@ PROGNAME);
 	else if (strncmp(argv[1], "--version", 9) == 0 ||
 		 strncmp(argv[1], "-v", 2) == 0)
 	{
-		(void) fprintf(stderr, "%s %d.%d\n",
-			PROGNAME, STARPU_MAJOR_VERSION, STARPU_MINOR_VERSION);
+	        fprintf(stderr, "%s (%s) %s\n", PROGNAME, PACKAGE_NAME, PACKAGE_VERSION);
 	}
 	else
 	{
