@@ -38,7 +38,7 @@ usage()
 }
 
 if [ "$1" == "-v" ] || [ "$1" == "--version" ] ; then
-    echo "$PROGNAME @STARPU_MAJOR_VERSION@.@STARPU_MINOR_VERSION@"
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
     exit 0
 fi
 
