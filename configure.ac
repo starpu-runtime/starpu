@@ -951,7 +951,6 @@ if test x$use_fxt = xyes; then
 	else
 	    PKG_CHECK_MODULES([FXT],  [fxt])
 	fi
-<<<<<<< .working
 	save_LIBS="$LIBS"
 	LIBS="$LIBS $FXT_LIBS"
 	save_LDFLAGS="$LDFLAGS"
@@ -965,8 +964,6 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_DECLS([enable_fut_flush])
 	AC_CHECK_DECLS([fut_set_filename])
 	CFLAGS="$save_CFLAGS"
-=======
->>>>>>> .merge-right.r6541
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
@@ -1895,13 +1892,10 @@ AC_MSG_NOTICE([
 	       GCC plug-in: $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
-<<<<<<< .working
                Scheduler Hypervisor: $build_sched_ctx_hypervisor
-=======
                SOCL test suite: $run_socl_check
->>>>>>> .merge-right.r7640
+
 ])
-<<<<<<< .working
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
 	AC_MSG_NOTICE([
@@ -1918,13 +1912,3 @@ WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
 performance may be impacted a lot.  It is strongly recommended to install
 hwloc])
 fi
-=======
-
-if test x"$have_valid_hwloc" = xno
-then
-  AC_MSG_NOTICE([
-WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
-performance may be impacted a lot.  It is strongly recommended to install
-hwloc])
-fi
->>>>>>> .merge-right.r6541

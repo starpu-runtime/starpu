@@ -69,23 +69,9 @@ struct _starpu_worker
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
 	int worker_size; /* size of the worker in case we use a combined worker */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
 	unsigned memory_node; /* which memory node is the worker associated with ? */
 	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
-=======
-	unsigned memory_node; /* which memory node is the worker associated with ? */
-=======
-	unsigned memory_node; /* which memory node is the worker associated with ? */
->>>>>>> .merge-right.r6541
-=======
-	unsigned memory_node; /* which memory node is the worker associated with ? */
->>>>>>> .merge-right.r6541
-	pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
-	pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
->>>>>>> .merge-right.r6541
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task *current_task; /* task currently executed by this worker */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
@@ -187,33 +173,12 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
-=======
 
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
->>>>>>> .merge-right.r6541
-=======
-
-	/* this flag is set until the application is finished submitting tasks */
-	unsigned submitting;
->>>>>>> .merge-right.r6541
-=======
-
-	/* this flag is set until the application is finished submitting tasks */
-	unsigned submitting;
->>>>>>> .merge-right.r6541
-=======
-
-	/* this flag is set until the application is finished submitting tasks */
-	unsigned submitting;
->>>>>>> .merge-right.r6541
 };
 
 /* Has starpu_shutdown already been called ? */

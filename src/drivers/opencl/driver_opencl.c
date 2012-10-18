@@ -488,43 +488,17 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 	struct starpu_task *task;
 	int res;
 
-<<<<<<< .working
-	pthread_cond_t *sched_cond = &args->sched_cond;
-    pthread_mutex_t *sched_mutex = &args->sched_mutex;
-
-	while (_starpu_machine_is_running())
-	{
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
-=======
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	_starpu_datawizard_progress(memnode, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
->>>>>>> .merge-right.r7640
 
-<<<<<<< .working
-=======
 	task = _starpu_get_worker_task(args, workerid, memnode);
 
->>>>>>> .merge-right.r7640
 	if (task == NULL)
 		return 0;
-<<<<<<< .working
-		
-		if (task == NULL) 
-		{
-			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-			if (_starpu_worker_can_block(memnode))
-				_starpu_block_worker(workerid, sched_cond, sched_mutex);
-=======
 
 	j = _starpu_get_job_associated_to_task(task);
->>>>>>> .merge-right.r7640
 
-<<<<<<< .working
-			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-=======
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
@@ -532,16 +506,12 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 		_starpu_push_task(j);
 		return 0;
 	}
->>>>>>> .merge-right.r7640
 
 	_starpu_set_current_task(j->task);
 	args->current_task = j->task;
 
-<<<<<<< .working
-=======
 	res = _starpu_opencl_execute_job(j, args);
 
->>>>>>> .merge-right.r7640
 	_starpu_set_current_task(NULL);
 	args->current_task = NULL;
 
@@ -574,13 +544,8 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 	unsigned devid   = args->devid;
 	unsigned memnode = args->memory_node;
 
-<<<<<<< .working
-		_starpu_handle_job_termination(j, workerid);
-	}
-=======
 	_starpu_handle_all_pending_node_data_requests(memnode);
         _starpu_opencl_deinit_context(devid);
->>>>>>> .merge-right.r7640
 
 	return 0;
 }
@@ -596,14 +561,11 @@ void *_starpu_opencl_worker(void *arg)
 		.id.opencl_id = id
 	};
 
-<<<<<<< .working
 	_starpu_opencl_driver_init(&d);
 	while (_starpu_machine_is_running())
 		_starpu_opencl_driver_run_once(&d);
 	_starpu_opencl_driver_deinit(&d);
 
-=======
->>>>>>> .merge-right.r6541
 	return NULL;
 }
 
@@ -687,7 +649,6 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 
 	return EXIT_SUCCESS;
 }
-<<<<<<< .working
 
 int _starpu_run_opencl(struct starpu_driver *d)
 {
@@ -727,44 +688,3 @@ int _starpu_run_opencl(struct starpu_driver *d)
 
 	return 0;
 }
-=======
-
-int _starpu_run_opencl(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d && d->type == STARPU_OPENCL_WORKER);
-
-	int nworkers;
-	int workers[STARPU_MAXOPENCLDEVS];
-	nworkers = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, STARPU_MAXOPENCLDEVS);
-	if (nworkers == 0)
-		return -ENODEV;
-
-	int i;
-	for (i = 0; i < nworkers; i++)
-	{
-		cl_device_id device;
-		int devid = starpu_worker_get_devid(workers[i]);
-		starpu_opencl_get_device(devid, &device);
-		if (device == d->id.opencl_id)
-			break;
-	}
-
-	if (i == nworkers)
-		return -ENODEV;
-
-	struct _starpu_worker *workerarg = _starpu_get_worker_struct(i);
-	_STARPU_DEBUG("Running OpenCL %d from the application\n", workerarg->devid);
-
-	workerarg->set = NULL;
-	workerarg->worker_is_initialized = 0;
-
-	/* Let's go ! */
-	_starpu_opencl_worker(workerarg);
-
-	/* XXX: Should we wait for the driver to be ready, as it is done when
-	 * launching it the usual way ? Cf. the end of _starpu_launch_drivers()
-	 */
-
-	return 0;
-}
->>>>>>> .merge-right.r6541

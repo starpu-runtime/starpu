@@ -251,8 +251,6 @@ static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 	_starpu_memory_node_register_condition(cond, mutex, memory_node);
 }
 
-<<<<<<< .working
-<<<<<<< .working
 /*
  * Returns 0 if the given driver is one of the drivers that must be launched by
  * the application itself, and not by StarPU, 1 otherwise.
@@ -328,86 +326,6 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 
 }
 
-=======
-/*
- * Returns 0 if the given driver is one of the drivers that must be launched by
- * the application itself, and not by StarPU, 1 otherwise.
- */
-static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
-					  struct starpu_driver *d)
-{
-	if (conf->n_not_launched_drivers == 0 ||
-	    conf->not_launched_drivers == NULL)
-		return 1;
-
-	/* Is <d> in conf->not_launched_drivers ? */
-	unsigned i;
-	for (i = 0; i < conf->n_not_launched_drivers; i++)
-	{
-		if (d->type != conf->not_launched_drivers[i].type)
-			continue;
-
-		switch (d->type)
-		{
-		case STARPU_CUDA_WORKER:
-			if (d->id.cuda_id == conf->not_launched_drivers[i].id.cuda_id)
-				return 0;
-			break;
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_WORKER:
-			if (d->id.opencl_id == conf->not_launched_drivers[i].id.opencl_id)
-				return 0;
-			break;
-#endif
-		default:
-			STARPU_ABORT();
-		}
-	}
-
-	return 1;
-}
-
->>>>>>> .merge-right.r6541
-=======
-/*
- * Returns 0 if the given driver is one of the drivers that must be launched by
- * the application itself, and not by StarPU, 1 otherwise.
- */
-static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
-					  struct starpu_driver *d)
-{
-	if (conf->n_not_launched_drivers == 0 ||
-	    conf->not_launched_drivers == NULL)
-		return 1;
-
-	/* Is <d> in conf->not_launched_drivers ? */
-	unsigned i;
-	for (i = 0; i < conf->n_not_launched_drivers; i++)
-	{
-		if (d->type != conf->not_launched_drivers[i].type)
-			continue;
-
-		switch (d->type)
-		{
-		case STARPU_CUDA_WORKER:
-			if (d->id.cuda_id == conf->not_launched_drivers[i].id.cuda_id)
-				return 0;
-			break;
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_WORKER:
-			if (d->id.opencl_id == conf->not_launched_drivers[i].id.opencl_id)
-				return 0;
-			break;
-#endif
-		default:
-			STARPU_ABORT();
-		}
-	}
-
-	return 1;
-}
-
->>>>>>> .merge-right.r6541
 static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 {
 	config->running = 1;
@@ -418,15 +336,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	unsigned nworkers = config->topology.nworkers;
 
 	/* Launch workers asynchronously (except for SPUs) */
-<<<<<<< .working
-<<<<<<< .working
 	unsigned cpu = 0, cuda = 0;
-=======
-	unsigned cuda = 0;
->>>>>>> .merge-right.r6541
-=======
-	unsigned cuda = 0;
->>>>>>> .merge-right.r6541
 	unsigned worker;
 
 #ifdef STARPU_PERF_DEBUG
@@ -448,14 +358,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		workerarg->worker_size = 1;
 		workerarg->combined_workerid = workerarg->workerid;
 		workerarg->current_rank = 0;
-<<<<<<< .working
 		workerarg->has_prev_init = 0;
 		/* mutex + cond only for the local list */
 		/* we have a single local list */
 		/* afterwards there would be a mutex + cond for the list of each strategy */
-=======
 		workerarg->run_by_starpu = 1;
->>>>>>> .merge-right.r7640
 
 		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 		_STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
@@ -503,8 +410,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-<<<<<<< .working
-<<<<<<< .working
 				driver.id.cuda_id = cuda;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
@@ -519,46 +424,16 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 					workerarg->run_by_starpu = 0;
 				}
 				cuda++;
-=======
-				driver.id.cuda_id = cuda;
-				if (_starpu_may_launch_driver(config->conf, &driver))
-				{
-					pthread_create(&workerarg->worker_thread,
-						       NULL, _starpu_cuda_worker, workerarg);
-				}
-				cuda++;
->>>>>>> .merge-right.r6541
-=======
-				driver.id.cuda_id = cuda;
-				if (_starpu_may_launch_driver(config->conf, &driver))
-				{
-					pthread_create(&workerarg->worker_thread,
-						       NULL, _starpu_cuda_worker, workerarg);
-				}
-				cuda++;
->>>>>>> .merge-right.r6541
 				break;
 #endif
 #ifdef STARPU_USE_OPENCL
 			case STARPU_OPENCL_WORKER:
-<<<<<<< .working
-<<<<<<< .working
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
 				if (!_starpu_may_launch_driver(config->conf, &driver))
 				{
 					workerarg->run_by_starpu = 0;
 					break;
 				}
-=======
-				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				if (!_starpu_may_launch_driver(config->conf, &driver))
-					break;
->>>>>>> .merge-right.r6541
-=======
-				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				if (!_starpu_may_launch_driver(config->conf, &driver))
-					break;
->>>>>>> .merge-right.r6541
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				_STARPU_PTHREAD_CREATE(
@@ -605,16 +480,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		}
 	}
 
-<<<<<<< .working
-<<<<<<< .working
 	cpu  = 0;
 	cuda = 0;
-=======
-	cuda = 0;
->>>>>>> .merge-right.r6541
-=======
-	cuda = 0;
->>>>>>> .merge-right.r6541
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
@@ -624,8 +491,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
-<<<<<<< .working
-<<<<<<< .working
 				driver.id.cpu_id = cpu;
 				if (!_starpu_may_launch_driver(config->conf, &driver))
 				{
@@ -638,20 +503,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				cpu++;
 				break;
-=======
-				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_initialized)
-					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				break;
->>>>>>> .merge-right.r6541
-=======
-				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_initialized)
-					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				break;
->>>>>>> .merge-right.r6541
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = cuda;
 				if (!_starpu_may_launch_driver(config->conf, &driver))
@@ -850,9 +701,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	srand(2008);
 
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
 #ifdef STARPU_USE_FXT
 	_starpu_start_fxt_profiling();
 #endif
@@ -867,12 +715,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	_starpu_load_bus_performance_files();
 
-=======
->>>>>>> .merge-right.r6541
-=======
->>>>>>> .merge-right.r6541
-=======
->>>>>>> .merge-right.r6541
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
@@ -893,65 +735,11 @@ int starpu_init(struct starpu_conf *user_conf)
 	}
 	_starpu_conf_check_environment(config.conf);
 
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
 	_starpu_init_all_sched_ctxs(&config);
-=======
-=======
 	_starpu_init_progression_hooks();
 
 	_starpu_init_tags();
 
->>>>>>> .merge-right.r7640
-#ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
-#endif
-
-	_starpu_open_debug_logfile();
-
-	_starpu_data_interface_init();
-
-	_starpu_timing_init();
-
-	_starpu_profiling_init();
-
-	_starpu_load_bus_performance_files();
-
->>>>>>> .merge-right.r6541
-=======
-#ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
-#endif
-
-	_starpu_open_debug_logfile();
-
-	_starpu_data_interface_init();
-
-	_starpu_timing_init();
-
-	_starpu_profiling_init();
-
-	_starpu_load_bus_performance_files();
-
->>>>>>> .merge-right.r6541
-=======
-#ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
-#endif
-
-	_starpu_open_debug_logfile();
-
-	_starpu_data_interface_init();
-
-	_starpu_timing_init();
-
-	_starpu_profiling_init();
-
-	_starpu_load_bus_performance_files();
-
->>>>>>> .merge-right.r6541
 	ret = _starpu_build_topology(&config);
 	if (ret)
 	{
@@ -1408,11 +1196,6 @@ int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, in
 
 	return cnt;
 }
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-
-<<<<<<< .working
 
 int starpu_worker_get_available_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
 {
@@ -1487,124 +1270,6 @@ struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 	return &config.sched_ctxs[0];
 }
 
-#ifdef STARPU_USE_CUDA
-extern int _starpu_run_cuda(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_run_opencl(struct starpu_driver *);
-#endif
-
-=======
->>>>>>> .merge-right.r7640
-int
-starpu_driver_run(struct starpu_driver *d)
-{
-	if (!d)
-		return -EINVAL;
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_run_cpu(d);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_run_cuda(d);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_run_opencl(d);
-#endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_init(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_cpu_driver_init(d);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_init(d);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_init(d);
-#endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_run_once(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_cpu_driver_run_once(d);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_run_once(d);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_run_once(d);
-#endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_deinit(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_cpu_driver_deinit(d);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_deinit(d);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_deinit(d);
-#endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-=======
-
-#ifdef STARPU_USE_CUDA
-extern int _starpu_run_cuda(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_run_opencl(struct starpu_driver *);
-#endif
-
 int
 starpu_driver_run(struct starpu_driver *d)
 {
@@ -1627,12 +1292,6 @@ starpu_driver_run(struct starpu_driver *d)
 		return -EINVAL;
 	}
 }
-
-#ifdef STARPU_USE_CUDA
-extern int _starpu_cuda_driver_init(struct starpu_driver *);
-extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
-extern int _starpu_cuda_driver_deinit(struct starpu_driver *);
-#endif
 
 int
 starpu_driver_init(struct starpu_driver *d)
@@ -1690,194 +1349,3 @@ starpu_driver_deinit(struct starpu_driver *d)
 		return -EINVAL;
 	}
 }
->>>>>>> .merge-right.r6541
-=======
-
-#ifdef STARPU_USE_CUDA
-extern int _starpu_run_cuda(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_run_opencl(struct starpu_driver *);
-#endif
-
-int
-starpu_driver_run(struct starpu_driver *d)
-{
-	if (!d)
-		return -EINVAL;
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_run_cuda(d);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_run_opencl(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-#ifdef STARPU_USE_CUDA
-extern int _starpu_cuda_driver_init(struct starpu_driver *);
-extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
-extern int _starpu_cuda_driver_deinit(struct starpu_driver *);
-#endif
-
-int
-starpu_driver_init(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_init(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_OPENCL_WORKER: /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_run_once(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_run_once(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_OPENCL_WORKER: /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_deinit(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_deinit(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_OPENCL_WORKER: /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
->>>>>>> .merge-right.r6541
-=======
-
-#ifdef STARPU_USE_CUDA
-extern int _starpu_run_cuda(struct starpu_driver *);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern int _starpu_run_opencl(struct starpu_driver *);
-#endif
-
-int
-starpu_driver_run(struct starpu_driver *d)
-{
-	if (!d)
-		return -EINVAL;
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_run_cuda(d);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_run_opencl(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-#ifdef STARPU_USE_CUDA
-extern int _starpu_cuda_driver_init(struct starpu_driver *);
-extern int _starpu_cuda_driver_run_once(struct starpu_driver *);
-extern int _starpu_cuda_driver_deinit(struct starpu_driver *);
-#endif
-
-int
-starpu_driver_init(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_init(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_OPENCL_WORKER: /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_run_once(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_run_once(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_OPENCL_WORKER: /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_deinit(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_deinit(d);
-#endif
-	case STARPU_CPU_WORKER:    /* Not supported yet */
-	case STARPU_OPENCL_WORKER: /* Not supported yet */
-	case STARPU_GORDON_WORKER: /* Not supported yet */
-	default:
-		return -EINVAL;
-	}
-}
->>>>>>> .merge-right.r6541

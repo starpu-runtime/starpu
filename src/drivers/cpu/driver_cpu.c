@@ -219,83 +219,33 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	struct starpu_task *task;
 	int res;
 
-<<<<<<< .working
-	pthread_cond_t *sched_cond = &cpu_arg->sched_cond;
-	pthread_mutex_t *sched_mutex = &cpu_arg->sched_mutex;
-	struct timespec start_time, end_time;
-	unsigned idle = 0;
-	while (_starpu_machine_is_running())
-	{
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
-=======
 	task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
->>>>>>> .merge-right.r7640
 
-<<<<<<< .working
-		/* take the mutex inside pop because it depends what mutex:
-		   the one of the local task or the one of one of the strategies */
-=======
 	if (!task)
 		return 0;
 
->>>>>>> .merge-right.r7640
 	j = _starpu_get_job_associated_to_task(task);
 
-<<<<<<< .working
-                if (!task)
-		{
-			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-			if (_starpu_worker_can_block(memnode))
-				_starpu_block_worker(workerid, sched_cond, sched_mutex);
-			else
-			{
-				_starpu_clock_gettime(&start_time);
-				_starpu_worker_register_sleeping_start_date(workerid, &start_time);
-				idle = 1;
-=======
-	/* can a cpu perform that task ? */
+ 	/* can a cpu perform that task ? */
 	if (!_STARPU_CPU_MAY_PERFORM(j))
 	{
 		/* put it and the end of the queue ... XXX */
 		_starpu_push_task(j);
 		return 0;
 	}
->>>>>>> .merge-right.r7640
 
-<<<<<<< .working
-			}
-			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-=======
 	int rank = 0;
 	int is_parallel_task = (j->task_size > 1);
 
->>>>>>> .merge-right.r7640
 	enum starpu_perf_archtype perf_arch;
 
-<<<<<<< .working
-		if(idle)
-		{
-			_starpu_clock_gettime(&end_time);
-			
-			int profiling = starpu_profiling_status_get();
-			if (profiling)
-			{
-				struct timespec sleeping_time;
-				starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
-				_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
-			}
-			idle = 0;
-		}
-=======
 	/* Get the rank in case it is a parallel task */
 	if (is_parallel_task)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		rank = j->active_task_alias_count++;
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
->>>>>>> .merge-right.r7640
+
 
 		struct _starpu_combined_worker *combined_worker;
 		combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
@@ -355,25 +305,7 @@ int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	cpu_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(cpu_worker);
 
-<<<<<<< .working
-		/* In the case of combined workers, we need to inform the
-		 * scheduler each worker's execution is over.
-		 * Then we free the workers' task alias */
-		if (is_parallel_task)
-		{
-			_starpu_sched_post_exec_hook(task);
-			free(task);
-		}
-
-		if (rank == 0)
-			_starpu_handle_job_termination(j, workerid);
-        }
-
-	_STARPU_TRACE_WORKER_DEINIT_START
-
-=======
 	unsigned memnode = cpu_worker->memory_node;
->>>>>>> .merge-right.r7640
 	_starpu_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
@@ -383,7 +315,6 @@ int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
 
-<<<<<<< .working
 	return 0;
 }
 
@@ -402,8 +333,6 @@ _starpu_cpu_worker(void *arg)
 		_starpu_cpu_driver_run_once(&d);
 	_starpu_cpu_driver_deinit(&d);
 
-=======
->>>>>>> .merge-right.r6541
 	return NULL;
 }
 

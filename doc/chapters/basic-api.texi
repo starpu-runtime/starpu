@@ -36,7 +36,6 @@ Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
 indicates that no worker was available (so that StarPU was not initialized).
 @end deftypefun
 
-<<<<<<< .working
 @deftp {Data Type} {struct starpu_driver}
 @table @asis
 @item @code{enum starpu_archtype type}
@@ -55,24 +54,6 @@ Should only be used if type is STARPU_OPENCL_WORKER.
 @end deftp
 
 
-=======
-@deftp {Data Type} {struct starpu_driver}
-@table @asis
-@item @code{enum starpu_archtype type}
-The type of the driver. Only STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are
-currently supported.
-@item @code{union id} Anonymous union
-@table @asis
-@item @code{unsigned cuda_id}
-Should only be used if type is STARPU_CUDA_WORKER.
-@item @code{cl_device_id opencl_id}
-Should only be used if type is STARPU_OPENCL_WORKER.
-@end table
-@end table
-@end deftp
-
-
->>>>>>> .merge-right.r6541
 @deftp {Data Type} {struct starpu_conf}
 This structure is passed to the @code{starpu_init} function in order
 to configure StarPU. It has to be initialized with @code{starpu_conf_init}.
@@ -170,7 +151,6 @@ CPUs and all accelerators. This can also be specified with the
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
-<<<<<<< .working
 This can also be specified at compilation time by giving to the
 configure script the option @code{--disable-asynchronous-copy}.
 
@@ -206,24 +186,6 @@ The drivers that should not be launched by StarPU.
 @item @code{unsigned nnot_launched_drivers}
 The number of StarPU drivers that should not be launched by StarPU.
 
-=======
-
-@item @code{int *cuda_opengl_interoperability} (default = NULL)
-This can be set to an array of CUDA device identifiers for which
-@code{cudaGLSetGLDevice} should be called instead of @code{cudaSetDevice}. Its
-size is specified by the @code{n_cuda_opengl_interoperability} field below
-
-@item @code{int *n_cuda_opengl_interoperability} (default = 0)
-This has to be set to the size of the array pointed to by the
-@code{cuda_opengl_interoperability} field.
-
-@item @code{struct starpu_driver *not_launched_drivers}
-The drivers that should not be launched by StarPU.
-
-@item @code{unsigned nnot_launched_drivers}
-The number of StarPU drivers that should not be launched by StarPU.
-
->>>>>>> .merge-right.r6541
 @end table
 @end deftp
 
