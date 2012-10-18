@@ -48,7 +48,9 @@ Free Documentation License''.
 @page
 
 @node Top
-@top Preface
+@ifinfo
+@top StarPU Handbook
+@end ifinfo
 
 This manual documents the usage of StarPU version @value{VERSION}.  It
 was last updated on @value{UPDATED}.
