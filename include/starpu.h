@@ -143,7 +143,7 @@ struct starpu_conf
 	int disable_opencl_asynchronous_copy;
 
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
-	int *cuda_opengl_interoperability;
+	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;
 
 	/* A driver that the application will run in one of its own threads. */
