@@ -22,6 +22,7 @@
 #include <starpu_mpi_private.h>
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
+#include <starpu_mpi_insert_task.h>
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
@@ -781,10 +782,6 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static
 int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 {
-#ifndef STARPU_MPI_CACHE
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --disable-mpi-cache\n");
-#endif
-
 	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_finished, NULL);
@@ -822,6 +819,7 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 
 	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
+	_starpu_mpi_tables_init(MPI_COMM_WORLD);
 	return 0;
 }
 
