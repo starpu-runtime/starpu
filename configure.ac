@@ -558,6 +558,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
+have_valid_opencl=no
 AC_DEFUN([STARPU_CHECK_OPENCL],
 [
     __opencl_dir=$1
