@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -92,6 +92,23 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 	}
 
 	return NULL;
+}
+
+/* This is the same as _starpu_fifo_pop_task, but without checking that the
+ * worker will be able to execute this task. This is useful when the scheduler
+ * has already checked it. */
+struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_queue)
+{
+	struct starpu_task *task = NULL;
+
+	if (!starpu_task_list_empty(&fifo_queue->taskq))
+	{
+		task = starpu_task_list_pop_back(&fifo_queue->taskq);
+		fifo_queue->ntasks--;
+		_STARPU_TRACE_JOB_POP(task, 0);
+	}
+
+	return task;
 }
 
 /* pop every task that can be executed on the calling driver */

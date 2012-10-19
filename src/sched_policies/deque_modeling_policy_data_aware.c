@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -150,7 +150,7 @@ static struct starpu_task *dmda_pop_task(void)
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
 
-	task = _starpu_fifo_pop_task(fifo, workerid);
+	task = _starpu_fifo_pop_local_task(fifo);
 	if (task)
 	{
 		double model = task->predicted;
