@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 void _starpu_mpi_tables_init(MPI_Comm comm);
+void _starpu_mpi_tables_free(int world_size);
 
 #ifdef __cplusplus
 }

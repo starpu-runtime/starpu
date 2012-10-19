@@ -836,10 +836,11 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 int starpu_mpi_shutdown(void)
 {
 	void *value;
-	int rank;
+	int rank, world_size;
 
 	/* We need to get the  rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* kill the progression thread */
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -859,6 +860,7 @@ int starpu_mpi_shutdown(void)
 
 	_starpu_mpi_comm_amounts_display(rank);
 	_starpu_mpi_comm_amounts_free();
+	_starpu_mpi_tables_free(world_size);
 
 	return 0;
 }

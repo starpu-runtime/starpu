@@ -57,6 +57,32 @@ void _starpu_mpi_tables_init(MPI_Comm comm)
 #endif /* STARPU_MPI_CACHE */
 }
 
+void _starpu_mpi_tables_free(int world_size)
+{
+#ifdef STARPU_MPI_CACHE
+	int i;
+
+	_STARPU_MPI_DEBUG("Clearing htable for cache\n");
+
+	for(i=0 ; i<world_size ; i++)
+	{
+		struct _starpu_data_entry *entry, *tmp;
+		HASH_ITER(hh, sent_data[i], entry, tmp)
+		{
+			HASH_DEL(sent_data[i], entry);
+			free(entry);
+		}
+		HASH_ITER(hh, received_data[i], entry, tmp)
+		{
+			HASH_DEL(received_data[i], entry);
+			free(entry);
+		}
+	}
+	free(sent_data);
+	free(received_data);
+#endif
+}
+
 static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
 {
