@@ -26,6 +26,10 @@
 #include <common/utils.h>
 #include <pthread.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //#define STARPU_MPI_VERBOSE	1
 
 #ifdef STARPU_MPI_VERBOSE
@@ -95,5 +99,9 @@ LIST_TYPE(_starpu_mpi_req,
 	void *callback_arg;
 	void (*callback)(void *);
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_MPI_PRIVATE_H__
