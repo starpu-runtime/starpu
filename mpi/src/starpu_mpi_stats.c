@@ -21,37 +21,43 @@
 #include <starpu_mpi_private.h>
 
 /* measure the amount of data transfers between each pair of MPI nodes */
-#ifdef STARPU_COMM_STATS
 static size_t *comm_amount;
 static int world_size;
-#endif /* STARPU_COMM_STATS */
+static int stats_enabled=0;
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 {
 #ifdef STARPU_COMM_STATS
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-comm-stats, which slows down a bit\n");
+	stats_enabled = 1;
+#else
+	stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
+	if (stats_enabled == -1)
+	{
+		stats_enabled = 0;
+	}
+#endif /* STARPU_COMM_STATS */
+
+	if (stats_enabled == 0) return;
+
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-comm-stats or is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
 	MPI_Comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG("allocating for %d nodes\n", world_size);
 
 	comm_amount = (size_t *) calloc(world_size, sizeof(size_t));
-#endif /* STARPU_COMM_STATS */
 }
 
 void _starpu_mpi_comm_amounts_free()
 {
-#ifdef STARPU_COMM_STATS
+	if (stats_enabled == 0) return;
 	free(comm_amount);
-#endif /* STARPU_COMM_STATS */
 }
 
-void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)),
-				  unsigned dst  __attribute__ ((unused)),
-				  MPI_Datatype datatype  __attribute__ ((unused)),
-				  int count __attribute__ ((unused)))
+void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype datatype, int count)
 {
-#ifdef STARPU_COMM_STATS
 	int src, size;
+
+	if (stats_enabled == 0) return;
 
 	MPI_Comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
@@ -59,14 +65,14 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm  __attribute__ ((unused)),
 	_STARPU_MPI_DEBUG("[%d] adding %d to %d\n", src, count*size, dst);
 
 	comm_amount[dst] += count*size;
-#endif /* STARPU_COMM_STATS */
 }
 
 void _starpu_mpi_comm_amounts_display(int node)
 {
-#ifdef STARPU_COMM_STATS
 	unsigned dst;
 	size_t sum = 0;
+
+	if (stats_enabled == 0) return;
 
 	for (dst = 0; dst < world_size; dst++)
 	{
@@ -83,6 +89,5 @@ void _starpu_mpi_comm_amounts_display(int node)
 				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024));
 		}
 	}
-#endif /* STARPU_COMM_STATS */
 }
 
