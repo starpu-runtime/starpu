@@ -113,9 +113,7 @@ static void parse_args(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 
 		case 'v':
-			(void) fprintf(stdout, "%s %d.%d\n",
-				PROGNAME, STARPU_MAJOR_VERSION,
-				STARPU_MINOR_VERSION);
+		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			exit(EXIT_SUCCESS);
 
 		case '?':

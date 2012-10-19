@@ -57,8 +57,7 @@ static void parse_args(int argc, char **argv)
 	else if (strcmp(argv[1], "-v") == 0 ||
 		 strcmp(argv[1], "--version") == 0)
 	{
-		(void) fprintf(stdout, "%s %d.%d\n",
-			PROGNAME, STARPU_MAJOR_VERSION, STARPU_MINOR_VERSION);
+	        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 		exit(EXIT_SUCCESS);
 	}
 	else
