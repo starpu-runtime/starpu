@@ -52,6 +52,8 @@ run(struct starpu_task *task, struct starpu_driver *d)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_driver_run_once(d);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_run_once");
+	ret = starpu_task_wait(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 }
 
 static void
@@ -107,7 +109,7 @@ test_cpu(void)
 		cl.where = STARPU_CPU;
 		task->cl = &cl;
 		task->cl_arg = &var;
-		task->synchronous = 1;
+		task->detach = 0;
 
 		run(task, &d);
 	}
@@ -167,7 +169,7 @@ test_cuda(void)
 		cl.where = STARPU_CUDA;
 		task->cl = &cl;
 		task->cl_arg = &var;
-		task->synchronous = 1;
+		task->detach = 0;
 
 		run(task, &d);
 	}
@@ -246,7 +248,7 @@ test_opencl(void)
 		cl.where = STARPU_OPENCL;
 		task->cl = &cl;
 		task->cl_arg = &var;
-		task->synchronous = 1;
+		task->detach = 0;
 
 		run(task, &d);
 	}
