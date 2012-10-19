@@ -20,10 +20,10 @@
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
-/* Major version number of StarPU. */
-#undef STARPU_MAJOR_VERSION
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
 
-/* Minor version number of StarPU. */
-#undef STARPU_MINOR_VERSION
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
 
 #endif /* __STARPU_TOP_CONFIG_H__ */
