@@ -796,6 +796,16 @@ Return a pointer to the variable designated by @var{interface}.
 Return the size of the variable designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_VARIABLE_GET_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the variable designated by @var{interface}, to be
+used on OpenCL. The offset documented below has to be used in addition to this.
+@end defmac
+
+@defmac STARPU_VARIABLE_GET_OFFSET ({void *}@var{interface})
+Return the offset in the variable designated by @var{interface}, to be used
+with the device handle.
+@end defmac
+
 @node Accessing Vector Data Interfaces
 @subsubsection Vector Data Interfaces
 
@@ -1018,14 +1028,36 @@ Return the number of non-zero values in the matrix designated by @var{interface}
 Return a pointer to the non-zero values of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_BCSR_GET_NZVAL_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the array of non-zero values in the matrix designated
+by @var{interface}. The offset documented below has to be used in addition to 
+this.
+@end defmac
+
 @defmac STARPU_BCSR_GET_COLIND ({void *}@var{interface})
 Return a pointer to the column index of the matrix designated by @var{interface}.
+@end defmac
+
+@defmac STARPU_BCSR_GET_COLIND_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the column index of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
 @end defmac
 
 @defmac STARPU_BCSR_GET_ROWPTR ({void *}@var{interface})
 Return a pointer to the row pointer array of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_CSR_GET_ROWPTR_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the row pointer array of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
+@defmac STARPU_BCSR_GET_OFFSET ({void *}@var{interface})
+Return the offset in the arrays (coling, rowptr, nzval) of the matrix
+designated by @var{interface}, to be used with the device handles.
+@end defmac
 
 @node Accessing CSR Data Interfaces
 @subsubsection CSR Data Interfaces
@@ -1071,12 +1103,35 @@ Return the size of the row pointer array of the matrix designated by @var{interf
 Return a pointer to the non-zero values of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_CSR_GET_NZVAL_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the array of non-zero values in the matrix designated
+by @var{interface}. The offset documented below has to be used in addition to 
+this.
+@end defmac
+
 @defmac STARPU_CSR_GET_COLIND ({void *}@var{interface})
 Return a pointer to the column index of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_CSR_GET_COLIND_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the column index of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
 @defmac STARPU_CSR_GET_ROWPTR ({void *}@var{interface})
 Return a pointer to the row pointer array of the matrix designated by @var{interface}.
+@end defmac
+
+@defmac STARPU_CSR_GET_ROWPTR_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the row pointer array of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
+@defmac STARPU_CSR_GET_OFFSET ({void *}@var{interface})
+Return the offset in the arrays (colind, rowptr, nzval) of the matrix
+designated by @var{interface}, to be used with the device handles.
 @end defmac
 
 @defmac STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
@@ -1095,12 +1150,30 @@ Return the size of the elements registered into the matrix designated by @var{in
 Return a pointer to the column array of the matrix designated by
 @var{interface}.
 @end defmac
+@defmac STARPU_COO_GET_COLUMNS_DEV_HANDLE({void *}@var{interface})
+Return a device handle for the column array of the matrix designated by
+@var{interface}, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
+@end defmac
 @defmac STARPU_COO_GET_ROWS (interface)
 Return a pointer to the rows array of the matrix designated by @var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_ROWS_DEV_HANDLE({void *}@var{interface})
+Return a device handle for the row array of the matrix designated by
+@var{interface}, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
 @end defmac
 @defmac STARPU_COO_GET_VALUES (interface)
 Return a pointer to the values array of the matrix designated by
 @var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_VALUES_DEV_HANDLE({void *}@var{interface})
+Return a device handle for the value array of the matrix designated by
+@var{interface}, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
+@end defmac
+@defmac STARPU_COO_GET_OFFSET({void *}@var{itnerface})
+Return the offset in the arrays of the COO matrix designated by @var{interface}.
 @end defmac
 @defmac STARPU_COO_GET_NX (interface)
 Return the number of elements on the x-axis of the matrix designated by

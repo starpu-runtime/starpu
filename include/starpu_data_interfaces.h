@@ -217,10 +217,17 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 
 #define STARPU_COO_GET_COLUMNS(interface) \
 	(((struct starpu_coo_interface *)(interface))->columns)
+#define STARPU_COO_GET_COLUMNS_DEV_HANDLE(interface) \
+	(((struct starpu_coo_interface *)(interface))->columns)
 #define STARPU_COO_GET_ROWS(interface) \
+	(((struct starpu_coo_interface *)(interface))->rows)
+#define STARPU_COO_GET_ROWS_DEV_HANDLE(interface) \
 	(((struct starpu_coo_interface *)(interface))->rows)
 #define STARPU_COO_GET_VALUES(interface) \
 	(((struct starpu_coo_interface *)(interface))->values)
+#define STARPU_COO_GET_VALUES_DEV_HANDLE(interface) \
+	(((struct starpu_coo_interface *)(interface))->values)
+#define STARPU_COO_GET_OFFSET 0
 #define STARPU_COO_GET_NX(interface) \
 	(((struct starpu_coo_interface *)(interface))->nx)
 #define STARPU_COO_GET_NY(interface) \
@@ -302,6 +309,9 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 /* helper methods */
 #define STARPU_VARIABLE_GET_PTR(interface)	(((struct starpu_variable_interface *)(interface))->ptr)
 #define STARPU_VARIABLE_GET_ELEMSIZE(interface)	(((struct starpu_variable_interface *)(interface))->elemsize)
+#define STARPU_VARIABLE_GET_DEV_HANDLE(interface) \
+	(((struct starpu_variable_interface *)(interface))->ptr)
+#define STARPU_VARIABLE_GET_OFFSET 0
 
 /* void interface. There is no data really associated to that interface, but it
  * may be used as a synchronization mechanism. It also permits to express an
@@ -338,8 +348,15 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_CSR_GET_NNZ(interface)	(((struct starpu_csr_interface *)(interface))->nnz)
 #define STARPU_CSR_GET_NROW(interface)	(((struct starpu_csr_interface *)(interface))->nrow)
 #define STARPU_CSR_GET_NZVAL(interface)	(((struct starpu_csr_interface *)(interface))->nzval)
+#define STARPU_CSR_GET_NZVAL_DEV_HANDLE \
+	(((struct starpu_csr_interface *)(interface))->nnz)
 #define STARPU_CSR_GET_COLIND(interface)	(((struct starpu_csr_interface *)(interface))->colind)
+#define STARPU_CSR_GET_COLIND_DEV_HANDLE(interface) \
+	(((struct starpu_csr_interface *)(interface))->colind)
 #define STARPU_CSR_GET_ROWPTR(interface)	(((struct starpu_csr_interface *)(interface))->rowptr)
+#define STARPU_CSR_GET_ROWPTR_DEV_HANDLE \
+	(((struct starpu_csr_interface *)(interface))->rowptr)
+#define STARPU_CSR_GET_OFFSET 0
 #define STARPU_CSR_GET_FIRSTENTRY(interface)	(((struct starpu_csr_interface *)(interface))->firstentry)
 #define STARPU_CSR_GET_ELEMSIZE(interface)	(((struct starpu_csr_interface *)(interface))->elemsize)
 
@@ -370,8 +387,15 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handle, uint32_t home_node,
 
 #define STARPU_BCSR_GET_NNZ(interface)        (((struct starpu_bcsr_interface *)(interface))->nnz)
 #define STARPU_BCSR_GET_NZVAL(interface)      (((struct starpu_bcsr_interface *)(interface))->nzval)
+#define STARPU_BCSR_GET_NZVAL_DEV_HANDLE(interface) \
+	(((struct starpu_bcsr_interface *)(interface))->nnz)
 #define STARPU_BCSR_GET_COLIND(interface)     (((struct starpu_bcsr_interface *)(interface))->colind)
+#define STARPU_BCSR_GET_COLIND_DEV_HANDLE(interface) \
+	(((struct starpu_bcsr_interface *)(interface))->colind)
 #define STARPU_BCSR_GET_ROWPTR(interface)     (((struct starpu_bcsr_interface *)(interface))->rowptr)
+#define STARPU_BCSR_GET_ROWPTR_DEV_HANDLE(interface) \
+	(((struct starpu_bcsr_interface *)(interface))->rowptr)
+#define STARPU_BCSR_GET_OFFSET 0
 uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle);
 uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle);
 uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle);
