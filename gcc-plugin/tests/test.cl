@@ -1,1 +1,0 @@
-/* This is an almost empty OpenCL file.  */
