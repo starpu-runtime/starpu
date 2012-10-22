@@ -1245,25 +1245,6 @@ int starpu_worker_get_available_ids_by_type(enum starpu_archtype type, int *work
 	return cnt;
 }
 
-void starpu_worker_get_name(int id, char *dst, size_t maxlen)
-{
-	char *name = config.workers[id].name;
-
-	snprintf(dst, maxlen, "%s", name);
-}
-
-/* Retrieve the status which indicates what the worker is currently doing. */
-enum _starpu_worker_status _starpu_worker_get_status(int workerid)
-{
-	return config.workers[workerid].status;
-}
-
-/* Change the status of the worker which indicates what the worker is currently
- * doing (eg. executing a callback). */
-void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
-{
-	config.workers[workerid].status = status;
-}
 
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 {
