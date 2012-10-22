@@ -149,14 +149,6 @@ struct starpu_conf
 	/* A driver that the application will run in one of its own threads. */
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
-
-	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
-	int *cuda_opengl_interoperability;
-	unsigned n_cuda_opengl_interoperability;
-
-	/* A driver that the application will run in one of its own threads. */
-	struct starpu_driver *not_launched_drivers;
-	unsigned n_not_launched_drivers;
 };
 
 /* Initialize a starpu_conf structure with default values. */
