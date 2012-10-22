@@ -1376,12 +1376,6 @@ AC_ARG_ENABLE([socl],
 
 AC_MSG_CHECKING(for SOCL)
 
-if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
-    if test "$have_valid_opencl" = "no" ; then
-	STARPU_LOOK_FOR_OPENCL()
-    fi
-fi
-
 # in case SOCL was explicitely required, but is not available, this is an error
 if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
     AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
