@@ -446,9 +446,6 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 	/* this handle now has children */
 	handle->nchildren = nchildren;
 }
-<<<<<<< .working
-
-=======
 
 /*
  * Given an integer N, NPARTS the number of parts it must be divided in, ID the
@@ -482,4 +479,3 @@ _starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 	if (offset != NULL)
 		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
 }
->>>>>>> .merge-right.r7640
