@@ -22,6 +22,7 @@
 #include <starpu_mpi_private.h>
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
+#include <starpu_mpi_insert_task.h>
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
@@ -781,10 +782,6 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static
 int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 {
-#ifndef STARPU_MPI_CACHE
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --disable-mpi-cache\n");
-#endif
-
 	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_finished, NULL);
@@ -822,6 +819,7 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 
 	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
+	_starpu_mpi_tables_init(MPI_COMM_WORLD);
 	return 0;
 }
 
@@ -838,10 +836,11 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 int starpu_mpi_shutdown(void)
 {
 	void *value;
-	int rank;
+	int rank, world_size;
 
 	/* We need to get the  rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* kill the progression thread */
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -861,6 +860,7 @@ int starpu_mpi_shutdown(void)
 
 	_starpu_mpi_comm_amounts_display(rank);
 	_starpu_mpi_comm_amounts_free();
+	_starpu_mpi_tables_free(world_size);
 
 	return 0;
 }

@@ -14,23 +14,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_STATS_H__
-#define __STARPU_MPI_STATS_H__
+#ifndef __STARPU_MPI_INSERT_TASK_H__
+#define __STARPU_MPI_INSERT_TASK_H__
 
-#include <stdlib.h>
 #include <mpi.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void _starpu_mpi_comm_amounts_init(MPI_Comm comm);
-void _starpu_mpi_comm_amounts_free();
-void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype datatype, int count);
-void _starpu_mpi_comm_amounts_display(int node);
+void _starpu_mpi_tables_init(MPI_Comm comm);
+void _starpu_mpi_tables_free(int world_size);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPU_MPI_STATS_H__
+#endif // __STARPU_MPI_INSERT_TASK_H__

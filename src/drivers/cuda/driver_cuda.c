@@ -58,7 +58,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	config->topology.nhwcudagpus = cnt;
 }
 
-static void limit_gpu_mem_if_needed(int devid)
+static void limit_gpu_mem_if_needed(unsigned devid)
 {
 	cudaError_t cures;
 	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
@@ -77,7 +77,7 @@ static void limit_gpu_mem_if_needed(int devid)
 
 	props[devid].totalGlobalMem -= to_waste;
 
-	_STARPU_DEBUG("CUDA device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
 			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
 
@@ -87,7 +87,7 @@ static void limit_gpu_mem_if_needed(int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void unlimit_gpu_mem_if_needed(int devid)
+static void unlimit_gpu_mem_if_needed(unsigned devid)
 {
 	cudaError_t cures;
 
@@ -101,7 +101,7 @@ static void unlimit_gpu_mem_if_needed(int devid)
 	}
 }
 
-size_t starpu_cuda_get_global_mem_size(int devid)
+size_t starpu_cuda_get_global_mem_size(unsigned devid)
 {
 	return (size_t)props[devid].totalGlobalMem;
 }
@@ -127,7 +127,7 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	return &props[devid];
 }
 
-void starpu_cuda_set_device(int devid)
+void starpu_cuda_set_device(unsigned devid)
 {
 	cudaError_t cures;
 	struct starpu_conf *conf = _starpu_get_machine_config()->conf;
@@ -162,7 +162,7 @@ done:
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void init_context(int devid)
+static void init_context(unsigned devid)
 {
 	cudaError_t cures;
 	int workerid;
@@ -221,7 +221,7 @@ static void init_context(int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void deinit_context(int workerid, int devid)
+static void deinit_context(int workerid, unsigned devid)
 {
 	cudaError_t cures;
 
@@ -333,7 +333,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
 
-	int devid = args->devid;
+	unsigned devid = args->devid;
 
 	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
 
@@ -357,10 +357,10 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #endif
 		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
-	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB)", args->devid, devname, size);
+	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", args->devid, devname, size);
 #endif
-	snprintf(args->short_name, sizeof(args->short_name), "CUDA %d", args->devid);
-	_STARPU_DEBUG("cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", args->devid);
+	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	_STARPU_TRACE_WORKER_INIT_END
 

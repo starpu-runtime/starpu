@@ -176,6 +176,7 @@ Use the @command{mpicc} compiler at @var{path}, for starpumpi
 (@pxref{StarPU MPI support}).
 
 @item --enable-comm-stats
+@anchor{enable-comm-stats}
 Enable communication statistics for starpumpi (@pxref{StarPU MPI
 support}).
 
@@ -434,6 +435,12 @@ the coefficient to be applied to it before adding it to the computation part.
 THE SOCL test suite is only run when the environment variable
 @code{SOCL_OCL_LIB_OPENCL} is defined. It should contain the location
 of the libOpenCL.so file of the OCL ICD implementation.
+
+@item @code{STARPU_COMM_STATS}
+Communication statistics for starpumpi (@pxref{StarPU MPI support})
+will be enabled when the environment variable @code{STARPU_COMM_STATS}
+is defined. The statistics can also be enabled by configuring StarPU
+with the option @code{--enable-comm-stats} (@pxref{enable-comm-stats}).
 
 @end table
 

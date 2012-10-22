@@ -19,6 +19,8 @@ StarPU 1.1.0 (svn revision xxxx)
 
 New features:
   * OpenGL interoperability support.
+  * Communication statistics for MPI can also be enabled at execution
+    time by defining the environment variable STARPU_COMM_STATS
 
 StarPU 1.0.0 (svn revision 6306)
 ==============================================

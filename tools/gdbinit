@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -110,10 +110,10 @@ end
 define starpu-workers
   set language c
   set $num=0
-  printf "[Id] Name       Arch Mask Devid Bindid Workerid Isrunning Isinitialized\n"
+  printf "[Id] Name                                     Arch Mask Devid Bindid Workerid Isrunning Isinitialized\n"
   while $num<config->topology->nworkers
     set $worker=&config->workers[$num]
-    printf "[%2d] %-10s %-4d %-4d %-5d %-6d %-8d %-9d %-13d\n", $num, $worker->name, $worker->arch, $worker->worker_mask, \
+    printf "[%2d] %-40s %-4d %-4d %-5d %-6d %-8d %-9d %-13d\n", $num, $worker->name, $worker->arch, $worker->worker_mask, \
           $worker->devid, $worker->bindid, $worker->workerid, $worker->worker_is_running, $worker->worker_is_initialized
     set $num = $num + 1
   end

@@ -27,10 +27,8 @@ STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
 AC_SUBST([STARPU_MAJOR_VERSION])
 AC_SUBST([STARPU_MINOR_VERSION])
 AC_SUBST([STARPU_EFFECTIVE_VERSION])
-AC_DEFINE_UNQUOTED([STARPU_MAJOR_VERSION], [$STARPU_MAJOR_VERSION],
-  [Major version number of StarPU.])
-AC_DEFINE_UNQUOTED([STARPU_MINOR_VERSION], [$STARPU_MINOR_VERSION],
-  [Major version number of StarPU.])
+AC_DEFINE_UNQUOTED([STARPU_MAJOR_VERSION], [$STARPU_MAJOR_VERSION], [Major version number of StarPU.])
+AC_DEFINE_UNQUOTED([STARPU_MINOR_VERSION], [$STARPU_MINOR_VERSION], [Minor version number of StarPU.])
 
 . "$srcdir/STARPU-VERSION"
 AC_SUBST([LIBSTARPU_INTERFACE_CURRENT])
@@ -590,6 +588,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
+have_valid_opencl=no
 AC_DEFUN([STARPU_CHECK_OPENCL],
 [
     __opencl_dir=$1
@@ -1437,6 +1436,8 @@ if test "$build_socl" = "yes" ; then
        run_socl_check=yes
        AC_SUBST(SOCL_OCL_LIB_OPENCL)
    fi
+else
+   run_socl_check=no
 fi
 ###############################################################################
 #                                                                             #
