@@ -1150,7 +1150,7 @@ Return the size of the elements registered into the matrix designated by @var{in
 Return a pointer to the column array of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_COLUMNS_DEV_HANDLE({void *}@var{interface})
+@defmac STARPU_COO_GET_COLUMNS_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the column array of the matrix designated by
 @var{interface}, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
@@ -1158,7 +1158,7 @@ used in addition to this.
 @defmac STARPU_COO_GET_ROWS (interface)
 Return a pointer to the rows array of the matrix designated by @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_ROWS_DEV_HANDLE({void *}@var{interface})
+@defmac STARPU_COO_GET_ROWS_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the row array of the matrix designated by
 @var{interface}, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
@@ -1167,12 +1167,12 @@ used in addition to this.
 Return a pointer to the values array of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_VALUES_DEV_HANDLE({void *}@var{interface})
+@defmac STARPU_COO_GET_VALUES_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the value array of the matrix designated by
 @var{interface}, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
 @end defmac
-@defmac STARPU_COO_GET_OFFSET({void *}@var{itnerface})
+@defmac STARPU_COO_GET_OFFSET ({void *}@var{itnerface})
 Return the offset in the arrays of the COO matrix designated by @var{interface}.
 @end defmac
 @defmac STARPU_COO_GET_NX (interface)
