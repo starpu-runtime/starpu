@@ -440,7 +440,64 @@ Get the next task of the list. This is not erase-safe.
 
 @node Using Parallel Tasks
 @section Using Parallel Tasks
-Workers are grouped considering the topology of the machine in order to permit the opaque execution of parallel tasks.
+
+These are used by parallel tasks:
+
+@deftypefun int starpu_combined_worker_get_size (void)
+Return the size of the current combined worker, i.e. the total number of cpus
+running the same task in the case of SPMD parallel tasks, or the total number
+of threads that the task is allowed to start in the case of FORKJOIN parallel
+tasks.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_rank (void)
+Return the rank of the current thread within the combined worker. Can only be
+used in FORKJOIN parallel tasks, to know which part of the task to work on.
+@end deftypefun
+
+Most of these are used for schedulers which support parallel tasks.
+
+@deftypefun unsigned starpu_combined_worker_get_count (void)
+Return the number of different combined workers.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_id (void)
+Return the identifier of the current combined worker.
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array}[])
+Register a new combined worker and get its identifier
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_get_description (int @var{workerid}, {int *}@var{worker_size}, {int **}@var{combined_workerid})
+Get the description of a combined worker
+@end deftypefun
+
+@deftypefun int starpu_combined_worker_can_execute_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned @var{nimpl})
+Variant of starpu_worker_can_execute_task compatible with combined workers
+@end deftypefun
+
+
+@node Defining a new scheduling policy
+@section Defining a new scheduling policy
+
+TODO
+
+A full example showing how to define a new scheduling policy is available in
+the StarPU sources in the directory @code{examples/scheduler/}.
+
+@menu
+* Scheduling Policy API:: Scheduling Policy API
+* Source code::
+@end menu
+
+@node Scheduling Policy API
+@subsection Scheduling Policy API
+
+While StarPU comes with a variety of scheduling policies (@pxref{Task
+scheduling policy}), it may sometimes be desirable to implement custom
+policies to address specific problems.  The API described below allows
+users to write their own scheduling policy.
 
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
@@ -498,44 +555,6 @@ Indicates the successive cpu identifier that should be used by the OpenCL
 driver.  It is either filled according to the user's explicit parameters (from
 starpu_conf) or according to the STARPU_WORKERS_OPENCLID env. variable. Otherwise,
 they are taken in ID order.
-
-@end table
-@end deftp
-
-
-@deftypefun int starpu_combined_worker_get_size (void)
-Return the size of the current combined worker, i.e. the total number of cpus
-running the same task in the case of SPMD parallel tasks, or the total number
-of threads that the task is allowed to start in the case of FORKJOIN parallel
-tasks.
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_rank (void)
-Return the rank of the current thread within the combined worker. Can only be
-used in FORKJOIN parallel tasks, to know which part of the task to work on.
-@end deftypefun
-
-Most of these are used for schedulers which support parallel tasks.
-
-@deftypefun unsigned starpu_combined_worker_get_count (void)
-Return the number of different combined workers.
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_id (void)
-Return the identifier of the current combined worker.
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_assign_workerid (int @var{nworkers}, int @var{workerid_array}[])
-Register a new combined worker and get its identifier
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_get_description (int @var{workerid}, {int *}@var{worker_size}, {int **}@var{combined_workerid})
-Get the description of a combined worker
-@end deftypefun
-
-@deftypefun int starpu_combined_worker_can_execute_task (unsigned @var{workerid}, {struct starpu_task *}@var{task}, unsigned @var{nimpl})
-Variant of starpu_worker_can_execute_task compatible with combined workers
-@end deftypefun
 
 @node Scheduling Contexts
 @section Scheduling Contexts

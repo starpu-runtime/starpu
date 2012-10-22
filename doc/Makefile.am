@@ -34,13 +34,9 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 	chapters/fft-support.texi \
 	chapters/using.texi \
 	chapters/vector_scal_opencl.texi \
-<<<<<<< .working
 	chapters/socl.texi \
+	chapters/version.texi \
 	chapters/sched_ctx_hypervisor.texi
-=======
-	chapters/socl.texi \
-	chapters/version.texi
->>>>>>> .merge-right.r7640
 
 MAINTAINERCLEANFILES = starpu.pdf
 
