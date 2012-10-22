@@ -29,14 +29,9 @@ Name: starpu
 Description: offers support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@
-<<<<<<< .working
 Libs: -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@
 @STARPU_CUDA_LDFLAGS@ @STARPU_OPENCL_LDFLAGS@
 @STARPU_SCHED_CTX_HYPERVISOR@
 Libs.private: @LDFLAGS@ @LIBS@ @LIBSTARPU_LDFLAGS@
-=======
-Libs: -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_LDFLAGS@ @STARPU_OPENCL_LDFLAGS@
-Libs.private: @LDFLAGS@ @LIBS@ @LIBSTARPU_LDFLAGS@
->>>>>>> .merge-right.r7640
 Requires: @HWLOC_REQUIRES@
 Requires.private: @GORDON_REQUIRES@

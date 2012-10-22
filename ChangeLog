@@ -19,8 +19,91 @@ StarPU 1.1.0 (svn revision xxxx)
 
 New features:
   * OpenGL interoperability support.
+  * Capability to store compiled OpenCL kernels on the file system
+  * Capability to load compiled OpenCL kernels
+  * Performance models measurements can now be provided explicitly by
+    applications.
+  * Capability to emit communication statistics when running MPI code
+  * Add starpu_unregister_submit, starpu_data_acquire_on_node and
+    starpu_data_invalidate_submit
+  * New functionnality to wrapper starpu_insert_task to pass a array of
+	data_handles via the parameter STARPU_DATA_ARRAY
+  * Enable GPU-GPU direct transfers.
+  * GCC plug-in
+	- Add `registered' attribute
+	- A new pass was added that warns about the use of possibly
+	  unregistered memory buffers.
+  * SOCL
+        - Manual mapping of commands on specific devices is now possible
+  * New interface: COO matrix.
   * Communication statistics for MPI can also be enabled at execution
     time by defining the environment variable STARPU_COMM_STATS
+
+Changes:
+  * Fix the block filter functions.
+  * Fix StarPU-MPI on Darwin.
+  * The FxT code can now be used on systems other than Linux.
+  * Keep only one hashtable implementation common/uthash.h
+  * The cache of starpu_mpi_insert_task is fixed and thus now enabled by
+    default.
+  * Improve starpu_machine_display output.
+  * Standardize objects name in the performance model API
+  * SOCL
+    - Virtual SOCL device has been removed
+    - Automatic scheduling still available with command queues not
+      assigned to any device
+    - Remove modified OpenCL headers. ICD is now the only supported
+      way to use SOCL.
+    - SOCL test suite is only run when environment variable
+      SOCL_OCL_LIB_OPENCL is defined. It should contain the location
+      of the libOpenCL.so file of the OCL ICD implementation.
+  * Fix main memory leak on multiple unregister/re-register.
+  * Improve hwloc detection by configure
+
+Small changes:
+  * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
+	still available for compatibility reasons.
+  * include/starpu.h includes all include/starpu_*.h files, applications
+	therefore only need to have #include <starpu.h>
+  * Active task wait is now included in blocked time.
+  * Fix GCC plugin linking issues starting with GCC 4.7.
+  * Fix forcing calibration of never-calibrated archs.
+  * CUDA applications are no longer compiled with the "-arch sm_13"
+    option. It is specifically added to applications which need it.
+
+StarPU 1.0.3 (svn revision 7379)
+==============================================
+
+Changes:
+  * Several bug fixes in the build system
+  * Bug fixes in source code for non-Linux systems
+  * Fix generating FXT traces bigger than 64MiB.
+  * Improve ENODEV error detections in StarPU FFT
+
+StarPU 1.0.2 (svn revision xxx)
+==============================================
+
+Changes:
+  * Add starpu_block_shadow_filter_func_vector and an example.
+  * Add tag dependency in trace-generated DAG.
+  * Fix CPU binding for optimized CPU-GPU transfers.
+  * Fix parallel tasks CPU binding and combined worker generation.
+  * Fix generating FXT traces bigger than 64MiB.
+
+StarPU 1.0.1 (svn revision 6659)
+==============================================
+
+Changes:
+  * hwloc support. Warn users when hwloc is not found on the system and
+	produce error when not explicitely disabled.
+  * Several bug fixes
+  * GCC plug-in
+	- Add `#pragma starpu release'
+	- Fix bug when using `acquire' pragma with function parameters
+	- Slightly improve test suite coverage
+	- Relax the GCC version check
+  * Update SOCL to use new API
+  * Documentation improvement.
 
 StarPU 1.0.0 (svn revision 6306)
 ==============================================
@@ -221,3 +304,9 @@ Changes:
    - transparent data coherency management
    - High-level expressive interface
 
+
+# Local Variables:
+# mode: text
+# coding: utf-8
+# ispell-local-dictionary: "american"
+# End:

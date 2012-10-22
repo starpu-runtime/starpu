@@ -24,12 +24,12 @@ if USE_MPI
 SUBDIRS += mpi
 endif
 
-if BUILD_SOCL
-SUBDIRS += socl
-endif
-
 if BUILD_EXAMPLES
 SUBDIRS += examples
+endif
+
+if BUILD_SOCL
+SUBDIRS += socl
 endif
 
 if BUILD_GCC_PLUGIN
