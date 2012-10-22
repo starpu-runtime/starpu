@@ -29,7 +29,7 @@ cost_function(struct starpu_task *task, unsigned nimpl)
 {
 	(void) task;
 	(void) nimpl;
-	return 0.0;
+	return 1.0;
 }
 
 static struct starpu_perfmodel model =
