@@ -243,8 +243,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double *best_exp_endp,
 					double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 					double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
-					int *forced_worker, int *forced_impl,
-					starpu_task_bundle_t bundle)
+					int *forced_worker, int *forced_impl)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
@@ -258,6 +257,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	unsigned worker;
 
 	unsigned nimpl;
+
+	starpu_task_bundle_t bundle = task->bundle;
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -410,13 +411,10 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	 *	and detect if there is some calibration that needs to be done.
 	 */
 
-	starpu_task_bundle_t bundle = task->bundle;
-
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					&max_exp_end, &best_exp_end,
 					local_data_penalty,
-					local_power, &forced_worker, &forced_impl,
-					bundle);
+					local_power, &forced_worker, &forced_impl);
 
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
@@ -483,7 +481,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	/* we should now have the best worker in variable "best" */
 	double model_best, transfer_model_best;
 
-	if (bundle)
+	if (task->bundle)
 	{
 		/* If we have a task bundle, we have computed the expected
 		 * length for the entire bundle, but not for the task alone. */
@@ -495,7 +493,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		/* Remove the task from the bundle since we have made a
 		 * decision for it, and that other tasks should not consider it
 		 * anymore. */
-		starpu_task_bundle_remove(bundle, task);
+		starpu_task_bundle_remove(task->bundle, task);
 	}
 	else
 	{
