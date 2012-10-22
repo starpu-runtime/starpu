@@ -484,34 +484,36 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	if (forced_best == -1)
 	{
 		for (worker = 0; worker < nworkers; worker++)
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			if (!starpu_worker_can_execute_task(worker, task, nimpl))
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
-				/* no one on that queue may execute this task */
-				continue;
-			}
+				if (!starpu_worker_can_execute_task(worker, task, nimpl))
+				{
+					/* no one on that queue may execute this task */
+					continue;
+				}
 
-			fitness[worker][nimpl] = alpha*(exp_end[worker][nimpl] - best_exp_end)
-				+ beta*(local_data_penalty[worker][nimpl])
-				+ _gamma*(local_power[worker][nimpl]);
+				fitness[worker][nimpl] = alpha*(exp_end[worker][nimpl] - best_exp_end)
+					+ beta*(local_data_penalty[worker][nimpl])
+					+ _gamma*(local_power[worker][nimpl]);
 
-			if (exp_end[worker][nimpl] > max_exp_end)
-			{
-				/* This placement will make the computation
-				 * longer, take into account the idle
-				 * consumption of other cpus */
-				fitness[worker][nimpl] += _gamma * idle_power * (exp_end[worker][nimpl] - max_exp_end) / 1000000.0;
-			}
+				if (exp_end[worker][nimpl] > max_exp_end)
+				{
+					/* This placement will make the computation
+					 * longer, take into account the idle
+					 * consumption of other cpus */
+					fitness[worker][nimpl] += _gamma * idle_power * (exp_end[worker][nimpl] - max_exp_end) / 1000000.0;
+				}
 
-			if (best == -1 || fitness[worker][nimpl] < best_fitness)
-			{
-				/* we found a better solution */
-				best_fitness = fitness[worker][nimpl];
-				best = worker;
-				selected_impl = nimpl;
+				if (best == -1 || fitness[worker][nimpl] < best_fitness)
+				{
+					/* we found a better solution */
+					best_fitness = fitness[worker][nimpl];
+					best = worker;
+					selected_impl = nimpl;
 
-				//			_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
+					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
+				}
 			}
 		}
 	}
