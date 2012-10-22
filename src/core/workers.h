@@ -249,4 +249,3 @@ struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
 
 #endif // __WORKERS_H__
-

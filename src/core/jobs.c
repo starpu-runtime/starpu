@@ -441,4 +441,3 @@ const char *_starpu_get_model_name(struct _starpu_job *j)
 #endif
         }
 }
-

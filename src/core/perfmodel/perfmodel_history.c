@@ -1099,10 +1099,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Not calibrated enough */
-	{
-//		printf("nan -> nsamples %d\n", entry->nsample);
 		exp = NAN;
-	}
 
 	if (isnan(exp) && !model->benchmarking)
 	{

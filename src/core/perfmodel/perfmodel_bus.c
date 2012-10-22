@@ -243,7 +243,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	/* Free buffers */
 	cudaFree(d_buffer);
-	starpu_cuda_set_device(src);
+	cudaSetDevice(src);
 	cudaFree(s_buffer);
 
 	cudaThreadExit();

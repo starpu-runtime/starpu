@@ -1,13 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
-<<<<<<< .working
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
-=======
- * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012 Centre National de la Recherche Scientifique
->>>>>>> .merge-right.r7640
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -443,25 +438,14 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
-<<<<<<< .working
-<<<<<<< .working
 	topology->nsched_ctxs = 0;
-=======
+
 #ifdef STARPU_USE_OPENCL
 	_starpu_opencl_init();
 #endif
 #ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
 #endif
->>>>>>> .merge-right.r7640
-=======
-#ifdef STARPU_USE_OPENCL
-	_starpu_opencl_init();
-#endif
-#ifdef STARPU_USE_CUDA
-	_starpu_init_cuda();
-#endif
->>>>>>> .merge-right.r7640
 	_starpu_init_topology(config);
 
 	_starpu_initialize_workers_bindid(config);
@@ -508,20 +492,12 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		int worker_idx = topology->nworkers + cudagpu;
 		config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_cuda_gpuid(config);
-<<<<<<< .working
 		enum starpu_perf_archtype arch =
 			(enum starpu_perf_archtype)((int)STARPU_CUDA_DEFAULT + devid);
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
 		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + cudagpu].workerid);
-=======
-		enum starpu_perf_archtype arch =
-			(enum starpu_perf_archtype)((int)STARPU_CUDA_DEFAULT + devid);
-		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].perf_arch = arch;
-		config->workers[worker_idx].worker_mask = STARPU_CUDA;
->>>>>>> .merge-right.r7640
 		config->worker_mask |= STARPU_CUDA;
 
 		struct handle_entry *entry;
@@ -606,7 +582,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			topology->nopenclgpus = openclgpu;
 			break;
 		}
-<<<<<<< .working
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
 		enum starpu_perf_archtype arch =
 			(enum starpu_perf_archtype)((int)STARPU_OPENCL_DEFAULT + devid);
@@ -614,14 +589,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
 		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + openclgpu].workerid);
-=======
-		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		enum starpu_perf_archtype arch =
-			(enum starpu_perf_archtype)((int)STARPU_OPENCL_DEFAULT + devid);
-		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].perf_arch = arch;
-		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
->>>>>>> .merge-right.r7640
 		config->worker_mask |= STARPU_OPENCL;
 	}
 
@@ -658,7 +625,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	unsigned spu;
 	for (spu = 0; spu < config->ngordon_spus; spu++)
 	{
-<<<<<<< .working
 		int worker_idx = topology->nworkers + spu;
 		config->workers[worker_idx].arch = STARPU_GORDON_WORKER;
 		config->workers[worker_idx].perf_arch = STARPU_GORDON_DEFAULT;
@@ -666,14 +632,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].worker_is_running = 0;
 		config->workers[worker_idx].worker_mask = STARPU_GORDON;
 		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + spu].workerid);
-=======
-		int worker_idx = topology->nworkers + spu;
-		config->workers[worker_idx].arch = STARPU_GORDON_WORKER;
-		config->workers[worker_idx].perf_arch = STARPU_GORDON_DEFAULT;
-		config->workers[worker_idx].id = spu;
-		config->workers[worker_idx].worker_is_running = 0;
-		config->workers[worker_idx].worker_mask = STARPU_GORDON;
->>>>>>> .merge-right.r7640
 		config->worker_mask |= STARPU_GORDON;
 	}
 
@@ -1033,10 +991,6 @@ _starpu_destroy_topology (
 	may_bind_automatically = 0;
 #endif
 }
-<<<<<<< .working
-<<<<<<< .working
-
-=======
 
 void
 starpu_topology_print (FILE *output)
@@ -1079,48 +1033,3 @@ starpu_topology_print (FILE *output)
 		fprintf(output, "\n");
 	}
 }
->>>>>>> .merge-right.r7640
-=======
-
-void
-starpu_topology_print (FILE *output)
-{
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
-	unsigned core;
-	unsigned worker;
-	unsigned nworkers = starpu_worker_get_count();
-	unsigned ncombinedworkers = topology->ncombinedworkers;
-
-	for (core = 0; core < topology->nhwcpus; core++) {
-		fprintf(output, "core %u\t", core);
-		for (worker = 0;
-		     worker < nworkers + ncombinedworkers;
-		     worker++)
-		{
-			if (worker < nworkers)
-			{
-				if (topology->workers_bindid[worker] == core)
-				{
-					char name[256];
-					starpu_worker_get_name (worker, name,
-								sizeof(name));
-					fprintf(output, "%s\t", name);
-				}
-			}
-			else
-			{
-				int worker_size, i;
-				int *combined_workerid;
-				starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
-				for (i = 0; i < worker_size; i++)
-				{
-					if (topology->workers_bindid[combined_workerid[i]] == core)
-						fprintf(output, "comb %u\t", worker-nworkers);
-				}
-			}
-		}
-		fprintf(output, "\n");
-	}
-}
->>>>>>> .merge-right.r7640

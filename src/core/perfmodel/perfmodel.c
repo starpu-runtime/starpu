@@ -343,7 +343,6 @@ double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct star
 }
 
 /* Return the expected duration of the entire task bundle in µs */
-
 double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl)
 {
 	double expected_length = 0.0;
@@ -368,6 +367,7 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 			
 		entry = entry->next;
 	}
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_length;

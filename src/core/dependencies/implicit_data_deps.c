@@ -260,6 +260,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 #ifdef STARPU_USE_FXT
 				_starpu_get_job_associated_to_task(new_sync_task)->model_name = "sync_task_redux";
 #endif
+
 				_starpu_add_writer_after_readers(handle, new_sync_task, new_sync_task);
 
 				task = new_sync_task;
@@ -538,4 +539,3 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 
 	return 0;
 }
-

@@ -175,4 +175,3 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 const char *_starpu_get_model_name(struct _starpu_job *j);
 
 #endif // __JOBS_H__
-

@@ -62,4 +62,3 @@ extern struct starpu_sched_policy _starpu_sched_heft_policy;
 
 
 #endif // __SCHED_POLICY_H__
-
