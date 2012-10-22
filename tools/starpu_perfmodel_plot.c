@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,8 +24,6 @@
 #include <limits.h>
 
 #include <starpu.h>
-#include <starpu_perfmodel.h>
-#include <starpu_fxt.h>
 #include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
 
 #ifdef __MINGW32__
@@ -74,6 +72,7 @@ given perfmodel\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
+        fprintf(stderr, "\n");
 }
 
 static void parse_args(int argc, char **argv)
@@ -145,6 +144,14 @@ static void parse_args(int argc, char **argv)
 			continue;
 		}
 	}
+
+	if (!symbol && !list)
+	{
+		fprintf(stderr, "Incorrect usage, aborting\n");
+                usage(argv);
+		exit(-1);
+	}
+
 }
 
 static void print_comma(FILE *gnuplot_file, int *first)
@@ -163,7 +170,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 	char arch_name[256];
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256, nimpl);
 
-	struct starpu_per_arch_perfmodel *arch_model =
+	struct starpu_perfmodel_per_arch *arch_model =
 		&model->per_arch[arch][nimpl];
 
 	if (arch_model->regression.valid || arch_model->regression.nl_valid)
@@ -209,7 +216,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	char *command;
 	FILE *datafile;
 	unsigned arch;
-	struct starpu_history_list *ptr;
+	struct starpu_perfmodel_history_list *ptr;
 	char archname[32];
 	int col;
 	int len;
@@ -224,7 +231,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	unsigned implid;
 	for (arch = arch1; arch < arch2; arch++) {
 		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-			struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][implid];
+			struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
 			starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, archname, 32, implid);
 
 			//ptrs[arch-arch1][implid] = ptr[arch-arch1][implid] = arch_model->list;
@@ -244,7 +251,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		/* Get the next minimum */
 		for (arch = arch1; arch < arch2; arch++)
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-				struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][implid];
+				struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
 				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
 					unsigned long size = ptr->entry->size;
 					if (size > last && size < minimum)
@@ -258,9 +265,9 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		fprintf(datafile, "%-15lu ", minimum);
 		for (arch = arch1; arch < arch2; arch++) {
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
-				struct starpu_per_arch_perfmodel *arch_model = &model->per_arch[arch][implid];
+				struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
 				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
-					struct starpu_history_entry *entry = ptr->entry;
+					struct starpu_perfmodel_history_entry *entry = ptr->entry;
 					if (entry->size == minimum) {
 						fprintf(datafile, "\t%-15le\t%-15le", 0.001*entry->mean, 0.001*entry->deviation);
 						break;
@@ -403,7 +410,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
         if (list) {
-                int ret = starpu_list_models(stdout);
+                int ret = starpu_perfmodel_list(stdout);
                 if (ret) {
                         fprintf(stderr, "The performance model directory is invalid\n");
                         return 1;
@@ -411,18 +418,11 @@ int main(int argc, char **argv)
 		return 0;
         }
 
-	/* We need at least a symbol name */
-	if (!symbol)
-	{
-		fprintf(stderr, "No symbol was specified\n");
-		return 1;
-	}
-
 	/* Load the performance model associated to the symbol */
-	ret = starpu_load_history_debug(symbol, &model);
+	ret = starpu_perfmodel_load_symbol(symbol, &model);
 	if (ret == 1)
 	{
-		fprintf(stderr, "The performance model could not be loaded\n");
+		fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", symbol);
 		return 1;
 	}
 

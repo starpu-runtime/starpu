@@ -4,7 +4,6 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +26,6 @@
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
-#include <core/sched_ctx.h>
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
 #endif
@@ -188,6 +186,7 @@ static void init_context(unsigned devid)
 		}
 	}
 #endif
+
 	/* force CUDA to initialize the context for real */
 	cures = cudaFree(0);
 	if (STARPU_UNLIKELY(cures)) {
@@ -389,6 +388,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 	struct _starpu_job *j = NULL;
 
 	task = _starpu_get_worker_task(args, workerid, memnode);
+
 	if (!task)
 		return 0;
 
@@ -423,7 +423,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 		}
 	}
 
-	_starpu_handle_job_termination(j);
+	_starpu_handle_job_termination(j, workerid);
 
 	return 0;
 }

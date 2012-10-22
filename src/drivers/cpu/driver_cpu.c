@@ -4,7 +4,6 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +28,6 @@
 #include <core/debug.h>
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
-#include <core/sched_ctx.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -226,7 +224,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 
 	j = _starpu_get_job_associated_to_task(task);
 
- 	/* can a cpu perform that task ? */
+	/* can a cpu perform that task ? */
 	if (!_STARPU_CPU_MAY_PERFORM(j))
 	{
 		/* put it and the end of the queue ... XXX */
@@ -245,7 +243,6 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		rank = j->active_task_alias_count++;
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
 
 		struct _starpu_combined_worker *combined_worker;
 		combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
@@ -293,7 +290,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	}
 
 	if (rank == 0)
-		_starpu_handle_job_termination(j);
+		_starpu_handle_job_termination(j, workerid);
 	return 0;
 }
 

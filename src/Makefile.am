@@ -206,10 +206,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	debug/traces/starpu_fxt_mpi.c				\
 	debug/traces/starpu_fxt_dag.c				\
 	debug/traces/starpu_paje.c				\
-	debug/traces/starpu_fxt.c				\
-	debug/traces/starpu_fxt_mpi.c				\
-	debug/traces/starpu_fxt_dag.c				\
-	debug/traces/starpu_paje.c				\
 	debug/latency.c						\
 	debug/structures_size.c					\
 	profiling/profiling.c					\
@@ -242,4 +238,3 @@ endif
 
 showcheck:
 	-cat /dev/null
-

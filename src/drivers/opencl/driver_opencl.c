@@ -4,7 +4,6 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -529,7 +528,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 		}
 	}
 
-	_starpu_handle_job_termination(j);
+	_starpu_handle_job_termination(j, workerid);
 	return 0;
 }
 

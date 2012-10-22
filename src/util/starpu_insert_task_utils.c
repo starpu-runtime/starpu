@@ -276,7 +276,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
-<<<<<<< .working
+
 		else if (arg_type==STARPU_HYPERVISOR_TAG) 
 		{
 			int hypervisor_tag = va_arg(varg_list, int);
@@ -288,14 +288,13 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 			(*task)->flops = flops;
 		}
 
-=======
+
 		else if (arg_type==STARPU_TAG)
 		{
 			starpu_tag_t tag = va_arg(varg_list, starpu_tag_t);
 			(*task)->tag_id = tag;
 			(*task)->use_tag = 1;
 		}
->>>>>>> .merge-right.r7640
 	}
 
 	va_end(varg_list);

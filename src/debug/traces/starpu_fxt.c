@@ -1346,4 +1346,3 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	options->nworkers = nworkers;
 }
 #endif // STARPU_USE_FXT
-

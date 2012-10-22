@@ -246,4 +246,3 @@ void _starpu_fxt_write_paje_header(FILE *file)
 }
 
 #endif
-
