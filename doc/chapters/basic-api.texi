@@ -7,21 +7,21 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Versioning::
-* Initialization and Termination::
-* Workers' Properties::
-* Data Management::
-* Data Interfaces::
-* Data Partition::
-* Codelets and Tasks::
-* Explicit Dependencies::
-* Implicit Data Dependencies::
-* Performance Model API::
-* Profiling API::
-* CUDA extensions::
-* OpenCL extensions::
-* Cell extensions::
-* Miscellaneous helpers::
+* Versioning::                  
+* Initialization and Termination::  
+* Workers' Properties::         
+* Data Library::                
+* Data Interfaces::             
+* Data Partition::              
+* Codelets and Tasks::          
+* Explicit Dependencies::       
+* Implicit Data Dependencies::  
+* Performance Model API::       
+* Profiling API::               
+* CUDA extensions::             
+* OpenCL extensions::           
+* Cell extensions::             
+* Miscellaneous helpers::       
 @end menu
 
 @node Versioning
