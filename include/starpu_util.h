@@ -250,8 +250,6 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
  * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
-<<<<<<< .working
-<<<<<<< .working
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */
 #define STARPU_VALUE		(1<<4)	/* Pointer to a constant value */
 #define STARPU_CALLBACK		(1<<5)	/* Callback function */
@@ -274,10 +272,6 @@ void starpu_codelet_unpack_args(void *cl_arg, ...);
  * given to a codelet and later unpacked with starpu_codelet_unpack_args */
 void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...);
 
-=======
->>>>>>> .merge-right.r7640
-=======
->>>>>>> .merge-right.r7640
 #ifdef __cplusplus
 }
 #endif

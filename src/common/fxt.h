@@ -205,26 +205,10 @@ do {									\
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
-<<<<<<< .working
-<<<<<<< .working
 		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, syscall(SYS_gettid), 1, model_name); \
-=======
-		_STARPU_FUT_DO_PROBE3STR(_STARPU_FUT_START_CODELET_BODY, (job), _starpu_gettid(), 1, model_name); \
->>>>>>> .merge-right.r7640
-=======
-		_STARPU_FUT_DO_PROBE3STR(_STARPU_FUT_START_CODELET_BODY, (job), _starpu_gettid(), 1, model_name); \
->>>>>>> .merge-right.r7640
 	}								\
 	else {                                                          \
-<<<<<<< .working
-<<<<<<< .working
 		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, syscall(SYS_gettid), 0); \
-=======
-		FUT_DO_PROBE3(_STARPU_FUT_START_CODELET_BODY, (job), _starpu_gettid(), 0); \
->>>>>>> .merge-right.r7640
-=======
-		FUT_DO_PROBE3(_STARPU_FUT_START_CODELET_BODY, (job), _starpu_gettid(), 0); \
->>>>>>> .merge-right.r7640
 	}								\
 } while(0);
 
@@ -423,4 +407,3 @@ do {										\
 #endif // STARPU_USE_FXT
 
 #endif // __FXT_H__
-

@@ -202,25 +202,14 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
-<<<<<<< .working
+
 double starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, uint32_t footprint);
 int starpu_perfmodel_list(FILE *output);
 void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
-=======
->>>>>>> .merge-right.r7640
-
-<<<<<<< .working
-void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
-
-=======
-int starpu_perfmodel_list(FILE *output);
-void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
-int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
 
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 
->>>>>>> .merge-right.r7640
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
 

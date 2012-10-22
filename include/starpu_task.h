@@ -241,7 +241,6 @@ struct starpu_task
 	.predicted = -1.0,				\
 	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
-<<<<<<< .working
 	.magic = 42,                  			\
 	.sched_ctx = 0,					\
 	.control_task = 0,				\
@@ -250,10 +249,6 @@ struct starpu_task
 	.already_pushed = 0,				\
 		.scheduled = 0				\
 }
-=======
-	.magic = 42                  			\
-}
->>>>>>> .merge-right.r7640
 
 /*
  * handle task dependencies: it is possible to associate a task with a unique
