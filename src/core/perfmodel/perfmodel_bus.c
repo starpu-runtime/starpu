@@ -94,6 +94,8 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	size_t size = SIZE;
 
 	/* Initialize CUDA context on the device */
+	/* We do not need to enable OpenGL interoperability at this point,
+	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(dev);
 
 	/* hack to avoid third party libs to rebind threads */
@@ -189,6 +191,8 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
 
 	/* Initialize CUDA context on the source */
+	/* We do not need to enable OpenGL interoperability at this point,
+	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(src);
 
 	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
@@ -207,6 +211,8 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cudaMemset(s_buffer, 0, size);
 
 	/* Initialize CUDA context on the destination */
+	/* We do not need to enable OpenGL interoperability at this point,
+	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(dst);
 
 	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0) {
