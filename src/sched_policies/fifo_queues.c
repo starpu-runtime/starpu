@@ -52,19 +52,100 @@ int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo)
 	return fifo->ntasks == 0;
 }
 
-/* TODO: revert front/back? */
-int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
+int
+_starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue,
+			      pthread_mutex_t *sched_mutex,
+			      pthread_cond_t *sched_cond,
+			      struct starpu_task *task)
 {
+	struct starpu_task_list *list = &fifo_queue->taskq;
+
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	_STARPU_TRACE_JOB_PUSH(task, 0);
-	/* TODO: if prio, put at back */
-	starpu_task_list_push_front(&fifo_queue->taskq, task);
+
+	if (list->head == NULL)
+	{
+		list->head = task;
+		list->tail = task;
+		task->prev = NULL;
+		task->next = NULL;
+	}
+	else
+	{
+		struct starpu_task *current = list->head;
+		struct starpu_task *prev = NULL;
+
+		while (current)
+		{
+			if (current->priority >= task->priority)
+				break;
+
+			prev = current;
+			current = current->next;
+		}
+
+		if (prev == NULL)
+		{
+			/* Insert at the front of the list */
+			list->head->prev = task;
+			task->prev = NULL;
+			task->next = list->head;
+			list->head = task;
+		}
+		else
+		{
+			if (current)
+			{
+				/* Insert between prev and current */
+				task->prev = prev;
+				prev->next = task;
+				task->next = current;
+				current->prev = task;
+			}
+			else
+			{
+				/* Insert at the tail of the list */
+				list->tail->next = task;
+				task->next = NULL;
+				task->prev = list->tail;
+				list->tail = task;
+			}
+		}
+	}
+
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
 	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+
+	return 0;
+}
+
+/* TODO: revert front/back? */
+int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
+{
+
+	if (task->priority > 0)
+	{
+		_STARPU_TRACE_JOB_PUSH(task, 1);
+		_starpu_fifo_push_sorted_task(fifo_queue, sched_mutex,
+					      sched_cond, task);
+	}
+	else
+	{
+		_STARPU_TRACE_JOB_PUSH(task, 0);
+
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		starpu_task_list_push_front(&fifo_queue->taskq, task);
+
+		fifo_queue->ntasks++;
+		fifo_queue->nprocessed++;
+
+		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	}
 
 	return 0;
 }

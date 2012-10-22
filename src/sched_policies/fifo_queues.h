@@ -44,6 +44,11 @@ void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo);
 
 int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo);
 
+int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue,
+				  pthread_mutex_t *sched_mutex,
+				  pthread_cond_t *sched_cond,
+				  struct starpu_task *task);
+
 int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task);
 
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo, int workerid);
