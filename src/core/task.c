@@ -348,6 +348,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 	int ret;
 	unsigned is_sync = task->synchronous;
+	starpu_task_bundle_t bundle = task->bundle;
         _STARPU_LOG_IN();
 
 	if (is_sync)
@@ -406,6 +407,30 @@ int starpu_task_submit(struct starpu_task *task)
 
 		if (task->cl->power_model && task->cl->power_model->symbol)
 			_starpu_load_perfmodel(task->cl->power_model);
+	}
+
+	if (bundle)
+	{
+		/* We need to make sure that models for other tasks of the
+		 * bundle are also loaded, so the scheduler can estimate the
+		 * duration of the whole bundle */
+		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+
+		struct _starpu_task_bundle_entry *entry;
+		entry = bundle->list;
+
+		while (entry)
+		{
+			if (entry->task->cl->model && entry->task->cl->model->symbol)
+				_starpu_load_perfmodel(entry->task->cl->model);
+
+			if (entry->task->cl->power_model && entry->task->cl->power_model->symbol)
+				_starpu_load_perfmodel(entry->task->cl->power_model);
+
+			entry = entry->next;
+		}
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	}
 
 	/* If profiling is activated, we allocate a structure to store the
