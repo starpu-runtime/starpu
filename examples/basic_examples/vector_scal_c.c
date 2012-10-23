@@ -94,6 +94,7 @@ int compute_(int *F_NX, float *vector)
 	 * READ-ONLY buffer and that the codelet may be given a pointer to a
 	 * COPY of the argument */
 	task->cl_arg = &factor;
+	task->cl_arg_size = sizeof(factor);
 
 	/* execute the task on any eligible computational ressource */
 	ret = starpu_task_submit(task);

@@ -100,6 +100,7 @@ int main(int argc, char **argv)
 	 * of the buffer.  For this reason, a buffer passed as a codelet
 	 * argument (cl_arg) is NOT a valid synchronization medium! */
 	task->cl_arg = &params;
+	task->cl_arg_size = sizeof(params);
 
 	/* once the task has been executed, callback_func(0x42)
 	 * will be called on a CPU */

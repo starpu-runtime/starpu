@@ -81,6 +81,7 @@ int main(int argc, char **argv)
 			task[j]->cl = &codelet;
 
 			task[j]->cl_arg = &factors[i];
+			task[j]->cl_arg_size = sizeof(float);
 
 			task[j]->handles[0] = handles[i];
 

@@ -123,6 +123,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 	task->cl = &cmd->codelet;
 	task->cl->model = cmd->kernel->perfmodel;
 	task->cl_arg = cmd;
+	task->cl_arg_size = sizeof(cmd);
 
 	/* Execute the task on a specific worker? */
 	if (cmd->_command.cq->device != NULL) {

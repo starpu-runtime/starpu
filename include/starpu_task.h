@@ -127,6 +127,8 @@ struct starpu_task
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
+	/* in case the argument buffer has to be uploaded explicitely */
+	size_t cl_arg_size;
 
 	/* when the task is done, callback_func(callback_arg) is called */
 	void (*callback_func)(void *);
@@ -207,6 +209,7 @@ struct starpu_task
 {							\
 	.cl = NULL,					\
 	.cl_arg = NULL,					\
+	.cl_arg_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
 	.priority = STARPU_DEFAULT_PRIO,		\

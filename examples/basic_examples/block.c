@@ -53,6 +53,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         task->callback_func = NULL;
         task->handles[0] = block_handle;
 	task->cl_arg = &multiplier;
+	task->cl_arg_size = sizeof(multiplier);
 
         int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV))

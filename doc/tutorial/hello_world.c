@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * Redistribution  and  use  in  source and binary forms, with or without
@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 
     struct params params = { 1, 2.0f };
     task->cl_arg = &params;
+    task->cl_arg_size = sizeof(params);
 
     task->callback_func = callback_func;
     task->callback_arg = 0x42;

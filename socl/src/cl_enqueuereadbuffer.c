@@ -77,6 +77,7 @@ cl_int command_read_buffer_submit(command_read_buffer cmd) {
 	}
 
 	task->cl_arg = cmd;
+	task->cl_arg_size = sizeof(*cmd);
 
 	task_submit(task, cmd);
 

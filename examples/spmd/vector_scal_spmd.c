@@ -125,6 +125,7 @@ int main(int argc, char **argv)
 
 		task->handles[0] = vector_handle;
 		task->cl_arg = &factor;
+		task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) {

@@ -221,6 +221,7 @@ int main(int argc, char **argv)
 
     struct params params = @{ 1, 2.0f @};
     task->cl_arg = &params;
+    task->cl_arg_size = sizeof(params);
 
     task->callback_func = callback_func;
     task->callback_arg = 0x42;
@@ -256,7 +257,8 @@ kernel should be offloaded on the different architectures, and the task
 structure is a wrapper containing a codelet and the piece of data on which the
 codelet should operate.
 
-The optional @code{cl_arg} field is a pointer to a buffer with some parameters for the kernel
+The optional @code{cl_arg} field is a pointer to a buffer (of size
+@code{cl_arg_size}) with some parameters for the kernel
 described by the codelet. For instance, if a codelet implements a computational
 kernel that multiplies its input vector by a constant, the constant could be
 specified by the means of this buffer, instead of registering it as a StarPU
@@ -625,6 +627,7 @@ struct starpu_task *task = starpu_task_create();
 task->cl = &cl;                      /* @b{Pointer to the codelet defined below} */
 task->handles[0] = vector_handle;    /* @b{First parameter of the codelet} */
 task->cl_arg = &factor;
+task->cl_arg_size = sizeof(factor);
 task->synchronous = 1;
 
 starpu_task_submit(task);
@@ -885,6 +888,7 @@ int main(int argc, char **argv)
     task->cl = &cl;
     task->handles[0] = vector_handle;
     task->cl_arg = &factor;
+    task->cl_arg_size = sizeof(factor);
 @end smallexample
 @end cartouche
 

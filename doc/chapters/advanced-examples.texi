@@ -256,6 +256,7 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
     task->cl = &cl;
     task->synchronous = 1;
     task->cl_arg = &factor;
+    task->cl_arg_size = sizeof(factor);
 
     starpu_task_submit(task);
 @}
@@ -606,6 +607,7 @@ starpu_codelet_pack_args(&arg_buffer, &arg_buffer_size,
                     STARPU_VALUE, &ffactor, sizeof(ffactor),
                     0);
 task->cl_arg = arg_buffer;
+task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
 @end smallexample
 

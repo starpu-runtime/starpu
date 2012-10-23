@@ -92,6 +92,7 @@ cl_int command_write_buffer_submit(command_write_buffer cmd) {
 		task->cl = &codelet_writebuffer;
 
 	task->cl_arg = cmd;
+	task->cl_arg_size = sizeof(*cmd);
 
 	/* Execute the task on a specific worker? */
 	if (cmd->_command.cq->device != NULL) {

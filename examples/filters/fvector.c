@@ -83,6 +83,7 @@ int main(int argc, char **argv)
                 task->cl = &cl;
                 task->synchronous = 1;
                 task->cl_arg = &factor;
+                task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
