@@ -100,9 +100,6 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned synthesize_ar
     unsigned i, n, nworkers;
     int cpu_workers[STARPU_NMAXWORKERS];
 
-    int ret;
-
-
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct starpu_machine_topology *topology = &config->topology;
 
@@ -134,8 +131,8 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned synthesize_ar
 			struct worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
 			int newworkerid = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
+			STARPU_ASSERT(newworkerid >= 0);
 			workers->add(workers,newworkerid);
-			STARPU_ASSERT(ret >= 0);
     }
 	
     /* Add artificial intermediate objects recursively */
