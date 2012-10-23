@@ -165,7 +165,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		 * from popping a task from the scheduler to blocking. Otherwise the
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
-		_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 
 		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
 		{
@@ -175,7 +175,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		}
 
 		if (_starpu_worker_can_block(memnode))
-			_STARPU_PTHREAD_COND_WAIT(args->sched_cond, args->sched_mutex);
+		{
+			_STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
+		}
 		else
 		{
 			_starpu_clock_gettime(&start_time[workerid]);
@@ -183,7 +185,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 			idle[workerid] = 1;
 			
 		}
-		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 		return NULL;
 	}
