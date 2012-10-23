@@ -1692,6 +1692,17 @@ by the DSM.
 This pointer is passed to the codelet through the second argument
 of the codelet implementation (e.g. @code{cpu_func} or @code{cuda_func}).
 
+@item @code{size_t cl_arg_size} (optional)
+For some specific drivers, the @code{cl_arg} pointer cannot not be directly
+given to the driver function. A buffer of size @code{cl_arg_size}
+needs to be allocated on the driver. This buffer is then filled with
+the @code{cl_arg_size} bytes starting at address @code{cl_arg}. In
+this case, the argument given to the codelet is therefore not the
+@code{cl_arg} pointer, but the address of the buffer in local store
+(LS) instead.
+This field is ignored for CPU, CUDA and OpenCL codelets, where the
+@code{cl_arg} pointer is given as such.
+
 @item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback
