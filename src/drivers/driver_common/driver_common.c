@@ -27,10 +27,6 @@
 #include <core/sched_policy.h>
 #include <top/starpu_top_core.h>
 
-
-struct timespec start_time[STARPU_NMAXWORKERS], end_time[STARPU_NMAXWORKERS];
-unsigned idle[STARPU_NMAXWORKERS];
-
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
@@ -175,32 +171,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		}
 
 		if (_starpu_worker_can_block(memnode))
-		{
 			_STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
-		}
-		else
-		{
-			_starpu_clock_gettime(&start_time[workerid]);
-			_starpu_worker_register_sleeping_start_date(workerid, &start_time[workerid]);
-			idle[workerid] = 1;
-			
-		}
+
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 		return NULL;
-	}
-	if(idle[workerid])
-	{
-		_starpu_clock_gettime(&end_time[workerid]);
-		
-		int profiling = starpu_profiling_status_get();
-		if (profiling)
-		{
-			struct timespec sleeping_time;
-			starpu_timespec_sub(&end_time[workerid], &start_time[workerid], &sleeping_time);
-			_starpu_worker_update_profiling_info_sleeping(workerid, &start_time[workerid], &end_time[workerid]);
-		}
-		idle[workerid] = 0;
 	}
 
 	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
