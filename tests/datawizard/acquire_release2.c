@@ -19,7 +19,11 @@
 
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 40;
+#else
 static unsigned ntasks = 40000;
+#endif
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
@@ -91,10 +95,6 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
         FPRINTF(stderr, "Token: %u\n", token);
-
-#ifdef STARPU_QUICK_CHECK
-	ntasks /= 10;
-#endif
 
 	for(i=0; i<ntasks; i++)
 	{
