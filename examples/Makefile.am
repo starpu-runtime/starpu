@@ -3,7 +3,7 @@
 # Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011-2012  INRIA
+# Copyright (C) 2012 INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,6 @@ EXTRA_DIST = 					\
 	lu/xlu_implicit_pivot.c			\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
-	sched_ctx_utils/sched_ctx_utils.c		\
 	incrementer/incrementer_kernels_opencl_kernel.cl 	\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
@@ -100,7 +99,6 @@ noinst_HEADERS = 				\
 	lu/complex_double.h			\
 	lu/blas_complex.h			\
 	cholesky/cholesky.h			\
-	sched_ctx_utils/sched_ctx_utils.h	\
 	common/blas_model.h			\
 	common/blas.h				\
 	mult/simple.h				\
@@ -514,7 +512,6 @@ cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\
 	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
-	sched_ctx_utils/sched_ctx_utils.c	\
 	common/blas.c
 
 cholesky_cholesky_implicit_LDADD =		\

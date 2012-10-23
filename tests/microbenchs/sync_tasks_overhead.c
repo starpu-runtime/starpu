@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	ntasks = 128;
 #endif
 

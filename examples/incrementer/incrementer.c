@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	niter /= 100;
 #endif
 	if (argc == 2)
