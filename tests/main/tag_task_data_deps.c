@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 
 	starpu_data_handle_t handle1, handle2;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	return STARPU_TEST_SKIPPED;
 #endif
 

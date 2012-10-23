@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	int ntasks = 1000;
 	int ret;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	ntasks /= 10;
 #endif
 

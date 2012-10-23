@@ -23,7 +23,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
   #define NLOOPS	4
 #else
   #define NLOOPS	128

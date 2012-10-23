@@ -32,7 +32,7 @@
 
 #define START 4
 #define STOP 4096
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define FACTOR 8
 #else
 #define FACTOR 2
@@ -41,7 +41,7 @@
 starpu_data_handle_t data_handles[8];
 float *buffers[8];
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 10;
 #else
 static unsigned ntasks = 1000;

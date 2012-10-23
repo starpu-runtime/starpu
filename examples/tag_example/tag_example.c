@@ -43,7 +43,7 @@
 
 struct starpu_codelet cl = {};
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define Ni	32
 #define Nj	32
 #define Nk	32

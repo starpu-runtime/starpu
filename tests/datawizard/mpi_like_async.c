@@ -309,7 +309,7 @@ int main(int argc, char **argv)
 	int ret;
 	void *retval;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	niter /= 16;
 	nthreads /= 4;
 #endif

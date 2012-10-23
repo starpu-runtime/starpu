@@ -25,7 +25,7 @@
 /* This is equivalent to calling starpu_task_init later on */
 struct starpu_task task = STARPU_TASK_INITIALIZER;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
 #else
 static unsigned ntasks = 65536;

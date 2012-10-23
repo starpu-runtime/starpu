@@ -24,7 +24,7 @@
 
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
   #define N	2
 #else
   #define N	10

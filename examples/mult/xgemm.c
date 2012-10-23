@@ -33,7 +33,7 @@
 static unsigned niter = 10;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned xdim = 256;
 static unsigned ydim = 256;
 static unsigned zdim = 64;
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	niter /= 10;
 #endif
 
