@@ -160,7 +160,6 @@ create_and_submit_task(unsigned int dev)
 	task->synchronous = 1;
 	task->handles[0] = array_of_structs_handle;
 	task->cl_arg = NULL;
-	task->cl_arg_size = 0;
 	return starpu_task_submit(task);
 }
 

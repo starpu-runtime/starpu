@@ -368,7 +368,6 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 	}
 	factor = -factor;
 	task->cl_arg = &factor;
-	task->cl_arg_size = sizeof(&factor);
 
 	*taskp = task;
 	return 0;

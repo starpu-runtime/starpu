@@ -197,7 +197,6 @@ int main(int argc, char **argv)
 		 * argument (cl_arg) is NOT a valid synchronization medium! */
 		struct params params = { i, 2.0f };
 		task[i]->cl_arg = &params;
-		task[i]->cl_arg_size = sizeof(params);
 
 		/* once the task has been executed, callback_func(0x42)
 		 * will be called on a CPU */

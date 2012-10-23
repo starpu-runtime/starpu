@@ -71,7 +71,6 @@ cl_int command_copy_buffer_submit(command_copy_buffer cmd) {
 	}
 
 	task->cl_arg = cmd;
-	task->cl_arg_size = sizeof(*cmd);
 
 	cmd->dst_buffer->scratch = 0;
 

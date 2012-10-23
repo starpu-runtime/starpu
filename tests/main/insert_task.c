@@ -97,11 +97,10 @@ int main(int argc, char **argv)
 	char *arg_buffer;
 	size_t arg_buffer_size;
 	starpu_codelet_pack_args(&arg_buffer, &arg_buffer_size,
-			    STARPU_VALUE, &ifactor, sizeof(ifactor),
-			    STARPU_VALUE, &ffactor, sizeof(ffactor),
-			    0);
+				 STARPU_VALUE, &ifactor, sizeof(ifactor),
+				 STARPU_VALUE, &ffactor, sizeof(ffactor),
+				 0);
 	task->cl_arg = arg_buffer;
-	task->cl_arg_size = arg_buffer_size;
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;
