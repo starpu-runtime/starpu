@@ -121,13 +121,6 @@ Search for an OpenCL library under @var{dir}, which should notably
 contain the OpenCL shared libraries---e.g. @file{libOpenCL.so}. This defaults to
 @code{/lib} appended to the value given to @code{--with-opencl-dir}.
 
-@item --enable-gordon
-Enable the use of the Gordon runtime for Cell SPUs.
-@c TODO: rather default to enabled when detected
-
-@item --with-gordon-dir=@var{prefix}
-Search for the Gordon SDK under @var{prefix}.
-
 @item --enable-maximplementations=@var{count}
 Allow for at most @var{count} codelet implementations for the same
 target device.  This information is then available as the
@@ -277,9 +270,6 @@ create as many CUDA workers as there are CUDA devices.
 @item @code{STARPU_NOPENCL}
 OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 
-@item @code{STARPU_NGORDON}
-Specify the number of SPUs that StarPU can use.
-
 @item @code{STARPU_WORKERS_NOBIND}
 Setting it to non-zero will prevent StarPU from binding its threads to
 CPUs. This is for instance useful when running the testsuite in parallel.
@@ -294,7 +284,7 @@ determined by the OS, or provided by the @code{hwloc} library in case it is
 available.
 
 Note that the first workers correspond to the CUDA workers, then come the
-OpenCL and the SPU, and finally the CPU workers. For example if
+OpenCL workers, and finally the CPU workers. For example if
 we have @code{STARPU_NCUDA=1}, @code{STARPU_NOPENCL=1}, @code{STARPU_NCPU=2}
 and @code{STARPU_WORKERS_CPUID = "0 2 1 3"}, the CUDA device will be controlled
 by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
