@@ -243,12 +243,6 @@ MKL website} provides a script to determine the linking flags.
 @item --disable-build-examples
 Disable the build of examples.
 
-@end table
-
-@item --disable-starpu-top
-Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
-is enabled when the required dependencies are found.
-
 @item --enable-sched-ctx-hypervisor
 Enables the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hypervisor}). 
 By default, it is disabled.
