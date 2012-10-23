@@ -381,13 +381,15 @@ tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
 and maximum observed input size. It can be useful to set the
 @code{STARPU_CALIBRATE} environment variable to @code{1} and run the application
-on varying input sizes, so as to feed the performance model for a variety of
-inputs, or to provide the measurements explictly by using
+on varying input sizes with @code{STARPU_SCHED} set to @code{eager} scheduler,
+so as to feed the performance model for a variety of
+inputs. The application can also provide the measurements explictly by using
 @code{starpu_perfmodel_update_history}. The @code{starpu_perfmodel_display} and
 @code{starpu_perfmodel_plot}
 tools can be used to observe how much the performance model is calibrated (@pxref{Performance model calibration}); when
 their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
-StarPU use the resulting performance model without recording new measures. If
+StarPU use the resulting performance model without recording new measures, and
+@code{STARPU_SCHED} can be set to @code{heft} to benefit from the performance models. If
 the data input sizes vary a lot, it is really important to set
 @code{STARPU_CALIBRATE} to @code{0}, otherwise StarPU will continue adding the
 measures, and result with a very big performance model, which will take time a
