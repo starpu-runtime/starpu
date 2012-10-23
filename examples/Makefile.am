@@ -74,27 +74,6 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 
 endif
 
-if STARPU_USE_GORDON
-
-SPU_CC ?= spu-gcc
-SPU_LD ?= spu-ld
-
-SPULDFLAGS =
-SPULIBS = -lblas #-lc -lgloss -lc
-
-.c.spuo:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_CC) -c -fpic $< -o $@
-
-.spuo.spuelf:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
-
-BUILT_SOURCES +=				\
-	gordon/null_kernel_gordon.spuelf
-
-endif
-
 if STARPU_HAVE_ICC
 .icc.o:
 	$(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \

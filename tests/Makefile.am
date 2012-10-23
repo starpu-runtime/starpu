@@ -77,24 +77,6 @@ NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src 
 
 endif
 
-if STARPU_USE_GORDON
-
-SPU_CC ?= spu-gcc
-SPU_LD ?= spu-ld
-
-.c.spuo:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_CC) -c -fpic $< -o $@
-
-.spuo.spuelf:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_LD) $< -o $@
-
-#BUILT_SOURCES +=
-#	microbenchs/null_kernel_gordon.spuelf
-
-endif
-
 testbindir = $(libdir)/starpu/tests
 
 #####################################
@@ -384,16 +366,6 @@ datawizard_wt_host_SOURCES =			\
 	datawizard/wt_host.c
 datawizard_wt_broadcast_SOURCES =		\
 	datawizard/wt_broadcast.c
-
-if STARPU_USE_GORDON
-datawizard_sync_and_notify_data_SOURCES +=	\
-	datawizard/sync_and_notify_data_gordon_kernels.c
-datawizard_sync_and_notify_data_implicit_SOURCES +=	\
-	datawizard/sync_and_notify_data_gordon_kernels.c
-BUILT_SOURCES += 						\
-	datawizard/sync_and_notify_data_gordon_kernels.spuelf	\
-	microbenchs/null_kernel_gordon.spuelf
-endif
 
 ###################
 # Block interface #

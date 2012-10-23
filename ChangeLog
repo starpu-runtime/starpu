@@ -59,6 +59,9 @@ Changes:
       of the libOpenCL.so file of the OCL ICD implementation.
   * Fix main memory leak on multiple unregister/re-register.
   * Improve hwloc detection by configure
+  * Cell:
+    - It is no longer possible to enable the cell support via the
+      gordon driver
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
