@@ -713,7 +713,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 //	_starpu_profiling_init();
 
-	_starpu_load_bus_performance_files();
 
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
@@ -733,6 +732,9 @@ int starpu_init(struct starpu_conf *user_conf)
 	     config.conf = user_conf;
 	     config.default_conf = 0;
 	}
+
+	_starpu_load_bus_performance_files();
+
 	_starpu_conf_check_environment(config.conf);
 
 	_starpu_init_all_sched_ctxs(&config);
