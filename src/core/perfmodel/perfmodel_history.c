@@ -1067,7 +1067,10 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			exp = entry->history_entry->mean;
 		else if (!model->benchmarking)
 		{
-			_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+			char archname[32];
+
+			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
