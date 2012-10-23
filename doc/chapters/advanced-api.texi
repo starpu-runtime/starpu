@@ -474,28 +474,6 @@ Get the description of a combined worker
 Variant of starpu_worker_can_execute_task compatible with combined workers
 @end deftypefun
 
-
-@node Defining a new scheduling policy
-@section Defining a new scheduling policy
-
-TODO
-
-A full example showing how to define a new scheduling policy is available in
-the StarPU sources in the directory @code{examples/scheduler/}.
-
-@menu
-* Scheduling Policy API:: Scheduling Policy API
-* Source code::
-@end menu
-
-@node Scheduling Policy API
-@subsection Scheduling Policy API
-
-While StarPU comes with a variety of scheduling policies (@pxref{Task
-scheduling policy}), it may sometimes be desirable to implement custom
-policies to address specific problems.  The API described below allows
-users to write their own scheduling policy.
-
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
 @item @code{unsigned nworkers}
@@ -549,6 +527,9 @@ Indicates the successive cpu identifier that should be used by the OpenCL
 driver.  It is either filled according to the user's explicit parameters (from
 starpu_conf) or according to the STARPU_WORKERS_OPENCLID env. variable. Otherwise,
 they are taken in ID order.
+
+@end table
+@end deftp
 
 @node Scheduling Contexts
 @section Scheduling Contexts
