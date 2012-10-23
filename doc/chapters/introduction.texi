@@ -83,7 +83,7 @@ The remainder of this section describes the main concepts used in StarPU.
 @cindex codelet
 One of the StarPU primary data structures is the @b{codelet}. A codelet describes a
 computational kernel that can possibly be implemented on multiple architectures
-such as a CPU, a CUDA device or a Cell's SPU.
+such as a CPU, a CUDA device or an OpenCL device.
 
 @c TODO insert illustration f: f_spu, f_cpu, ...
 
@@ -150,7 +150,7 @@ A @b{worker} execute tasks. There is typically one per CPU computation core and
 one per accelerator (for which a whole CPU core is dedicated).
 
 A @b{driver} drives a given kind of workers. There are currently CPU, CUDA,
-OpenCL and Gordon drivers. They usually start several workers to actually drive
+and OpenCL drivers. They usually start several workers to actually drive
 them.
 
 A @b{performance model} is a (dynamic or static) model of the performance of a

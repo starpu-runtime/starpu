@@ -133,6 +133,27 @@ copy_cuda_to_ram_async(void *src_interface, unsigned src_node,
 				    dst_interface, dst_node,
 				    stream, cudaMemcpyDeviceToHost);
 }
+
+static int
+copy_cuda_to_cuda(void *src_interface, unsigned src_node,
+		  void *dst_interface, unsigned dst_node)
+{
+	return copy_cuda_async_sync(src_interface, src_node,
+				    dst_interface, dst_node,
+				    NULL, cudaMemcpyDeviceToDevice);
+}
+
+#ifdef NO_STRIDE
+static int
+copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
+			void *dst_interface, unsigned dst_node,
+			cudaStream_t stream)
+{
+	return copy_cuda_async_sync(src_interface, src_node,
+				    dst_interface, dst_node,
+				    stream, cudaMemcpyDeviceToDevice);
+}
+#endif /* !NO_STRIDE */
 #endif /* !STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
@@ -281,9 +302,9 @@ static struct starpu_data_copy_methods coo_copy_data_methods =
 	.cuda_to_ram         = copy_cuda_to_ram,
 	.ram_to_cuda_async   = copy_ram_to_cuda_async,
 	.cuda_to_ram_async   = copy_cuda_to_ram_async,
-	.cuda_to_cuda        = NULL, /* TODO */
+	.cuda_to_cuda        = copy_cuda_to_cuda,
 #ifdef NO_STRIDE
-	.cuda_to_cuda_async  = NULL, /* TODO */
+	.cuda_to_cuda_async  = copy_cuda_to_cuda_async,
 #endif
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL

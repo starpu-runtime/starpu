@@ -507,21 +507,64 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 	STARPU_ABORT();
 }
 
-int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
+int
+starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
+			    void *dst_ptr, unsigned dst_node,
+			    size_t ssize, cudaStream_t stream,
+			    enum cudaMemcpyKind kind)
 {
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	int peer_copy = 0;
+	int src_dev = -1, dst_dev = -1;
+#endif
 	cudaError_t cures = 0;
+
+	if (kind == cudaMemcpyDeviceToDevice && src_node != dst_node)
+	{
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		peer_copy = 1;
+		src_dev = _starpu_memory_node_to_devid(src_node);
+		dst_dev = _starpu_memory_node_to_devid(dst_node);
+#else
+		STARPU_ABORT();
+#endif
+	}
 
 	if (stream)
 	{
-	     _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-	     cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
-	     _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		if (peer_copy)
+		{
+			cures = cudaMemcpyPeerAsync((char *) dst_ptr, dst_dev,
+						    (char *) src_ptr, src_dev,
+						    ssize, stream);
+		}
+		else
+#endif
+		{
+			cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
+		}
+		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	}
+
 	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
 	if (stream == NULL || cures)
 	{
 		/* do it in a synchronous fashion */
-		cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		if (peer_copy)
+		{
+			cures = cudaMemcpyPeer((char *) dst_ptr, dst_dev,
+					       (char *) src_ptr, src_dev,
+					       ssize);
+		}
+		else
+#endif
+		{
+			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+		}
+		
 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);

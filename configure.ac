@@ -775,72 +775,26 @@ if test x$disable_asynchronous_opencl_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and OpenCL devices])
 fi
 
+###############################################################################
+#                                                                             #
+#                                 Cell                                        #
+#                                                                             #
+###############################################################################
+
+# warning: Cell driver has been removed from configure, but as the
+# source code is still available, we need to define the minimum
+# requirements to compile
+AC_DEFINE_UNQUOTED(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices])
 
 ###############################################################################
 #                                                                             #
-#                                 Cell settings                               #
+#                                 Drivers                                     #
 #                                                                             #
 ###############################################################################
-
-#TODO fix the default dir
-AC_ARG_ENABLE(gordon, [AS_HELP_STRING([--enable-gordon],
-			[use Cell SPUs])],, enable_gordon=maybe)
-
-if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
-
-	AC_ARG_WITH(gordon-dir, [AS_HELP_STRING([--with-gordon-dir=<path>],
-			[specify Gordon installation directory (default is /usr/local/)])],
-			[
-				gordon_dir="$withval"
-				enable_gordon=yes
-			], gordon_dir=/usr/local/)
-
-	# do we have a valid Gordon setup ?
-	have_valid_gordon=yes
-
-	# can we use dynamic code loading facilities ?
-	AC_CHECK_LIB(elf, elf_memory,, [have_valid_gordon=no])
-
-	AC_CHECK_LIB(spe2, spe_context_create,,[have_valid_gordon=no])
-	AC_CHECK_FUNC(spe_in_mbox_write, [], [have_valid_gordon=no])
-
-	PKG_PROG_PKG_CONFIG
-	if test -d "$gordon_dir"; then
-		PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:$gordon_dir"
-	fi
-	AC_SUBST(PKG_CONFIG_PATH)
-	PKG_CHECK_MODULES([GORDON], [libgordon], [], have_valid_gordon=no)
-
-	CPPFLAGS="${CPPFLAGS} ${GORDON_CFLAGS}"
-	LIBS="${LIBS} ${GORDON_LIBS}"
-
-	# AC_CHECK_FUNC(gordon_init, [gordon], [have_valid_gordon=no])
-
-	# in case Gordon was explicitely required, but is not available, this is an error
-	if test x$enable_gordon = xyes -a x$have_valid_gordon = xno; then
-		AC_MSG_ERROR([cannot find Gordon])
-	fi
-
-
-	# now we enable Gordon if and only if a proper setup is available
-	enable_gordon=$have_valid_gordon
-	AC_DEFINE(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices])
-fi
-
-AC_MSG_CHECKING(whether GORDON should be used)
-AC_MSG_RESULT($enable_gordon)
-AC_SUBST(STARPU_USE_GORDON, $enable_gordon)
-AM_CONDITIONAL(STARPU_USE_GORDON, test x$enable_gordon = xyes)
-
-if test x$enable_gordon = xyes; then
-	AC_DEFINE(STARPU_USE_GORDON, [1], [Cell support is enabled])
-	GORDON_REQUIRES=gordon
-fi
-AC_SUBST(GORDON_REQUIRES)
 
 AC_MSG_CHECKING(whether blocking drivers should be disabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--disable-blocking-drivers], [disable blocking drivers])],
-				enable_blocking=$enableval, enable_blocking=$enable_gordon)
+				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
 
 if test x$enable_blocking = xno; then
@@ -1015,8 +969,7 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
-# We have one memory node shared by all CPU workers, one node per GPU, and
-# currently the Cell driver is using the same memory node as the CPU.
+# We have one memory node shared by all CPU workers, one node per GPU
 maxnodes=1
 if test x$enable_cuda = xyes ; then
 	# we could have used nmaxcudadev + 1, but this would certainly give an
@@ -1405,12 +1358,6 @@ AC_ARG_ENABLE([socl],
   [enable_socl="maybe"])
 
 AC_MSG_CHECKING(for SOCL)
-
-if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
-    if test "$have_valid_opencl" = "no" ; then
-	STARPU_LOOK_FOR_OPENCL()
-    fi
-fi
 
 # in case SOCL was explicitely required, but is not available, this is an error
 if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
@@ -1865,7 +1812,6 @@ AC_MSG_NOTICE([
 	CPUs   enabled: $enable_cpu
 	CUDA   enabled: $enable_cuda
 	OpenCL enabled: $enable_opencl
-	Cell   enabled: $enable_gordon
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,

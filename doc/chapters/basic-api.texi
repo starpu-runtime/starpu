@@ -20,7 +20,6 @@
 * Profiling API::
 * CUDA extensions::
 * OpenCL extensions::
-* Cell extensions::
 * Miscellaneous helpers::
 @end menu
 
@@ -93,10 +92,6 @@ be specified with the @code{STARPU_NCUDA} environment variable.
 @item @code{int nopencl} (default = -1)
 This is the number of OpenCL devices that StarPU can use. This can
 also be specified with the @code{STARPU_NOPENCL} environment variable.
-
-@item @code{int nspus} (default = -1)
-This is the number of Cell SPUs that StarPU can use. This can also be
-specified with the @code{STARPU_NGORDON} environment variable.
 
 @item @code{unsigned use_explicit_workers_bindid} (default = 0)
 If this flag is set, the @code{workers_bindid} array indicates where the
@@ -243,7 +238,6 @@ The different values are:
 @item @code{STARPU_CPU_WORKER}
 @item @code{STARPU_CUDA_WORKER}
 @item @code{STARPU_OPENCL_WORKER}
-@item @code{STARPU_GORDON_WORKER}
 @end table
 @end deftp
 
@@ -271,10 +265,6 @@ value should be at most @code{STARPU_MAXCUDADEVS}.
 @deftypefun unsigned starpu_opencl_worker_get_count (void)
 This function returns the number of OpenCL devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXOPENCLDEVS}.
-@end deftypefun
-
-@deftypefun unsigned starpu_spu_worker_get_count (void)
-This function returns the number of Cell SPUs controlled by StarPU.
 @end deftypefun
 
 @deftypefun int starpu_worker_get_id (void)
@@ -311,9 +301,8 @@ This function returns the type of processing unit associated to a
 worker. The worker identifier is a value returned by the
 @code{starpu_worker_get_id} function). The returned value
 indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
-core, @code{STARPU_CUDA_WORKER} for a CUDA device,
-@code{STARPU_OPENCL_WORKER} for a OpenCL device, and
-@code{STARPU_GORDON_WORKER} for a Cell SPU. The value returned for an invalid
+core, @code{STARPU_CUDA_WORKER} for a CUDA device, and
+@code{STARPU_OPENCL_WORKER} for a OpenCL device. The value returned for an invalid
 identifier is unspecified.
 @end deftypefun
 
@@ -339,7 +328,6 @@ todo
 @item @code{STARPU_CPU_RAM}
 @item @code{STARPU_CUDA_RAM}
 @item @code{STARPU_OPENCL_RAM}
-@item @code{STARPU_SPU_LS}
 @end table
 @end deftp
 
@@ -1150,7 +1138,7 @@ Return the size of the elements registered into the matrix designated by @var{in
 Return a pointer to the column array of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_COLUMNS_DEV_HANDLE({void *}@var{interface})
+@defmac STARPU_COO_GET_COLUMNS_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the column array of the matrix designated by
 @var{interface}, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
@@ -1158,7 +1146,7 @@ used in addition to this.
 @defmac STARPU_COO_GET_ROWS (interface)
 Return a pointer to the rows array of the matrix designated by @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_ROWS_DEV_HANDLE({void *}@var{interface})
+@defmac STARPU_COO_GET_ROWS_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the row array of the matrix designated by
 @var{interface}, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
@@ -1167,12 +1155,12 @@ used in addition to this.
 Return a pointer to the values array of the matrix designated by
 @var{interface}.
 @end defmac
-@defmac STARPU_COO_GET_VALUES_DEV_HANDLE({void *}@var{interface})
+@defmac STARPU_COO_GET_VALUES_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the value array of the matrix designated by
 @var{interface}, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
 @end defmac
-@defmac STARPU_COO_GET_OFFSET({void *}@var{itnerface})
+@defmac STARPU_COO_GET_OFFSET ({void *}@var{itnerface})
 Return the offset in the arrays of the COO matrix designated by @var{interface}.
 @end defmac
 @defmac STARPU_COO_GET_NX (interface)
@@ -1493,18 +1481,6 @@ starpu_codelet} to specify the codelet may be executed on a CUDA
 processing unit.
 @end defmac
 
-@defmac STARPU_SPU
-This macro is used when setting the field @code{where} of a @code{struct
-starpu_codelet} to specify the codelet may be executed on a SPU
-processing unit.
-@end defmac
-
-@defmac STARPU_GORDON
-This macro is used when setting the field @code{where} of a @code{struct
-starpu_codelet} to specify the codelet may be executed on a Cell
-processing unit.
-@end defmac
-
 @defmac STARPU_OPENCL
 This macro is used when setting the field @code{where} of a @code{struct
 starpu_codelet} to specify the codelet may be executed on a OpenCL
@@ -1542,12 +1518,12 @@ e.g. static storage case.
 @item @code{uint32_t where} (optional)
 Indicates which types of processing units are able to execute the
 codelet. The different values
-@code{STARPU_CPU}, @code{STARPU_CUDA}, @code{STARPU_SPU},
-@code{STARPU_GORDON}, @code{STARPU_OPENCL} can be combined to specify
+@code{STARPU_CPU}, @code{STARPU_CUDA}, 
+@code{STARPU_OPENCL} can be combined to specify
 on which types of processing units the codelet can be executed.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
-implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
-indicates that it is only available on Cell SPUs. If the field is
+implemented for both CPU cores and CUDA devices while @code{STARPU_OPENCL}
+indicates that it is only available on OpenCL devices. If the field is
 unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
@@ -1606,17 +1582,6 @@ The functions prototype must be:
 If the @code{where} field is set, then the @code{opencl_funcs} field
 is ignored if @code{STARPU_OPENCL} does not appear in the @code{where}
 field, it must be non-null otherwise.
-
-@item @code{uint8_t gordon_func} (optional)
-This field has been made deprecated. One should use instead the
-@code{gordon_funcs} field.
-
-@item @code{uint8_t gordon_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
-Is an array of index of the Cell SPU implementations of the codelet within the
-Gordon library.
-It must be terminated by a NULL value.
-See Gordon documentation for more details on how to register a kernel and
-retrieve its index.
 
 @item @code{unsigned nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are
@@ -1726,17 +1691,17 @@ by the DSM.
 @item @code{void *cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
 of the codelet implementation (e.g. @code{cpu_func} or @code{cuda_func}).
-In the specific case of the Cell processor, see the @code{cl_arg_size}
-argument.
 
-@item @code{size_t cl_arg_size} (optional, Cell-specific)
-In the case of the Cell processor, the @code{cl_arg} pointer is not directly
-given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
-the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
-at address @code{cl_arg}. In this case, the argument given to the SPU codelet
-is therefore not the @code{cl_arg} pointer, but the address of the buffer in
-local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
-codelets, where the @code{cl_arg} pointer is given as such.
+@item @code{size_t cl_arg_size} (optional)
+For some specific drivers, the @code{cl_arg} pointer cannot not be directly
+given to the driver function. A buffer of size @code{cl_arg_size}
+needs to be allocated on the driver. This buffer is then filled with
+the @code{cl_arg_size} bytes starting at address @code{cl_arg}. In
+this case, the argument given to the codelet is therefore not the
+@code{cl_arg} pointer, but the address of the buffer in local store
+(LS) instead.
+This field is ignored for CPU, CUDA and OpenCL codelets, where the
+@code{cl_arg} pointer is given as such.
 
 @item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
@@ -2089,7 +2054,6 @@ OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DE
 @item @code{STARPU_CPU_DEFAULT}
 @item @code{STARPU_CUDA_DEFAULT}
 @item @code{STARPU_OPENCL_DEFAULT}
-@item @code{STARPU_GORDON_DEFAULT}
 @end table
 @end deftp
 
@@ -2741,11 +2705,6 @@ This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL e
 otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
 was successful, or to 0 if event was NULL.
 @end deftypefun
-
-@node Cell extensions
-@section Cell extensions
-
-nothing yet.
 
 @node Miscellaneous helpers
 @section Miscellaneous helpers

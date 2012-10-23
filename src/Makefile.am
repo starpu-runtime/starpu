@@ -227,10 +227,6 @@ endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
 
-if STARPU_USE_GORDON
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/gordon/driver_gordon.c
-endif
-
 if STARPU_USE_OPENCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
