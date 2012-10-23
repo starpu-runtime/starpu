@@ -22,7 +22,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 65536;
+#endif
 
 static void check_task_func(void *descr[], void *arg)
 {
@@ -56,10 +60,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-#ifdef STARPU_SLOW_MACHINE
-	ntasks /= 10;
-#endif
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 

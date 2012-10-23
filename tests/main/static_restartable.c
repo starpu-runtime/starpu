@@ -22,7 +22,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 65536;
+#endif
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -63,9 +67,6 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-#ifdef STARPU_SLOW_MACHINE
-	ntasks /= 100;
-#endif
 #ifdef STARPU_HAVE_VALGRIND_H
 	if(RUNNING_ON_VALGRIND) ntasks = 5;
 #endif

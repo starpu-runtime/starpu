@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	nbuffers /= 4;
 	niter /= 4;
 	vectorsize /= 8;

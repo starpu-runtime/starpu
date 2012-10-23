@@ -20,8 +20,13 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#define NTHREADS_DEFAULT	16
-#define NITER_DEFAULT		128
+#ifdef STARPU_SLOW_MACHINE
+#  define NTHREADS_DEFAULT	4
+#  define NITER_DEFAULT		8
+#else
+#  define NTHREADS_DEFAULT	16
+#  define NITER_DEFAULT		128
+#endif
 
 static int nthreads = NTHREADS_DEFAULT;
 static int niter = NITER_DEFAULT;
@@ -309,7 +314,7 @@ int main(int argc, char **argv)
 	int ret;
 	void *retval;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	niter /= 16;
 	nthreads /= 4;
 #endif

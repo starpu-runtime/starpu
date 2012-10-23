@@ -23,7 +23,11 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#define N	1000
+#ifdef STARPU_QUICK_CHECK
+  #define N 100
+#else
+  #define N 1000
+#endif
 
 #define VECTORSIZE	1024
 

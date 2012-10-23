@@ -220,8 +220,13 @@ int main(int argc, char **argv)
 
 	starpu_data_set_reduction_methods(handle, &redux_cl, &neutral_cl);
 
+#ifdef STARPU_QUICK_CHECK
+	unsigned ntasks = 32;
+	unsigned nloops = 4;
+#else
 	unsigned ntasks = 1024;
 	unsigned nloops = 16;
+#endif
 
 	unsigned loop;
 	unsigned t;

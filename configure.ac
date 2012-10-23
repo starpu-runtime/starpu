@@ -181,12 +181,12 @@ AC_CHECK_FUNC([nearbyintf], [AC_DEFINE([STARPU_HAVE_NEARBYINTF], [1], [Define to
 # ... but they may define rintf.
 AC_CHECK_FUNC([rintf], [AC_DEFINE([STARPU_HAVE_RINTF], [1], [Define to 1 if the function rintf is available.])])
 
-# Define slow machine
-AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--enable-slow-machine],
-				   [Lower default values for the testcases run by make check])],
-				   enable_slow_machine=$enableval, enable_slow_machine=false)
-if  test x$enable_slow_machine = xyes; then
-	AC_DEFINE(STARPU_SLOW_MACHINE, [1], [enable slow machine])
+# Define quick check
+AC_ARG_ENABLE(quick-check, [AS_HELP_STRING([--enable-quick-check],
+				   [Lower default values for the testcases run by make check to allow a faster execution])],
+				   enable_quick_check=$enableval, enable_quick_check=no)
+if  test x$enable_quick_check = xyes; then
+	AC_DEFINE(STARPU_QUICK_CHECK, [1], [enable quick check])
 fi
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
@@ -509,6 +509,9 @@ if test x$enable_cuda = xyes; then
 
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
 fi
+
+dnl Hey dude, are you around?
+PKG_PROG_PKG_CONFIG
 
 have_magma=no
 if test x$enable_cuda = xyes; then
