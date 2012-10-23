@@ -27,7 +27,11 @@
 
 pthread_t threads[16];
 
+#ifdef STARPU_SLOW_MACHINE
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 65536;
+#endif
 static unsigned nthreads = 2;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
@@ -104,10 +108,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-#ifdef STARPU_SLOW_MACHINE
-	ntasks /= 10;
-#endif
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 

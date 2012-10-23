@@ -91,7 +91,6 @@ int main(int argc, char **argv)
 	mb /= 100;
 	if (mb == 0)
 		mb = 1;
-	ntasks /= 100;
 #endif
 
 	FPRINTF(stderr, "Allocate %d buffers and create %u tasks\n", mb, ntasks);

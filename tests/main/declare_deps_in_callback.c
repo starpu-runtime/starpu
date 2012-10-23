@@ -23,7 +23,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#define NLOOPS	128
+#ifdef STARPU_SLOW_MACHINE
+  #define NLOOPS	4
+#else
+  #define NLOOPS	128
+#endif
 
 static void callback(void *arg)
 {

@@ -22,7 +22,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_SLOW_MACHINE
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 1024;
+#endif
 
 static void callback(void *arg)
 {

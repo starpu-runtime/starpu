@@ -21,7 +21,11 @@
 
 #include "../helper.h"
 
+#ifdef STARPU_SLOW_MACHINE
+static unsigned niter = 64;
+#else
 static unsigned niter = 16384;
+#endif
 
 #define TAG_START 0
 #define TAG_A 1
