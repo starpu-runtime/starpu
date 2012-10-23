@@ -147,9 +147,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 {
 	struct starpu_task *task;
 
-	pthread_cond_t *sched_cond = &args->sched_cond;
-	pthread_mutex_t *sched_mutex = &args->sched_mutex;
-
 	task = _starpu_pop_task(args);
 
 	if (task == NULL)
