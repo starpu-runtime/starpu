@@ -639,6 +639,7 @@ static int heft_push_task(struct starpu_task *task)
 
 	ret_val = _heft_push_task(task, 0, sched_ctx_id);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+
 	return ret_val;
 }
 

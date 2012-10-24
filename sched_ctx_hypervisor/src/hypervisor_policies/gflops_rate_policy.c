@@ -260,7 +260,7 @@ static void gflops_rate_resize(unsigned sched_ctx)
 				config->min_nworkers = 0;
 				config->max_nworkers = 0;
 				printf("ctx %d finished & gives away the res to %d; slow_left %lf\n", sched_ctx, slowest_sched_ctx, slowest_flops_left_pct);
-				_resize(sched_ctx, slowest_sched_ctx, 1);
+				_resize(sched_ctx, slowest_sched_ctx, 1, 1);
 				sched_ctx_hypervisor_stop_resize(slowest_sched_ctx);
 			}
 		}
@@ -300,7 +300,7 @@ struct hypervisor_policy gflops_rate_policy = {
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
-	.handle_post_exec_hook = NULL,
+//	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
 	.custom = 0,
 	.name = "gflops_rate"

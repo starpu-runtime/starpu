@@ -233,7 +233,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	if(config != NULL)
 	{
 		pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
-		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, config);
+//		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, config);
 		pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
 	}
 

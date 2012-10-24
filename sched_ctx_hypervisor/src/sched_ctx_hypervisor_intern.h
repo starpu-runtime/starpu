@@ -15,7 +15,10 @@
  */
 
 #include <sched_ctx_hypervisor.h>
-#include <common/htable32.h>
+#include <common/uthash.h>
+
+#define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
+#define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
 struct size_request {
 	int *workers;

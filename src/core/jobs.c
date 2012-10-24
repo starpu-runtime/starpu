@@ -342,29 +342,29 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	if (_starpu_not_all_tag_deps_are_fulfilled(j))
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-                _STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
+		_STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
-        }
-
+	}
+	
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-                _STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
+		_STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
-        }
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
 	if (_starpu_submit_job_enforce_data_deps(j))
 	{
-                _STARPU_LOG_OUT_TAG("enforce_data_deps");
+		_STARPU_LOG_OUT_TAG("enforce_data_deps");
 		return 0;
-        }
+	}
 
 	ret = _starpu_push_task(j);
 
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return ret;
 }
 

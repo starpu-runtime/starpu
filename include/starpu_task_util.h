@@ -44,6 +44,8 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
 #define STARPU_DATA_ARRAY       (1<<11) /* Array of data handles */
 #define STARPU_TAG       (1<<12) /* Tag */
+#define STARPU_HYPERVISOR_TAG	(1<<13)	/* Used to tag a task after whose execution we'll execute  a code */
+#define STARPU_HYPERVISOR_FLOPS	(1<<14)	/* Used to specify the number of flops needed to be executed by a task */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(struct starpu_codelet *cl, ...);

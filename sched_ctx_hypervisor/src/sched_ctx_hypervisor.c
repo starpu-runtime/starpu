@@ -60,7 +60,7 @@ static void _load_hypervisor_policy(struct hypervisor_policy *policy)
 	hypervisor.policy.handle_pushed_task = policy->handle_pushed_task;
 	hypervisor.policy.handle_idle_cycle = policy->handle_idle_cycle;
 	hypervisor.policy.handle_idle_end = policy->handle_idle_end;
-	hypervisor.policy.handle_post_exec_hook = policy->handle_post_exec_hook;
+//	hypervisor.policy.handle_post_exec_hook = policy->handle_post_exec_hook;
 	hypervisor.policy.handle_submitted_job = policy->handle_submitted_job;
 }
 
@@ -223,8 +223,8 @@ void sched_ctx_hypervisor_shutdown(void)
 void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 {	
 	pthread_mutex_lock(&act_hypervisor_mutex);
-	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node));
-	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node));
+/* 	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node)); */
+/* 	hypervisor.resize_requests[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node)); */
 	pthread_mutex_init(&hypervisor.conf_mut[sched_ctx], NULL);
 	pthread_mutex_init(&hypervisor.resize_mut[sched_ctx], NULL);
 
@@ -627,7 +627,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag)
 {
 	pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);
-	_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, (void*)sched_ctx);	
+//	_starpu_htbl_insert_32(&hypervisor.resize_requests[sched_ctx], (uint32_t)task_tag, (void*)sched_ctx);	
 	pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
 }
 
@@ -708,24 +708,24 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 	{
 		conf_sched_ctx = hypervisor.sched_ctxs[i];
 		pthread_mutex_lock(&hypervisor.conf_mut[conf_sched_ctx]);
-		void *_config = _starpu_htbl_search_32(hypervisor.configurations[conf_sched_ctx], (uint32_t)task_tag);
+/* 		void *_config = _starpu_htbl_search_32(hypervisor.configurations[conf_sched_ctx], (uint32_t)task_tag); */
 
-		if(_config)// && config != hypervisor.configurations[conf_sched_ctx])
-		{
-			sched_ctx_hypervisor_set_config(conf_sched_ctx, _config);
-			free(_config);
-			_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, NULL);
-		}
+/* 		if(_config)// && config != hypervisor.configurations[conf_sched_ctx]) */
+/* 		{ */
+/* 			sched_ctx_hypervisor_set_config(conf_sched_ctx, _config); */
+/* 			free(_config); */
+/* 			_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, NULL); */
+/* 		} */
 		pthread_mutex_unlock(&hypervisor.conf_mut[conf_sched_ctx]);
 	}	
 		
 	if(hypervisor.resize[sched_ctx])
 	{
 		pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);
-		struct starpu_htbl32_node* resize_requests = hypervisor.resize_requests[sched_ctx];
+/* 		struct starpu_htbl32_node* resize_requests = hypervisor.resize_requests[sched_ctx]; */
 		
-		if(hypervisor.policy.handle_post_exec_hook)
-			hypervisor.policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+/* 		if(hypervisor.policy.handle_post_exec_hook) */
+/* 			hypervisor.policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag); */
 		pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
 	}
 	return;

@@ -336,8 +336,8 @@ int _starpu_push_task(struct _starpu_job *j)
 			}
 		}
 	}
-
-        _STARPU_LOG_IN();
+	
+	_STARPU_LOG_IN();
 
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
@@ -349,11 +349,11 @@ int _starpu_push_task(struct _starpu_job *j)
 	if (task->cl == NULL)
 	{
 		_starpu_handle_job_termination(j, -1);
-                _STARPU_LOG_OUT_TAG("handle_job_termination");
+		_STARPU_LOG_OUT_TAG("handle_job_termination");
 		return 0;
 	}
 
-        int ret;
+	int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
@@ -369,11 +369,11 @@ int _starpu_push_task(struct _starpu_job *j)
 			ret = _starpu_push_task(j);
 		}
 	}
-
+	
 	_starpu_profiling_set_task_push_end_time(task);
-
-        _STARPU_LOG_OUT();
-        return ret;
+	
+	_STARPU_LOG_OUT();
+	return ret;
 }
 
 /*

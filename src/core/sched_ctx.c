@@ -96,9 +96,9 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 			worker[i]->tasks[sched_ctx_id]->destroy = 1;
 			worker[i]->tasks[sched_ctx_id]->control_task = 1;
 			int worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker[i], sched_ctx_id);
-                        /* if the ctx is not in the worker's list it means the update concerns the addition of ctxs*/
-                        if(worker_sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
-                                worker[i]->tasks[sched_ctx_id]->priority = 1;
+			/* if the ctx is not in the worker's list it means the update concerns the addition of ctxs*/
+			if(worker_sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+				worker[i]->tasks[sched_ctx_id]->priority = 1;
 
 			_starpu_exclude_task_from_dag(worker[i]->tasks[sched_ctx_id]);
 

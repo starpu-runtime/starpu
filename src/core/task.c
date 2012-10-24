@@ -204,7 +204,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	struct starpu_task *task = j->task;
 
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
 
@@ -224,7 +224,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* We retain handle reference count */
 	if (task->cl) {
 		unsigned i;
-		for (i=0; i<task->cl->nbuffers; i++) {
+		for (i=0; i<task->cl->nbuffers; i++) 
+		{
 			starpu_data_handle_t handle = task->handles[i];
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count++;
@@ -244,8 +245,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	int ret = _starpu_enforce_deps_and_schedule(j);
 
-        _STARPU_LOG_OUT();
-        return ret;
+	_STARPU_LOG_OUT();
+	return ret;
 }
 
 void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
@@ -375,11 +376,11 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-                if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		{
-                        _STARPU_LOG_OUT_TAG("EDEADLK");
+			_STARPU_LOG_OUT_TAG("EDEADLK");
 			return -EDEADLK;
-                }
+		}
 
 		task->detach = 0;
 	}
@@ -407,18 +408,18 @@ int starpu_task_submit(struct starpu_task *task)
 		/* Check the type of worker(s) required by the task exist */
 		if (!_starpu_worker_exists(task))
 		{
-                        _STARPU_LOG_OUT_TAG("ENODEV");
+			_STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
-                }
+		}
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
 		if (task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0))
 		{
-                        _STARPU_LOG_OUT_TAG("ENODEV");
+			_STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
-                }
+		}
 
 		_starpu_detect_implicit_data_deps(task);
 

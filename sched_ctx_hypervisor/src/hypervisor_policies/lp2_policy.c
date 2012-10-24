@@ -20,6 +20,206 @@
 static struct bound_task_pool *task_pools = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers);
+static double _find_tmax(double t1, double t2);
+static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], int *sched_ctxs, int *workers)
+{	
+	double draft_tasks[nw][nt];
+	double draft_w_in_s[ns][nw];
+	
+	int w,t, s;
+	for(w = 0; w < nw; w++)
+		for(t = 0; t < nt; t++)
+		{
+			tasks[w][t] = 0.0;
+			draft_tasks[w][t] == 0.0;
+		}
+	
+	for(s = 0; s < ns; s++)
+		for(w = 0; w < nw; w++)
+		{
+			w_in_s[s][w] = 0.0;
+			draft_w_in_s[s][w] = 0.0;
+		}
+
+	/* smallest possible tmax, difficult to obtain as we 
+	   compute the nr of flops and not the tasks */
+	double smallest_tmax = _lp_get_tmax(nw, workers);
+	double tmax = smallest_tmax * ns;
+	
+	double res = 1.0;
+	unsigned has_sol = 0;
+	double tmin = 0.0;
+	double old_tmax = 0.0;
+	unsigned found_sol = 0;
+
+	struct timeval start_time;
+	struct timeval end_time;
+	int nd = 0;
+	gettimeofday(&start_time, NULL);
+
+	/* we fix tmax and we do not treat it as an unknown
+	   we just vary by dichotomy its values*/
+	while(tmax > 1.0)
+	{
+		/* find solution and save the values in draft tables
+		   only if there is a solution for the system we save them
+		   in the proper table */
+		res = _glp_resolve(ns, nw, nt, draft_tasks, tmax, draft_w_in_s, sched_ctxs, workers);
+		if(res != 0.0)
+		{
+			for(w = 0; w < nw; w++)
+				for(t = 0; t < nt; t++)
+					tasks[w][t] = draft_tasks[w][t];
+			for(s = 0; s < ns; s++)
+				for(w = 0; w < nw; w++)
+					w_in_s[s][w] = draft_w_in_s[s][w];
+			has_sol = 1;
+			found_sol = 1;
+		}
+		else
+			has_sol = 0;
+		
+		/* if we have a solution with this tmax try a smaller value
+		   bigger than the old min */
+		if(has_sol)
+		{
+			if(old_tmax != 0.0 && (old_tmax - tmax) < 0.5)
+				break;
+			old_tmax = tmax;
+		}
+		else /*else try a bigger one but smaller than the old tmax */
+		{
+			tmin = tmax;
+			if(old_tmax != 0.0)
+				tmax = old_tmax;
+		}
+		if(tmin == tmax) break;
+		tmax = _find_tmax(tmin, tmax);
+		
+		if(tmax < smallest_tmax)
+		{
+			tmax = old_tmax;
+			tmin = smallest_tmax;
+			tmax = _find_tmax(tmin, tmax);
+		}
+		nd++;
+	}
+	gettimeofday(&end_time, NULL);
+
+	long diff_s = end_time.tv_sec  - start_time.tv_sec;
+        long diff_us = end_time.tv_usec  - start_time.tv_usec;
+
+        float timing = (float)(diff_s*1000000 + diff_us)/1000;
+
+        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
+
+	return found_sol;
+}
+
+static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], unsigned first_time, int *in_sched_ctxs, int *workers)
+{
+	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
+        struct bound_task_pool * tp;
+	int s, s2, w, t;
+
+	for(s = 0; s < ns; s++)
+	{
+		int workers_to_add[nw], workers_to_remove[nw];
+		int destination_ctx[nw][ns];
+
+		for(w = 0; w < nw; w++)
+		{
+			workers_to_add[w] = -1;
+			workers_to_remove[w] = -1;
+			for(s2 = 0; s2 < ns; s2++)
+				destination_ctx[w][s2] = -1;
+		}
+
+		int nadd = 0, nremove = 0;
+
+		for(w = 0; w < nw; w++)
+		{
+			enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+				starpu_worker_get_type(workers[w]);
+
+			if(arch == STARPU_CPU_WORKER)
+			{
+				if(w_in_s[s][w] >= 0.5)
+				{
+					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
+				}
+				else
+				{
+					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
+					for(s2 = 0; s2 < ns; s2++)
+						if(s2 != s && w_in_s[s2][w] >= 0.5)
+							destination_ctx[w][s2] = 1;
+						else
+							destination_ctx[w][s2] = 0;	
+				}
+			}
+			else
+			{
+				if(w_in_s[s][w] >= 0.3)
+				{
+					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
+				}
+				else
+				{
+					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
+					for(s2 = 0; s2 < ns; s2++)
+						if(s2 != s && w_in_s[s2][w] >= 0.3)
+							destination_ctx[w][s2] = 1;
+						else
+							destination_ctx[w][s2] = 0;
+				}
+			}
+	
+		}
+
+		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
+		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
+		int i;
+		for(i = 0; i < nadd; i++)
+			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
+		
+		if(!first_time)
+		{
+			/* do not remove workers if they can't go anywhere */
+			int w2;
+			unsigned found_one_dest[nremove];
+			unsigned all_have_dest = 1;
+			for(w2 = 0; w2 < nremove; w2++)
+				found_one_dest[w2] = 0;
+
+			for(w2 = 0; w2 < nremove; w2++)
+				for(s2 = 0; s2 < ns; s2++)
+				{
+					/* if the worker has to be removed we should find a destination
+					   otherwise we are not interested */
+					if(destination_ctx[w2][s2] == -1)
+						found_one_dest[w2] = -1;
+					if(destination_ctx[w2][s2] == 1)// && sched_ctx_hypervisor_can_resize(sched_ctxs[s2]))
+					{
+						found_one_dest[w2] = 1;
+						break;
+					}
+				}
+			for(w2 = 0; w2 < nremove; w2++)
+			{
+				if(found_one_dest[w2] == 0)
+				{
+					all_have_dest = 0;
+					break;
+				}
+			}
+			if(all_have_dest)
+				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s], 0);
+		}
+	}
+
+}
 
 static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
@@ -32,7 +232,7 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	
 	double w_in_s[ns][nw];
 	
-	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, sched_ctxs, workers);
+	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, NULL, sched_ctxs, workers);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 		_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s, 1, sched_ctxs, workers);
@@ -294,209 +494,12 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	return res;
 }
 
-static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], unsigned first_time, int *in_sched_ctxs, int *workers)
-{
-	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
-        struct bound_task_pool * tp;
-	int s, s2, w, t;
-
-	for(s = 0; s < ns; s++)
-	{
-		int workers_to_add[nw], workers_to_remove[nw];
-		int destination_ctx[nw][ns];
-
-		for(w = 0; w < nw; w++)
-		{
-			workers_to_add[w] = -1;
-			workers_to_remove[w] = -1;
-			for(s2 = 0; s2 < ns; s2++)
-				destination_ctx[w][s2] = -1;
-		}
-
-		int nadd = 0, nremove = 0;
-
-		for(w = 0; w < nw; w++)
-		{
-			enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
-				starpu_worker_get_type(workers[w]);
-
-			if(arch == STARPU_CPU_WORKER)
-			{
-				if(w_in_s[s][w] >= 0.5)
-				{
-					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
-				}
-				else
-				{
-					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
-					for(s2 = 0; s2 < ns; s2++)
-						if(s2 != s && w_in_s[s2][w] >= 0.5)
-							destination_ctx[w][s2] = 1;
-						else
-							destination_ctx[w][s2] = 0;	
-				}
-			}
-			else
-			{
-				if(w_in_s[s][w] >= 0.3)
-				{
-					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
-				}
-				else
-				{
-					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
-					for(s2 = 0; s2 < ns; s2++)
-						if(s2 != s && w_in_s[s2][w] >= 0.3)
-							destination_ctx[w][s2] = 1;
-						else
-							destination_ctx[w][s2] = 0;
-				}
-			}
-	
-		}
-
-		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
-		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
-		int i;
-		for(i = 0; i < nadd; i++)
-			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
-		
-		if(!first_time)
-		{
-			/* do not remove workers if they can't go anywhere */
-			int w2;
-			unsigned found_one_dest[nremove];
-			unsigned all_have_dest = 1;
-			for(w2 = 0; w2 < nremove; w2++)
-				found_one_dest[w2] = 0;
-
-			for(w2 = 0; w2 < nremove; w2++)
-				for(s2 = 0; s2 < ns; s2++)
-				{
-					/* if the worker has to be removed we should find a destination
-					   otherwise we are not interested */
-					if(destination_ctx[w2][s2] == -1)
-						found_one_dest[w2] = -1;
-					if(destination_ctx[w2][s2] == 1)// && sched_ctx_hypervisor_can_resize(sched_ctxs[s2]))
-					{
-						found_one_dest[w2] = 1;
-						break;
-					}
-				}
-			for(w2 = 0; w2 < nremove; w2++)
-			{
-				if(found_one_dest[w2] == 0)
-				{
-					all_have_dest = 0;
-					break;
-				}
-			}
-			if(all_have_dest)
-				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s], 0);
-		}
-	}
-
-}
 
 static double _find_tmax(double t1, double t2)
 {
 	return t1 + ((t2 - t1)/2);
 }
 
-static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], int *sched_ctxs, int *workers)
-{	
-	double draft_tasks[nw][nt];
-	double draft_w_in_s[ns][nw];
-	
-	int w,t, s;
-	for(w = 0; w < nw; w++)
-		for(t = 0; t < nt; t++)
-		{
-			tasks[w][t] = 0.0;
-			draft_tasks[w][t] == 0.0;
-		}
-	
-	for(s = 0; s < ns; s++)
-		for(w = 0; w < nw; w++)
-		{
-			w_in_s[s][w] = 0.0;
-			draft_w_in_s[s][w] = 0.0;
-		}
-
-	/* smallest possible tmax, difficult to obtain as we 
-	   compute the nr of flops and not the tasks */
-	double smallest_tmax = _lp_get_tmax(nw, workers);
-	double tmax = smallest_tmax * ns;
-	
-	double res = 1.0;
-	unsigned has_sol = 0;
-	double tmin = 0.0;
-	double old_tmax = 0.0;
-	unsigned found_sol = 0;
-
-	struct timeval start_time;
-	struct timeval end_time;
-	int nd = 0;
-	gettimeofday(&start_time, NULL);
-
-	/* we fix tmax and we do not treat it as an unknown
-	   we just vary by dichotomy its values*/
-	while(tmax > 1.0)
-	{
-		/* find solution and save the values in draft tables
-		   only if there is a solution for the system we save them
-		   in the proper table */
-		res = _glp_resolve(ns, nw, nt, draft_tasks, tmax, draft_w_in_s, sched_ctxs, workers);
-		if(res != 0.0)
-		{
-			for(w = 0; w < nw; w++)
-				for(t = 0; t < nt; t++)
-					tasks[w][t] = draft_tasks[w][t];
-			for(s = 0; s < ns; s++)
-				for(w = 0; w < nw; w++)
-					w_in_s[s][w] = draft_w_in_s[s][w];
-			has_sol = 1;
-			found_sol = 1;
-		}
-		else
-			has_sol = 0;
-		
-		/* if we have a solution with this tmax try a smaller value
-		   bigger than the old min */
-		if(has_sol)
-		{
-			if(old_tmax != 0.0 && (old_tmax - tmax) < 0.5)
-				break;
-			old_tmax = tmax;
-		}
-		else /*else try a bigger one but smaller than the old tmax */
-		{
-			tmin = tmax;
-			if(old_tmax != 0.0)
-				tmax = old_tmax;
-		}
-		if(tmin == tmax) break;
-		tmax = _find_tmax(tmin, tmax);
-		
-		if(tmax < smallest_tmax)
-		{
-			tmax = old_tmax;
-			tmin = smallest_tmax;
-			tmax = _find_tmax(tmin, tmax);
-		}
-		nd++;
-	}
-	gettimeofday(&end_time, NULL);
-
-	long diff_s = end_time.tv_sec  - start_time.tv_sec;
-        long diff_us = end_time.tv_usec  - start_time.tv_usec;
-
-        float timing = (float)(diff_s*1000000 + diff_us)/1000;
-
-        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
-
-	return found_sol;
-}
 
 static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 {
@@ -583,7 +586,7 @@ struct hypervisor_policy lp2_policy = {
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
-	.handle_post_exec_hook = NULL,
+//	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = lp2_handle_submitted_job,
 	.custom = 0,
 	.name = "lp2"

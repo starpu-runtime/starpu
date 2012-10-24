@@ -28,7 +28,7 @@ unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ct
 
 unsigned _get_nworkers_to_move(unsigned req_sched_ctx);
 
-unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize);
+unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize, unsigned now);
 
 unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now);
 
