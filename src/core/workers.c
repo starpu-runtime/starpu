@@ -713,8 +713,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	_starpu_profiling_init();
 
-	_starpu_load_bus_performance_files();
-
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
