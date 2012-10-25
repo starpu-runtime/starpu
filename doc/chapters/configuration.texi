@@ -415,6 +415,12 @@ Communication statistics for starpumpi (@pxref{StarPU MPI support})
 will be enabled when the environment variable @code{STARPU_COMM_STATS}
 is defined to an value other than 0.
 
+@item @code{STARPU_MPI_CACHE}
+@anchor{STARPU_MPI_CACHE}
+Communication cache for starpumpi (@pxref{StarPU MPI support}) will be
+disabled when the environment variable @code{STARPU_MPI_CACHE} is set
+to 0. It is enabled by default or for any other values of the variable
+@code{STARPU_MPI_CACHE}.
 @end table
 
 @node Misc

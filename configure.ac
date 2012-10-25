@@ -1064,14 +1064,6 @@ else
 fi
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
-# Check if user wants to disable mpi cache
-AC_ARG_ENABLE(mpi-cache, AC_HELP_STRING([--enable-mpi-cache],
-			 [Enable MPI communication cache]),
-			 enable_mpi_cache=$enableval, enable_mpi_cache=true)
-if  test x$enable_mpi_cache = xtrue; then
-    	AC_DEFINE(STARPU_MPI_CACHE, [1], [enable MPI communication cache])
-fi
-
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
