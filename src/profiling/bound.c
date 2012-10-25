@@ -678,7 +678,9 @@ void starpu_bound_print_lp(FILE *output)
 					if (!isnan(times[w*nt+t]))
 						fprintf(output, "\t+w%dt%dn", w, t);
 				fprintf(output, " = %lu;\n", tp->n);
-				/* Show actual values */ fprintf(output, "/*"); for (w = 0; w < nw; w++)
+				/* Show actual values */
+				fprintf(output, "/*");
+				for (w = 0; w < nw; w++)
 					fprintf(output, "\t+%lu", tp->cl->per_worker_stats[w]);
 				fprintf(output, "\t*/\n\n");
 			}
