@@ -411,6 +411,7 @@ THE SOCL test suite is only run when the environment variable
 of the libOpenCL.so file of the OCL ICD implementation.
 
 @item @code{STARPU_COMM_STATS}
+@anchor{STARPU_COMM_STATS}
 Communication statistics for starpumpi (@pxref{StarPU MPI support})
 will be enabled when the environment variable @code{STARPU_COMM_STATS}
 is defined to an value other than 0.

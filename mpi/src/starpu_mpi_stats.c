@@ -63,6 +63,11 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 	comm_amount[dst] += count*size;
 }
 
+void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
+{
+	memcpy(comm_amounts, comm_amount, world_size * sizeof(size_t));
+}
+
 void _starpu_mpi_comm_amounts_display(int node)
 {
 	unsigned dst;

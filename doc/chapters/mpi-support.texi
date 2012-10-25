@@ -65,6 +65,13 @@ Cleans the starpumpi library. This must be called between calling
 by calling @code{starpu_mpi_initialize_extended}.
 @end deftypefun
 
+@deftypefun void starpu_mpi_comm_amounts_retrieve (size_t *@var{comm_amounts})
+Retrieve the current amount of communications from the current node in
+the array @code{comm_amounts} which must have a size greater or equal
+to the world size. Communications statistics must be enabled
+(@pxref{STARPU_COMM_STATS}).
+@end deftypefun
+
 @subsection Communication
 
 The standard point to point communications of MPI have been
