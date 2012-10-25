@@ -431,7 +431,8 @@ to 0. It is enabled by default or for any other values of the variable
 
 @item @code{STARPU_SILENT}
 This variable allows to disable verbose mode at runtime when StarPU
-has been configured with the option @code{--enable-verbose}.
+has been configured with the option @code{--enable-verbose}. It also
+disables the display of StarPU information and warning messages.
 
 @item @code{STARPU_LOGFILENAME}
 This variable specifies in which file the debugging output should be saved to.
