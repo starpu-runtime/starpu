@@ -74,6 +74,7 @@ void _starpu_mpi_comm_amounts_display(int node)
 	size_t sum = 0;
 
 	if (stats_enabled == 0) return;
+	if (getenv("STARPU_SILENT")) return;
 
 	for (dst = 0; dst < world_size; dst++)
 	{
