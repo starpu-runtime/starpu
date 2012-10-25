@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/utils.h>
+#include <core/jobs.h>
 
 const char *_starpu_get_cl_model_name(struct starpu_codelet *cl)
 {
