@@ -16,15 +16,26 @@
 
 #include <sched_ctx_hypervisor.h>
 #include <common/uthash.h>
-
-#define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
-#define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
-
 struct size_request {
 	int *workers;
 	int nworkers;
 	int *sched_ctxs;
 	int nsched_ctxs;
+};
+
+
+/* Entry in the resize request hash table.  */
+struct resize_request_entry {
+	/* Key: the tag of tasks concerned by this resize request.  */
+	uint32_t task_tag;
+
+	/* Value: identifier of the scheduling context needing to be resized.
+	 * The value doesn't matter since the hash table is used only to test
+	 * membership of a task tag.  */
+	unsigned sched_ctx;
+
+	/* Bookkeeping.  */
+	UT_hash_handle hh;
 };
 
 struct sched_ctx_hypervisor {
@@ -35,7 +46,10 @@ struct sched_ctx_hypervisor {
 	int min_tasks;
 	struct hypervisor_policy policy;
 	struct starpu_htbl32_node *configurations[STARPU_NMAX_SCHED_CTXS];
-	struct starpu_htbl32_node *resize_requests[STARPU_NMAX_SCHED_CTXS];
+
+	/* Set of pending resize requests for any context/tag pair.  */
+	struct resize_request_entry *resize_requests[STARPU_NMAX_SCHED_CTXS];
+
 	pthread_mutex_t conf_mut[STARPU_NMAX_SCHED_CTXS];
 	pthread_mutex_t resize_mut[STARPU_NMAX_SCHED_CTXS];
 	struct size_request *sr;

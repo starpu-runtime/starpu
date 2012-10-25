@@ -92,6 +92,10 @@ struct sched_ctx_wrapper {
 	pthread_mutex_t mutex;
 };
 
+/* Forward declaration of an internal data structure
+ * FIXME: Remove when no longer exposed.  */
+struct resize_request_entry;
+
 struct hypervisor_policy {
 	const char* name;
 	unsigned custom;
@@ -100,7 +104,11 @@ struct hypervisor_policy {
 	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
 	void (*handle_poped_task)(unsigned sched_ctx, int worker);
 	void (*handle_idle_end)(unsigned sched_ctx, int worker);
-//	void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node* resize_requests, int task_tag);
+
+	/* FIXME: The 'resize_requests' hash table is an implementation
+	 * detail that should be invisible to policies.  */
+	void (*handle_post_exec_hook)(unsigned sched_ctx, struct resize_request_entry* resize_requests, int task_tag);
+
 	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
 };
 
