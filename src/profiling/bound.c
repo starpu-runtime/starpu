@@ -435,6 +435,7 @@ void starpu_bound_print_lp(FILE *output)
 		{
 			if (t1->cl->model->type != STARPU_HISTORY_BASED ||
 			    t1->cl->model->type != STARPU_NL_REGRESSION_BASED)
+				/* TODO: */
 				fprintf(stderr, "Warning: task %s uses a perf model which is neither history nor non-linear regression-based, support for such model is not implemented yet, system will not be solvable.\n", _starpu_get_cl_model_name(t1->cl));
 
 			struct _starpu_job j =
