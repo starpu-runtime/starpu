@@ -673,11 +673,19 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 			{
+				int got_one = 0;
 				fprintf(output, "/* task %s key %x */\n0", _starpu_get_cl_model_name(tp->cl), (unsigned) tp->footprint);
-				for (w = 0; w < nw; w++)
-					if (!isnan(times[w*nt+t]))
+				for (w = 0; w < nw; w++) {
+					if (isnan(times[w*nt+t]))
+						fprintf(stderr, "Warning: task %s has no performance measurement for worker %d.\n", _starpu_get_cl_model_name(tp->cl), w);
+					else {
+						got_one = 1;
 						fprintf(output, "\t+w%dt%dn", w, t);
+					}
+				}
 				fprintf(output, " = %lu;\n", tp->n);
+				if (!got_one)
+					fprintf(stderr, "Warning: task %s has no performance measurement for any worker, system will not be solvable!\n", _starpu_get_cl_model_name(tp->cl));
 				/* Show actual values */
 				fprintf(output, "/*");
 				for (w = 0; w < nw; w++)
