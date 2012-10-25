@@ -75,6 +75,7 @@
 #undef STARPU_HAVE_LIBNUMA
 
 #undef STARPU_HAVE_WINDOWS
+#undef STARPU_HAVE_UNSETENV
 
 #ifdef _MSC_VER
 typedef long starpu_ssize_t;
