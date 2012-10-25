@@ -27,19 +27,15 @@ static int stats_enabled=0;
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 {
-#ifdef STARPU_COMM_STATS
-	stats_enabled = 1;
-#else
 	stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
 	if (stats_enabled == -1)
 	{
 		stats_enabled = 0;
 	}
-#endif /* STARPU_COMM_STATS */
 
 	if (stats_enabled == 0) return;
 
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-comm-stats or is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
+	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
 	MPI_Comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG("allocating for %d nodes\n", world_size);

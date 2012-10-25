@@ -36,7 +36,7 @@ New features:
   * SOCL
         - Manual mapping of commands on specific devices is now possible
   * New interface: COO matrix.
-  * Communication statistics for MPI can also be enabled at execution
+  * Communication statistics for MPI can only be enabled at execution
     time by defining the environment variable STARPU_COMM_STATS
 
 Changes:

@@ -167,11 +167,6 @@ enabled when the GCC compiler provides a plug-in support.
 Use the @command{mpicc} compiler at @var{path}, for starpumpi
 (@pxref{StarPU MPI support}).
 
-@item --enable-comm-stats
-@anchor{enable-comm-stats}
-Enable communication statistics for starpumpi (@pxref{StarPU MPI
-support}).
-
 @end table
 
 @node Advanced configuration
@@ -418,8 +413,7 @@ of the libOpenCL.so file of the OCL ICD implementation.
 @item @code{STARPU_COMM_STATS}
 Communication statistics for starpumpi (@pxref{StarPU MPI support})
 will be enabled when the environment variable @code{STARPU_COMM_STATS}
-is defined. The statistics can also be enabled by configuring StarPU
-with the option @code{--enable-comm-stats} (@pxref{enable-comm-stats}).
+is defined to an value other than 0.
 
 @end table
 
