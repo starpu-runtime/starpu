@@ -170,7 +170,4 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
  * enforce a FIFO ordering. */
 int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int back);
 
-/* Returns the symbol associated to that job if any. */
-const char *_starpu_get_model_name(struct _starpu_job *j);
-
 #endif // __JOBS_H__

@@ -411,24 +411,3 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	return 0;
 }
-
-const char *_starpu_get_model_name(struct _starpu_job *j)
-{
-	if (!j)
-		return NULL;
-
-	struct starpu_task *task = j->task;
-        if (task && task->cl) {
-            if (task->cl->model && task->cl->model->symbol)
-                return task->cl->model->symbol;
-	    else
-		return task->cl->name;
-	} else
-	{
-#ifdef STARPU_USE_FXT
-                return j->model_name;
-#else
-                return NULL;
-#endif
-        }
-}
