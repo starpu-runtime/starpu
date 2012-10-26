@@ -70,7 +70,10 @@ void _starpu_drop_comments(FILE *f);
 	}                                                                      \
 } while (0)
 
-#define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) {                              \
+/*
+ * Encapsulation of the pthread_mutex_* functions.
+ */
+#define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) do {                           \
 	int p_ret = pthread_mutex_init((mutex), (attr));                       \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
@@ -78,8 +81,9 @@ void _starpu_drop_comments(FILE *f);
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
-}
-#define _STARPU_PTHREAD_MUTEX_DESTROY(mutex) {                                 \
+} while (0)
+
+#define _STARPU_PTHREAD_MUTEX_DESTROY(mutex) do {                              \
 	int p_ret = pthread_mutex_destroy(mutex);                              \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
@@ -87,45 +91,198 @@ void _starpu_drop_comments(FILE *f);
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
-}
-#define _STARPU_PTHREAD_MUTEX_LOCK(mutex) {                                    \
+} while(0)
+
+#define _STARPU_PTHREAD_MUTEX_LOCK(mutex) do {                                 \
 	int p_ret = pthread_mutex_lock(mutex);                                 \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d pthread_mutex_lock : %s\n",                     \
+			"%s:%d pthread_mutex_lock: %s\n",                      \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
-}
+} while (0)
 
-#define _STARPU_PTHREAD_MUTEX_UNLOCK(mutex) {                                  \
+#define _STARPU_PTHREAD_MUTEX_UNLOCK(mutex) do {                               \
 	int p_ret = pthread_mutex_unlock(mutex);                               \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d pthread_mutex_unlock : %s\n",                   \
+			"%s:%d pthread_mutex_unlock: %s\n",                    \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
-}
+} while (0)
 
-#define _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) { int p_ret = pthread_rwlock_init((rwlock), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_RWLOCK_RDLOCK(rwlock) { int p_ret = pthread_rwlock_rdlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_rdlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_RWLOCK_WRLOCK(rwlock) { int p_ret = pthread_rwlock_wrlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_wrlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_RWLOCK_UNLOCK(rwlock) { int p_ret = pthread_rwlock_unlock(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_unlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_RWLOCK_DESTROY(rwlock) { int p_ret = pthread_rwlock_destroy(rwlock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_rwlock_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+/*
+ * Encapsulation of the pthread_rwlock_* functions.
+ */
+#define _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) do {                         \
+	int p_ret = pthread_rwlock_init((rwlock), (attr));                     \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_rwlock_init: %s\n",                     \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
 
-#define _STARPU_PTHREAD_COND_INIT(cond, attr) { int p_ret = pthread_cond_init((cond), (attr)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_COND_DESTROY(cond) { int p_ret = pthread_cond_destroy(cond); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_COND_SIGNAL(cond) { int p_ret = pthread_cond_signal(cond); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_signal : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_COND_BROADCAST(cond) { int p_ret = pthread_cond_broadcast(cond); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_broadcast : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_COND_WAIT(cond, mutex) { int p_ret = pthread_cond_wait((cond), (mutex)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_cond_wait : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define _STARPU_PTHREAD_RWLOCK_RDLOCK(rwlock) do {                             \
+	int p_ret = pthread_rwlock_rdlock(rwlock);                             \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_rwlock_rdlock: %s\n",                   \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
 
-#define _STARPU_PTHREAD_BARRIER_INIT(barrier, attr, count) { int p_ret = pthread_barrier_init((barrier), (attr), (count)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_barrier_init : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_BARRIER_DESTROY(barrier) { int p_ret = pthread_barrier_destroy((barrier)); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_barrier_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_BARRIER_WAIT(barrier) { int p_ret = pthread_barrier_wait(barrier); if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == PTHREAD_BARRIER_SERIAL_THREAD)))) { fprintf(stderr, "pthread_barrier_wait : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define _STARPU_PTHREAD_RWLOCK_WRLOCK(rwlock) do {                             \
+	int p_ret = pthread_rwlock_wrlock(rwlock);                             \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_rwlock_wrlock: %s\n",                   \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
 
-#define _STARPU_PTHREAD_SPIN_DESTROY(lock) { int p_ret = pthread_spin_destroy(lock); if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_spin_destroy : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_SPIN_LOCK(lock) { int p_ret = pthread_spin_lock(lock);  if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_spin_lock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
-#define _STARPU_PTHREAD_SPIN_UNLOCK(lock) { int p_ret = pthread_spin_unlock(lock);  if (STARPU_UNLIKELY(p_ret)) { fprintf(stderr, "pthread_spin_unlock : %s\n", strerror(p_ret)); STARPU_ABORT();}}
+#define _STARPU_PTHREAD_RWLOCK_UNLOCK(rwlock) do {                             \
+	int p_ret = pthread_rwlock_unlock(rwlock);                             \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_rwlock_unlock: %s\n",                   \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_RWLOCK_DESTROY(rwlock) do {                            \
+	int p_ret = pthread_rwlock_destroy(rwlock);                            \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_rwlock_destroy: %s\n",                  \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+/*
+ * Encapsulation of the pthread_cond_* functions.
+ */
+#define _STARPU_PTHREAD_COND_INIT(cond, attr) do {                             \
+	int p_ret = pthread_cond_init((cond), (attr));                         \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_cond_init: %s\n",                       \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_COND_DESTROY(cond) do {                                \
+	int p_ret = pthread_cond_destroy(cond);                                \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_cond_destroy: %s\n",                    \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+			STARPU_ABORT();                                        \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_COND_SIGNAL(cond) do {                                 \
+	int p_ret = pthread_cond_signal(cond);                                 \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_cond_signal: %s\n",                     \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_COND_BROADCAST(cond) do {                              \
+	int p_ret = pthread_cond_broadcast(cond);                              \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_cond_broadcast: %s\n",                  \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_COND_WAIT(cond, mutex) do {                            \
+	int p_ret = pthread_cond_wait((cond), (mutex));                        \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_cond_wait: %s\n",                       \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+/*
+ * Encapsulation of the pthread_barrier_* functions.
+ */
+#define _STARPU_PTHREAD_BARRIER_INIT(barrier, attr, count) do {                \
+	int p_ret = pthread_barrier_init((barrier), (attr), (count));          \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_barrier_init: %s\n",                    \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_BARRIER_DESTROY(barrier) do {                          \
+	int p_ret = pthread_barrier_destroy((barrier));                        \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_barrier_destroy: %s\n",                 \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_BARRIER_WAIT(barrier) do {                             \
+	int p_ret = pthread_barrier_wait(barrier);                             \
+	if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == PTHREAD_BARRIER_SERIAL_THREAD)))) { \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_barrier_wait: %s\n",                    \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+			STARPU_ABORT();                                        \
+	}                                                                      \
+} while (0)
+
+/*
+ * Encapsulation of the pthread_spin_* functions.
+ */
+#define _STARPU_PTHREAD_SPIN_DESTROY(lock) do {                                \
+	int p_ret = pthread_spin_destroy(lock);                                \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_spin_destroy: %s\n",                    \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_SPIN_LOCK(lock) do {                                   \
+	int p_ret = pthread_spin_lock(lock);                                   \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_spin_lock: %s\n",                       \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_SPIN_UNLOCK(lock) do {                                 \
+	int p_ret = pthread_spin_unlock(lock);                                 \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_spin_unlock: %s\n",                     \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
 
 #endif // __COMMON_UTILS_H__
