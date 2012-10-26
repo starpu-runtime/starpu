@@ -61,8 +61,8 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
+	ret = starpu_mpi_init(NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
         for(i = 0; i < 2; i++)
 	{
