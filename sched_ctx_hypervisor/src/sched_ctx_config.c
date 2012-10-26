@@ -232,8 +232,16 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	struct policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
 	if(config != NULL)
 	{
+		struct configuration_entry *entry;
+
+		entry = malloc(sizeof *entry);
+		STARPU_ASSERT(entry != NULL);
+
+		entry->task_tag = task_tag;
+		entry->configuration = config;
+
 		pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
-//		_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, config);
+		HASH_ADD_INT(hypervisor.configurations[sched_ctx], task_tag, entry);
 		pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
 	}
 

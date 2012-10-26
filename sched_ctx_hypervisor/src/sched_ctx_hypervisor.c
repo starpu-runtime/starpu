@@ -223,9 +223,9 @@ void sched_ctx_hypervisor_shutdown(void)
 
 /* the hypervisor is in charge only of the contexts registered to it*/
 void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
-{	
+{
 	pthread_mutex_lock(&act_hypervisor_mutex);
-/* 	hypervisor.configurations[sched_ctx] = (struct starpu_htbl32_node*)malloc(sizeof(struct starpu_htbl32_node)); */
+	hypervisor.configurations[sched_ctx] = NULL;
 	hypervisor.resize_requests[sched_ctx] = NULL;
 	pthread_mutex_init(&hypervisor.conf_mut[sched_ctx], NULL);
 	pthread_mutex_init(&hypervisor.resize_mut[sched_ctx], NULL);
@@ -718,16 +718,21 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 	
 	for(i = 0; i < ns; i++)
 	{
+		struct configuration_entry *entry;
+
 		conf_sched_ctx = hypervisor.sched_ctxs[i];
 		pthread_mutex_lock(&hypervisor.conf_mut[conf_sched_ctx]);
-/* 		void *_config = _starpu_htbl_search_32(hypervisor.configurations[conf_sched_ctx], (uint32_t)task_tag); */
 
-/* 		if(_config)// && config != hypervisor.configurations[conf_sched_ctx]) */
-/* 		{ */
-/* 			sched_ctx_hypervisor_set_config(conf_sched_ctx, _config); */
-/* 			free(_config); */
-/* 			_starpu_htbl_insert_32(&hypervisor.configurations[sched_ctx], (uint32_t)task_tag, NULL); */
-/* 		} */
+		HASH_FIND_INT(hypervisor.configurations[conf_sched_ctx], &task_tag, entry);
+
+		if (entry != NULL)
+		{
+			struct policy_config *config = entry->configuration;
+
+			sched_ctx_hypervisor_set_config(conf_sched_ctx, config);
+			HASH_DEL(hypervisor.configurations[conf_sched_ctx], entry);
+			free(config);
+		}
 		pthread_mutex_unlock(&hypervisor.conf_mut[conf_sched_ctx]);
 	}	
 		

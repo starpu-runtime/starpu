@@ -38,6 +38,17 @@ struct resize_request_entry {
 	UT_hash_handle hh;
 };
 
+struct configuration_entry {
+	/* Key: the tag of tasks concerned by this configuration.  */
+	uint32_t task_tag;
+
+	/* Value: configuration of the scheduling context.  */
+	struct policy_config *configuration;
+
+	/* Bookkeeping.  */
+	UT_hash_handle hh;
+};
+
 struct sched_ctx_hypervisor {
 	struct sched_ctx_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
 	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
@@ -45,7 +56,8 @@ struct sched_ctx_hypervisor {
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
 	int min_tasks;
 	struct hypervisor_policy policy;
-	struct starpu_htbl32_node *configurations[STARPU_NMAX_SCHED_CTXS];
+
+	struct configuration_entry *configurations[STARPU_NMAX_SCHED_CTXS];
 
 	/* Set of pending resize requests for any context/tag pair.  */
 	struct resize_request_entry *resize_requests[STARPU_NMAX_SCHED_CTXS];
