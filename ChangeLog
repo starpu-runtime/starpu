@@ -46,7 +46,7 @@ New features:
         - Initialisation functions starpu_mpi_initialize_extended()
   	  and starpu_mpi_initialize() have been made deprecated. One
 	  should now use starpu_mpi_init() which will initialise MPI
-	  if is not already done.
+	  by calling MPI_Init_Thread if is not already done.
 
 Changes:
   * Fix the block filter functions.

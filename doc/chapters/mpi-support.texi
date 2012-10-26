@@ -46,7 +46,7 @@ Also pass the @code{--static} option if the application is to be linked statical
 
 @deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv})
 Initializes the starpumpi library. If MPI is not already initialized,
-it will be by calling @code{MPI_Init(argc, argv)}.
+it will be by calling @code{MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize (void)

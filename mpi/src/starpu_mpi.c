@@ -671,12 +671,15 @@ static void *progress_thread_func(void *arg)
 	_STARPU_DEBUG("MPI_Initialized %d\n", flag);
 	if (flag == 0)
 	{
-                _STARPU_DEBUG("Calling MPI_Init\n");
-		fprintf(stderr, "calling MPI_Init\n");
-                if (MPI_Init(argc_argv->argc, argc_argv->argv) != MPI_SUCCESS) {
-                        fprintf(stderr,"MPI_Init failed\n");
-                        exit(1);
+		int thread_support;
+                _STARPU_DEBUG("Calling MPI_Init_thread\n");
+		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
+			_STARPU_ERROR("MPI_Init_thread failed\n");
                 }
+		if (thread_support == MPI_THREAD_FUNNELED)
+			_STARPU_DISP("MPI only has funneled thread support, not serialized, hoping this will work\n");
+                if (thread_support < MPI_THREAD_FUNNELED)
+			_STARPU_DISP("MPI does not have thread support!\n");
         }
 
 	/* notify the main thread that the progression thread is ready */
