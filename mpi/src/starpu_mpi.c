@@ -657,28 +657,26 @@ static void handle_new_request(struct _starpu_mpi_req *req)
         _STARPU_MPI_LOG_OUT();
 }
 
+struct _starpu_mpi_argc_argv {
+	int *argc;
+	char ***argv;
+};
+
 static void *progress_thread_func(void *arg)
 {
-        int initialize_mpi = *((int *) arg);
+	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
+	int flag;
 
-        _STARPU_DEBUG("Initialize mpi: %d\n", initialize_mpi);
-
-        if (initialize_mpi) {
-#ifdef STARPU_DEVEL
-#warning get real argc and argv from the application
-#endif
-                int argc = 0;
-                char **argv = NULL;
-                int thread_support;
-                _STARPU_DEBUG("Calling MPI_Init_thread\n");
-                if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
-                        fprintf(stderr,"MPI_Init_thread failed\n");
+	MPI_Initialized(&flag);
+	_STARPU_DEBUG("MPI_Initialized %d\n", flag);
+	if (flag == 0)
+	{
+                _STARPU_DEBUG("Calling MPI_Init\n");
+		fprintf(stderr, "calling MPI_Init\n");
+                if (MPI_Init(argc_argv->argc, argc_argv->argv) != MPI_SUCCESS) {
+                        fprintf(stderr,"MPI_Init failed\n");
                         exit(1);
                 }
-                if (thread_support == MPI_THREAD_FUNNELED)
-                        fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
-                if (thread_support < MPI_THREAD_FUNNELED)
-                        fprintf(stderr,"Warning: MPI does not have thread support!\n");
         }
 
 	/* notify the main thread that the progression thread is ready */
@@ -730,13 +728,14 @@ static void *progress_thread_func(void *arg)
 	STARPU_ASSERT(_starpu_mpi_req_list_empty(new_requests));
         STARPU_ASSERT(posted_requests == 0);
 
-        if (initialize_mpi) {
+        if (flag == 0) {
                 _STARPU_MPI_DEBUG("Calling MPI_Finalize()\n");
                 MPI_Finalize();
         }
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
+	free(argc_argv);
 	return NULL;
 }
 
@@ -780,7 +779,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 }
 
 static
-int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
+int _starpu_mpi_initialize(int *argc, char ***argv)
 {
 	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
@@ -792,19 +791,15 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 
         _STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
 
-	_STARPU_PTHREAD_CREATE(&progress_thread, NULL,
-			       progress_thread_func, (void *)&initialize_mpi);
+	struct _starpu_mpi_argc_argv *argc_argv = malloc(sizeof(struct _starpu_mpi_argc_argv));
+	argc_argv->argc = argc;
+	argc_argv->argv = argv;
+	_STARPU_PTHREAD_CREATE(&progress_thread, NULL, progress_thread_func, argc_argv);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (!running)
 		_STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-        if (rank && world_size) {
-                _STARPU_DEBUG("Calling MPI_Comm_rank\n");
-                MPI_Comm_rank(MPI_COMM_WORLD, rank);
-                MPI_Comm_size(MPI_COMM_WORLD, world_size);
-        }
 
 #ifdef STARPU_USE_FXT
 	int prank;
@@ -823,14 +818,28 @@ int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 	return 0;
 }
 
+int starpu_mpi_init(int *argc, char ***argv)
+{
+        return _starpu_mpi_initialize(argc, argv);
+}
+
 int starpu_mpi_initialize(void)
 {
-        return _starpu_mpi_initialize(0, NULL, NULL);
+        return _starpu_mpi_initialize(NULL, NULL);
 }
 
 int starpu_mpi_initialize_extended(int *rank, int *world_size)
 {
-        return _starpu_mpi_initialize(1, rank, world_size);
+	int ret;
+
+        ret = _starpu_mpi_initialize(NULL, NULL);
+	if (ret == 0)
+	{
+		_STARPU_DEBUG("Calling MPI_Comm_rank\n");
+		MPI_Comm_rank(MPI_COMM_WORLD, rank);
+		MPI_Comm_size(MPI_COMM_WORLD, world_size);
+	}
+	return ret;
 }
 
 int starpu_mpi_shutdown(void)

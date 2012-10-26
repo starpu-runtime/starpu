@@ -44,25 +44,26 @@ Also pass the @code{--static} option if the application is to be linked statical
 
 @subsection Initialisation
 
+@deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv})
+Initializes the starpumpi library. If MPI is not already initialized,
+it will be by calling @code{MPI_Init(argc, argv)}.
+@end deftypefun
+
 @deftypefun int starpu_mpi_initialize (void)
-Initializes the starpumpi library. This must be called between calling
-@code{starpu_init} and other @code{starpu_mpi} functions. This
-function does not call @code{MPI_Init}, it should be called beforehand.
+This function has been made deprecated. One should use instead the
+function @code{starpu_mpi_init()} defined above.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize_extended (int *@var{rank}, int *@var{world_size})
-Initializes the starpumpi library. This must be called between calling
-@code{starpu_init} and other @code{starpu_mpi} functions.
-This function calls @code{MPI_Init}, and therefore should be prefered
-to the previous one for MPI implementations which are not thread-safe.
-Returns the current MPI node rank and world size.
+This function has been made deprecated. One should use instead the
+function @code{starpu_mpi_init()} defined above.
 @end deftypefun
 
 @deftypefun int starpu_mpi_shutdown (void)
 Cleans the starpumpi library. This must be called between calling
-@code{starpu_mpi} functions and @code{starpu_shutdown}.
-@code{MPI_Finalize} will be called if StarPU-MPI has been initialized
-by calling @code{starpu_mpi_initialize_extended}.
+@code{starpu_mpi} functions and @code{starpu_shutdown()}.
+@code{MPI_Finalize()} will be called if StarPU-MPI has been initialized
+by @code{starpu_mpi_init()}.
 @end deftypefun
 
 @deftypefun void starpu_mpi_comm_amounts_retrieve (size_t *@var{comm_amounts})

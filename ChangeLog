@@ -36,13 +36,17 @@ New features:
   * SOCL
         - Manual mapping of commands on specific devices is now possible
   * New interface: COO matrix.
-  * MPI: 
+  * MPI:
         - Communication statistics for MPI can only be enabled at
 	  execution time by defining the environment variable
 	  STARPU_COMM_STATS
         - Communication cache mechanism is enabled by default, and can
 	  only be disabled at execution time by setting the
 	  environment variable STARPU_MPI_CACHE to 0.
+        - Initialisation functions starpu_mpi_initialize_extended()
+  	  and starpu_mpi_initialize() have been made deprecated. One
+	  should now use starpu_mpi_init() which will initialise MPI
+	  if is not already done.
 
 Changes:
   * Fix the block filter functions.
