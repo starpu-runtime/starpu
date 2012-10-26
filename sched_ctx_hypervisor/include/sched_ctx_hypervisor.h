@@ -14,6 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef STARPU_SCHED_CTX_HYPERVISOR_H
+#define STARPU_SCHED_CTX_HYPERVISOR_H
+
 #include <starpu.h>
 #include <pthread.h>
 
@@ -162,3 +165,5 @@ void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *w
 void sched_ctx_hypervisor_free_size_req(void);
 
 unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx);
+
+#endif
