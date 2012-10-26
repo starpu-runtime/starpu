@@ -177,7 +177,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_
 	return perf_counters;
 }
 
-char* sched_ctx_hypervisor_get_policy()
+const char* sched_ctx_hypervisor_get_policy()
 {
 	return hypervisor.policy.name;
 }
