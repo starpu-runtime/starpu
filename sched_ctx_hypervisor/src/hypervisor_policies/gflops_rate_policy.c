@@ -243,7 +243,7 @@ static int _find_slowest_available_sched_ctx(unsigned sched_ctx)
 
 static void gflops_rate_resize(unsigned sched_ctx)
 {
-	double exp_end = _get_exp_end(sched_ctx);
+	_get_exp_end(sched_ctx);
 	double flops_left_pct = _get_flops_left_pct(sched_ctx);
 
 	/* if the context finished all the instructions it had to execute 

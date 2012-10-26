@@ -32,7 +32,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 		for(t = 0; t < nt; t++)
 		{
 			tasks[w][t] = 0.0;
-			draft_tasks[w][t] == 0.0;
+			draft_tasks[w][t] = 0.0;
 		}
 	
 	for(s = 0; s < ns; s++)
@@ -120,8 +120,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], unsigned first_time, int *in_sched_ctxs, int *workers)
 {
 	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
-        struct bound_task_pool * tp;
-	int s, s2, w, t;
+	int s, s2, w;
 
 	for(s = 0; s < ns; s++)
 	{

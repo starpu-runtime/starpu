@@ -79,7 +79,6 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	double vmax = _lp_get_nworkers_per_ctx(nsched_ctxs, 2, nworkers_per_type, total_nw);
 	if(vmax != 0.0)
 	{
-		int i;
 		printf("********size\n");
 /* 		for( i = 0; i < nsched_ctxs; i++) */
 /* 		{ */

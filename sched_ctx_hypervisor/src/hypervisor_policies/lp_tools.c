@@ -1,3 +1,4 @@
+#include <math.h>
 #include "lp_tools.h"
 
 #ifdef HAVE_GLPK_H
@@ -159,17 +160,21 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers])
 {
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
+#ifdef HAVE_GLPK_H
 	double v[nsched_ctxs][ntypes_of_workers];
 	double flops[nsched_ctxs];
+#endif
 	int i = 0;
 	struct sched_ctx_wrapper* sc_w;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
+#ifdef HAVE_GLPK_H
 		v[i][0] = 200.0;//_get_velocity_per_worker_type(sc_w, STARPU_CUDA_WORKER);
 		v[i][1] = 20.0;//_get_velocity_per_worker_type(sc_w, STARPU_CPU_WORKER);
 		flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
 //			printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
+#endif
 	}
 
 #ifdef HAVE_GLPK_H	
@@ -352,7 +357,7 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
 	int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : sched_ctxs;
 
-	int s, s2, w;
+	int s, w;
 	for(s = 0; s < ns; s++)
 	{
 		for(w = 0; w < nw; w++)
