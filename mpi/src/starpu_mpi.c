@@ -678,9 +678,9 @@ static void *progress_thread_func(void *arg)
                 }
 		switch (thread_support)
 		{
-		case MPI_THREAD_SERIALIZED: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_SERIALIZED\n");
-		case MPI_THREAD_FUNNELED: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_FUNNELED\n");
-		case MPI_THREAD_SINGLE: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_SINGLE\n");
+		case MPI_THREAD_SERIALIZED: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_SERIALIZED (Multiple threads may make MPI calls, but only one at a time) \n");
+		case MPI_THREAD_FUNNELED: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_FUNNELED (Only the thread that initializes and finalizes MPI is allowed to make MPI calls)\n");
+		case MPI_THREAD_SINGLE: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_SINGLE (MPI does not have multi-thread support, this may cause problems)\n");
 		}
         }
 
