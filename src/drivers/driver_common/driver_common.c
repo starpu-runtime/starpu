@@ -78,7 +78,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 
 	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch);
 
-	if (cl->model && cl->model->benchmarking)
+	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
 	if (rank == 0)
