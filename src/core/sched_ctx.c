@@ -620,10 +620,7 @@ static unsigned _starpu_worker_get_sched_ctx_id(struct _starpu_worker *worker, u
 			else if(worker->sched_ctx[i]->id == STARPU_NMAX_SCHED_CTXS)
 				to_be_deleted = i;
 
-	/* little bit of a hack be carefull */
-	if(to_be_deleted != STARPU_NMAX_SCHED_CTXS)
-		return to_be_deleted;
-	return STARPU_NMAX_SCHED_CTXS;
+	return to_be_deleted;
 }
 
 int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
