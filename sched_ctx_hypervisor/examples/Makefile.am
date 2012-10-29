@@ -15,7 +15,8 @@
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS =				\
-	cholesky/cholesky_implicit
+	cholesky/cholesky_implicit  \
+	app_driven_test/app_driven_test
 
 noinst_HEADERS = 				\
 	cholesky/cholesky.h			\
@@ -46,5 +47,11 @@ cholesky_cholesky_implicit_SOURCES =		\
 cholesky_cholesky_implicit_LDADD =		\
 	$(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la \
 	$(STARPU_BLAS_LDFLAGS)
+
+app_driven_test_app_driven_test_SOURCES =		\
+	app_driven_test/app_driven_test.c		
+
+app_driven_test_app_driven_test_LDADD =		\
+	$(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la 
 
 endif
