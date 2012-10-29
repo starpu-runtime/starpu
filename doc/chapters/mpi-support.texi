@@ -479,6 +479,11 @@ each task, only the MPI node which owns the data being written to (here,
 @code{data_handles[x][y]}) will actually run the task. The other MPI nodes will
 automatically send the required data.
 
+This can be a concern with a growing number of nodes. To avoid this, the
+application can prune the task for loops according to the data distribution,
+so as to only submit tasks on nodes which have to care about them (either to
+execute them, or to send the required data).
+
 @node MPI Collective Operations
 @section MPI Collective Operations
 
