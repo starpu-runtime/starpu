@@ -262,7 +262,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	/* find the queue */
 	struct _starpu_fifo_taskq *fifo;
-	unsigned worker, worker_ctx;
+	unsigned worker, worker_ctx = 0;
 	int best = -1;
 
 	double best_exp_end = 0.0;
