@@ -614,11 +614,15 @@ static unsigned _starpu_worker_get_sched_ctx_id(struct _starpu_worker *worker, u
 	unsigned to_be_deleted = STARPU_NMAX_SCHED_CTXS;
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
 		if(worker->sched_ctx[i] != NULL)
+		{
 			if(worker->sched_ctx[i]->id == sched_ctx_id)
 				return i;
 			else if(worker->sched_ctx[i]->id == STARPU_NMAX_SCHED_CTXS)
 				to_be_deleted = i;
+		}
+	}
 
 	return to_be_deleted;
 }
