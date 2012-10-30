@@ -108,9 +108,7 @@ struct hypervisor_policy {
 	void (*handle_poped_task)(unsigned sched_ctx, int worker);
 	void (*handle_idle_end)(unsigned sched_ctx, int worker);
 
-	/* FIXME: The 'resize_requests' hash table is an implementation
-	 * detail that should be invisible to policies.  */
-	void (*handle_post_exec_hook)(unsigned sched_ctx, struct resize_request_entry* resize_requests, int task_tag);
+	void (*handle_post_exec_hook)(unsigned sched_ctx, int task_tag);
 
 	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
 };

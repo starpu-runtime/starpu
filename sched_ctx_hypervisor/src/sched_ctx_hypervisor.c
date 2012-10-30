@@ -732,15 +732,22 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 		
 	if(hypervisor.resize[sched_ctx])
 	{
-		struct resize_request_entry* resize_requests;
-
 		pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);
-		resize_requests = hypervisor.resize_requests[sched_ctx];
 
-		/* TODO: Move the lookup of 'task_tag' in 'resize_requests'
-		 * here, and remove + free the entry here.  */
 		if(hypervisor.policy.handle_post_exec_hook)
-			hypervisor.policy.handle_post_exec_hook(sched_ctx, resize_requests, task_tag);
+		{
+			/* Check whether 'task_tag' is in the 'resize_requests' set.  */
+			struct resize_request_entry *entry;
+			HASH_FIND_INT(hypervisor.resize_requests[sched_ctx], &task_tag, entry);
+			if (entry != NULL)
+			{
+				hypervisor.policy.handle_post_exec_hook(sched_ctx,
+									task_tag);
+				HASH_DEL(hypervisor.resize_requests[sched_ctx], entry);
+				free(entry);
+			}
+
+		}
 		pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
 	}
 	return;

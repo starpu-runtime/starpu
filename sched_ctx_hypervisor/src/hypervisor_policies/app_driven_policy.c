@@ -18,19 +18,9 @@
 
 #include <sched_ctx_hypervisor_intern.h>
 
-void app_driven_handle_post_exec_hook(unsigned sched_ctx, struct resize_request_entry* resize_requests, int task_tag)
+static void app_driven_handle_post_exec_hook(unsigned sched_ctx, int task_tag)
 {
-	struct resize_request_entry *entry;
-
-	/* Check whether 'task_tag' is in the 'resize_requests' set.  */
-	HASH_FIND_INT(resize_requests, &task_tag, entry);
-	if(entry != NULL)
-	{
-		_resize_to_unknown_receiver(sched_ctx, 1);
-		HASH_DEL(resize_requests, entry);
-		free(entry);
-	}
-
+	_resize_to_unknown_receiver(sched_ctx, 1);
 }
 
 struct hypervisor_policy app_driven_policy = {
