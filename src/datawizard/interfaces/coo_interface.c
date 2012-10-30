@@ -368,8 +368,14 @@ allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
 	case STARPU_CPU_RAM:
 	{
 		addr_columns = malloc(n_values * sizeof(coo_interface->columns[0]));
+		if (STARPU_UNLIKELY(addr_columns == NULL))
+			goto fail_columns;
 		addr_rows = malloc(n_values * sizeof(coo_interface->rows[0]));
+		if (STARPU_UNLIKELY(addr_rows == NULL))
+			goto fail_rows;
 		addr_values = (uintptr_t) malloc(n_values * elemsize);
+		if (STARPU_UNLIKELY(addr_values == NULL))
+			goto fail_values;
 		break;
 	}
 #ifdef STARPU_USE_CUDA
