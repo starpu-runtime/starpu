@@ -18,7 +18,7 @@
 #include <common/utils.h>
 #include <core/jobs.h>
 
-const char *_starpu_get_cl_model_name(struct starpu_codelet *cl)
+const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl)
 {
 	if (!cl)
 		return NULL;
@@ -29,7 +29,7 @@ const char *_starpu_get_cl_model_name(struct starpu_codelet *cl)
 		return cl->name;
 }
 
-const char *_starpu_get_job_model_name(struct _starpu_job *j)
+const char *_starpu_job_get_model_name(struct _starpu_job *j)
 {
 	const char *ret = NULL;
 
@@ -38,7 +38,7 @@ const char *_starpu_get_job_model_name(struct _starpu_job *j)
 
 	struct starpu_task *task = j->task;
 	if (task)
-		ret = _starpu_get_cl_model_name(task->cl);
+		ret = _starpu_codelet_get_model_name(task->cl);
 
 #ifdef STARPU_USE_FXT
 	if (!ret)
