@@ -61,6 +61,14 @@ char *_starpu_get_home_path(void);
 /* If FILE is currently on a comment line, eat it.  */
 void _starpu_drop_comments(FILE *f);
 
+struct _starpu_job;
+/* Returns the symbol associated to that job if any. */
+const char *_starpu_job_get_model_name(struct _starpu_job *j);
+
+struct starpu_codelet;
+/* Returns the symbol associated to that job if any. */
+const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
+
 #define _STARPU_PTHREAD_CREATE(thread, attr, routine, arg) do {                \
 	int p_ret = pthread_create((thread), (attr), (routine), (arg));	       \
 	if (STARPU_UNLIKELY(p_ret != 0)) {                                     \
