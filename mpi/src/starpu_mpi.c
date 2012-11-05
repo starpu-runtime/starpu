@@ -662,6 +662,16 @@ struct _starpu_mpi_argc_argv {
 	char ***argv;
 };
 
+static void print_thread_level_support(int thread_level, char *msg)
+{
+     switch (thread_level)
+     {
+     case MPI_THREAD_SERIALIZED: _STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
+     case MPI_THREAD_FUNNELED: _STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
+     case MPI_THREAD_SINGLE: _STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
+     }
+}
+
 static void *progress_thread_func(void *arg)
 {
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
@@ -676,13 +686,14 @@ static void *progress_thread_func(void *arg)
 		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
 			_STARPU_ERROR("MPI_Init_thread failed\n");
                 }
-		switch (thread_support)
-		{
-		case MPI_THREAD_SERIALIZED: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_SERIALIZED (Multiple threads may make MPI calls, but only one at a time) \n");
-		case MPI_THREAD_FUNNELED: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_FUNNELED (The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions)\n");
-		case MPI_THREAD_SINGLE: _STARPU_DISP("MPI_Init_thread level = MPI_THREAD_SINGLE (MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions)\n");
-		}
+		print_thread_level_support(thread_support, "_Init_thread level =");
         }
+	else
+	{
+	     int provided;
+	     MPI_Query_thread(&provided);
+	     print_thread_level_support(provided, " has been initialized with");
+	}
 
 	/* notify the main thread that the progression thread is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
