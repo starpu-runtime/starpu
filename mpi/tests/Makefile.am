@@ -78,7 +78,8 @@ check_PROGRAMS +=				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	multiple_send
+	multiple_send				\
+	mpi_scatter_gather
 
 noinst_PROGRAMS =				\
 	pingpong				\
@@ -99,7 +100,8 @@ noinst_PROGRAMS =				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	multiple_send
+	multiple_send				\
+	mpi_scatter_gather
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -138,6 +140,8 @@ insert_task_owner2_LDADD =			\
 insert_task_owner_data_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 multiple_send_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_scatter_gather_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c

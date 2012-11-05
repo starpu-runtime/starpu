@@ -153,19 +153,6 @@ check_PROGRAMS +=					\
 	cholesky/mpi_cholesky_distributed
 endif
 
-########################
-# Scatter Gather       #
-########################
-
-examplebin_PROGRAMS +=		\
-	scatter_gather/mpi_scatter_gather
-
-scatter_gather_mpi_scatter_gather_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
-check_PROGRAMS +=		\
-	scatter_gather/mpi_scatter_gather
-
 ###################
 # Reduction       #
 ###################
