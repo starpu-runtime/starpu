@@ -54,6 +54,18 @@ static struct starpu_codelet cl =
 	.modes = {STARPU_RW},
 };
 
+void scallback(void *arg __attribute__((unused)))
+{
+	char *msg = arg;
+	fprintf(stderr, "Sending completed for <%s>\n", msg);
+}
+
+void rcallback(void *arg __attribute__((unused)))
+{
+	char *msg = arg;
+	fprintf(stderr, "Reception completed for <%s>\n", msg);
+}
+
 int main(int argc, char **argv)
 {
         int rank, nodes;
@@ -155,7 +167,7 @@ int main(int argc, char **argv)
         }
 
 	/* Scatter the matrix among the nodes */
-	starpu_mpi_scatter_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
+	starpu_mpi_scatter_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, scallback, "scatter", NULL, NULL);
 
 	/* Calculation */
 	for(x = 0; x < nblocks*nblocks ;  x++)
@@ -175,7 +187,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Gather the matrix on main node */
-	starpu_mpi_gather_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
+	starpu_mpi_gather_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, scallback, "gather", rcallback, "gather");
 
 	/* Unregister matrix from StarPU */
 	for(x=0 ; x<nblocks*nblocks ; x++)
