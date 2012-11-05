@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 
-int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm)
+int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
 {
 	int rank;
 	int x;
@@ -35,19 +35,19 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 			if ((rank == root) && (owner != root))
 			{
 				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
-				starpu_mpi_isend_detached(data_handles[x], owner, mpi_tag, comm, NULL, NULL);
+				starpu_mpi_isend_detached(data_handles[x], owner, mpi_tag, comm, scallback, sarg);
 			}
 			if ((rank != root) && (owner == rank))
 			{
 				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, root);
-				starpu_mpi_irecv_detached(data_handles[x], root, mpi_tag, comm, NULL, NULL);
+				starpu_mpi_irecv_detached(data_handles[x], root, mpi_tag, comm, rcallback, rarg);
 			}
 		}
 	}
 	return 0;
 }
 
-int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm)
+int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
 {
 	int rank;
 	int x;
@@ -64,12 +64,12 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 			if ((rank == root) && (owner != root))
 			{
 				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
-				starpu_mpi_irecv_detached(data_handles[x], owner, mpi_tag, comm, NULL, NULL);
+				starpu_mpi_irecv_detached(data_handles[x], owner, mpi_tag, comm, scallback, sarg);
 			}
 			if ((rank != root) && (owner == rank))
 			{
 				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, root);
-				starpu_mpi_isend_detached(data_handles[x], root, mpi_tag, comm, NULL, NULL);
+				starpu_mpi_isend_detached(data_handles[x], root, mpi_tag, comm, rcallback, rarg);
 			}
 		}
 	}

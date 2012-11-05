@@ -155,7 +155,7 @@ int main(int argc, char **argv)
         }
 
 	/* Scatter the matrix among the nodes */
-	starpu_mpi_scatter_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
+	starpu_mpi_scatter_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 
 	/* Calculation */
 	for(x = 0; x < nblocks*nblocks ;  x++)
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Gather the matrix on main node */
-	starpu_mpi_gather_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
+	starpu_mpi_gather_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 
 	/* Unregister matrix from StarPU */
 	for(x=0 ; x<nblocks*nblocks ; x++)
