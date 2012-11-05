@@ -20,6 +20,7 @@
 extern void init_cpu_func(void *descr[], void *cl_arg);
 extern void redux_cpu_func(void *descr[], void *cl_arg);
 extern void dot_cpu_func(void *descr[], void *cl_arg);
+extern void display_cpu_func(void *descr[], void *cl_arg);
 
 static struct starpu_codelet init_codelet =
 {
@@ -46,6 +47,15 @@ static struct starpu_codelet dot_codelet =
 	.name = "dot_codelet"
 };
 
+static struct starpu_codelet display_codelet =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = {display_cpu_func, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_R},
+	.name = "display_codelet"
+};
+
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int nb_nodes)
 {
@@ -54,13 +64,13 @@ int my_distrib(int x, int nb_nodes)
 
 int main(int argc, char **argv)
 {
-        int my_rank, size, x, y;
+	int my_rank, size, x, y, i;
         long int *vector;
 	long int dot, sum=0;
         starpu_data_handle_t *handles;
 	starpu_data_handle_t dot_handle;
 
-	int nb_elements, step;
+	int nb_elements, step, loops;
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -71,6 +81,7 @@ int main(int argc, char **argv)
 
 	nb_elements = size*8000;
 	step = 4;
+	loops = 5;
 
 	vector = (long int *) malloc(nb_elements*sizeof(vector[0]));
         for(x = 0; x < nb_elements; x+=step)
@@ -87,7 +98,8 @@ int main(int argc, char **argv)
 	if (my_rank == 0) {
 		dot = 14;
 		sum = (nb_elements * (nb_elements + 1)) / 2;
-		sum+= dot;
+		sum *= loops;
+		sum += dot;
 		starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(dot));
 	}
 	else
@@ -120,15 +132,19 @@ int main(int argc, char **argv)
 	starpu_data_set_tag(dot_handle, nb_elements+1);
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
 
-	for (x = 0; x < nb_elements; x+=step)
+	for (i = 0; i < loops; i++)
 	{
-		starpu_mpi_insert_task(MPI_COMM_WORLD,
-				       &dot_codelet,
-				       STARPU_R, handles[x],
-				       STARPU_REDUX, dot_handle,
-				       0);
+		for (x = 0; x < nb_elements; x+=step)
+		{
+			starpu_mpi_insert_task(MPI_COMM_WORLD,
+					       &dot_codelet,
+					       STARPU_R, handles[x],
+					       STARPU_REDUX, dot_handle,
+					       0);
+		}
+		starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
+		starpu_mpi_insert_task(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
 	}
-	starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
 
         fprintf(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
