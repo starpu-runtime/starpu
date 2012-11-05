@@ -1010,7 +1010,7 @@ static int load_bus_bandwidth_file_content(void)
 			n = fscanf(f, "%lf", &bandwidth);
 			if (n != 1)
 			{
-				fprintf(stderr,"Error while reading sampling file <%s>. Expected a number\n", path);
+				_STARPU_DISP("Error while reading sampling file <%s>. Expected a number\n", path);
 				fclose(f);
 				return 0;
 			}
@@ -1267,21 +1267,21 @@ static void check_bus_config_file(void)
                 // Checking if both configurations match
                 if (read_cpus != ncpus)
 		{
-			fprintf(stderr, "Current configuration does not match the bus performance model (CPUS: (stored) %u != (current) %u), recalibrating...", read_cpus, ncpus);
+			_STARPU_DISP("Current configuration does not match the bus performance model (CPUS: (stored) %u != (current) %u), recalibrating...\n", read_cpus, ncpus);
                         starpu_force_bus_sampling();
-			fprintf(stderr, "done\n");
+			_STARPU_DISP("... done\n");
                 }
                 else if (read_cuda != ncuda)
 		{
-                        fprintf(stderr, "Current configuration does not match the bus performance model (CUDA: (stored) %d != (current) %d), recalibrating...", read_cuda, ncuda);
+                        _STARPU_DISP("Current configuration does not match the bus performance model (CUDA: (stored) %d != (current) %d), recalibrating...\n", read_cuda, ncuda);
                         starpu_force_bus_sampling();
-			fprintf(stderr, "done\n");
+			_STARPU_DISP("... done\n");
                 }
                 else if (read_opencl != nopencl)
 		{
-                        fprintf(stderr, "Current configuration does not match the bus performance model (OpenCL: (stored) %d != (current) %d), recalibrating...", read_opencl, nopencl);
+                        _STARPU_DISP("Current configuration does not match the bus performance model (OpenCL: (stored) %d != (current) %d), recalibrating...\n", read_opencl, nopencl);
                         starpu_force_bus_sampling();
-			fprintf(stderr, "done\n");
+			_STARPU_DISP("... done\n");
                 }
         }
 }
