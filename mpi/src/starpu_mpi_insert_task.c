@@ -748,6 +748,9 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 		{
 			if (i != rank)
 			{
+#ifdef STARPU_DEVEL
+#warning liberer new_handle
+#endif
 				starpu_data_handle_t new_handle;
 
 				starpu_data_register_same(&new_handle, data_handle);
@@ -766,5 +769,6 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 	{
 		_STARPU_MPI_DEBUG("Sending redux handle to %d ...\n", rank);
 		starpu_mpi_isend_detached(data_handle, rank, tag, comm, NULL, NULL);
+		starpu_insert_task(data_handle->init_cl, STARPU_W, data_handle, 0);
 	}
 }
