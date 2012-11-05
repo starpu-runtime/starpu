@@ -79,7 +79,8 @@ check_PROGRAMS +=				\
 	insert_task_owner2			\
 	insert_task_owner_data			\
 	multiple_send				\
-	mpi_scatter_gather
+	mpi_scatter_gather			\
+	mpi_reduction
 
 noinst_PROGRAMS =				\
 	pingpong				\
@@ -101,7 +102,8 @@ noinst_PROGRAMS =				\
 	insert_task_owner2			\
 	insert_task_owner_data			\
 	multiple_send				\
-	mpi_scatter_gather
+	mpi_scatter_gather			\
+	mpi_reduction
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -143,6 +145,8 @@ multiple_send_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_scatter_gather_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_reduction_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
 ring_async_SOURCES = ring_async.c
@@ -151,6 +155,8 @@ if STARPU_USE_CUDA
 ring_SOURCES += ring_kernel.cu
 ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
+mpi_reduction_SOURCES = mpi_reduction.c
+mpi_reduction_SOURCES += mpi_reduction_kernels.c
 endif
 
 showcheck:

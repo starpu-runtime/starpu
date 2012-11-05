@@ -154,23 +154,6 @@ check_PROGRAMS +=					\
 endif
 
 ###################
-# Reduction       #
-###################
-
-examplebin_PROGRAMS +=		\
-	reduction/mpi_reduction
-
-reduction_mpi_reduction_SOURCES =		\
-	reduction/mpi_reduction.c		\
-	reduction/mpi_reduction_kernels.c
-
-reduction_mpi_reduction_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
-check_PROGRAMS +=		\
-	reduction/mpi_reduction
-
-###################
 # complex example #
 ###################
 
