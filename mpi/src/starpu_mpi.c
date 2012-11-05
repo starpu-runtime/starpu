@@ -666,9 +666,21 @@ static void print_thread_level_support(int thread_level, char *msg)
 {
      switch (thread_level)
      {
-     case MPI_THREAD_SERIALIZED: _STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
-     case MPI_THREAD_FUNNELED: _STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
-     case MPI_THREAD_SINGLE: _STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
+     case MPI_THREAD_SERIALIZED:
+     {
+	  _STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
+	  break;
+     }
+     case MPI_THREAD_FUNNELED:
+     {
+	  _STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
+	  break;
+     }
+     case MPI_THREAD_SINGLE:
+     {
+	  _STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
+	  break;
+     }
      }
 }
 
