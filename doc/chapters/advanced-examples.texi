@@ -726,6 +726,26 @@ int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading
 to yet more relaxed dependencies and more parallelism.
 
+STARPU_REDUX can also be passed to @code{starpu_mpi_insert_task} in the MPI
+case. That will however not produce any MPI communication, but just pass
+STARPU_REDUX to the underlying @code{starpu_insert_task}. It is up to the
+application to call @code{starpu_mpi_redux_data}, which posts tasks that will
+reduce the partial results among MPI nodes into the MPI node which owns the
+data. For instance, some hypothetical application which collects partial results
+into data @code{res}, then uses it for other computation, before looping again
+with a new reduction:
+
+@smallexample
+@{
+    for (i = 0; i < 100; i++) @{
+        starpu_mpi_insert_task(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
+        starpu_mpi_insert_task(MPI_COMM_WORLD, &work, STARPU_RW, A, STARPU_R, B, STARPU_REDUX, res, 0);
+        starpu_mpi_redux_data(MPI_COMM_WORLD, res);
+        starpu_mpi_insert_task(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
+    @}
+@}
+@end smallexample
+
 @node Temporary buffers
 @section Temporary buffers
 

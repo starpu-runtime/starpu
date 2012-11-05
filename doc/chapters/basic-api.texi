@@ -417,7 +417,7 @@ extensions at least to define the initial value.  For now, data to be
 used in @code{SCRATCH} mode should be registered with node @code{-1} and
 a @code{NULL} pointer, since the value of the provided buffer is simply
 ignored for now.
-@item @code{STARPU_REDUX} reduction mode.
+@item @code{STARPU_REDUX}: reduction mode. TODO!
 @end table
 @end deftp
 
