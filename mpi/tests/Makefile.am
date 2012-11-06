@@ -155,9 +155,9 @@ if STARPU_USE_CUDA
 ring_SOURCES += ring_kernel.cu
 ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
+endif
 mpi_reduction_SOURCES = mpi_reduction.c
 mpi_reduction_SOURCES += mpi_reduction_kernels.c
-endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
