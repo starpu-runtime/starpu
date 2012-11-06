@@ -35,15 +35,8 @@ int main(int argc, char **argv)
 	if (size < 2)
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need at least processes.\n");
+			FPRINTF(stderr, "We need at least 2 processes.\n");
 
-		MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
-	}
-
-	/* We only use 2 nodes for that test */
-	if (rank >= 2)
-	{
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -80,7 +73,7 @@ int main(int argc, char **argv)
 			(uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}
-	else /* rank == 1 */
+	else if (rank == 1)
 	{
 		starpu_malloc((void **)&block,
 			SIZE*SIZE*SIZE*sizeof(float));
@@ -113,7 +106,7 @@ int main(int argc, char **argv)
 		starpu_data_release(block_handle);
 
 	}
-	else /* rank == 1 */
+	else if (rank == 1)
 	{
 		MPI_Status status;
 
