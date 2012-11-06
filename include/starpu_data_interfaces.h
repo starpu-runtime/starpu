@@ -209,11 +209,7 @@ struct starpu_coo_interface
 	size_t    elemsize;
 };
 
-void
-starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
-			 uint32_t nx, uint32_t ny, uint32_t n_values,
-			 uint32_t *columns, uint32_t *rows,
-			 uintptr_t values, size_t elemsize);
+void starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
 
 #define STARPU_COO_GET_COLUMNS(interface) \
 	(((struct starpu_coo_interface *)(interface))->columns)
