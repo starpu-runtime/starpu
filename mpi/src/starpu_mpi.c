@@ -421,7 +421,8 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 			free(req);
 		}
 	}
-	else {
+	else
+	{
 		*flag = 0;
 	}
 
@@ -457,7 +458,8 @@ int starpu_mpi_barrier(MPI_Comm comm)
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	STARPU_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
 	barrier_running = 1;
-	do {
+	do
+	{
 		while (posted_requests)
 			/* Wait for all current MPI requests to finish */
 			_STARPU_PTHREAD_COND_WAIT(&cond_finished, &mutex);
@@ -521,7 +523,8 @@ static void handle_request_termination(struct _starpu_mpi_req *req)
         _STARPU_MPI_LOG_IN();
 
 	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
-        if (req->request_type != BARRIER_REQ) {
+        if (req->request_type != BARRIER_REQ)
+	{
 		if (req->needs_unpacking)
 			starpu_handle_unpack_data(req->data_handle, req->ptr);
 		else
@@ -657,7 +660,8 @@ static void handle_new_request(struct _starpu_mpi_req *req)
         _STARPU_MPI_LOG_OUT();
 }
 
-struct _starpu_mpi_argc_argv {
+struct _starpu_mpi_argc_argv
+{
 	int *argc;
 	char ***argv;
 };
@@ -695,7 +699,8 @@ static void *progress_thread_func(void *arg)
 	{
 		int thread_support;
                 _STARPU_DEBUG("Calling MPI_Init_thread\n");
-		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
+		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
+		{
 			_STARPU_ERROR("MPI_Init_thread failed\n");
                 }
 		print_thread_level_support(thread_support, "_Init_thread level =");
@@ -714,7 +719,8 @@ static void *progress_thread_func(void *arg)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	while (running || posted_requests || !(_starpu_mpi_req_list_empty(new_requests)) || !(_starpu_mpi_req_list_empty(detached_requests))) {
+	while (running || posted_requests || !(_starpu_mpi_req_list_empty(new_requests)) || !(_starpu_mpi_req_list_empty(detached_requests)))
+	{
 		/* shall we block ? */
 		unsigned block = _starpu_mpi_req_list_empty(new_requests);
 
@@ -756,7 +762,8 @@ static void *progress_thread_func(void *arg)
 	STARPU_ASSERT(_starpu_mpi_req_list_empty(new_requests));
         STARPU_ASSERT(posted_requests == 0);
 
-        if (flag == 0) {
+        if (flag == 0)
+	{
                 _STARPU_MPI_DEBUG("Calling MPI_Finalize()\n");
                 MPI_Finalize();
         }
