@@ -2428,7 +2428,7 @@ This function returns a pointer to device properties for worker @var{workerid}
 (assumed to be a CUDA worker).
 @end deftypefun
 
-@deftypefun size_t starpu_cuda_get_global_mem_size (int @var{devid})
+@deftypefun size_t starpu_cuda_get_global_mem_size (unsigned @var{devid})
 Return the size of the global memory of CUDA device @var{devid}.
 @end deftypefun
 
@@ -2452,7 +2452,7 @@ successfull. It returns 0 if the synchronous copy was successful, or
 fails otherwise.
 @end deftypefun
 
-@deftypefun void starpu_cuda_set_device (int @var{devid})
+@deftypefun void starpu_cuda_set_device (unsigned @var{devid})
 Calls @code{cudaSetDevice(devid)} or @code{cudaGLSetGLDevice(devid)}, according to
 whether @code{devid} is among the @code{cuda_opengl_interoperability} field of
 the @code{starpu_conf} structure.
