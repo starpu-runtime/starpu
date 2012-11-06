@@ -43,7 +43,7 @@
 #  define _STARPU_LOG_OUT_TAG(outtag)
 #endif
 
-#define _STARPU_DISP(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)
+#define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); }} while(0)
 #define _STARPU_ERROR(fmt, args ...)                                                  \
 	do {                                                                          \
                 fprintf(stderr, "[starpu][%s] Error: " fmt ,__func__ ,##args);        \
