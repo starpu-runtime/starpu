@@ -60,11 +60,14 @@ extern "C" {
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
-#define SEND_REQ	0
-#define RECV_REQ	1
-#define WAIT_REQ        2
-#define TEST_REQ        3
-#define BARRIER_REQ     4
+enum _starpu_mpi_request_type
+{
+	SEND_REQ=0,
+	RECV_REQ=1,
+	WAIT_REQ=2,
+	TEST_REQ=3,
+	BARRIER_REQ=4
+};
 
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
@@ -90,7 +93,7 @@ LIST_TYPE(_starpu_mpi_req,
 	pthread_mutex_t req_mutex;
 	pthread_cond_t req_cond;
 
-	unsigned request_type; /* 0 send, 1 recv */
+	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 
 	unsigned submitted;
 	unsigned completed;

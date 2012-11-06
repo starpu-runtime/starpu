@@ -504,7 +504,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
  */
 
 #ifdef STARPU_MPI_VERBOSE
-static char *starpu_mpi_request_type(unsigned request_type)
+static char *starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
         switch (request_type)
                 {
