@@ -47,10 +47,10 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	if (size != 2)
+	if (size%2 != 0)
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need exactly 2 processes.\n");
+			FPRINTF(stderr, "We need a even number of processes.\n");
 
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -67,12 +67,11 @@ int main(int argc, char **argv)
 
 	unsigned nloops = NITER;
 	unsigned loop;
-
-	int other_rank = (rank + 1)%2;
+	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		if (rank == 0)
+		if ((loop % 2) == (rank%2))
 		{
 			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
 		}
