@@ -105,17 +105,12 @@ int main(int argc, char **argv)
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
                                                             SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
                         }
-                        else if (rank == mpi_rank+1 || rank == mpi_rank-1)
+                        else
 			{
                                 /* I don't own that index, but will need it for my computations */
                                 //FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
                                                             SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
-                        }
-                        else
-			{
-                                /* I know it's useless to allocate anything for this */
-                                data_handles[x][y] = NULL;
                         }
                         if (data_handles[x][y])
 			{

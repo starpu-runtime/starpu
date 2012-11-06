@@ -134,6 +134,8 @@ int main(int argc, char **argv)
 		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
 		fprintf(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
+	else
+		result = 1;
 
 	MPI_Finalize();
 	return !result;

@@ -84,14 +84,6 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-        if (size != 2)
-	{
-		if (rank == 0) FPRINTF(stderr, "We need exactly 2 processes.\n");
-                starpu_mpi_shutdown();
-                starpu_shutdown();
-                return STARPU_TEST_SKIPPED;
-        }
-
         if (rank == 0)
 	{
                 starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
@@ -110,6 +102,8 @@ int main(int argc, char **argv)
                 starpu_data_set_rank(data_handlesx0, 0);
 		starpu_data_set_tag(data_handlesx0, 0);
         }
+
+	if (rank != 0 && rank != 1) goto end;
 
 	node = starpu_data_get_rank(data_handlesx1);
         err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
@@ -172,6 +166,7 @@ int main(int argc, char **argv)
 				     0);
         assert(err == 0);
 
+end:
 	fprintf(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
 	starpu_mpi_shutdown();
