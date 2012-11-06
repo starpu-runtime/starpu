@@ -52,9 +52,12 @@ static int posted_requests = 0, newer_requests, barrier_running = 0;
 
 #define INC_POSTED_REQUESTS(value) { _STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; _STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
 
-/*
- *	Isend
- */
+
+/********************************************************/
+/*                                                      */
+/*  Send functionalities                                */
+/*                                                      */
+/********************************************************/
 
 static void starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
@@ -139,10 +142,6 @@ int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	return 0;
 }
 
-/*
- *	Isend (detached)
- */
-
 int starpu_mpi_isend_detached(starpu_data_handle_t data_handle,
 				int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
@@ -153,9 +152,26 @@ int starpu_mpi_isend_detached(starpu_data_handle_t data_handle,
 	return 0;
 }
 
-/*
- *	Irecv
- */
+int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm)
+{
+	starpu_mpi_req req;
+	MPI_Status status;
+
+        _STARPU_MPI_LOG_IN();
+	memset(&status, 0, sizeof(MPI_Status));
+
+	starpu_mpi_isend(data_handle, &req, dest, mpi_tag, comm);
+	starpu_mpi_wait(&req, &status);
+
+        _STARPU_MPI_LOG_OUT();
+	return 0;
+}
+
+/********************************************************/
+/*                                                      */
+/*  Receive functionalities                             */
+/*                                                      */
+/********************************************************/
 
 static void starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
@@ -233,10 +249,6 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	return 0;
 }
 
-/*
- *	Irecv (detached)
- */
-
 int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
         _STARPU_MPI_LOG_IN();
@@ -245,11 +257,6 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
         _STARPU_MPI_LOG_OUT();
 	return 0;
 }
-
-
-/*
- *	Recv
- */
 
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
 {
@@ -263,28 +270,11 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, M
 	return 0;
 }
 
-/*
- *	Send
- */
-
-int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm)
-{
-	starpu_mpi_req req;
-	MPI_Status status;
-
-        _STARPU_MPI_LOG_IN();
-	memset(&status, 0, sizeof(MPI_Status));
-
-	starpu_mpi_isend(data_handle, &req, dest, mpi_tag, comm);
-	starpu_mpi_wait(&req, &status);
-
-        _STARPU_MPI_LOG_OUT();
-	return 0;
-}
-
-/*
- *	Wait
- */
+/********************************************************/
+/*                                                      */
+/*  Wait functionalities                                */
+/*                                                      */
+/********************************************************/
 
 static void starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 {
@@ -343,9 +333,11 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	return ret;
 }
 
-/*
- * 	Test
- */
+/********************************************************/
+/*                                                      */
+/*  Test functionalities                                */
+/*                                                      */
+/********************************************************/
 
 static void starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 {
@@ -430,9 +422,11 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	return ret;
 }
 
-/*
- *	Barrier
- */
+/********************************************************/
+/*                                                      */
+/*  Barrier functionalities                             */
+/*                                                      */
+/********************************************************/
 
 static void starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 {
@@ -499,9 +493,11 @@ int starpu_mpi_barrier(MPI_Comm comm)
 	return ret;
 }
 
-/*
- *	Requests
- */
+/********************************************************/
+/*                                                      */
+/*  Progression                                         */
+/*                                                      */
+/********************************************************/
 
 #ifdef STARPU_MPI_VERBOSE
 static char *starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
@@ -566,10 +562,6 @@ static void submit_mpi_req(void *arg)
         _STARPU_MPI_LOG_OUT();
 }
 
-/*
- *	Scheduler hook
- */
-
 #ifdef USE_STARPU_ACTIVITY
 static unsigned progression_hook_func(void *arg __attribute__((unused)))
 {
@@ -586,10 +578,6 @@ static unsigned progression_hook_func(void *arg __attribute__((unused)))
 	return may_block;
 }
 #endif
-
-/*
- *	Progression loop
- */
 
 static void test_detached_requests(void)
 {
@@ -774,9 +762,11 @@ static void *progress_thread_func(void *arg)
 	return NULL;
 }
 
-/*
- *	(De)Initialization methods
- */
+/********************************************************/
+/*                                                      */
+/*  (De)Initialization methods                          */
+/*                                                      */
+/********************************************************/
 
 #ifdef USE_STARPU_ACTIVITY
 static int hookid = - 1;
