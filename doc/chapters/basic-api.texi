@@ -465,6 +465,11 @@ This is the same as starpu_data_unregister, except that StarPU does not put back
 a valid copy into the home node, in the buffer that was initially registered.
 @end deftypefun
 
+@deftypefun void starpu_data_unregister_submit (starpu_data_handle_t @var{handle})
+Destroy the data handle once it is not needed anymore by any submitted
+task. No coherency is assumed.
+@end deftypefun
+
 @deftypefun void starpu_data_invalidate (starpu_data_handle_t @var{handle})
 Destroy all replicates of the data handle. After data invalidation, the first
 access to the handle must be performed in write-only mode. Accessing an
