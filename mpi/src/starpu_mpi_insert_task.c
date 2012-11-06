@@ -748,9 +748,6 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 		{
 			if (i != rank)
 			{
-#ifdef STARPU_DEVEL
-#warning liberer new_handle
-#endif
 				starpu_data_handle_t new_handle;
 
 				starpu_data_register_same(&new_handle, data_handle);
@@ -759,9 +756,10 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 
 				starpu_mpi_irecv_detached(new_handle, i, tag, comm, NULL, NULL);
 				starpu_insert_task(data_handle->redux_cl,
-						STARPU_RW, data_handle,
-						STARPU_R, new_handle,
-						0);
+						   STARPU_RW, data_handle,
+						   STARPU_R, new_handle,
+						   0);
+				starpu_data_unregister_submit(new_handle);
 			}
 		}
 	}
