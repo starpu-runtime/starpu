@@ -468,10 +468,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			{
 				/* The user requires more CUDA devices than
 				 * there is available */
-				fprintf(stderr,
-					"# Warning: %d CUDA devices "
-					"requested. Only %d available.\n",
-					ncuda, nb_devices);
+				_STARPU_DISP("Warning: %d CUDA devices requested. Only %d available.\n", ncuda, nb_devices);
 				ncuda = nb_devices;
 			}
 		}
@@ -523,14 +520,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			nopencl = nb_devices;
 			if (nopencl > STARPU_MAXOPENCLDEVS)
 			{
-				fprintf(stderr,
-					"# Warning: %d OpenCL devices "
-					"available. Only %d enabled. "
-					"Use configure option "
-					"--enable-maxopencldadev=xxx to "
-					"update the maximum value of "
-					"supported OpenCL devices.\n",
-					nb_devices, STARPU_MAXOPENCLDEVS);
+				_STARPU_DISP("Warning: %d OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldadev=xxx to update the maximum value of supported OpenCL devices.\n", nb_devices, STARPU_MAXOPENCLDEVS);
 				nopencl = STARPU_MAXOPENCLDEVS;
 			}
 		}
@@ -541,23 +531,13 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			{
 				/* The user requires more OpenCL devices than
 				 * there is available */
-				fprintf(stderr,
-					"# Warning: %d OpenCL devices "
-					"requested. Only %d available.\n",
-					nopencl, nb_devices);
+				_STARPU_DISP("Warning: %d OpenCL devices requested. Only %d available.\n", nopencl, nb_devices);
 				nopencl = nb_devices;
 			}
 			/* Let's make sure this value is OK. */
 			if (nopencl > STARPU_MAXOPENCLDEVS)
 			{
-				fprintf(stderr,
-					"# Warning: %d OpenCL devices "
-					"requested. Only %d enabled. Use "
-					"configure option "
-					"--enable-maxopencldev=xxx to update "
-					"the maximum value of supported "
-					"OpenCL devices.\n",
-					nopencl, STARPU_MAXOPENCLDEVS);
+				_STARPU_DISP("Warning: %d OpenCL devices requested. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices.\n", nopencl, STARPU_MAXOPENCLDEVS);
 				nopencl = STARPU_MAXOPENCLDEVS;
 			}
 		}
@@ -605,10 +585,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			STARPU_ASSERT(ngordon <= NMAXGORDONSPUS);
 			if (ngordon > STARPU_MAXGORDONSPUS);
 			{
-				fprintf(stderr,
-					"# Warning: %d Gordon CPUs devices "
-					"requested. Only %d supported\n",
-					ngordon, NMAXGORDONSPUS);
+				_STARPU_DISP("Warning: %d Gordon CPUs devices requested. Only %d supported\n", ngordon, NMAXGORDONSPUS);
 				ngordon = NMAXGORDONSPUS;
 			}
 		}
@@ -652,13 +629,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		{
 			if (ncpu > STARPU_MAXCPUS)
 			{
-				fprintf(stderr,
-					"# Warning: %d CPU devices requested."
-					" Only %d enabled. Use configure "
-					"option --enable-maxcpus=xxx to "
-					"update the maximum value of "
-					"supported CPU devices.\n",
-					ncpu, STARPU_MAXCPUS);
+				_STARPU_DISP("Warning: %d CPU devices requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
 				ncpu = STARPU_MAXCPUS;
 			}
 		}
@@ -750,8 +721,7 @@ _starpu_bind_thread_on_cpu (
 	DWORD mask = 1 << cpuid;
 	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
 	{
-		fprintf(stderr,"SetThreadMaskAffinity(%lx) failed\n", mask);
-		STARPU_ABORT();
+		_STARPU_ERROR("SetThreadMaskAffinity(%lx) failed\n", mask);
 	}
 #else
 #warning no CPU binding support

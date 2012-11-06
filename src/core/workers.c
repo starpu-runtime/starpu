@@ -642,31 +642,31 @@ int starpu_init(struct starpu_conf *user_conf)
 
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
+	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
 #endif
 #endif
 #if 0
 #ifndef STARPU_NO_ASSERT
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured without --enable-fast\n");
+	_STARPU_DISP("Warning: StarPU was configured without --enable-fast\n");
 #endif
 #endif
 #ifdef STARPU_MEMORY_STATUS
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-memory-status, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --enable-memory-status, which slows down a bit\n");
 #endif
 #ifdef STARPU_VERBOSE
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --with-fxt, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit\n");
 #endif
 #ifdef STARPU_PERF_DEBUG
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-perf-debug, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --enable-perf-debug, which slows down a bit\n");
 #endif
 #ifdef STARPU_MODEL_DEBUG
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
 #endif
 #ifdef STARPU_DATA_STATS
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -703,7 +703,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	else
 	{
 	     if (user_conf->magic != 42) {
-		fprintf(stderr, "starpu_conf structure needs to be initialized with starpu_conf_init\n");
+		_STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
 		return -EINVAL;
 	     }
 	     config.conf = user_conf;
