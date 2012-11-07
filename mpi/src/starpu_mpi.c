@@ -55,6 +55,53 @@ static int posted_requests = 0, newer_requests, barrier_running = 0;
 
 /********************************************************/
 /*                                                      */
+/*  Send/Receive functionalities                        */
+/*                                                      */
+/********************************************************/
+
+static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
+							      int srcdst, int mpi_tag, MPI_Comm comm,
+							      unsigned detached, void (*callback)(void *), void *arg,
+							      enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
+							      enum starpu_access_mode mode)
+{
+
+        _STARPU_MPI_LOG_IN();
+	struct _starpu_mpi_req *req = calloc(1, sizeof(struct _starpu_mpi_req));
+	STARPU_ASSERT(req);
+
+        _STARPU_MPI_INC_POSTED_REQUESTS(1);
+
+	/* Initialize the request structure */
+	req->submitted = 0;
+	req->completed = 0;
+	_STARPU_PTHREAD_MUTEX_INIT(&req->req_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&req->req_cond, NULL);
+
+	req->request_type = request_type;
+
+	req->data_handle = data_handle;
+	req->srcdst = srcdst;
+	req->mpi_tag = mpi_tag;
+	req->comm = comm;
+
+	req->detached = detached;
+	req->callback = callback;
+	req->callback_arg = arg;
+
+	req->func = func;
+
+	/* Asynchronously request StarPU to fetch the data in main memory: when
+	 * it is available in main memory, _starpu_mpi_submit_new_mpi_request(req) is called and
+	 * the request is actually submitted  */
+	starpu_data_acquire_cb(data_handle, mode, _starpu_mpi_submit_new_mpi_request, (void *)req);
+
+        _STARPU_MPI_LOG_OUT();
+	return req;
+}
+
+/********************************************************/
+/*                                                      */
 /*  Send functionalities                                */
 /*                                                      */
 /********************************************************/
@@ -93,38 +140,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 							int dest, int mpi_tag, MPI_Comm comm,
 							unsigned detached, void (*callback)(void *), void *arg)
 {
-	struct _starpu_mpi_req *req = calloc(1, sizeof(struct _starpu_mpi_req));
-	STARPU_ASSERT(req);
-
-        _STARPU_MPI_LOG_IN();
-
-        _STARPU_MPI_INC_POSTED_REQUESTS(1);
-
-	/* Initialize the request structure */
-	req->submitted = 0;
-	req->completed = 0;
-	_STARPU_PTHREAD_MUTEX_INIT(&req->req_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&req->req_cond, NULL);
-
-	req->request_type = SEND_REQ;
-
-	req->data_handle = data_handle;
-	req->srcdst = dest;
-	req->mpi_tag = mpi_tag;
-	req->comm = comm;
-	req->func = _starpu_mpi_isend_func;
-
-	req->detached = detached;
-	req->callback = callback;
-	req->callback_arg = arg;
-
-	/* Asynchronously request StarPU to fetch the data in main memory: when
-	 * it is available in main memory, _starpu_mpi_submit_new_mpi_request(req) is called and
-	 * the request is actually submitted  */
-	starpu_data_acquire_cb(data_handle, STARPU_R, _starpu_mpi_submit_new_mpi_request, (void *)req);
-
-        _STARPU_MPI_LOG_OUT();
-	return req;
+	return _starpu_mpi_isend_irecv_common(data_handle, dest, mpi_tag, comm, detached, callback, arg, SEND_REQ, _starpu_mpi_isend_func, STARPU_R);
 }
 
 int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int mpi_tag, MPI_Comm comm)
@@ -201,37 +217,7 @@ static void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 
 static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg)
 {
-        _STARPU_MPI_LOG_IN();
-	struct _starpu_mpi_req *req = calloc(1, sizeof(struct _starpu_mpi_req));
-	STARPU_ASSERT(req);
-
-        _STARPU_MPI_INC_POSTED_REQUESTS(1);
-
-	/* Initialize the request structure */
-	req->submitted = 0;
-	_STARPU_PTHREAD_MUTEX_INIT(&req->req_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&req->req_cond, NULL);
-
-	req->request_type = RECV_REQ;
-
-	req->data_handle = data_handle;
-	req->srcdst = source;
-	req->mpi_tag = mpi_tag;
-	req->comm = comm;
-
-	req->detached = detached;
-	req->callback = callback;
-	req->callback_arg = arg;
-
-	req->func = _starpu_mpi_irecv_func;
-
-	/* Asynchronously request StarPU to fetch the data in main memory: when
-	 * it is available in main memory, _starpu_mpi_submit_new_mpi_request(req) is called and
-	 * the request is actually submitted  */
-	starpu_data_acquire_cb(data_handle, STARPU_W, _starpu_mpi_submit_new_mpi_request, (void *)req);
-
-        _STARPU_MPI_LOG_OUT();
-	return req;
+	return _starpu_mpi_isend_irecv_common(data_handle, source, mpi_tag, comm, detached, callback, arg, RECV_REQ, _starpu_mpi_irecv_func, STARPU_W);
 }
 
 int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int mpi_tag, MPI_Comm comm)
@@ -253,7 +239,6 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 {
         _STARPU_MPI_LOG_IN();
 	_starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg);
-
         _STARPU_MPI_LOG_OUT();
 	return 0;
 }
