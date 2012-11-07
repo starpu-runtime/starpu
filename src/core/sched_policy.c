@@ -258,7 +258,6 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int *combined_workerid = combined_worker->combined_workerid;
 
 		int ret = 0;
-		int i;
 
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 		j->task_size = worker_size;
@@ -268,12 +267,12 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
-		int k;
-		for (k = 0; k < worker_size; k++)
+		int i;
+		for (i = 0; i < worker_size; i++)
 		{
 			struct starpu_task *alias = _starpu_create_task_alias(task);
 
-			worker = _starpu_get_worker_struct(combined_workerid[k]);
+			worker = _starpu_get_worker_struct(combined_workerid[i]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
 
@@ -306,7 +305,6 @@ int _starpu_push_task(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	int workerid = starpu_worker_get_id();
 	unsigned nworkers = 0; 
 
 	if(!sched_ctx->is_initial_sched)
@@ -315,7 +313,6 @@ int _starpu_push_task(struct _starpu_job *j)
 		  we consider the ctx empty */
 		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
 		
-
 		if(nworkers == 0)
 		{
 			if(task->already_pushed)
@@ -324,7 +321,6 @@ int _starpu_push_task(struct _starpu_job *j)
 				starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 				return -1;
-				
 			}
 			else
 			{
@@ -459,49 +455,34 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
 {
 	double max_time_on_ctx = starpu_get_max_time_worker_on_ctx();
-/* 	if(max_time_on_ctx != -1.0 && starpu_are_overlapping_ctxs_on_worker(worker->workerid)) */
-/* 	{ */
-/* 		unsigned current_active_ctx = worker->active_ctx; */
-/* //		current_time[worker->workerid][current_active_ctx] += predicted; */
-		
-/* 		if(current_time[worker->workerid][current_active_ctx] >= max_time_on_ctx) */
-/* 		{ */
-/* 			current_time[worker->workerid][current_active_ctx] = 0.0; */
-/* 			starpu_set_turn_to_other_ctx(worker->workerid, current_active_ctx); */
-/* 		} */
-/* 		return worker->active_ctx; */
-/* 	} */
-/* 	else */
+	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
+	int smallest_counter =  worker->nsched_ctxs;
+	unsigned i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
-		struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
-		int smallest_counter =  worker->nsched_ctxs;
-		unsigned i;
+		sched_ctx = worker->sched_ctx[i];
+		
+		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && 
+		   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs && 
+		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
+		{
+			good_sched_ctx = sched_ctx;
+			smallest_counter = sched_ctx->pop_counter[worker->workerid];
+		}
+	}
+	
+	if(good_sched_ctx == NULL)
+	{
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			sched_ctx = worker->sched_ctx[i];
-			
-			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && 
-			   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs && 
-			   smallest_counter > sched_ctx->pop_counter[worker->workerid])
-			{
-				good_sched_ctx = sched_ctx;
-				smallest_counter = sched_ctx->pop_counter[worker->workerid];
-			}
+			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+				sched_ctx->pop_counter[worker->workerid] = 0;
 		}
 		
-		if(good_sched_ctx == NULL)
-		{
-			for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			{
-				sched_ctx = worker->sched_ctx[i];
-				if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
-					sched_ctx->pop_counter[worker->workerid] = 0;
-			}
-			
-			return _get_next_sched_ctx_to_pop_into(worker);
-		}
-		return good_sched_ctx;
+		return _get_next_sched_ctx_to_pop_into(worker);
 	}
+	return good_sched_ctx;
 }
 
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)

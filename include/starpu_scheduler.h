@@ -160,7 +160,7 @@ struct starpu_performance_counters {
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
 void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters);
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops);
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id);
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_BUILD_SCHED_CTX_HYPERVISOR
 
