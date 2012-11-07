@@ -82,9 +82,9 @@ struct _starpu_sched_ctx {
 	/* max GPUs to execute*/	
 	int max_ngpus;
 	
-	/* needed for overlapping contexts to help the workers to 
+	/* needed for overlapping contexts to help the workers
 	   determine which is the next context to pop tasks from */
-	int pop_counter[STARPU_NMAXWORKERS];
+	unsigned pop_counter[STARPU_NMAXWORKERS];
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */
@@ -123,5 +123,9 @@ unsigned _starpu_get_nsched_ctxs();
 
 /* Get the mutex corresponding to the global workerid */
 pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_ctx, int worker);
+
+/* Get workers belonging to a certain context, it returns the number of workers 
+ take care: no mutex taken, the list of workers might not be updated */
+int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_archtype arch);
 
 #endif // __SCHED_CONTEXT_H__

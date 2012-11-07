@@ -59,7 +59,7 @@ static void change_worker_sched_ctx(unsigned sched_ctx_id)
 
 static void update_workers_func(void *buffers[] __attribute__ ((unused)), void *_args)
 {
-	int sched_ctx_id = (int)_args;
+	unsigned sched_ctx_id = (uintptr_t)_args;
 	change_worker_sched_ctx(sched_ctx_id);
 }
 
@@ -90,7 +90,7 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 		{			
 			worker[i]->tasks[sched_ctx_id] = starpu_task_create();
 			worker[i]->tasks[sched_ctx_id]->cl = &sched_ctx_info_cl;
-			worker[i]->tasks[sched_ctx_id]->cl_arg = (void*)sched_ctx_id;
+			worker[i]->tasks[sched_ctx_id]->cl_arg = (void*)(uintptr_t)sched_ctx_id;
 			worker[i]->tasks[sched_ctx_id]->execute_on_a_specific_worker = 1;
 			worker[i]->tasks[sched_ctx_id]->workerid = workerids[i];
 			worker[i]->tasks[sched_ctx_id]->destroy = 1;
@@ -107,7 +107,7 @@ static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_i
 	}
 }
 
-void starpu_stop_task_submission(unsigned sched_ctx_id)
+void starpu_stop_task_submission()
 {
 	_starpu_exclude_task_from_dag(&stop_submission_task);
 	_starpu_task_submit_internally(&stop_submission_task);
@@ -119,7 +119,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 	struct worker_collection *workers = sched_ctx->workers;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
-	int nworkers_to_add = nworkers == -1 ? config->topology.nworkers : nworkers;
+	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
 	int workers_to_add[nworkers_to_add];
 
 	int i = 0;
@@ -266,7 +266,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 	else
 	{
 		unsigned enough_ressources = 0;
-		npus = starpu_worker_get_available_ids_by_type(arch, pus, max);
+		npus = starpu_worker_get_nids_ctx_free_by_type(arch, pus, max);
        
 		for(i = 0; i < npus; i++)
 			workers[(*nw)++] = pus[i];
@@ -283,8 +283,8 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 		{
 			/* try to get ressources from ctx who have more than the min of workers they need */
 			int s;
-                        for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
-                        {
+			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 				{
 					int _npus = 0;
@@ -293,7 +293,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 					int ctx_min = arch == STARPU_CPU_WORKER ? config->sched_ctxs[s].min_ncpus : config->sched_ctxs[s].min_ngpus;
 					if(_npus > ctx_min)
 					{
-                                                if(npus < min)
+						if(npus < min)
 						{
 							n = (_npus - ctx_min) > (min - npus) ? min - npus : (_npus - ctx_min);
 							npus += n;
@@ -303,12 +303,11 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 							workers[(*nw)++] = _pus[i];
 						starpu_remove_workers_from_sched_ctx(_pus, n, config->sched_ctxs[s].id);
 					}
-
 				}
 			}
+
 			if(npus >= min)
 				enough_ressources = 1;
-
 		}
 		
 		if(!enough_ressources)
@@ -449,7 +448,7 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 	/*if both of them have all the ressources is pointless*/
 	/*trying to transfer ressources from one ctx to the other*/
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	int nworkers = config->topology.nworkers;
+	unsigned nworkers = config->topology.nworkers;
 
 	if(!(sched_ctx->workers->nworkers == nworkers && sched_ctx->workers->nworkers == inheritor_sched_ctx->workers->nworkers) && sched_ctx->workers->nworkers > 0 && inheritor_sched_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
@@ -784,25 +783,25 @@ struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sch
 int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_archtype arch)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-
+	
 	struct worker_collection *workers = sched_ctx->workers;
-        int worker;
+	int worker;
 
 	int npus = 0;
-
-        if(workers->init_cursor)
-                workers->init_cursor(workers);
-
-        while(workers->has_next(workers))
-        {
-                worker = workers->get_next(workers);
+	
+	if(workers->init_cursor)
+		workers->init_cursor(workers);
+	
+	while(workers->has_next(workers))
+	{
+		worker = workers->get_next(workers);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch)
 			pus[npus++] = worker;
 	}
-
-        if(workers->init_cursor)
-                workers->deinit_cursor(workers);
+	
+	if(workers->init_cursor)
+		workers->deinit_cursor(workers);
 	return npus;
 }
 
@@ -916,7 +915,7 @@ double starpu_get_max_time_worker_on_ctx(void)
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id)
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS

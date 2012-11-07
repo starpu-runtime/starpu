@@ -454,9 +454,8 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
 {
-	double max_time_on_ctx = starpu_get_max_time_worker_on_ctx();
 	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
-	int smallest_counter =  worker->nsched_ctxs;
+	unsigned smallest_counter =  worker->nsched_ctxs;
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{

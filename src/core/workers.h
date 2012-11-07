@@ -248,4 +248,7 @@ struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
 int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
 
+/* returns workers not belonging to any context, be careful no mutex is used, 
+   the list might not be updated */
+int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize);
 #endif // __WORKERS_H__

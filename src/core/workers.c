@@ -1198,7 +1198,7 @@ int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, in
 	return cnt;
 }
 
-int starpu_worker_get_available_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 

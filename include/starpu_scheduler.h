@@ -160,7 +160,7 @@ struct starpu_performance_counters {
 
 #ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
 void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters);
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id);
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops);
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_BUILD_SCHED_CTX_HYPERVISOR
 
@@ -218,7 +218,7 @@ void starpu_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
 
 double starpu_get_max_time_worker_on_ctx(void);
 
-void starpu_stop_task_submission(unsigned sched_ctx);
+void starpu_stop_task_submission(void);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
