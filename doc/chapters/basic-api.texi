@@ -767,10 +767,11 @@ The function also sets @var{count} to the size of the data handle by calling
 @code{starpu_handle_get_size()}.
 @end deftypefun
 
-@deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr})
-Copy in @var{handle} the data located at @var{ptr} as described by the
-interface of the data. The interface registered at @var{handle} must
-define a unpacking operation (@pxref{struct starpu_data_interface_ops}).
+@deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})
+Unpack in @var{handle} the data located at @var{ptr} of size
+@var{count} as described by the interface of the data. The interface
+registered at @var{handle} must define a unpacking operation
+(@pxref{struct starpu_data_interface_ops}).
 @end deftypefun
 
 @node Accessing Variable Data Interfaces

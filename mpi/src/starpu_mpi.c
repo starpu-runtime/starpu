@@ -557,7 +557,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
         if (req->request_type != BARRIER_REQ)
 	{
 		if (req->needs_unpacking)
-			starpu_handle_unpack_data(req->data_handle, req->ptr);
+			starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);
 		else
 			MPI_Type_free(&req->datatype);
                 starpu_data_release(req->data_handle);

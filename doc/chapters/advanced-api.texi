@@ -75,8 +75,8 @@ todo
 @item @code{int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count)}
 Pack the data handle into a contiguous buffer at the address @code{ptr} and set the size of the newly created buffer in @code{count}
 
-@item @code{int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr)}
-Unpack the data handle from the contiguous buffer at the address @code{ptr}
+@item @code{int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr, size_t count)}
+Unpack the data handle from the contiguous buffer at the address @code{ptr} of size @var{count}
 
 @end table
 @end deftp

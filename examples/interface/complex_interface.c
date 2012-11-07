@@ -186,7 +186,7 @@ static int complex_pack_data(starpu_data_handle_t handle, uint32_t node, void **
 	return 0;
 }
 
-static int complex_unpack_data(starpu_data_handle_t handle, uint32_t node, void *ptr)
+static int complex_unpack_data(starpu_data_handle_t handle, uint32_t node, void *ptr, size_t count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
