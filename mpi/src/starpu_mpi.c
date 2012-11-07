@@ -30,6 +30,9 @@
 
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
+#ifdef STARPU_MPI_VERBOSE
+static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
+#endif
 
 /* The list of requests that have been newly submitted by the application */
 static struct _starpu_mpi_req_list *new_requests;
@@ -338,7 +341,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
-        _STARPU_MPI_DEBUG("Test request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+        _STARPU_MPI_DEBUG("Test request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
 	req->ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
@@ -497,11 +500,11 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 {
         switch (request_type)
                 {
-                case SEND_REQ: return "send";
-                case RECV_REQ: return "recv";
-                case WAIT_REQ: return "wait";
-                case TEST_REQ: return "test";
-                case BARRIER_REQ: return "barrier";
+                case SEND_REQ: return "SEND_REQ";
+                case RECV_REQ: return "RECV_REQ";
+                case WAIT_REQ: return "WAIT_REQ";
+                case TEST_REQ: return "TEST_REQ";
+                case BARRIER_REQ: return "BARRIER_REQ";
                 default: return "unknown request type";
                 }
 }
@@ -549,7 +552,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	_starpu_mpi_req_list_push_front(new_requests, req);
 	newer_requests = 1;
-        _STARPU_MPI_DEBUG("Pushing new request type %d\n", req->request_type);
+        _STARPU_MPI_DEBUG("Pushing new request type %s\n", _starpu_mpi_request_type(req->request_type));
 	_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
         _STARPU_MPI_LOG_OUT();
@@ -589,7 +592,7 @@ static void _starpu_mpi_test_detached_requests(void)
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
-                //_STARPU_MPI_DEBUG("Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+                //_STARPU_MPI_DEBUG("Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
 		req->ret = MPI_Test(&req->request, &flag, &status);
 		STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
@@ -621,7 +624,7 @@ static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
 	STARPU_ASSERT(req);
 
 	/* submit the request to MPI */
-        _STARPU_MPI_DEBUG("Handling new request type %d\n", req->request_type);
+        _STARPU_MPI_DEBUG("Handling new request type %s\n", _starpu_mpi_request_type(req->request_type));
 	req->func(req);
 
 	if (req->detached)
