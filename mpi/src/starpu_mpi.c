@@ -108,22 +108,20 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 
 static void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
-	int count;
-
         _STARPU_MPI_LOG_IN();
 
-	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype, &count);
+	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype, &req->count);
 	if (req->needs_unpacking)
 		starpu_handle_pack_data(req->data_handle, &req->ptr);
 	else
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
 	STARPU_ASSERT(req->ptr);
 
-        _STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, count, &req->request);
+        _STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, req->count, &req->request);
 
-	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, count);
+	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, req->count);
 
-        req->ret = MPI_Isend(req->ptr, count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
+        req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
 	TRACE_MPI_ISEND(req->srcdst, req->mpi_tag, 0);
@@ -191,20 +189,18 @@ int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI
 
 static void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
-	int count;
-
         _STARPU_MPI_LOG_IN();
 
-	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype, &count);
+	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype, &req->count);
 	if (req->needs_unpacking == 1)
-		req->ptr = malloc(count);
+		req->ptr = malloc(req->count);
 	else
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
 	STARPU_ASSERT(req->ptr);
 
 	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %p\n", req->mpi_tag, req->srcdst, req->data_handle, req->ptr, &req->request, req->datatype);
 
-        req->ret = MPI_Irecv(req->ptr, count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
+        req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */

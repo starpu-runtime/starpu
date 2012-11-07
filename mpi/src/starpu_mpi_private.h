@@ -76,6 +76,7 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	void *ptr;
+	size_t count;
 	int needs_unpacking;
 
 	/* who are we talking to ? */
