@@ -18,6 +18,28 @@
 #include "complex_interface.h"
 #include "complex_codelet.h"
 
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+       if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
+               return 1;
+
+#ifdef STARPU_USE_CUDA
+       /* Cuda device */
+       const struct cudaDeviceProp *props;
+       props = starpu_cuda_get_device_properties(workerid);
+       if (props->major >= 2 || props->minor >= 3)
+       {
+               /* At least compute capability 1.3, supports doubles */
+               return 1;
+       }
+       else
+       {
+               /* Old card does not support doubles */
+               return 0;
+       }
+#endif
+}
+
 #ifdef STARPU_USE_CUDA
 extern void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
@@ -34,9 +56,9 @@ struct starpu_codelet cl_copy =
 	.opencl_funcs = {copy_complex_codelet_opencl, NULL},
 #endif
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_W}
+	.modes = {STARPU_R, STARPU_W},
+	.can_execute = can_execute
 };
-
 
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
@@ -95,13 +117,14 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-
 	ret = starpu_insert_task(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
 				 0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+
+#warning get the comparison result and return it as the application return code
 
 	starpu_task_wait_for_all();
 
