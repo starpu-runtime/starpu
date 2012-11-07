@@ -1577,7 +1577,6 @@ AC_ARG_WITH([hwloc],
 		fi
 	],
 	[
-	AC_MSG_NOTICE("MAYBE HWLOC")
 		use_hwloc=maybe
 		use_hwloc_from_system=yes
 	])
