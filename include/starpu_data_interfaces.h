@@ -133,7 +133,7 @@ struct starpu_data_interface_ops
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
 	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
-	int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr);
+        int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count);
 	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr);
 };
