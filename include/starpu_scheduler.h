@@ -50,8 +50,8 @@ struct starpu_machine_topology
 #endif
 
 	unsigned nhwcpus;
-        unsigned nhwcudagpus;
-        unsigned nhwopenclgpus;
+	unsigned nhwcudagpus;
+	unsigned nhwopenclgpus;
 
 	unsigned ncpus;
 	unsigned ncudagpus;

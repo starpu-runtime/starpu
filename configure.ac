@@ -235,7 +235,7 @@ AC_DEFINE_UNQUOTED(STARPU_NMAX_SCHED_CTXS, [$max_sched_ctxs], [Maximum number of
 AC_ARG_ENABLE([sched_ctx_hypervisor],
   [AS_HELP_STRING([--enable-sched-ctx-hypervisor],
     [enable resizing contexts (experimental)])],
-  [enable_sched_ctx_hypervisor="$enableval"],
+  [enable_sched_ctx_hypervisor="yes"],
   [enable_sched_ctx_hypervisor="no"])
 
 if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
@@ -823,7 +823,7 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
-	CFLAGS="$CFLAGS -O0"
+	CFLAGS="$CFLAGS -O0 -Werror"
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
 	CFLAGS="-O3 $CFLAGS"
