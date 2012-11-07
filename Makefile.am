@@ -18,7 +18,11 @@ ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 SUBDIRS = src
-SUBDIRS += tools tests doc
+SUBDIRS += tools tests
+
+if BUILD_DOC
+SUBDIRS += doc
+endif
 
 if USE_MPI
 SUBDIRS += mpi

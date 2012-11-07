@@ -1688,6 +1688,22 @@ m4_ifdef([AM_SILENT_RULES],
   AM_CONDITIONAL([STARPU_HAVE_AM111], [true]),
   AM_CONDITIONAL([STARPU_HAVE_AM111], [false]))
 
+##########################################
+# Documentation                          #
+##########################################
+
+enable_build_doc=yes
+AC_CHECK_PROGS([CHECK_TEXI2DVI], [texi2dvi], "no")
+if test "$CHECK_TEXI2DVI" == "no" ; then
+    enable_build_doc=no
+else
+    AC_CHECK_PROGS([CHECK_TEX], [tex], "no")
+    if test "$CHECK_TEX" == "no" ; then
+	enable_build_doc=no
+    fi
+fi
+AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
+
 ###############################################################################
 #                                                                             #
 #                                Final settings                               #
@@ -1779,20 +1795,23 @@ AC_MSG_NOTICE([
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
 
-	Magma enabled: $have_magma
-	BLAS library:  $blas_lib
-	hwloc:         $have_valid_hwloc
+	Magma enabled:     $have_magma
+	BLAS library:      $blas_lib
+	hwloc:             $have_valid_hwloc
 	FxT trace enabled: $use_fxt
 	StarPU-Top:        $build_starpu_top
 
+        Documentation:     $enable_build_doc
+        Examples:          $enable_build_examples
+
 	StarPU Extensions:
-	       MPI enabled:   $use_mpi
-	       MPI test suite: $running_mpi_check
-	       FFT Support: $fft_support
-	       GCC plug-in: $build_gcc_plugin
+	       MPI enabled:                                 $use_mpi
+	       MPI test suite:                              $running_mpi_check
+	       FFT Support:                                 $fft_support
+	       GCC plug-in:                                 $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
-	       SOCL enabled:  $build_socl
-               SOCL test suite: $run_socl_check
+	       SOCL enabled:                                $build_socl
+               SOCL test suite:                             $run_socl_check
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
