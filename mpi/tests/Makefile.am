@@ -19,9 +19,9 @@ CCLD=$(MPICC)
 
 if STARPU_MPI_CHECK
 if STARPU_HAVE_AM111
-LOG_COMPILER	 	=	$(MPIEXEC) -np 2
+LOG_COMPILER	 	=	$(MPIEXEC) -np 4
 else
-TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 2
+TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 4
 endif
 TESTS			=	$(check_PROGRAMS)
 endif
@@ -78,7 +78,9 @@ check_PROGRAMS +=				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	multiple_send
+	multiple_send				\
+	mpi_scatter_gather			\
+	mpi_reduction
 
 noinst_PROGRAMS =				\
 	pingpong				\
@@ -99,7 +101,9 @@ noinst_PROGRAMS =				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	multiple_send
+	multiple_send				\
+	mpi_scatter_gather			\
+	mpi_reduction
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -139,6 +143,10 @@ insert_task_owner_data_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 multiple_send_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_scatter_gather_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_reduction_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
 ring_async_SOURCES = ring_async.c
@@ -148,6 +156,8 @@ ring_SOURCES += ring_kernel.cu
 ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
 endif
+mpi_reduction_SOURCES = mpi_reduction.c
+mpi_reduction_SOURCES += mpi_reduction_kernels.c
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

@@ -402,7 +402,6 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 
-#if 0
 	/*
 	 *	Initialization
 	 */
@@ -415,10 +414,9 @@ int main(int argc, char **argv)
 		fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
 	if (thread_support < MPI_THREAD_FUNNELED)
 		fprintf(stderr,"Warning: MPI does not have thread support!\n");
-	
+
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-#endif
 
 	starpu_srand48((long int)time(NULL));
 
@@ -430,7 +428,7 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_mpi_initialize_extended(&rank, &world_size);
+	starpu_mpi_init(NULL, NULL);
 
 	STARPU_ASSERT(p*q == world_size);
 

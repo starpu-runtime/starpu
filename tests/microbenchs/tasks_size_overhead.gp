@@ -16,6 +16,8 @@ gnuplot << EOF
 set terminal eps
 set output "tasks_size_overhead.eps"
 set key top left
+set xlabel "number of cores"
+set ylabel "speedup"
 plot \
 	"$OUTPUT" using 1:($VAL1)/(\$3) with linespoints title columnheader(2), \
 	"$OUTPUT" using 1:($VAL2)/(\$5) with linespoints title columnheader(4), \

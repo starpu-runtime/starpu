@@ -64,3 +64,13 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 //	_DISPLAY("After dot=%ld\n", *dot);
 }
 
+/*
+ *	Display codelet
+ */
+void display_cpu_func(void *descr[], void *cl_arg)
+{
+	long int *local_x = (long int *)STARPU_VECTOR_GET_PTR(descr[0]);
+
+	_DISPLAY("Local=%ld\n", *local_x);
+}
+

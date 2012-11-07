@@ -36,8 +36,20 @@ New features:
   * SOCL
         - Manual mapping of commands on specific devices is now possible
   * New interface: COO matrix.
-  * Communication statistics for MPI can also be enabled at execution
-    time by defining the environment variable STARPU_COMM_STATS
+  * MPI:
+        - Communication statistics for MPI can only be enabled at
+	  execution time by defining the environment variable
+	  STARPU_COMM_STATS
+        - Communication cache mechanism is enabled by default, and can
+	  only be disabled at execution time by setting the
+	  environment variable STARPU_MPI_CACHE to 0.
+        - Initialisation functions starpu_mpi_initialize_extended()
+  	  and starpu_mpi_initialize() have been made deprecated. One
+	  should now use starpu_mpi_init() which will initialise MPI
+	  by calling MPI_Init_Thread if is not already done.
+        - Collective detached operations have new parameters, a
+	  callback function and a argument. This is to be consistent
+	  with the detached point-to-point communications.
 
 Changes:
   * Fix the block filter functions.
@@ -73,6 +85,7 @@ Small changes:
   * Fix forcing calibration of never-calibrated archs.
   * CUDA applications are no longer compiled with the "-arch sm_13"
     option. It is specifically added to applications which need it.
+  * Documentation is not built if necessary tools are missing
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================

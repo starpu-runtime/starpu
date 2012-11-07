@@ -1094,14 +1094,6 @@ else
 fi
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
-# Check if user wants to disable mpi cache
-AC_ARG_ENABLE(mpi-cache, AC_HELP_STRING([--enable-mpi-cache],
-			 [Enable MPI communication cache]),
-			 enable_mpi_cache=$enableval, enable_mpi_cache=true)
-if  test x$enable_mpi_cache = xtrue; then
-    	AC_DEFINE(STARPU_MPI_CACHE, [1], [enable MPI communication cache])
-fi
-
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
@@ -1154,18 +1146,6 @@ AC_SUBST(USE_MPI, $use_mpi)
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
 if test x$use_mpi = xyes; then
 	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
-fi
-
-AC_MSG_CHECKING(whether communication statistics should be generated)
-AC_ARG_ENABLE(comm-stats, [AS_HELP_STRING([--enable-comm-stats],
-			[enable communication statistics (only valid with the StarPU MPI library])],
-			enable_comm_stats=$enableval, enable_comm_stats=no)
-AC_MSG_RESULT($enable_comm_stats)
-AC_SUBST(STATS, $enable_comm_stats)
-AC_SUBST(STARPU_COMM_STATS, $enable_comm_stats)
-
-if test x$enable_comm_stats = xyes; then
-        AC_DEFINE(STARPU_COMM_STATS, [1], [enable communication statistics])
 fi
 
 ###############################################################################
@@ -1627,7 +1607,6 @@ AC_ARG_WITH([hwloc],
 		fi
 	],
 	[
-	AC_MSG_NOTICE("MAYBE HWLOC")
 		use_hwloc=maybe
 		use_hwloc_from_system=yes
 	])
@@ -1676,10 +1655,7 @@ AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)
 
 # is the header file f77.h available ?
-have_f77_h=yes
-AC_CHECK_HEADER([f77.h],,[have_f77_h=no])
-AC_MSG_CHECKING(whether header file f77.h is available)
-AC_MSG_RESULT($have_f77_h)
+AC_CHECK_HEADER([f77.h], [have_f77_h=yes], [have_f77_h=no])
 AC_SUBST(STARPU_HAVE_F77_H, $have_f77_h)
 AM_CONDITIONAL(STARPU_HAVE_F77_H, test x$have_f77_h = xyes)
 if test x$have_f77_h = xyes; then
@@ -1740,6 +1716,22 @@ dnl Automake 1.11 introduced `silent-rules', hence the check.
 m4_ifdef([AM_SILENT_RULES],
   AM_CONDITIONAL([STARPU_HAVE_AM111], [true]),
   AM_CONDITIONAL([STARPU_HAVE_AM111], [false]))
+
+##########################################
+# Documentation                          #
+##########################################
+
+enable_build_doc=yes
+AC_CHECK_PROGS([CHECK_TEXI2DVI], [texi2dvi], "no")
+if test "$CHECK_TEXI2DVI" == "no" ; then
+    enable_build_doc=no
+else
+    AC_CHECK_PROGS([CHECK_TEX], [tex], "no")
+    if test "$CHECK_TEX" == "no" ; then
+	enable_build_doc=no
+    fi
+fi
+AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 
 ###############################################################################
 #                                                                             #
@@ -1835,22 +1827,24 @@ AC_MSG_NOTICE([
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
 
-	Magma enabled: $have_magma
-	BLAS library:  $blas_lib
-	hwloc:         $have_valid_hwloc
+	Magma enabled:     $have_magma
+	BLAS library:      $blas_lib
+	hwloc:             $have_valid_hwloc
 	FxT trace enabled: $use_fxt
 	StarPU-Top:        $build_starpu_top
 
+        Documentation:     $enable_build_doc
+        Examples:          $enable_build_examples
+
 	StarPU Extensions:
-	       MPI enabled:   $use_mpi
-	       MPI test suite: $running_mpi_check
-	       FFT Support: $fft_support
-	       GCC plug-in: $build_gcc_plugin
+	       MPI enabled:                                 $use_mpi
+	       MPI test suite:                              $running_mpi_check
+	       FFT Support:                                 $fft_support
+	       GCC plug-in:                                 $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:  $build_socl
                Scheduler Hypervisor: $build_sched_ctx_hypervisor
                SOCL test suite: $run_socl_check
-
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

@@ -18,7 +18,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	32
+#else
+#  define NITER	2048
+#endif
 
 unsigned token = 42;
 starpu_data_handle_t token_handle;
@@ -75,8 +79,8 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
+	ret = starpu_mpi_init(NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
 

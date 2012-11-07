@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,10 +32,10 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	if (size != 2)
+	if (size%2 != 0)
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need exactly 2 processes.\n");
+			FPRINTF(stderr, "We need a even number of processes.\n");
 
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -43,8 +43,8 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
+	ret = starpu_mpi_init(NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	tab = malloc(SIZE*sizeof(float));
 
@@ -52,14 +52,13 @@ int main(int argc, char **argv)
 
 	unsigned nloops = NITER;
 	unsigned loop;
-
-	int other_rank = (rank + 1)%2;
+	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
 	for (loop = 0; loop < nloops; loop++)
 	{
 		starpu_tag_t tag = (starpu_tag_t)loop;
 
-		if ((loop % 2) == rank)
+		if ((loop % 2) == (rank%2))
 		{
 			starpu_mpi_isend_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
 		}

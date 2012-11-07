@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <starpu.h>
 
 /* some key to identify the worker kind */
@@ -201,7 +202,7 @@ do {									\
 
 #define _STARPU_TRACE_START_CODELET_BODY(job)				\
 do {									\
-        const char *model_name = _starpu_get_model_name((job));         \
+        const char *model_name = _starpu_job_get_model_name((job));         \
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
@@ -261,7 +262,7 @@ do {									\
 #define _STARPU_TRACE_TASK_DONE(job)						\
 do {										\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
-        const char *model_name = _starpu_get_model_name((job));                       \
+        const char *model_name = _starpu_job_get_model_name((job));                       \
 	if (model_name)					                        \
 	{									\
 		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
@@ -274,7 +275,7 @@ do {										\
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
         struct _starpu_job *job = (tag)->job;                                  \
-        const char *model_name = _starpu_get_model_name((job));                       \
+        const char *model_name = _starpu_job_get_model_name((job));                       \
 	if (model_name)                                                         \
 	{									\
           _STARPU_FUT_DO_PROBE3STR(_STARPU_FUT_TAG_DONE, (tag)->id, _starpu_gettid(), 1, model_name); \

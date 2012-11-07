@@ -262,7 +262,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	/* CPU */
 	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
 	{
-		fprintf(stderr, "[warning] [struct starpu_codelet] both cpu_func and cpu_funcs are set. Ignoring cpu_func.\n");
+		_STARPU_DISP("[warning] [struct starpu_codelet] both cpu_func and cpu_funcs are set. Ignoring cpu_func.\n");
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
 	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS)
@@ -282,7 +282,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	/* CUDA */
 	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
 	{
-		fprintf(stderr, "[warning] [struct starpu_codelet] both cuda_func and cuda_funcs are set. Ignoring cuda_func.\n");
+		_STARPU_DISP("[warning] [struct starpu_codelet] both cuda_func and cuda_funcs are set. Ignoring cuda_func.\n");
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
 	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS)
@@ -302,7 +302,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
 	{
-		fprintf(stderr, "[warning] [struct starpu_codelet] both opencl_func and opencl_funcs are set. Ignoring opencl_func.\n");
+		_STARPU_DISP("[warning] [struct starpu_codelet] both opencl_func and opencl_funcs are set. Ignoring opencl_func.\n");
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS)
@@ -344,7 +344,7 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 		{
 			if (task->buffers[i].handle && task->handles[i])
 			{
-				fprintf(stderr, "[warning][struct starpu_task] task->buffers[%u] and task->handles[%u] both set. Ignoring task->buffers[%u] ?\n", i, i, i);
+				_STARPU_DISP("[warning][struct starpu_task] task->buffers[%u] and task->handles[%u] both set. Ignoring task->buffers[%u] ?\n", i, i, i);
 				STARPU_ASSERT(task->buffers[i].mode == task->cl->modes[i]);
 				STARPU_ABORT();
 			}
@@ -370,6 +370,7 @@ int starpu_task_submit(struct starpu_task *task)
 //	   0 : starpu_get_sched_ctx());
 	int ret;
 	unsigned is_sync = task->synchronous;
+	starpu_task_bundle_t bundle = task->bundle;
         _STARPU_LOG_IN();
 
 	if (is_sync)
@@ -447,6 +448,30 @@ int starpu_task_submit(struct starpu_task *task)
 			if (task->cl->power_model && task->cl->power_model->symbol)
 				_starpu_load_perfmodel(task->cl->power_model);
 		}
+	}
+
+	if (bundle)
+	{
+		/* We need to make sure that models for other tasks of the
+		 * bundle are also loaded, so the scheduler can estimate the
+		 * duration of the whole bundle */
+		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+
+		struct _starpu_task_bundle_entry *entry;
+		entry = bundle->list;
+
+		while (entry)
+		{
+			if (entry->task->cl->model && entry->task->cl->model->symbol)
+				_starpu_load_perfmodel(entry->task->cl->model);
+
+			if (entry->task->cl->power_model && entry->task->cl->power_model->symbol)
+				_starpu_load_perfmodel(entry->task->cl->power_model);
+
+			entry = entry->next;
+		}
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	}
 
 	/* If profiling is activated, we allocate a structure to store the

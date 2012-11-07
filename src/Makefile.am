@@ -198,6 +198,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
 	util/file.c						\
+	util/misc.c						\
 	util/starpu_data_cpy.c					\
 	util/starpu_insert_task.c				\
 	util/starpu_insert_task_utils.c				\

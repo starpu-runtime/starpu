@@ -41,6 +41,11 @@ extern "C" {
 #  define _STARPU_MPI_DEBUG(fmt, args ...)
 #endif
 
+#define _STARPU_MPI_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
+    						int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);       \
+                                                fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __func__ ,##args); \
+                                                fflush(stderr); }} while(0);
+
 #ifdef STARPU_MPI_VERBOSE0
 #  define _STARPU_MPI_LOG_IN()             do { if (!getenv("STARPU_SILENT")) { \
                                                int _debug_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
@@ -55,11 +60,14 @@ extern "C" {
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
-#define SEND_REQ	0
-#define RECV_REQ	1
-#define WAIT_REQ        2
-#define TEST_REQ        3
-#define BARRIER_REQ     4
+enum _starpu_mpi_request_type
+{
+	SEND_REQ=0,
+	RECV_REQ=1,
+	WAIT_REQ=2,
+	TEST_REQ=3,
+	BARRIER_REQ=4
+};
 
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
@@ -68,6 +76,7 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	void *ptr;
+	size_t count;
 	int needs_unpacking;
 
 	/* who are we talking to ? */
@@ -85,7 +94,7 @@ LIST_TYPE(_starpu_mpi_req,
 	pthread_mutex_t req_mutex;
 	pthread_cond_t req_cond;
 
-	unsigned request_type; /* 0 send, 1 recv */
+	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 
 	unsigned submitted;
 	unsigned completed;

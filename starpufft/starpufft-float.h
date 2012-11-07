@@ -15,10 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <complex.h>
 #include <starpu_config.h>
 
 #if defined(STARPU_HAVE_FFTW) && !defined(__CUDACC__) 
+#include <complex.h>
 #include <fftw3.h>
 #endif
 

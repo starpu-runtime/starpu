@@ -53,6 +53,28 @@ struct starpu_perfmodel_history_table
 static pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
 
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)
+{
+	struct starpu_task *task = j->task;
+
+	if (model && model->per_arch[arch][nimpl].size_base) {
+		return model->per_arch[arch][nimpl].size_base(task, arch, nimpl);
+	} else if (model && model->size_base) {
+		return model->size_base(task, nimpl);
+	} else {
+		unsigned nbuffers = task->cl->nbuffers;
+		size_t size = 0;
+
+		unsigned buffer;
+		for (buffer = 0; buffer < nbuffers; buffer++)
+		{
+			starpu_data_handle_t handle = task->handles[buffer];
+			size += _starpu_data_get_size(handle);
+		}
+		return size;
+	}
+}
+
 /*
  * History based model
  */
@@ -1067,7 +1089,10 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			exp = entry->history_entry->mean;
 		else if (!model->benchmarking)
 		{
-			_STARPU_DISP("Warning: model %s is not calibrated enough, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+			char archname[32];
+
+			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}

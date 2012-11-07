@@ -37,7 +37,11 @@ struct starpu_codelet stencil5_cl =
 	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
 };
 
-#define NITER_DEF 500
+#ifdef STARPU_QUICK_CHECK
+#  define NITER_DEF	10
+#else
+#  define NITER_DEF	500
+#endif
 #define X         20
 #define Y         20
 
@@ -78,7 +82,10 @@ int main(int argc, char **argv)
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	starpu_mpi_initialize_extended(&my_rank, &size);
+	starpu_mpi_init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
         parse_args(argc, argv);
 
         for(x = 0; x < X; x++)

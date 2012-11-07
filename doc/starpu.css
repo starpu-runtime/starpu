@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * Permission is granted to copy, distribute and/or modify this document
  * under the terms of the GNU Free Documentation License, Version 1.3
@@ -11,7 +11,7 @@
  */
 
 body {
-	font-size: 13px;
+	font-family: sans-serif;
 /*	margin-top: 0px; */
 }
 
@@ -39,7 +39,7 @@ div.node hr.node {
 h1 {
 	font: bold normal 2.5em sans-serif ;
 	margin: 0px;
-	color: #0020a0;
+	color: rgb(226,0,38);
 }
 h1.sub {
 	font: bold normal 2em sans-serif ;
@@ -140,4 +140,21 @@ p.updated {
 	text-align: right;
 	font-size: 10px;
 	font-style: italic;
+}
+
+div.contents {
+	margin-top: 12px;
+	margin-bottom: 3px;
+	font-variant: small-caps;
+	padding-left: 1em;
+	padding-right: 1em;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	margin-top: 12px;
+	margin-bottom: 12px;
+	margin-top:0px;
+	margin-left: auto;
+	margin-right: auto;
+	border-top: 4px solid rgb(204,209,222);
+	border-bottom: 4px solid rgb(204,209,222);
 }

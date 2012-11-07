@@ -14,17 +14,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <starpu_mpi.h>
 #include <math.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+#if !defined(STARPU_HAVE_UNSETENV)
+#warning unsetenv is not defined. Skipping test
+int main(int argc, char **argv)
 {
-	unsigned *x = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned *y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	return STARPU_TEST_SKIPPED;
+}
+#else
 
-        FPRINTF(stdout, "VALUES: %u %u\n", *x, *y);
-        *x = (*x + *y) / 2;
+void func_cpu(__attribute__ ((unused)) void *descr[], __attribute__ ((unused)) void *_args)
+{
 }
 
 struct starpu_codelet mycodelet =
@@ -35,118 +39,105 @@ struct starpu_codelet mycodelet =
 	.modes = {STARPU_RW, STARPU_R}
 };
 
-#define X     4
-#define Y     5
+#define N     1000
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes)
+int my_distrib(int x)
 {
-        return x % nb_nodes;
+        return x;
 }
 
-
-int main(int argc, char **argv)
+void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 {
-        int rank, size, x, y;
-        int ret,value=0;
-        unsigned matrix[X][Y];
-        starpu_data_handle_t data_handles[X][Y];
+        int i;
+        int ret;
+	unsigned v[2][N];
+        starpu_data_handle_t data_handles[2];
+	char *string;
+
+	string = malloc(50);
+	sprintf(string, "STARPU_MPI_CACHE=%d", enabled);
+	putenv(string);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize_extended(&rank, &size);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
+	ret = starpu_mpi_init(NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-        for(x = 0; x < X; x++)
+        for(i = 0; i < 2; i++)
 	{
-                for (y = 0; y < Y; y++)
+		int mpi_rank = my_distrib(i);
+		if (mpi_rank == rank)
 		{
-                        matrix[x][y] = (rank+1)*10 + value;
-                        value++;
-                }
-        }
-#if 0
-        for(x = 0; x < X; x++)
-	{
-                FPRINTF(stdout, "[%d] ", rank);
-                for (y = 0; y < Y; y++)
+			//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
+			starpu_vector_data_register(&data_handles[i], 0, (uintptr_t)&(v[i]), N, sizeof(unsigned));
+		}
+		else
 		{
-                        FPRINTF(stdout, "%3u ", matrix[x][y]);
-                }
-                FPRINTF(stdout, "\n");
-        }
-#endif
-
-        for(x = 0; x < X; x++)
-	{
-                for (y = 0; y < Y; y++)
-		{
-                        int mpi_rank = my_distrib(x, y, size);
-                        if (mpi_rank == rank)
-			{
-                                //FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-                                starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
-                        }
-                        else if (rank == mpi_rank+1 || rank == mpi_rank-1)
-			{
-                                /* I don't own that index, but will need it for my computations */
-                                //FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
-                                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
-                        }
-                        else
-			{
-                                /* I know it's useless to allocate anything for this */
-                                data_handles[x][y] = NULL;
-                        }
-                        if (data_handles[x][y])
-			{
-                                starpu_data_set_rank(data_handles[x][y], mpi_rank);
-                                starpu_data_set_tag(data_handles[x][y], (y*X)+x);
-			}
-                }
+			/* I don't own that index, but will need it for my computations */
+			//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
+			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, N, sizeof(unsigned));
+		}
+		starpu_data_set_rank(data_handles[i], mpi_rank);
+		starpu_data_set_tag(data_handles[i], i);
         }
 
-	mycodelet.name = "codelet1";
-        ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1][1], STARPU_R, data_handles[0][1], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+        for(i = 0; i < 5; i++)
+	{
+		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+	}
 
-	mycodelet.name = "codelet2";
-        ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+        for(i = 0; i < 5; i++)
+	{
+		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+	}
 
-	mycodelet.name = "codelet3";
-        ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0][1], STARPU_R, data_handles[0][0], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-
-	mycodelet.name = "codelet4";
-        ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-
-        FPRINTF(stderr, "Waiting ...\n");
         starpu_task_wait_for_all();
 
-        for(x = 0; x < X; x++)
+        for(i = 0; i < 2; i++)
 	{
-                for (y = 0; y < Y; y++)
-		{
-                        if (data_handles[x][y])
-                                starpu_data_unregister(data_handles[x][y]);
-                }
+		starpu_data_unregister(data_handles[i]);
         }
+
+	starpu_mpi_comm_amounts_retrieve(comm_amount);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-
-#if 0
-        for(x = 0; x < X; x++)
-	{
-                FPRINTF(stdout, "[%d] ", rank);
-                for (y = 0; y < Y; y++)
-		{
-                        FPRINTF(stdout, "%3u ", matrix[x][y]);
-                }
-                FPRINTF(stdout, "\n");
-        }
-#endif
-
-	return 0;
 }
+
+int main(int argc, char **argv)
+{
+	int dst, rank, size;
+	int result=0;
+	size_t *comm_amount_with_cache;
+	size_t *comm_amount_without_cache;
+	char *string;
+
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+	string = malloc(50);
+	sprintf(string, "STARPU_COMM_STATS=1");
+	putenv(string);
+
+	comm_amount_with_cache = malloc(size * sizeof(size_t));
+	comm_amount_without_cache = malloc(size * sizeof(size_t));
+
+	test_cache(rank, size, 0, comm_amount_with_cache);
+	test_cache(rank, size, 1, comm_amount_without_cache);
+
+	if (rank == 0 || rank == 1)
+	{
+		dst = (rank == 0) ? 1 : 0;
+		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
+		fprintf(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
+	}
+	else
+		result = 1;
+
+	MPI_Finalize();
+	return !result;
+}
+#endif

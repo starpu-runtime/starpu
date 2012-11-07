@@ -54,8 +54,10 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize_extended(&rank, &size);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
+	ret = starpu_mpi_init(&argc, &argv);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
         for(x = 0; x < X; x++)
 	{
@@ -85,16 +87,11 @@ int main(int argc, char **argv)
                                 //FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
                                 starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
                         }
-                        else if (rank == mpi_rank+1 || rank == mpi_rank-1)
+                        else
 			{
                                 /* I don't own that index, but will need it for my computations */
                                 //FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
-                        }
-                        else
-			{
-                                /* I know it's useless to allocate anything for this */
-                                data_handles[x][y] = NULL;
                         }
                         if (data_handles[x][y])
 			{

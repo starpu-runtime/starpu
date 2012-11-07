@@ -389,9 +389,9 @@ fail_colind:
 		{
 			cudaError_t err;
 			err = cudaFree((void*)addr_nzval);
-			break;
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
+			break;
 		}
 #endif
 #ifdef STARPU_USE_OPENCL

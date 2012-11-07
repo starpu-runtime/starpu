@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -175,7 +175,8 @@ static int good_job(struct _starpu_job *j)
 	if (!j->task->cl->model)
 		return 0;
 	/* Only support history based */
-	if (j->task->cl->model->type != STARPU_HISTORY_BASED)
+	if (j->task->cl->model->type != STARPU_HISTORY_BASED
+	 && j->task->cl->model->type != STARPU_NL_REGRESSION_BASED)
 		return 0;
 	return 1;
 }
@@ -400,7 +401,7 @@ void starpu_bound_print_dot(FILE *output)
 	fprintf(output, "strict digraph bounddeps {\n");
 	for (t = tasks; t; t = t->next)
 	{
-		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, t->cl->name);
+		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, _starpu_codelet_get_model_name(t->cl));
 		for (i = 0; i < t->depsn; i++)
 			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i]->id, t->id);
 	}
@@ -433,6 +434,11 @@ void starpu_bound_print_lp(FILE *output)
 		nt = 0;
 		for (t1 = tasks; t1; t1 = t1->next)
 		{
+			if (t1->cl->model->type != STARPU_HISTORY_BASED &&
+			    t1->cl->model->type != STARPU_NL_REGRESSION_BASED)
+				/* TODO: */
+				fprintf(stderr, "Warning: task %s uses a perf model which is neither history nor non-linear regression-based, support for such model is not implemented yet, system will not be solvable.\n", _starpu_codelet_get_model_name(t1->cl));
+
 			struct _starpu_job j =
 			{
 				.footprint = t1->footprint,
@@ -478,7 +484,7 @@ void starpu_bound_print_lp(FILE *output)
 		fprintf(output, "/* According to where the task is indeed executed */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 		{
-			fprintf(output, "/* %s %x */\tc%lu = s%lu", t1->cl->name, (unsigned) t1->footprint, t1->id, t1->id);
+			fprintf(output, "/* %s %x */\tc%lu = s%lu", _starpu_codelet_get_model_name(t1->cl), (unsigned) t1->footprint, t1->id, t1->id);
 			for (w = 0; w < nw; w++)
 			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
@@ -673,11 +679,19 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 			{
-				fprintf(output, "/* task %s key %x */\n0", tp->cl->name, (unsigned) tp->footprint);
-				for (w = 0; w < nw; w++)
-					if (!isnan(times[w*nt+t]))
+				int got_one = 0;
+				fprintf(output, "/* task %s key %x */\n0", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
+				for (w = 0; w < nw; w++) {
+					if (isnan(times[w*nt+t]))
+						fprintf(stderr, "Warning: task %s has no performance measurement for worker %d.\n", _starpu_codelet_get_model_name(tp->cl), w);
+					else {
+						got_one = 1;
 						fprintf(output, "\t+w%dt%dn", w, t);
+					}
+				}
 				fprintf(output, " = %lu;\n", tp->n);
+				if (!got_one)
+					fprintf(stderr, "Warning: task %s has no performance measurement for any worker, system will not be solvable!\n", _starpu_codelet_get_model_name(tp->cl));
 				/* Show actual values */
 				fprintf(output, "/*");
 				for (w = 0; w < nw; w++)
@@ -750,7 +764,7 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
-			fprintf(output, "* task %s key %x\n", tp->cl->name, (unsigned) tp->footprint);
+			fprintf(output, "* task %s key %x\n", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			fprintf(output, " E  T%d\n", t);
 		}
 
@@ -881,7 +895,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 		{
 			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
-			snprintf(title, sizeof(title), "task %s key %x", tp->cl->name, (unsigned) tp->footprint);
+			snprintf(title, sizeof(title), "task %s key %x", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			glp_set_row_name(lp, nw+t+1, title);
 			for (w = 0; w < nw; w++)
 			{
@@ -949,7 +963,7 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
-			fprintf(output, "%s key %x\n", tp->cl->name, (unsigned) tp->footprint);
+			fprintf(output, "%s key %x\n", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
 				if (integer)
 					fprintf(output, "\tw%dt%dn %f", w, t, glp_mip_col_val(lp, colnum(w, t)));

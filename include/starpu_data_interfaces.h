@@ -132,7 +132,7 @@ struct starpu_data_interface_ops
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
-	/* Pack the data handle into a contiguous buffer at the address ptr */
+	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
 	int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr);
 	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr);
@@ -209,11 +209,7 @@ struct starpu_coo_interface
 	size_t    elemsize;
 };
 
-void
-starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
-			 uint32_t nx, uint32_t ny, uint32_t n_values,
-			 uint32_t *columns, uint32_t *rows,
-			 uintptr_t values, size_t elemsize);
+void starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
 
 #define STARPU_COO_GET_COLUMNS(interface) \
 	(((struct starpu_coo_interface *)(interface))->columns)
@@ -438,7 +434,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, uint32_t hom
 
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr);
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *count);
 int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr);
 size_t starpu_handle_get_size(starpu_data_handle_t handle);
 

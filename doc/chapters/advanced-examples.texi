@@ -381,13 +381,15 @@ tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
 and maximum observed input size. It can be useful to set the
 @code{STARPU_CALIBRATE} environment variable to @code{1} and run the application
-on varying input sizes, so as to feed the performance model for a variety of
-inputs, or to provide the measurements explictly by using
+on varying input sizes with @code{STARPU_SCHED} set to @code{eager} scheduler,
+so as to feed the performance model for a variety of
+inputs. The application can also provide the measurements explictly by using
 @code{starpu_perfmodel_update_history}. The @code{starpu_perfmodel_display} and
 @code{starpu_perfmodel_plot}
 tools can be used to observe how much the performance model is calibrated (@pxref{Performance model calibration}); when
 their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
-StarPU use the resulting performance model without recording new measures. If
+StarPU use the resulting performance model without recording new measures, and
+@code{STARPU_SCHED} can be set to @code{heft} to benefit from the performance models. If
 the data input sizes vary a lot, it is really important to set
 @code{STARPU_CALIBRATE} to @code{0}, otherwise StarPU will continue adding the
 measures, and result with a very big performance model, which will take time a
@@ -723,6 +725,26 @@ int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
 
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading
 to yet more relaxed dependencies and more parallelism.
+
+STARPU_REDUX can also be passed to @code{starpu_mpi_insert_task} in the MPI
+case. That will however not produce any MPI communication, but just pass
+STARPU_REDUX to the underlying @code{starpu_insert_task}. It is up to the
+application to call @code{starpu_mpi_redux_data}, which posts tasks that will
+reduce the partial results among MPI nodes into the MPI node which owns the
+data. For instance, some hypothetical application which collects partial results
+into data @code{res}, then uses it for other computation, before looping again
+with a new reduction:
+
+@smallexample
+@{
+    for (i = 0; i < 100; i++) @{
+        starpu_mpi_insert_task(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
+        starpu_mpi_insert_task(MPI_COMM_WORLD, &work, STARPU_RW, A, STARPU_R, B, STARPU_REDUX, res, 0);
+        starpu_mpi_redux_data(MPI_COMM_WORLD, res);
+        starpu_mpi_insert_task(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
+    @}
+@}
+@end smallexample
 
 @node Temporary buffers
 @section Temporary buffers

@@ -681,9 +681,10 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr)
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
+	*count = starpu_handle_get_size(handle);
 	return handle->ops->pack_data(handle, _starpu_get_local_memory_node(), ptr);
 }
 
