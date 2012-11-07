@@ -116,8 +116,7 @@ static void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 	if (req->needs_unpacking)
 	{
-		req->count = starpu_handle_get_size(req->data_handle);
-		starpu_handle_pack_data(req->data_handle, &req->ptr);
+		starpu_handle_pack_data(req->data_handle, &req->ptr, &req->count);
 	}
 	else
 	{
