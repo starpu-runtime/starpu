@@ -374,7 +374,7 @@ allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
 		if (STARPU_UNLIKELY(addr_rows == NULL))
 			goto fail_rows;
 		addr_values = (uintptr_t) malloc(n_values * elemsize);
-		if (STARPU_UNLIKELY(addr_values == NULL))
+		if (STARPU_UNLIKELY(addr_values == (uintptr_t) NULL))
 			goto fail_values;
 		break;
 	}
