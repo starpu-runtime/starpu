@@ -44,7 +44,7 @@ if BUILD_STARPUFFT
 SUBDIRS += starpufft
 endif
 
-if BUILD_SCHED_CTX_HYPERVISOR
+if STARPU_BUILD_SCHED_CTX_HYPERVISOR
 SUBDIRS += sched_ctx_hypervisor
 endif
 

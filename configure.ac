@@ -239,16 +239,18 @@ AC_ARG_ENABLE([sched_ctx_hypervisor],
   [enable_sched_ctx_hypervisor="no"])
 
 if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
-   AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sched_ctx_hypervisor lib])
+  AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sched_ctx_hypervisor lib])
 #   PKG_CHECK_MODULES([SCHED_CTX_HYPERVISOR], [libsched_ctx_hypervisor], [], build_sched_ctx_hypervisor="yes")
    STARPU_SCHED_CTX_HYPERVISOR="-lsched_ctx_hypervisor"
-   AC_SUBST(STARPU_SCHED_CTX_HYPERVISOR)
+#   AC_SUBST(STARPU_USE_SCHED_CTX_HYPERVISOR, $enable_sched_ctx_hypervisor)
    build_sched_ctx_hypervisor="yes"
 else
    build_sched_ctx_hypervisor="no"
+   exit 1
 fi
 
-AM_CONDITIONAL([BUILD_SCHED_CTX_HYPERVISOR], [test "x$build_sched_ctx_hypervisor" = "xyes"])
+
+AM_CONDITIONAL([STARPU_BUILD_SCHED_CTX_HYPERVISOR], [test "x$build_sched_ctx_hypervisor" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SCHED_CTX_HYPERVISOR], [test "x$build_sched_ctx_hypervisor" = "xyes"])
 ###############################################################################
 #                                                                             #

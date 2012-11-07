@@ -158,11 +158,11 @@ struct starpu_performance_counters {
 	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint);
 };
 
-#ifdef STARPU_BUILD_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters);
 void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops);
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
-#endif //STARPU_BUILD_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name);
 
