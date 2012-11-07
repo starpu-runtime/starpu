@@ -110,11 +110,17 @@ static void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
         _STARPU_MPI_LOG_IN();
 
-	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype, &req->count);
+	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 	if (req->needs_unpacking)
+	{
+		req->count = starpu_handle_get_size(req->data_handle);
 		starpu_handle_pack_data(req->data_handle, &req->ptr);
+	}
 	else
+	{
+		req->count = 1;
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+	}
 	STARPU_ASSERT(req->ptr);
 
         _STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, req->count, &req->request);
@@ -191,11 +197,17 @@ static void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
         _STARPU_MPI_LOG_IN();
 
-	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype, &req->count);
+	req->needs_unpacking = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 	if (req->needs_unpacking == 1)
+	{
+		req->count = starpu_handle_get_size(req->data_handle);
 		req->ptr = malloc(req->count);
+	}
 	else
+	{
+		req->count = 1;
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+	}
 	STARPU_ASSERT(req->ptr);
 
 	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %p\n", req->mpi_tag, req->srcdst, req->data_handle, req->ptr, &req->request, req->datatype);
