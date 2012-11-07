@@ -132,7 +132,7 @@ struct starpu_data_interface_ops
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
-	/* Pack the data handle into a contiguous buffer at the address ptr */
+	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
 	int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr);
 	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr);
@@ -434,7 +434,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, uint32_t hom
 
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr);
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *count);
 int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr);
 size_t starpu_handle_get_size(starpu_data_handle_t handle);
 
