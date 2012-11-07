@@ -518,7 +518,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
         _STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
+	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
         if (req->request_type != BARRIER_REQ)
 	{
 		if (req->needs_unpacking)
