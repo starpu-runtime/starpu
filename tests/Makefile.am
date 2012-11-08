@@ -364,6 +364,9 @@ datawizard_wt_host_SOURCES =			\
 datawizard_wt_broadcast_SOURCES =		\
 	datawizard/wt_broadcast.c
 
+main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+
 ###################
 # Block interface #
 ###################
