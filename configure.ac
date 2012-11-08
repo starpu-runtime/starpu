@@ -1690,16 +1690,9 @@ m4_ifdef([AM_SILENT_RULES],
 # Documentation                          #
 ##########################################
 
-enable_build_doc=yes
-AC_CHECK_PROGS([CHECK_TEXI2DVI], [texi2dvi], "no")
-if test "$CHECK_TEXI2DVI" == "no" ; then
-    enable_build_doc=no
-else
-    AC_CHECK_PROGS([CHECK_TEX], [tex], "no")
-    if test "$CHECK_TEX" == "no" ; then
-	enable_build_doc=no
-    fi
-fi
+AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
+			[disable building of documentation])],
+			enable_build_doc=$enableval, enable_build_doc=yes)
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 
 ###############################################################################

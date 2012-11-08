@@ -71,6 +71,11 @@ directory specified by @var{prefix}.
 Specify hwloc should not be used by StarPU.
 @end defvr
 
+@defvr {Configure option} --disable-build-doc
+Disable the creation of the documentation. This should be done on a
+machine which does not have the tools @code{makeinfo} and @code{tex}.
+@end defvr
+
 Additionally, the @command{configure} script recognize many variables, which
 can be listed by typing @code{./configure --help}. For example,
 @code{./configure NVCCFLAGS="-arch sm_13"} adds a flag for the compilation of
