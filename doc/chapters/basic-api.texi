@@ -161,17 +161,17 @@ it is therefore necessary to disable asynchronous data transfers.
 This can also be specified at compilation time by giving to the
 configure script the option @code{--disable-asynchronous-copy}.
 
-@item @code{int disable_cuda_asynchronous_copy} (default = 0)
+@item @code{int disable_asynchronous_cuda_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
 CPUs and CUDA accelerators. This can also be specified with the
-@code{STARPU_DISABLE_CUDA_ASYNCHRONOUS_COPY} environment variable.
+@code{STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY} environment variable.
 This can also be specified at compilation time by giving to the
 configure script the option @code{--disable-asynchronous-cuda-copy}.
 
-@item @code{int disable_opencl_asynchronous_copy} (default = 0)
+@item @code{int disable_asynchronous_opencl_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
 CPUs and OpenCL accelerators. This can also be specified with the
-@code{STARPU_DISABLE_OPENCL_ASYNCHRONOUS_COPY} environment variable.
+@code{STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY} environment variable.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
