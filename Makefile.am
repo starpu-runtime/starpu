@@ -120,3 +120,27 @@ showcheck:
 
 ctags-local:
 	$(CTAGS) -R -I LIST_TYPE
+
+
+# Cyclomatic complexity reports.
+
+# The pmccabe tool, see <http://www.parisc-linux.org/~bame/pmccabe/>.
+PMCCABE = pmccabe
+
+VC_URL = "https://gforge.inria.fr/scm/viewvc.php/trunk/%FILENAME%?view=markup&root=starpu"
+
+# Generate a cyclomatic complexity report.  Note that examples and tests are
+# excluded because they're not particularly relevant, and more importantly
+# they all have a function called `main', which clobbers the report.
+cyclomatic-complexity.html:
+	$(PMCCABE)								\
+	  `find \( -name examples -o -name tests \) -prune -o -name \*.c`	\
+	  | sort -nr								\
+	  | $(AWK) -f ${top_srcdir}/build-aux/pmccabe2html			\
+		   -v lang=html -v name="$(PACKAGE_NAME)"			\
+		   -v vcurl=$(VC_URL)						\
+		   -v url="$(PACKAGE_URL)"					\
+		   -v css=${top_srcdir}/build-aux/pmccabe.css			\
+		   -v cut_dir=${top_srcdir}/					\
+		   > $@-tmp
+	mv $@-tmp $@

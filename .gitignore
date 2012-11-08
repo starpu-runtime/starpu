@@ -289,3 +289,4 @@ starpu.log
 /gcc-plugin/tests/opencl
 /gcc-plugin/tests/registered
 /gcc-plugin/tests/warn-unregistered
+/cyclomatic-complexity.html
