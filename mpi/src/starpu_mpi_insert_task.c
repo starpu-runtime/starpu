@@ -293,8 +293,9 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 				HASH_FIND_PTR(received_data[mpi_rank], &data, already_received);
 				if (already_received)
 				{
-					/* Somebody else will write to the data, so discard our cached copy if any */
-					/* TODO: starpu_mpi could just remember itself. */
+#ifdef STARPU_DEVEL
+#  warning TODO: Somebody else will write to the data, so discard our cached copy if any. starpu_mpi could just remember itself.
+#endif
 					_STARPU_MPI_DEBUG("Clearing receive cache for data %p\n", data);
 					HASH_DEL(received_data[mpi_rank], already_received);
 					starpu_data_invalidate_submit(data);

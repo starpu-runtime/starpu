@@ -79,7 +79,7 @@ struct _starpu_worker
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
-	char name[48];
+	char name[64];
 	char short_name[10];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 

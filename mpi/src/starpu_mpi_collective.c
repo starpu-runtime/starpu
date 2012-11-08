@@ -47,7 +47,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 	MPI_Comm_rank(comm, &rank);
 
 #ifdef STARPU_DEVEL
-#warning callback_arg needs to be free-ed
+#warning TODO: callback_arg needs to be free-ed
 #endif
 	callback_func = _callback_collective;
 	callback_arg = malloc(sizeof(struct _callback_arg));
@@ -115,7 +115,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	MPI_Comm_rank(comm, &rank);
 
 #ifdef STARPU_DEVEL
-#warning callback_arg needs to be free-ed
+#warning TODO: callback_arg needs to be free-ed
 #endif
 	callback_func = _callback_collective;
 	callback_arg = malloc(sizeof(struct _callback_arg));

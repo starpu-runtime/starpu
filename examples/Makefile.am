@@ -749,6 +749,8 @@ interface_complex_SOURCES	=	\
 if STARPU_USE_CUDA
 interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
+interface/complex_kernels.o: interface/complex_kernels.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 if STARPU_USE_OPENCL

@@ -36,6 +36,9 @@ New features:
   * SOCL
         - Manual mapping of commands on specific devices is now possible
   * New interface: COO matrix.
+  * Data interfaces: The pack operation of user-defined data interface
+    defines a new parameter count which should be set to the size of
+    the buffer created by the packing of the data.
   * MPI:
         - Communication statistics for MPI can only be enabled at
 	  execution time by defining the environment variable
@@ -50,6 +53,9 @@ New features:
         - Collective detached operations have new parameters, a
 	  callback function and a argument. This is to be consistent
 	  with the detached point-to-point communications.
+        - When exchanging user-defined data interfaces, the size of
+	  the data is the size returned by the pack operation, i.e
+	  data with dynamic size can now be exchanged with StarPU-MPI.
 
 Changes:
   * Fix the block filter functions.

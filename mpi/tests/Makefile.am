@@ -37,17 +37,14 @@ examplebindir = $(libdir)/starpu/examples/mpi
 examplebin_PROGRAMS =
 
 if STARPU_USE_CUDA
-# TODO define NVCCFLAGS
-NVCC ?= nvcc
-
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/  -I$(top_builddir)/include/
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS)

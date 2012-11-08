@@ -1451,88 +1451,86 @@ AC_ARG_ENABLE(blas-lib,
  ])
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xgoto; then
-AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GotoBLAS lib location])],
-	[
-		blas_lib=goto
-		gotodir=$withval
-		AC_SUBST(GOTODIR, $gotodir)
+   AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GotoBLAS lib location])],
+   	[
+	    blas_lib=goto
+	    gotodir=$withval
+	    AC_SUBST(GOTODIR, $gotodir)
 
-		CPPFLAGS="${CPPFLAGS} -I$gotodir/ "
-		LDFLAGS="${LDFLAGS} -L$gotodir/ "
+	    CPPFLAGS="${CPPFLAGS} -I$gotodir/ "
+	    LDFLAGS="${LDFLAGS} -L$gotodir/ "
 	]
 	)
 
-if test x$blas_lib = xgoto; then
-STARPU_CHECK_LIB(BLAS, gfortran, main,,)
-STARPU_CHECK_LIB(BLAS, ifcore, main,,)
-# Perhaps that GotoBLAS2 is available instead (so that we have libgotoblas2.{so,a})
-STARPU_CHECK_LIB(BLAS, goto2, sgemm_,, [havegoto2=no], [$STARPU_BLAS_LDFLAGS])
-if test x$havegoto2 = xno; then
-STARPU_CHECK_LIB(BLAS, goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]), [$STARPU_BLAS_LDFLAGS])
-fi
-AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
-fi
-
+   if test x$blas_lib = xgoto; then
+       STARPU_CHECK_LIB(BLAS, gfortran, main,,)
+       STARPU_CHECK_LIB(BLAS, ifcore, main,,)
+       # Perhaps that GotoBLAS2 is available instead (so that we have libgotoblas2.{so,a})
+       STARPU_CHECK_LIB(BLAS, goto2, sgemm_,, [havegoto2=no], [$STARPU_BLAS_LDFLAGS])
+       if test x$havegoto2 = xno; then
+	   STARPU_CHECK_LIB(BLAS, goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]), [$STARPU_BLAS_LDFLAGS])
+       fi
+       AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
+   fi
 fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
-AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS lib location])],
+    AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS lib location])],
 	[
-		AC_MSG_CHECKING(STARPU_ATLAS location)
-		blas_lib=atlas
-		atlasdir=$withval
-		AC_MSG_RESULT($atlasdir)
-		AC_SUBST(ATLASDIR, $atlasdir)
+	    AC_MSG_CHECKING(STARPU_ATLAS location)
+	    blas_lib=atlas
+	    atlasdir=$withval
+	    AC_MSG_RESULT($atlasdir)
+	    AC_SUBST(ATLASDIR, $atlasdir)
 
-		CPPFLAGS="${CPPFLAGS} -I$atlasdir/include/ "
-		LDFLAGS="${LDFLAGS} -L$atlasdir/lib/ "
+	    CPPFLAGS="${CPPFLAGS} -I$atlasdir/include/ "
+	    LDFLAGS="${LDFLAGS} -L$atlasdir/lib/ "
 	]
-	)
+    )
 
-if test x$blas_lib = xatlas; then
-# test whether STARPU_ATLAS is actually available
-AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
-STARPU_CHECK_LIB(BLAS, atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
-STARPU_CHECK_LIB(BLAS, cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
-AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
-fi
-
-fi
-
-if test x$blas_lib = xmaybe; then
-	# Should we use MKL ?
-	AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
-		[
-			CPPFLAGS="${CPPFLAGS} $withval"
-			blas_lib=mkl
-		])
-
-	AC_ARG_WITH(mkl-ldflags, [AS_HELP_STRING([--with-mkl-ldflags], [specify MKL linking flags])],
-		[
-			LDFLAGS="${LDFLAGS} $withval"
-			blas_lib=mkl
-		])
-	if test x$blas_lib = xmkl; then
-	        AC_DEFINE(STARPU_MKL, [1], [use MKL library])
-	fi
+    if test x$blas_lib = xatlas; then
+	# test whether STARPU_ATLAS is actually available
+	AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
+	STARPU_CHECK_LIB(BLAS, atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
+	STARPU_CHECK_LIB(BLAS, cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
+	AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
+    fi
 fi
 
 if test x$blas_lib = xmaybe; then
-     #perhaps it is possible to use some BLAS lib from the system
-     use_system_blas=no
-     STARPU_SEARCH_LIBS(BLAS,[sgemm_],[blas],use_system_blas=yes,,)
-     if test x$use_system_blas = xyes; then
+    # Should we use MKL ?
+    AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
+	[
+	    CPPFLAGS="${CPPFLAGS} $withval"
+	    blas_lib=mkl
+	    ])
+
+    AC_ARG_WITH(mkl-ldflags, [AS_HELP_STRING([--with-mkl-ldflags], [specify MKL linking flags])],
+	[
+	    LDFLAGS="${LDFLAGS} $withval"
+	    blas_lib=mkl
+	    ])
+    if test x$blas_lib = xmkl; then
+	AC_DEFINE(STARPU_MKL, [1], [use MKL library])
+    fi
+fi
+
+if test x$blas_lib = xmaybe; then
+    #perhaps it is possible to use some BLAS lib from the system
+    use_system_blas=no
+    STARPU_SEARCH_LIBS(BLAS,[sgemm_],[blas],use_system_blas=yes,,)
+    if test x$use_system_blas = xyes; then
         AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use refblas library])
 	blas_lib=system
-     elif test x"$BLAS_LIBS" != x; then
+    elif test x"$BLAS_LIBS" != x; then
         AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use user defined library])
         STARPU_BLAS_LDFLAGS="$BLAS_LIBS"
         AC_SUBST(STARPU_BLAS_LDFLAGS)
         blas_lib=system
         AC_ARG_VAR([BLAS_LIBS], [linker flags for blas])
-     else
+    else
 	blas_lib=none
-     fi
+    fi
 fi
 
 AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
