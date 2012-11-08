@@ -293,6 +293,10 @@ more CPU workers than there are physical CPUs, and that some CPUs are used to co
 the accelerators.
 @end defvr
 
+@defvr {Environment variable} STARPU_NCPUS
+This variable is deprecated. You should use @code{STARPU_NCPU}.
+@end defvr
+
 @defvr {Environment variable} STARPU_NCUDA
 Specify the number of CUDA devices that StarPU can use. If
 @code{STARPU_NCUDA} is lower than the number of physical devices, it is
@@ -367,7 +371,7 @@ concurrently. It will create combined workers which size goes from 1 to the
 total number of CPU workers in the system.
 @end defvr
 
-@defvr {Environment variable} SYNTHESIZE_ARITY_COMBINED_WORKER
+@defvr {Environment variable} STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
 Let the user decide how many elements are allowed between combined workers
 created from hwloc information. For instance, in the case of sockets with 6
 cores without shared L2 caches, if @code{SYNTHESIZE_ARITY_COMBINED_WORKER} is
@@ -452,6 +456,18 @@ data transfer time (obtained thanks to performance models). The beta factor is
 the coefficient to be applied to it before adding it to the computation part.
 @end defvr
 
+@defvr {Environment variable} STARPU_SCHED_GAMMA
+Define the execution time penalty of a joule (@pxref{Power-based scheduling}).
+@end defvr
+
+@defvr {Environment variable} STARPU_IDLE_POWER
+Define the idle power of the machine (@pxref{Power-based scheduling}).
+@end defvr
+
+@defvr {Environment variable} STARPU_PROFILING
+Enable on-line performance monitoring (@pxref{Enabling on-line performance monitoring}).
+@end defvr
+
 @node Extensions
 @subsection Extensions
 
@@ -478,6 +494,16 @@ to 0. It is enabled by default or for any other values of the variable
 
 @node Misc
 @subsection Miscellaneous and debug
+
+@defvr {Environment variable} STARPU_OPENCL_PROGRAM_DIR
+@anchor{STARPU_OPENCL_PROGRAM_DIR}
+This specifies the directory where the OpenCL codelet source files are
+located. The function @ref{starpu_opencl_load_program_source} looks
+for the codelet in the current directory, in the directory specified
+by the environment variable @code{STARPU_OPENCL_PROGRAM_DIR}, in the
+directory @code{share/starpu/opencl} of the installation directory of
+StarPU, and finally in the source directory of StarPU.
+@end defvr
 
 @defvr {Environment variable} STARPU_SILENT
 This variable allows to disable verbose mode at runtime when StarPU

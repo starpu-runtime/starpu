@@ -2568,7 +2568,8 @@ use (e.g. different programs on the different OpenCL devices, for
 relocation purpose for instance).
 
 @deftp {Data Type} {struct starpu_opencl_program}
-Stores the OpenCL programs as compiled for the different OpenCL devices.
+Stores the OpenCL programs as compiled for the different OpenCL
+devices. The different fields are:
 @table @asis
 @item @code{cl_program programs[STARPU_MAXOPENCLDEVS]}
 Stores each program for each OpenCL device.
@@ -2589,10 +2590,11 @@ This function unloads an OpenCL compiled code.
 @end deftypefun
 
 @deftypefun void starpu_opencl_load_program_source ({const char *}@var{source_file_name}, char *@var{located_file_name}, char *@var{located_dir_name}, char *@var{opencl_program_source})
+@anchor{starpu_opencl_load_program_source}
 Store the contents of the file @var{source_file_name} in the buffer
 @var{opencl_program_source}. The file @var{source_file_name} can be
 located in the current directory, or in the directory specified by the
-environment variable @code{STARPU_OPENCL_PROGRAM_DIR}, or in the
+environment variable @code{STARPU_OPENCL_PROGRAM_DIR} (@pxref{STARPU_OPENCL_PROGRAM_DIR}), or in the
 directory @code{share/starpu/opencl} of the installation directory of
 StarPU, or in the source directory of StarPU.
 When the file is found, @code{located_file_name} is the full name of

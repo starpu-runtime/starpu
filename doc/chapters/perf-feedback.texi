@@ -17,7 +17,7 @@
 @section On-line performance feedback
 
 @menu
-* Enabling monitoring::         Enabling on-line performance monitoring
+* Enabling on-line performance monitoring::
 * Task feedback::               Per-task feedback
 * Codelet feedback::            Per-codelet feedback
 * Worker feedback::             Per-worker feedback
@@ -25,7 +25,7 @@
 * StarPU-Top::                  StarPU-Top interface
 @end menu
 
-@node Enabling monitoring
+@node Enabling on-line performance monitoring
 @subsection Enabling on-line performance monitoring
 
 In order to enable online performance monitoring, the application can call
