@@ -305,6 +305,13 @@ create as many CUDA workers as there are CUDA devices.
 OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 @end defvr
 
+@defvr {Environment variable} STARPU_OPENCL_ON_CPUS
+By default, the OpenCL driver only enables GPU and accelerator
+devices. By setting the environment variable
+@code{STARPU_OPENCL_ON_CPUS} to 1, the OpenCL driver will also enable
+CPU devices.
+@end defvr
+
 @defvr {Environment variable} STARPU_WORKERS_NOBIND
 Setting it to non-zero will prevent StarPU from binding its threads to
 CPUs. This is for instance useful when running the testsuite in parallel.
