@@ -86,7 +86,8 @@ was last updated on @value{UPDATED}.
 
 * Concept Index::               Index of programming concepts.
 * Function Index::              Index of C functions.
-* Datatype Index::              Index of C datatypes
+* Datatype Index::              Index of C datatypes.
+* Configuration Index::         Index of configuration options.
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -254,5 +255,9 @@ was last updated on @value{UPDATED}.
 @node Datatype Index
 @unnumbered Datatype Index
 @printindex tp
+
+@node Configuration Index
+@unnumbered Configuration Index
+@printindex vr
 
 @bye

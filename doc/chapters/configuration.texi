@@ -26,15 +26,19 @@ The following arguments can be given to the @code{configure} script.
 @node Common configuration
 @subsection Common configuration
 
-@table @code
-
-@item --enable-debug
+@defvr {Configure option} --enable-debug
 Enable debugging messages.
+@end defvr
 
-@item --enable-fast
+@defvr {Configure option} --enable-debug
+Enable debugging messages.
+@end defvr
+
+@defvr {Configure option} --enable-fast
 Disable assertion checks, which saves computation time.
+@end defvr
 
-@item --enable-verbose
+@defvr {Configue option} --enable-verbose
 Increase the verbosity of the debugging messages.  This can be disabled
 at runtime by setting the environment variable @code{STARPU_SILENT} to
 any value.
@@ -42,25 +46,30 @@ any value.
 @smallexample
 % STARPU_SILENT=1 ./vector_scal
 @end smallexample
+@end defvr
 
-@item --enable-coverage
+@defvr {Configue option} --enable-coverage
 Enable flags for the @code{gcov} coverage tool.
+@end defvr
 
-@item --enable-quick-check
+@defvr {Configue option} --enable-quick-check
 Specify tests and examples should be run on a smaller data set, i.e
 allowing a faster execution time
+@end defvr
 
-@item --with-hwloc
+@defvr {Configue option} --with-hwloc
 Specify hwloc should be used by StarPU. hwloc should be found by the
 means of the tools @code{pkg-config}.
+@end defvr
 
-@item --with-hwloc=@var{prefix}
+@defvr {Configue option} --with-hwloc=@var{prefix}
 Specify hwloc should be used by StarPU. hwloc should be found in the
 directory specified by @var{prefix}.
+@end defvr
 
-@item --without-hwloc
+@defvr {Configue option} --without-hwloc
 Specify hwloc should not be used by StarPU.
-@end table
+@end defvr
 
 Additionally, the @command{configure} script recognize many variables, which
 can be listed by typing @code{./configure --help}. For example,
@@ -70,174 +79,200 @@ CUDA kernels.
 @node Configuring workers
 @subsection Configuring workers
 
-@table @code
-
-@item --enable-maxcpus=@var{count}
+@defvr {Configue option} --enable-maxcpus=@var{count}
 Use at most @var{count} CPU cores.  This information is then
 available as the @code{STARPU_MAXCPUS} macro.
+@end defvr
 
-@item --disable-cpu
+@defvr {Configue option} --disable-cpu
 Disable the use of CPUs of the machine. Only GPUs etc. will be used.
+@end defvr
 
-@item --enable-maxcudadev=@var{count}
+@defvr {Configue option} --enable-maxcudadev=@var{count}
 Use at most @var{count} CUDA devices.  This information is then
 available as the @code{STARPU_MAXCUDADEVS} macro.
+@end defvr
 
-@item --disable-cuda
+@defvr {Configue option} --disable-cuda
 Disable the use of CUDA, even if a valid CUDA installation was detected.
+@end defvr
 
-@item --with-cuda-dir=@var{prefix}
+@defvr {Configue option} --with-cuda-dir=@var{prefix}
 Search for CUDA under @var{prefix}, which should notably contain
 @file{include/cuda.h}.
+@end defvr
 
-@item --with-cuda-include-dir=@var{dir}
+@defvr {Configue option} --with-cuda-include-dir=@var{dir}
 Search for CUDA headers under @var{dir}, which should
 notably contain @code{cuda.h}. This defaults to @code{/include} appended to the
 value given to @code{--with-cuda-dir}.
+@end defvr
 
-@item --with-cuda-lib-dir=@var{dir}
+@defvr {Configue option} --with-cuda-lib-dir=@var{dir}
 Search for CUDA libraries under @var{dir}, which should notably contain
 the CUDA shared libraries---e.g., @file{libcuda.so}.  This defaults to
 @code{/lib} appended to the value given to @code{--with-cuda-dir}.
+@end defvr
 
-@item --disable-cuda-memcpy-peer
+@defvr {Configue option} --disable-cuda-memcpy-peer
 Explicitly disable peer transfers when using CUDA 4.0.
+@end defvr
 
-@item --enable-maxopencldev=@var{count}
+@defvr {Configue option} --enable-maxopencldev=@var{count}
 Use at most @var{count} OpenCL devices.  This information is then
 available as the @code{STARPU_MAXOPENCLDEVS} macro.
+@end defvr
 
-@item --disable-opencl
+@defvr {Configue option} --disable-opencl
 Disable the use of OpenCL, even if the SDK is detected.
+@end defvr
 
-@item --with-opencl-dir=@var{prefix}
+@defvr {Configue option} --with-opencl-dir=@var{prefix}
 Search for an OpenCL implementation under @var{prefix}, which should
 notably contain @file{include/CL/cl.h} (or @file{include/OpenCL/cl.h} on
 Mac OS).
+@end defvr
 
-@item --with-opencl-include-dir=@var{dir}
+@defvr {Configue option} --with-opencl-include-dir=@var{dir}
 Search for OpenCL headers under @var{dir}, which should notably contain
 @file{CL/cl.h} (or @file{OpenCL/cl.h} on Mac OS).  This defaults to
 @code{/include} appended to the value given to @code{--with-opencl-dir}.
+@end defvr
 
-@item --with-opencl-lib-dir=@var{dir}
+@defvr {Configue option} --with-opencl-lib-dir=@var{dir}
 Search for an OpenCL library under @var{dir}, which should notably
 contain the OpenCL shared libraries---e.g. @file{libOpenCL.so}. This defaults to
 @code{/lib} appended to the value given to @code{--with-opencl-dir}.
+@end defvr
 
-@item --enable-maximplementations=@var{count}
+@defvr {Configue option} --enable-maximplementations=@var{count}
 Allow for at most @var{count} codelet implementations for the same
 target device.  This information is then available as the
 @code{STARPU_MAXIMPLEMENTATIONS} macro.
+@end defvr
 
-@item --disable-asynchronous-copy
+@defvr {Configue option} --disable-asynchronous-copy
 Disable asynchronous copies between CPU and GPU devices.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
+@end defvr
 
-@item --disable-asynchronous-cuda-copy
+@defvr {Configue option} --disable-asynchronous-cuda-copy
 Disable asynchronous copies between CPU and CUDA devices.
+@end defvr
 
-@item --disable-asynchronous-opencl-copy
+@defvr {Configue option} --disable-asynchronous-opencl-copy
 Disable asynchronous copies between CPU and OpenCL devices.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
-@end table
+@end defvr
 
 @node Extension configuration
 @subsection Extension configuration
 
-@table @code
-
-@item --disable-socl
+@defvr {Configue option} --disable-socl
 Disable the SOCL extension (@pxref{SOCL OpenCL Extensions}).  By
 default, it is enabled when an OpenCL implementation is found.
+@end defvr
 
-@item --disable-starpu-top
+@defvr {Configue option} --disable-starpu-top
 Disable the StarPU-Top interface (@pxref{StarPU-Top}).  By default, it
 is enabled when the required dependencies are found.
+@end defvr
 
-@item --disable-gcc-extensions
+@defvr {Configue option} --disable-gcc-extensions
 Disable the GCC plug-in (@pxref{C Extensions}).  By default, it is
 enabled when the GCC compiler provides a plug-in support.
+@end defvr
 
-@item --with-mpicc=@var{path}
+@defvr {Configue option} --with-mpicc=@var{path}
 Use the @command{mpicc} compiler at @var{path}, for starpumpi
 (@pxref{StarPU MPI support}).
-
-@end table
+@end defvr
 
 @node Advanced configuration
 @subsection Advanced configuration
 
-@table @code
-
-@item --enable-perf-debug
+@defvr {Configue option} --enable-perf-debug
 Enable performance debugging through gprof.
+@end defvr
 
-@item --enable-model-debug
+@defvr {Configue option} --enable-model-debug
 Enable performance model debugging.
+@end defvr
 
-@item --enable-stats
+@defvr {Configue option} --enable-stats
 @c see ../../src/datawizard/datastats.c
 Enable gathering of memory transfer statistics.
+@end defvr
 
-@item --enable-maxbuffers
+@defvr {Configue option} --enable-maxbuffers
 Define the maximum number of buffers that tasks will be able to take
 as parameters, then available as the @code{STARPU_NMAXBUFS} macro.
+@end defvr
 
-@item --enable-allocation-cache
+@defvr {Configue option} --enable-allocation-cache
 Enable the use of a data allocation cache to avoid the cost of it with
 CUDA. Still experimental.
+@end defvr
 
-@item --enable-opengl-render
+@defvr {Configue option} --enable-opengl-render
 Enable the use of OpenGL for the rendering of some examples.
 @c TODO: rather default to enabled when detected
+@end defvr
 
-@item --enable-blas-lib
+@defvr {Configue option} --enable-blas-lib
 Specify the blas library to be used by some of the examples. The
 library has to be 'atlas' or 'goto'.
+@end defvr
 
-@item --disable-starpufft
+@defvr {Configue option} --disable-starpufft
 Disable the build of libstarpufft, even if fftw or cuFFT is available.
+@end defvr
 
-@item --with-magma=@var{prefix}
+@defvr {Configue option} --with-magma=@var{prefix}
 Search for MAGMA under @var{prefix}.  @var{prefix} should notably
 contain @file{include/magmablas.h}.
+@end defvr
 
-@item --with-fxt=@var{prefix}
+@defvr {Configue option} --with-fxt=@var{prefix}
 Search for FxT under @var{prefix}.
 @url{http://savannah.nongnu.org/projects/fkt, FxT} is used to generate
 traces of scheduling events, which can then be rendered them using ViTE
 (@pxref{Off-line, off-line performance feedback}).  @var{prefix} should
 notably contain @code{include/fxt/fxt.h}.
+@end defvr
 
-@item --with-perf-model-dir=@var{dir}
+@defvr {Configue option} --with-perf-model-dir=@var{dir}
 Store performance models under @var{dir}, instead of the current user's
 home.
+@end defvr
 
-@item --with-goto-dir=@var{prefix}
+@defvr {Configue option} --with-goto-dir=@var{prefix}
 Search for GotoBLAS under @var{prefix}, which should notably contain @file{libgoto.so} or @file{libgoto2.so}.
+@end defvr
 
-@item --with-atlas-dir=@var{prefix}
+@defvr {Configue option} --with-atlas-dir=@var{prefix}
 Search for ATLAS under @var{prefix}, which should notably contain
 @file{include/cblas.h}.
+@end defvr
 
-@item --with-mkl-cflags=@var{cflags}
+@defvr {Configue option} --with-mkl-cflags=@var{cflags}
 Use @var{cflags} to compile code that uses the MKL library.
+@end defvr
 
-@item --with-mkl-ldflags=@var{ldflags}
+@defvr {Configue option} --with-mkl-ldflags=@var{ldflags}
 Use @var{ldflags} when linking code that uses the MKL library.  Note
 that the
 @url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/,
 MKL website} provides a script to determine the linking flags.
+@end defvr
 
-@item --disable-build-examples
+@defvr {Configue option} --disable-build-examples
 Disable the build of examples.
-
-@end table
+@end defvr
 
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
@@ -252,28 +287,30 @@ Disable the build of examples.
 @node Workers
 @subsection Configuring workers
 
-@table @code
-
-@item @code{STARPU_NCPU}
-Specify the number of CPU workers (thus not including workers dedicated to control acceleratores). Note that by default, StarPU will not allocate
+@defvr {Environment variable} STARPU_NCPU
+Specify the number of CPU workers (thus not including workers dedicated to control accelerators). Note that by default, StarPU will not allocate
 more CPU workers than there are physical CPUs, and that some CPUs are used to control
 the accelerators.
+@end defvr
 
-@item @code{STARPU_NCUDA}
+@defvr {Environment variable} STARPU_NCUDA
 Specify the number of CUDA devices that StarPU can use. If
 @code{STARPU_NCUDA} is lower than the number of physical devices, it is
 possible to select which CUDA devices should be used by the means of the
 @code{STARPU_WORKERS_CUDAID} environment variable. By default, StarPU will
 create as many CUDA workers as there are CUDA devices.
+@end defvr
 
-@item @code{STARPU_NOPENCL}
+@defvr {Environment variable} STARPU_NOPENCL
 OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
+@end defvr
 
-@item @code{STARPU_WORKERS_NOBIND}
+@defvr {Environment variable} STARPU_WORKERS_NOBIND
 Setting it to non-zero will prevent StarPU from binding its threads to
 CPUs. This is for instance useful when running the testsuite in parallel.
+@end defvr
 
-@item @code{STARPU_WORKERS_CPUID}
+@defvr {Environment variable} STARPU_WORKERS_CPUID
 Passing an array of integers (starting from 0) in @code{STARPU_WORKERS_CPUID}
 specifies on which logical CPU the different workers should be
 bound. For instance, if @code{STARPU_WORKERS_CPUID = "0 1 4 5"}, the first
@@ -296,8 +333,9 @@ third (resp. second and fourth) workers will be put on CPU #0 (resp. CPU #1).
 
 This variable is ignored if the @code{use_explicit_workers_bindid} flag of the
 @code{starpu_conf} structure passed to @code{starpu_init} is set.
+@end defvr
 
-@item @code{STARPU_WORKERS_CUDAID}
+@defvr {Environment variable} STARPU_WORKERS_CUDAID
 Similarly to the @code{STARPU_WORKERS_CPUID} environment variable, it is
 possible to select which CUDA devices should be used by StarPU. On a machine
 equipped with 4 GPUs, setting @code{STARPU_WORKERS_CUDAID = "1 3"} and
@@ -307,20 +345,22 @@ the one reported by CUDA).
 
 This variable is ignored if the @code{use_explicit_workers_cuda_gpuid} flag of
 the @code{starpu_conf} structure passed to @code{starpu_init} is set.
+@end defvr
 
-@item @code{STARPU_WORKERS_OPENCLID}
+@defvr {Environment variable} STARPU_WORKERS_OPENCLID
 OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 
 This variable is ignored if the @code{use_explicit_workers_opencl_gpuid} flag of
 the @code{starpu_conf} structure passed to @code{starpu_init} is set.
+@end defvr
 
-@item @code{STARPU_SINGLE_COMBINED_WORKER}
+@defvr {Environment variable} @code{STARPU_SINGLE_COMBINED_WORKER}
 If set, StarPU will create several workers which won't be able to work
 concurrently. It will create combined workers which size goes from 1 to the
 total number of CPU workers in the system.
+@end defvr
 
-@item @code{SYNTHESIZE_ARITY_COMBINED_WORKER}
-
+@defvr {Environment variable} SYNTHESIZE_ARITY_COMBINED_WORKER
 Let the user decide how many elements are allowed between combined workers
 created from hwloc information. For instance, in the case of sockets with 6
 cores without shared L2 caches, if @code{SYNTHESIZE_ARITY_COMBINED_WORKER} is
@@ -335,51 +375,55 @@ is already a normal worker for it).
 
 The default, 2, thus makes StarPU tend to building a binary trees of combined
 workers.
+@end defvr
 
-@item @code{STARPU_DISABLE_ASYNCHRONOUS_COPY}
+@defvr {Environment variable} STARPU_DISABLE_ASYNCHRONOUS_COPY
 Disable asynchronous copies between CPU and GPU devices.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
+@end defvr
 
-@item @code{STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY}
+@defvr {Environment variable} STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
 Disable asynchronous copies between CPU and CUDA devices.
+@end defvr
 
-@item @code{STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY}
+@defvr {Environment variable} STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
 Disable asynchronous copies between CPU and OpenCL devices.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
+@end defvr
 
-@item @code{STARPU_DISABLE_CUDA_GPU_GPU_DIRECT}
+@defvr {Environment variable} STARPU_DISABLE_CUDA_GPU_GPU_DIRECT
 Disable direct CUDA transfers from GPU to GPU, and let CUDA copy through RAM
 instead. This permits to test the performance effect of GPU-Direct.
-
-@end table
+@end defvr
 
 @node Scheduling
 @subsection Configuring the Scheduling engine
 
-@table @code
-
-@item @code{STARPU_SCHED}
+@defvr {Environment variable} STARPU_SCHED
 Choose between the different scheduling policies proposed by StarPU: work
 random, stealing, greedy, with performance models, etc.
 
 Use @code{STARPU_SCHED=help} to get the list of available schedulers.
+@end defvr
 
-@item @code{STARPU_CALIBRATE}
+@defvr {Environment variable} STARPU_CALIBRATE
 If this variable is set to 1, the performance models are calibrated during
 the execution. If it is set to 2, the previous values are dropped to restart
 calibration from scratch. Setting this variable to 0 disable calibration, this
 is the default behaviour.
 
 Note: this currently only applies to @code{dm}, @code{dmda} and @code{heft} scheduling policies.
+@end defvr
 
-@item @code{STARPU_BUS_CALIBRATE}
+@defvr {Environment variable} STARPU_BUS_CALIBRATE
 If this variable is set to 1, the bus is recalibrated during intialization.
+@end defvr
 
-@item @code{STARPU_PREFETCH}
+@defvr {Environment variable} STARPU_PREFETCH
 @anchor{STARPU_PREFETCH}
 This variable indicates whether data prefetching should be enabled (0 means
 that it is disabled). If prefetching is enabled, when a task is scheduled to be
@@ -387,68 +431,70 @@ executed e.g. on a GPU, StarPU will request an asynchronous transfer in
 advance, so that data is already present on the GPU when the task starts. As a
 result, computation and data transfers are overlapped.
 Note that prefetching is enabled by default in StarPU.
+@end defvr
 
-@item @code{STARPU_SCHED_ALPHA}
+@defvr {Environment variable} STARPU_SCHED_ALPHA
 To estimate the cost of a task StarPU takes into account the estimated
 computation time (obtained thanks to performance models). The alpha factor is
 the coefficient to be applied to it before adding it to the communication part.
+@end defvr
 
-@item @code{STARPU_SCHED_BETA}
+@defvr {Environment variable} STARPU_SCHED_BETA
 To estimate the cost of a task StarPU takes into account the estimated
 data transfer time (obtained thanks to performance models). The beta factor is
 the coefficient to be applied to it before adding it to the computation part.
-
-@end table
+@end defvr
 
 @node Extensions
 @subsection Extensions
 
-@table @code
-
-@item @code{SOCL_OCL_LIB_OPENCL}
+@defvr {Environment variable} SOCL_OCL_LIB_OPENCL
 THE SOCL test suite is only run when the environment variable
 @code{SOCL_OCL_LIB_OPENCL} is defined. It should contain the location
 of the libOpenCL.so file of the OCL ICD implementation.
+@end defvr
 
-@item @code{STARPU_COMM_STATS}
+@defvr {Environment variable} STARPU_COMM_STATS
 @anchor{STARPU_COMM_STATS}
 Communication statistics for starpumpi (@pxref{StarPU MPI support})
 will be enabled when the environment variable @code{STARPU_COMM_STATS}
 is defined to an value other than 0.
+@end defvr
 
-@item @code{STARPU_MPI_CACHE}
+@defvr {Environment variable} STARPU_MPI_CACHE
 @anchor{STARPU_MPI_CACHE}
 Communication cache for starpumpi (@pxref{StarPU MPI support}) will be
 disabled when the environment variable @code{STARPU_MPI_CACHE} is set
 to 0. It is enabled by default or for any other values of the variable
 @code{STARPU_MPI_CACHE}.
-@end table
+@end defvr
 
 @node Misc
 @subsection Miscellaneous and debug
 
-@table @code
-
-@item @code{STARPU_SILENT}
+@defvr {Environment variable} STARPU_SILENT
 This variable allows to disable verbose mode at runtime when StarPU
 has been configured with the option @code{--enable-verbose}. It also
 disables the display of StarPU information and warning messages.
+@end defvr
 
-@item @code{STARPU_LOGFILENAME}
+@defvr {Environment variable} STARPU_LOGFILENAME
 This variable specifies in which file the debugging output should be saved to.
+@end defvr
 
-@item @code{STARPU_FXT_PREFIX}
+@defvr {Environment variable} STARPU_FXT_PREFIX
 This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
+@end defvr
 
-@item @code{STARPU_LIMIT_GPU_MEM}
+@defvr {Environment variable} STARPU_LIMIT_GPU_MEM
 This variable specifies the maximum number of megabytes that should be
 available to the application on each GPUs. In case this value is smaller than
 the size of the memory of a GPU, StarPU pre-allocates a buffer to waste memory
 on the device. This variable is intended to be used for experimental purposes
 as it emulates devices that have a limited amount of memory.
+@end defvr
 
-@item @code{STARPU_GENERATE_TRACE}
+@defvr {Environment variable} STARPU_GENERATE_TRACE
 When set to 1, this variable indicates that StarPU should automatically
 generate a Paje trace when starpu_shutdown is called.
-
-@end table
+@end defvr
