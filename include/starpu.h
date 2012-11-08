@@ -68,11 +68,13 @@ extern "C"
 
 enum starpu_archtype
 {
+#ifdef STARPU_ARCHTYPE_DEFAULT_VALUE
+	STARPU_ANY_WORKER, /* any worker, used in the hypervisor */
+#endif
 	STARPU_CPU_WORKER,    /* CPU core */
 	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER, /* OpenCL device */
 	STARPU_GORDON_WORKER,  /* Cell SPU */
-	STARPU_ALL
 };
 
 struct starpu_driver

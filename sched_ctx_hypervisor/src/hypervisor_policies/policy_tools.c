@@ -2,7 +2,6 @@
 /* #include <pthread.h> */
 
 #include "policy_tools.h"
-//enum starpu_archtype STARPU_ALL;
 
 static int _compute_priority(unsigned sched_ctx)
 {
@@ -71,7 +70,7 @@ int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nwork
 	{
 		worker = workers == NULL ? w : workers[w];
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
-		if(arch == STARPU_ALL || curr_arch == arch)
+		if(arch == STARPU_ANY_WORKER || curr_arch == arch)
 		{
 			curr_workers[nfound_workers++] = worker;
 		}
@@ -109,7 +108,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 			considered = 0;
 			worker = workers->get_next(workers);
 			enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
-			if(arch == STARPU_ALL || curr_arch == arch)
+			if(arch == STARPU_ANY_WORKER || curr_arch == arch)
 			{
 
 				if(!config->fixed_workers[worker])
@@ -174,7 +173,7 @@ unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ct
 	{
 		worker = workers->get_next(workers);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
-                if(arch == STARPU_ALL || curr_arch == arch)
+                if(arch == STARPU_ANY_WORKER || curr_arch == arch)
                 {
 			if(!config->fixed_workers[worker])
 				potential_workers++;
@@ -195,7 +194,7 @@ unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
 	
-	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, STARPU_ALL);
+	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, STARPU_ANY_WORKER);
 	if(potential_moving_workers > 0)
 	{
 		if(potential_moving_workers <= config->min_nworkers)
@@ -262,7 +261,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 			}
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{						
-				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ALL);
+				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
 				printf("try tot move to %d\n", poor_sched_ctx);
 				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move, now);
 				
@@ -393,7 +392,7 @@ void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, double tot
 
 	for(w = 0; w < current_nworkers; w++)
 	{
-		enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+		enum starpu_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
 			starpu_worker_get_type(workers[w]);
 		if(arch == STARPU_CPU_WORKER)
 			total_nw[1]++;

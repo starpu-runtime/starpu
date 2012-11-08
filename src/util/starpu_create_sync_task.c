@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <core/task.h>
 
 /* This creates (and submits) an empty task that unlocks a tag once all its
  * dependencies are fulfilled. */

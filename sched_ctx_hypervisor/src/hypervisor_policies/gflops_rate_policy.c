@@ -125,7 +125,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 
                                 if(nworkers_to_move > 0)
                                 {
-                                        workers = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ALL);
+                                        workers = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
                                         *nworkers = nworkers_to_move;
                                 }
                         }

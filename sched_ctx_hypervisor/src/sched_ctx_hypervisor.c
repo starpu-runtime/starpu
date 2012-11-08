@@ -335,7 +335,7 @@ int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
 	{
 		worker = workers->get_next(workers);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
-		if(curr_arch == arch || arch == STARPU_ALL)
+		if(curr_arch == arch || arch == STARPU_ANY_WORKER)
 			nworkers_ctx++;
 	}
 	return nworkers_ctx;
