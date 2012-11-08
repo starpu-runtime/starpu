@@ -24,7 +24,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-
+#include <core/task.h>
 void
 _starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,

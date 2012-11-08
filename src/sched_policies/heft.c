@@ -63,7 +63,7 @@ const float idle_power_maximum=10000.0;
 static void param_modified(struct starpu_top_param* d)
 {
 	//just to show parameter modification
-	fprintf(stderr,"%s has been modified : %f !\n", d->name, d->value);
+	fprintf(stderr,"%s has been modified : %f !\n", d->name, *(double*)d->value);
 }
 
 
@@ -509,8 +509,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 			push_conversion_tasks(task, forced_worker);
 			prio = 0;
 		}
-		unsigned memory_node = starpu_worker_get_memory_node(forced_worker);
-		double transfer_model_best = starpu_task_expected_data_transfer_time(memory_node, task);
 
 		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0, prio, sched_ctx_id);
 	}

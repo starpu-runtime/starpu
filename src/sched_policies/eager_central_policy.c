@@ -92,34 +92,21 @@ static int push_task_eager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	eager_center_policy_data *data = (eager_center_policy_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-        pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
-        unsigned nworkers;
-        int ret_val = -1;
-
-        _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-        nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
-        if(nworkers == 0)
-        {
-                _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-                return ret_val;
-        }
-
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
-	int worker;
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
-
-        while(workers->has_next(workers))
+	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	unsigned nworkers;
+	int ret_val = -1;
+	
+	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+	nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+	if(nworkers == 0)
 	{
-		worker = workers->get_next(workers);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+		return ret_val;
 	}
 
-	if(workers->init_cursor)
-                workers->deinit_cursor(workers);
-
-        ret_val = _starpu_fifo_push_task(data->fifo, &data->sched_mutex, &data->sched_cond, task);
-        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-        return ret_val;
+	ret_val = _starpu_fifo_push_task(data->fifo, &data->sched_mutex, &data->sched_cond, task);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+	return ret_val;
 }
 
 static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
@@ -133,25 +120,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	unsigned workerid = starpu_worker_get_id();
 	eager_center_policy_data *data = (eager_center_policy_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	
-	struct starpu_task *task =  _starpu_fifo_pop_task(data->fifo, workerid);
-	
-	if(task)
-	{
-		struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
-		int worker;
-		if(workers->init_cursor)
-			workers->init_cursor(workers);
-		
-		while(workers->has_next(workers))
-		{
-			worker = workers->get_next(workers);
-		}
-		
-		if(workers->init_cursor)
-			workers->deinit_cursor(workers);
-	}
-	
-	return task;
+	return _starpu_fifo_pop_task(data->fifo, workerid);
 }
 
 struct starpu_sched_policy _starpu_sched_eager_policy =

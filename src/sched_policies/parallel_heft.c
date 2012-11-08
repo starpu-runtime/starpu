@@ -183,7 +183,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return ret;
 }
 
-static double compute_expected_end(int workerid, double length, unsigned sched_ctx_id)
+static double compute_expected_end(int workerid, double length)
 {
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
@@ -212,7 +212,7 @@ static double compute_expected_end(int workerid, double length, unsigned sched_c
 	}
 }
 
-static double compute_ntasks_end(int workerid, unsigned sched_ctx_id)
+static double compute_ntasks_end(int workerid)
 {
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
 	if (!starpu_worker_is_combined_worker(workerid))
@@ -322,7 +322,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			unsigned memory_node = starpu_worker_get_memory_node(worker);
 			local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
 
-			double ntasks_end = compute_ntasks_end(worker, sched_ctx_id);
+			double ntasks_end = compute_ntasks_end(worker);
 
 			if (ntasks_best == -1
 			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
@@ -351,7 +351,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			if (unknown)
 				continue;
 
-			local_exp_end[worker_ctx][nimpl] = compute_expected_end(worker, local_task_length[worker_ctx][nimpl], sched_ctx_id);
+			local_exp_end[worker_ctx][nimpl] = compute_expected_end(worker, local_task_length[worker_ctx][nimpl]);
 
 			//fprintf(stderr, "WORKER %d -> length %e end %e\n", worker, local_task_length[worker_ctx][nimpl], local_exp_end[worker][nimpl]);
 
@@ -434,7 +434,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		best_id_ctx = forced_best_ctx;
 		nimpl_best = forced_nimpl;
 		//penality_best = 0.0;
-		best_exp_end = compute_expected_end(best, 0, sched_ctx_id);
+		best_exp_end = compute_expected_end(best, 0);
 	}
 	else
 	{

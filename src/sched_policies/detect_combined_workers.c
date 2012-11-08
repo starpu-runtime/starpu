@@ -230,9 +230,9 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 		sched_ctx_id = 0;
 	struct worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	int cpu_workers[STARPU_NMAXWORKERS];
-	unsigned ncpus = 0;
+	int ncpus = 0;
 	struct _starpu_worker *worker;
-	unsigned i;
+	int i;
 	for (i = 0; i < nworkers; i++)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);

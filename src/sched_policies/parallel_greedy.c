@@ -47,8 +47,6 @@ static int possible_combinations_size[STARPU_NMAXWORKERS][10];
 static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct pgreedy_data *data = (struct pgreedy_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
 
 	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
@@ -139,7 +137,6 @@ static void pgreedy_remove_workers(unsigned sched_ctx_id, int *workerids, unsign
         {
 		workerid = workerids[i];
 		_starpu_destroy_fifo(data->local_fifo[workerid]);
-		unsigned master = data->master_id[workerid];
 		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
 		_STARPU_PTHREAD_MUTEX_DESTROY(&data->master_sched_mutex[workerid]);
 		_STARPU_PTHREAD_COND_DESTROY(&data->master_sched_cond[workerid]);
