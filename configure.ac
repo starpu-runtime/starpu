@@ -246,7 +246,6 @@ if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
    build_sched_ctx_hypervisor="yes"
 else
    build_sched_ctx_hypervisor="no"
-   exit 1
 fi
 
 
