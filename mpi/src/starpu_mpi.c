@@ -24,8 +24,9 @@
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_insert_task.h>
 
-/* TODO find a better way to select the polling method (perhaps during the
- * configuration) */
+#ifdef STARPU_DEVEL
+#  warning TODO find a better way to select the polling method (perhaps during the configuration)
+#endif
 //#define USE_STARPU_ACTIVITY	1
 
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
@@ -238,7 +239,7 @@ static void _starpu_mpi_irecv_size_callback(void *arg)
 {
 	struct _starpu_mpi_req *req = (struct _starpu_mpi_req *) arg;
 #ifdef STARPU_DEVEL
-#  warning are we sure that req->count can be used as we have not released count_handle?
+#  warning TODO: are we sure that req->count can be used as we have not released count_handle?
 #endif
 	req->ptr = malloc(req->count);
 	_starpu_mpi_irecv_data_func(req);

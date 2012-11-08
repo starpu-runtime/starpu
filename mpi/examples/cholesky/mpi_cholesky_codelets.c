@@ -90,7 +90,7 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 				starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)matA[x][y],
 						ld, size/nblocks, size/nblocks, sizeof(float));
 			}
-			/* TODO: make better test to only registering what is needed */
+#warning TODO: make better test to only register what is needed
 			else
 			{
 				/* I don't own that index, but will need it for my computations */
