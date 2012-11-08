@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -936,10 +936,10 @@ void _starpu_display_data_stats_by_node(int node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
+	fprintf(stderr, "#-------\n");
+	fprintf(stderr, "Data on Node #%d\n",node);
 	if (!_starpu_mem_chunk_list_empty(mc_list[node]))
 	{
-		fprintf(stderr, "#-------\n");
-		fprintf(stderr, "Data on Node #%d\n",node);
 
 		struct _starpu_mem_chunk *mc;
 
@@ -954,4 +954,80 @@ void _starpu_display_data_stats_by_node(int node)
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 }
+#endif
+
+void _starpu_display_data_stats(void)
+{
+#ifdef STARPU_MEMORY_STATUS
+	unsigned node;
+	const char *stats;
+
+	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
+	{
+		fprintf(stderr, "\n#---------------------\n");
+		fprintf(stderr, "Memory allocation stats :\n");
+		for (node = 0; node < STARPU_MAXNODES; node++)
+		{
+			_starpu_display_data_stats_by_node(node);
+		}
+		fprintf(stderr, "\n#---------------------\n");
+	}
+#endif
+}
+
+#ifdef STARPU_MEMORY_STATUS
+void _starpu_display_data_handle_stats(starpu_data_handle_t handle)
+{
+	unsigned node;
+
+	fprintf(stderr, "#-----\n");
+	fprintf(stderr, "Data : %p\n", handle);
+	fprintf(stderr, "Size : %d\n", (int)handle->data_size);
+	fprintf(stderr, "\n");
+
+	fprintf(stderr, "#--\n");
+	fprintf(stderr, "Data access stats\n");
+	fprintf(stderr, "/!\\ Work Underway\n");
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (handle->stats_direct_access[node]+handle->stats_loaded_shared[node]
+		    +handle->stats_invalidated[node]+handle->stats_loaded_owner[node])
+		{
+			fprintf(stderr, "Node #%d\n", node);
+			fprintf(stderr, "\tDirect access : %d\n", handle->stats_direct_access[node]);
+			/* XXX Not Working yet. */
+			if (handle->stats_shared_to_owner[node])
+				fprintf(stderr, "\t\tShared to Owner : %d\n", handle->stats_shared_to_owner[node]);
+			fprintf(stderr, "\tLoaded (Owner) : %d\n", handle->stats_loaded_owner[node]);
+			fprintf(stderr, "\tLoaded (Shared) : %d\n", handle->stats_loaded_shared[node]);
+			fprintf(stderr, "\tInvalidated (was Owner) : %d\n\n", handle->stats_invalidated[node]);
+		}
+	}
+}
+
+void _starpu_handle_stats_cache_hit(starpu_data_handle_t handle, unsigned node)
+{
+	handle->stats_direct_access[node]++;
+}
+
+void _starpu_handle_stats_loaded_shared(starpu_data_handle_t handle, unsigned node)
+{
+	handle->stats_loaded_shared[node]++;
+}
+
+void _starpu_handle_stats_loaded_owner(starpu_data_handle_t handle, unsigned node)
+{
+	handle->stats_loaded_owner[node]++;
+}
+
+void _starpu_handle_stats_shared_to_owner(starpu_data_handle_t handle, unsigned node)
+{
+	handle->stats_shared_to_owner[node]++;
+}
+
+void _starpu_handle_stats_invalidated(starpu_data_handle_t handle, unsigned node)
+{
+	handle->stats_invalidated[node]++;
+}
+
 #endif

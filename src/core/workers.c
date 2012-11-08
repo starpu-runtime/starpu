@@ -862,7 +862,6 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 
 void starpu_shutdown(void)
 {
-	const char *stats;
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
 	if (init_count)
@@ -884,19 +883,11 @@ void starpu_shutdown(void)
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
-#ifdef STARPU_MEMORY_STATUS
-	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
-		_starpu_display_data_stats();
-#endif
-
-#ifdef STARPU_DATA_STATS
+	_starpu_display_data_stats();
 	_starpu_display_comm_amounts();
-#endif
-	if ((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))
-		starpu_bus_profiling_helper_display_summary();
 
-	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
-		starpu_worker_profiling_helper_display_summary();
+	starpu_bus_profiling_helper_display_summary();
+	starpu_worker_profiling_helper_display_summary();
 
 	_starpu_deinitialize_registered_performance_models();
 
