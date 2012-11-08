@@ -134,7 +134,7 @@ VC_URL = "https://gforge.inria.fr/scm/viewvc.php/trunk/%FILENAME%?view=markup&ro
 # they all have a function called `main', which clobbers the report.
 cyclomatic-complexity.html:
 	$(PMCCABE)								\
-	  `find \( -name examples -o -name tests \) -prune -o -name \*.c`	\
+	  `find \( -name examples -o -name tests -o -path ./tools/dev/experimental \) -prune -o -name \*.c` \
 	  | sort -nr								\
 	  | $(AWK) -f ${top_srcdir}/build-aux/pmccabe2html			\
 		   -v lang=html -v name="$(PACKAGE_NAME)"			\
