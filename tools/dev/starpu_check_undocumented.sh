@@ -64,3 +64,13 @@ for macro in $macros ; do
     fi
 done
 
+echo
+
+variables=$(grep --exclude-dir=.svn -rs -E "(getenv|get_env)" src/| tr ' ' '\012'|grep -E "(getenv|get_env)" | grep "\"" | sed 's/.*("//' | sed 's/").*//'|sort|uniq)
+for variable in $variables ; do
+    x=$(grep "$variable" doc/starpu.texi doc/chapters/*texi | grep defvr)
+    if test "$x" == "" ; then
+	echo "variable ${redcolor}${variable}${stcolor} is not (or incorrectly) documented"
+    fi
+done
+
