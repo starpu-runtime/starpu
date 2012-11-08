@@ -42,7 +42,7 @@ MAINTAINERCLEANFILES = starpu.pdf starpu.html
 EXTRA_DIST = starpu.css
 
 dist_pdf_DATA = starpu.pdf
-dist_pdf_DATA += starpu.html
+dist_html_DATA = starpu.html
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 
