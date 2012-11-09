@@ -384,7 +384,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	# option, which is GCC specific. If $CC does not support -dumpspecs, we
 	# should let nvcc choose another compiler (by default, gcc, if it is
 	# installed). If gcc is not installed, the build will probably fail.
-	$(CC) -dumpspecs
+	$CC -dumpspecs >/dev/null 2>&1
 	if test $? -eq 0 -a test x$starpu_windows != xyes; then
 	    NVCCFLAGS="${NVCCFLAGS} -ccbin \${CC}"
 	fi
