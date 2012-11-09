@@ -914,9 +914,9 @@ AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
 			enable_stats=$enableval, enable_stats=no)
 AC_MSG_RESULT($enable_stats)
 AC_SUBST(STATS, $enable_stats)
-AC_SUBST(STARPU_DATA_STATS, $enable_stats)
+AC_SUBST(STARPU_ENABLE_STATS, $enable_stats)
 if test x$enable_stats = xyes; then
-        AC_DEFINE(STARPU_DATA_STATS, [1], [enable statistics])
+        AC_DEFINE(STARPU_ENABLE_STATS, [1], [enable statistics])
 fi
 
 AC_MSG_CHECKING(whether memory status should be displayed)

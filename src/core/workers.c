@@ -665,7 +665,7 @@ int starpu_init(struct starpu_conf *user_conf)
 #ifdef STARPU_MODEL_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
 #endif
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
 

@@ -20,7 +20,7 @@
 #include <datawizard/coherency.h>
 #include <common/config.h>
 
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 /* measure the cache hit ratio for each node */
 static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
@@ -28,21 +28,21 @@ static unsigned miss_cnt[STARPU_MAXNODES];
 
 void _starpu_msi_cache_hit(unsigned node __attribute__ ((unused)))
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	hit_cnt[node]++;
 #endif
 }
 
 void _starpu_msi_cache_miss(unsigned node __attribute__ ((unused)))
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	miss_cnt[node]++;
 #endif
 }
 
 void _starpu_display_msi_stats(void)
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	unsigned node;
 	unsigned total_hit_cnt = 0;
 	unsigned total_miss_cnt = 0;
@@ -73,28 +73,28 @@ void _starpu_display_msi_stats(void)
 
 /* measure the efficiency of our allocation cache */
 
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 #endif
 
 void _starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)))
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	alloc_cache_hit_cnt[node]++;
 #endif
 }
 
 void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	alloc_cnt[node]++;
 #endif
 }
 
 void _starpu_display_alloc_cache_stats(void)
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	fprintf(stderr, "\n#---------------------\n");
 	fprintf(stderr, "Allocation cache stats:\n");
 	unsigned node;
@@ -115,15 +115,15 @@ void _starpu_display_alloc_cache_stats(void)
 }
 
 /* measure the amount of data transfers between each pair of nodes */
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 static size_t comm_amount[STARPU_MAXNODES][STARPU_MAXNODES];
-#endif /* STARPU_DATA_STATS */
+#endif /* STARPU_ENABLE_STATS */
 
 void _starpu_comm_amounts_inc(unsigned src  __attribute__ ((unused)), unsigned dst  __attribute__ ((unused)), size_t size  __attribute__ ((unused)))
 {
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	comm_amount[src][dst] += size;
-#endif /* STARPU_DATA_STATS */
+#endif /* STARPU_ENABLE_STATS */
 }
 
 void _starpu_display_comm_amounts(void)
@@ -132,7 +132,7 @@ void _starpu_display_comm_amounts(void)
 #  warning TODO. The information displayed here seems to be similar to the one displayed by starpu_bus_profiling_helper_display_summary()
 #endif
 
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	unsigned src, dst;
 	size_t sum = 0;
 
