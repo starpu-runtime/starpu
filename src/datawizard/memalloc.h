@@ -63,9 +63,9 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 
-void _starpu_display_memory_status_by_node(int node);
-void _starpu_display_memory_status();
-void _starpu_display_memory_handle_status(starpu_data_handle_t handle);
+void _starpu_display_memory_stats_by_node(int node);
+void _starpu_display_memory_stats();
+void _starpu_display_memory_handle_stats(starpu_data_handle_t handle);
 
 void _starpu_handle_stats_cache_hit(starpu_data_handle_t handle, unsigned node);
 void _starpu_handle_stats_loaded_shared(starpu_data_handle_t handle, unsigned node);

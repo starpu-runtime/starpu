@@ -344,7 +344,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 		{
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
-#ifdef STARPU_MEMORY_STATUS
+#ifdef STARPU_MEMORY_STATS
 			if (handle->per_node[node].state == STARPU_OWNER)
 				_starpu_handle_stats_invalidated(handle, node);
 			/* else XXX Considering only owner to invalidate */
@@ -354,7 +354,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			 * away after writing it back to main memory */
 			transfer_subtree_to_node(handle, node, 0);
 
-#ifdef STARPU_MEMORY_STATUS
+#ifdef STARPU_MEMORY_STATS
 			_starpu_handle_stats_loaded_owner(handle, 0);
 #endif
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
@@ -931,8 +931,8 @@ static void starpu_lru(unsigned node)
 }
 
 
-#ifdef STARPU_MEMORY_STATUS
-void _starpu_display_memory_status_by_node(int node)
+#ifdef STARPU_MEMORY_STATS
+void _starpu_display_memory_stats_by_node(int node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
@@ -947,7 +947,7 @@ void _starpu_display_memory_status_by_node(int node)
 		     mc != _starpu_mem_chunk_list_end(mc_list[node]);
 		     mc = _starpu_mem_chunk_list_next(mc))
 		{
-			_starpu_display_memory_handle_status(mc->data);
+			_starpu_display_memory_handle_stats(mc->data);
 		}
 
 	}
@@ -956,27 +956,27 @@ void _starpu_display_memory_status_by_node(int node)
 }
 #endif
 
-void _starpu_display_memory_status(void)
+void _starpu_display_memory_stats(void)
 {
-#ifdef STARPU_MEMORY_STATUS
+#ifdef STARPU_MEMORY_STATS
 	unsigned node;
-	const char *status;
+	const char *stats;
 
-	if ((status = getenv("STARPU_MEMORY_STATUS")) && atoi(status))
+	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
 	{
 		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Memory status :\n");
+		fprintf(stderr, "Memory stats :\n");
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			_starpu_display_memory_status_by_node(node);
+			_starpu_display_memory_stats_by_node(node);
 		}
 		fprintf(stderr, "\n#---------------------\n");
 	}
 #endif
 }
 
-#ifdef STARPU_MEMORY_STATUS
-void _starpu_display_memory_handle_status(starpu_data_handle_t handle)
+#ifdef STARPU_MEMORY_STATS
+void _starpu_display_memory_handle_stats(starpu_data_handle_t handle)
 {
 	unsigned node;
 

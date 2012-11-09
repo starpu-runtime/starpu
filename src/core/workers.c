@@ -650,8 +650,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	_STARPU_DISP("Warning: StarPU was configured without --enable-fast\n");
 #endif
 #endif
-#ifdef STARPU_MEMORY_STATUS
-	_STARPU_DISP("Warning: StarPU was configured with --enable-memory-status, which slows down a bit\n");
+#ifdef STARPU_MEMORY_STATS
+	_STARPU_DISP("Warning: StarPU was configured with --enable-memory-stats, which slows down a bit\n");
 #endif
 #ifdef STARPU_VERBOSE
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
@@ -884,7 +884,7 @@ void starpu_shutdown(void)
 	_starpu_display_alloc_cache_stats();
 	_starpu_display_comm_amounts();
 
-	_starpu_display_memory_status();
+	_starpu_display_memory_stats();
 
 	starpu_bus_profiling_helper_display_summary();
 	starpu_worker_profiling_helper_display_summary();

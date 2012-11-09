@@ -919,13 +919,13 @@ if test x$enable_stats = xyes; then
         AC_DEFINE(STARPU_ENABLE_STATS, [1], [enable statistics])
 fi
 
-AC_MSG_CHECKING(whether memory status should be displayed)
-AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
-			     [display memory status at the end of execution])],
-			     enable_memory_status=$enableval, enable_memory_status=no)
-AC_MSG_RESULT($enable_memory_status)
-if test x$enable_memory_status = xyes; then
-        AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
+AC_MSG_CHECKING(whether memory stats should be displayed)
+AC_ARG_ENABLE(memory-stats, [AS_HELP_STRING([--enable-memory-stats],
+			     [enable memory stats])],
+			     enable_memory_stats=$enableval, enable_memory_stats=no)
+AC_MSG_RESULT($enable_memory_stats)
+if test x$enable_memory_stats = xyes; then
+        AC_DEFINE(STARPU_MEMORY_STATS, [1], [enable memory stats])
 fi
 
 AC_CHECK_HEADERS([glpk.h])
