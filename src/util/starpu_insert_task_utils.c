@@ -209,16 +209,20 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 			enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
 
-         STARPU_ASSERT(cl != NULL);
+			STARPU_ASSERT(cl != NULL);
 
 			(*task)->handles[current_buffer] = handle;
 			if (cl->modes[current_buffer])
+			{
 				STARPU_ASSERT(cl->modes[current_buffer] == mode);
+			}
 			else
+			{
 #ifdef STARPU_DEVEL
 #  warning shall we print a warning to the user
 #endif
 				cl->modes[current_buffer] = mode;
+			}
 
 			current_buffer++;
 		}
