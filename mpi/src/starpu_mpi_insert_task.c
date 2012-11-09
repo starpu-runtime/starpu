@@ -268,7 +268,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 {
 	if (cache_enabled)
 	{
-		if (mode & STARPU_W)
+		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{
 			if (do_execute)
 			{
