@@ -279,9 +279,8 @@ MKL website} provides a script to determine the linking flags.
 Disable the build of examples.
 @end defvr
 
-@defvr {Configure option} --enable-memory-status
-Enable the display of memory status at the end of the execution
-(@pxref{Memory feedback}).
+@defvr {Configure option} --enable-memory-stats
+Enable memory statistics (@pxref{Memory feedback}).
 @end defvr
 
 @node Execution configuration through environment variables
@@ -542,8 +541,8 @@ When set to 1, this variable indicates that StarPU should automatically
 generate a Paje trace when @code{starpu_shutdown()} is called.
 @end defvr
 
-@defvr {Environment variable} STARPU_MEMORY_STATUS
-Enable the display of memory status at the end of the execution
+@defvr {Environment variable} STARPU_MEMORY_STATS
+Display memory statistics on data which have not been unregistered at the end of the execution
 (@pxref{Memory feedback}).
 @end defvr
 

@@ -439,12 +439,11 @@ correct), and relaxed solving (which provides an approximate solution).
 @node Memory feedback
 @section Memory feedback
 
-It is possible to display memory usage at the end of the
-execution of your application. It allows to check all data allocated
-by StarPU have been cleared. To do so, you need to pass the option
-@code{--enable-memory-status} when running configure, and to set the
-environment variable @code{STARPU_MEMORY_STATUS} when running the
-application.
+It is possible to enable memory statistics. To do so, you need to pass the option
+@code{--enable-memory-stats} when running configure.
+
+Moreover, when setting the environment variable @code{STARPU_MEMORY_STATUS}, statistics will be displayed at the end
+of the execution on data handles which have not been cleared out.
 
 For example, if you do not unregister data at the end of the complex
 example, you will get something similar to:
