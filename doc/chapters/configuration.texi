@@ -539,10 +539,20 @@ as it emulates devices that have a limited amount of memory.
 
 @defvr {Environment variable} STARPU_GENERATE_TRACE
 When set to 1, this variable indicates that StarPU should automatically
-generate a Paje trace when starpu_shutdown is called.
+generate a Paje trace when @code{starpu_shutdown()} is called.
 @end defvr
 
 @defvr {Environment variable} STARPU_MEMORY_STATUS
 Enable the display of memory status at the end of the execution
 (@pxref{Memory feedback}).
+@end defvr
+
+@defvr {Environment variable} STARPU_BUS_STATS
+When defined, statistics about the bus will be displayed when calling
+@code{starpu_shutdown()} (@pxref{Execution statistics}).
+@end defvr
+
+@defvr {Environment variable} STARPU_WORKER_STATS
+When defined, statistics about the workers will be displayed when calling
+@code{starpu_shutdown()} (@pxref{Execution statistics}).
 @end defvr

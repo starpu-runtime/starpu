@@ -2405,11 +2405,15 @@ Converts the given timespec @var{ts} into microseconds.
 @end deftypefun
 
 @deftypefun void starpu_bus_profiling_helper_display_summary (void)
-Displays statistics about the bus on stderr.
+Displays statistics about the bus on stderr. if the  environment
+variable @code{STARPU_BUS_STATS} is defined. The function is called
+automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
 @deftypefun void starpu_worker_profiling_helper_display_summary (void)
-Displays statistics about the workers on stderr.
+Displays statistics about the workers on stderr if the environment
+variable @code{STARPU_WORKER_STATS} is defined. The function is called
+automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
 @node CUDA extensions
