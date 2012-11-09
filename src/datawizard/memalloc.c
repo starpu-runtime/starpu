@@ -960,18 +960,14 @@ void starpu_display_memory_stats(void)
 {
 #ifdef STARPU_MEMORY_STATS
 	unsigned node;
-	const char *stats;
 
-	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
+	fprintf(stderr, "\n#---------------------\n");
+	fprintf(stderr, "Memory stats :\n");
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Memory stats :\n");
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			_starpu_display_memory_stats_by_node(node);
-		}
-		fprintf(stderr, "\n#---------------------\n");
+	     _starpu_display_memory_stats_by_node(node);
 	}
+	fprintf(stderr, "\n#---------------------\n");
 #endif
 }
 
