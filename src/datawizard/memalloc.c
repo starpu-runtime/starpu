@@ -956,7 +956,7 @@ void _starpu_display_memory_stats_by_node(int node)
 }
 #endif
 
-void _starpu_display_memory_stats(void)
+void starpu_display_memory_stats(void)
 {
 #ifdef STARPU_MEMORY_STATS
 	unsigned node;

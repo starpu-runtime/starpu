@@ -2416,6 +2416,12 @@ variable @code{STARPU_WORKER_STATS} is defined. The function is called
 automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
+@deftypefun void starpu_display_memory_stats ()
+Display statistics about the current data handles registered within
+StarPU. StarPU must have been configured with the option
+@code{----enable-memory-stats} (@pxref{Memory feedback}).
+@end deftypefun
+
 @node CUDA extensions
 @section CUDA extensions
 
