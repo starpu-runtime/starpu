@@ -877,14 +877,14 @@ void starpu_shutdown(void)
 
 	starpu_task_wait_for_no_ready();
 
-	_starpu_display_msi_stats();
-	_starpu_display_alloc_cache_stats();
-
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
-	_starpu_display_data_stats();
+	_starpu_display_msi_stats();
+	_starpu_display_alloc_cache_stats();
 	_starpu_display_comm_amounts();
+
+	_starpu_display_data_stats();
 
 	starpu_bus_profiling_helper_display_summary();
 	starpu_worker_profiling_helper_display_summary();

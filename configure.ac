@@ -810,16 +810,6 @@ if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
 fi
 
-AC_MSG_CHECKING(whether memory status should be displayed)
-AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
-			     [display memory status at the end of execution])],
-			     enable_memory_status=$enableval, enable_memory_status=no)
-AC_MSG_RESULT($enable_memory_status)
-if test x$enable_memory_status = xyes; then
-        AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
-fi
-
-
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
 			[display verbose debug messages])],
@@ -828,7 +818,6 @@ AC_MSG_RESULT($enable_verbose)
 if test x$enable_verbose = xyes; then
 	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
 fi
-
 
 AC_MSG_CHECKING(whether coverage testing should be enabled)
 AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
@@ -841,7 +830,6 @@ if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
 fi
-
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether FxT traces should be generated)
@@ -927,9 +915,17 @@ AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
 AC_MSG_RESULT($enable_stats)
 AC_SUBST(STATS, $enable_stats)
 AC_SUBST(STARPU_DATA_STATS, $enable_stats)
-
 if test x$enable_stats = xyes; then
         AC_DEFINE(STARPU_DATA_STATS, [1], [enable statistics])
+fi
+
+AC_MSG_CHECKING(whether memory status should be displayed)
+AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
+			     [display memory status at the end of execution])],
+			     enable_memory_status=$enableval, enable_memory_status=no)
+AC_MSG_RESULT($enable_memory_status)
+if test x$enable_memory_status = xyes; then
+        AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
 fi
 
 AC_CHECK_HEADERS([glpk.h])
