@@ -18,6 +18,8 @@
 #include "complex_interface.h"
 #include "complex_codelet.h"
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
        if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
@@ -75,6 +77,9 @@ int main(int argc, char **argv)
 	double copy_real = 78.0;
 	double copy_imaginary = 78.0;
 
+	int compare;
+	int *compare_ptr = &compare;
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -88,54 +93,58 @@ int main(int argc, char **argv)
 	starpu_complex_data_register(&handle2, 0, &copy_real, &copy_imaginary, 1);
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
+				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
 				 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	starpu_task_wait_for_all();
+	if (compare != 0)
+	{
+	     FPRINTF(stderr, "Complex numbers should NOT be similar\n");
+	     goto end;
+	}
 
 	ret = starpu_insert_task(&cl_copy,
 				 STARPU_R, handle1,
 				 STARPU_W, handle2,
 				 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
+				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
 				 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
-
-#warning get the comparison result and return it as the application return code
 
 	starpu_task_wait_for_all();
 
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
-	starpu_shutdown();
-	return 0;
+	if (compare != 1)
+	{
+	     FPRINTF(stderr, "Complex numbers should be similar\n");
+	}
 
-enodev:
+end:
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
@@ -143,5 +152,5 @@ enodev:
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
 	starpu_shutdown();
-	return 77;
+	if (ret == -ENODEV) return 77; else return !compare;
 }

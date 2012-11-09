@@ -22,6 +22,7 @@ int main(int argc, char **argv)
 {
 	int rank, nodes;
 	int ret;
+	int compare;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -52,6 +53,8 @@ int main(int argc, char **argv)
 			int foo=12;
 			starpu_data_handle_t foo_handle;
 
+			int *compare_ptr = &compare;
+
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
 			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
 			starpu_mpi_send(handle, 1, 10, MPI_COMM_WORLD);
@@ -62,7 +65,7 @@ int main(int argc, char **argv)
 			starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
 			starpu_mpi_recv(handle2, 1, 11, MPI_COMM_WORLD, &status);
 			starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
-			starpu_insert_task(&cl_compare, STARPU_R, handle, STARPU_R, handle2, 0);
+			starpu_insert_task(&cl_compare, STARPU_R, handle, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
 		}
 		else if (rank == 1)
 		{
@@ -90,5 +93,5 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	return ret;
+	if (rank == 0) return !compare; else return ret;
 }
