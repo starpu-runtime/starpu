@@ -962,7 +962,7 @@ void _starpu_display_memory_status(void)
 	unsigned node;
 	const char *status;
 
-	if ((status = getenv("STARPU_MEMORY_STATS")) && atoi(status))
+	if ((status = getenv("STARPU_MEMORY_STATUS")) && atoi(status))
 	{
 		fprintf(stderr, "\n#---------------------\n");
 		fprintf(stderr, "Memory status :\n");
