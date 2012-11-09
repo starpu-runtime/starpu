@@ -884,7 +884,7 @@ void starpu_shutdown(void)
 	_starpu_display_alloc_cache_stats();
 	_starpu_display_comm_amounts();
 
-	_starpu_display_data_stats();
+	_starpu_display_memory_status();
 
 	starpu_bus_profiling_helper_display_summary();
 	starpu_worker_profiling_helper_display_summary();

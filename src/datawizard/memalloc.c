@@ -932,7 +932,7 @@ static void starpu_lru(unsigned node)
 
 
 #ifdef STARPU_MEMORY_STATUS
-void _starpu_display_data_stats_by_node(int node)
+void _starpu_display_memory_status_by_node(int node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
@@ -947,7 +947,7 @@ void _starpu_display_data_stats_by_node(int node)
 		     mc != _starpu_mem_chunk_list_end(mc_list[node]);
 		     mc = _starpu_mem_chunk_list_next(mc))
 		{
-			_starpu_display_data_handle_stats(mc->data);
+			_starpu_display_memory_handle_status(mc->data);
 		}
 
 	}
@@ -956,19 +956,19 @@ void _starpu_display_data_stats_by_node(int node)
 }
 #endif
 
-void _starpu_display_data_stats(void)
+void _starpu_display_memory_status(void)
 {
 #ifdef STARPU_MEMORY_STATUS
 	unsigned node;
-	const char *stats;
+	const char *status;
 
-	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
+	if ((status = getenv("STARPU_MEMORY_STATS")) && atoi(status))
 	{
 		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Memory allocation stats :\n");
+		fprintf(stderr, "Memory status :\n");
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			_starpu_display_data_stats_by_node(node);
+			_starpu_display_memory_status_by_node(node);
 		}
 		fprintf(stderr, "\n#---------------------\n");
 	}
@@ -976,7 +976,7 @@ void _starpu_display_data_stats(void)
 }
 
 #ifdef STARPU_MEMORY_STATUS
-void _starpu_display_data_handle_stats(starpu_data_handle_t handle)
+void _starpu_display_memory_handle_status(starpu_data_handle_t handle)
 {
 	unsigned node;
 
