@@ -147,6 +147,14 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, uint32
 	return 2*requested_memory;
 }
 
+static void complex_free_data_on_node(void *data_interface, uint32_t node)
+{
+	//struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+#ifdef STARPU_DEVEL
+#warning TODO: to be written
+#endif
+}
+
 static size_t complex_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
@@ -338,6 +346,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 {
 	.register_data_handle = complex_register_data_handle,
 	.allocate_data_on_node = complex_allocate_data_on_node,
+	.free_data_on_node = complex_free_data_on_node,
 	.copy_methods = &complex_copy_methods,
 	.get_size = complex_get_size,
 	.footprint = complex_footprint,
