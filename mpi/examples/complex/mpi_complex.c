@@ -48,9 +48,16 @@ int main(int argc, char **argv)
 			starpu_data_handle_t handle2;
 			MPI_Status status;
 
+			// We send a dummy variable only to check communication with predefined datatypes
+			int foo=12;
+			starpu_data_handle_t foo_handle;
+
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
 			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
 			starpu_mpi_send(handle, 1, 10, MPI_COMM_WORLD);
+
+			starpu_variable_data_register(&foo_handle, 0, (uintptr_t)&foo, sizeof(foo));
+			starpu_mpi_send(foo_handle, 1, 10, MPI_COMM_WORLD);
 
 			starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
 			starpu_mpi_recv(handle2, 1, 11, MPI_COMM_WORLD, &status);
@@ -64,9 +71,18 @@ int main(int argc, char **argv)
 			starpu_data_handle_t handle;
 			MPI_Status status;
 
+			// We send a dummy variable only to check communication with predefined datatypes
+			int foo=12;
+			starpu_data_handle_t foo_handle;
+
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
 			starpu_mpi_recv(handle, 0, 10, MPI_COMM_WORLD, &status);
+
 			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
+
+			starpu_variable_data_register(&foo_handle, -1, (uintptr_t)NULL, sizeof(foo));
+			starpu_mpi_recv(foo_handle, 0, 10, MPI_COMM_WORLD, &status);
+
 			starpu_mpi_send(handle, 0, 11, MPI_COMM_WORLD);
 		}
 	}
