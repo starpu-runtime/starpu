@@ -147,8 +147,10 @@ int main(int argc, char **argv)
 
 end:
 #ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_unload_opencl(&opencl_program);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	{
+	     int ret2 = starpu_opencl_unload_opencl(&opencl_program);
+	     STARPU_CHECK_RETURN_VALUE(ret2, "starpu_opencl_unload_opencl");
+	}
 #endif
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
