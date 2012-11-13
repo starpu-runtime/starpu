@@ -59,7 +59,8 @@ struct starpu_codelet cl_copy =
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W},
-	.can_execute = can_execute
+	.can_execute = can_execute,
+	.name = "cl_copy"
 };
 
 #ifdef STARPU_USE_OPENCL
@@ -146,8 +147,8 @@ int main(int argc, char **argv)
 
 end:
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
