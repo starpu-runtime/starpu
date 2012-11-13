@@ -4,6 +4,7 @@
 /autom4te.cache
 /libtool
 /aclocal.m4
+/build
 /build-aux
 /GPATH
 /GRTAGS
@@ -28,7 +29,7 @@ starpu.log
 /tests/datawizard/handle_to_pointer
 /tests/datawizard/data_lookup
 /doc/stamp-vti
-/doc/version.texi
+/doc/chapters/version.texi
 /examples/basic_examples/block
 /examples/basic_examples/hello_world
 /examples/basic_examples/mult
