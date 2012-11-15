@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -174,7 +174,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
  *	Performance predictions
  */
 
-/* Return the current date */
+/* Return the current date in µs */
 double starpu_timing_now(void);
 /* Returns expected task duration in µs */
 double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
@@ -188,7 +188,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected conversion time in ms (multiformat interface only) */
 double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the expected duration of the entire task bundle in �s. */
+/* Return the expected duration of the entire task bundle in µs. */
 double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Return the time (in µs) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
