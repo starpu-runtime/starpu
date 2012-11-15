@@ -210,7 +210,7 @@ Enable performance model debugging.
 
 @defvr {Configure option} --enable-stats
 @c see ../../src/datawizard/datastats.c
-Enable gathering of memory transfer statistics.
+Enable gathering of various data statistics.
 @end defvr
 
 @defvr {Configure option} --enable-maxbuffers
