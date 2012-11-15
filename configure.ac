@@ -385,7 +385,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	# should let nvcc choose another compiler (by default, gcc, if it is
 	# installed). If gcc is not installed, the build will probably fail.
 	$CC -dumpspecs >/dev/null 2>&1
-	if test $? -eq 0 -a test x$starpu_windows != xyes; then
+	if test $? -eq 0 -a x$starpu_windows != xyes; then
 	    NVCCFLAGS="${NVCCFLAGS} -ccbin \${CC}"
 	fi
 	if test "$__cuda_include_dir" != "no"; then
