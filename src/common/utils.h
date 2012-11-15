@@ -329,7 +329,7 @@ typedef pthread_spinlock_t _starpu_pthread_spinlock_t;
 #define _STARPU_PTHREAD_SPIN_UNLOCK(lock) do {                                 \
 	int p_ret = pthread_spin_unlock(lock);                                 \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
-		fprintf(stderr,                                                \
+		fprintf(stderr,                                                \
 			"%s:%d pthread_spin_unlock: %s\n",                     \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
