@@ -880,9 +880,15 @@ void starpu_shutdown(void)
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
-	_starpu_display_msi_stats();
-	_starpu_display_alloc_cache_stats();
-	_starpu_display_comm_amounts();
+	{
+	     int stats = starpu_get_env_number("STARPU_STATS");
+	     if (stats != 0)
+	     {
+		  _starpu_display_msi_stats();
+		  _starpu_display_alloc_cache_stats();
+		  _starpu_display_comm_amounts();
+	     }
+	}
 
 	{
 	     // Display statistics on data which have not been unregistered

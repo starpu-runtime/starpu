@@ -557,3 +557,8 @@ When defined, statistics about the workers will be displayed when calling
 environment variable @code{STARPU_PROFILING}, it displays the power
 consumption (@pxref{Power-based scheduling}).
 @end defvr
+
+@defvr {Environment variable} STARPU_STATS
+When defined and set 0, data statistics will not be displayed at the
+end of the execution of an application (@pxref{Data statistics}).
+@end defvr
