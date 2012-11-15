@@ -542,8 +542,9 @@ generate a Paje trace when @code{starpu_shutdown()} is called.
 @end defvr
 
 @defvr {Environment variable} STARPU_MEMORY_STATS
-Display memory statistics on data which have not been unregistered at the end of the execution
-(@pxref{Memory feedback}).
+When set to 0, disable the display of memory statistics on data which
+have not been unregistered at the end of the execution (@pxref{Memory
+feedback}).
 @end defvr
 
 @defvr {Environment variable} STARPU_BUS_STATS
@@ -559,6 +560,6 @@ consumption (@pxref{Power-based scheduling}).
 @end defvr
 
 @defvr {Environment variable} STARPU_STATS
-When defined and set 0, data statistics will not be displayed at the
+When set to 0, data statistics will not be displayed at the
 end of the execution of an application (@pxref{Data statistics}).
 @end defvr

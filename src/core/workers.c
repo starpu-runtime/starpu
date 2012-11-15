@@ -891,10 +891,10 @@ void starpu_shutdown(void)
 	}
 
 	{
-	     // Display statistics on data which have not been unregistered
-	     const char *stats;
-	     if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
+	     int stats = starpu_get_env_number("STARPU_MEMORY_STATS");
+	     if (stats != 0)
 	     {
+		  // Display statistics on data which have not been unregistered
 		  starpu_display_memory_stats();
 	     }
 	}

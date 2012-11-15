@@ -444,16 +444,30 @@ It is possible to enable memory statistics. To do so, you need to pass the optio
 possible to call the function @code{starpu_display_memory_stats()} to
 display statistics about the current data handles registered within StarPU.
 
-Moreover, when setting the environment variable @code{STARPU_MEMORY_STATS}, statistics will be displayed at the end
-of the execution on data handles which have not been cleared out.
+Moreover, statistics will be displayed at the end of the execution on
+data handles which have not been cleared out. This can be disabled by
+setting the environment variable @code{STARPU_MEMORY_STATS} to 0.
 
 For example, if you do not unregister data at the end of the complex
 example, you will get something similar to:
 
 @example
+$ STARPU_MEMORY_STATS=0 ./examples/interface/complex
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 78.00 + 78.00 i
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 45.00 + 12.00 i
+@end example
+
+@example
 $ STARPU_MEMORY_STATS=1 ./examples/interface/complex
-...
-Memory status :
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 78.00 + 78.00 i
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 45.00 + 12.00 i
+
+#---------------------
+Memory stats:
 #-------
 Data on Node #3
 #-----

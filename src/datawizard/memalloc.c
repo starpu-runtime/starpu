@@ -936,12 +936,12 @@ void _starpu_display_memory_stats_by_node(int node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
-	fprintf(stderr, "#-------\n");
-	fprintf(stderr, "Data on Node #%d\n",node);
 	if (!_starpu_mem_chunk_list_empty(mc_list[node]))
 	{
-
 		struct _starpu_mem_chunk *mc;
+
+		fprintf(stderr, "#-------\n");
+		fprintf(stderr, "Data on Node #%d\n",node);
 
 		for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
 		     mc != _starpu_mem_chunk_list_end(mc_list[node]);
