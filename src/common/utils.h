@@ -107,7 +107,6 @@ typedef pthread_key_t _starpu_pthread_key_t;
 			"%s:%d pthread_setspecific: %s\n",                     \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 	};                                                                     \
-	p_ret;                                                                 \
 } while (0)
 
 #define _STARPU_PTHREAD_GETSPECIFIC(key) pthread_getspecific((key))
