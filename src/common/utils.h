@@ -81,6 +81,7 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 /*
  * Encapsulation of the pthread_mutex_* functions.
  */
+#define _STARPU_PTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 #define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) do {                           \
 	int p_ret = pthread_mutex_init((mutex), (attr));                       \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
@@ -181,6 +182,7 @@ typedef pthread_cond_t _starpu_pthread_cond_t;
 /*
  * Encapsulation of the pthread_cond_* functions.
  */
+#define _STARPU_PTHREAD_COND_INITIALIZER PTHREAD_COND_INITIALIZER
 #define _STARPU_PTHREAD_COND_INIT(cond, attr) do {                             \
 	int p_ret = pthread_cond_init((cond), (attr));                         \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \

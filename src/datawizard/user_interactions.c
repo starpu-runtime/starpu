@@ -238,8 +238,8 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		.handle = handle,
 		.mode = mode,
 		.node = node,
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
+		.cond = _STARPU_PTHREAD_COND_INITIALIZER,
+		.lock = _STARPU_PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
 	};
 

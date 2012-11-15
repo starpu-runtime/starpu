@@ -37,8 +37,8 @@
 #endif
 
 /* acquire/release semantic for concurrent initialization/de-initialization */
-static _starpu_pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t init_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t init_cond = _STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 

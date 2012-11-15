@@ -116,7 +116,7 @@ int _starpu_bound_recording;
 static int recorddeps;
 static int recordprio;
 
-static _starpu_pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 void starpu_bound_start(int deps, int prio)
 {
