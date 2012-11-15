@@ -121,9 +121,27 @@ int compareL2fe(const float* reference, const float* data, const unsigned int le
     return error < epsilon ? 0 : 1;
 }
 
+static struct starpu_perfmodel starpu_matvecmult_model =
+{
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "matvecmult"
+};
+
+static struct starpu_codelet cl =
+{
+	.where = STARPU_OPENCL,
+#ifdef STARPU_USE_OPENCL
+        .opencl_funcs[0] = opencl_codelet,
+#endif
+        .nbuffers = 3,
+	.modes[0] = STARPU_R,
+	.modes[1] = STARPU_R,
+	.modes[2] = STARPU_RW,
+	.model = &starpu_matvecmult_model
+};
+
 int main(int argc, char **argv)
 {
-	struct starpu_codelet cl = {};
 
 	struct starpu_conf conf;
 	
@@ -178,16 +196,6 @@ int main(int argc, char **argv)
         ret = starpu_opencl_load_opencl_from_file("examples/matvecmult/matvecmult_kernel.cl", &opencl_code, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
-
-	cl.where = STARPU_OPENCL;
-#ifdef STARPU_USE_OPENCL
-        cl.opencl_funcs[0] = opencl_codelet;
-#endif
-        cl.nbuffers = 3;
-	cl.modes[0] = STARPU_R;
-	cl.modes[1] = STARPU_R;
-	cl.modes[2] = STARPU_RW;
-        cl.model = NULL;
 
         struct starpu_task *task = starpu_task_create();
         task->cl = &cl;
