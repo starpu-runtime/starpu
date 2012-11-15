@@ -38,12 +38,12 @@ static unsigned nworkers, ncombinedworkers;
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
 
-static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
-static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
+static _starpu_pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
+static _starpu_pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
 /* When we push a task on a combined worker we need all the cpu workers it contains
  * to be locked at once */
-static pthread_mutex_t global_push_mutex;
+static _starpu_pthread_mutex_t global_push_mutex;
 
 static double alpha = _STARPU_DEFAULT_ALPHA;
 static double beta = _STARPU_DEFAULT_BETA;

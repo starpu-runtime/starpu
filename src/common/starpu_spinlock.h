@@ -27,10 +27,10 @@ struct _starpu_spinlock
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	pthread_mutexattr_t errcheck_attr;
-	pthread_mutex_t errcheck_lock;
+	_starpu_pthread_mutex_t errcheck_lock;
 #else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-	pthread_spinlock_t lock;
+	_starpu_pthread_spinlock_t lock;
 #else
 	/* we only have a trivial implementation yet ! */
 	uint32_t taken __attribute__ ((aligned(16)));

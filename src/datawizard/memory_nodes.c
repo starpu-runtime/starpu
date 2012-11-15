@@ -124,7 +124,7 @@ unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid)
 /* TODO move in a more appropriate file  !! */
 /* Register a condition variable associated to worker which is associated to a
  * memory node itself. */
-void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned nodeid)
+void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned nodeid)
 {
 	unsigned cond_id;
 	unsigned nconds_total, nconds;

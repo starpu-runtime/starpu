@@ -23,8 +23,8 @@
 
 static unsigned nworkers;
 
-static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
-static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
+static _starpu_pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
+static _starpu_pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
 static int _random_push_task(struct starpu_task *task, unsigned prio)
 {

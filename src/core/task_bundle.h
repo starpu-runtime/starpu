@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 Inria
  *
@@ -22,6 +22,8 @@
 #if ! defined(_MSC_VER)
 #  include <pthread.h>
 #endif
+
+#include <common/utils.h>
 
 /* struct _starpu_task_bundle_entry
  * ================================
@@ -68,7 +70,7 @@ struct _starpu_task_bundle
 #if defined(_MSC_VER)
 	void *mutex;
 #else
-	pthread_mutex_t mutex;
+	_starpu_pthread_mutex_t mutex;
 #endif
 
 	struct _starpu_task_bundle_entry *list;

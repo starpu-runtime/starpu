@@ -21,10 +21,10 @@
 #include <starpu_opencl.h>
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
-static pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
+static _starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
 
 /* This per-node RW-locks protect lru_list */
-static pthread_rwlock_t lru_rwlock[STARPU_MAXNODES];
+static _starpu_pthread_rwlock_t lru_rwlock[STARPU_MAXNODES];
 
 /* Last Recently used memory chunkgs */
 static struct _starpu_mem_chunk_lru_list *starpu_lru_list[STARPU_MAXNODES];

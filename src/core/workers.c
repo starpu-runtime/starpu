@@ -37,8 +37,8 @@
 #endif
 
 /* acquire/release semantic for concurrent initialization/de-initialization */
-static pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
@@ -242,8 +242,8 @@ static struct _starpu_worker_set gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
-	pthread_cond_t *cond = workerarg->sched_cond;
-	pthread_mutex_t *mutex = workerarg->sched_mutex;
+	_starpu_pthread_cond_t *cond = workerarg->sched_cond;
+	_starpu_pthread_mutex_t *mutex = workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -1133,7 +1133,7 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 	config.workers[workerid].status = status;
 }
 
-void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex)
+void starpu_worker_set_sched_condition(int workerid, _starpu_pthread_cond_t *sched_cond, _starpu_pthread_mutex_t *sched_mutex)
 {
 	config.workers[workerid].sched_cond = sched_cond;
 	config.workers[workerid].sched_mutex = sched_mutex;

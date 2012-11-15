@@ -26,8 +26,8 @@
 /* the former is the actual queue, the latter some container */
 static struct _starpu_fifo_taskq *fifo;
 
-static pthread_cond_t sched_cond;
-static pthread_mutex_t sched_mutex;
+static _starpu_pthread_cond_t sched_cond;
+static _starpu_pthread_mutex_t sched_mutex;
 
 static void initialize_eager_center_policy(struct starpu_machine_topology *topology,
 		   __attribute__ ((unused)) struct starpu_sched_policy *_policy)

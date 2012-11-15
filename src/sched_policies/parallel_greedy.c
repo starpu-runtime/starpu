@@ -26,11 +26,11 @@ static struct _starpu_fifo_taskq *local_fifo[STARPU_NMAXWORKERS];
 
 static int master_id[STARPU_NMAXWORKERS];
 
-static pthread_cond_t sched_cond;
-static pthread_mutex_t sched_mutex;
+static _starpu_pthread_cond_t sched_cond;
+static _starpu_pthread_mutex_t sched_mutex;
 
-static pthread_cond_t master_sched_cond[STARPU_NMAXWORKERS];
-static pthread_mutex_t master_sched_mutex[STARPU_NMAXWORKERS];
+static _starpu_pthread_cond_t master_sched_cond[STARPU_NMAXWORKERS];
+static _starpu_pthread_mutex_t master_sched_mutex[STARPU_NMAXWORKERS];
 
 /* XXX instead of 10, we should use some "MAX combination .."*/
 static int possible_combinations_cnt[STARPU_NMAXWORKERS];

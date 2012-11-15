@@ -23,7 +23,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <pthread.h>
-#include <common/barrier.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -53,9 +52,10 @@
 
 #define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
 
+typedef pthread_mutex_t _starpu_pthread_mutex_t;
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
-int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
+int _starpu_check_mutex_deadlock(_starpu_pthread_mutex_t *mutex);
 char *_starpu_get_home_path(void);
 
 /* If FILE is currently on a comment line, eat it.  */
@@ -111,6 +111,8 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 	}                                                                      \
 } while (0)
 
+#define _STARPU_PTHREAD_MUTEX_TRYLOCK(mutex) pthread_mutex_trylock(mutex)
+
 #define _STARPU_PTHREAD_MUTEX_UNLOCK(mutex) do {                               \
 	int p_ret = pthread_mutex_unlock(mutex);                               \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
@@ -121,6 +123,7 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 	}                                                                      \
 } while (0)
 
+typedef pthread_rwlock_t _starpu_pthread_rwlock_t;
 /*
  * Encapsulation of the pthread_rwlock_* functions.
  */
@@ -174,6 +177,7 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 	}                                                                      \
 } while (0)
 
+typedef pthread_cond_t _starpu_pthread_cond_t;
 /*
  * Encapsulation of the pthread_cond_* functions.
  */
@@ -227,6 +231,9 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 	}                                                                      \
 } while (0)
 
+#include <common/barrier.h>
+
+typedef pthread_barrier_t _starpu_pthread_barrier_t;
 /*
  * Encapsulation of the pthread_barrier_* functions.
  */
@@ -260,6 +267,7 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 	}                                                                      \
 } while (0)
 
+typedef pthread_spinlock_t _starpu_pthread_spinlock_t;
 /*
  * Encapsulation of the pthread_spin_* functions.
  */

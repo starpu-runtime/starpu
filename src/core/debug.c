@@ -21,7 +21,7 @@
 
 #ifdef STARPU_VERBOSE
 /* we want a single writer at the same time to have a log that is readable */
-static pthread_mutex_t logfile_mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t logfile_mutex = PTHREAD_MUTEX_INITIALIZER;
 static FILE *logfile;
 #endif
 

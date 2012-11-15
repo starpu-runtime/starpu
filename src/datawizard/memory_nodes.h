@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 #include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
+#include <common/utils.h>
 
 
 #define _STARPU_MEMORY_NODE_TUPLE(node1,node2) (node1 | (node2 << 4))
@@ -30,8 +31,8 @@
 
 struct _starpu_cond_and_mutex
 {
-        pthread_cond_t *cond;
-        pthread_mutex_t *mutex;
+        _starpu_pthread_cond_t *cond;
+        _starpu_pthread_mutex_t *mutex;
 };
 
 struct _starpu_mem_node_descr
@@ -50,7 +51,7 @@ struct _starpu_mem_node_descr
 	 * multiple worker share the same condition variable, so we maintain a
 	 * list of all these condition variables so that we can wake up all
 	 * worker attached to a memory node that are waiting on a task. */
-	pthread_rwlock_t conditions_rwlock;
+	_starpu_pthread_rwlock_t conditions_rwlock;
 	struct _starpu_cond_and_mutex conditions_attached_to_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
 	struct _starpu_cond_and_mutex conditions_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
 	/* the number of queues attached to each node */
@@ -67,7 +68,7 @@ void _starpu_memory_node_worker_add(unsigned node);
 unsigned _starpu_memory_node_workers(unsigned node);
 unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
-void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned memory_node);
+void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned memory_node);
 
 enum starpu_node_kind _starpu_node_get_kind(uint32_t node);
 int _starpu_memory_node_to_devid(unsigned node);

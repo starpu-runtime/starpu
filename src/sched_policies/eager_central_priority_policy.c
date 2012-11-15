@@ -46,8 +46,8 @@ static struct _starpu_priority_taskq *taskq;
 
 /* keep track of the total number of tasks to be scheduled to avoid infinite
  * polling when there are really few tasks in the overall queue */
-static pthread_cond_t global_sched_cond;
-static pthread_mutex_t global_sched_mutex;
+static _starpu_pthread_cond_t global_sched_cond;
+static _starpu_pthread_mutex_t global_sched_mutex;
 
 /*
  * Centralized queue with priorities

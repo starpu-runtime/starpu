@@ -30,7 +30,7 @@ struct progression_hook
 };
 
 /* protect the hook table */
-static pthread_rwlock_t progression_hook_rwlock;
+static _starpu_pthread_rwlock_t progression_hook_rwlock;
 
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 static int active_hook_cnt = 0;

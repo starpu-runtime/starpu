@@ -26,7 +26,7 @@
 #include <errno.h>
 
 static struct starpu_worker_profiling_info worker_info[STARPU_NMAXWORKERS];
-static pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
+static _starpu_pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
 
 /* In case the worker is still sleeping when the user request profiling info,
  * we need to account for the time elasped while sleeping. */

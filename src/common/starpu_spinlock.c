@@ -88,7 +88,7 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 int _starpu_spin_checklocked(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
-	int ret = pthread_mutex_trylock(&lock->errcheck_lock);
+	int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(&lock->errcheck_lock);
 	STARPU_ASSERT(ret != 0);
 	return ret == 0;
 #else
@@ -106,7 +106,7 @@ int _starpu_spin_checklocked(struct _starpu_spinlock *lock)
 int _starpu_spin_trylock(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
-	int ret = pthread_mutex_trylock(&lock->errcheck_lock);
+	int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret || (ret == EBUSY));
 	return ret;
 #else

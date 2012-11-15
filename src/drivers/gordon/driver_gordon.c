@@ -31,8 +31,8 @@ static unsigned progress_thread_is_inited = 0;
 
 pthread_t progress_thread;
 
-pthread_cond_t progress_cond;
-pthread_mutex_t progress_mutex;
+_starpu_pthread_cond_t progress_cond;
+_starpu_pthread_mutex_t progress_mutex;
 
 struct gordon_task_wrapper_s
 {

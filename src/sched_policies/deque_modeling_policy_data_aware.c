@@ -38,8 +38,8 @@
 static unsigned nworkers;
 static struct _starpu_fifo_taskq *queue_array[STARPU_NMAXWORKERS];
 
-static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
-static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
+static _starpu_pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
+static _starpu_pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
 static double alpha = _STARPU_DEFAULT_ALPHA;
 static double beta = _STARPU_DEFAULT_BETA;

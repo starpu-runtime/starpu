@@ -29,7 +29,7 @@
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
 
-static pthread_mutex_t big_lock = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t big_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];

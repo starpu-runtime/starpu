@@ -28,8 +28,8 @@ static unsigned last_pop_worker;
 static unsigned last_push_worker;
 static struct _starpu_deque_jobq *queue_array[STARPU_NMAXWORKERS];
 
-static pthread_mutex_t global_sched_mutex;
-static pthread_cond_t global_sched_cond;
+static _starpu_pthread_mutex_t global_sched_mutex;
+static _starpu_pthread_cond_t global_sched_cond;
 
 /**
  * Keep track of the work performed from the beginning of the algorithm to make
