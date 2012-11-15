@@ -1183,6 +1183,10 @@ else
   build_starpu_top=no
 fi
 
+if test "x$build_starpu_top" != "xno" ; then
+	AC_DEFINE(STARPU_TOP, [1], [Define this to 1 to enable building StarPU Top])
+fi
+
 AM_CONDITIONAL(BUILD_STARPU_TOP, test x$build_starpu_top = xyes)
 
 ###############################################################################
