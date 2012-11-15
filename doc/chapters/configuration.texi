@@ -210,7 +210,7 @@ Enable performance model debugging.
 
 @defvr {Configure option} --enable-stats
 @c see ../../src/datawizard/datastats.c
-Enable gathering of various data statistics.
+Enable gathering of various data statistics (@pxref{Data statistics}).
 @end defvr
 
 @defvr {Configure option} --enable-maxbuffers
@@ -547,11 +547,13 @@ Display memory statistics on data which have not been unregistered at the end of
 @end defvr
 
 @defvr {Environment variable} STARPU_BUS_STATS
-When defined, statistics about the bus will be displayed when calling
-@code{starpu_shutdown()} (@pxref{Execution statistics}).
+When defined, statistics about data transfers will be displayed when calling
+@code{starpu_shutdown()} (@pxref{Profiling}).
 @end defvr
 
 @defvr {Environment variable} STARPU_WORKER_STATS
 When defined, statistics about the workers will be displayed when calling
-@code{starpu_shutdown()} (@pxref{Execution statistics}).
+@code{starpu_shutdown()} (@pxref{Profiling}). When combined with the
+environment variable @code{STARPU_PROFILING}, it displays the power
+consumption (@pxref{Power-based scheduling}).
 @end defvr

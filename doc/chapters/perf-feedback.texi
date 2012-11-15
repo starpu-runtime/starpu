@@ -12,7 +12,7 @@
 * Codelet performance::         Performance of codelets
 * Theoretical lower bound on execution time API::  
 * Memory feedback::             
-* Execution statistics::        
+* Data statistics::        
 @end menu
 
 @node On-line
@@ -495,13 +495,21 @@ Node #3
 	Invalidated (was Owner) : 0
 @end example
 
-@node Execution statistics
-@section Execution statistics
+@node Data statistics
+@section Data statistics
 
-Different statistics can be displayed at the end of the execution of
-the application. To enable them, you need to pass the option
-@code{--enable-stats} when calling @code{configure} and/or set
-the environment variables @code{STARPU_BUS_STATS} and
-@code{STARPU_WORKER_STATS} when calling your application.
+Different data statistics can be displayed at the end of the execution
+of the application. To enable them, you need to pass the option
+@code{--enable-stats} when calling @code{configure}. When calling
+@code{starpu_shutdown()} various statistics will be displayed,
+execution, MSI cache statistics, allocation cache statistics, and data
+transfer statistics.
+
+@c TODO: data transfer stats are similar to the ones displayed when
+@c setting STARPU_BUS_STATS
+
+
+
+
 
 
