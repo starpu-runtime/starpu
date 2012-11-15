@@ -42,7 +42,7 @@ static _starpu_pthread_cond_t init_cond = _STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
-static pthread_key_t worker_key;
+static _starpu_pthread_key_t worker_key;
 
 static struct _starpu_machine_config config;
 
@@ -330,7 +330,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	config->running = 1;
 	config->submitting = 1;
 
-	pthread_key_create(&worker_key, NULL);
+	_STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
 	unsigned nworkers = config->topology.nworkers;
 
@@ -532,12 +532,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 {
-	pthread_setspecific(worker_key, worker);
+	_STARPU_PTHREAD_SETSPECIFIC(worker_key, worker);
 }
 
 struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
-	return (struct _starpu_worker *) pthread_getspecific(worker_key);
+	return (struct _starpu_worker *) _STARPU_PTHREAD_GETSPECIFIC(worker_key);
 }
 
 /* Initialize the starpu_conf with default values */

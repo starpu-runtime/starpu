@@ -42,7 +42,7 @@ static void _starpu_increment_nsubmitted_tasks(void);
  * cannot use the worker structure to store that information because it is
  * possible that we have a task with a NULL codelet, which means its callback
  * could be executed by a user thread as well. */
-static pthread_key_t current_task_key;
+static _starpu_pthread_key_t current_task_key;
 
 void starpu_task_init(struct starpu_task *task)
 {
@@ -705,7 +705,7 @@ void _starpu_decrement_nready_tasks(void)
 
 void _starpu_initialize_current_task_key(void)
 {
-	pthread_key_create(&current_task_key, NULL);
+	_STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
 }
 
 /* Return the task currently executed by the worker, or NULL if this is called
@@ -713,12 +713,12 @@ void _starpu_initialize_current_task_key(void)
  * being executed at the moment. */
 struct starpu_task *starpu_task_get_current(void)
 {
-	return (struct starpu_task *) pthread_getspecific(current_task_key);
+	return (struct starpu_task *) _STARPU_PTHREAD_GETSPECIFIC(current_task_key);
 }
 
 void _starpu_set_current_task(struct starpu_task *task)
 {
-	pthread_setspecific(current_task_key, task);
+	_STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
 }
 
 /*

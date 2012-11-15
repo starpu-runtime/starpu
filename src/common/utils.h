@@ -79,6 +79,40 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 } while (0)
 
 /*
+ * Encapsulation of the pthread_key_* functions.
+ */
+typedef pthread_key_t _starpu_pthread_key_t;
+#define _STARPU_PTHREAD_KEY_CREATE(key, destr) do {                            \
+	int p_ret = pthread_key_create((key), (destr));	                       \
+	if (STARPU_UNLIKELY(p_ret != 0)) {                                     \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_key_create: %s\n",                      \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_KEY_DELETE(key) do {                                   \
+	int p_ret = pthread_key_delete((key));	                               \
+	if (STARPU_UNLIKELY(p_ret != 0)) {                                     \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_key_delete: %s\n",                      \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+	}                                                                      \
+} while (0)
+
+#define _STARPU_PTHREAD_SETSPECIFIC(key, ptr) do {                             \
+	int p_ret = pthread_setspecific((key), (ptr));	                       \
+	if (STARPU_UNLIKELY(p_ret != 0)) {                                     \
+		fprintf(stderr,                                                \
+			"%s:%d pthread_setspecific: %s\n",                     \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+	};                                                                     \
+	p_ret;                                                                 \
+} while (0)
+
+#define _STARPU_PTHREAD_GETSPECIFIC(key) pthread_getspecific((key))
+
+/*
  * Encapsulation of the pthread_mutex_* functions.
  */
 #define _STARPU_PTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER

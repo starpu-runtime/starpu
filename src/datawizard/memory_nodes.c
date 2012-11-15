@@ -24,7 +24,7 @@
 #include "memalloc.h"
 
 static struct _starpu_mem_node_descr descr;
-static pthread_key_t memory_node_key;
+static _starpu_pthread_key_t memory_node_key;
 
 void _starpu_init_memory_nodes(void)
 {
@@ -32,7 +32,7 @@ void _starpu_init_memory_nodes(void)
 	 * added using _starpu_register_memory_node */
 	descr.nnodes = 0;
 
-	pthread_key_create(&memory_node_key, NULL);
+	_STARPU_PTHREAD_KEY_CREATE(&memory_node_key, NULL);
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -53,18 +53,18 @@ void _starpu_deinit_memory_nodes(void)
 	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
-	pthread_key_delete(memory_node_key);
+	_STARPU_PTHREAD_KEY_DELETE(memory_node_key);
 }
 
 void _starpu_set_local_memory_node_key(unsigned *node)
 {
-	pthread_setspecific(memory_node_key, node);
+	_STARPU_PTHREAD_SETSPECIFIC(memory_node_key, node);
 }
 
 unsigned _starpu_get_local_memory_node(void)
 {
 	unsigned *memory_node;
-	memory_node = (unsigned *) pthread_getspecific(memory_node_key);
+	memory_node = (unsigned *) _STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
 
 	/* in case this is called by the programmer, we assume the RAM node
 	   is the appropriate memory node ... so we return 0 XXX */
