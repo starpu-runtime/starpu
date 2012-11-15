@@ -778,7 +778,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices]
 ###############################################################################
 
 AC_MSG_CHECKING(whether blocking drivers should be disabled)
-AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--disable-blocking-drivers], [disable blocking drivers])],
+AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
 				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
 
