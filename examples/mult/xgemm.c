@@ -281,8 +281,7 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	struct timeval start;
-	struct timeval end;
+	double start, end;
 	int ret;
 
 	parse_args(argc, argv);
@@ -301,7 +300,7 @@ int main(int argc, char **argv)
 	init_problem_data();
 	partition_mult_data();
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	unsigned x, y, iter;
 	for (iter = 0; iter < niter; iter++)
@@ -330,8 +329,9 @@ int main(int argc, char **argv)
 	}
 
 
-	gettimeofday(&end, NULL);
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+
+	double timing = end - start;
 
 	FPRINTF(stderr, "Time: %2.2f ms\n", timing/1000.0);
 
