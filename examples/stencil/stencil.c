@@ -152,7 +152,7 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
  */
 
 struct timeval start;
-struct timeval end;
+double begin, end;
 double timing; 
 
 void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
@@ -242,11 +242,13 @@ int main(int argc, char **argv)
 
 	gettimeofday(&start, NULL);
 
+	begin = starpu_timing_now();
+
 	starpu_tag_notify_from_apps(TAG_INIT_TASK);
 
 	wait_end_tasks(rank);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 #ifdef STARPU_USE_MPI
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
@@ -264,7 +266,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* timing in us */
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	timing = end - begin;
 
 	double min_timing = timing;
 	double max_timing = timing;
