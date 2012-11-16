@@ -214,35 +214,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 {
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void*)STARPU_VARIABLE_GET_PTR(data_interface));
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t err;
-			err = cudaFree((void*)STARPU_VARIABLE_GET_PTR(data_interface));
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-                case STARPU_OPENCL_RAM:
-		{
-			cl_int err;
-                        err = clReleaseMemObject((void*)STARPU_VARIABLE_GET_PTR(data_interface));
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-                        break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	_starpu_free_buffer_on_node(STARPU_VARIABLE_GET_PTR(data_interface), node);
 }
 
 #ifdef STARPU_USE_CUDA

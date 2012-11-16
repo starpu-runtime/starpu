@@ -796,6 +796,40 @@ _starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 	return addr;
 }
 
+void
+_starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr)
+{
+	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
+	switch(kind)
+	{
+		case STARPU_CPU_RAM:
+			free((void*)addr);
+			break;
+#ifdef STARPU_USE_CUDA
+		case STARPU_CUDA_RAM:
+		{
+			cudaError_t err;
+			err = cudaFree((void*)addr);
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+			break;
+		}
+#endif
+#ifdef STARPU_USE_OPENCL
+                case STARPU_OPENCL_RAM:
+		{
+			cl_int err;
+                        err = clReleaseMemObject((void*)addr);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
+                        break;
+		}
+#endif
+		default:
+			STARPU_ABORT();
+	}
+}
+
 /*
  * In order to allocate a piece of data, we try to reuse existing buffers if
  * its possible.
