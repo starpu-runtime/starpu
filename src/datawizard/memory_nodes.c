@@ -44,7 +44,7 @@ void _starpu_init_memory_nodes(void)
 	_starpu_init_mem_chunk_lists();
 	_starpu_init_data_request_lists();
 
-	pthread_rwlock_init(&descr.conditions_rwlock, NULL);
+	_STARPU_PTHREAD_RWLOCK_INIT(&descr.conditions_rwlock, NULL);
 	descr.total_condition_count = 0;
 }
 
