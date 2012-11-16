@@ -214,7 +214,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 {
-	starpu_free_buffer_on_node(STARPU_VARIABLE_GET_PTR(data_interface), node);
+	starpu_free_buffer_on_node(node, STARPU_VARIABLE_GET_PTR(data_interface));
 }
 
 #ifdef STARPU_USE_CUDA
