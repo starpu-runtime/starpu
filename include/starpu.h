@@ -66,6 +66,10 @@ extern "C"
 {
 #endif
 
+#ifdef STARPU_SIMGRID
+#define main starpu_main
+#endif
+
 enum starpu_archtype
 {
 	STARPU_CPU_WORKER,    /* CPU core */

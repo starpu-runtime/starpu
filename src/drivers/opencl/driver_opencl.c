@@ -29,6 +29,10 @@
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
 
+#ifdef STARPU_SIMGRID
+#include <core/simgrid.h>
+#endif
+
 static _starpu_pthread_mutex_t big_lock = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
@@ -38,6 +42,7 @@ static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
 
+#ifndef STARPU_SIMGRID
 void
 _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 {
@@ -92,6 +97,7 @@ static void unlimit_gpu_mem_if_needed(int devid)
 		wasted_memory[devid] = NULL;
 	}
 }
+#endif
 
 size_t starpu_opencl_get_global_mem_size(int devid)
 {
@@ -135,6 +141,7 @@ void starpu_opencl_get_current_context(cl_context *context)
         *context = contexts[worker->devid];
 }
 
+#ifndef STARPU_SIMGRID
 cl_int _starpu_opencl_init_context(int devid)
 {
 	cl_int err;
@@ -193,9 +200,13 @@ cl_int _starpu_opencl_deinit_context(int devid)
 
         return CL_SUCCESS;
 }
+#endif
 
-cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flags)
+cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_SIMGRID
+	STARPU_ABORT();
+#else
 	cl_int err;
         cl_mem memory;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -223,6 +234,7 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem, size_t size, cl_mem_flags flag
 
         *mem = memory;
         return CL_SUCCESS;
+#endif
 }
 
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
@@ -410,7 +422,9 @@ void _starpu_opencl_init(void)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 }
 
+#ifndef STARPU_SIMGRID
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
+#endif
 static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args);
 
 static struct _starpu_worker*
@@ -444,20 +458,26 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	args = _starpu_opencl_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
 
-	int devid = args->devid;
-
 	_starpu_worker_init(args, _STARPU_FUT_OPENCL_KEY);
 
+#ifndef STARPU_SIMGRID
+	int devid = args->devid;
+
 	_starpu_opencl_init_context(devid);
+#endif
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	args->status = STATUS_UNKNOWN;
 
+#ifdef STARPU_SIMGRID
+	const char *devname = "Simgrid";
+#else
 	/* get the device's name */
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
+#endif
 	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", args->devid, devname);
 	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", args->devid);
 
@@ -540,11 +560,13 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 	args = _starpu_opencl_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
 
-	unsigned devid   = args->devid;
 	unsigned memnode = args->memory_node;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
+#ifndef STARPU_SIMGRID
+	unsigned devid   = args->devid;
         _starpu_opencl_deinit_context(devid);
+#endif
 
 	return 0;
 }
@@ -568,6 +590,7 @@ void *_starpu_opencl_worker(void *arg)
 	return NULL;
 }
 
+#ifndef STARPU_SIMGRID
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 {
 	int err;
@@ -584,6 +607,7 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 	_STARPU_DEBUG("Device %d : [%s]\n", dev, name);
 	return EXIT_SUCCESS;
 }
+#endif
 
 unsigned _starpu_opencl_get_device_count(void)
 {
@@ -637,7 +661,12 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT(func);
+
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_execute_job(j, args->perf_arch);
+#else
 	func(task->interfaces, task->cl_arg);
+#endif
 
 	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
 

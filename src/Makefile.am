@@ -72,6 +72,7 @@ noinst_HEADERS = 						\
 	core/errorcheck.h					\
 	core/combined_workers.h					\
 	core/parallel_task.h					\
+	core/simgrid.h						\
 	core/task_bundle.h					\
 	sched_policies/detect_combined_workers.h		\
 	sched_policies/fifo_queues.h				\
@@ -147,6 +148,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/perfmodel/perfmodel_print.c			\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
+	core/simgrid.c						\
 	core/priorities.c					\
 	core/parallel_task.c					\
 	sched_policies/eager_central_policy.c			\

@@ -166,6 +166,9 @@ struct _starpu_machine_config
 	unsigned submitting;
 };
 
+/* Fill conf with environment variables */
+void _starpu_conf_check_environment(struct starpu_conf *conf);
+
 /* Has starpu_shutdown already been called ? */
 unsigned _starpu_machine_is_running(void);
 

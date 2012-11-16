@@ -27,6 +27,11 @@
 #include <starpu_cuda.h>
 #include <profiling/profiling.h>
 
+#ifdef STARPU_SIMGRID
+#include <core/simgrid.h>
+#include <msg/msg.h>
+#endif
+
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all workers on that memory node */
@@ -87,15 +92,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				    struct _starpu_data_replicate *dst_replicate,
 				    struct _starpu_data_request *req STARPU_ATTRIBUTE_UNUSED)
 {
-	int ret = 0;
-
-	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
-
-	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
-	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
 	STARPU_ASSERT(src_replicate->refcnt);
 	STARPU_ASSERT(dst_replicate->refcnt);
@@ -103,12 +101,37 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	STARPU_ASSERT(src_replicate->allocated);
 	STARPU_ASSERT(dst_replicate->allocated);
 
+	_starpu_comm_amounts_inc(src_node, dst_node, handle->ops->get_size(handle));
+
+#ifdef STARPU_SIMGRID
+	msg_task_t task = _starpu_simgrid_transfer_task_create(src_node, dst_node, handle->ops->get_size(handle));
+	if (!req) {
+		/* this is not associated to a request so it's synchronous */
+		MSG_task_execute(task);
+		MSG_task_destroy(task);
+		return 0;
+	}
+	_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+	req->async_channel.event.finished = 0;
+	_STARPU_PTHREAD_MUTEX_INIT(&req->async_channel.event.mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&req->async_channel.event.cond, NULL);
+	_starpu_simgrid_post_task(task, &req->async_channel.event.finished, &req->async_channel.event.mutex, &req->async_channel.event.cond);
+	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, handle->ops->get_size(handle));
+	return -EAGAIN;
+#else /* !SIMGRID */
+
+	int ret = 0;
+
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+
 #ifdef STARPU_USE_CUDA
 	cudaError_t cures;
 	cudaStream_t stream;
 #endif
-
-	_starpu_comm_amounts_inc(src_node, dst_node, handle->ops->get_size(handle));
 
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
@@ -248,6 +271,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	}
 
 	return ret;
+#endif /* !SIMGRID */
 }
 
 int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
@@ -315,6 +339,14 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
+#ifdef STARPU_SIMGRID
+	if (async_channel->event.finished)
+		return;
+	_STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
+	while (!async_channel->event.finished)
+		_STARPU_PTHREAD_COND_WAIT(&async_channel->event.cond, &async_channel->event.mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
+#else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
@@ -351,10 +383,14 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 	default:
 		STARPU_ABORT();
 	}
+#endif /* !SIMGRID */
 }
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel)
 {
+#ifdef STARPU_SIMGRID
+	return async_channel->event.finished;
+#else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
 	unsigned success = 0;
 #ifdef STARPU_USE_CUDA
@@ -396,4 +432,5 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 	}
 
 	return success;
+#endif /* !SIMGRID */
 }

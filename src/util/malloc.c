@@ -41,7 +41,7 @@ struct malloc_pinned_codelet_struct
 //}
 //#endif
 
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct malloc_pinned_codelet_struct *s = arg;
@@ -53,7 +53,7 @@ static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, 
 }
 #endif
 
-#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)) && !defined(STARPU_SIMGRID)// || defined(STARPU_USE_OPENCL)
 static struct starpu_perfmodel malloc_pinned_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -78,6 +78,7 @@ int starpu_malloc(void **A, size_t dim)
 
 	STARPU_ASSERT(A);
 
+#ifndef STARPU_SIMGRID
 	if (_starpu_can_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
@@ -136,6 +137,7 @@ int starpu_malloc(void **A, size_t dim)
 //#endif
 //        }
         else
+#endif
 	{
 		*A = malloc(dim);
 	}
@@ -145,7 +147,7 @@ int starpu_malloc(void **A, size_t dim)
 	return 0;
 }
 
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	cudaError_t cures;
@@ -187,6 +189,7 @@ int starpu_free(void *A)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
+#ifndef STARPU_SIMGRID
 #ifdef STARPU_USE_CUDA
 	if (_starpu_can_submit_cuda_task())
 	{
@@ -240,6 +243,7 @@ int starpu_free(void *A)
 //#endif
 //	}
 	} else
+#endif
 #endif
 	{
 		free(A);

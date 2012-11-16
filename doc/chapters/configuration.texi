@@ -283,6 +283,11 @@ Disable the build of examples.
 Enable memory statistics (@pxref{Memory feedback}).
 @end defvr
 
+@defvr {Configure option} --enable-simgrid
+Enable simulation of execution in simgrid, to allow easy experimentation with
+various numbers of cores and GPUs, or amount of memory, etc. Experimental.
+@end defvr
+
 @node Execution configuration through environment variables
 @section Execution configuration through environment variables
 

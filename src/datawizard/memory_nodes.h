@@ -24,6 +24,9 @@
 #include <datawizard/memalloc.h>
 #include <common/utils.h>
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
 
 #define _STARPU_MEMORY_NODE_TUPLE(node1,node2) (node1 | (node2 << 4))
 #define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
@@ -44,6 +47,10 @@ struct _starpu_mem_node_descr
 	int devid[STARPU_MAXNODES];
 
 	unsigned nworkers[STARPU_MAXNODES];
+
+#ifdef STARPU_SIMGRID
+	msg_host_t host[STARPU_MAXNODES];
+#endif
 
 	// TODO move this 2 lists outside struct _starpu_mem_node_descr
 	/* Every worker is associated to a condition variable on which the
@@ -66,6 +73,10 @@ void _starpu_set_local_memory_node_key(unsigned *node);
 unsigned _starpu_get_local_memory_node(void);
 void _starpu_memory_node_worker_add(unsigned node);
 unsigned _starpu_memory_node_workers(unsigned node);
+#ifdef STARPU_SIMGRID
+void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host);
+msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node);
+#endif
 unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned memory_node);

@@ -17,6 +17,11 @@
 #ifndef __COMMON_BARRIER_H__
 #define __COMMON_BARRIER_H__
 
+#ifdef STARPU_SIMGRID
+/* Force using our implementation of barriers, so it can be simgridish */
+#undef PTHREAD_BARRIER_SERIAL_THREAD
+#endif
+
 #include <pthread.h>
 #include <common/utils.h>
 

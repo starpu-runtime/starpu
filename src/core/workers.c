@@ -32,6 +32,10 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
+
 #ifdef __MINGW32__
 #include <windows.h>
 #endif
@@ -383,11 +387,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				driver.id.cpu_id = cpu;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
-					_STARPU_PTHREAD_CREATE(
+					_STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cpu_worker,
-						workerarg);
+						workerarg,
+						worker+1);
 				}
 				else
 				{
@@ -403,11 +409,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				driver.id.cuda_id = cuda;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
-					_STARPU_PTHREAD_CREATE(
+					_STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cuda_worker,
-						workerarg);
+						workerarg,
+						worker+1);
 				}
 				else
 				{
@@ -426,11 +434,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				}
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				_STARPU_PTHREAD_CREATE(
+				_STARPU_PTHREAD_CREATE_ON(
+					workerarg->name,
 					&workerarg->worker_thread,
 					NULL,
 					_starpu_opencl_worker,
-					workerarg);
+					workerarg,
+					worker+1);
 				break;
 #endif
 #ifdef STARPU_USE_GORDON
@@ -444,11 +454,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 					gordon_worker_set.set_is_initialized = 0;
 
-					_STARPU_PTHREAD_CREATE(
+					_STARPU_PTHREAD_CREATE_ON(
+						workerarg->name
 						&gordon_worker_set.worker_thread,
 						NULL,
 						_starpu_gordon_worker,
-						&gordon_worker_set);
+						&gordon_worker_set,
+						worker+1);
 
 					_STARPU_PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
 					while (!gordon_worker_set.set_is_initialized)
@@ -615,7 +627,7 @@ static void _starpu_conf_set_value_against_environment(char *name, int *value)
 	}
 }
 
-static void _starpu_conf_check_environment(struct starpu_conf *conf)
+void _starpu_conf_check_environment(struct starpu_conf *conf)
 {
 	char *sched = getenv("STARPU_SCHED");
 	if (sched)
@@ -787,6 +799,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 		{
 			if (!set->joined)
 			{
+#ifdef STARPU_SIMGRID
+#ifdef STARPU_DEVEL
+#warning TODO: use a simgrid_join when it becomes available
+#endif
+				MSG_process_sleep(1);
+#else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
 				{
 					status = pthread_join(set->worker_thread, NULL);
@@ -797,6 +815,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
                                         }
 #endif
 				}
+#endif
 
 				set->joined = 1;
 			}
@@ -806,6 +825,9 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 			if (!worker->run_by_starpu)
 				goto out;
 
+#ifdef STARPU_SIMGRID
+			MSG_process_sleep(1);
+#else
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 			{
 				status = pthread_join(worker->worker_thread, NULL);
@@ -816,6 +838,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
                                 }
 #endif
 			}
+#endif
 		}
 
 out:

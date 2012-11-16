@@ -242,7 +242,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 		if (handle && !data_was_deleted)
 			STARPU_ASSERT(replicate->allocated);
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the
@@ -750,6 +750,11 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 	return global_mem_size;
 }
 
+#ifdef STARPU_SIMGRID
+static _starpu_pthread_mutex_t cuda_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t opencl_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 uintptr_t
 starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 {
@@ -766,7 +771,19 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
+#ifdef STARPU_SIMGRID
+#ifdef STARPU_DEVEL
+#warning TODO: record used memory, using a simgrid property to know the available memory
+#endif
+			/* Sleep 10µs for the allocation */
+			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+			MSG_process_sleep(0.000010);
+			addr = 1;
+			status = cudaSuccess;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+#else
 			status = cudaMalloc((void **)&addr, size);
+#endif
 			if (!addr || (status != cudaSuccess))
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
@@ -781,7 +798,16 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 			{
                                 int ret;
 				cl_mem ptr;
-                                ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
+#ifdef STARPU_SIMGRID
+				/* Sleep 10µs for the allocation */
+				_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+				MSG_process_sleep(0.000010);
+				ptr = (cl_mem) 1;
+				ret = CL_SUCCESS;
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+#else
+				ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
+#endif
 				if (ret)
 					addr = 0;
 				else
@@ -809,7 +835,15 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr)
 		case STARPU_CUDA_RAM:
 		{
 			cudaError_t err;
+#ifdef STARPU_SIMGRID
+			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+			/* Sleep 10µs for the free */
+			MSG_process_sleep(0.000010);
+			err = cudaSuccess;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+#else
 			err = cudaFree((void*)addr);
+#endif
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
 			break;
@@ -819,7 +853,15 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr)
                 case STARPU_OPENCL_RAM:
 		{
 			cl_int err;
+#ifdef STARPU_SIMGRID
+			_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+			/* Sleep 10µs for the free */
+			MSG_process_sleep(0.000010);
+			err = CL_SUCCESS;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+#else
                         err = clReleaseMemObject((void*)addr);
+#endif
 			if (STARPU_UNLIKELY(err != CL_SUCCESS))
 				STARPU_OPENCL_REPORT_ERROR(err);
                         break;
@@ -878,7 +920,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 		_STARPU_TRACE_START_ALLOC(dst_node);
 		STARPU_ASSERT(replicate->data_interface);
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the

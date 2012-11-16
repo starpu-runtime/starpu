@@ -30,6 +30,10 @@
 #include <cuda_gl_interop.h>
 #endif
 
+#ifdef STARPU_SIMGRID
+#include <core/simgrid.h>
+#endif
+
 /* the number of CUDA devices */
 static int ncudagpus;
 
@@ -37,11 +41,7 @@ static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t transfer_streams[STARPU_NMAXWORKERS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 
-/* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
- * is launched. */
-static char *wasted_memory[STARPU_NMAXWORKERS];
-
+#ifndef STARPU_SIMGRID
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
@@ -55,6 +55,11 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 		cnt = 0;
 	config->topology.nhwcudagpus = cnt;
 }
+
+/* In case we want to cap the amount of memory available on the GPUs by the
+ * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
+ * is launched. */
+static char *wasted_memory[STARPU_NMAXWORKERS];
 
 static void limit_gpu_mem_if_needed(unsigned devid)
 {
@@ -98,6 +103,7 @@ static void unlimit_gpu_mem_if_needed(unsigned devid)
 		wasted_memory[devid] = NULL;
 	}
 }
+#endif
 
 size_t starpu_cuda_get_global_mem_size(unsigned devid)
 {
@@ -125,8 +131,11 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	return &props[devid];
 }
 
-void starpu_cuda_set_device(unsigned devid)
+void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_SIMGRID
+	STARPU_ABORT();
+#else
 	cudaError_t cures;
 	struct starpu_conf *conf = _starpu_get_machine_config()->conf;
 #if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
@@ -158,8 +167,10 @@ done:
 #endif
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
+#endif
 }
 
+#ifndef STARPU_SIMGRID
 static void init_context(unsigned devid)
 {
 	cudaError_t cures;
@@ -234,7 +245,7 @@ static void deinit_context(int workerid, unsigned devid)
 	if (cures)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
-
+#endif /* !SIMGRID */
 
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXCUDADEVS */
@@ -289,14 +300,19 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 
 	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */
 	starpu_cuda_set_device(args->devid);
 #endif
 
 	starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT(func);
+
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_execute_job(j, args->perf_arch);
+#else
 	func(task->interfaces, task->cl_arg);
+#endif
 
 	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
 
@@ -332,17 +348,23 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
 
-	unsigned devid = args->devid;
-
 	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
 
+#ifndef STARPU_SIMGRID
+	unsigned devid = args->devid;
+
 	init_context(devid);
+#endif
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	args->status = STATUS_UNKNOWN;
 
+#ifdef STARPU_SIMGRID
+	const char *devname = "Simgrid";
+	snprintf(args->name, sizeof(args->name), "CUDA %u (%s TODO GiB)", args->devid, devname);
+#else
 	/* get the device's name */
 	char devname[128];
 	strncpy(devname, props[devid].name, 128);
@@ -357,6 +379,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
 	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", args->devid, devname, size);
+#endif
 #endif
 	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", args->devid);
 	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
@@ -443,7 +466,9 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
+#ifndef STARPU_SIMGRID
 	deinit_context(args->workerid, args->devid);
+#endif
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 

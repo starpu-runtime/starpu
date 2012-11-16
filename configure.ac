@@ -777,6 +777,25 @@ AC_DEFINE_UNQUOTED(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices]
 #                                                                             #
 ###############################################################################
 
+AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
+			[Enable simulating execution in simgrid])],
+			enable_simgrid=$enableval, enable_simgrid=no)
+if test x$enable_simgrid = xyes ; then
+	AC_HAVE_LIBRARY([simgrid], [],
+		[
+			AC_MSG_ERROR(Simgrid support needs simgrid installed)
+		]
+	)
+	SIMGRID_LIBS=-lsimgrid
+	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
+	# Avoid the starpu top thread compilation
+	enable_starpu_top=no
+	# We won't bind or detect anything
+	with_hwloc=no
+	# In simgrid, it's much better to let workers block than spinlock
+	enable_blocking=yes
+fi
+
 AC_MSG_CHECKING(whether blocking drivers should be disabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
 				enable_blocking=$enableval, enable_blocking=no)
@@ -1181,10 +1200,6 @@ if test "x$enable_starpu_top" != "xno" ; then
   build_starpu_top=$can_build_starpu_top
 else
   build_starpu_top=no
-fi
-
-if test "x$build_starpu_top" != "xno" ; then
-	AC_DEFINE(STARPU_TOP, [1], [Define this to 1 to enable building StarPU Top])
 fi
 
 AM_CONDITIONAL(BUILD_STARPU_TOP, test x$build_starpu_top = xyes)
@@ -1712,7 +1727,7 @@ AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
 if test x$enable_perf_debug = xyes; then
-	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $HWLOC_LIBS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
+	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $HWLOC_LIBS $SIMGRID_LIBS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
 fi
 AC_SUBST([LIBSTARPU_LINK])
 
@@ -1808,6 +1823,7 @@ AC_MSG_NOTICE([
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:                                $build_socl
                SOCL test suite:                             $run_socl_check
+               simgrid enabled:                             $enable_simgrid
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

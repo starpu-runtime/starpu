@@ -44,7 +44,9 @@
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
+#ifndef STARPU_SIMGRID
 static void starpu_force_bus_sampling(void);
+#endif
 
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
 struct dev_timing
@@ -84,7 +86,7 @@ static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS
 static hwloc_topology_t hwtopology;
 #endif
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)) && !defined(STARPU_SIMGRID)
 
 #ifdef STARPU_USE_CUDA
 
@@ -529,6 +531,10 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 
 static void benchmark_all_gpu_devices(void)
 {
+#ifdef STARPU_SIMGRID
+	_STARPU_DISP("can not measure bus in simgrid mode\n");
+	STARPU_ABORT();
+#else /* !SIMGRID */
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i;
 #endif
@@ -611,6 +617,7 @@ static void benchmark_all_gpu_devices(void)
 	_STARPU_DEBUG("Benchmarking the speed of the bus is done.\n");
 
 	was_benchmarked = 1;
+#endif /* !SIMGRID */
 }
 
 static void get_bus_path(const char *type, char *path, size_t maxlen)
@@ -632,6 +639,7 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
  *	Affinity
  */
 
+#ifndef STARPU_SIMGRID
 static void get_affinity_path(char *path, size_t maxlen)
 {
 	get_bus_path("affinity", path, maxlen);
@@ -788,6 +796,7 @@ static void load_bus_affinity_file(void)
 
 	load_bus_affinity_file_content();
 }
+#endif /* !SIMGRID */
 
 #ifdef STARPU_USE_CUDA
 int *_starpu_get_cuda_affinity_vector(unsigned gpuid)
@@ -1213,6 +1222,7 @@ static void load_bus_bandwidth_file(void)
 	}
 }
 
+#ifndef STARPU_SIMGRID
 /*
  *	Config
  */
@@ -1329,15 +1339,30 @@ static void starpu_force_bus_sampling(void)
 	generate_bus_bandwidth_file();
         generate_bus_config_file();
 }
+#endif /* !SIMGRID */
 
 void _starpu_load_bus_performance_files(void)
 {
 	_starpu_create_sampling_directory_if_needed();
 
+#ifndef STARPU_SIMGRID
         check_bus_config_file();
 	load_bus_affinity_file();
+#endif
 	load_bus_latency_file();
 	load_bus_bandwidth_file();
+}
+
+/* (in MB/s) */
+double _starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node)
+{
+	return bandwidth_matrix[src_node][dst_node];
+}
+
+/* (in µs) */
+double _starpu_transfer_latency(unsigned src_node, unsigned dst_node)
+{
+	return latency_matrix[src_node][dst_node];
 }
 
 /* (in µs) */

@@ -100,7 +100,6 @@ void * message_to_ui(void * p)
 
 void _starpu_top_communications_threads_launcher(void)
 {
-#ifdef STARPU_TOP
 	pthread_t from_ui;
 	pthread_t to_ui;
 	pthread_attr_t threads_attr;
@@ -163,8 +162,7 @@ void _starpu_top_communications_threads_launcher(void)
 	pthread_attr_init(&threads_attr);
 	pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
 
-	_STARPU_PTHREAD_CREATE(&from_ui, &threads_attr, message_from_ui, NULL);
-	_STARPU_PTHREAD_CREATE(&to_ui, &threads_attr, message_to_ui, NULL);
-#endif
+	_STARPU_PTHREAD_CREATE("StarPU-Top from", &from_ui, &threads_attr, message_from_ui, NULL);
+	_STARPU_PTHREAD_CREATE("StarPU-Top to", &to_ui, &threads_attr, message_to_ui, NULL);
 }
 

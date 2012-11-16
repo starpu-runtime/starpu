@@ -20,6 +20,10 @@
 #include <common/utils.h>
 #include <starpu_util.h>
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
+
 int _starpu_spin_init(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
@@ -70,9 +74,22 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 	return ret;
 #else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
+#ifdef STARPU_SIMGRID
+	while (1) {
+		int ret = pthread_spin_trylock(&lock->lock);
+		if (ret <= 0)
+			return ret;
+#ifdef STARPU_DEVEL
+#warning FIXME: better way to spinlock?
+#endif
+		/* Sleep for 10µs */
+		MSG_process_sleep(0.000010);
+	}
+#else
 	int ret = pthread_spin_lock(&lock->lock);
 	STARPU_ASSERT(!ret);
 	return ret;
+#endif
 #else
 	uint32_t prev;
 	do

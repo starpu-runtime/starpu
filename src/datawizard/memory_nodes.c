@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -120,6 +120,18 @@ unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid)
 
 	return (nnodes-1);
 }
+
+#ifdef STARPU_SIMGRID
+void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host)
+{
+	descr.host[node] = host;
+}
+
+msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
+{
+	return descr.host[node];
+}
+#endif
 
 /* TODO move in a more appropriate file  !! */
 /* Register a condition variable associated to worker which is associated to a

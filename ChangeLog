@@ -56,6 +56,8 @@ New features:
         - When exchanging user-defined data interfaces, the size of
 	  the data is the size returned by the pack operation, i.e
 	  data with dynamic size can now be exchanged with StarPU-MPI.
+  * Add experimental simgrid support, to simulation execution with various
+    number of CPUs, GPUs, amount of memory, etc.
 
 Changes:
   * Fix the block filter functions.

@@ -21,6 +21,7 @@ TODO: improve!
 * Profiling::
 * CUDA-specific optimizations::
 * Performance debugging::
+* Simulated performance::
 @end menu
 
 Simply encapsulating application kernels into tasks already permits to
@@ -422,3 +423,21 @@ detailed in the next chapter. The various informations should be checked for.
   greedy algorithm which thus performs badly.
 @end itemize
 @end itemize
+
+@node Simulated performance
+@section Simulated performance
+
+StarPU can use Simgrid in order to simulate execution on an arbitrary
+platform. The idea is to first compile StarPU normally, and run the application,
+so as to automatically benchmark the bus and the codelets. Then, recompile
+StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
+application, specifying the requested number of devices:
+
+@cartouche
+@smallexample
+STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example
+@end smallexample
+@end cartouche
+
+For now, only the number of cpus can be arbitrarily chosen. The number of CUDA
+and OpenCL devices have to be lower than the real number on the current machine.
