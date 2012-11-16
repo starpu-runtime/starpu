@@ -751,7 +751,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 }
 
 uintptr_t
-_starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
+starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
@@ -797,7 +797,7 @@ _starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 }
 
 void
-_starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr)
+starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr)
 {
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)

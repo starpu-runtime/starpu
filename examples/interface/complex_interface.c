@@ -62,97 +62,34 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, uint32
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 
-	unsigned fail = 0;
 	double *addr_real = 0;
 	double *addr_imaginary = 0;
 	ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
 
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			addr_real = malloc(requested_memory);
-			addr_imaginary = malloc(requested_memory);
-			if (!addr_real || !addr_imaginary)
-				fail = 1;
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t status;
-			status = cudaMalloc((void **)&addr_real, requested_memory);
-			if (!addr_real || (status != cudaSuccess))
-			{
-				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					STARPU_CUDA_REPORT_ERROR(status);
-
-				fail = 1;
-			}
-			else
-			{
-				status = cudaMalloc((void **)&addr_imaginary, requested_memory);
-				if (!addr_imaginary || (status != cudaSuccess))
-				{
-					if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-						STARPU_CUDA_REPORT_ERROR(status);
-
-					fail = 1;
-				}
-			}
-
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-	        case STARPU_OPENCL_RAM:
-		{
-			int ret;
-			cl_mem real, imaginary;
-			ret = starpu_opencl_allocate_memory(&real, requested_memory, CL_MEM_READ_WRITE);
-			if (ret != CL_SUCCESS)
-			{
-				fail = 1;
-				break;
-			}
-			else
-			{
-				addr_real = (double *) real;
-			}
-
-			ret = starpu_opencl_allocate_memory(&imaginary, requested_memory, CL_MEM_READ_WRITE);
-			if (ret != CL_SUCCESS)
-			{
-				fail = 1;
-				break;
-			}
-			else
-			{
-				addr_imaginary = (double *) imaginary;
-			}
-			break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
-	if (fail)
-		return -ENOMEM;
+	addr_real = (double*) starpu_allocate_buffer_on_node(node, requested_memory);
+	if (!addr_real)
+		goto fail_real;
+	addr_imaginary = (double*) starpu_allocate_buffer_on_node(node, requested_memory);
+	if (!addr_imaginary)
+		goto fail_imaginary;
 
 	/* update the data properly in consequence */
 	complex_interface->real = addr_real;
 	complex_interface->imaginary = addr_imaginary;
 
 	return 2*requested_memory;
+
+fail_imaginary:
+	starpu_free_buffer_on_node(node, (uintptr_t) addr_real);
+fail_real:
+	return -ENOMEM;
 }
 
 static void complex_free_data_on_node(void *data_interface, uint32_t node)
 {
-	//struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
-#ifdef STARPU_DEVEL
-#warning TODO: to be written
-#endif
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+	starpu_free_buffer_on_node(node, (uintptr_t) complex_interface->real);
+	starpu_free_buffer_on_node(node, (uintptr_t) complex_interface->imaginary);
 }
 
 static size_t complex_get_size(starpu_data_handle_t handle)

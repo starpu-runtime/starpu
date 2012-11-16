@@ -363,13 +363,13 @@ allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
 	uint32_t n_values = coo_interface->n_values;
 	size_t elemsize = coo_interface->elemsize;
 
-	addr_columns = (void*) _starpu_allocate_buffer_on_node(dst_node, n_values * sizeof(coo_interface->columns[0]));
+	addr_columns = (void*) starpu_allocate_buffer_on_node(dst_node, n_values * sizeof(coo_interface->columns[0]));
 	if (STARPU_UNLIKELY(addr_columns == NULL))
 		goto fail_columns;
-	addr_rows = (void*) _starpu_allocate_buffer_on_node(dst_node, n_values * sizeof(coo_interface->rows[0]));
+	addr_rows = (void*) starpu_allocate_buffer_on_node(dst_node, n_values * sizeof(coo_interface->rows[0]));
 	if (STARPU_UNLIKELY(addr_rows == NULL))
 		goto fail_rows;
-	addr_values = _starpu_allocate_buffer_on_node(dst_node, n_values * elemsize);
+	addr_values = starpu_allocate_buffer_on_node(dst_node, n_values * elemsize);
 	if (STARPU_UNLIKELY(addr_values == (uintptr_t) NULL))
 		goto fail_values;
 
@@ -380,9 +380,9 @@ allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
 	return n_values * (sizeof(coo_interface->columns[0]) + sizeof(coo_interface->rows[0]) + elemsize);
 
 fail_values:
-	_starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_rows);
+	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_rows);
 fail_rows:
-	_starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_columns);
+	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_columns);
 fail_columns:
 	return -ENOMEM;
 }
@@ -393,9 +393,9 @@ free_coo_buffer_on_node(void *data_interface, uint32_t node)
 	struct starpu_coo_interface *coo_interface =
 		(struct starpu_coo_interface *) data_interface;
 
-	_starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->columns);
-	_starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->rows);
-	_starpu_free_buffer_on_node(node, coo_interface->values);
+	starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->columns);
+	starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->rows);
+	starpu_free_buffer_on_node(node, coo_interface->values);
 }
 
 static size_t

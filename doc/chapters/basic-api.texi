@@ -592,6 +592,7 @@ available on the given memory node instead of main memory.
 @menu
 * Registering Data::
 * Accessing Data Interfaces::
+* Defining Interface::
 @end menu
 
 @node Registering Data
@@ -1188,6 +1189,21 @@ Return the number of values registered in the matrix designated by
 Return the size of the elements registered into the matrix designated by
 @var{interface}.
 @end defmac
+
+@node Defining Interface
+@subsection Defining Interface
+
+Applications can provide their own interface. An example is provided in
+@code{examples/interface}. A few helpers are provided.
+
+@deftypefun uintptr_t starpu_allocate_buffer_on_node (uint32_t @var{dst_node}, size_t @var{size})
+Allocate @var{size} bytes on node @var{dst_node}. This returns 0 if allocation
+failed, the allocation method should then return -ENOMEM as allocated size.
+@end deftypefun
+
+@deftypefun void starpu_free_buffer_on_node (uint32_t @var{dst_node}, uintptr_t @var{data})
+Free @var{data} on node @var{dst_node}.
+@end deftypefun
 
 @node Data Partition
 @section Data Partition

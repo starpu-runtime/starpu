@@ -283,7 +283,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 
 	ssize_t allocated_memory;
 
-	handle = _starpu_allocate_buffer_on_node(dst_node, nx*ny*elemsize);
+	handle = starpu_allocate_buffer_on_node(dst_node, nx*ny*elemsize);
 
 	if (!handle)
 		return -ENOMEM;
@@ -306,7 +306,7 @@ static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
-	_starpu_free_buffer_on_node(node, matrix_interface->ptr);
+	starpu_free_buffer_on_node(node, matrix_interface->ptr);
 }
 
 #ifdef STARPU_USE_CUDA

@@ -201,7 +201,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface_;
 	size_t elemsize = variable_interface->elemsize;
-	uintptr_t addr = _starpu_allocate_buffer_on_node(dst_node, elemsize);
+	uintptr_t addr = starpu_allocate_buffer_on_node(dst_node, elemsize);
 
 	if (!addr)
 		return -ENOMEM;
@@ -214,7 +214,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 {
-	_starpu_free_buffer_on_node(STARPU_VARIABLE_GET_PTR(data_interface), node);
+	starpu_free_buffer_on_node(STARPU_VARIABLE_GET_PTR(data_interface), node);
 }
 
 #ifdef STARPU_USE_CUDA
