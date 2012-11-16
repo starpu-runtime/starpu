@@ -172,7 +172,6 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t nod
 		goto fail_opencl;
 #endif
 
-	/* XXX We may want to return cpu_size + cuda_size + ... */
 	return size
 #ifdef STARPU_USE_CUDA
 		+size
