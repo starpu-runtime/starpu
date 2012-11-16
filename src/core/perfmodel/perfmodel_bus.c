@@ -54,6 +54,7 @@ struct dev_timing
 	double timing_dtoh;
 };
 
+/* TODO: measure latency */
 static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned was_benchmarked = 0;
