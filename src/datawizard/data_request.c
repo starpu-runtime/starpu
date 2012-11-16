@@ -245,7 +245,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	if (src_replicate->state == STARPU_INVALID)
 	{
 		if (old_src_replicate_state == STARPU_OWNER)
-			_starpu_handle_stats_invalidated(handle, src_replicate->memory_node);
+			_starpu_memory_handle_stats_invalidated(handle, src_replicate->memory_node);
 		else
 		{
 			/* XXX Currently only ex-OWNER are tagged as invalidated */
@@ -254,10 +254,10 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 	}
 	if (dst_replicate->state == STARPU_SHARED)
-		_starpu_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
+		_starpu_memory_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
 	else if (dst_replicate->state == STARPU_OWNER)
 	{
-		_starpu_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
+		_starpu_memory_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
 	}
 #endif
 

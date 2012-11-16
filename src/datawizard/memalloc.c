@@ -346,7 +346,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 #ifdef STARPU_MEMORY_STATS
 			if (handle->per_node[node].state == STARPU_OWNER)
-				_starpu_handle_stats_invalidated(handle, node);
+				_starpu_memory_handle_stats_invalidated(handle, node);
 			/* else XXX Considering only owner to invalidate */
 #endif
 
@@ -355,7 +355,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			transfer_subtree_to_node(handle, node, 0);
 
 #ifdef STARPU_MEMORY_STATS
-			_starpu_handle_stats_loaded_owner(handle, 0);
+			_starpu_memory_handle_stats_loaded_owner(handle, 0);
 #endif
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
@@ -976,9 +976,8 @@ static void starpu_lru(unsigned node)
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&lru_rwlock[node]);
 }
 
-
 #ifdef STARPU_MEMORY_STATS
-void _starpu_display_memory_stats_by_node(int node)
+void _starpu_memory_display_stats_by_node(int node)
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
@@ -993,7 +992,7 @@ void _starpu_display_memory_stats_by_node(int node)
 		     mc != _starpu_mem_chunk_list_end(mc_list[node]);
 		     mc = _starpu_mem_chunk_list_next(mc))
 		{
-			_starpu_display_memory_handle_stats(mc->data);
+			_starpu_memory_display_handle_stats(mc->data);
 		}
 
 	}
@@ -1002,7 +1001,7 @@ void _starpu_display_memory_stats_by_node(int node)
 }
 #endif
 
-void starpu_display_memory_stats(void)
+void starpu_memory_display_stats(void)
 {
 #ifdef STARPU_MEMORY_STATS
 	unsigned node;
@@ -1011,65 +1010,8 @@ void starpu_display_memory_stats(void)
 	fprintf(stderr, "Memory stats :\n");
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-	     _starpu_display_memory_stats_by_node(node);
+	     _starpu_memory_display_stats_by_node(node);
 	}
 	fprintf(stderr, "\n#---------------------\n");
 #endif
 }
-
-#ifdef STARPU_MEMORY_STATS
-void _starpu_display_memory_handle_stats(starpu_data_handle_t handle)
-{
-	unsigned node;
-
-	fprintf(stderr, "#-----\n");
-	fprintf(stderr, "Data : %p\n", handle);
-	fprintf(stderr, "Size : %d\n", (int)handle->data_size);
-	fprintf(stderr, "\n");
-
-	fprintf(stderr, "#--\n");
-	fprintf(stderr, "Data access stats\n");
-	fprintf(stderr, "/!\\ Work Underway\n");
-	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-		if (handle->stats_direct_access[node]+handle->stats_loaded_shared[node]
-		    +handle->stats_invalidated[node]+handle->stats_loaded_owner[node])
-		{
-			fprintf(stderr, "Node #%d\n", node);
-			fprintf(stderr, "\tDirect access : %d\n", handle->stats_direct_access[node]);
-			/* XXX Not Working yet. */
-			if (handle->stats_shared_to_owner[node])
-				fprintf(stderr, "\t\tShared to Owner : %d\n", handle->stats_shared_to_owner[node]);
-			fprintf(stderr, "\tLoaded (Owner) : %d\n", handle->stats_loaded_owner[node]);
-			fprintf(stderr, "\tLoaded (Shared) : %d\n", handle->stats_loaded_shared[node]);
-			fprintf(stderr, "\tInvalidated (was Owner) : %d\n\n", handle->stats_invalidated[node]);
-		}
-	}
-}
-
-void _starpu_handle_stats_cache_hit(starpu_data_handle_t handle, unsigned node)
-{
-	handle->stats_direct_access[node]++;
-}
-
-void _starpu_handle_stats_loaded_shared(starpu_data_handle_t handle, unsigned node)
-{
-	handle->stats_loaded_shared[node]++;
-}
-
-void _starpu_handle_stats_loaded_owner(starpu_data_handle_t handle, unsigned node)
-{
-	handle->stats_loaded_owner[node]++;
-}
-
-void _starpu_handle_stats_shared_to_owner(starpu_data_handle_t handle, unsigned node)
-{
-	handle->stats_shared_to_owner[node]++;
-}
-
-void _starpu_handle_stats_invalidated(starpu_data_handle_t handle, unsigned node)
-{
-	handle->stats_invalidated[node]++;
-}
-
-#endif

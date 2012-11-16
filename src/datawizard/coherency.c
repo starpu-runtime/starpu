@@ -357,12 +357,12 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		_starpu_msi_cache_hit(requesting_node);
 
 #ifdef STARPU_MEMORY_STATS
-		_starpu_handle_stats_cache_hit(handle, requesting_node);
+		_starpu_memory_handle_stats_cache_hit(handle, requesting_node);
 
 		/* XXX Broken ? */
 		if (old_state == STARPU_SHARED
 		    && dst_replicate->state == STARPU_OWNER)
-			_starpu_handle_stats_shared_to_owner(handle, requesting_node);
+			_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
 		_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);

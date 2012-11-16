@@ -23,6 +23,7 @@
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
 #include <core/workers.h>
+#include <datawizard/memstats.h>
 
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry
@@ -239,17 +240,11 @@ static starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_inte
 
 	size_t interfacesize = interface_ops->interface_size;
 
+	_starpu_memory_stats_init(handle);
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-#ifdef STARPU_MEMORY_STATS
-		/* Stats initilization */
-		handle->stats_direct_access[node]=0;
-		handle->stats_loaded_shared[node]=0;
-		handle->stats_shared_to_owner[node]=0;
-		handle->stats_loaded_owner[node]=0;
-		handle->stats_invalidated[node]=0;
-#endif
+		_starpu_memory_stats_init_per_node(handle, node);
 
 		struct _starpu_data_replicate *replicate;
 		replicate = &handle->per_node[node];
@@ -598,6 +593,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		_starpu_request_mem_chunk_removal(handle, node, 1);
 	}
 
+	_starpu_memory_stats_free(handle);
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
 

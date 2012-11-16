@@ -895,7 +895,7 @@ void starpu_shutdown(void)
 	     if (stats != 0)
 	     {
 		  // Display statistics on data which have not been unregistered
-		  starpu_display_memory_stats();
+		  starpu_memory_display_stats();
 	     }
 	}
 

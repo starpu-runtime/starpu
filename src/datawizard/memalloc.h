@@ -65,12 +65,5 @@ size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 
 void _starpu_display_memory_stats_by_node(int node);
-void _starpu_display_memory_handle_stats(starpu_data_handle_t handle);
-
-void _starpu_handle_stats_cache_hit(starpu_data_handle_t handle, unsigned node);
-void _starpu_handle_stats_loaded_shared(starpu_data_handle_t handle, unsigned node);
-void _starpu_handle_stats_loaded_owner(starpu_data_handle_t handle, unsigned node);
-void _starpu_handle_stats_shared_to_owner(starpu_data_handle_t handle, unsigned node);
-void _starpu_handle_stats_invalidated(starpu_data_handle_t handle, unsigned node);
 
 #endif

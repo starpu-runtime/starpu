@@ -30,6 +30,7 @@
 #include <datawizard/data_request.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
+#include <datawizard/memstats.h>
 
 enum _starpu_cache_state
 {
@@ -210,14 +211,7 @@ struct _starpu_data_state
         int rank;
 	int tag;
 
-#ifdef STARPU_MEMORY_STATS
-	/* Handle access stats per node */
-	unsigned stats_direct_access[STARPU_MAXNODES];
-	unsigned stats_loaded_shared[STARPU_MAXNODES];
-	unsigned stats_loaded_owner[STARPU_MAXNODES];
-	unsigned stats_shared_to_owner[STARPU_MAXNODES];
-	unsigned stats_invalidated[STARPU_MAXNODES];
-#endif
+	_starpu_memory_stats_t memory_stats;
 
 	unsigned int mf_node; //XXX
 };

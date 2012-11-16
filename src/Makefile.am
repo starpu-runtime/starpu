@@ -83,6 +83,7 @@ noinst_HEADERS = 						\
 	datawizard/filters.h					\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
+	datawizard/memstats.h					\
 	datawizard/memalloc.h					\
 	datawizard/copy_driver.h				\
 	datawizard/coherency.h					\
@@ -170,6 +171,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	datawizard/filters.c					\
 	datawizard/sort_data_handles.c				\
 	datawizard/memalloc.c					\
+	datawizard/memstats.c					\
 	datawizard/footprint.c					\
 	datawizard/datastats.c					\
 	datawizard/user_interactions.c				\
