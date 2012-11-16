@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,14 +20,14 @@
 #include <common/config.h>
 #include <datawizard/coherency.h>
 
-void _starpu_memory_stats_init(starpu_data_handle_t handle)
+void _starpu_memory_stats_init(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_MEMORY_STATS
 	handle->memory_stats = calloc(1, sizeof(struct _starpu_memory_stats));
 #endif
 }
 
-void _starpu_memory_stats_init_per_node(starpu_data_handle_t handle, unsigned node)
+void _starpu_memory_stats_init_per_node(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_MEMORY_STATS
 	/* Stats initilization */
@@ -39,7 +39,7 @@ void _starpu_memory_stats_init_per_node(starpu_data_handle_t handle, unsigned no
 #endif
 }
 
-void _starpu_memory_stats_free(starpu_data_handle_t handle)
+void _starpu_memory_stats_free(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_MEMORY_STATS
 	free(handle->memory_stats);
