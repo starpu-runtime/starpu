@@ -233,63 +233,22 @@ size_t starpu_vector_get_elemsize(starpu_data_handle_t handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface_;
+	uintptr_t addr = 0, handle;
 
-	unsigned fail = 0;
-	uintptr_t addr = 0, handle = 0;
-	ssize_t allocated_memory;
+	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface_;
 
 	uint32_t nx = vector_interface->nx;
 	size_t elemsize = vector_interface->elemsize;
 
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
+	ssize_t allocated_memory;
 
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
-
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			addr = handle = (uintptr_t)malloc(nx*elemsize);
-			if (!addr)
-				fail = 1;
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			status = cudaMalloc((void **)&addr, nx*elemsize);
-			if (!addr || (status != cudaSuccess))
-			{
-				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					STARPU_CUDA_REPORT_ERROR(status);
-
-				fail = 1;
-			}
-			handle = addr;
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	        case STARPU_OPENCL_RAM:
-			{
-                                int ret;
-				cl_mem mem;
-                                ret = starpu_opencl_allocate_memory(&mem, nx*elemsize, CL_MEM_READ_WRITE);
-				handle = (uintptr_t)mem;
-				if (ret)
-				{
-					fail = 1;
-				}
-				break;
-			}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
-	if (fail)
+	handle = _starpu_allocate_buffer_on_node(dst_node, nx*elemsize);
+	if (!handle)
 		return -ENOMEM;
 
-	/* allocation succeeded */
+	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		addr = handle;
+
 	allocated_memory = nx*elemsize;
 
 	/* update the data properly in consequence */
@@ -304,35 +263,7 @@ static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface;
 
-#ifdef STARPU_USE_CUDA
-	cudaError_t cures;
-#endif
-
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void*)vector_interface->ptr);
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			cures = cudaFree((void*)vector_interface->ptr);
-			STARPU_ASSERT(cures == cudaSuccess);
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-                case STARPU_OPENCL_RAM:
-		{
-			cl_int err;
-			err = clReleaseMemObject((cl_mem)vector_interface->dev_handle);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-                        break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	_starpu_free_buffer_on_node(node, vector_interface->ptr);
 }
 
 #ifdef STARPU_USE_CUDA

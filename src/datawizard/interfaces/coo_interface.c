@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/fxt.h>
+#include <datawizard/memalloc.h>
 
 static int
 copy_ram_to_ram(void *src_interface, STARPU_ATTRIBUTE_UNUSED unsigned src_node,
@@ -361,141 +362,27 @@ allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
 
 	uint32_t n_values = coo_interface->n_values;
 	size_t elemsize = coo_interface->elemsize;
-	size_t size = 0, allocated_memory = 0;
 
-	switch (starpu_node_get_kind(dst_node))
-	{
-	case STARPU_CPU_RAM:
-	{
-		addr_columns = malloc(n_values * sizeof(coo_interface->columns[0]));
-		if (STARPU_UNLIKELY(addr_columns == NULL))
-			goto fail_columns;
-		addr_rows = malloc(n_values * sizeof(coo_interface->rows[0]));
-		if (STARPU_UNLIKELY(addr_rows == NULL))
-			goto fail_rows;
-		addr_values = (uintptr_t) malloc(n_values * elemsize);
-		if (STARPU_UNLIKELY(addr_values == (uintptr_t) NULL))
-			goto fail_values;
-		break;
-	}
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-	{
-		cudaError_t err;
-		err = cudaMalloc((void **) &addr_columns,
-				 n_values * sizeof(coo_interface->columns[0]));
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			goto fail_columns;
-		err = cudaMalloc((void **) &addr_rows,
-				 n_values * sizeof(coo_interface->rows[0]));
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			goto fail_rows;
-		err = cudaMalloc((void **) &addr_values,
-				 n_values * elemsize);
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			goto fail_values;
-		break;
-	}
-#endif /* !STARPU_USE_CUDA */
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int ret;
-		cl_mem ptr;
-		const cl_mem_flags flags = CL_MEM_READ_WRITE;
-
-		size = n_values * sizeof(uint32_t);
-		ret = starpu_opencl_allocate_memory(&ptr, size, flags);
-		if (STARPU_UNLIKELY(ret != CL_SUCCESS))
-			goto fail_columns;
-		addr_columns = (uint32_t *) ptr;
-		allocated_memory += size;
-
-		ret = starpu_opencl_allocate_memory(&ptr, size, flags);
-		if (STARPU_UNLIKELY(ret != CL_SUCCESS))
-			goto fail_rows;
-		addr_rows = (uint32_t *) ptr;
-		allocated_memory += size;
-
-		size = n_values * elemsize;
-		ret = starpu_opencl_allocate_memory(&ptr, size, flags);
-		if (STARPU_UNLIKELY(ret != CL_SUCCESS))
-			goto fail_values;
-		addr_values = (uintptr_t) ptr;
-		allocated_memory += size;
-		break;
-	}
-#endif /* !STARPU_USE_OPENCL */
-	default:
-		STARPU_ABORT();
-	}
+	addr_columns = (void*) _starpu_allocate_buffer_on_node(dst_node, n_values * sizeof(coo_interface->columns[0]));
+	if (STARPU_UNLIKELY(addr_columns == NULL))
+		goto fail_columns;
+	addr_rows = (void*) _starpu_allocate_buffer_on_node(dst_node, n_values * sizeof(coo_interface->rows[0]));
+	if (STARPU_UNLIKELY(addr_rows == NULL))
+		goto fail_rows;
+	addr_values = _starpu_allocate_buffer_on_node(dst_node, n_values * elemsize);
+	if (STARPU_UNLIKELY(addr_values == (uintptr_t) NULL))
+		goto fail_values;
 
 	coo_interface->columns = addr_columns;
 	coo_interface->rows = addr_rows;
 	coo_interface->values = addr_values;
 
-	return allocated_memory;
+	return n_values * (sizeof(coo_interface->columns[0]) + sizeof(coo_interface->rows[0]) + elemsize);
 
 fail_values:
-	switch (starpu_node_get_kind(dst_node))
-	{
-	case STARPU_CPU_RAM:
-		free((void *) coo_interface->rows);
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-	{
-		cudaError_t err;
-		err = cudaFree((void *) coo_interface->rows);
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			STARPU_CUDA_REPORT_ERROR(err);
-		break;
-	}
-#endif /* !STARPU_USE_CUDA */
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int err;
-		err = clReleaseMemObject((void *) coo_interface->rows);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		break;
-	}
-#endif /* !STARPU_USE_OPENCL */
-	default:
-		STARPU_ABORT();
-	}
-
+	_starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_rows);
 fail_rows:
-	switch (starpu_node_get_kind(dst_node))
-	{
-	case STARPU_CPU_RAM:
-		free((void *) coo_interface->columns);
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-	{
-		cudaError_t err;
-		err = cudaFree((void *) coo_interface->columns);
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			STARPU_CUDA_REPORT_ERROR(err);
-		break;
-	}
-#endif /* !STARPU_USE_CUDA */
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int err;
-		err = clReleaseMemObject((void *) coo_interface->columns);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		break;
-	}
-#endif /* !STARPU_USE_OPENCL */
-	default:
-		STARPU_ABORT();
-	}
-
+	_starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_columns);
 fail_columns:
 	return -ENOMEM;
 }
@@ -506,48 +393,9 @@ free_coo_buffer_on_node(void *data_interface, uint32_t node)
 	struct starpu_coo_interface *coo_interface =
 		(struct starpu_coo_interface *) data_interface;
 
-	switch (starpu_node_get_kind(node))
-	{
-	case STARPU_CPU_RAM:
-		free((void *) coo_interface->columns);
-		free((void *) coo_interface->rows);
-		free((void *) coo_interface->values);
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-	{
-		cudaError_t err;
-		err = cudaFree((void *) coo_interface->columns);
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			STARPU_CUDA_REPORT_ERROR(err);
-		err = cudaFree((void *) coo_interface->rows);
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			STARPU_CUDA_REPORT_ERROR(err);
-		err = cudaFree((void *) coo_interface->values);
-		if (STARPU_UNLIKELY(err != cudaSuccess))
-			STARPU_CUDA_REPORT_ERROR(err);
-		break;
-	}
-#endif /* !STARPU_USE_CUDA */
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int err;
-		err = clReleaseMemObject((void *) coo_interface->columns);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		err = clReleaseMemObject((void *) coo_interface->rows);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		err = clReleaseMemObject((void *) coo_interface->values);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		break;
-	}
-#endif /* !STARPU_USE_OPENCL */
-	default:
-		STARPU_ABORT();
-	}
+	_starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->columns);
+	_starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->rows);
+	_starpu_free_buffer_on_node(node, coo_interface->values);
 }
 
 static size_t

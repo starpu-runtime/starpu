@@ -272,13 +272,7 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	uintptr_t addr = 0, handle = 0;
-	unsigned fail = 0;
-	ssize_t allocated_memory;
-
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
+	uintptr_t addr = 0, handle;
 
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface_;
 
@@ -287,66 +281,23 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 	uint32_t ld = nx; // by default
 	size_t elemsize = matrix_interface->elemsize;
 
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
+	ssize_t allocated_memory;
 
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			handle = addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
-			if (!addr)
-				fail = 1;
+	handle = _starpu_allocate_buffer_on_node(dst_node, nx*ny*elemsize);
 
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			status = cudaMalloc((void **)&addr, (size_t)nx*ny*elemsize);
-			if (!addr || status != cudaSuccess)
-			{
-				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					 STARPU_CUDA_REPORT_ERROR(status);
+	if (!handle)
+		return -ENOMEM;
 
-				fail = 1;
-			}
-			handle = addr;
+	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		addr = handle;
 
-			ld = nx;
+	allocated_memory = (size_t)nx*ny*elemsize;
 
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	        case STARPU_OPENCL_RAM:
-			{
-                                int ret;
-				cl_mem mem;
-                                ret = starpu_opencl_allocate_memory(&mem, nx*ny*elemsize, CL_MEM_READ_WRITE);
-				handle = (uintptr_t)mem;
-				if (ret)
-				{
-					fail = 1;
-				}
-				break;
-			}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
-	if (!fail)
-	{
-		/* allocation succeeded */
-		allocated_memory = (size_t)nx*ny*elemsize;
-
-		/* update the data properly in consequence */
-		matrix_interface->ptr = addr;
-		matrix_interface->dev_handle = handle;
-                matrix_interface->offset = 0;
-		matrix_interface->ld = ld;
-	}
-	else
-	{
-		/* allocation failed */
-		allocated_memory = -ENOMEM;
-	}
+	/* update the data properly in consequence */
+	matrix_interface->ptr = addr;
+	matrix_interface->dev_handle = handle;
+	matrix_interface->offset = 0;
+	matrix_interface->ld = ld;
 
 	return allocated_memory;
 }
@@ -355,37 +306,7 @@ static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
-
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void*)matrix_interface->ptr);
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			status = cudaFree((void*)matrix_interface->ptr);
-			if (STARPU_UNLIKELY(status))
-				STARPU_CUDA_REPORT_ERROR(status);
-
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-                case STARPU_OPENCL_RAM:
-		{
-			cl_int err;
-			err = clReleaseMemObject((void *)matrix_interface->dev_handle);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-                        break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	_starpu_free_buffer_on_node(node, matrix_interface->ptr);
 }
 
 #ifdef STARPU_USE_CUDA

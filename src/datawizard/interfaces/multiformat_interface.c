@@ -239,157 +239,68 @@ uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle)
 	return multiformat_interface->nx;
 }
 
-static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
-{
-	struct starpu_multiformat_interface *multiformat_interface;
-	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free(multiformat_interface->cpu_ptr);
-			multiformat_interface->cpu_ptr = NULL;
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t err;
-			if (multiformat_interface->cpu_ptr)
-			{
-				err = cudaFree(multiformat_interface->cpu_ptr);
-				if (STARPU_UNLIKELY(err != cudaSuccess))
-					STARPU_CUDA_REPORT_ERROR(err);
-				multiformat_interface->cpu_ptr = NULL;
-			}
-			if (multiformat_interface->cuda_ptr)
-			{
-				err = cudaFree(multiformat_interface->cuda_ptr);
-				if (STARPU_UNLIKELY(err != cudaSuccess))
-					STARPU_CUDA_REPORT_ERROR(err);
-				multiformat_interface->cuda_ptr = NULL;
-			}
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-			if (multiformat_interface->cpu_ptr)
-			{
-				cl_int err = clReleaseMemObject(multiformat_interface->cpu_ptr);
-				if (err != CL_SUCCESS)
-					STARPU_OPENCL_REPORT_ERROR(err);
-				multiformat_interface->cpu_ptr = NULL;
-			}
-			if (multiformat_interface->opencl_ptr)
-			{
-				cl_int err = clReleaseMemObject(multiformat_interface->opencl_ptr);
-				if (err != CL_SUCCESS)
-					STARPU_OPENCL_REPORT_ERROR(err);
-				multiformat_interface->opencl_ptr = NULL;
-			}
-			break;
-#endif
-		default:
-			STARPU_ABORT();
-	}
-}
-
 static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface_;
-	unsigned fail = 0;
 	uintptr_t addr = 0;
 	ssize_t allocated_memory = 0;
+	size_t size;
 
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
-			addr = (uintptr_t)malloc(allocated_memory);
-			if (!addr)
-			{
-				fail = 1;
-			}
-			else
-			{
-				multiformat_interface->cpu_ptr = (void *) addr;
-			}
-
+	size = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
+	allocated_memory += size;
+	addr = _starpu_allocate_buffer_on_node(dst_node, size);
+	if (!addr)
+		goto fail_cpu;
+	multiformat_interface->cpu_ptr = (void *) addr;
 #ifdef STARPU_USE_CUDA
-			multiformat_interface->cuda_ptr = malloc(multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize);
-			STARPU_ASSERT(multiformat_interface->cuda_ptr != NULL);
+	size = multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize;
+	allocated_memory += size;
+	addr = _starpu_allocate_buffer_on_node(dst_node, size);
+	if (!addr)
+		goto fail_cuda;
+	multiformat_interface->cuda_ptr = (void *) addr;
 #endif
 #ifdef STARPU_USE_OPENCL
-			multiformat_interface->opencl_ptr = malloc(multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
-			STARPU_ASSERT(multiformat_interface->opencl_ptr != NULL);
+	size = multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
+	allocated_memory += size;
+	addr = _starpu_allocate_buffer_on_node(dst_node, size);
+	if (!addr)
+		goto fail_opencl;
+	multiformat_interface->opencl_ptr = (void *) addr;
 #endif
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			{
-				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize;
-				cudaError_t status = cudaMalloc((void **)&addr, allocated_memory);
-				if (STARPU_UNLIKELY(status))
-				{
-					STARPU_CUDA_REPORT_ERROR(status);
-				}
-				else
-				{
-					multiformat_interface->cuda_ptr = (void *)addr;
-				}
-
-				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
-				status = cudaMalloc((void **)&multiformat_interface->cpu_ptr, allocated_memory);
-				if (STARPU_UNLIKELY(status != cudaSuccess))
-					STARPU_CUDA_REPORT_ERROR(status);
-				break;
-			}
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-			{
-                                int ret;
-				cl_mem ptr;
-				allocated_memory = multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
-                                ret = starpu_opencl_allocate_memory(&ptr, allocated_memory, CL_MEM_READ_WRITE);
-                                addr = (uintptr_t)ptr;
-				if (ret)
-				{
-					fail = 1;
-				}
-				else
-				{
-					multiformat_interface->opencl_ptr = (void *)addr;
-
-				}
-
-				ret = starpu_opencl_allocate_memory(&ptr,
-							multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize,
-							CL_MEM_READ_WRITE);
-				addr = (uintptr_t)ptr;
-				if (ret)
-				{
-					fail = 1;
-				}
-				else
-				{
-					multiformat_interface->cpu_ptr = (void *) addr;
-				}
-				
-				break;
-			}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
-	if (fail)
-		return -ENOMEM;
 
 	return allocated_memory;
+
+#ifdef STARPU_USE_OPENCL
+fail_opencl:
+#ifdef STARPU_USE_CUDA
+	_starpu_free_buffer_on_node(dst_node, (uintptr_t) multiformat_interface->cuda_ptr);
+#endif
+#endif
+#ifdef STARPU_USE_CUDA
+fail_cuda:
+#endif
+	_starpu_free_buffer_on_node(dst_node, (uintptr_t) multiformat_interface->cpu_ptr);
+fail_cpu:
+	return -ENOMEM;
+}
+
+static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
+{
+	struct starpu_multiformat_interface *multiformat_interface;
+	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
+
+	_starpu_free_buffer_on_node(node, (uintptr_t) multiformat_interface->cpu_ptr);
+	multiformat_interface->cpu_ptr = NULL;
+#ifdef STARPU_USE_CUDA
+	_starpu_free_buffer_on_node(node, (uintptr_t) multiformat_interface->cuda_ptr);
+	multiformat_interface->cuda_ptr = NULL;
+#endif
+#ifdef STARPU_USE_OPENCL
+	_starpu_free_buffer_on_node(node, (uintptr_t) multiformat_interface->opencl_ptr);
+	multiformat_interface->opencl_ptr = NULL;
+#endif
 }
 
 
