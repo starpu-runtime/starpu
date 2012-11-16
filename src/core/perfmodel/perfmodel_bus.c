@@ -348,7 +348,9 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Free buffers */
-	clReleaseMemObject(d_buffer);
+	err = clReleaseMemObject(d_buffer);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
 	free(h_buffer);
 
 	/* Uninitiliaze OpenCL context on the device */
