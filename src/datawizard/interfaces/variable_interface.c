@@ -200,66 +200,16 @@ size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
 static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface_;
-
-	unsigned fail = 0;
-	uintptr_t addr = 0;
-	ssize_t allocated_memory;
-
 	size_t elemsize = variable_interface->elemsize;
+	uintptr_t addr = _starpu_allocate_buffer_on_node(dst_node, elemsize);
 
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
-
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
-
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			addr = (uintptr_t)malloc(elemsize);
-			if (!addr)
-				fail = 1;
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			status = cudaMalloc((void **)&addr, elemsize);
-			if (!addr || (status != cudaSuccess))
-			{
-				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					STARPU_CUDA_REPORT_ERROR(status);
-
-				fail = 1;
-			}
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	        case STARPU_OPENCL_RAM:
-			{
-                                int ret;
-				cl_mem ptr;
-                                ret = starpu_opencl_allocate_memory(&ptr, elemsize, CL_MEM_READ_WRITE);
-                                addr = (uintptr_t)ptr;
-				if (ret)
-				{
-					fail = 1;
-				}
-				break;
-			}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
-	if (fail)
+	if (!addr)
 		return -ENOMEM;
-
-	/* allocation succeeded */
-	allocated_memory = elemsize;
 
 	/* update the data properly in consequence */
 	variable_interface->ptr = addr;
 
-	return allocated_memory;
+	return elemsize;
 }
 
 static void free_variable_buffer_on_node(void *data_interface, uint32_t node)

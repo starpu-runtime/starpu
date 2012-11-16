@@ -750,6 +750,52 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 	return global_mem_size;
 }
 
+uintptr_t
+_starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
+{
+	uintptr_t addr = 0;
+
+#ifdef STARPU_USE_CUDA
+	cudaError_t status;
+#endif
+
+	switch(starpu_node_get_kind(dst_node))
+	{
+		case STARPU_CPU_RAM:
+			addr = (uintptr_t)malloc(size);
+			break;
+#ifdef STARPU_USE_CUDA
+		case STARPU_CUDA_RAM:
+			status = cudaMalloc((void **)&addr, size);
+			if (!addr || (status != cudaSuccess))
+			{
+				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+					STARPU_CUDA_REPORT_ERROR(status);
+
+				addr = 0;
+			}
+			break;
+#endif
+#ifdef STARPU_USE_OPENCL
+	        case STARPU_OPENCL_RAM:
+			{
+                                int ret;
+				cl_mem ptr;
+                                ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
+				if (ret)
+					addr = 0;
+				else
+					addr = (uintptr_t)ptr;
+				break;
+			}
+#endif
+		default:
+			STARPU_ABORT();
+	}
+
+	return addr;
+}
+
 /*
  * In order to allocate a piece of data, we try to reuse existing buffers if
  * its possible.
