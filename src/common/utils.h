@@ -25,6 +25,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <math.h>
+#include <common/barrier.h>
 
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
@@ -438,40 +439,6 @@ typedef pthread_barrier_t _starpu_pthread_barrier_t;
 			"%s:%d pthread_barrier_wait: %s\n",                    \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 			STARPU_ABORT();                                        \
-	}                                                                      \
-} while (0)
-
-typedef pthread_spinlock_t _starpu_pthread_spinlock_t;
-/*
- * Encapsulation of the pthread_spin_* functions.
- */
-#define _STARPU_PTHREAD_SPIN_DESTROY(lock) do {                                \
-	int p_ret = pthread_spin_destroy(lock);                                \
-	if (STARPU_UNLIKELY(p_ret)) {                                          \
-		fprintf(stderr,                                                \
-			"%s:%d pthread_spin_destroy: %s\n",                    \
-			__FILE__, __LINE__, strerror(p_ret));                  \
-		STARPU_ABORT();                                                \
-	}                                                                      \
-} while (0)
-
-#define _STARPU_PTHREAD_SPIN_LOCK(lock) do {                                   \
-	int p_ret = pthread_spin_lock(lock);                                   \
-	if (STARPU_UNLIKELY(p_ret)) {                                          \
-		fprintf(stderr,                                                \
-			"%s:%d pthread_spin_lock: %s\n",                       \
-			__FILE__, __LINE__, strerror(p_ret));                  \
-		STARPU_ABORT();                                                \
-	}                                                                      \
-} while (0)
-
-#define _STARPU_PTHREAD_SPIN_UNLOCK(lock) do {                                 \
-	int p_ret = pthread_spin_unlock(lock);                                 \
-	if (STARPU_UNLIKELY(p_ret)) {                                          \
-		fprintf(stderr,                                                \
-			"%s:%d pthread_spin_unlock: %s\n",                     \
-			__FILE__, __LINE__, strerror(p_ret));                  \
-		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
 
