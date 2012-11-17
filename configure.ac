@@ -777,6 +777,14 @@ AC_DEFINE_UNQUOTED(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices]
 #                                                                             #
 ###############################################################################
 
+AC_ARG_ENABLE(opencl-simulator, [AS_HELP_STRING([--enable-opencl-simulator],
+				[Enable the use of an OpenCL simulator])],
+				enable_opencl_simulator=$enableval, enable_opencl_simulator=no)
+if test x$enable_opencl_simulator = xyes; then
+	enable_simgrid=yes
+	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
+fi
+
 AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
 			[Enable simulating execution in simgrid])],
 			enable_simgrid=$enableval, enable_simgrid=no)

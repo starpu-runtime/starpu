@@ -172,13 +172,17 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtype perf_arch)
+void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtype perf_arch, double length)
 {
 	struct starpu_task *task = j->task;
 	msg_task_t simgrid_task;
-	double length = starpu_task_expected_length(task, perf_arch, j->nimpl);
 
-	STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length), "Codelets need to have a calibrated perfmodel");
+	if (isnan(length))
+	{
+		length = starpu_task_expected_length(task, perf_arch, j->nimpl);
+
+		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length), "Codelets must have a calibrated perfmodel");
+	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_model_name(j),
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),

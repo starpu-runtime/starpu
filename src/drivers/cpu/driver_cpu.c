@@ -149,7 +149,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT(func);
 #ifdef STARPU_SIMGRID
-		_starpu_simgrid_execute_job(j, perf_arch);
+		_starpu_simgrid_execute_job(j, perf_arch, NAN);
 #else
 		func(task->interfaces, task->cl_arg);
 #endif

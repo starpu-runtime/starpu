@@ -58,6 +58,7 @@ New features:
 	  data with dynamic size can now be exchanged with StarPU-MPI.
   * Add experimental simgrid support, to simulation execution with various
     number of CPUs, GPUs, amount of memory, etc.
+  * Add support for OpenCL simulators (which provide simulated execution time)
 
 Changes:
   * Fix the block filter functions.

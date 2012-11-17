@@ -57,8 +57,14 @@ static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *b
  *	Global control of profiling
  */
 
-/* Disabled by default */
-int _starpu_profiling = 0;
+/* Disabled by default, unless simulating */
+int _starpu_profiling =
+#ifdef STARPU_SIMGRID
+	1
+#else
+	0
+#endif
+	;
 
 int starpu_profiling_status_set(int status)
 {

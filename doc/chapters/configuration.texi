@@ -150,6 +150,12 @@ contain the OpenCL shared libraries---e.g. @file{libOpenCL.so}. This defaults to
 @code{/lib} appended to the value given to @code{--with-opencl-dir}.
 @end defvr
 
+@defvr {Configure option} --enable-opencl-simulator
+Enable considering the provided OpenCL implementation as a simulator, i.e. use
+the kernel duration returned by OpenCL profiling information as wallclock time
+instead of the actual measured real time. This requires simgrid support.
+@end defvr
+
 @defvr {Configure option} --enable-maximplementations=@var{count}
 Allow for at most @var{count} codelet implementations for the same
 target device.  This information is then available as the

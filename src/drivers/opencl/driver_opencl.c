@@ -663,7 +663,21 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	STARPU_ASSERT(func);
 
 #ifdef STARPU_SIMGRID
-	_starpu_simgrid_execute_job(j, args->perf_arch);
+	double length = NAN;
+  #ifdef STARPU_OPENCL_SIMULATOR
+	func(task->interfaces, task->cl_arg);
+    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
+      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+        #define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+      #else
+        #error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
+      #endif
+    #endif
+	struct starpu_task_profiling_info *profiling_info = task->profiling_info;
+	STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
+	length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
+  #endif
+	_starpu_simgrid_execute_job(j, args->perf_arch, length);
 #else
 	func(task->interfaces, task->cl_arg);
 #endif

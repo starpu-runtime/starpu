@@ -309,7 +309,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	STARPU_ASSERT(func);
 
 #ifdef STARPU_SIMGRID
-	_starpu_simgrid_execute_job(j, args->perf_arch);
+	_starpu_simgrid_execute_job(j, args->perf_arch, NAN);
 #else
 	func(task->interfaces, task->cl_arg);
 #endif

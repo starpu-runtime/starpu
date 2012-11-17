@@ -273,7 +273,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 
 #ifdef STARPU_SIMGRID
 	struct starpu_conf *conf = config->conf;
-	topology->nhwcpus = conf->ncpus;
+	topology->nhwcpus = conf->ncpus?conf->ncpus:1;
 	topology->nhwcudagpus = conf->ncuda;
 	topology->nhwopenclgpus = conf->nopencl;
 #else
