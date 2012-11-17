@@ -31,7 +31,8 @@ Make sure to specify at least the same number of CPUs in the dialog box as your
 machine has, otherwise an error will happen during execution. Future versions
 of Temanejo should be able to tell StarPU the number of CPUs to use.
 
-Only dependencies detected implicitly are currently shown.
+Tag numbers have to be below @code{4000000000000000000ULL} to be usable for
+Temanejo (so as to distinguish them from tasks).
 
 @node On-line
 @section On-line performance feedback

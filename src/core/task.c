@@ -373,13 +373,6 @@ int starpu_task_submit(struct starpu_task *task)
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
-		int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
-		AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
-	}
-#endif
-
 	if (task->cl)
 	{
 		unsigned i;

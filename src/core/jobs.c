@@ -60,7 +60,16 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 #endif
 			)
 #endif
+	{
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+			/* Declare task to Ayudame */
+			int64_t AYU_data[2] = {_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
+		}
+#endif
+	}
 
 	_starpu_cg_list_init(&job->job_successors);
 

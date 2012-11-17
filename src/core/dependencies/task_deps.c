@@ -24,6 +24,7 @@
 #include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
+#include <core/debug.h>
 
 static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
@@ -89,6 +90,12 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event && check) {
+			uintptr_t AYU_data[3] = {dep_job->job_id, 0, 0};
+			AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data);
+		}
+#endif
 
 		_starpu_task_add_succ(dep_job, cg);
 	}
