@@ -25,7 +25,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <math.h>
-#include <common/barrier.h>
 
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
@@ -441,5 +440,9 @@ typedef pthread_barrier_t _starpu_pthread_barrier_t;
 			STARPU_ABORT();                                        \
 	}                                                                      \
 } while (0)
+
+#ifdef HAVE_PTHREAD_SPIN_LOCK
+typedef pthread_spinlock_t _starpu_pthread_spinlock_t;
+#endif
 
 #endif // __COMMON_UTILS_H__
