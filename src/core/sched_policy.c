@@ -264,7 +264,7 @@ int _starpu_push_task(struct _starpu_job *j)
 	task->status = STARPU_TASK_READY;
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event) {
-		int id = 0;
+		int id = -1;
 		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
 	}
 #endif

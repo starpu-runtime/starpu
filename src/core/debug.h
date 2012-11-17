@@ -41,4 +41,7 @@ void _starpu_print_to_logfile(const char *format, ...);
 /* Tell gdb whether FXT is compiled in or not */
 extern int _starpu_use_fxt;
 
+/* Get an Ayudame id for CL */
+int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl);
+
 #endif // __DEBUG_H__
