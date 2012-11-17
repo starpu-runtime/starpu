@@ -20,7 +20,7 @@
 @section Using the Temanejo task debugger
 
 StarPU can connect to Temanejo (see
-@url{http://www.hlrs.de/organization/av/spmt/research/temanejo/}), to permit
+@url{http://www.hlrs.de/temanejo}), to permit
 nice visual task debugging. To do so, build Temanejo's @code{libayudame.so},
 install @code{Ayudame} to e.g. @code{/usr/local/include}, apply the
 @code{tools/patch-ayudame} to it to fix C build, re-@code{./configure}, make
