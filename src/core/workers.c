@@ -703,6 +703,17 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	srand(2008);
 
+#ifdef HAVE_AYUDAME_H
+#ifndef AYU_RT_STARPU
+/* Dumb value for now */
+#define AYU_RT_STARPU 32
+#endif
+	if (AYU_event) {
+		enum ayu_runtime_t ayu_rt = AYU_RT_STARPU;
+		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
+	}
+#endif
+
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)

@@ -424,6 +424,9 @@ detailed in the next chapter. The various informations should be checked for.
 @end itemize
 @end itemize
 
+You can also use the Temanejo task debugger (see @ref{Task debugger}) to
+visualize the task graph more easily.
+
 @node Simulated performance
 @section Simulated performance
 

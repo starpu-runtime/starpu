@@ -27,6 +27,7 @@
 #include <profiling/bound.h>
 #include <starpu_top.h>
 #include <top/starpu_top_core.h>
+#include <core/debug.h>
 
 /* we need to identify each task to generate the DAG. */
 static unsigned job_cnt = 0;
@@ -53,7 +54,11 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get())
+	if (_starpu_bound_recording || _starpu_top_status_get()
+#ifdef HAVE_AYUDAME_H
+		|| AYU_event
+#endif
+			)
 #endif
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 

@@ -965,6 +965,8 @@ gdb helpers are also provided to show the whole StarPU state:
 (gdb) help starpu
 @end smallexample
 
+The Temanejo task debugger can also be used, see @ref{Task debugger}.
+
 @node The multiformat interface
 @section The multiformat interface
 It may be interesting to represent the same piece of data using two different

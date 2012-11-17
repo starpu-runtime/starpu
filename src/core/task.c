@@ -28,6 +28,7 @@
 #include <profiling/bound.h>
 #include <math.h>
 #include <string.h>
+#include <core/debug.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -367,6 +368,20 @@ int starpu_task_submit(struct starpu_task *task)
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
+	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
+	* task structure, it is possible that this job structure was already
+	* allocated. */
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+#warning TODO: function id
+		int64_t AYU_data[2] = {0, task->priority > STARPU_MIN_PRIO};
+
+		AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
+	}
+#endif
+
 	if (task->cl)
 	{
 		unsigned i;
@@ -447,11 +462,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (profiling)
 		_starpu_clock_gettime(&info->submit_time);
-
-	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
-	* task structure, it is possible that this job structure was already
-	* allocated, for instance to enforce task depenencies. */
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	ret = _starpu_submit_job(j);
 

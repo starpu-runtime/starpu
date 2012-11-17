@@ -7,6 +7,7 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
+* Task debugger::               Using the Temanejo task debugger
 * On-line::                     On-line performance feedback
 * Off-line::                    Off-line performance feedback
 * Codelet performance::         Performance of codelets
@@ -14,6 +15,21 @@
 * Memory feedback::             
 * Data statistics::        
 @end menu
+
+@node Task debugger
+@section Using the Temanejo task debugger
+
+StarPU can connect to Temanejo (see
+@url{http://www.hlrs.de/organization/av/spmt/research/temanejo/}), to permit
+nice visual task debugging. To do so, build Temanejo's @code{libayudame.so},
+install @code{Ayudame} to e.g. @code{/usr/local/include}, apply the
+@code{tools/patch-ayudame} to it to fix C build, re-@code{./configure}, make
+sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
+to your application, any options you want to pass it, the path to libayudame.so.
+
+The number of CPUs currently can not be set.
+
+Only dependencies detected implicitly are currently shown.
 
 @node On-line
 @section On-line performance feedback

@@ -955,6 +955,8 @@ fi
 AC_CHECK_HEADERS([glpk.h])
 STARPU_HAVE_LIBRARY(GLPK, [glpk])
 
+AC_CHECK_HEADERS([Ayudame.h])
+
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #
@@ -1824,6 +1826,7 @@ AC_MSG_NOTICE([
 	       SOCL enabled:                                $build_socl
                SOCL test suite:                             $run_socl_check
                simgrid enabled:                             $enable_simgrid
+               ayudame enabled:                             $ac_cv_header_Ayudame_h
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
