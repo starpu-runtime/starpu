@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2012	Inria
  *
@@ -22,6 +22,7 @@
 
 #include <core/workers.h>
 #include <sched_policies/deque_queues.h>
+#include <core/debug.h>
 
 static unsigned nworkers;
 static unsigned last_pop_worker;
@@ -294,6 +295,12 @@ static int ws_push_task(struct starpu_task *task)
 	deque_queue = queue_array[workerid];
 
 	_STARPU_TRACE_JOB_PUSH(task, 0);
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = workerid;
+		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
+	}
+#endif
 	_starpu_job_list_push_back(deque_queue->jobq, j);
 	deque_queue->njobs++;
 

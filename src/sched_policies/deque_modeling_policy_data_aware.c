@@ -26,6 +26,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
+#include <core/debug.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -233,6 +234,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	if (starpu_get_prefetch_flag())
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = best_workerid;
+		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
+	}
+#endif
 	if (prio)
 		return _starpu_fifo_push_sorted_task(queue_array[best_workerid],
 			&sched_mutex[best_workerid], &sched_cond[best_workerid], task);

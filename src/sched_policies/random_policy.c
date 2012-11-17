@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 #include <starpu_rand.h>
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
+#include <core/debug.h>
 
 static unsigned nworkers;
 
@@ -60,6 +61,12 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		alpha += worker_alpha;
 	}
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = selected;
+		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
+	}
+#endif
 	/* we should now have the best worker in variable "selected" */
 	return starpu_push_local_task(selected, task, prio);
 }

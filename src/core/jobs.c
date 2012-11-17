@@ -212,6 +212,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	j->terminated = 2;
 	_STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_REMOVETASK, j->job_id, NULL);
+#endif
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	if (detach)
@@ -227,6 +231,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (regenerate)
 	{
 		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached, and not have detroy=1 or synchronous=1");
+
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+#warning TODO: function id
+			int64_t AYU_data[2] = {0, task->priority > STARPU_MIN_PRIO};
+			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
+		}
+#endif
 
 		/* We reuse the same job structure */
 		int ret = _starpu_submit_job(j);

@@ -32,7 +32,7 @@ static void _starpu_add_ayudame_ghost_dependency(starpu_data_handle_t handle STA
 {
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event) {
-		int64_t AYU_data[3] = { previous, (int64_t) handle, (int64_t) handle };
+		uintptr_t AYU_data[3] = { previous, (uintptr_t) handle, (uintptr_t) handle };
 		AYU_event(AYU_ADDDEPENDENCY, _starpu_get_job_associated_to_task(next)->job_id, AYU_data);
 	}
 #endif

@@ -377,7 +377,6 @@ int starpu_task_submit(struct starpu_task *task)
 	if (AYU_event) {
 #warning TODO: function id
 		int64_t AYU_data[2] = {0, task->priority > STARPU_MIN_PRIO};
-
 		AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
 	}
 #endif
@@ -623,6 +622,10 @@ int starpu_task_wait_for_all(void)
 		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
+#endif
 
 	return 0;
 }

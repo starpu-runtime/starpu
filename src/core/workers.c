@@ -347,6 +347,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	getitimer(ITIMER_PROF, &prof_itimer);
 #endif
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		unsigned long n = nworkers;
+		AYU_event(AYU_INIT, 0, (void*) &n);
+	}
+#endif
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
@@ -965,6 +972,10 @@ void starpu_shutdown(void)
 	/* Clear memory if it was allocated by StarPU */
 	if (config.default_conf)
 	     free(config.conf);
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_FINISH, 0, NULL);
+#endif
 
 	_STARPU_DEBUG("Shutdown finished\n");
 }
