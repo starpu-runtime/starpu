@@ -405,9 +405,7 @@ typedef pthread_cond_t _starpu_pthread_cond_t;
 } while (0)
 #endif
 
-#include <common/barrier.h>
-
-typedef pthread_barrier_t _starpu_pthread_barrier_t;
+#define _starpu_pthread_barrier_t pthread_barrier_t
 /*
  * Encapsulation of the pthread_barrier_* functions.
  */
