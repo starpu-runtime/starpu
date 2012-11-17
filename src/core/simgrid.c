@@ -189,8 +189,8 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtyp
 msg_task_t _starpu_simgrid_transfer_task_create(unsigned src_node, unsigned dst_node, size_t size)
 {
 	msg_host_t *hosts = calloc(2, sizeof(*hosts));
-	double *computation = calloc(2, sizeof(*hosts));
-	double *communication = calloc(4, sizeof(*hosts));
+	double *computation = calloc(2, sizeof(*computation));
+	double *communication = calloc(4, sizeof(*communication));
 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
 	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
