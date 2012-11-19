@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	/* Create platform file */
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	if (!getenv("STARPU_NCPUS")
+	if ((!getenv("STARPU_NCPUS") && !getenv("STARPU_NCPU"))
 #ifdef STARPU_USE_CUDA
 	 || !getenv("STARPU_NCUDA")
 #endif
