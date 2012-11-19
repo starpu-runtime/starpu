@@ -382,7 +382,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #endif
 #endif
 	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", args->devid);
-	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, args->devid, args->bindid);
 
 	_STARPU_TRACE_WORKER_INIT_END
 

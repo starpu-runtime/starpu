@@ -481,7 +481,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", args->devid, devname);
 	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", args->devid);
 
-	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, args->devid, args->bindid);
 
 	_STARPU_TRACE_WORKER_INIT_END
 
