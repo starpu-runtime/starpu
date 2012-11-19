@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
 	if (!starpu_main)
 	{
-		fprintf(stderr,"The main file of this application needs to be compiled with starpu.h included, to properly define starpu_main\n");
+		_STARPU_ERROR("The main file of this application needs to be compiled with starpu.h included, to properly define starpu_main\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -72,7 +72,18 @@ int main(int argc, char **argv)
 #endif
 			)
 	{
-		fprintf(stderr,"Please specify the number of cpus and gpus\n");
+		_STARPU_ERROR("Please specify the number of cpus and gpus by setting the environment variables STARPU_NCPU%s%s\n",
+#ifdef STARPU_USE_CUDA
+			      ", STARPU_NCUDA",
+#else
+			      "",
+#endif
+#ifdef STARPU_USE_OPENCL
+			      ", STARPU_NOPENCL"
+#else
+			      ""
+#endif
+			);
 		exit(EXIT_FAILURE);
 	}
 	_starpu_conf_check_environment(&conf);
