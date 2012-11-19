@@ -247,7 +247,7 @@ int _starpu_pthread_key_create(_starpu_pthread_key_t *key)
 	return 0;
 }
 
-int _starpu_pthread_key_delete(_starpu_pthread_key_t key)
+int _starpu_pthread_key_delete(_starpu_pthread_key_t key STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_DEVEL
 #warning TODO: implement pthread_key_delete so simgridified starpu can be restarted at will
