@@ -227,4 +227,8 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);
 
+#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
+void starpu_worker_set_sched_condition(int workerid, _starpu_pthread_cond_t *sched_cond, _starpu_pthread_mutex_t *sched_mutex);
+#endif
+
 #endif // __WORKERS_H__
