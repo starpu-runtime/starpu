@@ -118,7 +118,7 @@ cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, str
 
         // Create the compute kernel in the program we wish to run
         *kernel = clCreateKernel(program, kernel_name, &err);
-	if (err != CL_SUCCESS)
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	return CL_SUCCESS;
@@ -129,7 +129,7 @@ cl_int starpu_opencl_release_kernel(cl_kernel kernel)
 	cl_int err;
 
 	err = clReleaseKernel(kernel);
-	if (err != CL_SUCCESS)
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -235,7 +235,7 @@ int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, const 
 	if (p == NULL) p=binary_file_name + strlen(binary_file_name);
 
 	err = clGetDeviceInfo(device, CL_DEVICE_VENDOR_ID, sizeof(vendor_id), &vendor_id, NULL);
-	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	sprintf(p, ".%s.vendor_id_%d_device_id_%d", _starpu_opencl_get_device_type_as_string(dev), (int)vendor_id, dev);
 
@@ -310,14 +310,14 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			FILE *fh;
 
 			err = _starpu_opencl_get_binary_name(binary_file_name, 1024, source_file_name, dev, device);
-			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 			err = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_len, NULL);
-			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 			binary = malloc(binary_len);
 
 			err = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(binary), &binary, NULL);
-			if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 			fh = fopen(binary_file_name, "w");
 			if (fh == NULL)
@@ -431,7 +431,7 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 
 		// Load the binary buffer
 		err = _starpu_opencl_get_binary_name(binary_file_name, 1024, kernel_id, dev, device);
-		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 		binary = _starpu_opencl_load_program_binary(binary_file_name, &length);
 
                 // Create the compute program from the binary buffer
@@ -486,7 +486,7 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
 		{
 			cl_int err;
 			err = clReleaseProgram(opencl_programs->programs[dev]);
-			if (err != CL_SUCCESS)
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
 				STARPU_OPENCL_REPORT_ERROR(err);
 		}
         }
@@ -719,7 +719,7 @@ int starpu_opencl_set_kernel_args(cl_int *error, cl_kernel *kernel, ...)
 
 		cl_mem *ptr = va_arg(ap, cl_mem *);
 		int err = clSetKernelArg(*kernel, i, size, ptr);
-		if (err != CL_SUCCESS)
+		if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		{
 			*error = err;
 			break;

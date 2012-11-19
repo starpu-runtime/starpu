@@ -72,7 +72,7 @@ static void limit_gpu_mem_if_needed(int devid)
 	/* Request the size of the current device's memory */
 	cl_ulong totalGlobalMem;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
-	if (err != CL_SUCCESS)
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* How much memory to waste ? */
@@ -84,7 +84,7 @@ static void limit_gpu_mem_if_needed(int devid)
 
 	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
 	wasted_memory[devid] = clCreateBuffer(contexts[devid], CL_MEM_READ_WRITE, to_waste, NULL, &err);
-	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 
 static void unlimit_gpu_mem_if_needed(int devid)
@@ -92,7 +92,7 @@ static void unlimit_gpu_mem_if_needed(int devid)
 	if (wasted_memory[devid])
 	{
 		cl_int err = clReleaseMemObject(wasted_memory[devid]);
-		if (err != CL_SUCCESS)
+		if (STARPU_UNLIKELY(err != CL_SUCCESS))
 			STARPU_OPENCL_REPORT_ERROR(err);
 		wasted_memory[devid] = NULL;
 	}
@@ -106,7 +106,7 @@ size_t starpu_opencl_get_global_mem_size(int devid)
 
 	/* Request the size of the current device's memory */
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
-	if (err != CL_SUCCESS)
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	return (size_t)totalGlobalMem;
@@ -153,20 +153,20 @@ cl_int _starpu_opencl_init_context(int devid)
         // Create a compute context
 	err = 0;
         contexts[devid] = clCreateContext(NULL, 1, &devices[devid], NULL, NULL, &err);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         // Create execution queue for the given device
         queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         // Create transfer queue for the given device
         cl_command_queue_properties props;
         err = clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
-	if (err != CL_SUCCESS)
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
         props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
@@ -186,13 +186,13 @@ cl_int _starpu_opencl_deinit_context(int devid)
 	unlimit_gpu_mem_if_needed(devid);
 
         err = clReleaseContext(contexts[devid]);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseCommandQueue(queues[devid]);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseCommandQueue(transfer_queues[devid]);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
 
@@ -346,7 +346,7 @@ void _starpu_opencl_init(void)
 		if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
 		     device_type |= CL_DEVICE_TYPE_CPU;
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
-                if (err != CL_SUCCESS) nb_platforms=0;
+                if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
 
                 // Get devices
@@ -367,7 +367,7 @@ void _starpu_opencl_init(void)
 				else
 				{
 					err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
-					if (err != CL_SUCCESS)
+					if (STARPU_UNLIKELY(err != CL_SUCCESS))
 					{
 						STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo VENDOR", err);
 						platform_valid = 0;
@@ -392,7 +392,7 @@ void _starpu_opencl_init(void)
 					}
 					else
 					{
-						if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+						if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 						_STARPU_DEBUG("  %u devices detected\n", num);
 						nb_devices += num;
 					}
@@ -602,7 +602,7 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 
 	// Get device name
 	err = clGetDeviceInfo(devices[dev], CL_DEVICE_NAME, lname, name, NULL);
-	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	_STARPU_DEBUG("Device %d : [%s]\n", dev, name);
 	return EXIT_SUCCESS;
@@ -627,7 +627,7 @@ cl_device_type _starpu_opencl_get_device_type(int devid)
 		_starpu_opencl_init();
 
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
-	if (err != CL_SUCCESS)
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	return type;

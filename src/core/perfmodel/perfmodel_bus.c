@@ -287,7 +287,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	cl_ulong maxMemAllocSize;
         starpu_opencl_get_device(dev, &device);
 	err = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxMemAllocSize), &maxMemAllocSize, NULL);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         if (size > (size_t)maxMemAllocSize/4) size = maxMemAllocSize/4;
 
 	if (_starpu_opencl_get_device_type(dev) == CL_DEVICE_TYPE_CPU)
@@ -303,7 +303,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	/* Allocate a buffer on the device */
 	cl_mem d_buffer;
 	d_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &err);
-	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -317,7 +317,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         /* Fill them */
 	memset(h_buffer, 0, size);
         err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 
@@ -331,7 +331,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	for (iter = 0; iter < NITER; iter++)
 	{
                 err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
-                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -343,7 +343,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	for (iter = 0; iter < NITER; iter++)
 	{
                 err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
-                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));

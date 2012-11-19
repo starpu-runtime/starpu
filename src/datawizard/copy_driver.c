@@ -376,10 +376,10 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 		if ((*async_channel).event.opencl_event == NULL)
 			STARPU_ABORT();
 		err = clWaitForEvents(1, &((*async_channel).event.opencl_event));
-		if (err != CL_SUCCESS)
+		if (STARPU_UNLIKELY(err != CL_SUCCESS))
 			STARPU_OPENCL_REPORT_ERROR(err);
 		err = clReleaseEvent((*async_channel).event.opencl_event);
-		if (err != CL_SUCCESS)
+		if (STARPU_UNLIKELY(err != CL_SUCCESS))
 			STARPU_OPENCL_REPORT_ERROR(err);
 	      break;
 	}
@@ -423,7 +423,7 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		cl_event opencl_event = (*async_channel).event.opencl_event;
 		if (opencl_event == NULL) STARPU_ABORT();
 		cl_int err = clGetEventInfo(opencl_event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(event_status), &event_status, NULL);
-		if (err != CL_SUCCESS)
+		if (STARPU_UNLIKELY(err != CL_SUCCESS))
 			STARPU_OPENCL_REPORT_ERROR(err);
 		if (event_status < 0)
 			STARPU_OPENCL_REPORT_ERROR(event_status);
