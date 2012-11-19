@@ -372,10 +372,15 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_RAM:
 	{
-		if ((*async_channel).event.opencl_event == NULL) STARPU_ABORT();
-		cl_int err = clWaitForEvents(1, &((*async_channel).event.opencl_event));
-		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-		clReleaseEvent((*async_channel).event.opencl_event);
+		cl_int err;
+		if ((*async_channel).event.opencl_event == NULL)
+			STARPU_ABORT();
+		err = clWaitForEvents(1, &((*async_channel).event.opencl_event));
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
+		err = clReleaseEvent((*async_channel).event.opencl_event);
+		if (err != CL_SUCCESS)
+			STARPU_OPENCL_REPORT_ERROR(err);
 	      break;
 	}
 #endif
