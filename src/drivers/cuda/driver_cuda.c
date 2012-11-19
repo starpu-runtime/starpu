@@ -347,12 +347,11 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 {
 	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
+	unsigned devid = args->devid;
 
 	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
 
 #ifndef STARPU_SIMGRID
-	unsigned devid = args->devid;
-
 	init_context(devid);
 #endif
 
@@ -363,7 +362,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 
 #ifdef STARPU_SIMGRID
 	const char *devname = "Simgrid";
-	snprintf(args->name, sizeof(args->name), "CUDA %u (%s TODO GiB)", args->devid, devname);
+	snprintf(args->name, sizeof(args->name), "CUDA %u (%s TODO GiB)", devid, devname);
 #else
 	/* get the device's name */
 	char devname[128];
@@ -373,16 +372,16 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #ifdef STARPU_HAVE_BUSID
 #ifdef STARPU_HAVE_DOMAINID
 	if (props[devid].pciDomainID)
-		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 	else
 #endif
-		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
-	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", args->devid, devname, size);
+	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", devid, devname, size);
 #endif
 #endif
-	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", args->devid);
-	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, args->devid, args->bindid);
+	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", devid);
+	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	_STARPU_TRACE_WORKER_INIT_END
 
