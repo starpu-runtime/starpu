@@ -182,7 +182,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
 
-static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, double predicted_transfer, int prio STARPU_ATTRIBUTE_UNUSED)
+static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, double predicted_transfer)
 {
 	struct _starpu_fifo_taskq *fifo = queue_array[best_workerid];
 
@@ -438,7 +438,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 			task->priority = 0;
 		}
 
-		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0, prio);
+		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0);
 	}
 
 	/*
@@ -520,7 +520,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		task->priority = 0;
 	}
 
-	return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio);
+	return push_task_on_best_worker(task, best, model_best, transfer_model_best);
 }
 
 static int heft_push_task(struct starpu_task *task)
