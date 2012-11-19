@@ -457,12 +457,11 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	struct _starpu_worker* args;
 	args = _starpu_opencl_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
+	int devid = args->devid;
 
 	_starpu_worker_init(args, _STARPU_FUT_OPENCL_KEY);
 
 #ifndef STARPU_SIMGRID
-	int devid = args->devid;
-
 	_starpu_opencl_init_context(devid);
 #endif
 
@@ -478,10 +477,10 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", args->devid, devname);
-	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", args->devid);
+	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", devid, devname);
+	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", devid);
 
-	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, args->devid, args->bindid);
+	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	_STARPU_TRACE_WORKER_INIT_END
 
