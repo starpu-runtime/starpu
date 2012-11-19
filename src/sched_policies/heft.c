@@ -182,7 +182,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
 
-static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, double predicted_transfer, int prio)
+static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, double predicted_transfer, int prio STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_fifo_taskq *fifo = queue_array[best_workerid];
 
