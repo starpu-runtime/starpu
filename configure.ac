@@ -794,6 +794,14 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+		    		[[#include <msg/msg.h>]],
+				[[msg_host_t foo; ]]
+			    )],
+	                 [],
+	                 [
+			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
+		         ])
 	SIMGRID_LIBS=-lsimgrid
 	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
 	# Avoid the starpu top thread compilation
