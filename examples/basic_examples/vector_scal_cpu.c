@@ -15,7 +15,7 @@
  */
 
 /*
- * This example complements vector_scale.c: here we implement a CPU version.
+ * This example complements vector_scal.c: here we implement a CPU version.
  */
 
 #include "vector_scal_cpu_template.h"

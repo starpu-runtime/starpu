@@ -42,13 +42,13 @@ extern void scal_opencl_func(void *buffers[], void *_args);
 static struct starpu_perfmodel vector_scal_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale"
+	.symbol = "vector_scal"
 };
 
 static struct starpu_perfmodel vector_scal_power_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale_power"
+	.symbol = "vector_scal_power"
 };
 
 static struct starpu_codelet cl =

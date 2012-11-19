@@ -17,7 +17,7 @@
  */
 
 /*
- * This example complements vector_scale.c: here we implement a OpenCL version.
+ * This example complements vector_scal.c: here we implement a OpenCL version.
  */
 
 #include <starpu.h>
