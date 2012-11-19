@@ -1853,7 +1853,7 @@ To run the tests, you need to install the OCL implementation of ICD
 and set the variable SOCL_OCL_LIB_OPENCL to the location of the libOpenCL.so.])
 fi
 
-if test x"$have_valid_hwloc" = xno
+if test x"$have_valid_hwloc" = xno -a "$enable_simgrid" = "no"
 then
   AC_MSG_NOTICE([
 WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
