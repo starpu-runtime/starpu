@@ -444,3 +444,12 @@ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example
 
 For now, only the number of cpus can be arbitrarily chosen. The number of CUDA
 and OpenCL devices have to be lower than the real number on the current machine.
+
+The Simgrid default stack size is small, to increase it use the
+parameter @code{--cfg=contexts/stack_size}, for example:
+
+@cartouche
+@smallexample
+STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
+@end smallexample
+@end cartouche
