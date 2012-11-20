@@ -789,6 +789,14 @@ AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
 			[Enable simulating execution in simgrid])],
 			enable_simgrid=$enableval, enable_simgrid=no)
 if test x$enable_simgrid = xyes ; then
+	OLD_CLAGS=$CFLAGS
+	OLD_LDFLAGS=$LDFLAGS
+	if test -n "$SIMGRID_CFLAGS" ; then
+		CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
+	fi
+	if test -n "$SIMGRID_LIBS" ; then
+		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
+	fi
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
@@ -802,7 +810,11 @@ if test x$enable_simgrid = xyes ; then
 	                 [
 			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
 		         ])
-	SIMGRID_LIBS=-lsimgrid
+	if test -z "$SIMGRID_LIBS" ; then
+		SIMGRID_LIBS=-lsimgrid
+	fi
+	CLAGS=$OLD_CFLAGS
+	LDFLAGS=$OLD_LDFLAGS
 	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
 	# Avoid the starpu top thread compilation
 	enable_starpu_top=no
