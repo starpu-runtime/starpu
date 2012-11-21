@@ -38,6 +38,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 							int dest, int mpi_tag, MPI_Comm comm,
 							unsigned detached, void (*callback)(void *), void *arg);
 static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg);
+static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req);
 
 /* The list of requests that have been newly submitted by the application */
 static struct _starpu_mpi_req_list *new_requests;
@@ -134,6 +135,9 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	req->submitted = 1;
 	_STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+
+	_starpu_mpi_handle_detached_request(req);
+
         _STARPU_MPI_LOG_OUT();
 }
 
@@ -232,6 +236,9 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	req->submitted = 1;
 	_STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+
+	_starpu_mpi_handle_detached_request(req);
+
         _STARPU_MPI_LOG_OUT();
 }
 
@@ -666,15 +673,8 @@ static void _starpu_mpi_test_detached_requests(void)
         _STARPU_MPI_LOG_OUT();
 }
 
-static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
+static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
-        _STARPU_MPI_LOG_IN();
-	STARPU_ASSERT(req);
-
-	/* submit the request to MPI */
-        _STARPU_MPI_DEBUG("Handling new request type %s\n", _starpu_mpi_request_type(req->request_type));
-	req->func(req);
-
 	if (req->detached)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -689,6 +689,17 @@ static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
 		_STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
+}
+
+static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
+{
+        _STARPU_MPI_LOG_IN();
+	STARPU_ASSERT(req);
+
+	/* submit the request to MPI */
+        _STARPU_MPI_DEBUG("Handling new request type %s\n", _starpu_mpi_request_type(req->request_type));
+	req->func(req);
+
         _STARPU_MPI_LOG_OUT();
 }
 
