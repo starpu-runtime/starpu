@@ -160,8 +160,6 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	/* Store some values directly in the handle not to recompute them all
 	 * the time. */
-	STARPU_ASSERT(handle->ops->get_size);
-	handle->data_size = handle->ops->get_size(handle);
 	handle->footprint = _starpu_compute_data_footprint(handle);
 
 	handle->home_node = home_node;

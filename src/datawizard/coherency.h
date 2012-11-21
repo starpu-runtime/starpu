@@ -135,9 +135,6 @@ struct _starpu_data_state
 
 	struct starpu_data_interface_ops *ops;
 
-	/* To avoid recomputing data size all the time, we store it directly. */
-	size_t data_size;
-
 	/* Footprint which identifies data layout */
 	uint32_t footprint;
 

@@ -263,7 +263,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 			replicate->automatically_allocated = 0;
 		}
 
-		freed = mc->size;
+		freed = mc->ops->get_size(handle);
 
 		if (handle && !data_was_deleted)
 			STARPU_ASSERT(replicate->refcnt == 0);
@@ -399,7 +399,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 	mc->data = new_replicate->handle;
 	mc->data_was_deleted = 0;
-	/* mc->ops, mc->size, mc->footprint and mc->interface should be
+	/* mc->ops, mc->footprint and mc->interface should be
  	 * unchanged ! */
 
 	/* reinsert the mem chunk in the list of active memory chunks */
@@ -619,7 +619,7 @@ size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 	return reclaim_memory_generic(node, 1, 0);
 }
 
-static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_replicate *replicate, size_t size, size_t interface_size, unsigned automatically_allocated)
+static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_replicate *replicate, size_t interface_size, unsigned automatically_allocated)
 {
 	struct _starpu_mem_chunk *mc = _starpu_mem_chunk_new();
 	starpu_data_handle_t handle = replicate->handle;
@@ -628,7 +628,6 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	STARPU_ASSERT(handle->ops);
 
 	mc->data = handle;
-	mc->size = size;
 	mc->footprint = _starpu_compute_data_footprint(handle);
 	mc->ops = handle->ops;
 	mc->data_was_deleted = 0;
@@ -645,7 +644,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	return mc;
 }
 
-static void register_mem_chunk(struct _starpu_data_replicate *replicate, size_t size, unsigned automatically_allocated)
+static void register_mem_chunk(struct _starpu_data_replicate *replicate, unsigned automatically_allocated)
 {
 	unsigned dst_node = replicate->memory_node;
 
@@ -655,7 +654,7 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, size_t 
 	size_t interface_size = replicate->handle->ops->interface_size;
 
 	/* Put this memchunk in the list of memchunk in use */
-	mc = _starpu_memchunk_init(replicate, size, interface_size, automatically_allocated);
+	mc = _starpu_memchunk_init(replicate, interface_size, automatically_allocated);
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 
@@ -937,8 +936,9 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 		if (allocated_memory == -ENOMEM)
 		{
 			size_t reclaim = 0.25*_starpu_get_global_mem_size(dst_node);
-			if (starpu_memstrategy_data_size_coefficient*handle->data_size > reclaim)
-				reclaim = starpu_memstrategy_data_size_coefficient*handle->data_size;
+			size_t handle_size = handle->ops->get_size(handle);
+			if (starpu_memstrategy_data_size_coefficient*handle_size > reclaim)
+				reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
 
 			/* Take temporary reference on the replicate */
 			replicate->refcnt++;
@@ -989,7 +989,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	if (allocated_memory == -ENOMEM)
 		return -ENOMEM;
 
-	register_mem_chunk(replicate, allocated_memory, 1);
+	register_mem_chunk(replicate, 1);
 
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;

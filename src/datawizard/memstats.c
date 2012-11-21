@@ -53,7 +53,7 @@ void _starpu_memory_display_handle_stats(starpu_data_handle_t handle)
 
 	fprintf(stderr, "#-----\n");
 	fprintf(stderr, "Data : %p\n", handle);
-	fprintf(stderr, "Size : %d\n", (int)handle->data_size);
+	fprintf(stderr, "Size : %d\n", (int)handle->ops->get_size(handle));
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "#--\n");

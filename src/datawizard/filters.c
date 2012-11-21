@@ -245,7 +245,6 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
-		child->data_size = child->ops->get_size(child);
 		child->footprint = _starpu_compute_data_footprint(child);
 
 		void *ptr;

@@ -30,7 +30,6 @@ struct _starpu_data_replicate;
 
 LIST_TYPE(_starpu_mem_chunk,
 	starpu_data_handle_t data;
-	size_t size;
 
 	uint32_t footprint;
 

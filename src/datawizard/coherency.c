@@ -524,7 +524,7 @@ uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, uint32_t node)
 
 size_t _starpu_data_get_size(starpu_data_handle_t handle)
 {
-	return handle->data_size;
+	return handle->ops->get_size(handle);
 }
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
