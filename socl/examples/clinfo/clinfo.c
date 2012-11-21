@@ -288,9 +288,9 @@ main(void) {
 
                GET_STRING(CL_DEVICE_NAME, "  Name:\t\t\t\t\t\t %s\n", 256);
                GET_STRING(CL_DEVICE_VENDOR, "  Vendor:\t\t\t\t\t %s\n", 256);
-               GET_STRING(CL_DRIVER_VERSION, "  Driver version:\t\t\t\t %s\n", 10);
-               GET_STRING(CL_DEVICE_PROFILE, "  Profile:\t\t\t\t\t %s\n", 30);
-               GET_STRING(CL_DEVICE_VERSION, "  Version:\t\t\t\t\t %s\n", 50);
+               GET_STRING(CL_DRIVER_VERSION, "  Driver version:\t\t\t\t %s\n", 256);
+               GET_STRING(CL_DEVICE_PROFILE, "  Profile:\t\t\t\t\t %s\n", 256);
+               GET_STRING(CL_DEVICE_VERSION, "  Version:\t\t\t\t\t %s\n", 256);
                GET_STRING(CL_DEVICE_EXTENSIONS, "  Extensions:\t\t\t\t\t %s\n", 4096);
 
                printf("\n");
