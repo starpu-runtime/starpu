@@ -23,18 +23,15 @@
 #define NITER	2048
 #define SIZE	16
 
-static float *tab;
-static starpu_data_handle_t tab_handle;
-
 static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 
-void callback(void *arg __attribute__((unused)))
+void callback(void *arg)
 {
-	unsigned *sent = arg;
+	unsigned *completed = arg;
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	*sent = 1;
+	*completed = 1;
 	_STARPU_PTHREAD_COND_SIGNAL(&cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
@@ -42,6 +39,8 @@ void callback(void *arg __attribute__((unused)))
 int main(int argc, char **argv)
 {
 	int ret, rank, size;
+	float *tab;
+	starpu_data_handle_t tab_handle;
 
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -83,8 +82,13 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			MPI_Status status;
-			starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+			int received = 0;
+			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
+
+			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+			while (!received)
+				_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		}
 	}
 
