@@ -50,8 +50,9 @@
 #define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); }} while(0)
 #define _STARPU_ERROR(fmt, args ...)                                                  \
 	do {                                                                          \
-                fprintf(stderr, "[starpu][%s] Error: " fmt ,__func__ ,##args);        \
-		STARPU_ABORT();                                                            \
+                fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__func__ ,##args);    \
+		fprintf(stderr, "\n\n");					      \
+		STARPU_ABORT();                                                       \
 	} while (0)
 
 
