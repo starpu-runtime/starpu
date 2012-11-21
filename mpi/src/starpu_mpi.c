@@ -235,14 +235,20 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
         _STARPU_MPI_LOG_OUT();
 }
 
+struct _starpu_mpi_irecv_size_callback
+{
+	starpu_data_handle_t handle;
+	struct _starpu_mpi_req *req;
+};
+
 static void _starpu_mpi_irecv_size_callback(void *arg)
 {
-	struct _starpu_mpi_req *req = (struct _starpu_mpi_req *) arg;
-#ifdef STARPU_DEVEL
-#  warning TODO: are we sure that req->count can be used as we have not released count_handle?
-#endif
-	req->ptr = malloc(req->count);
-	_starpu_mpi_irecv_data_func(req);
+	struct _starpu_mpi_irecv_size_callback *callback = (struct _starpu_mpi_irecv_size_callback *)arg;
+
+	starpu_data_unregister(callback->handle);
+	callback->req->ptr = malloc(callback->req->count);
+	_starpu_mpi_irecv_data_func(callback->req);
+	free(callback);
 }
 
 static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
@@ -260,9 +266,11 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	{
 		starpu_data_handle_t count_handle;
 
+		struct _starpu_mpi_irecv_size_callback *callback = malloc(sizeof(struct _starpu_mpi_irecv_size_callback));
 		starpu_variable_data_register(&count_handle, 0, (uintptr_t)&req->count, sizeof(req->count));
-		_starpu_mpi_irecv_common(count_handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_irecv_size_callback, req);
-		starpu_data_unregister_submit(count_handle);
+		callback->handle = count_handle;
+		callback->req = req;
+		_starpu_mpi_irecv_common(count_handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_irecv_size_callback, callback);
 	}
 }
 
