@@ -772,7 +772,8 @@ The function also sets @var{count} to the size of the data handle by calling
 Unpack in @var{handle} the data located at @var{ptr} of size
 @var{count} as described by the interface of the data. The interface
 registered at @var{handle} must define a unpacking operation
-(@pxref{struct starpu_data_interface_ops}).
+(@pxref{struct starpu_data_interface_ops}). The memory at the address @code{ptr}
+is freed after calling the data unpacking operation.
 @end deftypefun
 
 @node Accessing Variable Data Interfaces

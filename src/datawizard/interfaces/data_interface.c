@@ -686,7 +686,10 @@ int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *cou
 int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT(handle->ops->unpack_data);
-	return handle->ops->unpack_data(handle, _starpu_get_local_memory_node(), ptr, count);
+	int ret;
+	ret = handle->ops->unpack_data(handle, _starpu_get_local_memory_node(), ptr, count);
+	free(ptr);
+	return ret;
 }
 
 size_t starpu_handle_get_size(starpu_data_handle_t handle)
