@@ -665,13 +665,11 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	tag = starpu_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
 	}
 	if (tag == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
 	}
 	MPI_Comm_rank(comm, &me);
 
