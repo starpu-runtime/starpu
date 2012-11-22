@@ -263,7 +263,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 			replicate->automatically_allocated = 0;
 		}
 
-		freed = mc->ops->get_size(handle);
+		freed = mc->size;
 
 		if (handle && !data_was_deleted)
 			STARPU_ASSERT(replicate->refcnt == 0);
@@ -673,6 +673,8 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 {
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
+	size_t size = _starpu_data_get_size(handle);
+
 	/* iterate over the list of memory chunks and remove the entry */
 	struct _starpu_mem_chunk *mc, *next_mc;
 	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
@@ -684,6 +686,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 		if (mc->data == handle)
 		{
 			/* we found the data */
+			mc->size = size;
 			mc->data_was_deleted = handle_deleted;
 
 			/* remove it from the main list */

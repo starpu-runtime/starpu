@@ -44,6 +44,12 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned automatically_allocated;
 	unsigned data_was_deleted;
 
+	/* the size is only set when calling _starpu_request_mem_chunk_removal(),
+         * it is needed by free_memory_on_node() which is called when
+         * the handle is no longer valid
+	 */
+	size_t size;
+
 	/* A buffer that is used for SCRATCH or reduction cannnot be used with
 	 * filters. */
 	unsigned relaxed_coherency;
