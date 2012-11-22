@@ -271,9 +271,9 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 	return allocated_memory;
 
 fail_rowptr:
-	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_colind);
+	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_colind, nnz*sizeof(uint32_t));
 fail_colind:
-	starpu_free_buffer_on_node(dst_node, addr_nzval);
+	starpu_free_buffer_on_node(dst_node, addr_nzval, nnz*elemsize);
 fail_nzval:
 	/* allocation failed */
 	return -ENOMEM;
@@ -282,10 +282,13 @@ fail_nzval:
 static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
+	uint32_t nnz = csr_interface->nnz;
+	uint32_t nrow = csr_interface->nrow;
+	size_t elemsize = csr_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, csr_interface->nzval);
-	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->colind);
-	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->rowptr);
+	starpu_free_buffer_on_node(node, csr_interface->nzval, nnz*elemsize);
+	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->colind, nnz*sizeof(uint32_t));
+	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
 }
 
 #ifdef STARPU_USE_CUDA

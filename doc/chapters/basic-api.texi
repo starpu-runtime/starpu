@@ -1202,8 +1202,8 @@ Allocate @var{size} bytes on node @var{dst_node}. This returns 0 if allocation
 failed, the allocation method should then return -ENOMEM as allocated size.
 @end deftypefun
 
-@deftypefun void starpu_free_buffer_on_node (uint32_t @var{dst_node}, uintptr_t @var{data})
-Free @var{data} on node @var{dst_node}.
+@deftypefun void starpu_free_buffer_on_node (uint32_t @var{dst_node}, uintptr_t @var{data}, size_t @var{size})
+Free @var{data} of @var{size} bytes on node @var{dst_node}.
 @end deftypefun
 
 @node Data Partition

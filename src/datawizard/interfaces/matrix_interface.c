@@ -305,8 +305,11 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
+	uint32_t nx = matrix_interface->nx;
+	uint32_t ny = matrix_interface->ny;
+	size_t elemsize = matrix_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, matrix_interface->ptr);
+	starpu_free_buffer_on_node(node, matrix_interface->ptr, nx*ny*elemsize);
 }
 
 #ifdef STARPU_USE_CUDA

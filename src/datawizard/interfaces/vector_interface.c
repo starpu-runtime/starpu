@@ -262,8 +262,10 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface;
+	uint32_t nx = vector_interface->nx;
+	size_t elemsize = vector_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, vector_interface->ptr);
+	starpu_free_buffer_on_node(node, vector_interface->ptr, nx*elemsize);
 }
 
 #ifdef STARPU_USE_CUDA

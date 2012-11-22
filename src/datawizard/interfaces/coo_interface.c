@@ -380,9 +380,9 @@ allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
 	return n_values * (sizeof(coo_interface->columns[0]) + sizeof(coo_interface->rows[0]) + elemsize);
 
 fail_values:
-	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_rows);
+	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_rows, n_values * sizeof(coo_interface->rows[0]));
 fail_rows:
-	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_columns);
+	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_columns, n_values * sizeof(coo_interface->columns[0]));
 fail_columns:
 	return -ENOMEM;
 }
@@ -390,12 +390,13 @@ fail_columns:
 static void
 free_coo_buffer_on_node(void *data_interface, uint32_t node)
 {
-	struct starpu_coo_interface *coo_interface =
-		(struct starpu_coo_interface *) data_interface;
+	struct starpu_coo_interface *coo_interface = (struct starpu_coo_interface *) data_interface;
+	uint32_t n_values = coo_interface->n_values;
+	size_t elemsize = coo_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->columns);
-	starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->rows);
-	starpu_free_buffer_on_node(node, coo_interface->values);
+	starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->columns, n_values * sizeof(coo_interface->columns[0]));
+	starpu_free_buffer_on_node(node, (uintptr_t) coo_interface->rows, n_values * sizeof(coo_interface->rows[0]));
+	starpu_free_buffer_on_node(node, coo_interface->values, n_values * elemsize);
 }
 
 static size_t

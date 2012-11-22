@@ -327,8 +327,12 @@ static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst
 static void free_block_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, block_interface->ptr);
+	starpu_free_buffer_on_node(node, block_interface->ptr, nx*ny*nz*elemsize);
 }
 
 #ifdef STARPU_USE_CUDA

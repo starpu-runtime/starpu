@@ -80,7 +80,7 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, uint32
 	return 2*requested_memory;
 
 fail_imaginary:
-	starpu_free_buffer_on_node(node, (uintptr_t) addr_real);
+	starpu_free_buffer_on_node(node, (uintptr_t) addr_real, requested_memory);
 fail_real:
 	return -ENOMEM;
 }
@@ -88,8 +88,10 @@ fail_real:
 static void complex_free_data_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
-	starpu_free_buffer_on_node(node, (uintptr_t) complex_interface->real);
-	starpu_free_buffer_on_node(node, (uintptr_t) complex_interface->imaginary);
+	ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
+
+	starpu_free_buffer_on_node(node, (uintptr_t) complex_interface->real, requested_memory);
+	starpu_free_buffer_on_node(node, (uintptr_t) complex_interface->imaginary, requested_memory);
 }
 
 static size_t complex_get_size(starpu_data_handle_t handle)
