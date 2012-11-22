@@ -828,7 +828,7 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 }
 
 void
-starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr)
+starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 {
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
