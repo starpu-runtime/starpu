@@ -766,6 +766,9 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 	cudaError_t status;
 #endif
 
+#ifdef STARPU_DEVEL
+#warning TODO: we need to use starpu_malloc
+#endif
 	switch(starpu_node_get_kind(dst_node))
 	{
 		case STARPU_CPU_RAM:
