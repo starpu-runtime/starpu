@@ -229,10 +229,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	/* TODO predicted_transfer */
 
-	unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
 
 	if (starpu_get_prefetch_flag())
+	{
+		unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
 		starpu_prefetch_task_input_on_node(task, memory_node);
+	}
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event) {
