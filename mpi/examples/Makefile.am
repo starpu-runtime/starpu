@@ -17,16 +17,28 @@
 CC=$(MPICC)
 CCLD=$(MPICC)
 
-if STARPU_MPI_CHECK
-if STARPU_HAVE_AM111
-LOG_COMPILER	 	=	$(MPIEXEC) -np 2
+if STARPU_HAVE_WINDOWS
+LOADER_BIN		=
 else
-TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 2
-endif
-TESTS			=	$(check_PROGRAMS)
+loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER			=	loader
+LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
 endif
 
-check_PROGRAMS =
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER	 	=	$(MPIEXEC) -np 2 $(LOADER_BIN)
+else
+TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIEXEC) -np 4
+endif
+
+if STARPU_MPI_CHECK
+TESTS			=	$(starpu_mpi_EXAMPLES)
+endif
+
+check_PROGRAMS = $(LOADER)
+starpu_mpi_EXAMPLES =
 
 BUILT_SOURCES =
 
@@ -76,7 +88,7 @@ examplebin_PROGRAMS +=				\
 stencil_stencil5_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
-check_PROGRAMS	+=	\
+starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5
 
 ##################
@@ -145,7 +157,7 @@ cholesky_mpi_cholesky_distributed_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS)
 
-check_PROGRAMS +=					\
+starpu_mpi_EXAMPLES +=				\
 	cholesky/mpi_cholesky			\
 	cholesky/mpi_cholesky_distributed
 endif
@@ -164,7 +176,7 @@ complex_mpi_complex_SOURCES =		\
 complex_mpi_complex_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
-check_PROGRAMS	+=			\
+starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
 endif
 

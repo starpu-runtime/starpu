@@ -17,16 +17,27 @@
 CC=$(MPICC)
 CCLD=$(MPICC)
 
-if STARPU_MPI_CHECK
-if STARPU_HAVE_AM111
-LOG_COMPILER	 	=	$(MPIEXEC) -np 4
+if STARPU_HAVE_WINDOWS
+LOADER_BIN		=
 else
-TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 4
-endif
-TESTS			=	$(check_PROGRAMS)
+loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER			=	loader
+LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
 endif
 
-check_PROGRAMS =
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER	 	=	$(MPIEXEC) -np 4 $(LOADER_BIN)
+else
+TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIEXEC) -np 4
+endif
+
+if STARPU_MPI_CHECK
+TESTS			=	$(starpu_mpi_TESTS)
+endif
+
+check_PROGRAMS = $(LOADER)
 
 BUILT_SOURCES =
 
@@ -56,7 +67,7 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
 # Unit testcases       #
 ########################
 
-check_PROGRAMS +=				\
+starpu_mpi_TESTS =				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
