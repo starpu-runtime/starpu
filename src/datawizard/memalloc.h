@@ -46,7 +46,7 @@ LIST_TYPE(_starpu_mem_chunk,
 
 	/* the size is only set when calling _starpu_request_mem_chunk_removal(),
          * it is needed by free_memory_on_node() which is called when
-         * the handle is no longer valid
+         * the handle is no longer valid. It should not be used otherwise.
 	 */
 	size_t size;
 
