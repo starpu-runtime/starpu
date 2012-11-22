@@ -44,19 +44,24 @@ Also pass the @code{--static} option if the application is to be linked statical
 
 @subsection Initialisation
 
-@deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv})
-Initializes the starpumpi library. If MPI is not already initialized,
-it will be by calling @code{MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)}.
+@deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv}, int initialize_mpi)
+Initializes the starpumpi library. @code{initialize_mpi} indicates if
+MPI should be initialized or not by StarPU. If the value is not @code{0},
+MPI will be initialized by calling @code{MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize (void)
 This function has been made deprecated. One should use instead the
 function @code{starpu_mpi_init()} defined above.
+This function does not call @code{MPI_Init}, it should be called beforehand.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize_extended (int *@var{rank}, int *@var{world_size})
 This function has been made deprecated. One should use instead the
 function @code{starpu_mpi_init()} defined above.
+MPI will be initialized by starpumpi by calling @code{MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_shutdown (void)
