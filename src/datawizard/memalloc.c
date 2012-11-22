@@ -833,6 +833,9 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
 	{
+#ifdef STARPU_DEVEL
+#warning TODO we need to call starpu_free
+#endif
 		case STARPU_CPU_RAM:
 			free((void*)addr);
 			break;
