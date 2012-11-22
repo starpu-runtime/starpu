@@ -97,7 +97,6 @@ int main(int argc, char **argv)
 			     // We send a dummy variable only to check communication with predefined datatypes
 			     int foo=12;
 			     starpu_data_handle_t foo_handle;
-			     MPI_Status status;
 			     starpu_variable_data_register(&foo_handle, -1, (uintptr_t)NULL, sizeof(foo));
 			     starpu_mpi_irecv_detached(foo_handle, 0, 40, MPI_COMM_WORLD, NULL, NULL);
 			     starpu_insert_task(&foo_display, STARPU_R, foo_handle, 0);
