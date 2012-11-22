@@ -155,8 +155,7 @@ endif
 ###################
 
 examplebin_PROGRAMS +=			\
-	complex/mpi_complex		\
-	complex/mpi_complex2
+	complex/mpi_complex
 
 complex_mpi_complex_SOURCES =		\
 	complex/mpi_complex.c		\
@@ -165,16 +164,8 @@ complex_mpi_complex_SOURCES =		\
 complex_mpi_complex_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
-complex_mpi_complex2_SOURCES =		\
-	complex/mpi_complex2.c		\
-	$(top_srcdir)/examples/interface/complex_interface.c
-
-complex_mpi_complex2_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
 check_PROGRAMS	+=			\
-	complex/mpi_complex		\
-	complex/mpi_complex2
+	complex/mpi_complex
 endif
 
 
