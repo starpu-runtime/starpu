@@ -15,6 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <datawizard/memory_manager.h>
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 #include <starpu_cuda.h>
@@ -772,8 +773,11 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 	switch(starpu_node_get_kind(dst_node))
 	{
 		case STARPU_CPU_RAM:
+		{
 			addr = (uintptr_t)malloc(size);
+			_starpu_memory_manager_add_size(size);
 			break;
+		}
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 #ifdef STARPU_SIMGRID
@@ -838,6 +842,7 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 #endif
 		case STARPU_CPU_RAM:
 			free((void*)addr);
+			_starpu_memory_manager_add_size(-size);
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
