@@ -613,7 +613,11 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology *topology,
 {
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
+	{
 		_starpu_destroy_fifo(queue_array[workerid]);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&sched_mutex[workerid]);
+		_STARPU_PTHREAD_COND_DESTROY(&sched_cond[workerid]);
+	}
 
 	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", total_task_cnt, ready_task_cnt, (100.0f*ready_task_cnt)/total_task_cnt);
 }
