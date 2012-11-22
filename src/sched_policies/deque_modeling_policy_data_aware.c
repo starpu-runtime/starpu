@@ -142,7 +142,7 @@ static struct starpu_task *dmda_pop_ready_task(void)
 #ifdef STARPU_VERBOSE
 		if (task->cl)
 		{
-			int non_ready = count_non_ready_buffers(task, starpu_worker_get_memory_node(workerid));
+			int non_ready = count_non_ready_buffers(task, node);
 			if (non_ready == 0)
 				ready_task_cnt++;
 		}
