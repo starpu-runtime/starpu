@@ -228,7 +228,6 @@ int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRI
 	MSG_task_destroy(completion->task);
 	_STARPU_PTHREAD_MUTEX_LOCK(completion->mutex);
 	*completion->finished = 1;
-	fprintf(stderr, "transfer finished\n");
 	_STARPU_PTHREAD_COND_BROADCAST(completion->cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(completion->mutex);
 	free(completion);
@@ -244,7 +243,6 @@ void _starpu_simgrid_post_task(msg_task_t task, unsigned *finished, _starpu_pthr
 	completion->cond = cond;
 	xbt_dynar_t hosts = MSG_hosts_as_dynar();
 	MSG_process_create("transfer task", transfer_execute, completion, xbt_dynar_get_as(hosts, 0, msg_host_t));
-	fprintf(stderr,"process started\n");
 	xbt_dynar_free(&hosts);
 }
 
