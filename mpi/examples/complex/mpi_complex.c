@@ -18,6 +18,19 @@
 #include <interface/complex_interface.h>
 #include <interface/complex_codelet.h>
 
+void display_foo_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+{
+	int *foo = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	fprintf(stderr, "foo = %d\n", *foo);
+}
+
+struct starpu_codelet foo_display =
+{
+	.cpu_funcs = {display_foo_codelet, NULL},
+	.nbuffers = 1,
+	.modes = {STARPU_R}
+};
+
 int main(int argc, char **argv)
 {
 	int rank, nodes;
@@ -47,46 +60,49 @@ int main(int argc, char **argv)
 			double real2[2] = {14.0, 12.0};
 			double imaginary2[2] = {17.0, 19.0};
 			starpu_data_handle_t handle2;
-			MPI_Status status;
-
-			// We send a dummy variable only to check communication with predefined datatypes
-			int foo=12;
-			starpu_data_handle_t foo_handle;
 
 			int *compare_ptr = &compare;
 
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
-			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
-			starpu_mpi_send(handle, 1, 10, MPI_COMM_WORLD);
-
-			starpu_variable_data_register(&foo_handle, 0, (uintptr_t)&foo, sizeof(foo));
-			starpu_mpi_send(foo_handle, 1, 10, MPI_COMM_WORLD);
-
 			starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
-			starpu_mpi_recv(handle2, 1, 11, MPI_COMM_WORLD, &status);
+
+			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
+			starpu_mpi_isend_detached(handle, 1, 10, MPI_COMM_WORLD, NULL, NULL);
+			starpu_mpi_irecv_detached(handle2, 1, 20, MPI_COMM_WORLD, NULL, NULL);
+
 			starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
 			starpu_insert_task(&cl_compare, STARPU_R, handle, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
+
+			{
+			     // We send a dummy variable only to check communication with predefined datatypes
+			     int foo=12;
+			     starpu_data_handle_t foo_handle;
+			     starpu_variable_data_register(&foo_handle, 0, (uintptr_t)&foo, sizeof(foo));
+			     starpu_mpi_isend_detached(foo_handle, 1, 40, MPI_COMM_WORLD, NULL, NULL);
+			     starpu_insert_task(&foo_display, STARPU_R, foo_handle, 0);
+			}
 		}
 		else if (rank == 1)
 		{
 			double real[2] = {0.0, 0.0};
 			double imaginary[2] = {0.0, 0.0};
 			starpu_data_handle_t handle;
-			MPI_Status status;
-
-			// We send a dummy variable only to check communication with predefined datatypes
-			int foo=12;
-			starpu_data_handle_t foo_handle;
 
 			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
-			starpu_mpi_recv(handle, 0, 10, MPI_COMM_WORLD, &status);
-
+			starpu_mpi_irecv_detached(handle, 0, 10, MPI_COMM_WORLD, NULL, NULL);
 			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
+			starpu_mpi_isend_detached(handle, 0, 20, MPI_COMM_WORLD, NULL, NULL);
 
-			starpu_variable_data_register(&foo_handle, -1, (uintptr_t)NULL, sizeof(foo));
-			starpu_mpi_recv(foo_handle, 0, 10, MPI_COMM_WORLD, &status);
+			{
+			     // We send a dummy variable only to check communication with predefined datatypes
+			     int foo=12;
+			     starpu_data_handle_t foo_handle;
+			     MPI_Status status;
+			     starpu_variable_data_register(&foo_handle, -1, (uintptr_t)NULL, sizeof(foo));
+			     starpu_mpi_irecv_detached(foo_handle, 0, 40, MPI_COMM_WORLD, NULL, NULL);
+			     starpu_insert_task(&foo_display, STARPU_R, foo_handle, 0);
+			}
 
-			starpu_mpi_send(handle, 0, 11, MPI_COMM_WORLD);
 		}
 	}
 	starpu_task_wait_for_all();
