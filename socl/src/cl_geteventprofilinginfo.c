@@ -29,7 +29,7 @@ soclGetEventProfilingInfo(cl_event          event,
    if (prof == NULL)
       return CL_PROFILING_INFO_NOT_AVAILABLE;
 
-   #define TONANO(t) (t.tv_nsec + t.tv_sec*1e9)
+   #define TONANO(t) ((cl_ulong)t.tv_nsec + (cl_ulong)(t.tv_sec)*1e9)
 
    switch (param_name) {
       case CL_PROFILING_COMMAND_QUEUED:
