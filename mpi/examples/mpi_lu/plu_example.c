@@ -428,7 +428,7 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_mpi_init(NULL, NULL);
+	starpu_mpi_init(NULL, NULL, 0);
 
 	STARPU_ASSERT(p*q == world_size);
 

@@ -37,7 +37,7 @@ if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_TESTS)
 endif
 
-check_PROGRAMS = $(LOADER)
+check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
 
 BUILT_SOURCES =
 

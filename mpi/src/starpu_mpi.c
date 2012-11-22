@@ -705,6 +705,7 @@ static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
 
 struct _starpu_mpi_argc_argv
 {
+	int initialize_mpi;
 	int *argc;
 	char ***argv;
 };
@@ -734,11 +735,8 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 static void *_starpu_mpi_progress_thread_func(void *arg)
 {
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
-	int flag;
 
-	MPI_Initialized(&flag);
-	_STARPU_DEBUG("MPI_Initialized %d\n", flag);
-	if (flag == 0)
+	if (argc_argv->initialize_mpi)
 	{
 		int thread_support;
                 _STARPU_DEBUG("Calling MPI_Init_thread\n");
@@ -805,7 +803,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_ASSERT(_starpu_mpi_req_list_empty(new_requests));
         STARPU_ASSERT(posted_requests == 0);
 
-        if (flag == 0)
+	if (argc_argv->initialize_mpi)
 	{
                 _STARPU_MPI_DEBUG("Calling MPI_Finalize()\n");
                 MPI_Finalize();
@@ -859,7 +857,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 }
 
 static
-int _starpu_mpi_initialize(int *argc, char ***argv)
+int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 {
 	_STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
@@ -872,6 +870,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv)
         _STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
 
 	struct _starpu_mpi_argc_argv *argc_argv = malloc(sizeof(struct _starpu_mpi_argc_argv));
+	argc_argv->initialize_mpi = initialize_mpi;
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
 	_STARPU_PTHREAD_CREATE("MPI progress", &progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
@@ -898,21 +897,21 @@ int _starpu_mpi_initialize(int *argc, char ***argv)
 	return 0;
 }
 
-int starpu_mpi_init(int *argc, char ***argv)
+int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 {
-        return _starpu_mpi_initialize(argc, argv);
+        return _starpu_mpi_initialize(argc, argv, initialize_mpi);
 }
 
 int starpu_mpi_initialize(void)
 {
-        return _starpu_mpi_initialize(NULL, NULL);
+	return _starpu_mpi_initialize(NULL, NULL, 0);
 }
 
 int starpu_mpi_initialize_extended(int *rank, int *world_size)
 {
 	int ret;
 
-        ret = _starpu_mpi_initialize(NULL, NULL);
+        ret = _starpu_mpi_initialize(NULL, NULL, 1);
 	if (ret == 0)
 	{
 		_STARPU_DEBUG("Calling MPI_Comm_rank\n");
