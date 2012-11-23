@@ -96,12 +96,6 @@ static void heft_init(struct starpu_machine_topology *topology,
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		queue_array[workerid] = _starpu_create_fifo();
-		struct _starpu_fifo_taskq *fifo = queue_array[workerid];
-		
-		fifo->exp_start = starpu_timing_now();
-		fifo->exp_len = 0.0;
-		fifo->exp_end = fifo->exp_start;
-		fifo->ntasks = 0;
 
 		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
 		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
