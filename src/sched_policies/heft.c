@@ -283,9 +283,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 			exp_end[worker][nimpl] = fifo->exp_start + fifo->exp_len;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
 			if (exp_end[worker][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker][nimpl];
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
 
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 			unsigned memory_node = starpu_worker_get_memory_node(worker);
