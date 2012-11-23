@@ -432,13 +432,45 @@ visualize the task graph more easily.
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform. The idea is to first compile StarPU normally, and run the application,
-so as to automatically benchmark the bus and the codelets. Then, recompile
-StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
+so as to automatically benchmark the bus and the codelets.
+
+@cartouche
+@smallexample
+$ ./configure && make
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
+$ ...
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+TEST PASSED
+@end smallexample
+@end cartouche
+
+Note that we force to use the dmda scheduler to generate performance
+models for the application. The application may need to be run several
+times before the model is calibrated.
+
+Then, recompile StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
 application, specifying the requested number of devices:
 
 @cartouche
 @smallexample
-STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example
+$ ./configure --enable-simgrid && make
+$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
+TEST PASSED
+@end smallexample
+@end cartouche
+
+If the performance model is not calibrated enough, the following error
+message will be displayed
+
+@cartouche
+@smallexample
+$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
+[0.000000] [xbt_cfg/INFO] type in variable = 2
+[0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
+[starpu][_starpu_simgrid_execute_job][assert failure] Codelet matvecmult does not have a perfmodel, or is not calibrated enough
+$
 @end smallexample
 @end cartouche
 
@@ -450,6 +482,9 @@ parameter @code{--cfg=contexts/stack_size}, for example:
 
 @cartouche
 @smallexample
-STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
+$ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
+[0.000000] [xbt_cfg/INFO] type in variable = 2
+[0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
+TEST FAILED !!!
 @end smallexample
 @end cartouche
