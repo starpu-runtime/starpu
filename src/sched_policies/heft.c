@@ -207,7 +207,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	fifo->exp_end += predicted_transfer;
 	fifo->exp_len += predicted_transfer;
 
-	fifo->ntasks++;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
 
 	task->predicted = predicted;
