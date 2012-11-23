@@ -899,7 +899,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 
 	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
-	_starpu_mpi_tables_init(MPI_COMM_WORLD);
+	_starpu_mpi_cache_init(MPI_COMM_WORLD);
 	return 0;
 }
 
@@ -954,7 +954,7 @@ int starpu_mpi_shutdown(void)
 
 	_starpu_mpi_comm_amounts_display(rank);
 	_starpu_mpi_comm_amounts_free();
-	_starpu_mpi_tables_free(world_size);
+	_starpu_mpi_cache_free(world_size);
 
 	return 0;
 }
