@@ -83,7 +83,7 @@ int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nwork
 }
 
 /* get first nworkers with the highest idle time in the context */
-int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_archtype arch)
+int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
 {
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	struct policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
@@ -188,7 +188,7 @@ unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ct
 /* compute the number of workers that should be moved depending:
    - on the min/max number of workers in a context imposed by the user, 
    - on the resource granularity imposed by the user for the resizing process*/
-unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
+int _get_nworkers_to_move(unsigned req_sched_ctx)
 {
        	struct policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(req_sched_ctx);
@@ -241,7 +241,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 		ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{					
-		unsigned nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
+		int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
 		if(nworkers_to_move > 0)
 		{
 			unsigned poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -383,12 +383,12 @@ int _velocity_gap_btw_ctxs()
 }
 
 
-void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, double total_nw[ntypes_of_workers])
+void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers])
 {
 	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
 	int w;
 	for(w = 0; w < ntypes_of_workers; w++)
-		total_nw[w] = 0.0;
+		total_nw[w] = 0;
 
 	for(w = 0; w < current_nworkers; w++)
 	{

@@ -824,7 +824,7 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
-	CFLAGS="$CFLAGS -O0 -Werror"
+	CFLAGS="$CFLAGS -O0"
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
 	CFLAGS="-O3 $CFLAGS"

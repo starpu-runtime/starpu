@@ -20,13 +20,13 @@ struct bound_task_pool
 
 unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
 
-int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_archtype arch);
+int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch);
 
 int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch);
 
 unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ctx, enum starpu_archtype arch);
 
-unsigned _get_nworkers_to_move(unsigned req_sched_ctx);
+int _get_nworkers_to_move(unsigned req_sched_ctx);
 
 unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize, unsigned now);
 
@@ -38,4 +38,4 @@ double _get_velocity_per_worker_type(struct sched_ctx_wrapper* sc_w, enum starpu
 
 int _velocity_gap_btw_ctxs(void);
 
-void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, double total_nw[ntypes_of_workers]);
+void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);

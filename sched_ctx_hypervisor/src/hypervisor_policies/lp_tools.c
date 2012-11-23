@@ -3,7 +3,7 @@
 
 #ifdef HAVE_GLPK_H
 
-static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], double total_nw[nw])
+static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], int  total_nw[nw])
 {
 	int s, w;
 	glp_prob *lp;
@@ -272,7 +272,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 
 			if(w == 1)
 			{
-				unsigned nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch);
+				int nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch);
 				if(nworkers_ctx > res_rounded[s][w])
 				{
 					int nworkers_to_move = nworkers_ctx - res_rounded[s][w];
