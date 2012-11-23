@@ -570,10 +570,16 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
         _STARPU_MPI_LOG_IN();
 
 	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
-        if (req->request_type != BARRIER_REQ)
+        if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
 		if (req->needs_unpacking)
-			starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);
+		{
+			if (req->request_type == RECV_REQ)
+				// req->ptr is freed by starpu_handle_unpack_data
+				starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);
+			else
+				free(req->ptr);
+		}
 		else
 			MPI_Type_free(&req->datatype);
                 starpu_data_release(req->data_handle);
