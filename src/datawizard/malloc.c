@@ -166,7 +166,7 @@ static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, vo
 //}
 //#endif
 
-#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)) // || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID) // || defined(STARPU_USE_OPENCL)
 static struct starpu_perfmodel free_pinned_model =
 {
 	.type = STARPU_HISTORY_BASED,
