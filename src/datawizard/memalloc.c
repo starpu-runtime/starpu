@@ -83,7 +83,7 @@ static void lock_all_subtree(starpu_data_handle_t handle)
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 		{
-			lock_all_subtree(&handle->children[child]);
+			lock_all_subtree(handle->children[child]);
 		}
 	}
 }
@@ -104,7 +104,7 @@ static void unlock_all_subtree(starpu_data_handle_t handle)
 		for (i =0; i < handle->nchildren; i++)
 		{
 			unsigned child = handle->nchildren - 1 - i;
-			unlock_all_subtree(&handle->children[child]);
+			unlock_all_subtree(handle->children[child]);
 		}
 	}
 }
@@ -124,7 +124,7 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		unsigned res;
-		res = may_free_subtree(&handle->children[child], node);
+		res = may_free_subtree(handle->children[child], node);
 		if (!res) return 0;
 	}
 
@@ -208,8 +208,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 		{
-			transfer_subtree_to_node(&handle->children[child],
-							src_node, dst_node);
+			transfer_subtree_to_node(handle->children[child],
+						 src_node, dst_node);
 		}
 	}
 }

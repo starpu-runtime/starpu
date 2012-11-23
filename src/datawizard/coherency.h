@@ -126,7 +126,7 @@ struct _starpu_data_state
 	unsigned sibling_index; /* indicate which child this node is from the father's perpsective (if any) */
 	unsigned depth; /* what's the depth of the tree ? */
 
-	struct _starpu_data_state *children;
+	starpu_data_handle_t *children;
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
