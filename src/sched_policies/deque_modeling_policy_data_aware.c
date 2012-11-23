@@ -398,7 +398,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 			if (bundle)
 			{
-				STARPU_ABORT(); /* Not implemented yet. */
+				local_task_length[worker][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
+				local_data_penalty[worker][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+				local_power[worker][nimpl] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
 			}
 			else
 			{
@@ -540,11 +542,20 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		model_best = 0.0;
 		//penality_best = 0.0;
 	}
+	else if (task->bundle)
+	{
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(best);
+		unsigned memory_node = starpu_worker_get_memory_node(best);
+		model_best = starpu_task_expected_length(task, perf_arch, selected_impl);
+	}
 	else
 	{
 		model_best = local_task_length[best][selected_impl];
 		//penality_best = local_data_penalty[best][best_impl];
 	}
+
+	if (task->bundle)
+		starpu_task_bundle_remove(task->bundle, task);
 
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
