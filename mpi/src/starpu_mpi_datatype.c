@@ -131,7 +131,7 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype
 {
 	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
 
-	if (id <= STARPU_MULTIFORMAT_INTERFACE_ID)
+	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		handle_to_datatype_func func = handle_to_datatype_funcs[id];
 		STARPU_ASSERT(func);
