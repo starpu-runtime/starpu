@@ -431,7 +431,7 @@ void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_im
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is advised as well */
-		starpu_data_handle_t child_handle = handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
 			starpu_data_advise_as_important(child_handle, is_important);
 	}
@@ -451,7 +451,7 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, un
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure that the flags are applied to the children as well */
-		starpu_data_handle_t child_handle = handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
 			starpu_data_set_sequential_consistency_flag(child_handle, flag);
 	}

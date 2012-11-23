@@ -78,6 +78,9 @@ void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask)
 	{
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
-			starpu_data_set_wt_mask(handle->children[child], wt_mask);
+		{
+			starpu_data_handle_t handle_child = starpu_data_get_child(handle, child);
+			starpu_data_set_wt_mask(handle_child, wt_mask);
+		}
 	}
 }

@@ -36,3 +36,9 @@ int _starpu_memory_manager_add_size(size_t size)
      used_size += size;
      return 0;
 }
+
+int _starpu_memory_manager_sub_size(size_t size)
+{
+     used_size -= size;
+     return 0;
+}

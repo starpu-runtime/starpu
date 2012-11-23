@@ -83,7 +83,8 @@ static void lock_all_subtree(starpu_data_handle_t handle)
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 		{
-			lock_all_subtree(handle->children[child]);
+			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+			lock_all_subtree(child_handle);
 		}
 	}
 }
@@ -104,7 +105,8 @@ static void unlock_all_subtree(starpu_data_handle_t handle)
 		for (i =0; i < handle->nchildren; i++)
 		{
 			unsigned child = handle->nchildren - 1 - i;
-			unlock_all_subtree(handle->children[child]);
+			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+			unlock_all_subtree(child_handle);
 		}
 	}
 }
@@ -124,7 +126,8 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		unsigned res;
-		res = may_free_subtree(handle->children[child], node);
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+		res = may_free_subtree(child_handle, node);
 		if (!res) return 0;
 	}
 
@@ -208,8 +211,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 		{
-			transfer_subtree_to_node(handle->children[child],
-						 src_node, dst_node);
+			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+			transfer_subtree_to_node(child_handle, src_node, dst_node);
 		}
 	}
 }
@@ -842,7 +845,7 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 #endif
 		case STARPU_CPU_RAM:
 			free((void*)addr);
-			_starpu_memory_manager_add_size(-size);
+			_starpu_memory_manager_sub_size(size);
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:

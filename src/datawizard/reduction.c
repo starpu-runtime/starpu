@@ -34,7 +34,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure that the flags are applied to the children as well */
-		starpu_data_handle_t child_handle = handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
 			starpu_data_set_reduction_methods(child_handle, redux_cl, init_cl);
 	}

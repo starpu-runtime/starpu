@@ -228,18 +228,16 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	}
 }
 
-starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops)
+int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops)
 {
-	starpu_data_handle_t handle = (starpu_data_handle_t) calloc(1, sizeof(struct _starpu_data_state));
-
-	STARPU_ASSERT(handle);
+	unsigned node;
+	unsigned worker;
 
 	handle->ops = interface_ops;
 
 	size_t interfacesize = interface_ops->interface_size;
 
 	_starpu_memory_stats_init(handle);
-	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		_starpu_memory_stats_init_per_node(handle, node);
@@ -254,7 +252,6 @@ starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_o
 		STARPU_ASSERT(replicate->data_interface);
 	}
 
-	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -271,6 +268,14 @@ starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_o
 	handle->tag = -1;
 	handle->rank = -1;
 
+	return 0;
+}
+
+starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops)
+{
+	starpu_data_handle_t handle = (starpu_data_handle_t) calloc(1, sizeof(struct _starpu_data_state));
+	STARPU_ASSERT(handle);
+	_starpu_data_handle_init(handle, interface_ops);
 	return handle;
 }
 
@@ -278,8 +283,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
 				void *data_interface,
 				struct starpu_data_interface_ops *ops)
 {
-	starpu_data_handle_t handle =
-		_starpu_data_handle_allocate(ops);
+	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;

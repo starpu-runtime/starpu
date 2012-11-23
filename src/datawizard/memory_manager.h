@@ -22,5 +22,6 @@
 
 int _starpu_memory_manager_init();
 int _starpu_memory_manager_add_size(size_t size);
+int _starpu_memory_manager_sub_size(size_t size);
 
 #endif /* __MEMORY_MANAGER_H__ */

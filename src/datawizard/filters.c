@@ -40,7 +40,8 @@ static void map_filter(starpu_data_handle_t root_handle, struct starpu_data_filt
 		unsigned child;
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			map_filter(root_handle->children[child], f);
+			starpu_data_handle_t handle_child = starpu_data_get_child(root_handle, child);
+			map_filter(handle_child, f);
 		}
 	}
 }
@@ -74,8 +75,7 @@ int starpu_data_get_nb_children(starpu_data_handle_t handle)
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)
 {
 	STARPU_ASSERT(i < handle->nchildren);
-
-	return handle->children[i];
+	return &handle->children[i];
 }
 
 /*
@@ -105,7 +105,7 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 
 		STARPU_ASSERT(next_child < current_handle->nchildren);
 
-		current_handle = current_handle->children[next_child];
+		current_handle = &current_handle->children[next_child];
 	}
 
 	return current_handle;
@@ -278,7 +278,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
-		starpu_data_handle_t child_handle = root_handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 
 		/* make sure the intermediate children is unpartitionned as well */
 		if (child_handle->nchildren > 0)
@@ -316,7 +316,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		_starpu_spin_lock(&child_handle->header_lock);
 
-		_starpu_data_free_interfaces(root_handle->children[child]);
+		_starpu_data_free_interfaces(child_handle);
 		_starpu_data_requester_list_delete(child_handle->req_list);
 		_starpu_data_requester_list_delete(child_handle->reduction_req_list);
 	}
@@ -343,7 +343,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			struct _starpu_data_replicate *local = &root_handle->children[child]->per_node[node];
+			starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
+			struct _starpu_data_replicate *local = &child_handle->per_node[node];
 
 			if (local->state == STARPU_INVALID)
 			{
@@ -353,7 +354,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 			if (local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
-				_starpu_request_mem_chunk_removal(root_handle->children[child], node, 1);
+				_starpu_request_mem_chunk_removal(child_handle, node, 1);
 		}
 
 		if (!root_handle->per_node[node].allocated)
@@ -384,7 +385,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
-		starpu_data_handle_t child_handle = root_handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_spin_unlock(&child_handle->header_lock);
 	}
 
@@ -400,7 +401,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 /* each child may have his own interface type */
 static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f)
 {
-	handle->children = (struct _starpu_data_state **) calloc(nchildren, sizeof(struct _starpu_data_state *));
+	handle->children = (struct _starpu_data_state *) calloc(nchildren, sizeof(struct _starpu_data_state));
 	STARPU_ASSERT(handle->children);
 
 	unsigned node;
@@ -411,6 +412,7 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 
 	for (child = 0; child < nchildren; child++)
 	{
+		starpu_data_handle_t handle_child;
 		struct starpu_data_interface_ops *ops;
 
 		/* what's this child's interface ? */
@@ -419,7 +421,8 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 		else
 		  ops = handle->ops;
 
-		starpu_data_handle_t handle_child = _starpu_data_handle_allocate(ops);
+		handle_child = &handle->children[child];
+		_starpu_data_handle_init(handle_child, ops);
 
 		size_t interfacesize = ops->interface_size;
 
@@ -439,7 +442,6 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 		}
 
 		handle_child->mf_node = handle->mf_node;
-		handle->children[child] = handle_child;
 	}
 
 	/* this handle now has children */
