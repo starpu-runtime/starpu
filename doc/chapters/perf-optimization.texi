@@ -456,9 +456,12 @@ application, specifying the requested number of devices:
 @smallexample
 $ ./configure --enable-simgrid && make
 $ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
-TEST PASSED
+TEST FAILED !!!
 @end smallexample
 @end cartouche
+
+It is normal that the test fails: since the computation are not actually done
+(that is the whole point of simgrid), the result is wrong, of course.
 
 If the performance model is not calibrated enough, the following error
 message will be displayed
