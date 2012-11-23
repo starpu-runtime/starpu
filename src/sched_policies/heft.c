@@ -438,6 +438,9 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 			task->priority = 0;
 		}
 
+		if (task->bundle)
+			starpu_task_bundle_remove(task->bundle, task);
+
 		return push_task_on_best_worker(task, forced_worker, 0.0, 0.0);
 	}
 
