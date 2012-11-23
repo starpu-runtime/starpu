@@ -64,7 +64,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 	for(i=0 ; i<nb_nodes ; i++) _cache_received_data[i] = NULL;
 }
 
-void _starpu_mpi_cache_free(int world_size)
+void _starpu_mpi_cache_empty_tables(int world_size)
 {
 	int i;
 
@@ -86,8 +86,50 @@ void _starpu_mpi_cache_free(int world_size)
 			free(entry);
 		}
 	}
+}
+
+void _starpu_mpi_cache_free(int world_size)
+{
+	if (_cache_enabled == 0) return;
+
+	_starpu_mpi_cache_empty_tables(world_size);
 	free(_cache_sent_data);
 	free(_cache_received_data);
+}
+
+void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
+{
+	int nb_nodes;
+
+	if (_cache_enabled == 0) return;
+
+	MPI_Comm_size(comm, &nb_nodes);
+	_starpu_mpi_cache_empty_tables(nb_nodes);
+}
+
+void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
+{
+	struct _starpu_data_entry *avail;
+	int i, nb_nodes;
+
+	if (_cache_enabled == 0) return;
+
+	MPI_Comm_size(comm, &nb_nodes);
+	for(i=0 ; i<nb_nodes ; i++)
+	{
+		HASH_FIND_PTR(_cache_sent_data[i], &data_handle, avail);
+		if (avail)
+		{
+			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			HASH_DEL(_cache_sent_data[i], avail);
+		}
+		HASH_FIND_PTR(_cache_received_data[i], &data_handle, avail);
+		if (avail)
+		{
+			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			HASH_DEL(_cache_received_data[i], avail);
+		}
+	}
 }
 
 static

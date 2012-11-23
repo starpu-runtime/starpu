@@ -66,6 +66,10 @@ int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_
 
 /* retrieve the current amount of communications from the current node */
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
+
+void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
+void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
+
 #ifdef __cplusplus
 }
 #endif
