@@ -195,6 +195,7 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtyp
 
 	if (isnan(length))
 	{
+		length = starpu_task_expected_length(task, perf_arch, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
 			"Codelet %s does not have a perfmodel, or is not calibrated enough",
 			_starpu_job_get_model_name(j));
