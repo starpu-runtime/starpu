@@ -108,11 +108,11 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 	gettimeofday(&end_time, NULL);
 
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
-        long diff_us = end_time.tv_usec  - start_time.tv_usec;
+	long diff_us = end_time.tv_usec  - start_time.tv_usec;
+	
+	float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
-        float timing = (float)(diff_s*1000000 + diff_us)/1000;
-
-        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
+//        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
 
 	return found_sol;
 }

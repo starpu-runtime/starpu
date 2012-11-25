@@ -44,24 +44,10 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 
 			float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
-			fprintf(stdout, "total time: %f ms \n", timing);
-
 			if(vmax != 0.0)
 			{
-//				printf("********resize\n");
-/* 			for( i = 0; i < nsched_ctxs; i++) */
-/* 			{ */
-/* 				printf("ctx %d/worker type %d: n = %lf \n", i, 0, res[i][0]); */
-/* 				printf("ctx %d/worker type %d: n = %lf \n", i, 1, res[i][1]); */
-/* 			} */
 				int nworkers_rounded[nsched_ctxs][2];
-				_lp_round_double_to_int(nsched_ctxs, 2, nworkers, nworkers_rounded);
-  /*     		for( i = 0; i < nsched_ctxs; i++) */
-/* 			{ */
-/* 				printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]); */
-/* 				printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]); */
-/* 			} */
-				
+				_lp_round_double_to_int(nsched_ctxs, 2, nworkers, nworkers_rounded);				
 				_lp_redistribute_resources_in_ctxs(nsched_ctxs, 2, nworkers_rounded, nworkers);
 			}
 			pthread_mutex_unlock(&act_hypervisor_mutex);
