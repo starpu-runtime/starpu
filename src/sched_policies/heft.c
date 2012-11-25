@@ -354,39 +354,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	*max_exp_endp = max_exp_end;
 }
 
-static int push_conversion_tasks(struct starpu_task *task, unsigned int workerid)
-{
-	unsigned i;
-	int ret;
-	unsigned int node = starpu_worker_get_memory_node(workerid);
-
-	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
-	for (i = 0; i < task->cl->nbuffers; i++)
-	{
-		struct starpu_task *conversion_task;
-		starpu_data_handle_t handle;
-
-		handle = task->handles[i];
-		if (!_starpu_handle_needs_conversion_task(handle, node))
-			continue;
-
-		conversion_task = _starpu_create_conversion_task(handle, node);
-		conversion_task->execute_on_a_specific_worker = 1;
-		conversion_task->workerid = workerid;
-		conversion_task->mf_skip = 1;
-		handle->mf_node = node;
-		ret = _starpu_task_submit_conversion_task(conversion_task, workerid);
-		STARPU_ASSERT(ret == 0);
-	}
-
-	task->execute_on_a_specific_worker = 1;
-	task->workerid = workerid;
-	task->mf_skip= 1;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
-
-	return 0;
-}
-
 static int _heft_push_task(struct starpu_task *task, unsigned prio)
 {
 	unsigned worker, nimpl;
@@ -421,15 +388,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	if (forced_worker != -1)
 	{
 		_starpu_get_job_associated_to_task(task)->nimpl = forced_impl;
-
-		if (_starpu_task_uses_multiformat_handles(task) && !task->mf_skip)
-		{
-			/*
-			 * Our task uses multiformat handles, which may need to be converted.
-			 */
-			push_conversion_tasks(task, forced_worker);
-			task->priority = 0;
-		}
 
 		if (task->bundle)
 			starpu_task_bundle_remove(task->bundle, task);
@@ -506,15 +464,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 
 
 	_starpu_get_job_associated_to_task(task)->nimpl = selected_impl;
-
-	if (_starpu_task_uses_multiformat_handles(task) && !task->mf_skip)
-	{
-		/*
-		 * Our task uses multiformat handles, which may need to be converted.
-		 */
-		push_conversion_tasks(task, forced_worker);
-		task->priority = 0;
-	}
 
 	return push_task_on_best_worker(task, best, model_best, transfer_model_best);
 }
