@@ -238,6 +238,7 @@ AC_ARG_ENABLE([sched_ctx_hypervisor],
   [enable_sched_ctx_hypervisor="yes"],
   [enable_sched_ctx_hypervisor="no"])
 
+#for pkgconfig
 AC_SUBST(STARPU_SCHED_CTX_HYPERVISOR)
 if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
   AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sched_ctx_hypervisor lib])

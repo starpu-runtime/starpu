@@ -17,8 +17,6 @@
 #ifndef STARPU_SCHED_CTX_HYPERVISOR_H
 #define STARPU_SCHED_CTX_HYPERVISOR_H
 
-#define STARPU_ARCHTYPE_DEFAULT_VALUE -1
-
 #include <starpu.h>
 #include <pthread.h>
 

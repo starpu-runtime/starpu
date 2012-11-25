@@ -1137,7 +1137,6 @@ enum starpu_archtype starpu_worker_get_type(int id)
 int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
-
 	int cnt = 0;
 
 	unsigned id;
