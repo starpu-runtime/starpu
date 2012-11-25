@@ -410,7 +410,7 @@ void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned
 {
 	if(nworkers_to_add > 0 && hypervisor.resize[sched_ctx])
 	{
-		int j;
+/* 		int j; */
 /* 		printf("add to ctx %d:", sched_ctx); */
 /* 		for(j = 0; j < nworkers_to_add; j++) */
 /* 			printf(" %d", workers_to_add[j]); */
