@@ -585,7 +585,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
-	_starpu_data_free_interfaces(handle);
 
 	/* Destroy the data now */
 	unsigned node;
@@ -595,6 +594,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		_starpu_request_mem_chunk_removal(handle, node, 1);
 	}
 
+	_starpu_data_free_interfaces(handle);
 	_starpu_memory_stats_free(handle);
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
