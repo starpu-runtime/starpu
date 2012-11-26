@@ -317,6 +317,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 		_starpu_spin_lock(&child_handle->header_lock);
 
 		_starpu_data_free_interfaces(child_handle);
+		_starpu_memory_stats_free(child_handle);
 		_starpu_data_requester_list_delete(child_handle->req_list);
 		_starpu_data_requester_list_delete(child_handle->reduction_req_list);
 	}
