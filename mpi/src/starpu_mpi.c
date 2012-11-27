@@ -254,6 +254,7 @@ static void _starpu_mpi_irecv_size_callback(void *arg)
 
 	starpu_data_unregister(callback->handle);
 	callback->req->ptr = malloc(callback->req->count);
+	STARPU_ASSERT(callback->req->ptr);
 	_starpu_mpi_irecv_data_func(callback->req);
 	free(callback);
 }
