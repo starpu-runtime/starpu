@@ -121,10 +121,15 @@ static void test_cleaner(int sig)
 	exit(EXIT_FAILURE);
 }
 
-static void decode(char **src, char *motif, char *value)
+static void decode(char **src, char *motif, const char *value)
 {
      if (*src) {
 	  char *y = strstr(*src, motif);
+	  if (y && value == NULL)
+	  {
+	       fprintf(stderr, "error: $%s undefined\n", motif);
+	       exit(EXIT_FAILURE);
+	  }
 	  while (y) {
 	       char *neo = malloc((strlen(*src)-strlen(motif)+strlen(value)) * sizeof(char));
 	       char *to = neo;
@@ -147,7 +152,6 @@ int main(int argc, char *argv[])
 	int   status;
 	char *launcher;
 	char *launcher_args;
-	char *top_srcdir;
 	struct sigaction sa;
 	int   ret;
 	struct timeval start;
@@ -184,8 +188,6 @@ int main(int argc, char *argv[])
 	/* get launcher program */
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
-	top_srcdir = getenv("top_srcdir");
-	decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))
@@ -216,6 +218,7 @@ int main(int argc, char *argv[])
 			 * after the Libtool-generated wrapper scripts, hence
 			 * this special-case.  */
 			const char *top_builddir = getenv ("top_builddir");
+			const char *top_srcdir = getenv("top_srcdir");
 			if (top_builddir != NULL)
 			{
 				char *argv[100];
@@ -224,6 +227,8 @@ int main(int argc, char *argv[])
 					     + sizeof("libtool") + 1];
 				strcpy(libtool, top_builddir);
 				strcat(libtool, "/libtool");
+
+				decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
 				argv[0] = libtool;
 				argv[1] = "--mode=execute";
