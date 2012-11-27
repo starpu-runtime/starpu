@@ -27,7 +27,7 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	STARPU_ATTRIBUTE_INTERNAL;
 
 extern
-int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops);
+int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node);
 
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
 extern int _starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL;

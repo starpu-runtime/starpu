@@ -228,12 +228,13 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	}
 }
 
-int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops)
+int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
 	unsigned node;
 	unsigned worker;
 
 	handle->ops = interface_ops;
+	handle->mf_node = mf_node;
 
 	size_t interfacesize = interface_ops->interface_size;
 
@@ -271,23 +272,23 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	return 0;
 }
 
-starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops)
+static
+starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
 	starpu_data_handle_t handle = (starpu_data_handle_t) calloc(1, sizeof(struct _starpu_data_state));
 	STARPU_ASSERT(handle);
-	_starpu_data_handle_init(handle, interface_ops);
+	_starpu_data_handle_init(handle, interface_ops, mf_node);
 	return handle;
 }
 
 void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
-				void *data_interface,
-				struct starpu_data_interface_ops *ops)
+			  void *data_interface,
+			  struct starpu_data_interface_ops *ops)
 {
-	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops);
+	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops, home_node);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
-	handle->mf_node = home_node;
 
 	int asynchronous_copy_disabled = starpu_asynchronous_copy_disabled();
 	if (STARPU_UNLIKELY(asynchronous_copy_disabled))

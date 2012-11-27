@@ -419,8 +419,7 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 		  ops = handle->ops;
 
 		handle_child = &handle->children[child];
-		_starpu_data_handle_init(handle_child, ops);
-		handle_child->mf_node = handle->mf_node;
+		_starpu_data_handle_init(handle_child, ops, handle->mf_node);
 	}
 
 	/* this handle now has children */
