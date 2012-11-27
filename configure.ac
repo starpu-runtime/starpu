@@ -189,6 +189,7 @@ AC_ARG_ENABLE(quick-check, [AS_HELP_STRING([--enable-quick-check],
 if  test x$enable_quick_check = xyes; then
 	AC_DEFINE(STARPU_QUICK_CHECK, [1], [enable quick check])
 fi
+AM_CONDITIONAL([STARPU_QUICK_CHECK], [test "x$enable_quick_check" = "xyes"])
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
