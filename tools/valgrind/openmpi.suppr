@@ -1,0 +1,8 @@
+{
+   orterun
+   Memcheck:Leak
+   ...
+   fun:orterun
+   ...
+}
+
