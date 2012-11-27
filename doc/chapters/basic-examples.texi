@@ -7,10 +7,10 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Compiling and linking options::  
+* Compiling and linking options::
 * Hello World::                 Submitting Tasks
-* Vector Scaling Using the C Extension::  
-* Vector Scaling Using StarPu's API::  
+* Vector Scaling Using the C Extension::
+* Vector Scaling Using StarPu's API::
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 @end menu
 
@@ -52,8 +52,8 @@ to StarPU. You can either use the StarPU C extension (@pxref{C
 Extensions}) or directly use the StarPU's API.
 
 @menu
-* Hello World using the C Extension::  
-* Hello World using StarPU's API::  
+* Hello World using the C Extension::
+* Hello World using StarPU's API::
 @end menu
 
 @node Hello World using the C Extension
@@ -116,10 +116,10 @@ The remainder of this section shows how to achieve the same result using
 StarPU's standard C API.
 
 @menu
-* Required Headers::            
-* Defining a Codelet::          
-* Submitting a Task::           
-* Execution of Hello World::    
+* Required Headers::
+* Defining a Codelet::
+* Submitting a Task::
+* Execution of Hello World::
 @end menu
 
 @node Required Headers
@@ -306,8 +306,8 @@ example using StarPU's API is given in the next sections.
 
 
 @menu
-* Adding an OpenCL Task Implementation::  
-* Adding a CUDA Task Implementation::  
+* Adding an OpenCL Task Implementation::
+* Adding a CUDA Task Implementation::
 @end menu
 
 The simplest way to get started writing StarPU programs is using the C
@@ -576,7 +576,7 @@ this example is given in @ref{Full source code for the 'Scaling a
 Vector' example}.
 
 @menu
-* Source Code of Vector Scaling::  
+* Source Code of Vector Scaling::
 * Execution of Vector Scaling::  Running the program
 @end menu
 
@@ -701,10 +701,10 @@ Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 @menu
-* Definition of the CUDA Kernel::  
-* Definition of the OpenCL Kernel::  
-* Definition of the Main Code::  
-* Execution of Hybrid Vector Scaling::  
+* Definition of the CUDA Kernel::
+* Definition of the OpenCL Kernel::
+* Definition of the Main Code::
+* Execution of Hybrid Vector Scaling::
 @end menu
 
 @node Definition of the CUDA Kernel

@@ -7,8 +7,8 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Setting flags for compiling and linking applications::  
-* Running a basic StarPU application::  
+* Setting flags for compiling and linking applications::
+* Running a basic StarPU application::
 * Kernel threads started by StarPU::
 * Enabling OpenCL::
 @end menu
@@ -111,4 +111,3 @@ so:
 @example
 % STARPU_NCUDA=2 ./application
 @end example
-

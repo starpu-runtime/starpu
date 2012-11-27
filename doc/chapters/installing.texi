@@ -7,9 +7,9 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Downloading StarPU::          
-* Configuration of StarPU::     
-* Building and Installing StarPU::  
+* Downloading StarPU::
+* Configuration of StarPU::
+* Building and Installing StarPU::
 @end menu
 
 StarPU can be built and installed by the standard means of the GNU
@@ -20,8 +20,8 @@ can be used to install StarPU.
 @section Downloading StarPU
 
 @menu
-* Getting Sources::             
-* Optional dependencies::       
+* Getting Sources::
+* Optional dependencies::
 @end menu
 
 @node Getting Sources
@@ -69,8 +69,8 @@ of hwloc.
 @section Configuration of StarPU
 
 @menu
-* Generating Makefiles and configuration scripts::  
-* Running the configuration::   
+* Generating Makefiles and configuration scripts::
+* Running the configuration::
 @end menu
 
 @node Generating Makefiles and configuration scripts
@@ -99,9 +99,9 @@ Details about options that are useful to give to @code{./configure} are given in
 @section Building and Installing StarPU
 
 @menu
-* Building::                    
-* Sanity Checks::               
-* Installing::                  
+* Building::
+* Sanity Checks::
+* Installing::
 @end menu
 
 @node Building

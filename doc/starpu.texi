@@ -81,7 +81,7 @@ was last updated on @value{UPDATED}.
 * StarPU Basic API::            The Basic API to use StarPU
 * StarPU Advanced API::         Advanced use of StarPU
 * Configuring StarPU::          How to configure StarPU
-* Full source code for the 'Scaling a Vector' example::  
+* Full source code for the 'Scaling a Vector' example::
 * GNU Free Documentation License::  How you can copy and share this manual.
 
 * Concept Index::               Index of programming concepts.

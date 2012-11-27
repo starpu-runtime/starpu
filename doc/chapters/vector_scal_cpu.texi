@@ -51,7 +51,7 @@ void scal_sse_func(void *buffers[], void *cl_arg)
     float factor = *(float *) cl_arg;
     FACTOR = _mm_set1_ps(factor);
 
-    unsigned int i;	
+    unsigned int i;
     for (i = 0; i < n_iterations; i++)
         VECTOR[i] = _mm_mul_ps(FACTOR, VECTOR[i]);
 

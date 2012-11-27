@@ -7,8 +7,8 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Compilation configuration::   
-* Execution configuration through environment variables::  
+* Compilation configuration::
+* Execution configuration through environment variables::
 @end menu
 
 @node Compilation configuration
@@ -17,10 +17,10 @@
 The following arguments can be given to the @code{configure} script.
 
 @menu
-* Common configuration::        
-* Configuring workers::         
-* Extension configuration::     
-* Advanced configuration::      
+* Common configuration::
+* Configuring workers::
+* Extension configuration::
+* Advanced configuration::
 @end menu
 
 @node Common configuration

@@ -20,11 +20,11 @@ distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
 @menu
-* The API::                     
-* Simple Example::              
-* Exchanging User Defined Data Interface::  
-* MPI Insert Task Utility::     
-* MPI Collective Operations::   
+* The API::
+* Simple Example::
+* Exchanging User Defined Data Interface::
+* MPI Insert Task Utility::
+* MPI Collective Operations::
 @end menu
 
 @node The API
@@ -592,5 +592,3 @@ for(x = 0; x < nblocks ;  x++) @{
 starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
 @end smallexample
 @end cartouche
-
-

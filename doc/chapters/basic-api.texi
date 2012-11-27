@@ -1029,7 +1029,7 @@ Return a pointer to the non-zero values of the matrix designated by @var{interfa
 
 @defmac STARPU_BCSR_GET_NZVAL_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the array of non-zero values in the matrix designated
-by @var{interface}. The offset documented below has to be used in addition to 
+by @var{interface}. The offset documented below has to be used in addition to
 this.
 @end defmac
 
@@ -1104,7 +1104,7 @@ Return a pointer to the non-zero values of the matrix designated by @var{interfa
 
 @defmac STARPU_CSR_GET_NZVAL_DEV_HANDLE ({void *}@var{interface})
 Return a device handle for the array of non-zero values in the matrix designated
-by @var{interface}. The offset documented below has to be used in addition to 
+by @var{interface}. The offset documented below has to be used in addition to
 this.
 @end defmac
 
@@ -1344,7 +1344,7 @@ vector represented by @var{father_interface} once partitioned in
 @deftypefun void starpu_block_shadow_filter_func_vector (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
 Return in @code{*@var{child_interface}} the @var{id}th element of the
 vector represented by @var{father_interface} once partitioned in
-@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}, thus getting a vector of size (n-2*shadow)/nparts+2*shadow 
+@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}, thus getting a vector of size (n-2*shadow)/nparts+2*shadow
 
 The @code{filter_arg_ptr} field must be the shadow size casted into @code{void*}.
 
@@ -1544,7 +1544,7 @@ e.g. static storage case.
 @item @code{uint32_t where} (optional)
 Indicates which types of processing units are able to execute the
 codelet. The different values
-@code{STARPU_CPU}, @code{STARPU_CUDA}, 
+@code{STARPU_CPU}, @code{STARPU_CUDA},
 @code{STARPU_OPENCL} can be combined to specify
 on which types of processing units the codelet can be executed.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
@@ -2772,4 +2772,3 @@ This function blocks until the function has been executed on every appropriate
 processing units, so that it may not be called from a callback function for
 instance.
 @end deftypefun
-

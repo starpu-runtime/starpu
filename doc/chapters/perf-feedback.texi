@@ -11,9 +11,9 @@
 * On-line::                     On-line performance feedback
 * Off-line::                    Off-line performance feedback
 * Codelet performance::         Performance of codelets
-* Theoretical lower bound on execution time API::  
-* Memory feedback::             
-* Data statistics::        
+* Theoretical lower bound on execution time API::
+* Memory feedback::
+* Data statistics::
 @end menu
 
 @node Task debugger
@@ -108,7 +108,7 @@ because there is no task to execute at all (@code{sleeping_time}), and the
 number of tasks that were executed while profiling was enabled.
 These values give an estimation of the proportion of time spent do real work,
 and the time spent either sleeping because there are not enough executable
-tasks or simply wasted in pure StarPU overhead. 
+tasks or simply wasted in pure StarPU overhead.
 
 Calling @code{starpu_worker_get_profiling_info} resets the profiling
 information associated to a worker.
@@ -119,7 +119,7 @@ generate a graphic showing the evolution of these values during the time, for
 the different workers.
 
 @node Bus feedback
-@subsection Bus-related feedback 
+@subsection Bus-related feedback
 
 TODO: ajouter STARPU_BUS_STATS
 
@@ -559,9 +559,3 @@ Synthetic GFlops : 44.21
 
 @c TODO: data transfer stats are similar to the ones displayed when
 @c setting STARPU_BUS_STATS
-
-
-
-
-
-

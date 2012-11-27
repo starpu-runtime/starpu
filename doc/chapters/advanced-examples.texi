@@ -9,13 +9,13 @@
 @menu
 * Using multiple implementations of a codelet::
 * Enabling implementation according to capabilities::
-* Task and Worker Profiling::   
+* Task and Worker Profiling::
 * Partitioning Data::
-* Performance model example::   
-* Theoretical lower bound on execution time::  
-* Insert Task Utility::          
-* Data reduction::  
-* Temporary buffers::  
+* Performance model example::
+* Theoretical lower bound on execution time::
+* Insert Task Utility::
+* Data reduction::
+* Temporary buffers::
 * Parallel Tasks::
 * Debugging::
 * The multiformat interface::
@@ -45,7 +45,7 @@ void scal_sse_func(void *buffers[], void *cl_arg)
     __m128 factor __attribute__((aligned(16)));
     factor = _mm_set1_ps(*(float *) cl_arg);
 
-    unsigned int i;    
+    unsigned int i;
     for (i = 0; i < n_iterations; i++)
         VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
 @}
