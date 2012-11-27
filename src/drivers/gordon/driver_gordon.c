@@ -204,6 +204,7 @@ static void gordon_callback_list_func(void *arg)
 	{
 		struct _starpu_job *j = _starpu_job_list_pop_back(wrapper_list);
 
+#ifndef STARPU_SIMGRID
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
 		struct starpu_perfmodel *model = j->task->cl->model;
 		if (model && model->benchmarking)
@@ -213,6 +214,7 @@ static void gordon_callback_list_func(void *arg)
 
 			_starpu_update_perfmodel_history(j, j->task->cl->model, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
+#endif
 
 		_starpu_push_task_output(j, 0);
 		_starpu_handle_job_termination(j);
