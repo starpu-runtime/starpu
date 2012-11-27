@@ -405,11 +405,7 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 	handle->children = (struct _starpu_data_state *) calloc(nchildren, sizeof(struct _starpu_data_state));
 	STARPU_ASSERT(handle->children);
 
-	unsigned node;
-	unsigned worker;
 	unsigned child;
-
-	unsigned nworkers = starpu_worker_get_count();
 
 	for (child = 0; child < nchildren; child++)
 	{
@@ -424,24 +420,6 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 
 		handle_child = &handle->children[child];
 		_starpu_data_handle_init(handle_child, ops);
-
-		size_t interfacesize = ops->interface_size;
-
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			/* relaxed_coherency = 0 */
-			handle_child->per_node[node].handle = handle_child;
-			handle_child->per_node[node].data_interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_node[node].data_interface);
-		}
-
-		for (worker = 0; worker < nworkers; worker++)
-		{
-			handle_child->per_worker[worker].handle = handle_child;
-			handle_child->per_worker[worker].data_interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_worker[worker].data_interface);
-		}
-
 		handle_child->mf_node = handle->mf_node;
 	}
 
