@@ -61,3 +61,19 @@
    fun:orte_ess_base_app_setup
    ...
 }
+
+{
+   mca_base_components_open
+   Memcheck:Leak
+   ...
+   fun:mca_base_components_open
+   ...
+}
+
+{
+   ompi_mpi_finalize
+   Memcheck:Leak
+   ...
+   fun:ompi_mpi_finalize
+   ...
+}
