@@ -239,7 +239,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	if (regenerate)
 	{
-		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached, and not have detroy=1 or synchronous=1");
+		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
 
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) {

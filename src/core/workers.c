@@ -181,7 +181,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 		return func != 0;
 	}
 	default:
-		STARPU_ASSERT_MSG(0, "Unknown arch type");
+		STARPU_ASSERT_MSG(0, "Unknown arch type %d", arch);
 	}
 	return 0;
 }
