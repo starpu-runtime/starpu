@@ -137,6 +137,9 @@ int main(int argc, char **argv)
 	else
 		result = 1;
 
+	free(comm_amount_without_cache);
+	free(comm_amount_with_cache);
+
 	MPI_Finalize();
 	return !result;
 }
