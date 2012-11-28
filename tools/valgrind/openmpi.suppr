@@ -6,3 +6,58 @@
    ...
 }
 
+{
+   orte_init_addr
+   Memcheck:Addr8
+   ...
+   fun:orte_init
+   ...
+}
+
+{
+   orte_init_param
+   Memcheck:Param
+   ...
+   fun:orte_init
+   ...
+}
+
+{
+   orte_init_leak
+   Memcheck:Leak
+   ...
+   fun:orte_init
+   ...
+}
+
+{
+   ompi_mpi_init_param
+   Memcheck:Param
+   ...
+   fun:ompi_mpi_init
+   ...
+}
+
+{
+   ompi_mpi_init_leak
+   Memcheck:Leak
+   ...
+   fun:ompi_mpi_init
+   ...
+}
+
+{
+   mca_pml_base_open
+   Memcheck:Leak
+   ...
+   fun:mca_pml_base_open
+   ...
+}
+
+{
+   orte_ess_base_app_setup
+   Memcheck:Leak
+   ...
+   fun:orte_ess_base_app_setup
+   ...
+}
