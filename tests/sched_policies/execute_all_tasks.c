@@ -96,15 +96,24 @@ run(struct starpu_sched_policy *p)
 
 	starpu_task_wait_for_all();
 
+	ret = 0;
 	for (i = 0; i < NTASKS; i++)
 	{
 		struct _starpu_job *j = tasks[i]->starpu_private;
 		if (j == NULL || j->terminated == 0)
-			return 1;
+		{
+			ret = 1;
+			break;
+		}
+	}
+
+	for (i = 0; i < NTASKS; i++)
+	{
+		starpu_task_destroy(tasks[i]);
 	}
 
 	starpu_shutdown();
-	return 0;
+	return ret;
 }
 
 int
