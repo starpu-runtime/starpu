@@ -108,7 +108,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		starpu_vector_data_register(&vector_handle, 0, (uintptr_t)matrix, nx, sizeof(matrix[0]));
 		ret = starpu_insert_task(vector_codelet, STARPU_RW, vector_handle, 0);
 		starpu_data_unregister(vector_handle);
-		if (ret == -ENODEV) return ret;
+		if (ret == -ENODEV) goto end;
 	}
 	gettimeofday(&end, NULL);
 
@@ -123,7 +123,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix, nx/2, nx/2, 2, sizeof(matrix[0]));
 		ret = starpu_insert_task(matrix_codelet, STARPU_RW, matrix_handle, 0);
 		starpu_data_unregister(matrix_handle);
-		if (ret == -ENODEV) return ret;
+		if (ret == -ENODEV) goto end;
 	}
 	gettimeofday(&end, NULL);
 
@@ -148,13 +148,16 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 			}
 		}
 
-		return EXIT_SUCCESS;
+		ret = EXIT_SUCCESS;
 	}
 	else
 	{
 		FPRINTF(stderr, "Incorrect result nx=%7d --> mean=%7f != %7f\n", nx, matrix[0], mean);
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
 	}
+end:
+	free(matrix);
+	return ret;
 }
 
 #define NX_MIN 1024
