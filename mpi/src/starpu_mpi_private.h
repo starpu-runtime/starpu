@@ -77,7 +77,7 @@ LIST_TYPE(_starpu_mpi_req,
 	MPI_Datatype datatype;
 	void *ptr;
 	size_t count;
-	int needs_unpacking;
+	int user_datatype;
 
 	/* who are we talking to ? */
 	int srcdst;
