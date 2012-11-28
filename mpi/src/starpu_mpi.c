@@ -149,8 +149,8 @@ static void _starpu_mpi_isend_size_callback(void *arg)
 
 static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
-	req->user_datatype = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
-	if (!req->user_datatype)
+	_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
+	if (req->user_datatype == 0)
 	{
 		req->count = 1;
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
@@ -263,8 +263,8 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	req->user_datatype = starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
-	if (!req->user_datatype)
+	_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
+	if (req->user_datatype == 0)
 	{
 		req->count = 1;
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
@@ -573,7 +573,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
-		if (req->user_datatype)
+		if (req->user_datatype == 1)
 		{
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_handle_unpack_data

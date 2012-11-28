@@ -127,7 +127,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID]
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
-int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype, int *user_datatype)
 {
 	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
 
@@ -136,12 +136,12 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype
 		handle_to_datatype_func func = handle_to_datatype_funcs[id];
 		STARPU_ASSERT(func);
 		func(data_handle, datatype);
-		return 0;
+		*user_datatype = 0;
 	}
 	else
 	{
 		/* The datatype is not predefined by StarPU */
 		*datatype = MPI_BYTE;
-		return 1;
+		*user_datatype = 1;
 	}
 }
