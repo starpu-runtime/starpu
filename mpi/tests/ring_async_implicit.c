@@ -118,6 +118,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
+	starpu_data_unregister(token_handle);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
