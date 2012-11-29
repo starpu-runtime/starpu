@@ -28,6 +28,17 @@
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
 
+struct main_args {
+	int argc;
+	char **argv;
+};
+
+int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+{
+	struct main_args *args = MSG_process_get_data(MSG_process_self());
+	return starpu_main(args->argc, args->argv);
+}
+
 static void bus_name(struct starpu_conf *conf, char *s, size_t size, int num)
 {
 	if (!num)
@@ -176,7 +187,9 @@ int main(int argc, char **argv)
 	int nb = xbt_dynar_length(hosts);
 	for (i = 0; i < nb; i++)
 		MSG_host_set_data(xbt_dynar_get_as(hosts, i, msg_host_t), calloc(MAX_TSD, sizeof(void*)));
-	MSG_process_create("main", &starpu_main, NULL, xbt_dynar_get_as(hosts, 0, msg_host_t));
+
+	struct main_args args = { .argc = argc, .argv = argv };
+	MSG_process_create("main", &do_starpu_main, &args, xbt_dynar_get_as(hosts, 0, msg_host_t));
 	xbt_dynar_free(&hosts);
 
 	MSG_main();
