@@ -491,3 +491,8 @@ $ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_
 TEST FAILED !!!
 @end smallexample
 @end cartouche
+
+Note: of course, if the application uses @code{gettimeofday} to make its
+performance measurements, the real time will be used, which will be bogus. To
+get the simulated time, it has to use @code{starpu_timing_now} which returns the
+virtual timestamp in ms.
