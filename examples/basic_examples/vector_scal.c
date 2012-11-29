@@ -23,7 +23,6 @@
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <stdlib.h>
 #include <stdio.h>
