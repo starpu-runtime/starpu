@@ -254,7 +254,10 @@ static void _starpu_mpi_irecv_size_callback(void *arg)
 
 	starpu_data_unregister(callback->handle);
 	callback->req->ptr = malloc(callback->req->count);
-	STARPU_ASSERT(callback->req->ptr);
+#ifdef STARPU_DEVEL
+#warning TODO: in some cases, callback->req->count is incorrect, we need to fix that
+#endif
+	STARPU_ASSERT_MSG(callback->req->ptr, "cannot allocate message of size %ld\n", callback->req->count);
 	_starpu_mpi_irecv_data_func(callback->req);
 	free(callback);
 }
