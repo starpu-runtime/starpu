@@ -479,13 +479,13 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				xrank = i;
 			}
 		}
-		free(size_on_nodes);
 		if (xrank != -1)
 		{
 			_STARPU_MPI_DEBUG("Node %d is having the most R data\n", xrank);
 			do_execute = 1;
 		}
 	}
+	free(size_on_nodes);
 
 	STARPU_ASSERT_MSG(do_execute != -1, "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
@@ -494,7 +494,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (xrank == -1)
 		{
 			_STARPU_MPI_DEBUG("Different tasks are owning W data. Needs to specify which one is to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
-			free(size_on_nodes);
 			return -EINVAL;
 		}
 		else
@@ -695,7 +694,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	}
 
 	va_end(varg_list);
-	free(size_on_nodes);
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
