@@ -85,6 +85,9 @@ int main(int argc, char **argv)
 
 		test_handle(handle_var, &double_display, rank);
 		test_handle(handle_complex, &cl_display, rank);
+
+		starpu_data_unregister(handle_complex);
+		starpu_data_unregister(handle_var);
 	}
 	starpu_task_wait_for_all();
 	starpu_mpi_shutdown();

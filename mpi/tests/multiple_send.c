@@ -87,6 +87,11 @@ int main(int argc, char **argv)
         }
         FPRINTF(stderr, "[%d] All requests finished\n", rank);
 
+	starpu_data_unregister(send_handle[0]);
+	starpu_data_unregister(send_handle[1]);
+	starpu_data_unregister(recv_handle[0]);
+	starpu_data_unregister(recv_handle[1]);
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
