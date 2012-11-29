@@ -695,6 +695,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	}
 
 	va_end(varg_list);
+	free(size_on_nodes);
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
