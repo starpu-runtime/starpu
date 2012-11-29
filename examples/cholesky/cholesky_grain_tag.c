@@ -300,17 +300,17 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 
 int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	int ret;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	ret = cholesky_grain_rec(matA, size, ld, nblocks, nbigblocks, 0);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 

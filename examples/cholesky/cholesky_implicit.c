@@ -75,14 +75,14 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	unsigned i,j,k;
 
 	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	if (bound)
 		starpu_bound_start(0, 0);
@@ -135,9 +135,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	if (bound)
 		starpu_bound_stop();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
