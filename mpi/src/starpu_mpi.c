@@ -582,7 +582,9 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				free(req->ptr);
 		}
 		else
-			MPI_Type_free(&req->datatype);
+		{
+			_starpu_mpi_handle_free_datatype(req->data_handle, &req->datatype);
+		}
 		starpu_data_release(req->data_handle);
 	}
 
