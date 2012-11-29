@@ -155,14 +155,17 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 	if (combiner != MPI_COMBINER_NAMED)
 	{
 		array_of_ints = (int *) malloc(num_ints * sizeof(int));
-		array_of_adds = (MPI_Aint *) malloc(num_ints * sizeof(MPI_Aint));
-		array_of_datatypes = (MPI_Datatype *) malloc(num_ints * sizeof(MPI_Datatype));
+		array_of_adds = (MPI_Aint *) malloc(num_adds * sizeof(MPI_Aint));
+		array_of_datatypes = (MPI_Datatype *) malloc(num_datatypes * sizeof(MPI_Datatype));
 		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
 		for(i=0 ; i<num_datatypes ; i++)
 		{
 			_starpu_mpi_handle_free_complex_datatype(&array_of_datatypes[i]);
 		}
 		MPI_Type_free(datatype);
+		free(array_of_ints);
+		free(array_of_adds);
+		free(array_of_datatypes);
 	}
 }
 
