@@ -53,7 +53,9 @@ struct dev_timing
 {
 	int cpu_id;
 	double timing_htod;
+	double latency_htod;
 	double timing_dtoh;
+	double latency_dtoh;
 };
 
 /* TODO: measure latency */
@@ -69,16 +71,21 @@ static int nopencl = 0;
 #ifdef STARPU_USE_CUDA
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
+static double cudadev_latency_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
+static double cudadev_latency_dtoh[STARPU_MAXNODES] = {0.0};
 #ifdef HAVE_CUDA_MEMCPY_PEER
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
+static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 #ifdef STARPU_USE_OPENCL
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
+static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
+static double opencldev_latency_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 
@@ -169,6 +176,30 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
+	/* Measure upload latency */
+	gettimeofday(&start, NULL);
+	for (iter = 0; iter < NITER; iter++)
+	{
+		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyHostToDevice);
+		cudaThreadSynchronize();
+	}
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod = timing/NITER;
+
+	/* Measure download latency */
+	gettimeofday(&start, NULL);
+	for (iter = 0; iter < NITER; iter++)
+	{
+		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyHostToDevice);
+		cudaThreadSynchronize();
+	}
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh = timing/NITER;
+
 	/* Free buffers */
 	cudaFreeHost(h_buffer);
 	cudaFree(d_buffer);
@@ -249,6 +280,18 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 	cudadev_timing_dtod[src+1][dst+1] = timing/NITER/size;
+
+	/* Measure upload latency */
+	gettimeofday(&start, NULL);
+	for (iter = 0; iter < NITER; iter++)
+	{
+		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, 1);
+		cudaThreadSynchronize();
+	}
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	cudadev_latency_dtod[src+1][dst+1] = timing/NITER;
 
 	/* Free buffers */
 	cudaFree(d_buffer);
@@ -350,6 +393,30 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
+	/* Measure upload latency */
+	gettimeofday(&start, NULL);
+	for (iter = 0; iter < NITER; iter++)
+	{
+		err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
+                if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod = timing/NITER;
+
+	/* Measure download latency */
+	gettimeofday(&start, NULL);
+	for (iter = 0; iter < NITER; iter++)
+	{
+		err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
+                if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh = timing/NITER;
+
 	/* Free buffers */
 	err = clReleaseMemObject(d_buffer);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
@@ -418,7 +485,9 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 
 	unsigned *is_available_per_numa_node = NULL;
 	double *dev_timing_htod_per_numa_node = NULL;
+	double *dev_latency_htod_per_numa_node = NULL;
 	double *dev_timing_dtoh_per_numa_node = NULL;
+	double *dev_latency_dtoh_per_numa_node = NULL;
 
 	if (!no_node_obj_was_found)
 	{
@@ -427,9 +496,13 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 
 		dev_timing_htod_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
 		STARPU_ASSERT(dev_timing_htod_per_numa_node);
+		dev_latency_htod_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
+		STARPU_ASSERT(dev_latency_htod_per_numa_node);
 
 		dev_timing_dtoh_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
 		STARPU_ASSERT(dev_timing_dtoh_per_numa_node);
+		dev_latency_dtoh_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
+		STARPU_ASSERT(dev_latency_dtoh_per_numa_node);
 
 		memset(is_available_per_numa_node, 0, nnuma_nodes*sizeof(unsigned));
 	}
@@ -454,8 +527,12 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 				/* We reuse the previous numbers for that NUMA node */
 				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod =
 					dev_timing_htod_per_numa_node[numa_id];
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod =
+					dev_latency_htod_per_numa_node[numa_id];
 				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh =
 					dev_timing_dtoh_per_numa_node[numa_id];
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh =
+					dev_latency_dtoh_per_numa_node[numa_id];
 				continue;
 			}
 		}
@@ -476,8 +553,12 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 			/* Save the results for that NUMA node */
 			dev_timing_htod_per_numa_node[numa_id] =
 				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod;
+			dev_latency_htod_per_numa_node[numa_id] =
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod;
 			dev_timing_dtoh_per_numa_node[numa_id] =
 				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh;
+			dev_latency_dtoh_per_numa_node[numa_id] =
+				dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh;
 
 			is_available_per_numa_node[numa_id] = 1;
 		}
@@ -489,12 +570,15 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 	{
 		free(is_available_per_numa_node);
 		free(dev_timing_htod_per_numa_node);
+		free(dev_latency_htod_per_numa_node);
 		free(dev_timing_dtoh_per_numa_node);
+		free(dev_latency_dtoh_per_numa_node);
 	}
 #endif /* STARPU_HAVE_HWLOC */
 }
 
-static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_htod, double *dev_timing_dtoh,
+static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_htod, double *dev_latency_htod,
+                                                   double *dev_timing_dtoh, double *dev_latency_dtoh,
                                                    struct dev_timing *dev_timing_per_cpu, char *type)
 {
 	measure_bandwidth_between_cpus_and_dev(dev, dev_timing_per_cpu, type);
@@ -525,7 +609,9 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 	/* The results are sorted in a decreasing order, so that the best
 	 * measurement is currently the first entry. */
 	dev_timing_dtoh[dev+1] = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].timing_dtoh;
+	dev_latency_dtoh[dev+1] = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].latency_dtoh;
 	dev_timing_htod[dev+1] = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].timing_htod;
+	dev_latency_htod[dev+1] = dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+0].latency_htod;
 }
 #endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
@@ -575,7 +661,7 @@ static void benchmark_all_gpu_devices(void)
 	{
 		_STARPU_DISP("CUDA %d...\n", i);
 		/* measure bandwidth between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, "CUDA");
+		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_latency_htod, cudadev_timing_dtoh, cudadev_latency_dtoh, cudadev_timing_per_cpu, "CUDA");
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
@@ -594,7 +680,7 @@ static void benchmark_all_gpu_devices(void)
 	{
 		_STARPU_DISP("OpenCL %d...\n", i);
 		/* measure bandwith between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_timing_dtoh, opencldev_timing_per_cpu, "OpenCL");
+		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_latency_htod, opencldev_timing_dtoh, opencldev_latency_dtoh, opencldev_timing_per_cpu, "OpenCL");
 	}
 #endif
 
@@ -935,7 +1021,7 @@ static void write_bus_latency_file_content(void)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			double latency;
+			double latency = 0.0;
 
 			if ((src > maxnode) || (dst > maxnode))
 			{
@@ -949,7 +1035,25 @@ static void write_bus_latency_file_content(void)
 			else
 			{
 				/* µs */
-                                latency = ((src && dst)?2000.0:500.0);
+#ifdef STARPU_USE_CUDA
+#ifdef HAVE_CUDA_MEMCPY_PEER
+				if (src && src < ncuda && dst && dst <= ncuda)
+					latency = cudadev_latency_dtod[src][dst];
+				else
+#endif
+				{
+					if (src && src <= ncuda)
+						latency += cudadev_latency_dtoh[src];
+					if (dst && dst <= ncuda)
+						latency += cudadev_latency_htod[dst];
+				}
+#endif
+#ifdef STARPU_USE_OPENCL
+				if (src > ncuda)
+					latency += opencldev_latency_dtoh[src-ncuda];
+				if (dst > ncuda)
+					latency += opencldev_latency_htod[dst-ncuda];
+#endif
 			}
 
 			fprintf(f, "%f\t", latency);
@@ -1150,6 +1254,21 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
+
+		fprintf(f, "\n");
+	}
+	fprintf(f, "\n");
+
+	for (src = 0; src <= maxnode; src++)
+	{
+		if (!src)
+			fprintf(f, "RAM\t");
+		else if (src <= ncuda)
+			fprintf(f, "CUDA %d\t", src-1);
+		else
+			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+		for (dst = 0; dst <= maxnode; dst++)
+			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 
 		fprintf(f, "\n");
 	}
