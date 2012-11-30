@@ -82,8 +82,8 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 #ifdef STARPU_DEVEL
 #warning FIXME: better way to spinlock?
 #endif
-		/* Sleep for 10µs */
-		MSG_process_sleep(0.000010);
+		/* Sleep for 1µs */
+		MSG_process_sleep(0.000001);
 	}
 #else
 	int ret = pthread_spin_lock(&lock->lock);
