@@ -456,8 +456,10 @@ solve it immediately and get the optimized minimum, in ms. Its @code{integer}
 parameter allows to decide whether integer resolution should be computed
 and returned too.
 
-The @code{deps} parameter tells StarPU whether to take tasks and implicit data
-dependencies into account. It must be understood that the linear programming
+The @code{deps} parameter tells StarPU whether to take tasks, implicit data, and tag
+dependencies into account. Tags released in a callback or similar
+are not taken into account, only tags associated with a task are.
+It must be understood that the linear programming
 problem size is quadratic with the number of tasks and thus the time to solve it
 will be very long, it could be minutes for just a few dozen tasks. You should
 probably use @code{lp_solve -timeout 1 test.pl -wmps test.mps} to convert the
