@@ -76,6 +76,7 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
+#ifndef STARPU_SIMGRID
 	starpu_malloc((void **)&A, zdim*ydim*sizeof(TYPE));
 	starpu_malloc((void **)&B, xdim*zdim*sizeof(TYPE));
 	starpu_malloc((void **)&C, xdim*ydim*sizeof(TYPE));
@@ -104,6 +105,7 @@ static void init_problem_data(void)
 			C[j+i*ydim] = (TYPE)(0);
 		}
 	}
+#endif
 }
 
 static void partition_mult_data(void)
