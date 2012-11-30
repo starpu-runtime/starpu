@@ -93,6 +93,9 @@ int main(int argc, char **argv)
 	if (rank == 0 && (values[0] != 12 || values[1] != 144))
 		ret = EXIT_FAILURE;
 
+	starpu_data_unregister(data_handles[0]);
+	starpu_data_unregister(data_handles[1]);
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

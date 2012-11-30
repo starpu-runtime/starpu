@@ -132,6 +132,12 @@ int main(int argc, char **argv)
 
 	}
 
+	if (rank == 0 || rank == 1)
+	{
+	     starpu_data_unregister(block_handle);
+	     starpu_free(block);
+	}
+
 	FPRINTF(stdout, "Rank %d is done\n", rank);
 	fflush(stdout);
 

@@ -101,10 +101,10 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 		starpu_data_unregister(data_handles[i]);
         }
 
-	free(string);
 	starpu_mpi_comm_amounts_retrieve(comm_amount);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
+	free(string);
 }
 
 int main(int argc, char **argv)
