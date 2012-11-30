@@ -671,14 +671,11 @@ static void _starpu_mpi_test_detached_requests(void)
 		_STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 
 		if (flag)
+		{
 			_starpu_mpi_req_list_erase(detached_requests, req);
+			free(req);
+		}
 
-#ifdef STARPU_DEVEL
-#warning TODO fix memleak
-#endif
-		/* Detached requests are automatically allocated by the lib */
-		//if (req->detached)
-		//	free(req);
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
