@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
 		if ((loop % 2) == (rank%2))
 		{
-                        starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
 		}
 		else
 		{

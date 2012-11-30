@@ -31,16 +31,16 @@ struct starpu_codelet mycodelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
-        .nbuffers = 2,
+	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}
 };
 
 int main(int argc, char **argv)
 {
-        int rank, size, err;
-        int x[2];
-        int ret, i;
-        starpu_data_handle_t data_handles[2];
+	int rank, size, err;
+	int x[2];
+	int ret, i;
+	starpu_data_handle_t data_handles[2];
 	int values[2];
 
 	ret = starpu_init(NULL);
@@ -50,46 +50,47 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-        if (rank == 0)
+	if (rank == 0)
 	{
 		x[0] = 11;
 		starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x[0], sizeof(x[0]));
 		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
-        }
-        else if (rank == 1)
+	}
+	else if (rank == 1)
 	{
 		x[1] = 12;
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
 		starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&x[1], sizeof(x[1]));
-        }
+	}
 	else
 	{
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
 		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
-        }
+	}
 
 	starpu_data_set_rank(data_handles[0], 0);
 	starpu_data_set_tag(data_handles[0], 0);
 	starpu_data_set_rank(data_handles[1], 1);
 	starpu_data_set_tag(data_handles[1], 1);
 
-        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
-                                     STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
-                                     STARPU_EXECUTE_ON_DATA, data_handles[1],
+	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+				     STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+				     STARPU_EXECUTE_ON_DATA, data_handles[1],
 				     0);
-        assert(err == 0);
-        starpu_task_wait_for_all();
+	assert(err == 0);
+	starpu_task_wait_for_all();
 
-        for(i=0 ; i<2 ; i++)
+	for(i=0 ; i<2 ; i++)
 	{
-                starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], 0, NULL, NULL);
-		if (rank == 0) {
+		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], 0, NULL, NULL);
+		if (rank == 0)
+		{
 			starpu_data_acquire(data_handles[i], STARPU_R);
 			values[i] = *((int *)starpu_handle_get_local_ptr(data_handles[i]));
 			starpu_data_release(data_handles[i]);
 		}
-        }
-        FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d\n", rank, values[0], values[1]);
+	}
+	FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d\n", rank, values[0], values[1]);
 	ret = 0;
 	if (rank == 0 && (values[0] != 12 || values[1] != 144))
 		ret = EXIT_FAILURE;

@@ -19,7 +19,7 @@
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
 {
-        return (x+y) % nb_nodes;
+	return (x+y) % nb_nodes;
 }
 
 void cpu_codelet(void *descr[], void *_args)
@@ -32,7 +32,7 @@ void cpu_codelet(void *descr[], void *_args)
 	float factor;
 
 	block = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-        starpu_codelet_unpack_args(_args, &rank);
+	starpu_codelet_unpack_args(_args, &rank);
 	factor = block[0];
 
 	//fprintf(stderr,"rank %d factor %f\n", rank, factor);
@@ -68,9 +68,9 @@ void rcallback(void *arg __attribute__((unused)))
 
 int main(int argc, char **argv)
 {
-        int rank, nodes;
+	int rank, nodes;
 	float ***bmat = NULL;
-        starpu_data_handle_t *data_handles;
+	starpu_data_handle_t *data_handles;
 
 	unsigned i,j,x,y;
 
@@ -135,10 +135,10 @@ int main(int argc, char **argv)
 #endif
 
 	/* Allocate data handles and register data to StarPU */
-        data_handles = malloc(nblocks*nblocks*sizeof(starpu_data_handle_t *));
-        for(x = 0; x < nblocks ;  x++)
+	data_handles = malloc(nblocks*nblocks*sizeof(starpu_data_handle_t *));
+	for(x = 0; x < nblocks ; x++)
 	{
-                for (y = 0; y < nblocks; y++)
+		for (y = 0; y < nblocks; y++)
 		{
 			int mpi_rank = my_distrib(x, y, nodes);
 			if (rank == 0)
@@ -158,19 +158,19 @@ int main(int argc, char **argv)
 				/* I know it's useless to allocate anything for this */
 				data_handles[x+y*nblocks] = NULL;
 			}
-                        if (data_handles[x+y*nblocks])
+			if (data_handles[x+y*nblocks])
 			{
-                                starpu_data_set_rank(data_handles[x+y*nblocks], mpi_rank);
-                                starpu_data_set_tag(data_handles[x+y*nblocks], (y*nblocks)+x);
+				starpu_data_set_rank(data_handles[x+y*nblocks], mpi_rank);
+				starpu_data_set_tag(data_handles[x+y*nblocks], (y*nblocks)+x);
 			}
-                }
-        }
+		}
+	}
 
 	/* Scatter the matrix among the nodes */
 	starpu_mpi_scatter_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD, scallback, "scatter", NULL, NULL);
 
 	/* Calculation */
-	for(x = 0; x < nblocks*nblocks ;  x++)
+	for(x = 0; x < nblocks*nblocks ; x++)
 	{
 		if (data_handles[x])
 		{
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 #endif
 
 	// Free memory
-        free(data_handles);
+	free(data_handles);
 	if (rank == 0)
 	{
 		for(x=0 ; x<nblocks ; x++)

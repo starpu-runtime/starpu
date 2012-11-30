@@ -124,8 +124,8 @@ int main(int argc, char **argv)
 
 	if (rank == last_rank)
 	{
-                FPRINTF(stderr, "[%d] token = %u == %u * %d ?\n", rank, token, nloops, size);
-                STARPU_ASSERT(token == nloops*size);
+		FPRINTF(stderr, "[%d] token = %u == %u * %d ?\n", rank, token, nloops, size);
+		STARPU_ASSERT(token == nloops*size);
 	}
 
 	return 0;
