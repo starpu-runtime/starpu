@@ -36,7 +36,7 @@ if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI)
+TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
 if STARPU_MPI_CHECK
