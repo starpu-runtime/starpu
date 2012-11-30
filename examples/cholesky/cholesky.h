@@ -58,10 +58,12 @@
 static unsigned size = 4*1024;
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
-static unsigned pinned = 0;
+static unsigned pinned = 1;
 static unsigned noprio = 0;
 static unsigned check = 0;
 static unsigned bound = 0;
+static unsigned bound_deps = 0;
+static unsigned bound_lp = 0;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
@@ -100,9 +102,9 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0)
+		if (strcmp(argv[i], "-no-pin") == 0)
 		{
-			pinned = 1;
+			pinned = 0;
 		}
 
 		if (strcmp(argv[i], "-no-prio") == 0)
@@ -115,6 +117,16 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			bound = 1;
 		}
 
+		if (strcmp(argv[i], "-bound-lp") == 0)
+		{
+			bound_lp = 1;
+		}
+
+		if (strcmp(argv[i], "-bound-deps") == 0)
+		{
+			bound_deps = 1;
+		}
+
 		if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
@@ -122,7 +134,7 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0)
 		{
-			fprintf(stderr,"usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
+			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] [-check]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
 		}
 	}

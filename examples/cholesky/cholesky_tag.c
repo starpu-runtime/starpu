@@ -254,6 +254,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	starpu_helper_cublas_init();
 
+#ifndef STARPU_SIMGRID
 	if (pinned)
 	{
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
@@ -262,6 +263,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	{
 		*A = malloc(dim*dim*sizeof(float));
 	}
+#endif
 	return 0;
 }
 
@@ -318,10 +320,11 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	float *mat;
+	float *mat = NULL;
 	int ret = initialize_system(&mat, size, pinned);
 	if (ret) return ret;
 
+#ifndef STARPU_SIMGRID
 	unsigned i,j;
 	for (i = 0; i < size; i++)
 	{
@@ -331,6 +334,7 @@ int main(int argc, char **argv)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
+#endif
 
 
 #ifdef CHECK_OUTPUT

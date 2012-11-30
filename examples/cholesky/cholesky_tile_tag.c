@@ -257,7 +257,6 @@ static int cholesky_no_stride(void)
 int main(int argc, char **argv)
 {
 	unsigned x, y;
-	unsigned i, j;
 	int ret;
 
 	parse_args(argc, argv);
@@ -275,6 +274,7 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_init();
 
+#ifndef STARPU_SIMGRID
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
@@ -297,6 +297,7 @@ int main(int argc, char **argv)
 	for (x = 0; x < nblocks; x++)
 	if (x <= y)
 	{
+		unsigned i, j;
 		for (i = 0; i < BLOCKSIZE; i++)
 		for (j = 0; j < BLOCKSIZE; j++)
 		{
@@ -308,6 +309,7 @@ int main(int argc, char **argv)
 				A[y][x][i*BLOCKSIZE + j] += (float)(2*size);
 		}
 	}
+#endif
 
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)

@@ -85,7 +85,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	start = starpu_timing_now();
 
 	if (bound)
-		starpu_bound_start(0, 0);
+		starpu_bound_start(bound_deps, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -145,6 +145,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double flop = (1.0f*n*n*n)/3.0f;
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	if (bound_lp)
+	{
+		FILE *f = fopen("cholesky.lp", "w");
+		starpu_bound_print_lp(f);
+	}
 	if (bound)
 	{
 		double res;
@@ -202,10 +207,11 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_init();
 
-	float *mat;
-	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
-
+	float *mat = NULL;
 	unsigned i,j;
+
+#ifndef STARPU_SIMGRID
+	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 	for (i = 0; i < size; i++)
 	{
 		for (j = 0; j < size; j++)
@@ -214,6 +220,7 @@ int main(int argc, char **argv)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
+#endif
 
 /* #define PRINT_OUTPUT */
 #ifdef PRINT_OUTPUT
