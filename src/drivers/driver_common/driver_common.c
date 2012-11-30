@@ -51,6 +51,9 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 
 	if (rank == 0)
 	{
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_RUNTASK, j->job_id, NULL);
+#endif
 		cl->per_worker_stats[workerid]++;
 
 		profiling_info = task->profiling_info;
@@ -65,9 +68,6 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	if (starpu_top)
 		_starpu_top_task_started(task,workerid,codelet_start);
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_RUNTASK, j->job_id, NULL);
-#endif
 	_STARPU_TRACE_START_CODELET_BODY(j);
 }
 
@@ -81,9 +81,6 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	unsigned calibrate_model = 0;
 
 	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch);
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
-#endif
 
 	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
@@ -92,6 +89,9 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	{
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 			_starpu_clock_gettime(codelet_end);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
+#endif
 	}
 
 	if (starpu_top)
