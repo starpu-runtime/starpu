@@ -471,6 +471,10 @@ of @code{lp_solve}. For instance, we often just use
 @code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and
 the @code{-gr} option can also be quite useful.
 
+Data transfer time can only be taken into account when @code{deps} is set. Only
+data transfers inferred from implicit data dependencies between tasks are taken
+into account.
+
 Setting @code{deps} to 0 will only take into account the actual computations
 on processing units. It however still properly takes into account the varying
 performances of kernels and processing units, which is quite more accurate than

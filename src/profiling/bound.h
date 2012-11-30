@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,6 +34,6 @@ extern void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id);
 extern void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j);
 
 /* Record job id dependency: j depends on job_id */
-extern void _starpu_bound_job_id_dep(struct _starpu_job *dep_j, unsigned long job_id);
+extern void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *dep_j, unsigned long job_id);
 
 #endif // __BOUND_H__
