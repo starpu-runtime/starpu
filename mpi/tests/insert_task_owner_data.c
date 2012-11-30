@@ -86,6 +86,7 @@ int main(int argc, char **argv)
 		if (rank == 0) {
 			starpu_data_acquire(data_handles[i], STARPU_R);
 			values[i] = *((int *)starpu_handle_get_local_ptr(data_handles[i]));
+			starpu_data_release(data_handles[i]);
 		}
         }
         FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d\n", rank, values[0], values[1]);
