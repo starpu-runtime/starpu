@@ -305,7 +305,7 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 	int devid = worker->devid;
 	(void) devid;
 
-#ifdef STARPU_PERF_DEBUG
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
 #endif
 
@@ -342,7 +342,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	unsigned cpu = 0, cuda = 0;
 	unsigned worker;
 
-#ifdef STARPU_PERF_DEBUG
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	/* Get itimer of the main thread, to set it for the worker threads */
 	getitimer(ITIMER_PROF, &prof_itimer);
 #endif
