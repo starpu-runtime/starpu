@@ -79,3 +79,27 @@
    ...
    fun:mca_base_components_open
 }
+
+{
+   suppr12
+   Memcheck:Param
+   writev(vector[...])
+   ...
+   fun:PMPI_Init_thread
+}
+
+{
+   suppr13
+   Memcheck:Param
+   writev(vector[...])
+   ...
+   fun:PMPI_Init_thread
+}
+
+{
+   suppr14
+   Memcheck:Param
+   sched_setaffinity(mask)
+   ...
+   fun:PMPI_Init_thread
+}
