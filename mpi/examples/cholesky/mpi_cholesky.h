@@ -57,31 +57,31 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 	{
 		if (strcmp(argv[i], "-size") == 0)
 		{
-		        char *argptr;
+			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-dblockx") == 0)
 		{
-		        char *argptr;
+			char *argptr;
 			dblockx = strtol(argv[++i], &argptr, 10);
 		}
-		
+
 		if (strcmp(argv[i], "-dblocky") == 0)
 		{
-		        char *argptr;
+			char *argptr;
 			dblocky = strtol(argv[++i], &argptr, 10);
 		}
-	
+
 		if (strcmp(argv[i], "-nblocks") == 0)
 		{
-		        char *argptr;
+			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-nbigblocks") == 0)
 		{
-		        char *argptr;
+			char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 

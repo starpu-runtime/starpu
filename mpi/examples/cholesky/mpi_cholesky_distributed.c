@@ -50,18 +50,18 @@ int main(int argc, char **argv)
 
 	if (dblockx == -1 || dblocky == -1)
 	{
-	     int factor;
-	     dblockx = nodes;
-	     dblocky = 1;
-	     for(factor=sqrt(nodes) ; factor>1 ; factor--)
-	     {
-		  if (nodes % factor == 0)
-		  {
-		       dblockx = nodes/factor;
-		       dblocky = factor;
-		       break;
-		  }
-	     }
+		int factor;
+		dblockx = nodes;
+		dblocky = 1;
+		for(factor=sqrt(nodes) ; factor>1 ; factor--)
+		{
+			if (nodes % factor == 0)
+			{
+				dblockx = nodes/factor;
+				dblocky = factor;
+				break;
+			}
+		}
 	}
 
 	unsigned i,j,x,y;
