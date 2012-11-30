@@ -1,79 +1,81 @@
 {
-   orterun
-   Memcheck:Leak
+   suppr1
+   Memcheck:Param
+   writev(vector[...])
    ...
-   fun:orterun
+   fun:ompi_mpi_init
    ...
 }
 
 {
-   orte_init_addr
+   suppr2
+   Memcheck:Addr4
+   ...
+   fun:orte_init
+   ...
+}
+
+{
+   suppr3
+   Memcheck:Param
+   sched_setaffinity(mask)
+   ...
+   fun:orte_init
+   ...
+}
+
+{
+   suppr4
    Memcheck:Addr8
    ...
    fun:orte_init
-   ...
 }
 
 {
-   orte_init_param
-   Memcheck:Param
-   ...
-   fun:orte_init
-   ...
-}
-
-{
-   orte_init_leak
-   Memcheck:Leak
-   ...
-   fun:orte_init
-   ...
-}
-
-{
-   ompi_mpi_init_param
-   Memcheck:Param
-   ...
-   fun:ompi_mpi_init
-   ...
-}
-
-{
-   ompi_mpi_init_leak
+   suppr5
    Memcheck:Leak
    ...
    fun:ompi_mpi_init
-   ...
 }
 
 {
-   mca_pml_base_open
+   suppr6
    Memcheck:Leak
    ...
    fun:mca_pml_base_open
-   ...
 }
 
 {
-   orte_ess_base_app_setup
+   suppr7
+   Memcheck:Leak
+   ...
+   fun:orte_init
+}
+
+{
+   suppr8
    Memcheck:Leak
    ...
    fun:orte_ess_base_app_setup
-   ...
 }
 
 {
-   mca_base_components_open
+   suppr9
    Memcheck:Leak
    ...
-   fun:mca_base_components_open
-   ...
+   fun:opal_paffinity_base_open
 }
 
 {
-   ompi_mpi_finalize
+   suppr10
    Memcheck:Leak
    ...
    fun:ompi_mpi_finalize
+}
+
+{
+   suppr11
+   Memcheck:Leak
    ...
+   fun:mca_base_components_open
 }
