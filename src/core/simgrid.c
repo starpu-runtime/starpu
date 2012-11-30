@@ -105,6 +105,8 @@ int main(int argc, char **argv)
 	topology->ncudagpus = conf.ncuda;
 	topology->nopenclgpus = conf.nopencl;
 
+	/* TODO: rather use simgrid/platf.h */
+	/* TODO: but still permit the user to provide his own xml */
 	fd = mkstemp(name);
 	file = fdopen(fd, "w");
 	fprintf(file,
