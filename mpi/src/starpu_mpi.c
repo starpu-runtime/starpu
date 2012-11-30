@@ -102,7 +102,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, _starpu_mpi_submit_new_mpi_request(req) is called and
-	 * the request is actually submitted  */
+	 * the request is actually submitted */
 	starpu_data_acquire_cb(data_handle, mode, _starpu_mpi_submit_new_mpi_request, (void *)req);
 
 	_STARPU_MPI_LOG_OUT();
@@ -721,24 +721,24 @@ struct _starpu_mpi_argc_argv
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
-     switch (thread_level)
-     {
-     case MPI_THREAD_SERIALIZED:
-     {
-	  _STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
-	  break;
-     }
-     case MPI_THREAD_FUNNELED:
-     {
-	  _STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
-	  break;
-     }
-     case MPI_THREAD_SINGLE:
-     {
-	  _STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
-	  break;
-     }
-     }
+	switch (thread_level)
+	{
+	case MPI_THREAD_SERIALIZED:
+	{
+		_STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
+		break;
+	}
+	case MPI_THREAD_FUNNELED:
+	{
+		_STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
+		break;
+	}
+	case MPI_THREAD_SINGLE:
+	{
+		_STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
+		break;
+	}
+	}
 }
 
 static void *_starpu_mpi_progress_thread_func(void *arg)
@@ -757,9 +757,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 	else
 	{
-	     int provided;
-	     MPI_Query_thread(&provided);
-	     _starpu_mpi_print_thread_level_support(provided, " has been initialized with");
+		int provided;
+		MPI_Query_thread(&provided);
+		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
 
 	/* notify the main thread that the progression thread is ready */
@@ -801,7 +801,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
 			 * application submit requests in the meantime, so we
-			 * release the lock.  */
+			 * release the lock. */
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 			_starpu_mpi_handle_new_request(req);
 			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -935,7 +935,7 @@ int starpu_mpi_shutdown(void)
 	void *value;
 	int rank, world_size;
 
-	/* We need to get the  rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
+	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 

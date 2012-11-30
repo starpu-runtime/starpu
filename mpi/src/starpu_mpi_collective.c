@@ -62,7 +62,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 
 	if (callback_arg)
 	{
-		for(x = 0; x < count ;  x++)
+		for(x = 0; x < count ; x++)
 		{
 			if (data_handles[x])
 			{
@@ -81,7 +81,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 		}
 	}
 
-	for(x = 0; x < count ;  x++)
+	for(x = 0; x < count ; x++)
 	{
 		if (data_handles[x])
 		{
@@ -130,7 +130,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 
 	if (callback_arg)
 	{
-		for(x = 0; x < count ;  x++)
+		for(x = 0; x < count ; x++)
 		{
 			if (data_handles[x])
 			{
@@ -149,7 +149,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 		}
 	}
 
-	for(x = 0; x < count ;  x++)
+	for(x = 0; x < count ; x++)
 	{
 		if (data_handles[x])
 		{
