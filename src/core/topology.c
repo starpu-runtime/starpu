@@ -802,15 +802,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM, -1);
 
 #ifdef STARPU_SIMGRID
+	char name[16];
 	xbt_dynar_t hosts = MSG_hosts_as_dynar();
-	int nb = xbt_dynar_length(hosts), i;
-	for (i = 0; i < nb; i++) {
-		msg_host_t host = xbt_dynar_get_as(hosts, i, msg_host_t);
-		if (!memcmp(MSG_host_get_name(host), "RAM", 4)) {
-			_starpu_simgrid_memory_node_set_host(0, host);
-			break;
-		}
-	}
+	msg_host_t host = MSG_get_host_by_name("RAM");
+	STARPU_ASSERT(host);
+	_starpu_simgrid_memory_node_set_host(0, host);
 #endif
 
 	/* We will store all the busid of the different (src, dst)
@@ -855,7 +851,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM, workerarg->devid);
 #ifdef STARPU_SIMGRID
-				_starpu_simgrid_memory_node_set_host(memory_node, xbt_dynar_get_as(hosts, worker+1, msg_host_t));
+				snprintf(name, sizeof(name), "CUDA%d", workerarg->devid);
+				host = MSG_get_host_by_name(name);
+				STARPU_ASSERT(host);
+				_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
 				_starpu_memory_node_worker_add(memory_node);
 
@@ -888,7 +887,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM, workerarg->devid);
 #ifdef STARPU_SIMGRID
-				_starpu_simgrid_memory_node_set_host(memory_node, xbt_dynar_get_as(hosts, worker+1, msg_host_t));
+				snprintf(name, sizeof(name), "OpenCL%d", workerarg->devid);
+				host = MSG_get_host_by_name(name);
+				STARPU_ASSERT(host);
+				_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
 				_starpu_memory_node_worker_add(memory_node);
 				_starpu_register_bus(0, memory_node);
