@@ -122,10 +122,14 @@ only when another task writes some value to the handle.
 Like any other runtime, StarPU has some overhead to manage tasks. Since
 it does smart scheduling and data management, that overhead is not always
 neglectable. The order of magnitude of the overhead is typically a couple of
-microseconds. The amount of work that a task should do should thus be somewhat
+microseconds, which is actually quite smaller than the CUDA overhead itself. The
+amount of work that a task should do should thus be somewhat
 bigger, to make sure that the overhead becomes neglectible. The offline
 performance feedback can provide a measure of task length, which should thus be
-checked if bad performance are observed.
+checked if bad performance are observed. To get a grasp at the scalability
+possibility according to task size, one can run
+@code{tests/microbenchs/tasks_size_overhead.sh} which draws curves of the
+speedup of independent tasks of very small sizes.
 
 @node Task submission
 @section Task submission
