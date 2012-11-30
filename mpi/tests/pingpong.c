@@ -75,9 +75,10 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(tab_handle);
+	free(tab);
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-
 	MPI_Finalize();
 
 	return 0;
