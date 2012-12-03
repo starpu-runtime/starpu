@@ -223,7 +223,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	STARPU_ASSERT(best_workerid != -1);
 
 	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	struct _starpu_fifo_taskq *fifo = hd->queue_array[workerid];
+	struct _starpu_fifo_taskq *fifo = hd->queue_array[best_workerid];
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
@@ -292,7 +292,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif
-	return _starpu_fifo_push_task(dt->queue_array[best_workerid],
+	return _starpu_fifo_push_task(hd->queue_array[best_workerid],
 				      sched_mutex, sched_cond, task);
 }
 
@@ -319,7 +319,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	unsigned nimpl;
 
 	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	struct _starpu_fifo_taskq *fifo = hd->queue_array[workerid];
 
 	starpu_task_bundle_t bundle = task->bundle;
 	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
@@ -339,12 +338,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				}
 		
 				/* Sometimes workers didn't take the tasks as early as we expected */
+				struct _starpu_fifo_taskq *fifo = hd->queue_array[worker];
 				pthread_mutex_t *sched_mutex;
 				pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 				fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-				exp_end[worker_ctx][nimpl] = exp_start[worker] + exp_len[worker];
+				exp_end[worker_ctx][nimpl] = fifo->exp_start + fifo->exp_len;
 				if (exp_end[worker_ctx][nimpl] > max_exp_end)
 					max_exp_end = exp_end[worker_ctx][nimpl];
 				_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
@@ -402,7 +402,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				if (unknown)
 					continue;
 				
-				exp_end[worker_ctx][nimpl] = exp_start[worker] + exp_len[worker] + local_task_length[worker_ctx][nimpl];
+				exp_end[worker_ctx][nimpl] = fifo->exp_start + fifo->exp_len + local_task_length[worker_ctx][nimpl];
 			
 				if (exp_end[worker_ctx][nimpl] < best_exp_end)
 				{
@@ -597,7 +597,7 @@ static int heft_push_task(struct starpu_task *task)
 	return ret_val;
 }
 
-static struct starpu_task *heft_pop_task(void)
+static struct starpu_task *heft_pop_task(unsigned sched_ctx_id)
 {
 	struct starpu_task *task;
 
