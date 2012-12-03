@@ -20,7 +20,11 @@
 #include <pthread.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
 #define SIZE	16
 
 static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;

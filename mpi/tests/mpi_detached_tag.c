@@ -18,7 +18,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
 #define SIZE	16
 
 float *tab;
