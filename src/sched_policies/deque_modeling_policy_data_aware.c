@@ -640,6 +640,25 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology *topology,
 	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", total_task_cnt, ready_task_cnt, (100.0f*ready_task_cnt)/total_task_cnt);
 }
 
+/* dmda_pre_exec_hook is called right after the data transfer is done and right
+ * before the computation to begin, it is useful to update more precisely the
+ * value of the expected start, end, length, etc... */
+static void dmda_pre_exec_hook(struct starpu_task *task)
+{
+	int workerid = starpu_worker_get_id();
+	struct _starpu_fifo_taskq *fifo = queue_array[workerid];
+	double model = task->predicted;
+	double transfer_model = task->predicted_transfer;
+
+	/* Once the task is executing, we can update the predicted amount of
+ 	 * work. */
+	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	fifo->exp_len-= transfer_model;
+	fifo->exp_start = starpu_timing_now() + model;
+	fifo->exp_end= fifo->exp_start + fifo->exp_len;
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+}
+
 /* TODO: use post_exec_hook to fix the expected start */
 struct starpu_sched_policy _starpu_sched_dm_policy =
 {
@@ -660,7 +679,7 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task,
 	.pop_task = dmda_pop_task,
-	.pre_exec_hook = NULL,
+	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmda",
@@ -673,7 +692,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_sorted_task,
 	.pop_task = dmda_pop_ready_task,
-	.pre_exec_hook = NULL,
+	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdas",
@@ -686,7 +705,7 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task,
 	.pop_task = dmda_pop_ready_task,
-	.pre_exec_hook = NULL,
+	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdar",
