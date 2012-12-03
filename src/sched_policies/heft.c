@@ -153,11 +153,11 @@ static void heft_pre_exec_hook(struct starpu_task *task)
 	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
-	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	fifo->exp_len-= transfer_model;
 	fifo->exp_start = starpu_timing_now() + model;
 	fifo->exp_end= fifo->exp_start + fifo->exp_len;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
 static void heft_push_task_notify(struct starpu_task *task, int workerid)
