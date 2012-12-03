@@ -39,7 +39,7 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 	if (cl_arg_wrapper->callback_func)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
 
-	free(cl_arg_wrapper->arg_stack);
+	// cl_arg_wrapper->arg_stack is freed by starpu_codelet_unpack_args()
 	free(cl_arg_wrapper);
 }
 
