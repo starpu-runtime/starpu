@@ -353,6 +353,6 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
-
+	printf("af shutdown\n");
 	return ret;
 }

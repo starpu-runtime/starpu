@@ -44,7 +44,7 @@ struct _starpu_sched_ctx {
 	struct worker_collection *workers;
 	
 	/* mutex for temp_nworkers_in_ctx*/
-	pthread_mutex_t changing_ctx_mutex;
+	_starpu_pthread_mutex_t changing_ctx_mutex;
 
 	/* we keep an initial sched which we never delete */
 	unsigned is_initial_sched; 
@@ -53,22 +53,22 @@ struct _starpu_sched_ctx {
 	struct _starpu_barrier_counter tasks_barrier;
 
 	/* table of sched cond corresponding to each worker in this ctx */
-	pthread_cond_t **sched_cond;
+	_starpu_pthread_cond_t **sched_cond;
 
 	/* table of sched mutex corresponding to each worker in this ctx */
-	pthread_mutex_t **sched_mutex;
+	_starpu_pthread_mutex_t **sched_mutex;
 
 	/* cond to block push when there are no workers in the ctx */
-	pthread_cond_t no_workers_cond;
+	_starpu_pthread_cond_t no_workers_cond;
 
 	/* mutex to block push when there are no workers in the ctx */
-	pthread_mutex_t no_workers_mutex;
+	_starpu_pthread_mutex_t no_workers_mutex;
 
 	/*ready tasks that couldn't be pushed because the ctx has no workers*/
 	struct starpu_task_list empty_ctx_tasks;
 
 	/* mutext protecting empty_ctx_tasks list */
-	pthread_mutex_t empty_ctx_mutex; 
+	_starpu_pthread_mutex_t empty_ctx_mutex; 
 
 	/* min CPUs to execute*/
 	int min_ncpus;
@@ -122,7 +122,7 @@ int _starpu_get_index_in_ctx_of_workerid(unsigned sched_ctx, unsigned workerid);
 unsigned _starpu_get_nsched_ctxs();
 
 /* Get the mutex corresponding to the global workerid */
-pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_ctx, int worker);
+_starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_ctx, int worker);
 
 /* Get workers belonging to a certain context, it returns the number of workers 
  take care: no mutex taken, the list of workers might not be updated */

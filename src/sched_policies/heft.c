@@ -286,7 +286,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		}
 	}
 
-	#ifdef HAVE_AYUDAME_H
+#ifdef HAVE_AYUDAME_H
 	if (AYU_event) {
 		int id = best_workerid;
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
@@ -614,7 +614,6 @@ static struct starpu_task *heft_pop_task(unsigned sched_ctx_id)
 		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}
-
 	return task;
 }
 
@@ -631,7 +630,7 @@ struct starpu_sched_policy _starpu_sched_heft_policy =
 	.deinit_sched = heft_deinit,
 	.push_task = heft_push_task,
 	.push_task_notify = heft_push_task_notify,
-	.pop_task = NULL,
+	.pop_task = heft_pop_task,
 	.pop_every_task = NULL,
 	.pre_exec_hook = heft_pre_exec_hook,
 	.post_exec_hook = NULL,

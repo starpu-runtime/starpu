@@ -515,7 +515,7 @@ pick:
 	if(!task)
 	{
 		struct _starpu_sched_ctx *sched_ctx;
-		pthread_mutex_t *sched_ctx_mutex;
+		_starpu_pthread_mutex_t *sched_ctx_mutex;
 		
 		int been_here[STARPU_NMAX_SCHED_CTXS];
 		int i;
@@ -545,6 +545,7 @@ pick:
 
 			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
 				break;
+
 			
 			been_here[sched_ctx->id] = 1;
 			

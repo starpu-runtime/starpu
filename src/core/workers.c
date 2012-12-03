@@ -766,6 +766,10 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	_starpu_init_tags();
 
+#ifdef STARPU_USE_FXT
+	_starpu_start_fxt_profiling();
+#endif
+
 	ret = _starpu_build_topology(&config);
 	if (ret)
 	{
