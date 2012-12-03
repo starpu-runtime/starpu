@@ -383,7 +383,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	*public_req = NULL;
 	free(req);
 
-	//free(waiting_req);
+	free(waiting_req);
 	_STARPU_MPI_LOG_OUT();
 	return ret;
 }
@@ -467,6 +467,8 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 			*public_req = NULL;
 			free(req);
 		}
+
+		free(testing_req);
 	}
 	else
 	{
