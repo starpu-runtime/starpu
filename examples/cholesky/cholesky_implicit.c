@@ -352,7 +352,6 @@ int main(int argc, char **argv)
 		execute_cholesky(size, nblocks);
 
 	starpu_helper_cublas_shutdown();
-	starpu_free(mat);
 	starpu_shutdown();
 
 	return ret;
