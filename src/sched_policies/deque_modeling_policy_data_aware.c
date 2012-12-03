@@ -27,6 +27,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
 #include <core/debug.h>
+#include <top/starpu_top_core.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -46,6 +47,16 @@ static double alpha = _STARPU_DEFAULT_ALPHA;
 static double beta = _STARPU_DEFAULT_BETA;
 static double _gamma = _STARPU_DEFAULT_GAMMA;
 static double idle_power = 0.0;
+
+/* TODO: use an ifdef STARPU_TOP. */
+static const float alpha_minimum=0;
+static const float alpha_maximum=10.0;
+static const float beta_minimum=0;
+static const float beta_maximum=10.0;
+static const float gamma_minimum=0;
+static const float gamma_maximum=10000.0;
+static const float idle_power_minimum=0;
+static const float idle_power_maximum=10000.0;
 
 #ifdef STARPU_VERBOSE
 static long int total_task_cnt = 0;
@@ -72,6 +83,15 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 	}
 
 	return cnt;
+}
+
+static void param_modified(struct starpu_top_param* d)
+{
+	/* Just to show parameter modification. */
+	fprintf(stderr,
+		"%s has been modified : "
+		"alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
+		d->name, alpha,beta,_gamma, idle_power);
 }
 
 static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned node)
@@ -255,6 +275,11 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
+
+	if (_starpu_top_status_get())
+		_starpu_top_task_prevision(task, best_workerid,
+			(unsigned long long)(fifo->exp_end-predicted)/1000,
+			(unsigned long long)fifo->exp_end/1000);
 
 	if (starpu_get_prefetch_flag())
 	{
@@ -639,6 +664,15 @@ static void initialize_dmda_policy(struct starpu_machine_topology *topology,
 	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
 		idle_power = atof(strval_idle_power);
+
+	starpu_top_register_parameter_float("DMDA_ALPHA", &alpha,
+		alpha_minimum, alpha_maximum, param_modified);
+	starpu_top_register_parameter_float("DMDA_BETA", &beta,
+		beta_minimum, beta_maximum, param_modified);
+	starpu_top_register_parameter_float("DMDA_GAMMA", &_gamma,
+		gamma_minimum, gamma_maximum, param_modified);
+	starpu_top_register_parameter_float("DMDA_IDLE_POWER", &idle_power,
+		idle_power_minimum, idle_power_maximum, param_modified);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
