@@ -51,8 +51,8 @@ struct user_interaction_wrapper
 	starpu_data_handle_t handle;
 	enum starpu_access_mode mode;
 	unsigned node;
-	pthread_cond_t cond;
-	pthread_mutex_t lock;
+	_starpu_pthread_cond_t cond;
+	_starpu_pthread_mutex_t lock;
 	unsigned finished;
 	unsigned async;
 	void (*callback)(void *);
@@ -238,8 +238,8 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		.handle = handle,
 		.mode = mode,
 		.node = node,
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
+		.cond = _STARPU_PTHREAD_COND_INITIALIZER,
+		.lock = _STARPU_PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
 	};
 
@@ -431,7 +431,7 @@ void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_im
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is advised as well */
-		struct _starpu_data_state *child_handle = &handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
 			starpu_data_advise_as_important(child_handle, is_important);
 	}
@@ -451,7 +451,7 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, un
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure that the flags are applied to the children as well */
-		struct _starpu_data_state *child_handle = &handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
 			starpu_data_set_sequential_consistency_flag(child_handle, flag);
 	}

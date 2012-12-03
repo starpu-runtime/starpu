@@ -288,6 +288,7 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	starpu_helper_cublas_init();
 
+#ifndef STARPU_SIMGRID
 	if (pinned)
 	{
 		starpu_malloc((void **)A, dim*dim*sizeof(float));
@@ -296,21 +297,22 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	{
 		*A = malloc(dim*dim*sizeof(float));
 	}
+#endif
 }
 
 int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	int ret;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	ret = cholesky_grain_rec(matA, size, ld, nblocks, nbigblocks, 0);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
@@ -345,9 +347,10 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	float *mat;
+	float *mat = NULL;
 	initialize_system(&mat, size, pinned);
 
+#ifndef STARPU_SIMGRID
 	unsigned i,j;
 	for (i = 0; i < size; i++)
 	{
@@ -357,6 +360,7 @@ int main(int argc, char **argv)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
+#endif
 
 
 #ifdef CHECK_OUTPUT

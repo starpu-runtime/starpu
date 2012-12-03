@@ -40,6 +40,11 @@
 #include <windows.h>
 #endif
 
+#ifdef STARPU_SIMGRID
+#include <core/simgrid.h>
+#endif
+
+#ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 void
 _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
@@ -92,6 +97,7 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 	config->topology.nhwcpus = 1;
 }
 #endif
+#endif
 
 
 /* Actually launch the job on a cpu worker.
@@ -142,7 +148,11 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			/* bind to parallel worker */
 			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT(func);
+#ifdef STARPU_SIMGRID
+		_starpu_simgrid_execute_job(j, perf_arch, NAN);
+#else
 		func(task->interfaces, task->cl_arg);
+#endif
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
 			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid);

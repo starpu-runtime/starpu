@@ -57,7 +57,7 @@
 struct _starpu_worker
 {
 	struct _starpu_machine_config *config;
-        pthread_mutex_t mutex;
+        _starpu_pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
@@ -68,10 +68,10 @@ struct _starpu_worker
 	int combined_workerid; /* combined worker currently using this worker */
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
 	int worker_size; /* size of the worker in case we use a combined worker */
-        pthread_cond_t ready_cond; /* indicate when the worker is ready */
+        _starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
-	pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
-	pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
+	_starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
+	_starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task *current_task; /* task currently executed by this worker */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
@@ -124,13 +124,13 @@ struct _starpu_combined_worker
  * accelerators (eg. Gordon for n SPUs) */
 struct _starpu_worker_set
 {
-        pthread_mutex_t mutex;
+        _starpu_pthread_mutex_t mutex;
 	pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
 	unsigned joined; /* only one thread may call pthread_join*/
 	void *retval;
 	struct _starpu_worker *workers;
-        pthread_cond_t ready_cond; /* indicate when the set is ready */
+        _starpu_pthread_cond_t ready_cond; /* indicate when the set is ready */
 	unsigned set_is_initialized;
 };
 
@@ -181,6 +181,9 @@ struct _starpu_machine_config
 	unsigned submitting;
 };
 
+/* Fill conf with environment variables */
+void _starpu_conf_check_environment(struct starpu_conf *conf);
+
 /* Has starpu_shutdown already been called ? */
 unsigned _starpu_machine_is_running(void);
 
@@ -203,7 +206,7 @@ unsigned _starpu_worker_can_block(unsigned memnode);
 /* This function must be called to block a worker. It puts the worker in a
  * sleeping state until there is some event that forces the worker to wake up.
  * */
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
+void _starpu_block_worker(int workerid, _starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex);
 
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.

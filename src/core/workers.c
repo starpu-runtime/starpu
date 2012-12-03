@@ -33,17 +33,21 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
+
 #ifdef __MINGW32__
 #include <windows.h>
 #endif
 
 /* acquire/release semantic for concurrent initialization/de-initialization */
-static pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t init_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t init_cond = _STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
-static pthread_key_t worker_key;
+static _starpu_pthread_key_t worker_key;
 
 static struct _starpu_machine_config config;
 
@@ -178,7 +182,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 		return func != 0;
 	}
 	default:
-		STARPU_ASSERT_MSG(0, "Unknown arch type");
+		STARPU_ASSERT_MSG(0, "Unknown arch type %d", arch);
 	}
 	return 0;
 }
@@ -243,8 +247,8 @@ static struct _starpu_worker_set gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
-	pthread_cond_t *cond = &workerarg->sched_cond;
-	pthread_mutex_t *mutex = &workerarg->sched_mutex;
+	_starpu_pthread_cond_t *cond = &workerarg->sched_cond;
+	_starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -302,7 +306,7 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 	int devid = worker->devid;
 	(void) devid;
 
-#ifdef STARPU_PERF_DEBUG
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
 #endif
 
@@ -331,7 +335,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	config->running = 1;
 	config->submitting = 1;
 
-	pthread_key_create(&worker_key, NULL);
+	_STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
 	unsigned nworkers = config->topology.nworkers;
 
@@ -339,9 +343,16 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	unsigned cpu = 0, cuda = 0;
 	unsigned worker;
 
-#ifdef STARPU_PERF_DEBUG
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	/* Get itimer of the main thread, to set it for the worker threads */
 	getitimer(ITIMER_PROF, &prof_itimer);
+#endif
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		unsigned long n = nworkers;
+		AYU_event(AYU_INIT, 0, (void*) &n);
+	}
 #endif
 
 	for (worker = 0; worker < nworkers; worker++)
@@ -393,11 +404,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				driver.id.cpu_id = cpu;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
-					_STARPU_PTHREAD_CREATE(
+					_STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cpu_worker,
-						workerarg);
+						workerarg,
+						worker+1);
 				}
 				else
 				{
@@ -413,11 +426,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				driver.id.cuda_id = cuda;
 				if (_starpu_may_launch_driver(config->conf, &driver))
 				{
-					_STARPU_PTHREAD_CREATE(
+					_STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cuda_worker,
-						workerarg);
+						workerarg,
+						worker+1);
 				}
 				else
 				{
@@ -436,11 +451,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				}
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				_STARPU_PTHREAD_CREATE(
+				_STARPU_PTHREAD_CREATE_ON(
+					workerarg->name,
 					&workerarg->worker_thread,
 					NULL,
 					_starpu_opencl_worker,
-					workerarg);
+					workerarg,
+					worker+1);
 				break;
 #endif
 #ifdef STARPU_USE_GORDON
@@ -454,11 +471,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 					gordon_worker_set.set_is_initialized = 0;
 
-					_STARPU_PTHREAD_CREATE(
+					_STARPU_PTHREAD_CREATE_ON(
+						workerarg->name
 						&gordon_worker_set.worker_thread,
 						NULL,
 						_starpu_gordon_worker,
-						&gordon_worker_set);
+						&gordon_worker_set,
+						worker+1);
 
 					_STARPU_PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
 					while (!gordon_worker_set.set_is_initialized)
@@ -542,12 +561,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 {
-	pthread_setspecific(worker_key, worker);
+	_STARPU_PTHREAD_SETSPECIFIC(worker_key, worker);
 }
 
 struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
-	return (struct _starpu_worker *) pthread_getspecific(worker_key);
+	return (struct _starpu_worker *) _STARPU_PTHREAD_GETSPECIFIC(worker_key);
 }
 
 /* Initialize the starpu_conf with default values */
@@ -599,17 +618,17 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY)
 	conf->disable_asynchronous_cuda_copy = 1;
 #else
-	conf->disable_cuda_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_CUDA_ASYNCHRONOUS_COPY");
-	if (conf->disable_cuda_asynchronous_copy == -1)
-		conf->disable_cuda_asynchronous_copy = 0;
+	conf->disable_asynchronous_cuda_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY");
+	if (conf->disable_asynchronous_cuda_copy == -1)
+		conf->disable_asynchronous_cuda_copy = 0;
 #endif
 
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY)
 	conf->disable_asynchronous_opencl_copy = 1;
 #else
-	conf->disable_opencl_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_OPENCL_ASYNCHRONOUS_COPY");
-	if (conf->disable_opencl_asynchronous_copy == -1)
-		conf->disable_opencl_asynchronous_copy = 0;
+	conf->disable_asynchronous_opencl_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY");
+	if (conf->disable_asynchronous_opencl_copy == -1)
+		conf->disable_asynchronous_opencl_copy = 0;
 #endif
 
 	return 0;
@@ -625,7 +644,7 @@ static void _starpu_conf_set_value_against_environment(char *name, int *value)
 	}
 }
 
-static void _starpu_conf_check_environment(struct starpu_conf *conf)
+void _starpu_conf_check_environment(struct starpu_conf *conf)
 {
 	char *sched = getenv("STARPU_SCHED");
 	if (sched)
@@ -642,8 +661,8 @@ static void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate);
 	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_CUDA_ASYNCHRONOUS_COPY", &conf->disable_cuda_asynchronous_copy);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_OPENCL_ASYNCHRONOUS_COPY", &conf->disable_opencl_asynchronous_copy);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy);
 }
 
 int starpu_init(struct starpu_conf *user_conf)
@@ -660,8 +679,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	_STARPU_DISP("Warning: StarPU was configured without --enable-fast\n");
 #endif
 #endif
-#ifdef STARPU_MEMORY_STATUS
-	_STARPU_DISP("Warning: StarPU was configured with --enable-memory-status, which slows down a bit\n");
+#ifdef STARPU_MEMORY_STATS
+	_STARPU_DISP("Warning: StarPU was configured with --enable-memory-stats, which slows down a bit\n");
 #endif
 #ifdef STARPU_VERBOSE
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
@@ -675,7 +694,7 @@ int starpu_init(struct starpu_conf *user_conf)
 #ifdef STARPU_MODEL_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
 #endif
-#ifdef STARPU_DATA_STATS
+#ifdef STARPU_ENABLE_STATS
 	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
 
@@ -701,10 +720,16 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	srand(2008);
 
-#ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
+#ifdef HAVE_AYUDAME_H
+#ifndef AYU_RT_STARPU
+/* Dumb value for now */
+#define AYU_RT_STARPU 32
 #endif
-
+	if (AYU_event) {
+		enum ayu_runtime_t ayu_rt = AYU_RT_STARPU;
+		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
+	}
+#endif
 	_starpu_open_debug_logfile();
 
 	_starpu_data_interface_init();
@@ -808,6 +833,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 		{
 			if (!set->joined)
 			{
+#ifdef STARPU_SIMGRID
+#ifdef STARPU_DEVEL
+#warning TODO: use a simgrid_join when it becomes available
+#endif
+				MSG_process_sleep(1);
+#else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
 				{
 					status = pthread_join(set->worker_thread, NULL);
@@ -818,6 +849,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
                                         }
 #endif
 				}
+#endif
 
 				set->joined = 1;
 			}
@@ -827,6 +859,9 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 			if (!worker->run_by_starpu)
 				goto out;
 
+#ifdef STARPU_SIMGRID
+			MSG_process_sleep(1);
+#else
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 			{
 				status = pthread_join(worker->worker_thread, NULL);
@@ -837,6 +872,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
                                 }
 #endif
 			}
+#endif
 		}
 
 out:
@@ -908,25 +944,30 @@ void starpu_shutdown(void)
 
 	starpu_task_wait_for_no_ready();
 
-	_starpu_display_msi_stats();
-	_starpu_display_alloc_cache_stats();
-
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
-#ifdef STARPU_MEMORY_STATUS
-	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
-		_starpu_display_data_stats();
-#endif
+	{
+	     int stats = starpu_get_env_number("STARPU_STATS");
+	     if (stats != 0)
+	     {
+		  _starpu_display_msi_stats();
+		  _starpu_display_alloc_cache_stats();
+		  _starpu_display_comm_amounts();
+	     }
+	}
 
-#ifdef STARPU_DATA_STATS
-	_starpu_display_comm_amounts();
-#endif
-	if ((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))
-		starpu_bus_profiling_helper_display_summary();
+	{
+	     int stats = starpu_get_env_number("STARPU_MEMORY_STATS");
+	     if (stats != 0)
+	     {
+		  // Display statistics on data which have not been unregistered
+		  starpu_memory_display_stats();
+	     }
+	}
 
-	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
-		starpu_worker_profiling_helper_display_summary();
+	starpu_bus_profiling_helper_display_summary();
+	starpu_worker_profiling_helper_display_summary();
 
 	_starpu_deinitialize_registered_performance_models();
 
@@ -957,6 +998,10 @@ void starpu_shutdown(void)
 	/* Clear memory if it was allocated by StarPU */
 	if (config.default_conf)
 	     free(config.conf);
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_FINISH, 0, NULL);
+#endif
 
 	_STARPU_DEBUG("Shutdown finished\n");
 }
@@ -1019,12 +1064,12 @@ int starpu_asynchronous_copy_disabled(void)
 
 int starpu_asynchronous_cuda_copy_disabled(void)
 {
-	return config.conf->disable_cuda_asynchronous_copy;
+	return config.conf->disable_asynchronous_cuda_copy;
 }
 
 int starpu_asynchronous_opencl_copy_disabled(void)
 {
-	return config.conf->disable_opencl_asynchronous_copy;
+	return config.conf->disable_asynchronous_opencl_copy;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit
@@ -1137,6 +1182,7 @@ enum starpu_archtype starpu_worker_get_type(int id)
 int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
+
 	int cnt = 0;
 
 	unsigned id;

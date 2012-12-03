@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,6 @@ struct _starpu_data_replicate;
 
 LIST_TYPE(_starpu_mem_chunk,
 	starpu_data_handle_t data;
-	size_t size;
 
 	uint32_t footprint;
 
@@ -44,6 +43,12 @@ LIST_TYPE(_starpu_mem_chunk,
 	void *chunk_interface;
 	unsigned automatically_allocated;
 	unsigned data_was_deleted;
+
+	/* the size is only set when calling _starpu_request_mem_chunk_removal(),
+         * it is needed by free_memory_on_node() which is called when
+         * the handle is no longer valid. It should not be used otherwise.
+	 */
+	size_t size;
 
 	/* A buffer that is used for SCRATCH or reduction cannnot be used with
 	 * filters. */
@@ -63,5 +68,6 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 
-void _starpu_display_data_stats_by_node(int node);
+void _starpu_display_memory_stats_by_node(int node);
+
 #endif

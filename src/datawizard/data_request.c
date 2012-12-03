@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,11 +22,11 @@
 /* requests that have not been treated at all */
 static struct _starpu_data_request_list *data_requests[STARPU_MAXNODES];
 static struct _starpu_data_request_list *prefetch_requests[STARPU_MAXNODES];
-static pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
+static _starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
 
 /* requests that are not terminated (eg. async transfers) */
 static struct _starpu_data_request_list *data_requests_pending[STARPU_MAXNODES];
-static pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
+static _starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
 
 void _starpu_init_data_request_lists(void)
 {
@@ -234,18 +234,18 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
 
-#ifdef STARPU_MEMORY_STATUS
+#ifdef STARPU_MEMORY_STATS
 	enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
 #endif
 
 	_starpu_spin_checklocked(&handle->header_lock);
 	_starpu_update_data_state(handle, r->dst_replicate, mode);
 
-#ifdef STARPU_MEMORY_STATUS
+#ifdef STARPU_MEMORY_STATS
 	if (src_replicate->state == STARPU_INVALID)
 	{
 		if (old_src_replicate_state == STARPU_OWNER)
-			_starpu_handle_stats_invalidated(handle, src_replicate->memory_node);
+			_starpu_memory_handle_stats_invalidated(handle, src_replicate->memory_node);
 		else
 		{
 			/* XXX Currently only ex-OWNER are tagged as invalidated */
@@ -254,10 +254,10 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 	}
 	if (dst_replicate->state == STARPU_SHARED)
-		_starpu_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
+		_starpu_memory_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
 	else if (dst_replicate->state == STARPU_OWNER)
 	{
-		_starpu_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
+		_starpu_memory_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
 	}
 #endif
 

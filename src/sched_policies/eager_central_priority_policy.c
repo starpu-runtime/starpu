@@ -44,8 +44,8 @@ struct _starpu_priority_taskq
 
 typedef struct eager_central_prio_data{
 	struct _starpu_priority_taskq *taskq;
-	pthread_mutex_t sched_mutex;
-	pthread_cond_t sched_cond;
+	_starpu_pthread_mutex_t sched_mutex;
+	_starpu_pthread_cond_t sched_cond;
 } eager_central_prio_data;
 
 /*

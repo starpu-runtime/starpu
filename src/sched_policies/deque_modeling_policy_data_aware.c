@@ -27,6 +27,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
+#include <core/debug.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -141,7 +142,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 #ifdef STARPU_VERBOSE
 		if (task->cl)
 		{
-			int non_ready = count_non_ready_buffers(task, starpu_worker_get_memory_node(workerid));
+			int non_ready = count_non_ready_buffers(task, node);
 			if (non_ready == 0)
 				dt->ready_task_cnt++;
 		}
@@ -235,11 +236,19 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	/* TODO predicted_transfer */
 
-	unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
 
 	if (starpu_get_prefetch_flag())
+	{
+		unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
 		starpu_prefetch_task_input_on_node(task, memory_node);
+	}
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = best_workerid;
+		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
+	}
+#endif
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
@@ -298,7 +307,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				worker_ctx++;
+	//			worker_ctx++;
 				continue;
 			}
 
@@ -404,31 +413,42 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* no one on that queue may execute this task */
 				continue;
 			}
-			
+
 			/* Sometimes workers didn't take the tasks as early as we expected */
+			pthread_mutex_t *sched_mutex;
+			pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			exp_end[worker_ctx][nimpl] = fifo->exp_start + fifo->exp_len;
 			if (exp_end[worker_ctx][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker_ctx][nimpl];
 			
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 			unsigned memory_node = starpu_worker_get_memory_node(worker);
-			
+
 			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) worker (%u) kernel (%u) \n", local_task_length[worker][nimpl],worker,nimpl);
-			
+
 			if (bundle)
 			{
-				STARPU_ABORT(); /* Not implemented yet. */
+				/* TODO : conversion time */
+				local_task_length[worker_ctx][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
+				local_data_penalty[worker_ctx][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+				local_power[worker_ctx][nimpl] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
 			}
 			else
 			{
 				local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
 				local_power[worker_ctx][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
+				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
+				if (conversion_time > 0.0)
+					local_task_length[worker_ctx][nimpl] += conversion_time;
 			}
-			
+
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
-			
+
 			if (ntasks_best == -1
 			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better worker */
 			    || (!calibrating && isnan(local_task_length[worker_ctx][nimpl])) /* Not calibrating but this worker is being calibrated */
@@ -451,7 +471,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* there is no prediction available for that task
 				 * with that arch (yet or at all), so switch to a greedy strategy */
 				unknown = 1;
-			
+
 			if (unknown)
 				continue;
 			
@@ -568,12 +588,19 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		model_best = 0.0;
 		//penality_best = 0.0;
 	}
+	else if (task->bundle)
+	{
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(best_in_ctx);
+		model_best = starpu_task_expected_length(task, perf_arch, selected_impl);
+	}
 	else
 	{
 		model_best = local_task_length[best_in_ctx][selected_impl];
 		//penality_best = local_data_penalty[best_in_ctx][best_impl];
 	}
-
+	
+	if (task->bundle)
+		starpu_task_bundle_remove(task->bundle, task);
         if(workers->init_cursor)
                 workers->deinit_cursor(workers);
 

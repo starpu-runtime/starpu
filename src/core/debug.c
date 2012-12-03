@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 
 #ifdef STARPU_VERBOSE
 /* we want a single writer at the same time to have a log that is readable */
-static pthread_mutex_t logfile_mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t logfile_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 static FILE *logfile;
 #endif
 
@@ -67,3 +67,48 @@ void _starpu_print_to_logfile(const char *format STARPU_ATTRIBUTE_UNUSED, ...)
 	va_end( args );
 #endif
 }
+
+/* Record codelet to give ayudame nice function ids starting from 0. */
+#ifdef HAVE_AYUDAME_H
+struct ayudame_codelet {
+	char *name;
+	struct starpu_codelet *cl;
+} *codelets;
+static unsigned ncodelets, ncodelets_alloc;
+static _starpu_pthread_mutex_t ayudame_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
+{
+	unsigned i;
+	const char *name;
+	if (!cl)
+		return -1;
+	name = _starpu_codelet_get_model_name(cl);
+	_STARPU_PTHREAD_MUTEX_LOCK(&ayudame_mutex);
+	for (i=0; i < ncodelets; i++) {
+		if (codelets[i].cl == cl &&
+			((!name && !codelets[i].name) ||
+				((name && codelets[i].name) && !strcmp(codelets[i].name, name)))) {
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
+			return i;
+		}
+	}
+	if (ncodelets == ncodelets_alloc) {
+		if (!ncodelets_alloc)
+			ncodelets_alloc = 16;
+		else
+			ncodelets_alloc *= 2;
+		codelets = realloc(codelets, ncodelets_alloc * sizeof(*codelets));
+	}
+	codelets[ncodelets].cl = cl;
+	if (name)
+		/* codelet might be freed by user */
+		codelets[ncodelets].name = strdup(name);
+	else
+		codelets[ncodelets].name = NULL;
+	i = ncodelets++;
+	if (name)
+		AYU_event(AYU_REGISTERFUNCTION, i, (void*) name);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
+	return i;
+}
+#endif

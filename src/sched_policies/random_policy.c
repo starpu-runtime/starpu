@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -65,6 +65,12 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		alpha += worker_alpha;
 	}
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = selected;
+		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
+	}
+#endif
 	if(workers->init_cursor)
                 workers->deinit_cursor(workers);
 
@@ -72,7 +78,6 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	int n = starpu_push_local_task(selected, task, prio);
 	return n;
 }
-
 
 static int random_push_task(struct starpu_task *task)
 {
@@ -143,4 +148,3 @@ struct starpu_sched_policy _starpu_sched_random_policy =
 	.policy_name = "random",
 	.policy_description = "weighted random"
 };
-

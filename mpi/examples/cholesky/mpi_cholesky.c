@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_mpi_init(&argc, &argv);
+	starpu_mpi_init(&argc, &argv, 1);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
 
@@ -51,18 +51,18 @@ int main(int argc, char **argv)
 
 	if (dblockx == -1 || dblocky == -1)
 	{
-	     int factor;
-	     dblockx = nodes;
-	     dblocky = 1;
-	     for(factor=sqrt(nodes) ; factor>1 ; factor--)
-	     {
-		  if (nodes % factor == 0)
-		  {
-		       dblockx = nodes/factor;
-		       dblocky = factor;
-		       break;
-		  }
-	     }
+		int factor;
+		dblockx = nodes;
+		dblocky = 1;
+		for(factor=sqrt(nodes) ; factor>1 ; factor--)
+		{
+			if (nodes % factor == 0)
+			{
+				dblockx = nodes/factor;
+				dblocky = factor;
+				break;
+			}
+		}
 	}
 
 	unsigned i,j,x,y;
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 	}
 
 	int correctness = 1;
-	for(x = 0; x < nblocks ;  x++)
+	for(x = 0; x < nblocks ; x++)
 	{
 		for (y = 0; y < nblocks; y++)
 		{

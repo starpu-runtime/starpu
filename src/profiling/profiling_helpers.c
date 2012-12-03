@@ -20,7 +20,10 @@
 
 void starpu_bus_profiling_helper_display_summary(void)
 {
+	const char *stats;
 	int long long sum_transferred = 0;
+
+	if (!((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
 
 	fprintf(stderr, "\nData transfer statistics:\n");
 	fprintf(stderr,   "*************************\n");
@@ -51,22 +54,23 @@ void starpu_bus_profiling_helper_display_summary(void)
 
 void starpu_worker_profiling_helper_display_summary(void)
 {
+	const char *stats;
 	double sum_consumed = 0.;
 	int profiling = starpu_profiling_status_get();
-	fprintf(stderr, "\nWorker statistics:\n");
-	fprintf(stderr,   "******************\n");
 	double overall_time = 0;
-
 	int workerid;
 	int worker_cnt = starpu_worker_get_count();
-	double all_total_time = 0.0;
-	double all_exec_time = 0.0;
-	double all_sleeping_time = 0.0;
+
+	if (!((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
+
+	fprintf(stderr, "\nWorker statistics:\n");
+	fprintf(stderr,   "******************\n");
+
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
 		struct starpu_worker_profiling_info info;
 		starpu_worker_get_profiling_info(workerid, &info);
-		char name[32];
+		char name[64];
 
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
@@ -75,9 +79,6 @@ void starpu_worker_profiling_helper_display_summary(void)
 			double total_time = starpu_timing_timespec_to_us(&info.total_time) / 1000.;
 			double executing_time = starpu_timing_timespec_to_us(&info.executing_time) / 1000.;
 			double sleeping_time = starpu_timing_timespec_to_us(&info.sleeping_time) / 1000.;
-			all_total_time+=total_time;
-			all_exec_time += executing_time;
-			all_sleeping_time += sleeping_time;
 			if (total_time > overall_time)
 				overall_time = total_time;
 
@@ -95,8 +96,6 @@ void starpu_worker_profiling_helper_display_summary(void)
 
 		sum_consumed += info.power_consumed;
 	}
-	fprintf(stderr, "\t total: %.2lf ms executing: %.2lf ms sleeping: %.2lf\n", all_total_time, all_exec_time, all_sleeping_time);
-	fprintf(stderr, "\t total: %.2lf ms executing: %.2lf ms sleeping: %.2lf\n", all_total_time, (all_exec_time/all_total_time)*100, (all_sleeping_time/all_exec_time)*100);
 
 	if (profiling)
 	{

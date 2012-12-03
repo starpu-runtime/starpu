@@ -20,7 +20,7 @@
 #ifndef __COMPLEX_CODELET_H
 #define __COMPLEX_CODELET_H
 
-void compare_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void compare_complex_codelet(void *descr[], void *_args)
 {
 	int nx1 = STARPU_COMPLEX_GET_NX(descr[0]);
 	double *real1 = STARPU_COMPLEX_GET_REAL(descr[0]);
@@ -30,7 +30,10 @@ void compare_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 	double *real2 = STARPU_COMPLEX_GET_REAL(descr[1]);
 	double *imaginary2 = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
 
-	int compare = (nx1 == nx2);
+	int *compare;
+
+	starpu_codelet_unpack_args(_args, &compare);
+	*compare = (nx1 == nx2);
 	if (nx1 == nx2)
 	{
 		int i;
@@ -38,19 +41,19 @@ void compare_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 		{
 			if (real1[i] != real2[i] || imaginary1[i] != imaginary2[i])
 			{
-				compare = 0;
+				*compare = 0;
 				break;
 			}
 		}
 	}
-	fprintf(stderr, "Complex numbers are%s similar\n", compare==0 ? " NOT" : "");
 }
 
 struct starpu_codelet cl_compare =
 {
 	.cpu_funcs = {compare_complex_codelet, NULL},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_R}
+	.modes = {STARPU_R, STARPU_R},
+	.name = "cl_compare"
 };
 
 void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
@@ -70,7 +73,8 @@ struct starpu_codelet cl_display =
 {
 	.cpu_funcs = {display_complex_codelet, NULL},
 	.nbuffers = 1,
-	.modes = {STARPU_R}
+	.modes = {STARPU_R},
+	.name = "cl_display"
 };
 
 #endif /* __COMPLEX_CODELET_H */

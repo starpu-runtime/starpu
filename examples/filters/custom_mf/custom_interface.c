@@ -157,125 +157,55 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t nod
 	struct custom_data_interface *custom_interface;
 	custom_interface = (struct custom_data_interface *) data_interface;
 
-	switch(starpu_node_get_kind(node))
-	{
-	case STARPU_CPU_RAM:
-		size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		custom_interface->cpu_ptr = (void*) malloc(size);
-		if (!custom_interface->cpu_ptr)
-			return -ENOMEM;
+	size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
+	custom_interface->cpu_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	if (!custom_interface->cpu_ptr)
+		goto fail_cpu;
 #ifdef STARPU_USE_CUDA
-		custom_interface->cuda_ptr = (void *) malloc(size);
-		if (!custom_interface->cuda_ptr)
-		{
-			free(custom_interface->cpu_ptr);
-			custom_interface->cpu_ptr = NULL;
-			return -ENOMEM;
-		}
-#endif /* !STARPU_USE_CUDA */
-#ifdef STARPU_USE_OPENCL
-		custom_interface->opencl_ptr = malloc(size);
-		if (custom_interface->cuda_ptr == NULL)
-		{
-			free(custom_interface->cpu_ptr);
-#ifdef STARPU_USE_CUDA
-			free(custom_interface->cuda_ptr);
-#endif /* !STARPU_USE_CUDA */
-			return -ENOMEM;
-		}
-#endif /* !STARPU_USE_OPENCL */
-			
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-	{
-		cudaError_t err;
-		size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		err = cudaMalloc(&custom_interface->cuda_ptr, size);
-		if (err != cudaSuccess)
-			return -ENOMEM;
-
-		err = cudaMalloc(&custom_interface->cpu_ptr, size);
-		if (err != cudaSuccess)
-		{
-			cudaFree(custom_interface->cuda_ptr);
-			return -ENOMEM;
-		}
-		break;
-	}
+	custom_interface->cuda_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	if (!custom_interface->cuda_ptr)
+		goto fail_cuda;
 #endif
 #ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int err;
-		cl_mem memory;
-		ssize_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		err = starpu_opencl_allocate_memory(&memory, size, CL_MEM_READ_WRITE);
-		if (err != CL_SUCCESS)
-			STARPU_OPENCL_REPORT_ERROR(err);
+	custom_interface->opencl_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	if (!custom_interface->opencl_ptr)
+		goto fail_opencl;
+#endif
 
-		custom_interface->opencl_ptr = memory;
-
-		break;
-	}
-#endif /* !STARPU_USE_OPENCL */
-	default:
-		assert(0);
-	}
-
-	/* XXX We may want to return cpu_size + cuda_size + ... */
-	return size;
+	return size
+#ifdef STARPU_USE_CUDA
+		+size
+#endif
+#ifdef STARPU_USE_OPENCL
+		+size
+#endif
+		;
+#ifdef STARPU_USE_OPENCL
+fail_opencl:
+#ifdef STARPU_USE_CUDA
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+#endif
+#endif
+#ifdef STARPU_USE_CUDA
+fail_cuda:
+#endif
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
+fail_cpu:
+	return -ENOMEM;
 }
 
 static void free_custom_buffer_on_node(void *data_interface, uint32_t node)
 {
-	struct custom_data_interface *custom_interface;
-	custom_interface = (struct custom_data_interface *) data_interface;
+	struct custom_data_interface *custom_interface = (struct custom_data_interface *) data_interface;
+	size_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
 
-	switch(starpu_node_get_kind(node))
-	{
-	case STARPU_CPU_RAM:
-		if (custom_interface->cpu_ptr != NULL)
-		{
-			free(custom_interface->cpu_ptr);
-			custom_interface->cpu_ptr = NULL;
-		}
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
 #ifdef STARPU_USE_CUDA
-		if (custom_interface->cuda_ptr != NULL)
-		{
-			free(custom_interface->cuda_ptr);
-			custom_interface->cuda_ptr = NULL;
-		}
-#endif /* !STARPU_USE_CUDA */
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+#endif
 #ifdef STARPU_USE_OPENCL
-		if (custom_interface->opencl_ptr != NULL)
-		{
-			free(custom_interface->opencl_ptr);
-			custom_interface->opencl_ptr = NULL;
-		}
-#endif /* !STARPU_USE_OPENCL */
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-		if (custom_interface->cpu_ptr != NULL)
-		{
-			cudaError_t err;
-			err = cudaFree(custom_interface->cpu_ptr);
-			if (err != cudaSuccess)
-				fprintf(stderr, "cudaFree failed...\n");
-		}
-		if (custom_interface->cuda_ptr != NULL)
-		{
-			cudaError_t err;
-			err = cudaFree(custom_interface->cuda_ptr);
-			if (err != cudaSuccess)
-				fprintf(stderr, "cudaFree failed...\n");
-		}
-		break;
-#endif /* !STARPU_USE_CUDA */
-	default:
-		assert(0);
-	}
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->opencl_ptr, size);
+#endif
 }
 
 static void*

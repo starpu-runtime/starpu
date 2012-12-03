@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@
 #include <datawizard/data_request.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
+#include <datawizard/memstats.h>
 
 enum _starpu_cache_state
 {
@@ -116,8 +117,8 @@ struct _starpu_data_state
 	unsigned busy_count;
 	/* Is starpu_data_unregister waiting for busy_count? */
 	unsigned busy_waiting;
-	pthread_mutex_t busy_mutex;
-	pthread_cond_t busy_cond;
+	_starpu_pthread_mutex_t busy_mutex;
+	_starpu_pthread_cond_t busy_cond;
 
 	/* In case we user filters, the handle may describe a sub-data */
 	struct _starpu_data_state *root_handle; /* root of the tree */
@@ -125,7 +126,7 @@ struct _starpu_data_state
 	unsigned sibling_index; /* indicate which child this node is from the father's perpsective (if any) */
 	unsigned depth; /* what's the depth of the tree ? */
 
-	struct _starpu_data_state *children;
+	starpu_data_handle_t children;
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
@@ -133,9 +134,6 @@ struct _starpu_data_state
 	struct _starpu_data_replicate per_worker[STARPU_NMAXWORKERS];
 
 	struct starpu_data_interface_ops *ops;
-
-	/* To avoid recomputing data size all the time, we store it directly. */
-	size_t data_size;
 
 	/* Footprint which identifies data layout */
 	uint32_t footprint;
@@ -158,7 +156,7 @@ struct _starpu_data_state
 
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */
-	pthread_mutex_t sequential_consistency_mutex;
+	_starpu_pthread_mutex_t sequential_consistency_mutex;
 
 	/* The last submitted task (or application data request) that declared
 	 * it would modify the piece of data ? Any task accessing the data in a
@@ -210,14 +208,7 @@ struct _starpu_data_state
         int rank;
 	int tag;
 
-#ifdef STARPU_MEMORY_STATUS
-	/* Handle access stats per node */
-	unsigned stats_direct_access[STARPU_MAXNODES];
-	unsigned stats_loaded_shared[STARPU_MAXNODES];
-	unsigned stats_loaded_owner[STARPU_MAXNODES];
-	unsigned stats_shared_to_owner[STARPU_MAXNODES];
-	unsigned stats_invalidated[STARPU_MAXNODES];
-#endif
+	_starpu_memory_stats_t memory_stats;
 
 	unsigned int mf_node; //XXX
 };

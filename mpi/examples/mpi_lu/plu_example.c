@@ -301,7 +301,7 @@ static void init_matrix(int rank)
 		allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 	}
 #endif
-	
+
 	for (k = 0; k < nblocks; k++)
 	{
 #ifdef SINGLE_TMP1221
@@ -333,7 +333,7 @@ static void init_matrix(int rank)
 			starpu_malloc((void **)&tmp_12_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[i][k]);
-	
+
 			starpu_matrix_data_register(&tmp_12_block_handles[i][k], 0,
 				(uintptr_t)tmp_12_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
@@ -344,7 +344,7 @@ static void init_matrix(int rank)
 			starpu_malloc((void **)&tmp_21_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[i][k]);
-	
+
 			starpu_matrix_data_register(&tmp_21_block_handles[i][k], 0,
 				(uintptr_t)tmp_21_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
@@ -381,7 +381,7 @@ static void display_grid(int rank, unsigned nblocks)
 	//if (rank == 0)
 	{
 		fprintf(stderr, "2D grid layout (Rank %d): \n", rank);
-		
+
 		unsigned i, j;
 		for (j = 0; j < nblocks; j++)
 		{
@@ -428,7 +428,7 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_mpi_init(NULL, NULL);
+	starpu_mpi_init(NULL, NULL, 0);
 
 	STARPU_ASSERT(p*q == world_size);
 
@@ -534,7 +534,7 @@ int main(int argc, char **argv)
 
 		y2 = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(y);
-		
+
 		if (rank == 0)
 		{
 			for (ind = 0; ind < size; ind++)
@@ -546,13 +546,13 @@ int main(int argc, char **argv)
 		STARPU_PLU(compute_lux)(size, x, y2, nblocks, rank);
 
 		/* Compute y2 = y2 - y */
-	        CPU_AXPY(size, -1.0, y, 1, y2, 1);
-	
-	        TYPE err = CPU_ASUM(size, y2, 1);
-	        int max = CPU_IAMAX(size, y2, 1);
-	
-	        fprintf(stderr, "(A - LU)X Avg error : %e\n", err/(size*size));
-	        fprintf(stderr, "(A - LU)X Max error : %e\n", y2[max]);
+		CPU_AXPY(size, -1.0, y, 1, y2, 1);
+
+		TYPE err = CPU_ASUM(size, y2, 1);
+		int max = CPU_IAMAX(size, y2, 1);
+
+		fprintf(stderr, "(A - LU)X Avg error : %e\n", err/(size*size));
+		fprintf(stderr, "(A - LU)X Max error : %e\n", y2[max]);
 #endif
 	}
 

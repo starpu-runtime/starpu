@@ -20,16 +20,24 @@ distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
 @menu
-* The API::                     
-* Simple Example::              
-* Exchanging User Defined Data Interface::  
-* MPI Insert Task Utility::     
-* MPI Collective Operations::   
+* The API::
+* Simple Example::
+* Exchanging User Defined Data Interface::
+* MPI Insert Task Utility::
+* MPI Collective Operations::
 @end menu
 
 @node The API
 @section The API
 
+@menu
+* Compilation::
+* Initialisation::
+* Communication::
+* Communication cache::
+@end menu
+
+@node Compilation
 @subsection Compilation
 
 The flags required to compile or link against the MPI layer are then
@@ -42,21 +50,27 @@ accessible with the following commands:
 
 Also pass the @code{--static} option if the application is to be linked statically.
 
+@node Initialisation
 @subsection Initialisation
 
-@deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv})
-Initializes the starpumpi library. If MPI is not already initialized,
-it will be by calling @code{MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)}.
+@deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv}, int initialize_mpi)
+Initializes the starpumpi library. @code{initialize_mpi} indicates if
+MPI should be initialized or not by StarPU. If the value is not @code{0},
+MPI will be initialized by calling @code{MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize (void)
 This function has been made deprecated. One should use instead the
 function @code{starpu_mpi_init()} defined above.
+This function does not call @code{MPI_Init}, it should be called beforehand.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize_extended (int *@var{rank}, int *@var{world_size})
 This function has been made deprecated. One should use instead the
 function @code{starpu_mpi_init()} defined above.
+MPI will be initialized by starpumpi by calling @code{MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)}.
 @end deftypefun
 
 @deftypefun int starpu_mpi_shutdown (void)
@@ -73,6 +87,7 @@ to the world size. Communications statistics must be enabled
 (@pxref{STARPU_COMM_STATS}).
 @end deftypefun
 
+@node Communication
 @subsection Communication
 
 The standard point to point communications of MPI have been
@@ -163,6 +178,22 @@ n-th data of the array @var{data_handle} from the n-th
 node of the array @var{source} using the n-th message tag of the array
 @code{mpi_tag} within the n-th communicator of the array @var{comm}.
 On completion of the all the requests, @var{tag} is unlocked.
+@end deftypefun
+
+@node Communication cache
+@subsection Communication cache
+
+@deftypefun void starpu_mpi_cache_flush (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle})
+Clear the send and receive communication cache for the data
+@var{data_handle}. The function has to be called synchronously by all
+the MPI nodes.
+The function does nothing if the cache mechanism is disabled (@pxref{STARPU_MPI_CACHE}).
+@end deftypefun
+
+@deftypefun void starpu_mpi_cache_flush_all_data (MPI_Comm @var{comm})
+Clear the send and receive communication cache for all data. The
+function has to be called synchronously by all the MPI nodes.
+The function does nothing if the cache mechanism is disabled (@pxref{STARPU_MPI_CACHE}).
 @end deftypefun
 
 @page
@@ -561,5 +592,3 @@ for(x = 0; x < nblocks ;  x++) @{
 starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
 @end smallexample
 @end cartouche
-
-

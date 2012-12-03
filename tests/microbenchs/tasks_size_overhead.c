@@ -218,6 +218,7 @@ int main(int argc, char **argv)
 		FPRINTF(stdout, "\n");
 	}
 
+	free(tasks);
 	return EXIT_SUCCESS;
 
 enodev:
@@ -225,5 +226,6 @@ enodev:
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
+	free(tasks);
 	return STARPU_TEST_SKIPPED;
 }

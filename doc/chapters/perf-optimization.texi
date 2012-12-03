@@ -22,6 +22,7 @@ TODO: improve!
 * Profiling::
 * CUDA-specific optimizations::
 * Performance debugging::
+* Simulated performance::
 @end menu
 
 Simply encapsulating application kernels into tasks already permits to
@@ -122,10 +123,14 @@ only when another task writes some value to the handle.
 Like any other runtime, StarPU has some overhead to manage tasks. Since
 it does smart scheduling and data management, that overhead is not always
 neglectable. The order of magnitude of the overhead is typically a couple of
-microseconds. The amount of work that a task should do should thus be somewhat
+microseconds, which is actually quite smaller than the CUDA overhead itself. The
+amount of work that a task should do should thus be somewhat
 bigger, to make sure that the overhead becomes neglectible. The offline
 performance feedback can provide a measure of task length, which should thus be
-checked if bad performance are observed.
+checked if bad performance are observed. To get a grasp at the scalability
+possibility according to task size, one can run
+@code{tests/microbenchs/tasks_size_overhead.sh} which draws curves of the
+speedup of independent tasks of very small sizes.
 
 @node Task submission
 @section Task submission
@@ -265,7 +270,7 @@ A graph can be drawn by using the @code{starpu_perfmodel_plot}:
 
 @example
 $ starpu_perfmodel_plot -s starpu_dlu_lu_model_22
-98304 393216 1572864 
+98304 393216 1572864
 $ gnuplot starpu_starpu_dlu_lu_model_22.gp
 $ gv starpu_starpu_dlu_lu_model_22.eps
 @end example
@@ -394,12 +399,12 @@ with these manual measurements through @code{starpu_perfmodel_update_history}.
 @node Profiling
 @section Profiling
 
-A quick view of how many tasks each worker has executed can be obtained by setting 
+A quick view of how many tasks each worker has executed can be obtained by setting
 @code{export STARPU_WORKER_STATS=1} This is a convenient way to check that
 execution did happen on accelerators without penalizing performance with
 the profiling overhead.
 
-A quick view of how much data transfers have been issued can be obtained by setting 
+A quick view of how much data transfers have been issued can be obtained by setting
 @code{export STARPU_BUS_STATS=1} .
 
 More detailed profiling information can be enabled by using @code{export STARPU_PROFILING=1} or by
@@ -457,3 +462,76 @@ detailed in the next chapter. The various informations should be checked for.
   greedy algorithm which thus performs badly.
 @end itemize
 @end itemize
+
+You can also use the Temanejo task debugger (see @ref{Task debugger}) to
+visualize the task graph more easily.
+
+@node Simulated performance
+@section Simulated performance
+
+StarPU can use Simgrid in order to simulate execution on an arbitrary
+platform. The idea is to first compile StarPU normally, and run the application,
+so as to automatically benchmark the bus and the codelets.
+
+@cartouche
+@smallexample
+$ ./configure && make
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
+$ ...
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+TEST PASSED
+@end smallexample
+@end cartouche
+
+Note that we force to use the dmda scheduler to generate performance
+models for the application. The application may need to be run several
+times before the model is calibrated.
+
+Then, recompile StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
+application, specifying the requested number of devices:
+
+@cartouche
+@smallexample
+$ ./configure --enable-simgrid && make
+$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
+TEST FAILED !!!
+@end smallexample
+@end cartouche
+
+It is normal that the test fails: since the computation are not actually done
+(that is the whole point of simgrid), the result is wrong, of course.
+
+If the performance model is not calibrated enough, the following error
+message will be displayed
+
+@cartouche
+@smallexample
+$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
+[0.000000] [xbt_cfg/INFO] type in variable = 2
+[0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
+[starpu][_starpu_simgrid_execute_job][assert failure] Codelet matvecmult does not have a perfmodel, or is not calibrated enough
+$
+@end smallexample
+@end cartouche
+
+For now, only the number of cpus can be arbitrarily chosen. The number of CUDA
+and OpenCL devices have to be lower than the real number on the current machine.
+
+The Simgrid default stack size is small, to increase it use the
+parameter @code{--cfg=contexts/stack_size}, for example:
+
+@cartouche
+@smallexample
+$ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
+[0.000000] [xbt_cfg/INFO] type in variable = 2
+[0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
+TEST FAILED !!!
+@end smallexample
+@end cartouche
+
+Note: of course, if the application uses @code{gettimeofday} to make its
+performance measurements, the real time will be used, which will be bogus. To
+get the simulated time, it has to use @code{starpu_timing_now} which returns the
+virtual timestamp in ms.

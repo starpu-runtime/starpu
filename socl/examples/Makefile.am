@@ -63,6 +63,7 @@ SOCL_EXAMPLES +=		\
 basic_basic_SOURCES = basic/basic.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
 matmul_matmul_SOURCES = matmul/matmul.c
+matmul_matmul_LDADD = -lm
 mansched_mansched_SOURCES = mansched/mansched.c
 
 #mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)

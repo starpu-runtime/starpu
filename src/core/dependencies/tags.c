@@ -24,6 +24,9 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/bound.h>
 #include <common/uthash.h>
+#include <core/debug.h>
+
+#define AYUDAME_OFFSET 4000000000000000000ULL
 
 struct _starpu_tag_table
 {
@@ -36,7 +39,7 @@ struct _starpu_tag_table
 #define HASH_FIND_UINT64_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint64_t),out)
 
 static struct _starpu_tag_table *tag_htbl = NULL;
-static pthread_rwlock_t tag_global_rwlock;
+static _starpu_pthread_rwlock_t tag_global_rwlock;
 
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {
@@ -135,6 +138,13 @@ void starpu_tag_remove(starpu_tag_t id)
 {
 	struct _starpu_tag_table *entry;
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = -1;
+		AYU_event(AYU_REMOVETASK, id + AYUDAME_OFFSET, NULL);
+	}
+#endif
+
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
@@ -187,6 +197,14 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 		entry2->tag = tag;
 
 		HASH_ADD_UINT64_T(tag_htbl, id, entry2);
+
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+			int64_t AYU_data[2] = {-1, 0};
+			STARPU_ASSERT(id < AYUDAME_OFFSET);
+			AYU_event(AYU_ADDTASK, id + AYUDAME_OFFSET, AYU_data);
+		}
+#endif
 	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
@@ -213,6 +231,13 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	_starpu_enforce_deps_starting_from_task(j);
 
 	_starpu_spin_lock(&tag->lock);
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = -1;
+		AYU_event(AYU_PRERUNTASK, tag->id + AYUDAME_OFFSET, &id);
+		AYU_event(AYU_POSTRUNTASK, tag->id + AYUDAME_OFFSET, NULL);
+	}
+#endif
 }
 
 /* the lock must be taken ! */
@@ -251,7 +276,7 @@ void starpu_tag_restart(starpu_tag_t id)
 	struct _starpu_tag *tag = gettag_struct(id);
 
 	_starpu_spin_lock(&tag->lock);
-	STARPU_ASSERT_MSG(tag->state == STARPU_DONE, "Only completed tags can be restarted");
+	STARPU_ASSERT_MSG(tag->state == STARPU_DONE, "Only completed tags can be restarted (was %d)", tag->state);
 	tag->state = STARPU_BLOCKED;
 	_starpu_spin_unlock(&tag->lock);
 }
@@ -289,6 +314,14 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 	if (job->task->regenerate || job->submitted == 2 ||
 			tag->state != STARPU_DONE)
 		tag->state = STARPU_ASSOCIATED;
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		uintptr_t AYU_data1[3] = {id+AYUDAME_OFFSET, 0, 0};
+		uintptr_t AYU_data2[3] = {job->job_id, 0, 0};
+		AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data1);
+		AYU_event(AYU_ADDDEPENDENCY, id+AYUDAME_OFFSET, AYU_data2);
+	}
+#endif
 	_starpu_spin_unlock(&tag->lock);
 }
 
@@ -318,6 +351,12 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+			uintptr_t AYU_data[3] = {dep_id+AYUDAME_OFFSET, 0, 0};
+			AYU_event(AYU_ADDDEPENDENCY, id+AYUDAME_OFFSET, AYU_data);
+		}
+#endif
 		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
@@ -352,6 +391,12 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+			uintptr_t AYU_data[3] = {dep_id+AYUDAME_OFFSET, 0, 0};
+			AYU_event(AYU_ADDDEPENDENCY, id+AYUDAME_OFFSET, AYU_data);
+		}
+#endif
 		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}

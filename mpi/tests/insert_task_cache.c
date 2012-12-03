@@ -35,7 +35,7 @@ struct starpu_codelet mycodelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
-        .nbuffers = 2,
+	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
 };
 
@@ -44,15 +44,15 @@ struct starpu_codelet mycodelet =
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x)
 {
-        return x;
+	return x;
 }
 
 void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 {
-        int i;
-        int ret;
+	int i;
+	int ret;
 	unsigned v[2][N];
-        starpu_data_handle_t data_handles[2];
+	starpu_data_handle_t data_handles[2];
 	char *string;
 
 	string = malloc(50);
@@ -61,10 +61,10 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL);
+	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-        for(i = 0; i < 2; i++)
+	for(i = 0; i < 2; i++)
 	{
 		int mpi_rank = my_distrib(i);
 		if (mpi_rank == rank)
@@ -80,30 +80,31 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 		}
 		starpu_data_set_rank(data_handles[i], mpi_rank);
 		starpu_data_set_tag(data_handles[i], i);
-        }
+	}
 
-        for(i = 0; i < 5; i++)
+	for(i = 0; i < 5; i++)
 	{
 		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 	}
 
-        for(i = 0; i < 5; i++)
+	for(i = 0; i < 5; i++)
 	{
 		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 	}
 
-        starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 
-        for(i = 0; i < 2; i++)
+	for(i = 0; i < 2; i++)
 	{
 		starpu_data_unregister(data_handles[i]);
-        }
+	}
 
 	starpu_mpi_comm_amounts_retrieve(comm_amount);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
+	free(string);
 }
 
 int main(int argc, char **argv)
@@ -136,6 +137,10 @@ int main(int argc, char **argv)
 	}
 	else
 		result = 1;
+
+	free(comm_amount_without_cache);
+	free(comm_amount_with_cache);
+	free(string);
 
 	MPI_Finalize();
 	return !result;

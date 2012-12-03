@@ -27,11 +27,11 @@ typedef struct pgreedy_data {
 
 	int master_id[STARPU_NMAXWORKERS];
 
-	pthread_cond_t sched_cond;
-	pthread_mutex_t sched_mutex;
+	_starpu_pthread_cond_t sched_cond;
+	_starpu_pthread_mutex_t sched_mutex;
 
-	pthread_cond_t master_sched_cond[STARPU_NMAXWORKERS];
-	pthread_mutex_t master_sched_mutex[STARPU_NMAXWORKERS];
+	_starpu_pthread_cond_t master_sched_cond[STARPU_NMAXWORKERS];
+	_starpu_pthread_mutex_t master_sched_mutex[STARPU_NMAXWORKERS];
 } pgreedy_data;
 
 /* XXX instead of 10, we should use some "MAX combination .."*/

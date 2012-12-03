@@ -16,7 +16,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU],1.1.0, [starpu-devel@lists.gforge.inria.fr], starpu)
+AC_INIT([StarPU], [1.1.0], [starpu-devel@lists.gforge.inria.fr],
+  [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -188,6 +189,7 @@ AC_ARG_ENABLE(quick-check, [AS_HELP_STRING([--enable-quick-check],
 if  test x$enable_quick_check = xyes; then
 	AC_DEFINE(STARPU_QUICK_CHECK, [1], [enable quick check])
 fi
+AM_CONDITIONAL([STARPU_QUICK_CHECK], [test "x$enable_quick_check" = "xyes"])
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
@@ -411,7 +413,12 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	CPPFLAGS="${SAVED_CPPFLAGS}"
 	unset STARPU_CUDA_LDFLAGS
     else
-	if test x$starpu_windows != xyes ; then
+	# nvcc is a wrapper around GCC, and calls it with the -dumpspecs
+	# option, which is GCC specific. If $CC does not support -dumpspecs, we
+	# should let nvcc choose another compiler (by default, gcc, if it is
+	# installed). If gcc is not installed, the build will probably fail.
+	$CC -dumpspecs >/dev/null 2>&1
+	if test $? -eq 0 -a x$starpu_windows != xyes; then
 	    NVCCFLAGS="${NVCCFLAGS} -ccbin \${CC}"
 	fi
 	if test "$__cuda_include_dir" != "no"; then
@@ -803,8 +810,55 @@ AC_DEFINE_UNQUOTED(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices]
 #                                                                             #
 ###############################################################################
 
+AC_ARG_ENABLE(opencl-simulator, [AS_HELP_STRING([--enable-opencl-simulator],
+				[Enable the use of an OpenCL simulator])],
+				enable_opencl_simulator=$enableval, enable_opencl_simulator=no)
+if test x$enable_opencl_simulator = xyes; then
+	enable_simgrid=yes
+	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
+fi
+
+AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
+			[Enable simulating execution in simgrid])],
+			enable_simgrid=$enableval, enable_simgrid=no)
+if test x$enable_simgrid = xyes ; then
+	OLD_CLAGS=$CFLAGS
+	OLD_LDFLAGS=$LDFLAGS
+	if test -n "$SIMGRID_CFLAGS" ; then
+		CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
+	fi
+	if test -n "$SIMGRID_LIBS" ; then
+		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
+	fi
+	AC_HAVE_LIBRARY([simgrid], [],
+		[
+			AC_MSG_ERROR(Simgrid support needs simgrid installed)
+		]
+	)
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+		    		[[#include <msg/msg.h>]],
+				[[msg_host_t foo; ]]
+			    )],
+	                 [],
+	                 [
+			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
+		         ])
+	if test -z "$SIMGRID_LIBS" ; then
+		SIMGRID_LIBS=-lsimgrid
+	fi
+	CLAGS=$OLD_CFLAGS
+	LDFLAGS=$OLD_LDFLAGS
+	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
+	# Avoid the starpu top thread compilation
+	enable_starpu_top=no
+	# We won't bind or detect anything
+	with_hwloc=no
+	# In simgrid, it's much better to let workers block than spinlock
+	enable_blocking=yes
+fi
+
 AC_MSG_CHECKING(whether blocking drivers should be disabled)
-AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--disable-blocking-drivers], [disable blocking drivers])],
+AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
 				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
 
@@ -826,7 +880,9 @@ AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
-	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+	if test x$enable_simgrid != xyes; then
+		AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+	fi
 else
 	CFLAGS="-O3 $CFLAGS"
 fi
@@ -841,16 +897,6 @@ if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
 fi
 
-AC_MSG_CHECKING(whether memory status should be displayed)
-AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
-			     [display memory status at the end of execution])],
-			     enable_memory_status=$enableval, enable_memory_status=no)
-AC_MSG_RESULT($enable_memory_status)
-if test x$enable_memory_status = xyes; then
-        AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
-fi
-
-
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
 			[display verbose debug messages])],
@@ -859,7 +905,6 @@ AC_MSG_RESULT($enable_verbose)
 if test x$enable_verbose = xyes; then
 	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
 fi
-
 
 AC_MSG_CHECKING(whether coverage testing should be enabled)
 AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
@@ -872,7 +917,6 @@ if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
 fi
-
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether FxT traces should be generated)
@@ -957,15 +1001,25 @@ AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
 			enable_stats=$enableval, enable_stats=no)
 AC_MSG_RESULT($enable_stats)
 AC_SUBST(STATS, $enable_stats)
-AC_SUBST(STARPU_DATA_STATS, $enable_stats)
-
+AC_SUBST(STARPU_ENABLE_STATS, $enable_stats)
 if test x$enable_stats = xyes; then
-        AC_DEFINE(STARPU_DATA_STATS, [1], [enable statistics])
+        AC_DEFINE(STARPU_ENABLE_STATS, [1], [enable statistics])
+fi
+
+AC_MSG_CHECKING(whether memory stats should be displayed)
+AC_ARG_ENABLE(memory-stats, [AS_HELP_STRING([--enable-memory-stats],
+			     [enable memory stats])],
+			     enable_memory_stats=$enableval, enable_memory_stats=no)
+AC_MSG_RESULT($enable_memory_stats)
+if test x$enable_memory_stats = xyes; then
+        AC_DEFINE(STARPU_MEMORY_STATS, [1], [enable memory stats])
 fi
 
 AC_CHECK_HEADERS([glpk.h])
 STARPU_HAVE_LIBRARY(GLPK, [glpk])
 AM_CONDITIONAL([STARPU_HAVE_GLPK], [test "x$build_sched_ctx_hypervisor" = "xyes"])
+AC_CHECK_HEADERS([Ayudame.h])
+
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #
@@ -1099,7 +1153,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
-if test -d "$srcdir/.svn" ; then
+if test -d "$srcdir/.svn" -o -d "$srcdir/.git" ; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then
@@ -1721,16 +1775,9 @@ m4_ifdef([AM_SILENT_RULES],
 # Documentation                          #
 ##########################################
 
-enable_build_doc=yes
-AC_CHECK_PROGS([CHECK_TEXI2DVI], [texi2dvi], "no")
-if test "$CHECK_TEXI2DVI" == "no" ; then
-    enable_build_doc=no
-else
-    AC_CHECK_PROGS([CHECK_TEX], [tex], "no")
-    if test "$CHECK_TEX" == "no" ; then
-	enable_build_doc=no
-    fi
-fi
+AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
+			[disable building of documentation])],
+			enable_build_doc=$enableval, enable_build_doc=yes)
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 
 ###############################################################################
@@ -1745,7 +1792,7 @@ AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
 if test x$enable_perf_debug = xyes; then
-	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $HWLOC_LIBS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
+	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $HWLOC_LIBS $SIMGRID_LIBS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
 fi
 AC_SUBST([LIBSTARPU_LINK])
 
@@ -1845,6 +1892,8 @@ AC_MSG_NOTICE([
 	       SOCL enabled:  $build_socl
                Scheduler Hypervisor: $build_sched_ctx_hypervisor
                SOCL test suite: $run_socl_check
+               simgrid enabled:                             $enable_simgrid
+               ayudame enabled:                             $ac_cv_header_Ayudame_h
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
@@ -1855,7 +1904,7 @@ To run the tests, you need to install the OCL implementation of ICD
 and set the variable SOCL_OCL_LIB_OPENCL to the location of the libOpenCL.so.])
 fi
 
-if test x"$have_valid_hwloc" = xno
+if test x"$have_valid_hwloc" = xno -a "$enable_simgrid" = "no"
 then
   AC_MSG_NOTICE([
 WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the

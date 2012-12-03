@@ -9,13 +9,13 @@
 @menu
 * Using multiple implementations of a codelet::
 * Enabling implementation according to capabilities::
-* Task and Worker Profiling::   
+* Task and Worker Profiling::
 * Partitioning Data::
-* Performance model example::   
-* Theoretical lower bound on execution time::  
-* Insert Task Utility::          
-* Data reduction::  
-* Temporary buffers::  
+* Performance model example::
+* Theoretical lower bound on execution time::
+* Insert Task Utility::
+* Data reduction::
+* Temporary buffers::
 * Parallel Tasks::
 * Debugging::
 * The multiformat interface::
@@ -45,7 +45,7 @@ void scal_sse_func(void *buffers[], void *cl_arg)
     __m128 factor __attribute__((aligned(16)));
     factor = _mm_set1_ps(*(float *) cl_arg);
 
-    unsigned int i;    
+    unsigned int i;
     for (i = 0; i < n_iterations; i++)
         VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
 @}
@@ -232,7 +232,7 @@ starpu_vector_data_register(&handle, 0, (uintptr_t)vector,
                             NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
-starpu_filter f =
+starpu_data_filter f =
 @{
     .filter_func = starpu_block_filter_func_vector,
     .nchildren = PARTS
@@ -456,8 +456,10 @@ solve it immediately and get the optimized minimum, in ms. Its @code{integer}
 parameter allows to decide whether integer resolution should be computed
 and returned too.
 
-The @code{deps} parameter tells StarPU whether to take tasks and implicit data
-dependencies into account. It must be understood that the linear programming
+The @code{deps} parameter tells StarPU whether to take tasks, implicit data, and tag
+dependencies into account. Tags released in a callback or similar
+are not taken into account, only tags associated with a task are.
+It must be understood that the linear programming
 problem size is quadratic with the number of tasks and thus the time to solve it
 will be very long, it could be minutes for just a few dozen tasks. You should
 probably use @code{lp_solve -timeout 1 test.pl -wmps test.mps} to convert the
@@ -468,6 +470,10 @@ slower, but it is parallel. Be sure to try at least all the @code{-B} options
 of @code{lp_solve}. For instance, we often just use
 @code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and
 the @code{-gr} option can also be quite useful.
+
+Data transfer time can only be taken into account when @code{deps} is set. Only
+data transfers inferred from implicit data dependencies between tasks are taken
+into account.
 
 Setting @code{deps} to 0 will only take into account the actual computations
 on processing units. It however still properly takes into account the varying
@@ -964,6 +970,8 @@ gdb helpers are also provided to show the whole StarPU state:
 (gdb) source tools/gdbinit
 (gdb) help starpu
 @end smallexample
+
+The Temanejo task debugger can also be used, see @ref{Task debugger}.
 
 @node The multiformat interface
 @section The multiformat interface

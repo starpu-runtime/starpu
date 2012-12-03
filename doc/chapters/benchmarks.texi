@@ -6,7 +6,7 @@
 
 @menu
 * Task size overhead::           Overhead of tasks depending on their size
-* Data transfer latency::        Latency of data transfers 
+* Data transfer latency::        Latency of data transfers
 * Gemm::                         Matrix-matrix multiplication
 * Cholesky::                     Cholesky factorization
 * LU::                           LU factorization

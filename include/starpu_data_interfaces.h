@@ -144,6 +144,11 @@ int starpu_data_interface_get_next_id(void);
 void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, void *data_interface, struct starpu_data_interface_ops *ops);
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
+/* Allocate SIZE bytes on node NODE */
+uintptr_t starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size);
+/* Free ADDR on node NODE */
+void starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size);
+
 /* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
  * interface does not support this operation or data for this handle is not
  * allocated on that node. */

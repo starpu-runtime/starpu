@@ -51,8 +51,8 @@ lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(SIMGRID_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS) $(SIMGRID_LIBS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
 
@@ -74,6 +74,7 @@ noinst_HEADERS = 						\
 	core/errorcheck.h					\
 	core/combined_workers.h					\
 	core/parallel_task.h					\
+	core/simgrid.h						\
 	core/task_bundle.h					\
 	sched_policies/detect_combined_workers.h		\
 	sched_policies/fifo_queues.h				\
@@ -85,6 +86,8 @@ noinst_HEADERS = 						\
 	datawizard/filters.h					\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
+	datawizard/memstats.h					\
+	datawizard/memory_manager.h				\
 	datawizard/memalloc.h					\
 	datawizard/copy_driver.h				\
 	datawizard/coherency.h					\
@@ -150,6 +153,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/perfmodel/perfmodel_print.c			\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
+	core/simgrid.c						\
 	core/sched_ctx.c					\
 	core/priorities.c					\
 	core/parallel_task.c					\
@@ -174,7 +178,10 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	datawizard/copy_driver.c				\
 	datawizard/filters.c					\
 	datawizard/sort_data_handles.c				\
+	datawizard/malloc.c					\
+	datawizard/memory_manager.c				\
 	datawizard/memalloc.c					\
+	datawizard/memstats.c					\
 	datawizard/footprint.c					\
 	datawizard/datastats.c					\
 	datawizard/user_interactions.c				\
@@ -194,7 +201,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	datawizard/interfaces/variable_interface.c		\
 	datawizard/interfaces/void_interface.c			\
 	datawizard/interfaces/multiformat_interface.c           \
-	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
 	util/file.c						\

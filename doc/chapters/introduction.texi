@@ -70,8 +70,8 @@ policies in a portable fashion (@pxref{Scheduling Policy API}).
 The remainder of this section describes the main concepts used in StarPU.
 
 @menu
-* Codelet and Tasks::           
-* StarPU Data Management Library::  
+* Codelet and Tasks::
+* StarPU Data Management Library::
 * Glossary::
 * Research Papers::
 @end menu

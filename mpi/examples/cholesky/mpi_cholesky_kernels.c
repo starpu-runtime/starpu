@@ -29,7 +29,7 @@
 #endif
 
 /*
- *   U22
+ * U22
  */
 
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)

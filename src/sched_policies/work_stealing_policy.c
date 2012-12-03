@@ -22,6 +22,7 @@
 
 #include <core/workers.h>
 #include <sched_policies/deque_queues.h>
+#include <core/debug.h>
 
 typedef struct{
 	struct _starpu_deque_jobq **queue_array;
@@ -30,8 +31,8 @@ typedef struct{
 	 * better decisions about which queue to select when stealing or deferring work
 	 */
 	unsigned performed_total;
-	pthread_mutex_t sched_mutex;
-	pthread_cond_t sched_cond;
+	_starpu_pthread_mutex_t sched_mutex;
+	_starpu_pthread_cond_t sched_cond;
 	unsigned last_pop_worker;
 	unsigned last_push_worker;
 } work_stealing_data;
@@ -322,6 +323,12 @@ int ws_push_task(struct starpu_task *task)
 	deque_queue = ws->queue_array[workerid];
 
 	_STARPU_TRACE_JOB_PUSH(task, 0);
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = workerid;
+		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
+	}
+#endif
 	_starpu_job_list_push_back(deque_queue->jobq, j);
 	deque_queue->njobs++;
 

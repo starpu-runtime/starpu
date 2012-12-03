@@ -31,8 +31,8 @@ static unsigned progress_thread_is_inited = 0;
 
 pthread_t progress_thread;
 
-pthread_cond_t progress_cond;
-pthread_mutex_t progress_mutex;
+_starpu_pthread_cond_t progress_cond;
+_starpu_pthread_mutex_t progress_mutex;
 
 struct gordon_task_wrapper_s
 {
@@ -204,6 +204,7 @@ static void gordon_callback_list_func(void *arg)
 	{
 		struct _starpu_job *j = _starpu_job_list_pop_back(wrapper_list);
 
+#ifndef STARPU_SIMGRID
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
 		struct starpu_perfmodel *model = j->task->cl->model;
 		if (model && model->benchmarking)
@@ -213,6 +214,7 @@ static void gordon_callback_list_func(void *arg)
 
 			_starpu_update_perfmodel_history(j, j->task->cl->model, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
+#endif
 
 		_starpu_push_task_output(j, 0);
 		_starpu_handle_job_termination(j, 0);
@@ -464,7 +466,7 @@ void *_starpu_gordon_worker(void *arg)
 	_STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 
-	_STARPU_PTHREAD_CREATE(&progress_thread, NULL,
+	_STARPU_PTHREAD_CREATE("Gordon progress", &progress_thread, NULL,
 			       gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */

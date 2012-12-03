@@ -7,15 +7,15 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Defining a new data interface::  
-* Multiformat Data Interface::  
-* Task Bundles::                
-* Task Lists::                  
-* Using Parallel Tasks::       
+* Defining a new data interface::
+* Multiformat Data Interface::
+* Task Bundles::
+* Task Lists::
+* Using Parallel Tasks::
 * Scheduling Contexts::
-* Defining a new scheduling policy::  
+* Defining a new scheduling policy::
 * Running drivers::
-* Expert mode::                 
+* Expert mode::
 @end menu
 
 @node Defining a new data interface
@@ -892,4 +892,3 @@ Register a progression hook, to be called when workers are idle.
 @deftypefun void starpu_progression_hook_deregister (int @var{hook_id})
 Unregister a given progression hook.
 @end deftypefun
-

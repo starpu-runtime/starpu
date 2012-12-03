@@ -17,16 +17,33 @@
 CC=$(MPICC)
 CCLD=$(MPICC)
 
-if STARPU_MPI_CHECK
-if STARPU_HAVE_AM111
-LOG_COMPILER	 	=	$(MPIEXEC) -np 4
+if STARPU_HAVE_WINDOWS
+LOADER_BIN		=
 else
-TESTS_ENVIRONMENT 	=	$(MPIEXEC) -np 4
-endif
-TESTS			=	$(check_PROGRAMS)
+loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER			=	loader
+LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
 endif
 
-check_PROGRAMS =
+if STARPU_QUICK_CHECK
+MPI			=	$(MPIEXEC) -np 2
+else
+MPI			=	$(MPIEXEC) -np 4
+endif
+
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
+else
+TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+endif
+
+if STARPU_MPI_CHECK
+TESTS			=	$(starpu_mpi_TESTS)
+endif
+
+check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
 
 BUILT_SOURCES =
 
@@ -49,14 +66,14 @@ endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
 
 ########################
 # Unit testcases       #
 ########################
 
-check_PROGRAMS +=				\
+starpu_mpi_TESTS =				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
@@ -77,7 +94,8 @@ check_PROGRAMS +=				\
 	insert_task_owner_data			\
 	multiple_send				\
 	mpi_scatter_gather			\
-	mpi_reduction
+	mpi_reduction				\
+	user_defined_datatype
 
 noinst_PROGRAMS =				\
 	pingpong				\
@@ -100,7 +118,8 @@ noinst_PROGRAMS =				\
 	insert_task_owner_data			\
 	multiple_send				\
 	mpi_scatter_gather			\
-	mpi_reduction
+	mpi_reduction				\
+	user_defined_datatype
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -144,6 +163,8 @@ mpi_scatter_gather_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_reduction_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+user_defined_datatype_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
 ring_async_SOURCES = ring_async.c
@@ -155,6 +176,8 @@ ring_async_implicit_SOURCES += ring_kernel.cu
 endif
 mpi_reduction_SOURCES = mpi_reduction.c
 mpi_reduction_SOURCES += mpi_reduction_kernels.c
+user_defined_datatype_SOURCES = user_defined_datatype.c
+user_defined_datatype_SOURCES += $(top_srcdir)/examples/interface/complex_interface.c
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

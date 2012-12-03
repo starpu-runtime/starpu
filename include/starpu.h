@@ -66,6 +66,10 @@ extern "C"
 {
 #endif
 
+#ifdef STARPU_SIMGRID
+#define main starpu_main
+#endif
+
 enum starpu_archtype
 {
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -140,10 +144,10 @@ struct starpu_conf
 	int disable_asynchronous_copy;
 
         /* indicate if asynchronous copies to CUDA devices should be disabled */
-	int disable_cuda_asynchronous_copy;
+	int disable_asynchronous_cuda_copy;
 
         /* indicate if asynchronous copies to OpenCL devices should be disabled */
-	int disable_opencl_asynchronous_copy;
+	int disable_asynchronous_opencl_copy;
 
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
 	unsigned *cuda_opengl_interoperability;

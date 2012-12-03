@@ -34,6 +34,7 @@ void _callback_collective(void *arg)
 	if (callback_arg->nb == callback_arg->count)
 	{
 		callback_arg->callback(callback_arg->arg);
+		free(callback_arg);
 	}
 }
 
@@ -46,9 +47,6 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 
 	MPI_Comm_rank(comm, &rank);
 
-#ifdef STARPU_DEVEL
-#warning TODO: callback_arg needs to be free-ed
-#endif
 	callback_func = _callback_collective;
 	callback_arg = malloc(sizeof(struct _callback_arg));
 	callback_arg->count = 0;
@@ -64,7 +62,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 
 	if (callback_arg)
 	{
-		for(x = 0; x < count ;  x++)
+		for(x = 0; x < count ; x++)
 		{
 			if (data_handles[x])
 			{
@@ -83,7 +81,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 		}
 	}
 
-	for(x = 0; x < count ;  x++)
+	for(x = 0; x < count ; x++)
 	{
 		if (data_handles[x])
 		{
@@ -132,7 +130,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 
 	if (callback_arg)
 	{
-		for(x = 0; x < count ;  x++)
+		for(x = 0; x < count ; x++)
 		{
 			if (data_handles[x])
 			{
@@ -151,7 +149,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 		}
 	}
 
-	for(x = 0; x < count ;  x++)
+	for(x = 0; x < count ; x++)
 	{
 		if (data_handles[x])
 		{

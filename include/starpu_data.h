@@ -87,6 +87,7 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node);
 
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
+void starpu_memory_display_stats();
 
 /* XXX These macros are provided to avoid breaking old codes. But consider
  * these function names as deprecated. */

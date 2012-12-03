@@ -31,7 +31,7 @@ executed as efficiently as possible.
 +------------------------
 | I.b. What StarPU is not
 
-StarPU is not a new language, and it does not extends existing languages either.
+StarPU is not a new language, and it does not extend existing languages either.
 StarPU does not help to write computation kernels.
 
 +---------------------------------
@@ -76,11 +76,13 @@ advantage of their specificities in a portable fashion.
    units according to the machine topology. For more details on hwloc, see
    http://www.open-mpi.org/projects/hwloc/ .
 
- * To build the StarPU-Top tool the following are also required:
-   * libqt4 >= 4.7
+ * To build the StarPU-Top tool the following packages (along with
+   their development files) are also required:
+   * libqt4-dev >= 4.7
    * libqt4-network
    * libqt4-opengl
    * libqt4-sql
+   * qt4-qmake
 
 ++=====================++
 || III. Getting StarPU ||

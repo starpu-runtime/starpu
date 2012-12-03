@@ -249,67 +249,15 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 	uint32_t nrow = csr_interface->nrow;
 	size_t elemsize = csr_interface->elemsize;
 
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
-
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			addr_nzval = (uintptr_t)malloc(nnz*elemsize);
-			if (!addr_nzval)
-				goto fail_nzval;
-
-			addr_colind = (uint32_t *) malloc(nnz*sizeof(uint32_t));
-			if (!addr_colind)
-				goto fail_colind;
-
-			addr_rowptr = (uint32_t *) malloc((nrow+1)*sizeof(uint32_t));
-			if (!addr_rowptr)
-				goto fail_rowptr;
-
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t err;
-			err = cudaMalloc((void **)&addr_nzval, nnz*elemsize);
-			if (STARPU_UNLIKELY(err != cudaSuccess ||!addr_nzval))
-				goto fail_nzval;
-
-			err = cudaMalloc((void **)&addr_colind, nnz*sizeof(uint32_t));
-			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_colind))
-				goto fail_colind;
-
-			err = cudaMalloc((void **)&addr_rowptr, (nrow+1)*sizeof(uint32_t));
-			if (STARPU_UNLIKELY(err != cudaSuccess || !addr_rowptr))
-				goto fail_rowptr;
-
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-	        case STARPU_OPENCL_RAM:
-			{
-                                int ret;
-				cl_mem ptr;
-
-                                ret = starpu_opencl_allocate_memory(&ptr, nnz*elemsize, CL_MEM_READ_WRITE);
-                                addr_nzval = (uintptr_t)ptr;
-				if (ret) goto fail_nzval;
-
-                                ret = starpu_opencl_allocate_memory(&ptr, nnz*sizeof(uint32_t), CL_MEM_READ_WRITE);
-                                addr_colind = (void*) ptr;
-				if (ret) goto fail_colind;
-
-                                ret = starpu_opencl_allocate_memory(&ptr, (nrow+1)*sizeof(uint32_t), CL_MEM_READ_WRITE);
-                                addr_rowptr = (void*) ptr;
-				if (ret) goto fail_rowptr;
-
-				break;
-			}
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	addr_nzval = starpu_allocate_buffer_on_node(dst_node, nnz*elemsize);
+	if (!addr_nzval)
+		goto fail_nzval;
+	addr_colind = (uint32_t*) starpu_allocate_buffer_on_node(dst_node, nnz*sizeof(uint32_t));
+	if (!addr_colind)
+		goto fail_colind;
+	addr_rowptr = (uint32_t*) starpu_allocate_buffer_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
+	if (!addr_rowptr)
+		goto fail_rowptr;
 
 	/* allocation succeeded */
 	allocated_memory =
@@ -323,67 +271,10 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_n
 	return allocated_memory;
 
 fail_rowptr:
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void *)addr_colind);
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t err;
-			err = cudaFree((void*)addr_colind);
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-		{
-			cl_int err;
-			err = clReleaseMemObject((void*)addr_colind);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-			break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
+	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_colind, nnz*sizeof(uint32_t));
 fail_colind:
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void *)addr_nzval);
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t err;
-			err = cudaFree((void*)addr_nzval);
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-		{
-			cl_int err;
-			err = clReleaseMemObject((void*)addr_nzval);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-			break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
+	starpu_free_buffer_on_node(dst_node, addr_nzval, nnz*elemsize);
 fail_nzval:
-
 	/* allocation failed */
 	return -ENOMEM;
 }
@@ -391,50 +282,13 @@ fail_nzval:
 static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
+	uint32_t nnz = csr_interface->nnz;
+	uint32_t nrow = csr_interface->nrow;
+	size_t elemsize = csr_interface->elemsize;
 
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void*)csr_interface->nzval);
-			free((void*)csr_interface->colind);
-			free((void*)csr_interface->rowptr);
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			cudaError_t err;
-			err = cudaFree((void*)csr_interface->nzval);
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-			err = cudaFree((void*)csr_interface->colind);
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-			err = cudaFree((void*)csr_interface->rowptr);
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-		{
-			cl_int err;
-			err = clReleaseMemObject((void*)csr_interface->nzval);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-			err = clReleaseMemObject((void*)csr_interface->colind);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-			err = clReleaseMemObject((void*)csr_interface->rowptr);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-			break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	starpu_free_buffer_on_node(node, csr_interface->nzval, nnz*elemsize);
+	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->colind, nnz*sizeof(uint32_t));
+	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
 }
 
 #ifdef STARPU_USE_CUDA

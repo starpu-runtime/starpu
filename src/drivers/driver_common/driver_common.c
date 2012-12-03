@@ -26,6 +26,7 @@
 #include <starpu_top.h>
 #include <core/sched_policy.h>
 #include <top/starpu_top_core.h>
+#include <core/debug.h>
 
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
 {
@@ -50,6 +51,9 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 
 	if (rank == 0)
 	{
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_RUNTASK, j->job_id, NULL);
+#endif
 		cl->per_worker_stats[workerid]++;
 
 		profiling_info = task->profiling_info;
@@ -85,6 +89,9 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	{
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 			_starpu_clock_gettime(codelet_end);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
+#endif
 	}
 
 	if (starpu_top)
@@ -104,8 +111,10 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	int calibrate_model = 0;
 	int updated = 0;
 
+#ifndef STARPU_SIMGRID
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
+#endif
 
 	if ((profiling && profiling_info) || calibrate_model)
 	{
@@ -181,6 +190,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		_starpu_worker_stop_sleeping(workerid);
 		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	}
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = workerid;
+		AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(task)->job_id, &id);
+	}
+#endif
 
 	return task;
 }

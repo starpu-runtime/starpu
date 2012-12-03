@@ -188,7 +188,7 @@ struct starpu_perfmodel
 	unsigned is_loaded;
 	unsigned benchmarking;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
 	void *model_rwlock;
 #else
 	pthread_rwlock_t model_rwlock;

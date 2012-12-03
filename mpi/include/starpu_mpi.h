@@ -39,8 +39,8 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status);
 int starpu_mpi_test(starpu_mpi_req *req, int *flag, MPI_Status *status);
 int starpu_mpi_barrier(MPI_Comm comm);
-int starpu_mpi_init(int *argc, char ***argv);
 
+int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi);
 int starpu_mpi_initialize(void) STARPU_DEPRECATED;
 int starpu_mpi_initialize_extended(int *rank, int *world_size) STARPU_DEPRECATED;
 int starpu_mpi_shutdown(void);
@@ -66,6 +66,10 @@ int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_
 
 /* retrieve the current amount of communications from the current node */
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
+
+void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
+void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
+
 #ifdef __cplusplus
 }
 #endif

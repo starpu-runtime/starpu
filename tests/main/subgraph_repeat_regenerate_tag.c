@@ -52,8 +52,8 @@ static struct starpu_task taskA, taskB, taskC, taskD;
 
 static unsigned loop_cnt = 0;
 static unsigned check_cnt = 0;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {

@@ -56,6 +56,11 @@ New features:
         - When exchanging user-defined data interfaces, the size of
 	  the data is the size returned by the pack operation, i.e
 	  data with dynamic size can now be exchanged with StarPU-MPI.
+  * Add experimental simgrid support, to simulate execution with various
+    number of CPUs, GPUs, amount of memory, etc.
+  * Add support for OpenCL simulators (which provide simulated execution time)
+  * Add support for Temanejo, a task graph debugger
+  * Theoretical bound lp output now includes data transfer time.
 
 Changes:
   * Fix the block filter functions.
@@ -80,6 +85,7 @@ Changes:
   * Cell:
     - It is no longer possible to enable the cell support via the
       gordon driver
+  * Fix data transfer arrows in paje traces
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
@@ -91,7 +97,6 @@ Small changes:
   * Fix forcing calibration of never-calibrated archs.
   * CUDA applications are no longer compiled with the "-arch sm_13"
     option. It is specifically added to applications which need it.
-  * Documentation is not built if necessary tools are missing
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================

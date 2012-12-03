@@ -30,12 +30,13 @@
 #include <profiling/bound.h>
 #include <math.h>
 #include <string.h>
+#include <core/debug.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
 /* TODO we could make this hierarchical to avoid contention ? */
-static pthread_cond_t submitted_cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t submitted_mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t submitted_cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t submitted_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 static long int nsubmitted = 0, nready = 0;
 
 static void _starpu_increment_nsubmitted_tasks(void);
@@ -44,7 +45,7 @@ static void _starpu_increment_nsubmitted_tasks(void);
  * cannot use the worker structure to store that information because it is
  * possible that we have a task with a NULL codelet, which means its callback
  * could be executed by a user thread as well. */
-static pthread_key_t current_task_key;
+static _starpu_pthread_key_t current_task_key;
 
 void starpu_task_init(struct starpu_task *task)
 {
@@ -389,6 +390,11 @@ int starpu_task_submit(struct starpu_task *task)
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
+	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
+	* task structure, it is possible that this job structure was already
+	* allocated. */
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
 	if (task->cl)
 	{
 		unsigned i;
@@ -488,11 +494,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (profiling)
 		_starpu_clock_gettime(&info->submit_time);
-
-	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
-	* task structure, it is possible that this job structure was already
-	* allocated, for instance to enforce task depenencies. */
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	ret = _starpu_submit_job(j);
 
@@ -666,6 +667,14 @@ int starpu_task_wait_for_all(void)
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
 	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
+#endif
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
+#endif
+
 	return 0;
 }
 /*
@@ -756,7 +765,7 @@ void _starpu_decrement_nready_tasks(void)
 
 void _starpu_initialize_current_task_key(void)
 {
-	pthread_key_create(&current_task_key, NULL);
+	_STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
 }
 
 /* Return the task currently executed by the worker, or NULL if this is called
@@ -764,12 +773,12 @@ void _starpu_initialize_current_task_key(void)
  * being executed at the moment. */
 struct starpu_task *starpu_task_get_current(void)
 {
-	return (struct starpu_task *) pthread_getspecific(current_task_key);
+	return (struct starpu_task *) _STARPU_PTHREAD_GETSPECIFIC(current_task_key);
 }
 
 void _starpu_set_current_task(struct starpu_task *task)
 {
-	pthread_setspecific(current_task_key, task);
+	_STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
 }
 
 /*

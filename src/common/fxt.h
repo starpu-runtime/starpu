@@ -298,7 +298,7 @@ do {										\
 	FUT_DO_PROBE2(_STARPU_FUT_START_DRIVER_COPY_ASYNC, src_node, dst_node)
 
 #define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node)	\
-	FUT_DO_PROBE2(_STARPU_FUT_END_DRIVER_COPY, src_node, dst_node)
+	FUT_DO_PROBE2(_STARPU_FUT_END_DRIVER_COPY_ASYNC, src_node, dst_node)
 
 #define _STARPU_TRACE_WORK_STEALING(empty_q, victim_q)		\
 	FUT_DO_PROBE2(_STARPU_FUT_WORK_STEALING, empty_q, victim_q)

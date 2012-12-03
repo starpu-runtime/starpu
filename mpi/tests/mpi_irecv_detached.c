@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,14 +19,18 @@
 #include <common/utils.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
 #define SIZE	16
 
 float *tab;
 starpu_data_handle_t tab_handle;
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 
 void callback(void *arg __attribute__((unused)))
 {
@@ -58,7 +62,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL);
+	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	tab = malloc(SIZE*sizeof(float));

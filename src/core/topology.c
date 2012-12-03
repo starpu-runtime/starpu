@@ -38,6 +38,11 @@
 #include <windows.h>
 #endif
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#include <core/simgrid.h>
+#endif
+
 static unsigned topology_is_initialized = 0;
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -267,6 +272,12 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	if (topology_is_initialized)
 		return;
 
+#ifdef STARPU_SIMGRID
+	struct starpu_conf *conf = config->conf;
+	topology->nhwcpus = conf->ncpus?conf->ncpus:1;
+	topology->nhwcudagpus = conf->ncuda;
+	topology->nhwopenclgpus = conf->nopencl;
+#else
 	topology->nhwcpus = 0;
 
 #ifdef STARPU_HAVE_HWLOC
@@ -277,6 +288,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	_starpu_cpu_discover_devices(config);
 	_starpu_cuda_discover_devices(config);
 	_starpu_opencl_discover_devices(config);
+#endif
 
 	topology_is_initialized = 1;
 }
@@ -453,6 +465,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 #ifdef STARPU_USE_CUDA
 	int ncuda = config->conf->ncuda;
 
+#ifndef STARPU_SIMGRID
 	if (ncuda != 0)
 	{
 		/* The user did not disable CUDA. We need to initialize CUDA
@@ -476,6 +489,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			}
 		}
 	}
+#endif
 
 	/* Now we know how many CUDA devices will be used */
 	topology->ncudagpus = ncuda;
@@ -510,6 +524,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 #ifdef STARPU_USE_OPENCL
 	int nopencl = config->conf->nopencl;
 
+#ifndef STARPU_SIMGRID
 	if (nopencl != 0)
 	{
 		/* The user did not disable OPENCL. We need to initialize
@@ -546,6 +561,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			}
 		}
 	}
+#endif
 
 	topology->nopenclgpus = nopencl;
 	STARPU_ASSERT(topology->nopenclgpus + topology->nworkers <= STARPU_NMAXWORKERS);
@@ -676,6 +692,9 @@ _starpu_bind_thread_on_cpu (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
 	unsigned cpuid)
 {
+#ifdef STARPU_SIMGRID
+	return;
+#endif
 	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
 		return;
 #ifdef STARPU_HAVE_HWLOC
@@ -739,8 +758,11 @@ _starpu_bind_thread_on_cpu (
 void
 _starpu_bind_thread_on_cpus (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
-	struct _starpu_combined_worker *combined_worker)
+	struct _starpu_combined_worker *combined_worker STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_SIMGRID
+	return;
+#endif
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
@@ -786,6 +808,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 	/* TODO : support NUMA  ;) */
 	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM, -1);
 
+#ifdef STARPU_SIMGRID
+	char name[16];
+	xbt_dynar_t hosts = MSG_hosts_as_dynar();
+	msg_host_t host = MSG_get_host_by_name("RAM");
+	STARPU_ASSERT(host);
+	_starpu_simgrid_memory_node_set_host(0, host);
+#endif
+
 	/* We will store all the busid of the different (src, dst)
 	 * combinations in a matrix which we initialize here. */
 	_starpu_initialize_busid_matrix();
@@ -827,6 +857,12 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM, workerarg->devid);
+#ifdef STARPU_SIMGRID
+				snprintf(name, sizeof(name), "CUDA%d", workerarg->devid);
+				host = MSG_get_host_by_name(name);
+				STARPU_ASSERT(host);
+				_starpu_simgrid_memory_node_set_host(memory_node, host);
+#endif
 				_starpu_memory_node_worker_add(memory_node);
 
 				_starpu_register_bus(0, memory_node);
@@ -857,6 +893,12 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM, workerarg->devid);
+#ifdef STARPU_SIMGRID
+				snprintf(name, sizeof(name), "OpenCL%d", workerarg->devid);
+				host = MSG_get_host_by_name(name);
+				STARPU_ASSERT(host);
+				_starpu_simgrid_memory_node_set_host(memory_node, host);
+#endif
 				_starpu_memory_node_worker_add(memory_node);
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
@@ -906,6 +948,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 			hwloc_bitmap_dup (worker_obj->cpuset);
 #endif
 	}
+#ifdef STARPU_SIMGRID
+	xbt_dynar_free(&hosts);
+#endif
 }
 
 

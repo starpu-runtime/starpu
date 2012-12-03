@@ -75,17 +75,17 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	unsigned i,j,k;
 
 	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	if (bound)
-		starpu_bound_start(0, 0);
+		starpu_bound_start(bound_deps, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -135,10 +135,10 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	if (bound)
 		starpu_bound_stop();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-
+	//double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	unsigned long n = starpu_matrix_get_nx(dataA);
 
 	double flop = (1.0f*n*n*n)/3.0f;
@@ -151,6 +151,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		FPRINTF(stdout, "%2.2f\n", timing/1000);
 	
 		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+		if (bound_lp)
+		{
+			FILE *f = fopen("cholesky.lp", "w");
+			starpu_bound_print_lp(f);
+		}
 		if (bound)
 		{
 			double res;
@@ -194,10 +199,11 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	int ret;
-	float *mat;
-	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
-
+	float *mat = NULL;
 	unsigned i,j;
+
+#ifndef STARPU_SIMGRID
+	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 	for (i = 0; i < size; i++)
 	{
 		for (j = 0; j < size; j++)
@@ -206,6 +212,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
+#endif
 
 /* #define PRINT_OUTPUT */
 #ifdef PRINT_OUTPUT
@@ -345,6 +352,7 @@ int main(int argc, char **argv)
 		execute_cholesky(size, nblocks);
 
 	starpu_helper_cublas_shutdown();
+	starpu_free(mat);
 	starpu_shutdown();
 
 	return ret;

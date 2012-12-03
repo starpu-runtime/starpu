@@ -44,8 +44,19 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
+#ifdef STARPU_SIMGRID
+/* Give virtual time to FxT */
+uint64_t fut_getstamp(void)
+{
+	return starpu_timing_now()*1000.;
+}
+#endif
+
 long _starpu_gettid(void)
 {
+#ifdef STARPU_SIMGRID
+	return (uintptr_t) MSG_process_self();
+#else
 #if defined(__linux__)
 	return syscall(SYS_gettid);
 #elif defined(__FreeBSD__)
@@ -56,6 +67,7 @@ long _starpu_gettid(void)
 	return (long) GetCurrentThreadId();
 #else
 	return (long) pthread_self();
+#endif
 #endif
 }
 

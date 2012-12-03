@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 #include <errno.h>
 
 static struct starpu_worker_profiling_info worker_info[STARPU_NMAXWORKERS];
-static pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
+static _starpu_pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
 
 /* In case the worker is still sleeping when the user request profiling info,
  * we need to account for the time elasped while sleeping. */
@@ -57,8 +57,14 @@ static void _starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *b
  *	Global control of profiling
  */
 
-/* Disabled by default */
-int _starpu_profiling = 0;
+/* Disabled by default, unless simulating */
+int _starpu_profiling =
+#ifdef STARPU_SIMGRID
+	1
+#else
+	0
+#endif
+	;
 
 int starpu_profiling_status_set(int status)
 {
@@ -104,7 +110,7 @@ void _starpu_profiling_init(void)
 		_starpu_worker_reset_profiling_info(worker);
 	}
 	if ((env = getenv("STARPU_PROFILING")) && atoi(env))
-		_starpu_profiling = 1;
+		_starpu_profiling = STARPU_PROFILING_ENABLE;
 }
 
 void _starpu_profiling_terminate(void)

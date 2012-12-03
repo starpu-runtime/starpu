@@ -28,6 +28,7 @@
 #include <profiling/bound.h>
 #include <starpu_top.h>
 #include <top/starpu_top_core.h>
+#include <core/debug.h>
 
 /* we need to identify each task to generate the DAG. */
 static unsigned job_cnt = 0;
@@ -54,9 +55,22 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get())
+	if (_starpu_bound_recording || _starpu_top_status_get()
+#ifdef HAVE_AYUDAME_H
+		|| AYU_event
 #endif
+			)
+#endif
+	{
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+			/* Declare task to Ayudame */
+			int64_t AYU_data[2] = {_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
+		}
+#endif
+	}
 
 	_starpu_cg_list_init(&job->job_successors);
 
@@ -214,6 +228,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 	j->terminated = 2;
 	_STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_REMOVETASK, j->job_id, NULL);
+#endif
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	if (detach)
@@ -228,7 +246,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
 
 	if (regenerate)
 	{
-		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached, and not have detroy=1 or synchronous=1");
+		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
+
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) {
+			int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
+		}
+#endif
 
 		/* We reuse the same job structure */
 		int ret = _starpu_submit_job(j);

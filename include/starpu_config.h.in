@@ -26,6 +26,8 @@
 #undef STARPU_USE_OPENCL
 #undef STARPU_USE_GORDON
 
+#undef STARPU_SIMGRID
+
 #undef STARPU_HAVE_ICC
 
 #undef STARPU_USE_MPI
@@ -93,5 +95,7 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_QUICK_CHECK
 #undef STARPU_USE_DRAND48
 #undef STARPU_USE_ERAND48_R
+#undef STARPU_HAVE_NEARBYINTF
+#undef STARPU_HAVE_RINTF
 
 #endif

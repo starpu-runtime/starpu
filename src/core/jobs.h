@@ -38,6 +38,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/errorcheck.h>
 #include <common/barrier.h>
+#include <common/utils.h>
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -65,8 +66,8 @@ LIST_TYPE(_starpu_job,
 
 	/* These synchronization structures are used to wait for the job to be
 	 * available or terminated for instance. */
-	pthread_mutex_t sync_mutex;
-	pthread_cond_t sync_cond;
+	_starpu_pthread_mutex_t sync_mutex;
+	_starpu_pthread_cond_t sync_cond;
 
 	/* To avoid deadlocks, we reorder the different buffers accessed to by
 	 * the task so that we always grab the rw-lock associated to the
@@ -133,8 +134,8 @@ LIST_TYPE(_starpu_job,
 	int active_task_alias_count;
 
 	/* Parallel workers may have to synchronize before/after the execution of a parallel task. */
-	pthread_barrier_t before_work_barrier;
-	pthread_barrier_t after_work_barrier;
+	_starpu_pthread_barrier_t before_work_barrier;
+	_starpu_pthread_barrier_t after_work_barrier;
 )
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */

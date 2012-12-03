@@ -50,7 +50,7 @@ struct starpu_perfmodel_history_table
 #define VALID_REGRESSION(reg_model) \
 	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _STARPU_CALIBRATION_MINIMUM)
 
-static pthread_rwlock_t registered_models_rwlock;
+static _starpu_pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
 
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)
@@ -476,7 +476,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(0, "Unknown history-based performance model");
+			STARPU_ASSERT_MSG(0, "Unknown history-based performance model %d", model->type);
 		}
 	}
 
@@ -540,7 +540,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 					max_impl = nimpl + 1;
 		}
 		else
-			STARPU_ASSERT_MSG(0, "Unknown history-based performance model");
+			STARPU_ASSERT_MSG(0, "Unknown history-based performance model %u", arch);
 
 		if (arch >= my_narch + arch_base)
 			continue;

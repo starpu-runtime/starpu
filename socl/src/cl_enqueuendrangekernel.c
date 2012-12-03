@@ -72,12 +72,12 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
 	   if (cmd->local_work_size != NULL)
 		   DEBUG_MSG("Local work size: %ld %ld %ld\n", cmd->local_work_size[0],
 				   (cmd->work_dim > 1 ? cmd->local_work_size[1] : 1), (cmd->work_dim > 2 ? cmd->local_work_size[2] : 1)); 
-	   ERROR_MSG("Aborting.\n");
-	   exit(1);
    }
-
-   /* Waiting for kernel to terminate */
-   clWaitForEvents(1, &event);
+   else {
+      /* Waiting for kernel to terminate */
+      clWaitForEvents(1, &event);
+      clReleaseEvent(event);
+   }
 }
 
 static void cleaning_task_callback(void *args) {

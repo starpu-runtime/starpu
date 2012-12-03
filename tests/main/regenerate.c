@@ -30,8 +30,8 @@ static unsigned ntasks = 65536;
 static unsigned cnt = 0;
 
 static unsigned completed = 0;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 
 static void callback(void *arg __attribute__ ((unused)))
 {

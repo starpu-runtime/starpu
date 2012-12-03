@@ -70,14 +70,14 @@ extern "C"
 
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)		do { (void) (x);} while(0)
-#define STARPU_ASSERT_MSG(x, msg)	do { (void) (x);} while(0)
+#define STARPU_ASSERT_MSG(x, msg, ...)	do { (void) (x);} while(0)
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); *(int*)NULL = 0; }} while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] %s\n", __func__, msg); } ; assert(x); } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); } ; assert(x); } while(0)
 
 #  endif
 #endif

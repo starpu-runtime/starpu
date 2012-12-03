@@ -32,7 +32,7 @@ position ignored_return_value.p;
 - opencl_func@p(
 + err = opencl_func(
 ...);
-+ if (STARPU_UNLIKELY(err == clSuccess))
++ if (STARPU_UNLIKELY(err == CL_SUCCESS))
 + STARPU_OPENCL_REPORT_ERROR(err);
 
 @depends on ignored_return_value && context@

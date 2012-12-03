@@ -20,6 +20,10 @@
 #include <common/utils.h>
 #include <starpu_util.h>
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
+
 int _starpu_spin_init(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
@@ -70,9 +74,22 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 	return ret;
 #else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
+#ifdef STARPU_SIMGRID
+	while (1) {
+		int ret = pthread_spin_trylock(&lock->lock);
+		if (ret <= 0)
+			return ret;
+#ifdef STARPU_DEVEL
+#warning FIXME: better way to spinlock?
+#endif
+		/* Sleep for 1µs */
+		MSG_process_sleep(0.000001);
+	}
+#else
 	int ret = pthread_spin_lock(&lock->lock);
 	STARPU_ASSERT(!ret);
 	return ret;
+#endif
 #else
 	uint32_t prev;
 	do
@@ -88,7 +105,7 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 int _starpu_spin_checklocked(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
-	int ret = pthread_mutex_trylock(&lock->errcheck_lock);
+	int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(&lock->errcheck_lock);
 	STARPU_ASSERT(ret != 0);
 	return ret == 0;
 #else
@@ -106,7 +123,7 @@ int _starpu_spin_checklocked(struct _starpu_spinlock *lock)
 int _starpu_spin_trylock(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SPINLOCK_CHECK
-	int ret = pthread_mutex_trylock(&lock->errcheck_lock);
+	int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret || (ret == EBUSY));
 	return ret;
 #else

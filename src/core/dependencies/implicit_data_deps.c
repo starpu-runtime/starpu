@@ -20,12 +20,30 @@
 #include <core/task.h>
 #include <datawizard/datawizard.h>
 #include <profiling/bound.h>
+#include <core/debug.h>
 
 #if 0
 # define _STARPU_DEP_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
 #else
 # define _STARPU_DEP_DEBUG(fmt, args ...)
 #endif
+
+static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned long previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+{
+	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
+	_starpu_bound_job_id_dep(handle, next_job, previous);
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		uintptr_t AYU_data[3] = { previous, (uintptr_t) handle, (uintptr_t) handle };
+		AYU_event(AYU_ADDDEPENDENCY, next_job->job_id, AYU_data);
+	}
+#endif
+}
+
+static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, struct starpu_task *previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+{
+	_starpu_add_ghost_dependency(handle, _starpu_get_job_associated_to_task(previous)->job_id, next);
+}
 
 /* Read after Write (RAW) or Read after Read (RAR) */
 static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
@@ -41,8 +59,9 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 	{
 		_STARPU_DEP_DEBUG("RAW %p\n", handle);
 		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
-		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
 		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
+		_starpu_add_dependency(handle, handle->last_submitted_writer, pre_sync_task);
+		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
 	}
         else
         {
@@ -53,14 +72,20 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 	 * ghost one, we should report that here, and keep the
 	 * ghost writer valid */
 	if (
-#ifndef STARPU_USE_FXT
-		_starpu_bound_recording &&
+		(
+#ifdef STARPU_USE_FXT
+		1
+#else
+		_starpu_bound_recording
 #endif
-		handle->last_submitted_ghost_writer_id_is_valid)
+#ifdef HAVE_AYUDAME_H
+		|| AYU_event
+#endif
+		) && handle->last_submitted_ghost_writer_id_is_valid)
 	{
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
-		_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
+		_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_writer_id, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 	}
 
@@ -94,6 +119,7 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 			STARPU_ASSERT(l->task);
 			if (l->task != post_sync_task) {
 				task_array[i++] = l->task;
+				_starpu_add_dependency(handle, l->task, pre_sync_task);
 				_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
 			}
 
@@ -115,7 +141,7 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 		{
 			unsigned long id = ghost_readers_id->id;
 			_STARPU_TRACE_GHOST_TASK_DEPS(id, pre_sync_job->job_id);
-			_starpu_bound_job_id_dep(pre_sync_job, id);
+			_starpu_add_ghost_dependency(handle, id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
 			struct _starpu_jobid_list *prev = ghost_readers_id;
@@ -141,6 +167,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 	{
 		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
+		_starpu_add_dependency(handle, handle->last_submitted_writer, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
 	}
         else
@@ -159,7 +186,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 		{
 			struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 			_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
-			_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
+			_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_writer_id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 			handle->last_submitted_ghost_writer_id_is_valid = 0;
 		}

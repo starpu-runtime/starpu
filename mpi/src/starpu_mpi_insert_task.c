@@ -35,22 +35,22 @@ struct _starpu_data_entry
 	void *data;
 };
 
-static struct _starpu_data_entry **sent_data = NULL;
-static struct _starpu_data_entry **received_data = NULL;
-static int cache_enabled=1;
+static struct _starpu_data_entry **_cache_sent_data = NULL;
+static struct _starpu_data_entry **_cache_received_data = NULL;
+static int _cache_enabled=1;
 
-void _starpu_mpi_tables_init(MPI_Comm comm)
+void _starpu_mpi_cache_init(MPI_Comm comm)
 {
 	int nb_nodes;
 	int i;
 
-	cache_enabled = starpu_get_env_number("STARPU_MPI_CACHE");
-	if (cache_enabled == -1)
+	_cache_enabled = starpu_get_env_number("STARPU_MPI_CACHE");
+	if (_cache_enabled == -1)
 	{
-		cache_enabled = 1;
+		_cache_enabled = 1;
 	}
 
-	if (cache_enabled == 0)
+	if (_cache_enabled == 0)
 	{
 		if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU MPI Communication cache is disabled\n");
 		return;
@@ -58,36 +58,119 @@ void _starpu_mpi_tables_init(MPI_Comm comm)
 
 	MPI_Comm_size(comm, &nb_nodes);
 	_STARPU_MPI_DEBUG("Initialising htable for cache\n");
-	sent_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
-	for(i=0 ; i<nb_nodes ; i++) sent_data[i] = NULL;
-	received_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
-	for(i=0 ; i<nb_nodes ; i++) received_data[i] = NULL;
+	_cache_sent_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
+	for(i=0 ; i<nb_nodes ; i++) _cache_sent_data[i] = NULL;
+	_cache_received_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
+	for(i=0 ; i<nb_nodes ; i++) _cache_received_data[i] = NULL;
 }
 
-void _starpu_mpi_tables_free(int world_size)
+void _starpu_mpi_cache_empty_tables(int world_size)
 {
 	int i;
 
-	if (cache_enabled == 0) return;
+	if (_cache_enabled == 0) return;
 
 	_STARPU_MPI_DEBUG("Clearing htable for cache\n");
 
 	for(i=0 ; i<world_size ; i++)
 	{
 		struct _starpu_data_entry *entry, *tmp;
-		HASH_ITER(hh, sent_data[i], entry, tmp)
+		HASH_ITER(hh, _cache_sent_data[i], entry, tmp)
 		{
-			HASH_DEL(sent_data[i], entry);
+			HASH_DEL(_cache_sent_data[i], entry);
 			free(entry);
 		}
-		HASH_ITER(hh, received_data[i], entry, tmp)
+		HASH_ITER(hh, _cache_received_data[i], entry, tmp)
 		{
-			HASH_DEL(received_data[i], entry);
+			HASH_DEL(_cache_received_data[i], entry);
 			free(entry);
 		}
 	}
-	free(sent_data);
-	free(received_data);
+}
+
+void _starpu_mpi_cache_free(int world_size)
+{
+	if (_cache_enabled == 0) return;
+
+	_starpu_mpi_cache_empty_tables(world_size);
+	free(_cache_sent_data);
+	free(_cache_received_data);
+}
+
+void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
+{
+	int nb_nodes;
+
+	if (_cache_enabled == 0) return;
+
+	MPI_Comm_size(comm, &nb_nodes);
+	_starpu_mpi_cache_empty_tables(nb_nodes);
+}
+
+void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
+{
+	struct _starpu_data_entry *avail;
+	int i, nb_nodes;
+
+	if (_cache_enabled == 0) return;
+
+	MPI_Comm_size(comm, &nb_nodes);
+	for(i=0 ; i<nb_nodes ; i++)
+	{
+		HASH_FIND_PTR(_cache_sent_data[i], &data_handle, avail);
+		if (avail)
+		{
+			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			HASH_DEL(_cache_sent_data[i], avail);
+		}
+		HASH_FIND_PTR(_cache_received_data[i], &data_handle, avail);
+		if (avail)
+		{
+			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			HASH_DEL(_cache_received_data[i], avail);
+		}
+	}
+}
+
+static
+void *_starpu_mpi_already_received(starpu_data_handle_t data, int mpi_rank)
+{
+	if (_cache_enabled == 0) return NULL;
+
+	struct _starpu_data_entry *already_received;
+	HASH_FIND_PTR(_cache_received_data[mpi_rank], &data, already_received);
+	if (already_received == NULL)
+	{
+		struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
+		entry->data = data;
+		HASH_ADD_PTR(_cache_received_data[mpi_rank], data, entry);
+	}
+	else
+	{
+		_STARPU_MPI_DEBUG("Do not receive data %p from node %d as it is already available\n", data, mpi_rank);
+	}
+	return already_received;
+}
+
+static
+void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest)
+{
+	if (_cache_enabled == 0) return NULL;
+
+	struct _starpu_data_entry *already_sent;
+	HASH_FIND_PTR(_cache_sent_data[dest], &data, already_sent);
+	if (already_sent == NULL)
+	{
+		struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
+		entry->data = data;
+		HASH_ADD_PTR(_cache_sent_data[dest], data, entry);
+		_STARPU_MPI_DEBUG("Noting that data %p has already been sent to %d\n", data, dest);
+	}
+	else
+	{
+		_STARPU_MPI_DEBUG("Do not send data %p to node %d as it has already been sent\n", data, dest);
+	}
+	return already_sent;
 }
 
 static
@@ -147,47 +230,6 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_access
 		}
 	}
 	return 0;
-}
-
-static
-void *_starpu_mpi_already_received(starpu_data_handle_t data, int mpi_rank)
-{
-	if (cache_enabled == 0) return NULL;
-
-	struct _starpu_data_entry *already_received;
-	HASH_FIND_PTR(received_data[mpi_rank], &data, already_received);
-	if (already_received == NULL)
-	{
-		struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
-		entry->data = data;
-		HASH_ADD_PTR(received_data[mpi_rank], data, entry);
-	}
-	else
-	{
-		_STARPU_MPI_DEBUG("Do not receive data %p from node %d as it is already available\n", data, mpi_rank);
-	}
-	return already_received;
-}
-
-static
-void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest)
-{
-	if (cache_enabled == 0) return NULL;
-
-	struct _starpu_data_entry *already_sent;
-	HASH_FIND_PTR(sent_data[dest], &data, already_sent);
-	if (already_sent == NULL)
-	{
-		struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
-		entry->data = data;
-		HASH_ADD_PTR(sent_data[dest], data, entry);
-		_STARPU_MPI_DEBUG("Noting that data %p has already been sent to %d\n", data, dest);
-	}
-	else
-	{
-		_STARPU_MPI_DEBUG("Do not send data %p to node %d as it has already been sent\n", data, dest);
-	}
-	return already_sent;
 }
 
 static
@@ -266,9 +308,9 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 
 void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int do_execute, MPI_Comm comm)
 {
-	if (cache_enabled)
+	if (_cache_enabled)
 	{
-		if (mode & STARPU_W)
+		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{
 			if (do_execute)
 			{
@@ -278,11 +320,11 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 				for(n=0 ; n<size ; n++)
 				{
 					struct _starpu_data_entry *already_sent;
-					HASH_FIND_PTR(sent_data[n], &data, already_sent);
+					HASH_FIND_PTR(_cache_sent_data[n], &data, already_sent);
 					if (already_sent)
 					{
 						_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data);
-						HASH_DEL(sent_data[n], already_sent);
+						HASH_DEL(_cache_sent_data[n], already_sent);
 					}
 				}
 			}
@@ -290,14 +332,14 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 			{
 				int mpi_rank = starpu_data_get_rank(data);
 				struct _starpu_data_entry *already_received;
-				HASH_FIND_PTR(received_data[mpi_rank], &data, already_received);
+				HASH_FIND_PTR(_cache_received_data[mpi_rank], &data, already_received);
 				if (already_received)
 				{
 #ifdef STARPU_DEVEL
 #  warning TODO: Somebody else will write to the data, so discard our cached copy if any. starpu_mpi could just remember itself.
 #endif
 					_STARPU_MPI_DEBUG("Clearing receive cache for data %p\n", data);
-					HASH_DEL(received_data[mpi_rank], already_received);
+					HASH_DEL(_cache_received_data[mpi_rank], already_received);
 					starpu_data_invalidate_submit(data);
 				}
 			}
@@ -324,7 +366,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	int me, do_execute, xrank, nb_nodes;
 	size_t *size_on_nodes;
 	size_t arg_buffer_size = 0;
-	char *arg_buffer;
+	char *arg_buffer = NULL;
 	int dest=0, inconsistent_execute;
 	int current_data = 0;
 
@@ -339,8 +381,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	va_start(varg_list, codelet);
 	arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
-	va_start(varg_list, codelet);
-	_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
+	if (arg_buffer_size)
+	{
+		va_start(varg_list, codelet);
+		_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
+	}
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	inconsistent_execute = 0;
@@ -437,13 +482,13 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 				xrank = i;
 			}
 		}
-		free(size_on_nodes);
 		if (xrank != -1)
 		{
 			_STARPU_MPI_DEBUG("Node %d is having the most R data\n", xrank);
 			do_execute = 1;
 		}
 	}
+	free(size_on_nodes);
 
 	STARPU_ASSERT_MSG(do_execute != -1, "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
 
@@ -452,7 +497,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (xrank == -1)
 		{
 			_STARPU_MPI_DEBUG("Different tasks are owning W data. Needs to specify which one is to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
-			free(size_on_nodes);
 			return -EINVAL;
 		}
 		else
@@ -665,13 +709,11 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	tag = starpu_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
 	}
 	if (tag == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
 	}
 	MPI_Comm_rank(comm, &me);
 

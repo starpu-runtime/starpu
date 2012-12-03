@@ -349,20 +349,20 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 	if (dst_replicate->state != STARPU_INVALID)
 	{
-#ifdef STARPU_MEMORY_STATUS
+#ifdef STARPU_MEMORY_STATS
 		enum _starpu_cache_state old_state = dst_replicate->state;
 #endif
 		/* the data is already available so we can stop */
 		_starpu_update_data_state(handle, dst_replicate, mode);
 		_starpu_msi_cache_hit(requesting_node);
 
-#ifdef STARPU_MEMORY_STATUS
-		_starpu_handle_stats_cache_hit(handle, requesting_node);
+#ifdef STARPU_MEMORY_STATS
+		_starpu_memory_handle_stats_cache_hit(handle, requesting_node);
 
 		/* XXX Broken ? */
 		if (old_state == STARPU_SHARED
 		    && dst_replicate->state == STARPU_OWNER)
-			_starpu_handle_stats_shared_to_owner(handle, requesting_node);
+			_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
 		_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
@@ -524,7 +524,7 @@ uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, uint32_t node)
 
 size_t _starpu_data_get_size(starpu_data_handle_t handle)
 {
-	return handle->data_size;
+	return handle->ops->get_size(handle);
 }
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
@@ -568,7 +568,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replicate *replicate)
 {
 // XXX : this is just a hint, so we don't take the lock ...
-//	_STARPU_PTHREAD_SPIN_LOCK(&handle->header_lock);
+//	_starpu_spin_lock(&handle->header_lock);
 
 	if (replicate->state == STARPU_INVALID)
 	{
@@ -576,7 +576,7 @@ static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replic
 		replicate->requested[dst_node] = 1;
 	}
 
-//	_STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
+//	_starpu_spin_unlock(&handle->header_lock);
 }
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)

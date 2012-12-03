@@ -18,7 +18,12 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
+
 #define SIZE	16
 
 float *tab;
@@ -43,7 +48,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL);
+	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	tab = malloc(SIZE*sizeof(float));
@@ -60,7 +65,7 @@ int main(int argc, char **argv)
 
 		if ((loop % 2) == (rank%2))
 		{
-                        starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
 		}
 		else
 		{

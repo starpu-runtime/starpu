@@ -88,7 +88,7 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 	return NULL;
 }
 
-struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
+struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq *deque_queue, _starpu_pthread_mutex_t *sched_mutex, int workerid)
 {
 	struct _starpu_job_list *new_list, *old_list;
 

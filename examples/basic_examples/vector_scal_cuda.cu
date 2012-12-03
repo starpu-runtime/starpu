@@ -16,7 +16,7 @@
  */
 
 /*
- * This example complements vector_scale.c: here we implement a CUDA version.
+ * This example complements vector_scal.c: here we implement a CUDA version.
  */
 
 #include <starpu.h>

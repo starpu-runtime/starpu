@@ -79,7 +79,7 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
 	for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle_t));
 
-	for(x = 0; x < nblocks ;  x++)
+	for(x = 0; x < nblocks ; x++)
 	{
 		for (y = 0; y < nblocks; y++)
 		{
@@ -148,7 +148,7 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 
 	starpu_task_wait_for_all();
 
-	for(x = 0; x < nblocks ;  x++)
+	for(x = 0; x < nblocks ; x++)
 	{
 		for (y = 0; y < nblocks; y++)
 		{

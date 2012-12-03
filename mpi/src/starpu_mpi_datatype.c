@@ -17,13 +17,14 @@
 
 #include <starpu_mpi_datatype.h>
 
-typedef int (*handle_to_datatype_func)(starpu_data_handle_t, MPI_Datatype *);
+typedef void (*handle_to_datatype_func)(starpu_data_handle_t, MPI_Datatype *);
+typedef void (*handle_free_datatype_func)(MPI_Datatype *);
 
 /*
  * 	Matrix
  */
 
-static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static void handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -37,15 +38,13 @@ static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datat
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT(ret == MPI_SUCCESS);
-
-	return 0;
 }
 
 /*
  * 	Block
  */
 
-static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -68,15 +67,13 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Dataty
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT(ret == MPI_SUCCESS);
-
-	return 0;
 }
 
 /*
  * 	Vector
  */
 
-static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static void handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -88,15 +85,13 @@ static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datat
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT(ret == MPI_SUCCESS);
-
-	return 0;
 }
 
 /*
  * 	Variable
  */
 
-static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -107,8 +102,6 @@ static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Dat
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT(ret == MPI_SUCCESS);
-
-	return 0;
 }
 
 /*
@@ -127,21 +120,76 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID]
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
-int starpu_mpi_handle_to_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype, int *user_datatype)
 {
 	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
 
-	if (id <= STARPU_MULTIFORMAT_INTERFACE_ID)
+	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		handle_to_datatype_func func = handle_to_datatype_funcs[id];
 		STARPU_ASSERT(func);
 		func(data_handle, datatype);
-		return 0;
+		*user_datatype = 0;
 	}
 	else
 	{
 		/* The datatype is not predefined by StarPU */
 		*datatype = MPI_BYTE;
-		return 1;
+		*user_datatype = 1;
 	}
+}
+
+static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
+{
+	MPI_Type_free(datatype);
+}
+
+static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
+{
+	int num_ints, num_adds, num_datatypes, combiner, i;
+	int *array_of_ints;
+	MPI_Aint *array_of_adds;
+	MPI_Datatype *array_of_datatypes;
+
+	MPI_Type_get_envelope(*datatype, &num_ints, &num_adds, &num_datatypes, &combiner);
+	if (combiner != MPI_COMBINER_NAMED)
+	{
+		array_of_ints = (int *) malloc(num_ints * sizeof(int));
+		array_of_adds = (MPI_Aint *) malloc(num_adds * sizeof(MPI_Aint));
+		array_of_datatypes = (MPI_Datatype *) malloc(num_datatypes * sizeof(MPI_Datatype));
+		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
+		for(i=0 ; i<num_datatypes ; i++)
+		{
+			_starpu_mpi_handle_free_complex_datatype(&array_of_datatypes[i]);
+		}
+		MPI_Type_free(datatype);
+		free(array_of_ints);
+		free(array_of_adds);
+		free(array_of_datatypes);
+	}
+}
+
+static handle_free_datatype_func handle_free_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
+{
+	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
+	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_CSR_INTERFACE_ID]	= NULL,
+	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
+};
+
+void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+{
+	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
+
+	if (id < STARPU_MAX_INTERFACE_ID)
+	{
+		handle_free_datatype_func func = handle_free_datatype_funcs[id];
+		STARPU_ASSERT(func);
+		func(datatype);
+	}
+	/* else the datatype is not predefined by StarPU */
 }

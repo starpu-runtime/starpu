@@ -38,11 +38,12 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 	chapters/version.texi \
 	chapters/sched_ctx_hypervisor.texi
 
-MAINTAINERCLEANFILES = starpu.pdf
+MAINTAINERCLEANFILES = starpu.pdf starpu.html
 
 EXTRA_DIST = starpu.css
 
 dist_pdf_DATA = starpu.pdf
+dist_html_DATA = starpu.html
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 

@@ -24,6 +24,7 @@
 #include <core/sched_policy.h>
 #include <profiling/profiling.h>
 #include <common/barrier.h>
+#include <core/debug.h>
 
 static int use_prefetch = 0;
 
@@ -337,6 +338,12 @@ int _starpu_push_task(struct _starpu_job *j)
 
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) {
+		int id = -1;
+		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
+	}
+#endif
 	_starpu_profiling_set_task_push_start_time(task);
 
 	/* in case there is no codelet associated to the task (that's a control

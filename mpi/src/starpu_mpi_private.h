@@ -77,7 +77,7 @@ LIST_TYPE(_starpu_mpi_req,
 	MPI_Datatype datatype;
 	void *ptr;
 	size_t count;
-	int needs_unpacking;
+	int user_datatype;
 
 	/* who are we talking to ? */
 	int srcdst;
@@ -91,8 +91,8 @@ LIST_TYPE(_starpu_mpi_req,
 	int *flag;
 
 	int ret;
-	pthread_mutex_t req_mutex;
-	pthread_cond_t req_cond;
+	_starpu_pthread_mutex_t req_mutex;
+	_starpu_pthread_cond_t req_cond;
 
 	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 

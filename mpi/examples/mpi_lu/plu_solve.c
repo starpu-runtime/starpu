@@ -25,19 +25,19 @@
 
 static double frobenius_norm(TYPE *v, unsigned n)
 {
-        double sum2 = 0.0;
+	double sum2 = 0.0;
 
-        /* compute sqrt(Sum(|x|^2)) */
+	/* compute sqrt(Sum(|x|^2)) */
 
-        unsigned i,j;
-        for (j = 0; j < n; j++)
-        for (i = 0; i < n; i++)
-        {
-                double a = fabsl((double)v[i+n*j]);
-                sum2 += a*a;
-        }
+	unsigned i,j;
+	for (j = 0; j < n; j++)
+		for (i = 0; i < n; i++)
+		{
+			double a = fabsl((double)v[i+n*j]);
+			sum2 += a*a;
+		}
 
-        return sqrt(sum2);
+	return sqrt(sum2);
 }
 
 void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize)
@@ -105,9 +105,9 @@ static void STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
 	/* Take a copy of the upper part of the diagonal block */
 	TYPE *upper_block_copy = calloc((block_size)*(block_size), sizeof(TYPE));
 	STARPU_PLU(extract_upper)(block_size, block_data, upper_block_copy);
-		
+
 	STARPU_PLU(compute_ax_block)(block_size, upper_block_copy, sub_x, sub_y);
-	
+
 	free(upper_block_copy);
 }
 
@@ -121,7 +121,7 @@ static void STARPU_PLU(compute_ax_block_lower)(unsigned size, unsigned nblocks,
 	STARPU_PLU(extract_lower)(block_size, block_data, lower_block_copy);
 
 	STARPU_PLU(compute_ax_block)(size/nblocks, lower_block_copy, sub_x, sub_y);
-	
+
 	free(lower_block_copy);
 }
 
@@ -242,7 +242,7 @@ TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 		TYPE *block;
 
 		int block_rank = get_block_rank(bi, bj);
-		
+
 		if (block_rank == 0)
 		{
 			block = STARPU_PLU(get_block)(bi, bj);
@@ -335,60 +335,59 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 
 	if (rank == 0)
 	{
-	        TYPE *L = malloc((size_t)size*size*sizeof(TYPE));
-	        TYPE *U = malloc((size_t)size*size*sizeof(TYPE));
-	
-	        memset(L, 0, size*size*sizeof(TYPE));
-	        memset(U, 0, size*size*sizeof(TYPE));
-	
-	        /* only keep the lower part */
+		TYPE *L = malloc((size_t)size*size*sizeof(TYPE));
+		TYPE *U = malloc((size_t)size*size*sizeof(TYPE));
+
+		memset(L, 0, size*size*sizeof(TYPE));
+		memset(U, 0, size*size*sizeof(TYPE));
+
+		/* only keep the lower part */
 		unsigned i, j;
-	        for (j = 0; j < size; j++)
-	        {
-	                for (i = 0; i < j; i++)
-	                {
-	                        L[j+i*size] = all_r[j+i*size];
-	                }
-	
-	                /* diag i = j */
-	                L[j+j*size] = all_r[j+j*size];
-	                U[j+j*size] = 1.0;
-	
-	                for (i = j+1; i < size; i++)
-	                {
-	                        U[j+i*size] = all_r[j+i*size];
-	                }
-	        }
-	
+		for (j = 0; j < size; j++)
+		{
+			for (i = 0; i < j; i++)
+			{
+				L[j+i*size] = all_r[j+i*size];
+			}
+
+			/* diag i = j */
+			L[j+j*size] = all_r[j+j*size];
+			U[j+j*size] = 1.0;
+
+			for (i = j+1; i < size; i++)
+			{
+				U[j+i*size] = all_r[j+i*size];
+			}
+		}
+
 		STARPU_PLU(display_data_content)(L, size);
 		STARPU_PLU(display_data_content)(U, size);
-	
-	        /* now A_err = L, compute L*U */
-	        CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
-	
+
+		/* now A_err = L, compute L*U */
+		CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
+
 		if (display)
 			fprintf(stderr, "\nLU\n");
 
 		STARPU_PLU(display_data_content)(L, size);
-	
-	        /* compute "LU - A" in L*/
-	        CPU_AXPY(size*size, -1.0, Asaved, 1, L, 1);
-	
-	        TYPE err = CPU_ASUM(size*size, L, 1);
-	        int max = CPU_IAMAX(size*size, L, 1);
-	
+
+		/* compute "LU - A" in L*/
+		CPU_AXPY(size*size, -1.0, Asaved, 1, L, 1);
+
+		TYPE err = CPU_ASUM(size*size, L, 1);
+		int max = CPU_IAMAX(size*size, L, 1);
+
 		if (display)
 			fprintf(stderr, "DISPLAY ERROR\n");
 
 		STARPU_PLU(display_data_content)(L, size);
-	
-	        fprintf(stderr, "(A - LU) Avg error : %e\n", err/(size*size));
-	        fprintf(stderr, "(A - LU) Max error : %e\n", L[max]);
-	
+
+		fprintf(stderr, "(A - LU) Avg error : %e\n", err/(size*size));
+		fprintf(stderr, "(A - LU) Max error : %e\n", L[max]);
+
 		double residual = frobenius_norm(L, size);
 		double matnorm = frobenius_norm(Asaved, size);
-	
+
 		fprintf(stderr, "||A-LU|| / (||A||*N) : %e\n", residual/(matnorm*size));
 	}
 }
-

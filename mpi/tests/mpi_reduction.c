@@ -65,16 +65,16 @@ int my_distrib(int x, int nb_nodes)
 int main(int argc, char **argv)
 {
 	int my_rank, size, x, y, i;
-        long int *vector;
+	long int *vector;
 	long int dot, sum=0;
-        starpu_data_handle_t *handles;
+	starpu_data_handle_t *handles;
 	starpu_data_handle_t dot_handle;
 
 	int nb_elements, step, loops;
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(&argc, &argv);
+	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	loops = 5;
 
 	vector = (long int *) malloc(nb_elements*sizeof(vector[0]));
-        for(x = 0; x < nb_elements; x+=step)
+	for(x = 0; x < nb_elements; x+=step)
 	{
 		int mpi_rank = my_distrib(x/step, size);
 		if (mpi_rank == my_rank)
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 				vector[x+y] = x+y+1;
 			}
 		}
-        }
+	}
 	if (my_rank == 0) {
 		dot = 14;
 		sum = (nb_elements * (nb_elements + 1)) / 2;
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 
 
 	handles = (starpu_data_handle_t *) malloc(nb_elements*sizeof(handles[0]));
-        for(x = 0; x < nb_elements; x+=step)
+	for(x = 0; x < nb_elements; x+=step)
 	{
 		int mpi_rank = my_distrib(x/step, size);
 		if (mpi_rank == my_rank)
@@ -146,10 +146,10 @@ int main(int argc, char **argv)
 		starpu_mpi_insert_task(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
 	}
 
-        fprintf(stderr, "Waiting ...\n");
-        starpu_task_wait_for_all();
+	fprintf(stderr, "Waiting ...\n");
+	starpu_task_wait_for_all();
 
-        for(x = 0; x < nb_elements; x+=step)
+	for(x = 0; x < nb_elements; x+=step)
 	{
 		if (handles[x]) starpu_data_unregister(handles[x]);
 	}
@@ -165,10 +165,10 @@ int main(int argc, char **argv)
 
 	if (my_rank == 0)
 	{
-                fprintf(stderr, "[%d] sum=%ld\n", my_rank, sum);
-                fprintf(stderr, "[%d] dot=%ld\n", my_rank, dot);
+		fprintf(stderr, "[%d] sum=%ld\n", my_rank, sum);
+		fprintf(stderr, "[%d] dot=%ld\n", my_rank, dot);
 		fprintf(stderr, "%s when computing reduction\n", (sum == dot) ? "Success" : "Error");
-        }
+	}
 
 	return 0;
 }

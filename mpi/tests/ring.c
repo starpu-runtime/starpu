@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL);
+	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
@@ -119,6 +119,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	starpu_data_unregister(token_handle);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

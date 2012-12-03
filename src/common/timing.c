@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,25 @@
 #include <common/config.h>
 #include <profiling/profiling.h>
 #include <common/timing.h>
+#include <math.h>
 
-#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
+
+#ifdef STARPU_SIMGRID
+void _starpu_timing_init(void)
+{
+}
+
+void _starpu_clock_gettime(struct timespec *ts)
+{
+	double now = MSG_get_clock();
+	ts->tv_sec = floor(now);
+	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
+}
+
+#elif defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
 #include <time.h>
 #ifndef _POSIX_C_SOURCE
 /* for clock_gettime */
@@ -193,8 +210,12 @@ double starpu_timing_timespec_to_us(struct timespec *ts)
 
 double starpu_timing_now(void)
 {
+#ifdef STARPU_SIMGRID
+	return MSG_get_clock()*1000000;
+#else
 	struct timespec now;
 	_starpu_clock_gettime(&now);
 
 	return starpu_timing_timespec_to_us(&now);
+#endif
 }

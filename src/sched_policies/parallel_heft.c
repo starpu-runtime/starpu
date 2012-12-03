@@ -58,7 +58,7 @@ static int ntasks[STARPU_NMAXWORKERS];
   from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!          
 */
 
-static void parallel_heft_post_exec_hook(struct starpu_task *task)
+static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 {
 	if (!task->cl || task->execute_on_a_specific_worker)
 		return;
@@ -593,10 +593,9 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.remove_workers = parallel_heft_remove_workers,
 	.push_task = parallel_heft_push_task, 
 	.pop_task = NULL,
-	.pre_exec_hook = NULL,
-	.post_exec_hook = parallel_heft_post_exec_hook,
+	.pre_exec_hook = parallel_heft_pre_exec_hook,
+	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "pheft",
 	.policy_description = "parallel HEFT"
 };
-
