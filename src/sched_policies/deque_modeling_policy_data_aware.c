@@ -18,6 +18,7 @@
 
 /* Distributed queues using performance modeling to assign tasks */
 
+#include <starpu_config.h>
 #include <limits.h>
 
 #include <core/perfmodel/perfmodel.h>
@@ -27,7 +28,9 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
 #include <core/debug.h>
+#ifdef STARPU_USE_TOP
 #include <top/starpu_top_core.h>
+#endif /* !STARPU_USE_TOP */
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -48,7 +51,7 @@ static double beta = _STARPU_DEFAULT_BETA;
 static double _gamma = _STARPU_DEFAULT_GAMMA;
 static double idle_power = 0.0;
 
-/* TODO: use an ifdef STARPU_TOP. */
+#ifdef STARPU_USE_TOP
 static const float alpha_minimum=0;
 static const float alpha_maximum=10.0;
 static const float beta_minimum=0;
@@ -57,6 +60,7 @@ static const float gamma_minimum=0;
 static const float gamma_maximum=10000.0;
 static const float idle_power_minimum=0;
 static const float idle_power_maximum=10000.0;
+#endif /* !STARPU_USE_TOP */
 
 #ifdef STARPU_VERBOSE
 static long int total_task_cnt = 0;
@@ -85,6 +89,7 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 	return cnt;
 }
 
+#ifdef STARPU_USE_TOP
 static void param_modified(struct starpu_top_param* d)
 {
 	/* Just to show parameter modification. */
@@ -93,6 +98,7 @@ static void param_modified(struct starpu_top_param* d)
 		"alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
 		d->name, alpha,beta,_gamma, idle_power);
 }
+#endif /* !STARPU_USE_TOP */
 
 static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned node)
 {
@@ -276,10 +282,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
 
+#ifdef STARPU_USE_TOP
 	if (_starpu_top_status_get())
 		_starpu_top_task_prevision(task, best_workerid,
 			(unsigned long long)(fifo->exp_end-predicted)/1000,
 			(unsigned long long)fifo->exp_end/1000);
+#endif /* !STARPU_USE_TOP */
 
 	if (starpu_get_prefetch_flag())
 	{
@@ -668,6 +676,7 @@ static void initialize_dmda_policy(struct starpu_machine_topology *topology,
 	if (strval_idle_power)
 		idle_power = atof(strval_idle_power);
 
+#ifdef STARPU_USE_TOP
 	starpu_top_register_parameter_float("DMDA_ALPHA", &alpha,
 		alpha_minimum, alpha_maximum, param_modified);
 	starpu_top_register_parameter_float("DMDA_BETA", &beta,
@@ -676,6 +685,7 @@ static void initialize_dmda_policy(struct starpu_machine_topology *topology,
 		gamma_minimum, gamma_maximum, param_modified);
 	starpu_top_register_parameter_float("DMDA_IDLE_POWER", &idle_power,
 		idle_power_minimum, idle_power_maximum, param_modified);
+#endif /* !STARPU_USE_TOP */
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)

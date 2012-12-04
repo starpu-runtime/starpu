@@ -1235,7 +1235,11 @@ else
   build_starpu_top=no
 fi
 
+AC_SUBST(STARPU_USE_TOP, test x$build_starpu_top = xyes)
 AM_CONDITIONAL(BUILD_STARPU_TOP, test x$build_starpu_top = xyes)
+if test x$build_starpu_top = xyes; then
+	AC_DEFINE(STARPU_USE_TOP, [1], [StarPU-Top is activated])
+fi
 
 ###############################################################################
 #                                                                             #
