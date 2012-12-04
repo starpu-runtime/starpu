@@ -54,9 +54,6 @@ extern "C" {
 #define winPthreadAssertPthread(expr) do { int ret = (expr); if (ret) return ret; } while (0)
 #define winPthreadAssert(expr) do { if (!(expr)) return EIO; } while (0)
 #endif
-#if 0
-#else
-#endif
 
 /***********
  * threads *
