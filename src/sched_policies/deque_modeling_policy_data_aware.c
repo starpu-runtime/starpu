@@ -313,7 +313,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 static int _dm_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-	struct _starpu_fifo_taskq *fifo;
 	unsigned worker;
 	int best = -1;
 
@@ -333,7 +332,10 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
+		struct _starpu_fifo_taskq *fifo  = queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
@@ -344,15 +346,12 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 
 			double exp_end;
 
-			fifo = queue_array[worker];
-
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 			fifo->exp_end = fifo->exp_start + fifo->exp_len;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
 
-			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 			double local_length = starpu_task_expected_length(task, perf_arch, nimpl);
 			double local_penalty = starpu_task_expected_data_transfer_time(memory_node, task);
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
