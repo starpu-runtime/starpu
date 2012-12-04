@@ -328,6 +328,12 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
+			if (!starpu_worker_can_execute_task(worker, task, nimpl))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
+
 			double exp_end;
 
 			fifo = queue_array[worker];
@@ -336,11 +342,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 			fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-			if (!starpu_worker_can_execute_task(worker, task, nimpl))
-			{
-				/* no one on that queue may execute this task */
-				continue;
-			}
 
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 			double local_length = starpu_task_expected_length(task, perf_arch, nimpl);
