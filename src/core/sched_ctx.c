@@ -174,7 +174,8 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 		while(workers->has_next(workers))
 		{
 			worker = workers->get_next(workers);
-			rem_workers[nrem_workers++] = worker;
+			if(!starpu_worker_is_combined_worker(worker))
+				rem_workers[nrem_workers++] = worker;
 		}
 
 		if(workers->init_cursor)
