@@ -83,8 +83,8 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 #endif
 		) && handle->last_submitted_ghost_writer_id_is_valid)
 	{
-		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
-		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
+		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id,
+			_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
 		_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_writer_id, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 	}
@@ -134,13 +134,12 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 #endif
 	{
 		/* Declare all dependencies with ghost readers */
-		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
-
 		struct _starpu_jobid_list *ghost_readers_id = handle->last_submitted_ghost_readers_id;
 		while (ghost_readers_id)
 		{
 			unsigned long id = ghost_readers_id->id;
-			_STARPU_TRACE_GHOST_TASK_DEPS(id, pre_sync_job->job_id);
+			_STARPU_TRACE_GHOST_TASK_DEPS(id,
+				_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
 			_starpu_add_ghost_dependency(handle, id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
@@ -184,8 +183,8 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 	{
 		if (handle->last_submitted_ghost_writer_id_is_valid)
 		{
-			struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
-			_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
+			_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, 
+				_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
 			_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_writer_id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 			handle->last_submitted_ghost_writer_id_is_valid = 0;
