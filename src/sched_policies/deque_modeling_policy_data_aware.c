@@ -645,8 +645,10 @@ static int dmda_push_task(struct starpu_task *task)
 }
 
 static void initialize_dmda_policy(struct starpu_machine_topology *topology,
-	 __attribute__ ((unused)) struct starpu_sched_policy *_policy)
+				   struct starpu_sched_policy *policy)
 {
+	(void) policy;
+
 	nworkers = topology->nworkers;
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
@@ -687,9 +689,9 @@ static void initialize_dmda_policy(struct starpu_machine_topology *topology,
 }
 
 static void initialize_dmda_sorted_policy(struct starpu_machine_topology *topology,
-					struct starpu_sched_policy *_policy)
+					struct starpu_sched_policy *policy)
 {
-	initialize_dmda_policy(topology, _policy);
+	initialize_dmda_policy(topology, policy);
 
 	/* The application may use any integer */
 	starpu_sched_set_min_priority(INT_MIN);
@@ -697,8 +699,10 @@ static void initialize_dmda_sorted_policy(struct starpu_machine_topology *topolo
 }
 
 static void deinitialize_dmda_policy(struct starpu_machine_topology *topology,
-	 __attribute__ ((unused)) struct starpu_sched_policy *_policy)
+				     struct starpu_sched_policy *policy)
 {
+	(void) policy;
+
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
 	{
