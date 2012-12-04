@@ -441,6 +441,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_fifo_taskq *fifo = queue_array[worker];
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -457,9 +459,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
 			if (exp_end[worker][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker][nimpl];
-
-			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-			unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) worker (%u) kernel (%u) \n", local_task_length[worker][nimpl],worker,nimpl);
 
