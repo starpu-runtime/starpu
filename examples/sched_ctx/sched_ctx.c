@@ -55,40 +55,25 @@ int main(int argc, char **argv)
 #endif
 
 	pthread_mutex_init(&mut, NULL);
-	unsigned ncuda = 0;
-	unsigned ncpus = 1;
+	int nprocs1 = 1;
+	int nprocs2 = 1;
+    int procs1[20], procs2[20];
+	procs1[0] = 0;
+	procs2[0] = 0;
+
 #ifdef STARPU_USE_CPU
-	ncpus =  starpu_cpu_worker_get_count();
+	unsigned ncpus =  starpu_cpu_worker_get_count();
+    starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 
-    int cpus[ncpus];
-    starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpus, ncpus);
-
+	nprocs1 = ncpus;
 #endif
+
 #ifdef STARPU_USE_CUDA
-	ncuda = starpu_cuda_worker_get_count();
-    int cudadevs[ncuda];
-    starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cudadevs, ncuda);
+	unsigned ncuda = starpu_cuda_worker_get_count();
+    starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
+
+	nprocs2 = ncuda;
 #endif
-
-
-	int nprocs1 = ncpus;
-	int nprocs2 = ncuda;
-
-	int procs1[nprocs1];
-	int procs2[nprocs2];
-
-	int k;
-	for(k = 0; k < nprocs1; k++)
-	{
-		if(k < ncpus)
-			procs1[k] = cpus[k];
-	}
-
-	for(k = 0; k < nprocs2; k++)
-	{
-		procs2[k] = cudadevs[k];
-	}
-
 
     /*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_create_sched_ctx("heft", procs1, nprocs1, "ctx1");
