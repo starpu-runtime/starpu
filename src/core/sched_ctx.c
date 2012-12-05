@@ -956,6 +956,23 @@ double starpu_get_max_time_worker_on_ctx(void)
 	return max_time_worker_on_ctx;	
 }
 
+void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
+{
+	STARPU_ASSERT(inheritor < STARPU_NMAX_SCHED_CTXS);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->inheritor = inheritor;
+	return;
+}
+
+void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	_STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
+	sched_ctx->finished_submit = 1;
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
+	return;
+}
+
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 
 void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops)
@@ -973,22 +990,5 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
-}
-
-void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
-{
-	STARPU_ASSERT(inheritor < STARPU_NMAX_SCHED_CTXS);
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->inheritor = inheritor;
-	return;
-}
-
-void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
-	sched_ctx->finished_submit = 1;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
-	return;
 }
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
