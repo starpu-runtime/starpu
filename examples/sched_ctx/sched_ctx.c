@@ -16,7 +16,6 @@
  */
 
 #include<starpu.h>
-#include<starpu_sched_ctx.h>
 #include<pthread.h>
 
 #define NTASKS 1000
@@ -56,15 +55,20 @@ int main(int argc, char **argv)
 #endif
 
 	pthread_mutex_init(&mut, NULL);
-
-	unsigned ncpus =  starpu_cpu_worker_get_count();
-	unsigned ncuda = starpu_cuda_worker_get_count();
+	unsigned ncuda = 0;
+	unsigned ncpus = 1;
+#ifdef STARPU_USE_CPU
+	ncpus =  starpu_cpu_worker_get_count();
 
     int cpus[ncpus];
     starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpus, ncpus);
 
+#endif
+#ifdef STARPU_USE_CUDA
+	ncuda = starpu_cuda_worker_get_count();
     int cudadevs[ncuda];
     starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cudadevs, ncuda);
+#endif
 
 
 	int nprocs1 = ncpus;
