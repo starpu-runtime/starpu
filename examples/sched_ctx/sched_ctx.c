@@ -16,6 +16,7 @@
  */
 
 #include<starpu.h>
+#include<starpu_sched_ctx.h>
 #include<pthread.h>
 
 #define NTASKS 1000
