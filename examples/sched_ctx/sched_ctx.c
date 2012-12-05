@@ -85,9 +85,11 @@ int main(int argc, char **argv)
 	}
 
 
+    /*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_create_sched_ctx("heft", procs1, nprocs1, "ctx1");
 	unsigned sched_ctx2 = starpu_create_sched_ctx("heft", procs2, nprocs2, "ctx2");
 
+	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
 
 	unsigned i;
@@ -98,11 +100,15 @@ int main(int argc, char **argv)
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = NULL;
 	
+		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
 			
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	/* tell starpu when you finished submitting tasks to this context
+	   in order to allow moving resources from this context to the inheritor one
+	   when its corresponding tasks finished executing */
 	starpu_sched_ctx_finished_submit(sched_ctx1);
 
 	for (i = 0; i < ntasks/2; i++)
@@ -120,6 +126,7 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_finished_submit(sched_ctx2);
 
+	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
 	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
