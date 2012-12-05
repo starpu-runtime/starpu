@@ -683,7 +683,7 @@ unsigned starpu_get_sched_ctx()
 {
 	unsigned *sched_ctx = (unsigned*)pthread_getspecific(sched_ctx_key);
 	if(sched_ctx == NULL)
-		return 0;//STARPU_NMAX_SCHED_CTXS;
+		return STARPU_NMAX_SCHED_CTXS;
 	STARPU_ASSERT(*sched_ctx < STARPU_NMAX_SCHED_CTXS);
 	return *sched_ctx;
 }

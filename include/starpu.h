@@ -51,6 +51,7 @@ typedef unsigned long long uint64_t;
 #endif
 #include <starpu_task_util.h>
 #include <starpu_scheduler.h>
+#include <starpu_sched_ctx.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
 #include <starpu_cuda.h>

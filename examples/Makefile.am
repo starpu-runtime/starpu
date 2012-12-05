@@ -48,6 +48,7 @@ EXTRA_DIST = 					\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
 	sched_ctx_utils/sched_ctx_utils.c		\
+	sched_ctx/sched_ctx.c		\
 	incrementer/incrementer_kernels_opencl_kernel.cl 	\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
@@ -186,6 +187,7 @@ examplebin_PROGRAMS +=				\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
+	sched_ctx/sched_ctx			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	ppm_downscaler/ppm_downscaler		\
@@ -252,6 +254,7 @@ STARPU_EXAMPLES +=				\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
+	sched_ctx/sched_ctx				\
 	reductions/dot_product			\
 	reductions/minmax_reduction
 

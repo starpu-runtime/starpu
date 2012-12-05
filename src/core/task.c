@@ -364,11 +364,13 @@ int starpu_task_submit(struct starpu_task *task)
 	STARPU_ASSERT(task);
 	STARPU_ASSERT(task->magic == 42);
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
-
+	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
+	
 	if(task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
-		task->sched_ctx = starpu_get_sched_ctx();
-//	task->sched_ctx = (nsched_ctxs == 1 || task->control_task) ? 
-//	   0 : starpu_get_sched_ctx());
+		set_sched_ctx = starpu_get_sched_ctx();
+	if(set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		task->sched_ctx = set_sched_ctx;
+
 	int ret;
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
@@ -660,7 +662,29 @@ int starpu_task_wait_for_all(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned sched_ctx = nsched_ctxs == 1 ? 0 : starpu_get_sched_ctx();
-	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	
+	/* if there is no indication about which context to wait,
+	   we wait for all tasks submitted to starpu */
+	if(sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+			return -EDEADLK;
+
+		_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+
+		_STARPU_TRACE_TASK_WAIT_FOR_ALL;
+
+		while (nsubmitted > 0)
+			_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
+#endif
+	}
+	else
+		_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 	return 0;
 }
 
