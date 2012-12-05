@@ -56,15 +56,18 @@ int main(int argc, char **argv)
 
 	pthread_mutex_init(&mut, NULL);
 
-    int cpus[9];
-    int ncpus = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpus, 9);
+	unsigned ncpus =  starpu_cpu_worker_get_count();
+	unsigned ncuda = starpu_cuda_worker_get_count();
 
-    int cudadevs[3];
-    int ncuda = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cudadevs, 3);
+    int cpus[ncpus];
+    starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpus, ncpus);
+
+    int cudadevs[ncuda];
+    starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cudadevs, ncuda);
 
 
-	int nprocs1 = 9;
-	int nprocs2 = 3;
+	int nprocs1 = ncpus;
+	int nprocs2 = ncuda;
 
 	int procs1[nprocs1];
 	int procs2[nprocs2];
@@ -74,34 +77,48 @@ int main(int argc, char **argv)
 	{
 		if(k < ncpus)
 			procs1[k] = cpus[k];
-		else
-			procs1[k] = cudadevs[k-ncpus];
 	}
 
-	int j = 0;
-	for(k = nprocs1; k < nprocs1+nprocs2; k++)
-		procs2[j++] = cudadevs[k-ncpus];
+	for(k = 0; k < nprocs2; k++)
+	{
+		procs2[k] = cudadevs[k];
+	}
 
 
 	unsigned sched_ctx1 = starpu_create_sched_ctx("heft", procs1, nprocs1, "ctx1");
 	unsigned sched_ctx2 = starpu_create_sched_ctx("heft", procs2, nprocs2, "ctx2");
 
-//	starpu_set_sched_ctx(NULL);
+	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
+
 	unsigned i;
-	for (i = 0; i < ntasks; i++)
+	for (i = 0; i < ntasks/2; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 	
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = NULL;
 	
-		if(i % 2 == 0)
-			ret = starpu_task_submit_to_ctx(task,sched_ctx1);
-		else
-			ret = starpu_task_submit_to_ctx(task,sched_ctx2);
+		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
+			
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+
+	starpu_sched_ctx_finished_submit(sched_ctx1);
+
+	for (i = 0; i < ntasks/2; i++)
+	{
+		struct starpu_task *task = starpu_task_create();
+	
+		task->cl = &sched_ctx_codelet;
+		task->cl_arg = NULL;
+	
+		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
 
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
+
+
+	starpu_sched_ctx_finished_submit(sched_ctx2);
 
 	starpu_task_wait_for_all();
 

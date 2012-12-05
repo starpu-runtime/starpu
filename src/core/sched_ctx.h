@@ -86,6 +86,13 @@ struct _starpu_sched_ctx {
 	   determine which is the next context to pop tasks from */
 	unsigned pop_counter[STARPU_NMAXWORKERS];
 
+	/* in case we delete the context leave resources to the inheritor*/
+	unsigned inheritor;
+
+	/* indicates whether the application finished submitting tasks
+	   to this context*/
+	unsigned finished_submit;
+
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */
 	struct starpu_performance_counters *perf_counters;

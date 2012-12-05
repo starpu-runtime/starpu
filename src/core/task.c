@@ -374,7 +374,7 @@ int starpu_task_submit(struct starpu_task *task)
 	int ret;
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	if (is_sync)
 	{
@@ -662,7 +662,7 @@ int starpu_task_wait_for_all(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned sched_ctx = nsched_ctxs == 1 ? 0 : starpu_get_sched_ctx();
-	
+
 	/* if there is no indication about which context to wait,
 	   we wait for all tasks submitted to starpu */
 	if(sched_ctx == STARPU_NMAX_SCHED_CTXS)

@@ -121,4 +121,8 @@ double starpu_get_max_time_worker_on_ctx(void);
 
 void starpu_stop_task_submission(void);
 
+void starpu_sched_ctx_set_inheritor(unsigned sched_ctx, unsigned inheritor);
+
+void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
+
 #endif /* __STARPU_SCHED_CTX_H__ */

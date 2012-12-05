@@ -20,6 +20,7 @@
 
 extern struct worker_collection worker_list;
 static _starpu_pthread_mutex_t sched_ctx_manag = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t finished_submit_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
 pthread_key_t sched_ctx_key;
 unsigned with_hypervisor = 0;
@@ -231,6 +232,8 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 	sched_ctx->sched_policy = (struct starpu_sched_policy*)malloc(sizeof(struct starpu_sched_policy));
 	sched_ctx->is_initial_sched = is_initial_sched;
 	sched_ctx->name = sched_name;
+	sched_ctx->inheritor = STARPU_NMAX_SCHED_CTXS;
+	sched_ctx->finished_submit = 0;
 
 	_starpu_barrier_counter_init(&sched_ctx->tasks_barrier, 0);
 
@@ -481,7 +484,9 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 	}
 
 	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id) && !_starpu_wait_for_all_tasks_of_sched_ctx(0))
+	{
 		_starpu_delete_sched_ctx(sched_ctx);
+	}
 	return;	
 }
 
@@ -665,7 +670,19 @@ int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier);
+	int finished = _starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier);
+	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
+	{
+		_STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
+		if(sched_ctx->finished_submit)
+		{
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
+			starpu_delete_sched_ctx(sched_ctx_id, sched_ctx->inheritor);
+			return;
+		}
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
+	}
+	return;
 }
 
 void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
@@ -958,4 +975,20 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
 }
 
+void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
+{
+	STARPU_ASSERT(inheritor < STARPU_NMAX_SCHED_CTXS);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->inheritor = inheritor;
+	return;
+}
+
+void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	_STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
+	sched_ctx->finished_submit = 1;
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
+	return;
+}
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
