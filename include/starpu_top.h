@@ -209,12 +209,6 @@ void starpu_top_update_data_float(const struct starpu_top_data* data,
 void starpu_top_debug_log(const char* message);
 void starpu_top_debug_lock(const char* message);
 
-int _starpu_top_status_get();
-
-void _starpu_top_task_prevision(struct starpu_task *task,
-								int devid,
-								unsigned long long start,
-								unsigned long long end);
 #ifdef __cplusplus
 }
 #endif
