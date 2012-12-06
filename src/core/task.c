@@ -695,10 +695,6 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
-#endif
-
 	return 0;
 }
 /*
