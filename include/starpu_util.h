@@ -2,7 +2,6 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -249,17 +248,6 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
  * not NULL, this callback function is executed after the handle has been
  * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
-
-/* Wrapper to create a task. */
-int starpu_insert_task(struct starpu_codelet *cl, ...);
-
-/* Retrieve the arguments of type STARPU_VALUE associated to a task
- * automatically created using starpu_insert_task. */
-void starpu_codelet_unpack_args(void *cl_arg, ...);
-
-/* Pack arguments of type STARPU_VALUE into a buffer which can be
- * given to a codelet and later unpacked with starpu_codelet_unpack_args */
-void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }
