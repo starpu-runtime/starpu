@@ -252,7 +252,7 @@ with a limited runtime overhead.
 
 You can either get a tarball:
 @example
-% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.2.tar.gz
+% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.11.tar.gz
 @end example
 
 or use the FxT library from CVS (autotools are required):
