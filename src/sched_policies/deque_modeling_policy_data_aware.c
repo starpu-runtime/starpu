@@ -214,8 +214,6 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	return task;
 }
 
-
-
 static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 {
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
@@ -243,9 +241,6 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 
 	return new_list;
 }
-
-
-
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 				    double predicted, double predicted_transfer,
@@ -290,9 +285,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	fifo->exp_end += predicted_transfer;
 	fifo->exp_len += predicted_transfer;
-
+	
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
+	
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
 
@@ -510,8 +505,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
-/* 				printf("%d[%d]/%d len %lf penalty %lf power %lf \n", worker, worker_ctx, sched_ctx_id, local_task_length[worker_ctx][nimpl],  */
-/* 					   local_data_penalty[worker_ctx][nimpl], local_power[worker_ctx][nimpl]); */
 			}
 
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
@@ -644,6 +637,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
 				}
 			}
+			worker_ctx++;
 		}
 	}
 
