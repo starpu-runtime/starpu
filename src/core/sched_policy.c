@@ -356,7 +356,7 @@ int _starpu_push_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL)
 	{
-		_starpu_handle_job_termination(j, -1);
+		_starpu_handle_job_termination(j);
 		_STARPU_LOG_OUT_TAG("handle_job_termination");
 		return 0;
 	}

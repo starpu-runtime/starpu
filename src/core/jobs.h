@@ -157,7 +157,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 
 /* This function must be called after the execution of a job, this triggers all
  * job's dependencies and perform the callback function if any. */
-void _starpu_handle_job_termination(struct _starpu_job *j, int workerid);
+void _starpu_handle_job_termination(struct _starpu_job *j);
 
 /* Get the sum of the size of the data accessed by the job. */
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j);

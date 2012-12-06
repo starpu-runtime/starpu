@@ -127,8 +127,9 @@ void _starpu_wait_job(struct _starpu_job *j)
         _STARPU_LOG_OUT();
 }
 
-void _starpu_handle_job_termination(struct _starpu_job *j, int workerid)
+void _starpu_handle_job_termination(struct _starpu_job *j)
 {
+	int workerid = starpu_worker_get_id();
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);

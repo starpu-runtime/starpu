@@ -300,7 +300,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	}
 
 	if (rank == 0)
-		_starpu_handle_job_termination(j, workerid);
+		_starpu_handle_job_termination(j);
 	return 0;
 }
 

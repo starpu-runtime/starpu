@@ -510,6 +510,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
+/* 				printf("%d[%d]/%d len %lf penalty %lf power %lf \n", worker, worker_ctx, sched_ctx_id, local_task_length[worker_ctx][nimpl],  */
+/* 					   local_data_penalty[worker_ctx][nimpl], local_power[worker_ctx][nimpl]); */
 			}
 
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
@@ -919,7 +921,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
-        .remove_workers = dmda_remove_workers,
+	.remove_workers = dmda_remove_workers,
 	.push_task = dm_push_task,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = NULL,
@@ -934,7 +936,7 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
-        .remove_workers = dmda_remove_workers,
+	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_task,
@@ -950,7 +952,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.init_sched = initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
-        .remove_workers = dmda_remove_workers,
+	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_sorted_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
@@ -966,7 +968,7 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
-        .remove_workers = dmda_remove_workers,
+	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,

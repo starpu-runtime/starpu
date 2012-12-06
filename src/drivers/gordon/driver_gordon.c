@@ -177,7 +177,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 static void handle_terminated_job(struct _starpu_job *j)
 {
 	_starpu_push_task_output(j, 0);
-	_starpu_handle_job_termination(j, 0);
+	_starpu_handle_job_termination(j);
 	starpu_wake_all_blocked_workers();
 }
 

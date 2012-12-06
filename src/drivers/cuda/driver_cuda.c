@@ -445,7 +445,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 		}
 	}
 
-	_starpu_handle_job_termination(j, workerid);
+	_starpu_handle_job_termination(j);
 
 	return 0;
 }
