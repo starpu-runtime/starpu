@@ -217,7 +217,7 @@ static void gordon_callback_list_func(void *arg)
 #endif
 
 		_starpu_push_task_output(j, 0);
-		_starpu_handle_job_termination(j, 0);
+		_starpu_handle_job_termination(j);
 		//starpu_wake_all_blocked_workers();
 
 		task_cnt++;
