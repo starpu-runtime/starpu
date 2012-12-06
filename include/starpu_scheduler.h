@@ -171,23 +171,23 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
  *	Performance predictions
  */
 
-/* Return the current date in 탎 */
+/* Return the current date in us */
 double starpu_timing_now(void);
-/* Returns expected task duration in 탎 */
+/* Returns expected task duration in us */
 double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns an estimated speedup factor relative to CPU speed */
 double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
-/* Returns expected data transfer time in 탎 */
+/* Returns expected data transfer time in us */
 double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task);
-/* Predict the transfer time (in 탎) to move a handle to a memory node */
+/* Predict the transfer time (in us) to move a handle to a memory node */
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_access_mode mode);
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected conversion time in ms (multiformat interface only) */
 double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the expected duration of the entire task bundle in 탎. */
+/* Return the expected duration of the entire task bundle in us. */
 double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the time (in 탎) expected to transfer all data used within the bundle */
+/* Return the time (in us) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
 /* Return the expected power consumption of the entire task bundle in J. */
 double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
