@@ -63,8 +63,8 @@ struct starpu_codelet cl = @{
 @end smallexample
 @end cartouche
 
-Schedulers which are multi-implementation aware (only @code{dmda}, @code{heft}
-and @code{pheft} for now) will use the performance models of all the
+Schedulers which are multi-implementation aware (only @code{dmda} and
+@code{pheft} for now) will use the performance models of all the
 implementations it was given, and pick the one that seems to be the fastest.
 
 @node Enabling implementation according to capabilities
@@ -334,7 +334,7 @@ the @code{starpu_perfmodel_plot} (@pxref{Performance model calibration}).  The
 models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
 @code{export STARPU_HOSTNAME=some_global_name}. Measurements are only done
-when using a task scheduler which makes use of it, such as @code{heft} or
+when using a task scheduler which makes use of it, such as 
 @code{dmda}. Measurements can also be provided explicitly by the application, by
 using the @code{starpu_perfmodel_update_history} function.
 
@@ -389,7 +389,7 @@ inputs. The application can also provide the measurements explictly by using
 tools can be used to observe how much the performance model is calibrated (@pxref{Performance model calibration}); when
 their output look good, @code{STARPU_CALIBRATE} can be reset to @code{0} to let
 StarPU use the resulting performance model without recording new measures, and
-@code{STARPU_SCHED} can be set to @code{heft} to benefit from the performance models. If
+@code{STARPU_SCHED} can be set to @code{dmda} to benefit from the performance models. If
 the data input sizes vary a lot, it is really important to set
 @code{STARPU_CALIBRATE} to @code{0}, otherwise StarPU will continue adding the
 measures, and result with a very big performance model, which will take time a
@@ -979,7 +979,7 @@ It may be interesting to represent the same piece of data using two different
 data structures: one that would only be used on CPUs, and one that would only
 be used on GPUs. This can be done by using the multiformat interface. StarPU
 will be able to convert data from one data structure to the other when needed.
-Note that the heft scheduler is the only one optimized for this interface. The
+Note that the dmda scheduler is the only one optimized for this interface. The
 user must provide StarPU with conversion codelets:
 
 @cartouche

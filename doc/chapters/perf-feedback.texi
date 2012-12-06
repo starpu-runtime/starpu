@@ -221,13 +221,13 @@ start the application itself (possibly on a remote machine). The SSH checkbox
 should be checked, and a command line provided, e.g.:
 
 @example
-ssh myserver STARPU_SCHED=heft ./application
+ssh myserver STARPU_SCHED=dmda ./application
 @end example
 
 If port 2011 of the remote machine can not be accessed directly, an ssh port bridge should be added:
 
 @example
-ssh -L 2011:localhost:2011 myserver STARPU_SCHED=heft ./application
+ssh -L 2011:localhost:2011 myserver STARPU_SCHED=dmda ./application
 @end example
 
 and "localhost" should be used as IP Address to connect to.

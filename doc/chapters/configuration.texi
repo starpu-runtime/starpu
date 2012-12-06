@@ -459,7 +459,7 @@ the execution. If it is set to 2, the previous values are dropped to restart
 calibration from scratch. Setting this variable to 0 disable calibration, this
 is the default behaviour.
 
-Note: this currently only applies to @code{dm}, @code{dmda} and @code{heft} scheduling policies.
+Note: this currently only applies to @code{dm} and @code{dmda} scheduling policies.
 @end defvr
 
 @defvr {Environment variable} STARPU_BUS_CALIBRATE

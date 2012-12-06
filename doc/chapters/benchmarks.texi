@@ -14,7 +14,7 @@
 
 Some interesting benchmarks are installed among examples in
 /usr/lib/starpu/examples . Make sure to try various schedulers, for instance
-STARPU_SCHED=heft
+STARPU_SCHED=dmda
 
 @node Task size overhead
 @section Task size overhead

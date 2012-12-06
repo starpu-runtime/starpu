@@ -97,5 +97,6 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_USE_ERAND48_R
 #undef STARPU_HAVE_NEARBYINTF
 #undef STARPU_HAVE_RINTF
+#undef STARPU_USE_TOP
 
 #endif

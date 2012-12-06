@@ -39,7 +39,6 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_dm_policy,
 	&_starpu_sched_dmda_policy,
-	&_starpu_sched_heft_policy,
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_random_policy,
@@ -80,6 +79,12 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 {
 	if (!policy_name)
 		return NULL;
+
+	if (strncmp(policy_name, "heft", 5) == 0)
+	{
+		_STARPU_DISP("Warning: heft is now called \"dmda\".\n");
+		return &_starpu_sched_dmda_policy;
+	}
 
 	unsigned i;
 	for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)

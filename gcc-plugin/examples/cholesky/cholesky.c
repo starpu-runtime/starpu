@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 #endif
 //	struct starpu_conf conf;
 //	starpu_conf_init(&conf);
-//	conf.sched_policy_name = "heft";
+//	conf.sched_policy_name = "dmda";
 //	conf.calibrate = 1;
 #pragma starpu initialize
 

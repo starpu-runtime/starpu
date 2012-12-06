@@ -86,6 +86,8 @@ Changes:
     - It is no longer possible to enable the cell support via the
       gordon driver
   * Fix data transfer arrows in paje traces
+  * The "heft" scheduler no longer exists. Users should now pick "dmda"
+    instead.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
