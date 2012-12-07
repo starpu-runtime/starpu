@@ -179,7 +179,7 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 				rem_workers[nrem_workers++] = worker;
 		}
 
-		if(workers->init_cursor)
+		if (workers->deinit_cursor)
 			workers->deinit_cursor(workers);
 
 		if(nrem_workers > 0)
@@ -843,7 +843,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 			pus[npus++] = worker;
 	}
 	
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 	return npus;
 }
@@ -891,10 +891,10 @@ unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id
                 }
         }
 
-        if(workers->init_cursor)
+        if (workers->deinit_cursor)
                 workers->deinit_cursor(workers);
 
-        if(workers2->init_cursor)
+        if (workers2->deinit_cursor)
                 workers2->deinit_cursor(workers2);
 
 	return shared_workers;

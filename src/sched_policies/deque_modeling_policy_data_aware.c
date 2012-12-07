@@ -431,7 +431,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 	
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 	
 	_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
@@ -672,7 +672,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	
 	if (task->bundle)
 		starpu_task_bundle_remove(task->bundle, task);
-        if(workers->init_cursor)
+        if (workers->deinit_cursor)
                 workers->deinit_cursor(workers);
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);

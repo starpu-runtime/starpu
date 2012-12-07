@@ -300,7 +300,7 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 			nworkers++;
 	}
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 	return nworkers;
 }

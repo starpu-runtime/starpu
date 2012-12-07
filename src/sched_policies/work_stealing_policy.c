@@ -164,7 +164,7 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 		}
 	}
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
                 workers->deinit_cursor(workers);
 
 	return best_worker;
@@ -207,7 +207,7 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 		}
 	}
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
                 workers->deinit_cursor(workers);
 
 	return best_worker;

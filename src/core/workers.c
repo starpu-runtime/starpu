@@ -1279,7 +1279,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 						}
 					}
 					
-					if(workers->init_cursor)
+					if (workers->deinit_cursor)
 						workers->deinit_cursor(workers);
 					if(found) break;
 				}

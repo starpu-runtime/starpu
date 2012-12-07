@@ -554,7 +554,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		transfer_model_best = local_data_penalty[best_in_ctx][selected_impl];
 	}
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 
 	_starpu_get_job_associated_to_task(task)->nimpl = selected_impl;

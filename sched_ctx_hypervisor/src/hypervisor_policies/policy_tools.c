@@ -37,7 +37,7 @@ static int _compute_priority(unsigned sched_ctx)
 		total_priority += config->priority[worker];
 	}
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 	return total_priority;
 }
@@ -169,7 +169,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 		}
 	}
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 
 	return curr_workers;
@@ -195,7 +195,7 @@ unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_policy_confi
 				potential_workers++;
 		}
 	}
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 
 	return potential_workers;
@@ -321,7 +321,7 @@ static double _get_elapsed_flops(struct starpu_sched_ctx_hypervisor_wrapper* sc_
                 }
         }
 
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
 		workers->deinit_cursor(workers);
 
 	return ret_val;

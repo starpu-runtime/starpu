@@ -421,7 +421,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		}
 	}
 
-        if(workers->init_cursor)                                                                                                                                                                                                    workers->deinit_cursor(workers);
+        if (workers->deinit_cursor)
+		workers->deinit_cursor(workers);
 
 	STARPU_ASSERT(forced_best != -1 || best != -1);
 

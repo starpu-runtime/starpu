@@ -71,7 +71,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif
-	if(workers->init_cursor)
+	if (workers->deinit_cursor)
                 workers->deinit_cursor(workers);
 
 	/* we should now have the best worker in variable "selected" */
