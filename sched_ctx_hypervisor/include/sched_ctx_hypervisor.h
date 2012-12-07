@@ -20,7 +20,9 @@
 #include <starpu.h>
 #include <pthread.h>
 
-#warning rename all objects to start with starpu_sched_ctx_hypervisor
+#ifdef STARPU_DEVEL
+#  warning rename all objects to start with starpu_sched_ctx_hypervisor
+#endif
 
 /* ioctl properties*/
 #define HYPERVISOR_MAX_IDLE -1
