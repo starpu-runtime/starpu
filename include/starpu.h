@@ -237,7 +237,7 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 int starpu_worker_get_devid(int id);
 void starpu_profiling_init();
 void starpu_display_stats();
-int starpu_driver_run(struct starpu_driver *);
+int starpu_driver_run(struct starpu_driver *d);
 void starpu_drivers_request_termination(void);
 
 int starpu_driver_init(struct starpu_driver *d);

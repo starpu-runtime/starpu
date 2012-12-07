@@ -120,7 +120,7 @@ struct starpu_sched_ctx_hypervisor_policy
 	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
 };
 
-struct starpu_performance_counters* sched_ctx_hypervisor_init(struct starpu_sched_ctx_hypervisor_policy* policy);
+struct starpu_performance_counters* sched_ctx_hypervisor_init(struct starpu_sched_ctx_hypervisor_policy *policy);
 
 void sched_ctx_hypervisor_shutdown(void);
 
@@ -130,7 +130,7 @@ void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx);
 
 void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag);
 
-void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receier_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
+void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
 
 void sched_ctx_hypervisor_stop_resize(unsigned sched_ctx);
 
@@ -140,21 +140,21 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
-struct starpu_sched_ctx_hypervisor_policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
+struct starpu_sched_ctx_hypervisor_policy_config *sched_ctx_hypervisor_get_config(unsigned sched_ctx);
 
-int* sched_ctx_hypervisor_get_sched_ctxs();
+int *sched_ctx_hypervisor_get_sched_ctxs();
 
 int sched_ctx_hypervisor_get_nsched_ctxs();
 
 int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch);
 
-struct starpu_sched_ctx_hypervisor_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
+struct starpu_sched_ctx_hypervisor_wrapper *sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
-double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper* sc_w);
+double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper *sc_w);
 
 double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper* sc_w);
 
-const char* sched_ctx_hypervisor_get_policy();
+const char *sched_ctx_hypervisor_get_policy();
 
 void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
 

@@ -27,7 +27,7 @@ Basic strategies of resizing scheduling contexts already exist but a platform fo
 @section Managing the hypervisor
 There is a single hypervisor that is in charge of resizing contexts and the resizing strategy is chosen at the initialization of the hypervisor. A single resize can be done at a time.
 
-@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init ({struct starpu_sched_ctx_hypervisor_policy*} @var{policy})
+@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init ({struct starpu_sched_ctx_hypervisor_policy *} @var{policy})
 Initializes the hypervisor to use the strategy provided as parameter and creates the performance counters (see @pxref{Performance Counters}).
 These performance counters represent actually some callbacks that will be used by the contexts to notify the information needed by the hypervisor.
 @end deftypefun
@@ -341,15 +341,15 @@ If the value corresponding to a worker is 1, this one is taken into account in t
 
 The following functions can be used in the resizing strategies.
 
-@deftypefun void sched_ctx_hypervisor_move_workers (unsigned @var{sender_sched_ctx}, unsigned @var{receier_sched_ctx}, {int *}@var{workers_to_move}, unsigned @var{nworkers_to_move});
+@deftypefun void sched_ctx_hypervisor_move_workers (unsigned @var{sender_sched_ctx}, unsigned @var{receiver_sched_ctx}, {int *}@var{workers_to_move}, unsigned @var{nworkers_to_move}, unsigned @var{now});
 Moves workers from one context to another
 @end deftypefun
 
-@deftypefun {struct starpu_sched_ctx_hypervisor_policy_config*} sched_ctx_hypervisor_get_config (unsigned @var{sched_ctx});
+@deftypefun {struct starpu_sched_ctx_hypervisor_policy_config *} sched_ctx_hypervisor_get_config (unsigned @var{sched_ctx});
 Returns the configuration structure of a context
 @end deftypefun
 
-@deftypefun {int*} sched_ctx_hypervisor_get_sched_ctxs ();
+@deftypefun {int *} sched_ctx_hypervisor_get_sched_ctxs ();
 Gets the contexts managed by the hypervisor
 @end deftypefun
 
@@ -357,15 +357,15 @@ Gets the contexts managed by the hypervisor
 Gets the number of contexts managed by the hypervisor
 @end deftypefun
 
-@deftypefun {struct starpu_sched_ctx_hypervisor_wrapper*} sched_ctx_hypervisor_get_wrapper (unsigned @var{sched_ctx});
+@deftypefun {struct starpu_sched_ctx_hypervisor_wrapper *} sched_ctx_hypervisor_get_wrapper (unsigned @var{sched_ctx});
 Returns the wrapper corresponding the context @code{sched_ctx}
 @end deftypefun
 
-@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx ({struct starpu_sched_ctx_hypervisor_wrapper*} @var{sc_w});
+@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx ({struct starpu_sched_ctx_hypervisor_wrapper *} @var{sc_w});
 Returns the flops of a context elapsed from the last resize
 @end deftypefun
 
-@deftypefun {char*} sched_ctx_hypervisor_get_policy ();
+@deftypefun {char *} sched_ctx_hypervisor_get_policy ();
 Returns the name of the resizing policy the hypervisor uses
 @end deftypefun
 
