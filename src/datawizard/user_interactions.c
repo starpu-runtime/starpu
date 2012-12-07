@@ -157,12 +157,12 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task) {
-			int ret = starpu_task_submit(new_task);
+			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
 
 		/* TODO detect if this is superflous */
-		int ret = starpu_task_submit(wrapper->pre_sync_task);
+		int ret = _starpu_task_submit_internally(wrapper->pre_sync_task);
 		STARPU_ASSERT(!ret);
 	}
 	else
@@ -229,7 +229,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		handle->mf_node = 0;
 		_starpu_spin_unlock(&handle->header_lock);
 		task->synchronous = 1;
-		ret = starpu_task_submit(task);
+		ret = _starpu_task_submit_internally(task);
 		STARPU_ASSERT(!ret);
 	}
 
@@ -265,13 +265,13 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task) {
-			int ret = starpu_task_submit(new_task);
+			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
 
 		/* TODO detect if this is superflous */
 		wrapper.pre_sync_task->synchronous = 1;
-		int ret = starpu_task_submit(wrapper.pre_sync_task);
+		int ret = _starpu_task_submit_internally(wrapper.pre_sync_task);
 		STARPU_ASSERT(!ret);
 	}
 	else

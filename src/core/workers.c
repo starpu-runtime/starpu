@@ -4,6 +4,7 @@
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011-2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -246,8 +247,8 @@ static struct _starpu_worker_set gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
-	_starpu_pthread_cond_t *cond = workerarg->sched_cond;
-	_starpu_pthread_mutex_t *mutex = workerarg->sched_mutex;
+	_starpu_pthread_cond_t *cond = &workerarg->sched_cond;
+	_starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -360,13 +361,22 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 		workerarg->config = config;
 
+		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
+
 		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
 		_STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
 
 		workerarg->worker_size = 1;
 		workerarg->combined_workerid = workerarg->workerid;
 		workerarg->current_rank = 0;
+		workerarg->has_prev_init = 0;
+		/* mutex + cond only for the local list */
+		/* we have a single local list */
+		/* afterwards there would be a mutex + cond for the list of each strategy */
 		workerarg->run_by_starpu = 1;
+
+		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+		_STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -720,6 +730,13 @@ int starpu_init(struct starpu_conf *user_conf)
 		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
 	}
 #endif
+	_starpu_open_debug_logfile();
+
+	_starpu_data_interface_init();
+
+	_starpu_timing_init();
+
+	_starpu_profiling_init();
 
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
@@ -739,8 +756,12 @@ int starpu_init(struct starpu_conf *user_conf)
 	     config.conf = user_conf;
 	     config.default_conf = 0;
 	}
+
+	_starpu_load_bus_performance_files();
+
 	_starpu_conf_check_environment(config.conf);
 
+	_starpu_init_all_sched_ctxs(&config);
 	_starpu_init_progression_hooks();
 
 	_starpu_init_tags();
@@ -748,16 +769,6 @@ int starpu_init(struct starpu_conf *user_conf)
 #ifdef STARPU_USE_FXT
 	_starpu_start_fxt_profiling();
 #endif
-
-	_starpu_open_debug_logfile();
-
-	_starpu_data_interface_init();
-
-	_starpu_timing_init();
-
-	_starpu_profiling_init();
-
-	_starpu_load_bus_performance_files();
 
 	ret = _starpu_build_topology(&config);
 	if (ret)
@@ -775,8 +786,10 @@ int starpu_init(struct starpu_conf *user_conf)
 	 * threads */
 	_starpu_initialize_current_task_key();
 
-	/* initialize the scheduling policy */
-	_starpu_init_sched_policy(&config);
+	if(user_conf == NULL)
+		_starpu_create_sched_ctx(NULL, NULL, -1, 1, "init");
+	else
+		_starpu_create_sched_ctx(user_conf->sched_policy_name, NULL, -1, 1, "init");
 
 	_starpu_initialize_registered_performance_models();
 
@@ -793,6 +806,10 @@ int starpu_init(struct starpu_conf *user_conf)
 	return 0;
 }
 
+void starpu_profiling_init()
+{
+	_starpu_profiling_init();
+}
 /*
  * Handle runtime termination
  */
@@ -901,6 +918,16 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 	starpu_wake_all_blocked_workers();
 }
 
+void starpu_display_stats()
+{
+	const char *stats;
+	if ((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))
+		starpu_bus_profiling_helper_display_summary();
+
+	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
+		starpu_worker_profiling_helper_display_summary();
+}
+
 void starpu_shutdown(void)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -948,7 +975,7 @@ void starpu_shutdown(void)
 	/* wait for their termination */
 	_starpu_terminate_workers(&config);
 
-	_starpu_deinit_sched_policy(&config);
+	_starpu_delete_all_sched_ctxs();
 
 	_starpu_destroy_topology(&config);
 
@@ -1129,6 +1156,17 @@ struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &config.workers[id];
 }
 
+unsigned starpu_worker_is_combined_worker(int id)
+{
+	return id >= (int)config.topology.nworkers;
+}
+
+struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
+{
+        STARPU_ASSERT(id <= STARPU_NMAX_SCHED_CTXS);
+	return &config.sched_ctxs[id];
+}
+
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
@@ -1184,10 +1222,80 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 	config.workers[workerid].status = status;
 }
 
-void starpu_worker_set_sched_condition(int workerid, _starpu_pthread_cond_t *sched_cond, _starpu_pthread_mutex_t *sched_mutex)
+int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
 {
-	config.workers[workerid].sched_cond = sched_cond;
-	config.workers[workerid].sched_mutex = sched_mutex;
+	unsigned nworkers = starpu_worker_get_count();
+
+	int cnt = 0;
+
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+	{
+		if (starpu_worker_get_type(id) == type)
+		{
+			/* Perhaps the array is too small ? */
+			if (cnt >= maxsize)
+				return cnt;
+
+			workerids[cnt++] = id;
+		}
+	}
+
+	return cnt;
+}
+
+int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	int cnt = 0;
+
+	unsigned id, worker;
+	unsigned found = 0;
+	for (id = 0; id < nworkers; id++)
+	{
+		found = 0;
+		if (starpu_worker_get_type(id) == type)
+		{
+			/* Perhaps the array is too small ? */
+			if (cnt >= maxsize)
+				return cnt;
+			int s;
+			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
+				if(config.sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				{
+					struct worker_collection *workers = config.sched_ctxs[s].workers;
+					if(workers->init_cursor)
+						workers->init_cursor(workers);
+					
+					while(workers->has_next(workers))
+					{
+						worker = workers->get_next(workers);
+						if(worker == id)
+						{
+							found = 1;
+							break;
+						}
+					}
+					
+					if(workers->init_cursor)
+						workers->deinit_cursor(workers);
+					if(found) break;
+				}
+			}
+			if(!found)
+				workerids[cnt++] = id;
+		}
+	}
+
+	return cnt;
+}
+
+
+struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
+{
+	return &config.sched_ctxs[0];
 }
 
 int

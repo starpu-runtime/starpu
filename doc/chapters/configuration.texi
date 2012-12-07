@@ -7,8 +7,8 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Compilation configuration::
-* Execution configuration through environment variables::
+* Compilation configuration::   
+* Execution configuration through environment variables::  
 @end menu
 
 @node Compilation configuration
@@ -162,6 +162,12 @@ target device.  This information is then available as the
 @code{STARPU_MAXIMPLEMENTATIONS} macro.
 @end defvr
 
+@defvr {Configure option} --enable-max-sched-ctxs=@var{count}
+Allow for at most @var{count} scheduling contexts
+This information is then available as the
+@code{STARPU_NMAX_SCHED_CTXS} macro.
+@end defvr
+
 @defvr {Configure option} --disable-asynchronous-copy
 Disable asynchronous copies between CPU and GPU devices.
 The AMD implementation of OpenCL is known to
@@ -283,6 +289,12 @@ MKL website} provides a script to determine the linking flags.
 
 @defvr {Configure option} --disable-build-examples
 Disable the build of examples.
+@end defvr
+
+
+@defvr {Configure option} --enable-sched-ctx-hypervisor
+Enables the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hypervisor}).
+By default, it is disabled.
 @end defvr
 
 @defvr {Configure option} --enable-memory-stats

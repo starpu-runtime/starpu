@@ -17,7 +17,7 @@
  */
 
 #include "cholesky.h"
-
+#include "../sched_ctx_utils/sched_ctx_utils.h"
 /*
  *	Create the codelets
  */
@@ -137,24 +137,31 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	end = starpu_timing_now();
 
+	//double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	double timing = end - start;
-	FPRINTF(stderr, "Computation took (in ms)\n");
-	FPRINTF(stdout, "%2.2f\n", timing/1000);
-
 	unsigned long n = starpu_matrix_get_nx(dataA);
 
 	double flop = (1.0f*n*n*n)/3.0f;
-	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
-	if (bound_lp)
+
+	if(with_ctxs || with_noctxs || chole1 || chole2)
+		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
+	else
 	{
-		FILE *f = fopen("cholesky.lp", "w");
-		starpu_bound_print_lp(f);
-	}
-	if (bound)
-	{
-		double res;
-		starpu_bound_compute(&res, NULL, 0);
-		FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+		FPRINTF(stderr, "Computation took (in ms)\n");
+		FPRINTF(stdout, "%2.2f\n", timing/1000);
+	
+		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+		if (bound_lp)
+		{
+			FILE *f = fopen("cholesky.lp", "w");
+			starpu_bound_print_lp(f);
+		}
+		if (bound)
+		{
+			double res;
+			starpu_bound_compute(&res, NULL, 0);
+			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+		}
 	}
 	return 0;
 }
@@ -189,24 +196,9 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	return ret;
 }
 
-int main(int argc, char **argv)
+static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	int ret;
-
-	/* create a simple definite positive symetric matrix example
-	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
-	 * */
-
-	parse_args(argc, argv);
-
-	ret = starpu_init(NULL);
-	if (ret == -ENODEV)
-		return 77;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	starpu_helper_cublas_init();
-
 	float *mat = NULL;
 	unsigned i,j;
 
@@ -321,9 +313,45 @@ int main(int argc, char **argv)
 	        }
 		free(test_mat);
 	}
+	starpu_free(mat);
+}
+
+int main(int argc, char **argv)
+{
+	/* create a simple definite positive symetric matrix example
+	 *
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
+	 * */
+
+	parse_args(argc, argv);
+
+	if(with_ctxs || with_noctxs || chole1 || chole2)
+		parse_args_ctx(argc, argv);
+
+	int ret;
+	ret = starpu_init(NULL);
+
+	if (ret == -ENODEV)
+                return 77;
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_helper_cublas_init();
+
+	if(with_ctxs)
+	{
+		construct_contexts(execute_cholesky);
+		start_2benchs(execute_cholesky);
+	}
+	else if(with_noctxs)
+		start_2benchs(execute_cholesky);
+	else if(chole1)
+		start_1stbench(execute_cholesky);
+	else if(chole2)
+		start_2ndbench(execute_cholesky);
+	else
+		execute_cholesky(size, nblocks);
 
 	starpu_helper_cublas_shutdown();
-	starpu_free(mat);
 	starpu_shutdown();
 
 	return ret;

@@ -19,25 +19,27 @@
 
 #include <starpu_rand.h>
 #include <core/workers.h>
+#include <core/sched_ctx.h>
 #include <sched_policies/fifo_queues.h>
-#include <core/debug.h>
-
-static unsigned nworkers;
-
-static _starpu_pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
-static _starpu_pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
 static int _random_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-	unsigned worker;
 
 	unsigned selected = 0;
 
 	double alpha_sum = 0.0;
 
-	for (worker = 0; worker < nworkers; worker++)
+	unsigned sched_ctx_id = task->sched_ctx;
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+        int worker;
+        if(workers->init_cursor)
+                workers->init_cursor(workers);
+
+        while(workers->has_next(workers))
 	{
+                worker = workers->get_next(workers);
+
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		alpha_sum += starpu_worker_get_relative_speedup(perf_arch);
 	}
@@ -46,8 +48,10 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 //	_STARPU_DEBUG("my rand is %e\n", random);
 
 	double alpha = 0.0;
-	for (worker = 0; worker < nworkers; worker++)
-	{
+	while(workers->has_next(workers))
+        {
+                worker = workers->get_next(workers);
+
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
 
@@ -67,36 +71,75 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif
+	if(workers->init_cursor)
+                workers->deinit_cursor(workers);
+
 	/* we should now have the best worker in variable "selected" */
-	return starpu_push_local_task(selected, task, prio);
+	int n = starpu_push_local_task(selected, task, prio);
+	return n;
 }
 
 static int random_push_task(struct starpu_task *task)
 {
-	return _random_push_task(task, !!task->priority);
+	unsigned sched_ctx_id = task->sched_ctx;
+	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	unsigned nworkers;
+        int ret_val = -1;
+
+        _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+	nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+        if(nworkers == 0)
+        {
+		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+                return ret_val;
+        }
+
+        ret_val = _random_push_task(task, !!task->priority);
+        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+        return ret_val;
 }
 
-static void initialize_random_policy(struct starpu_machine_topology *topology,
-				     __attribute__ ((unused)) struct starpu_sched_policy *_policy)
+static void random_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
 {
-	starpu_srand48(time(NULL));
-
-	nworkers = topology->nworkers;
-
-	unsigned workerid;
-	for (workerid = 0; workerid < nworkers; workerid++)
+	unsigned i;
+	int workerid;
+	for (i = 0; i < nworkers; i++)
 	{
-		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
-
-		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
+		workerid = workerids[i];
+		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &workerarg->sched_mutex, &workerarg->sched_cond);
 	}
+}
+
+static void random_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+{
+	unsigned i;
+	int workerid;
+	for (i = 0; i < nworkers; i++)
+	{
+		workerid = workerids[i];
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+	}
+
+}
+
+static void initialize_random_policy(unsigned sched_ctx_id) 
+{
+	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_srand48(time(NULL));
+}
+
+static void deinitialize_random_policy(unsigned sched_ctx_id) 
+{
+	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_random_policy =
 {
 	.init_sched = initialize_random_policy,
-	.deinit_sched = NULL,
+	.add_workers = random_add_workers,
+	.remove_workers = random_remove_workers,
+	.deinit_sched = deinitialize_random_policy,
 	.push_task = random_push_task,
 	.pop_task = NULL,
 	.pre_exec_hook = NULL,

@@ -51,6 +51,7 @@ typedef unsigned long long uint64_t;
 #endif
 #include <starpu_task_util.h>
 #include <starpu_scheduler.h>
+#include <starpu_sched_ctx.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
 #include <starpu_cuda.h>
@@ -72,6 +73,9 @@ extern "C"
 
 enum starpu_archtype
 {
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	STARPU_ANY_WORKER, /* any worker, used in the hypervisor */
+#endif
 	STARPU_CPU_WORKER,    /* CPU core */
 	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER, /* OpenCL device */
@@ -174,6 +178,7 @@ void starpu_topology_print(FILE *f);
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);
 unsigned starpu_combined_worker_get_count(void);
+unsigned starpu_worker_is_combined_worker(int id);
 
 unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);
@@ -230,8 +235,9 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
  *  identifier (as returned by the starpu_worker_get_id() function)
  */
 int starpu_worker_get_devid(int id);
-
-int starpu_driver_run(struct starpu_driver *d);
+void starpu_profiling_init();
+void starpu_display_stats();
+int starpu_driver_run(struct starpu_driver *);
 void starpu_drivers_request_termination(void);
 
 int starpu_driver_init(struct starpu_driver *d);

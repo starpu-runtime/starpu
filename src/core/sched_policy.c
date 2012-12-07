@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +26,6 @@
 #include <common/barrier.h>
 #include <core/debug.h>
 
-static struct starpu_sched_policy policy;
-
 static int use_prefetch = 0;
 
 int starpu_get_prefetch_flag(void)
@@ -48,16 +47,16 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_pgreedy_policy
 };
 
-struct starpu_sched_policy *_starpu_get_sched_policy(void)
+struct starpu_sched_policy *_starpu_get_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 {
-	return &policy;
+	return sched_ctx->sched_policy;
 }
 
 /*
  *	Methods to initialize the scheduling policy
  */
 
-static void load_sched_policy(struct starpu_sched_policy *sched_policy)
+static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _starpu_sched_ctx *sched_ctx)
 {
 	STARPU_ASSERT(sched_policy);
 
@@ -72,7 +71,8 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy)
 	}
 #endif
 
-	memcpy(&policy, sched_policy, sizeof(policy));
+	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
+	memcpy(policy, sched_policy, sizeof(*policy));
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
@@ -124,17 +124,26 @@ static void display_sched_help_message(void)
 	 }
 }
 
-static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config)
+static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config, const char *required_policy)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
+	struct starpu_conf *user_conf = config->conf;
+
+	if(required_policy)
+		selected_policy = find_sched_policy_from_name(required_policy);
 
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
-	if (config->conf->sched_policy)
-		return config->conf->sched_policy;
+	if (!selected_policy && user_conf && (user_conf->sched_policy))
+		return user_conf->sched_policy;
 
 	/* Otherwise, we look if the application specified the name of a policy to load */
-	if (config->conf->sched_policy_name)
-		selected_policy = find_sched_policy_from_name(config->conf->sched_policy_name);
+	const char *sched_pol_name;
+	sched_pol_name = getenv("STARPU_SCHED");
+	if (sched_pol_name == NULL && user_conf && user_conf->sched_policy_name)
+		sched_pol_name = user_conf->sched_policy_name;
+
+	if (!selected_policy && sched_pol_name)
+		selected_policy = find_sched_policy_from_name(sched_pol_name);
 
 	/* Perhaps there was no policy that matched the name */
 	if (selected_policy)
@@ -144,7 +153,7 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 	return &_starpu_sched_eager_policy;
 }
 
-void _starpu_init_sched_policy(struct _starpu_machine_config *config)
+void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, const char *required_policy)
 {
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -158,17 +167,18 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config)
 	_starpu_set_calibrate_flag(config->conf->calibrate);
 
 	struct starpu_sched_policy *selected_policy;
-	selected_policy = select_sched_policy(config);
+	selected_policy = select_sched_policy(config, required_policy);
 
-	load_sched_policy(selected_policy);
+	load_sched_policy(selected_policy, sched_ctx);
 
-	policy.init_sched(&config->topology, &policy);
+	sched_ctx->sched_policy->init_sched(sched_ctx->id);
 }
 
-void _starpu_deinit_sched_policy(struct _starpu_machine_config *config)
+void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 {
-	if (policy.deinit_sched)
-		policy.deinit_sched(&config->topology, &policy);
+	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
+	if (policy->deinit_sched)
+		policy->deinit_sched(sched_ctx->id);
 }
 
 /* Enqueue a task into the list of tasks explicitely attached to a worker. In
@@ -199,8 +209,22 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	if (use_prefetch)
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
-	if (policy.push_task_notify)
-		policy.push_task_notify(task, workerid);
+	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
+	unsigned i;
+	struct _starpu_sched_ctx *sched_ctx;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		sched_ctx = worker->sched_ctx[i];
+		if (sched_ctx != NULL && sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
+		{
+			sched_ctx->sched_policy->push_task_notify(task, workerid);
+		}
+
+	}
+
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	starpu_call_pushed_task_cb(workerid, task->sched_ctx);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	if (is_basic_worker)
 	{
@@ -228,7 +252,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			for (i = 0; i < task->cl->nbuffers; i++)
 				task->handles[i]->mf_node = node;
 		}
-		return _starpu_push_local_task(worker, task, 0);
+		if(task->priority > 0)
+			return _starpu_push_local_task(worker, task, 1);
+		else
+			return _starpu_push_local_task(worker, task, 0);
 	}
 	else
 	{
@@ -237,7 +264,6 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int *combined_workerid = combined_worker->combined_workerid;
 
 		int ret = 0;
-		int i;
 
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 		j->task_size = worker_size;
@@ -247,6 +273,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
+		int i;
 		for (i = 0; i < worker_size; i++)
 		{
 			struct starpu_task *alias = _starpu_create_task_alias(task);
@@ -259,11 +286,60 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	}
 }
 
+static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
+{
+	int worker = -1, nworkers = 0;
+	struct worker_collection *workers = sched_ctx->workers;
+	if(workers->init_cursor)
+		workers->init_cursor(workers);
+
+	while(workers->has_next(workers))
+	{
+		worker = workers->get_next(workers);
+		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_is_ctxs_turn(worker, sched_ctx->id))
+			nworkers++;
+	}
+
+	if(workers->init_cursor)
+		workers->deinit_cursor(workers);
+	return nworkers;
+}
+
 /* the generic interface that call the proper underlying implementation */
+
 int _starpu_push_task(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-        _STARPU_LOG_IN();
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	unsigned nworkers = 0;
+
+	if(!sched_ctx->is_initial_sched)
+	{
+		/*if there are workers in the ctx that are not able to execute tasks
+		  we consider the ctx empty */
+		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+
+		if(nworkers == 0)
+		{
+			if(task->already_pushed)
+			{
+				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+				starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				return -1;
+			}
+			else
+			{
+				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+				task->already_pushed = 1;
+				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				return 0;
+			}
+		}
+	}
+
+	_STARPU_LOG_IN();
 
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
@@ -281,25 +357,31 @@ int _starpu_push_task(struct _starpu_job *j)
 	if (task->cl == NULL)
 	{
 		_starpu_handle_job_termination(j);
-                _STARPU_LOG_OUT_TAG("handle_job_termination");
+		_STARPU_LOG_OUT_TAG("handle_job_termination");
 		return 0;
 	}
 
-        int ret;
+	int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}
 	else
 	{
-		STARPU_ASSERT(policy.push_task);
-		ret = policy.push_task(task);
+		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
+		ret = sched_ctx->sched_policy->push_task(task);
+		if(ret == -1)
+		{
+			fprintf(stderr, "repush task \n");
+			_starpu_decrement_nready_tasks();
+			ret = _starpu_push_task(j);
+		}
 	}
 
 	_starpu_profiling_set_task_push_end_time(task);
 
-        _STARPU_LOG_OUT();
-        return ret;
+	_STARPU_LOG_OUT();
+	return ret;
 }
 
 /*
@@ -382,6 +464,38 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 	return conversion_task;
 }
 
+struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
+{
+	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
+	unsigned smallest_counter =  worker->nsched_ctxs;
+	unsigned i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		sched_ctx = worker->sched_ctx[i];
+
+		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
+		   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
+		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
+		{
+			good_sched_ctx = sched_ctx;
+			smallest_counter = sched_ctx->pop_counter[worker->workerid];
+		}
+	}
+
+	if(good_sched_ctx == NULL)
+	{
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		{
+			sched_ctx = worker->sched_ctx[i];
+			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+				sched_ctx->pop_counter[worker->workerid] = 0;
+		}
+
+		return _get_next_sched_ctx_to_pop_into(worker);
+	}
+	return good_sched_ctx;
+}
+
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 {
 	struct starpu_task *task;
@@ -396,16 +510,82 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 		_starpu_clock_gettime(&pop_start_time);
 
 pick:
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
-	if (!task && policy.pop_task)
-		task = policy.pop_task();
+
+	/* get tasks from the stacks of the strategy */
+	if(!task)
+	{
+		struct _starpu_sched_ctx *sched_ctx;
+		_starpu_pthread_mutex_t *sched_ctx_mutex;
+
+		int been_here[STARPU_NMAX_SCHED_CTXS];
+		int i;
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+			been_here[i] = 0;
+
+		while(!task)
+		{
+			if(worker->nsched_ctxs == 1)
+				sched_ctx = _starpu_get_initial_sched_ctx();
+			else
+				sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
+			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+			{
+				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
+				if(sched_ctx_mutex != NULL)
+				{
+					_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
+
+					if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
+						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+
+					_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
+
+				}
+			}
+
+			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
+				break;
+
+
+			been_here[sched_ctx->id] = 1;
+
+			sched_ctx->pop_counter[worker->workerid]++;
+
+		}
+
+	  }
+
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	struct _starpu_sched_ctx *sched_ctx = NULL;
+	struct starpu_performance_counters *perf_counters = NULL;
+	int j;
+	for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+	{
+		sched_ctx = worker->sched_ctx[j];
+		if(sched_ctx != NULL && sched_ctx->id != 0)
+		{
+			perf_counters = sched_ctx->perf_counters;
+			if(perf_counters != NULL && perf_counters->notify_idle_cycle && perf_counters->notify_idle_end)
+			{
+				if(!task)
+					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+				else
+					perf_counters->notify_idle_end(sched_ctx->id, worker->workerid);
+			}
+		}
+	}
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
 
 	if (!task)
-		return NULL;
+		goto profiling;
 
-	/* Make sure we do not bother with all the multiformat-specific code if 
+	/* Make sure we do not bother with all the multiformat-specific code if
 	 * it is not necessary. */
 	if (!_starpu_task_uses_multiformat_handles(task))
 		goto profiling;
@@ -423,7 +603,7 @@ pick:
 	node = starpu_worker_get_memory_node(worker_id);
 
 	/*
-	 * We do have a task that uses multiformat handles. Let's create the 
+	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
 	unsigned i;
@@ -451,7 +631,7 @@ pick:
 	goto pick;
 
 profiling:
-	if (profiling)
+	if (profiling && task)
 	{
 		struct starpu_task_profiling_info *profiling_info;
 		profiling_info = task->profiling_info;
@@ -470,31 +650,42 @@ profiling:
 	return task;
 }
 
-struct starpu_task *_starpu_pop_every_task(void)
+struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx)
 {
-	STARPU_ASSERT(policy.pop_every_task);
+	STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
 
 	/* TODO set profiling info */
-	return policy.pop_every_task();
+	if(sched_ctx->sched_policy->pop_every_task)
+		return sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
+	return NULL;
 }
 
 void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 {
-	if (policy.pre_exec_hook)
-		policy.pre_exec_hook(task);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	if (sched_ctx->sched_policy->pre_exec_hook)
+		sched_ctx->sched_policy->pre_exec_hook(task);
 }
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
-	if (policy.post_exec_hook)
-		policy.post_exec_hook(task);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	if(task->hypervisor_tag > 0 && sched_ctx != NULL &&
+	   sched_ctx->id != 0 && sched_ctx->perf_counters != NULL)
+		sched_ctx->perf_counters->notify_post_exec_hook(sched_ctx->id, task->hypervisor_tag);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
+	if (sched_ctx->sched_policy->post_exec_hook)
+		sched_ctx->sched_policy->post_exec_hook(task);
 }
 
 void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -506,7 +697,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so
@@ -518,6 +709,9 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-	return _starpu_push_local_task(worker, task, back);
-}
+	int ret =  _starpu_push_local_task(worker, task, back);
 
+	task->scheduled = 1;
+
+	return ret;
+}

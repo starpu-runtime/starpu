@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012 Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -449,6 +450,8 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
+	topology->nsched_ctxs = 0;
+
 #ifdef STARPU_USE_OPENCL
 	_starpu_opencl_init();
 #endif
@@ -505,6 +508,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
+		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + cudagpu].workerid);
 		config->worker_mask |= STARPU_CUDA;
 
 		struct handle_entry *entry;
@@ -580,6 +584,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
+		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + openclgpu].workerid);
 		config->worker_mask |= STARPU_OPENCL;
 	}
 
@@ -619,6 +624,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].id = spu;
 		config->workers[worker_idx].worker_is_running = 0;
 		config->workers[worker_idx].worker_mask = STARPU_GORDON;
+		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + spu].workerid);
 		config->worker_mask |= STARPU_GORDON;
 	}
 
@@ -664,6 +670,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
+		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + cpu].workerid);
 	}
 
 	topology->nworkers += topology->ncpus;

@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2011  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +63,7 @@ noinst_HEADERS = 						\
 	core/dependencies/implicit_data_deps.h			\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
+	core/sched_ctx.h					\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
@@ -101,6 +103,7 @@ noinst_HEADERS = 						\
 	common/utils.h						\
 	common/barrier.h					\
 	common/uthash.h						\
+	common/barrier_counter.h				\
 	drivers/driver_common/driver_common.h			\
 	drivers/cpu/driver_cpu.h				\
 	drivers/gordon/driver_gordon.h				\
@@ -122,6 +125,7 @@ noinst_HEADERS = 						\
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
+	common/barrier_counter.c				\
 	common/hash.c 						\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
@@ -150,6 +154,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
 	core/simgrid.c						\
+	core/sched_ctx.c					\
 	core/priorities.c					\
 	core/parallel_task.c					\
 	sched_policies/eager_central_policy.c			\
@@ -215,7 +220,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	top/starpu_top.c					\
 	top/starpu_top_task.c					\
 	top/starpu_top_message_queue.c				\
-	top/starpu_top_connection.c
+	top/starpu_top_connection.c                          	\
+	worker_collection/worker_list.c
 
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c

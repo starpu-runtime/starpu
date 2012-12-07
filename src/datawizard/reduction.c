@@ -254,7 +254,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		unsigned i;
 		for (i = 0; i < redux_task_idx; i++)
 		{
-			int ret = starpu_task_submit(redux_tasks[i]);
+			int ret = _starpu_task_submit_internally(redux_tasks[i]);
 			STARPU_ASSERT(ret == 0);
 		}
 #else
@@ -276,7 +276,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl->modes[0] = STARPU_W;
 			redux_task->handles[0] = handle;
 
-			int ret = starpu_task_submit(redux_task);
+			int ret = _starpu_task_submit_internally(redux_task);
 			STARPU_ASSERT(!ret);
 		}
 
@@ -305,7 +305,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->handles[0] = handle;
 			redux_task->handles[1] = replicate_array[replicate];
 
-			int ret = starpu_task_submit(redux_task);
+			int ret = _starpu_task_submit_internally(redux_task);
 			STARPU_ASSERT(!ret);
 		}
 #endif

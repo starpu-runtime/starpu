@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +20,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <core/workers.h>
+#include <core/sched_ctx.h>
 #include <core/jobs.h>
 #include <core/task.h>
 #include <core/task_bundle.h>
@@ -70,6 +72,9 @@ void starpu_task_init(struct starpu_task *task)
 	task->predicted_transfer = NAN;
 
 	task->magic = 42;
+	task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	
+	task->flops = 0.0;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
@@ -200,16 +205,28 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	struct starpu_task *task = j->task;
 
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
 
 	_starpu_increment_nsubmitted_tasks();
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
+	if(sched_ctx != NULL && j->task->sched_ctx != 0 && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
+	   && sched_ctx->perf_counters != NULL)
+	{
+		_starpu_compute_buffers_footprint(j->task->cl->model, STARPU_CPU_DEFAULT, 0, j);
+		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint);
+	}
+#endif
 
 	/* We retain handle reference count */
 	if (task->cl) {
 		unsigned i;
-		for (i=0; i<task->cl->nbuffers; i++) {
+		for (i=0; i<task->cl->nbuffers; i++) 
+		{
 			starpu_data_handle_t handle = task->handles[i];
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count++;
@@ -229,8 +246,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	int ret = _starpu_enforce_deps_and_schedule(j);
 
-        _STARPU_LOG_OUT();
-        return ret;
+	_STARPU_LOG_OUT();
+	return ret;
 }
 
 void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
@@ -346,21 +363,28 @@ int starpu_task_submit(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 	STARPU_ASSERT(task->magic == 42);
+	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
+	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
+	
+	if(task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
+		set_sched_ctx = starpu_get_sched_ctx();
+	if(set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		task->sched_ctx = set_sched_ctx;
 
 	int ret;
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	if (is_sync)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-                if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		{
-                        _STARPU_LOG_OUT_TAG("EDEADLK");
+			_STARPU_LOG_OUT_TAG("EDEADLK");
 			return -EDEADLK;
-                }
+		}
 
 		task->detach = 0;
 	}
@@ -393,26 +417,45 @@ int starpu_task_submit(struct starpu_task *task)
 		/* Check the type of worker(s) required by the task exist */
 		if (!_starpu_worker_exists(task))
 		{
-                        _STARPU_LOG_OUT_TAG("ENODEV");
+			_STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
-                }
+		}
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
 		if (task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0))
 		{
-                        _STARPU_LOG_OUT_TAG("ENODEV");
+			_STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
-                }
+		}
 
 		_starpu_detect_implicit_data_deps(task);
 
-		if (task->cl->model && task->cl->model->symbol)
-			_starpu_load_perfmodel(task->cl->model);
 
-		if (task->cl->power_model && task->cl->power_model->symbol)
-			_starpu_load_perfmodel(task->cl->power_model);
+		if(task->bundle)
+		{
+			struct _starpu_task_bundle_entry *entry;
+			entry = task->bundle->list;
+			while(entry)
+			{
+				if (entry->task->cl->model && task->cl->model->symbol)
+					_starpu_load_perfmodel(entry->task->cl->model);
+				
+				if (entry->task->cl->power_model && task->cl->power_model->symbol)
+					_starpu_load_perfmodel(entry->task->cl->power_model);
+
+				entry = entry->next;
+			}
+		}
+		else
+		{
+			if (task->cl->model && task->cl->model->symbol)
+				_starpu_load_perfmodel(task->cl->model);
+			
+			if (task->cl->power_model && task->cl->power_model->symbol)
+				_starpu_load_perfmodel(task->cl->power_model);
+		}
 	}
 
 	if (bundle)
@@ -467,6 +510,19 @@ int starpu_task_submit(struct starpu_task *task)
 	return ret;
 }
 
+int _starpu_task_submit_internally(struct starpu_task *task)
+{
+	task->control_task = 1;
+	return starpu_task_submit(task);
+}
+
+/* application should submit new tasks to StarPU through this function */
+int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	task->sched_ctx = sched_ctx_id;
+	return starpu_task_submit(task);
+}
+
 /* The StarPU core can submit tasks directly to the scheduler or a worker,
  * skipping dependencies completely (when it knows what it is doing).  */
 int _starpu_task_submit_nodeps(struct starpu_task *task)
@@ -485,7 +541,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
-
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	j->submitted = 1;
@@ -536,6 +592,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
@@ -603,25 +660,43 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl)
  */
 int starpu_task_wait_for_all(void)
 {
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
+	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
+	unsigned sched_ctx = nsched_ctxs == 1 ? 0 : starpu_get_sched_ctx();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	/* if there is no indication about which context to wait,
+	   we wait for all tasks submitted to starpu */
+	if(sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+			return -EDEADLK;
 
-	_STARPU_TRACE_TASK_WAIT_FOR_ALL;
+		_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
-	while (nsubmitted > 0)
-		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+		_STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+		while (nsubmitted > 0)
+			_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
+#endif
+	}
+	else
+		_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	return 0;
+}
+
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
+{
+	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
 
 	return 0;
 }
-
 /*
  * We wait until there is no ready task any more (i.e. StarPU will not be able
  * to progress any more).

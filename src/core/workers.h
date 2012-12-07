@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +30,7 @@
 #include <core/sched_policy.h>
 #include <core/topology.h>
 #include <core/errorcheck.h>
-
+#include <core/sched_ctx.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -69,8 +70,8 @@ struct _starpu_worker
 	int worker_size; /* size of the worker in case we use a combined worker */
         _starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
-	_starpu_pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
-	_starpu_pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
+	_starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
+	_starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task *current_task; /* task currently executed by this worker */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
@@ -82,6 +83,17 @@ struct _starpu_worker
 	char short_name[10];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
+	struct _starpu_sched_ctx **sched_ctx;
+	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
+	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
+	struct starpu_task *tasks[STARPU_NMAX_SCHED_CTXS];
+       
+	unsigned has_prev_init; /* had already been inited in another ctx */
+
+	/* indicated in each ctx the workers can execute tasks on,
+	 used for overlapping ctx in order to determine on which 
+	ctx the worker is allowed to pop */
+	unsigned active_ctx;
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;
@@ -162,6 +174,9 @@ struct _starpu_machine_config
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
 
+	/* all the sched ctx of the current instance of starpu */
+	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
 };
@@ -209,6 +224,10 @@ struct _starpu_worker *_starpu_get_local_worker_key(void);
  * specified worker. */
 struct _starpu_worker *_starpu_get_worker_struct(unsigned id);
 
+/* Returns the starpu_sched_ctx structure that descriebes the state of the 
+ * specified ctx */
+struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id);
+
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
 
 int _starpu_is_initialized(void);
@@ -227,8 +246,12 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);
 
-#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
-void starpu_worker_set_sched_condition(int workerid, _starpu_pthread_cond_t *sched_cond, _starpu_pthread_mutex_t *sched_mutex);
-#endif
+/* We keep an initial sched ctx which might be used in case no other ctx is available */
+struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
+int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+
+/* returns workers not belonging to any context, be careful no mutex is used, 
+   the list might not be updated */
+int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize);
 #endif // __WORKERS_H__

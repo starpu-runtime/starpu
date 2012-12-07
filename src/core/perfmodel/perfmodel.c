@@ -355,13 +355,16 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 
 	while (entry)
 	{
-		double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
-
-		/* In case the task is not calibrated, we consider the task
-		 * ends immediately. */
-		if (task_length > 0.0)
-			expected_length += task_length;
-
+		if(!entry->task->scheduled)
+		{
+			double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
+			
+			/* In case the task is not calibrated, we consider the task
+			 * ends immediately. */
+			if (task_length > 0.0)
+				expected_length += task_length;
+		}
+			
 		entry = entry->next;
 	}
 

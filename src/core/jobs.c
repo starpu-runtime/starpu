@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -128,8 +129,9 @@ void _starpu_wait_job(struct _starpu_job *j)
 
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
+	int workerid = starpu_worker_get_id();
 	struct starpu_task *task = j->task;
-
+	unsigned sched_ctx = task->sched_ctx;
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
@@ -201,8 +203,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* If the job was executed on a combined worker there is no need for the
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
-	if (j->task_size == 1)
+	/* control task should not execute post_exec_hook */
+	if(j->task_size == 1 && task->cl != NULL && !task->control_task)
+	{
 		_starpu_sched_post_exec_hook(task);
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	  starpu_call_poped_task_cb(workerid, task->sched_ctx, task->flops);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+	}
 
 	_STARPU_TRACE_TASK_DONE(j);
 
@@ -254,6 +262,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	}
 	_starpu_decrement_nsubmitted_tasks();
 	_starpu_decrement_nready_tasks();
+
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
 }
 
 /* This function is called when a new task is submitted to StarPU
@@ -336,29 +346,29 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	if (_starpu_not_all_tag_deps_are_fulfilled(j))
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-                _STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
+		_STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
-        }
-
+	}
+	
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-                _STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
+		_STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
-        }
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
 	if (_starpu_submit_job_enforce_data_deps(j))
 	{
-                _STARPU_LOG_OUT_TAG("enforce_data_deps");
+		_STARPU_LOG_OUT_TAG("enforce_data_deps");
 		return 0;
-        }
+	}
 
 	ret = _starpu_push_task(j);
 
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return ret;
 }
 
@@ -402,15 +412,15 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	if (back)
 		starpu_task_list_push_back(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
-	_STARPU_PTHREAD_COND_BROADCAST(worker->sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 	return 0;
 }

@@ -44,6 +44,10 @@ if BUILD_STARPUFFT
 SUBDIRS += starpufft
 endif
 
+if STARPU_BUILD_SCHED_CTX_HYPERVISOR
+SUBDIRS += sched_ctx_hypervisor
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc starpu-1.0.pc
 
@@ -66,6 +70,7 @@ versinclude_HEADERS = 				\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
+	include/starpu_sched_ctx.h		\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\

@@ -27,6 +27,7 @@
 #include <pthread.h>
 #include <common/timing.h>
 #include <common/utils.h>
+#include <common/config.h>
 
 extern struct _starpu_top_message_queue*  _starpu_top_mt;
 int _starpu_top = 0;
@@ -105,6 +106,11 @@ static void starpu_top_get_device_type(int id, char* type)
 	case STARPU_GORDON_WORKER:
 		strncpy(type, "GORDON",9);
 		break;
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+	case STARPU_ANY_WORKER:
+		strncpy(type, "ANY",9);
+		break;
+#endif
 	}
 }
 

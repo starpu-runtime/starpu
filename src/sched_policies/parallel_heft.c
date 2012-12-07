@@ -34,26 +34,29 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
-static unsigned nworkers, ncombinedworkers;
+//static unsigned ncombinedworkers;
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
 
-static _starpu_pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
-static _starpu_pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
-
+typedef struct {
+	double alpha;
+	double beta;
+	double _gamma;
+	double idle_power;
 /* When we push a task on a combined worker we need all the cpu workers it contains
  * to be locked at once */
-static _starpu_pthread_mutex_t global_push_mutex;
-
-static double alpha = _STARPU_DEFAULT_ALPHA;
-static double beta = _STARPU_DEFAULT_BETA;
-static double _gamma = _STARPU_DEFAULT_GAMMA;
-static double idle_power = 0.0;
+	pthread_mutex_t global_push_mutex;
+} pheft_data;
 
 static double worker_exp_start[STARPU_NMAXWORKERS];
 static double worker_exp_end[STARPU_NMAXWORKERS];
 static double worker_exp_len[STARPU_NMAXWORKERS];
 static int ntasks[STARPU_NMAXWORKERS];
+
+
+/*!!!!!!! It doesn't work with several contexts because the combined workers are constructed         
+  from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!          
+*/
 
 static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 {
@@ -62,30 +65,34 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 
 	int workerid = starpu_worker_get_id();
 	double model = task->predicted;
+	unsigned sched_ctx_id = task->sched_ctx;
 	double transfer_model = task->predicted_transfer;
 
 	if (isnan(model))
 		model = 0.0;
 
+	pthread_mutex_t *sched_mutex;
+	pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
-	_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	worker_exp_len[workerid] -= model + transfer_model;
-	worker_exp_start[workerid] = starpu_timing_now() + model;
+	worker_exp_start[workerid] = starpu_timing_now();
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double exp_end_predicted, int prio)
+static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double exp_end_predicted, int prio, unsigned sched_ctx_id)
 {
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
+	
+	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
 	/* Is this a basic worker or a combined worker ? */
-	int nbasic_workers = (int)starpu_worker_get_count();
-	int is_basic_worker = (best_workerid < nbasic_workers);
-
 	unsigned memory_node;
 	memory_node = starpu_worker_get_memory_node(best_workerid);
 
@@ -94,28 +101,30 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	int ret = 0;
 
-	if (is_basic_worker)
+	if (!starpu_worker_is_combined_worker(best_workerid))
 	{
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
+		pthread_mutex_t *sched_mutex;
+		pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
 
-		_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[best_workerid]);
-
-		worker_exp_start[best_workerid] = STARPU_MAX(worker_exp_start[best_workerid], starpu_timing_now());
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		worker_exp_len[best_workerid] += task->predicted;
 		worker_exp_end[best_workerid] = exp_end_predicted;
-		ntasks[best_workerid]++;
+		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
+		ntasks[best_workerid]++;
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 		/* We don't want it to interlace its task with a combined
 		 * worker's one */
-		_STARPU_PTHREAD_MUTEX_LOCK(&global_push_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
 
 		ret = starpu_push_local_task(best_workerid, task, prio);
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_push_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&hd->global_push_mutex);
 	}
 	else
 	{
@@ -140,7 +149,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 		/* All cpu workers must be locked at once */
-		_STARPU_PTHREAD_MUTEX_LOCK(&global_push_mutex);
+		_STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
 
 		int i;
 		for (i = 0; i < worker_size; i++)
@@ -151,20 +160,21 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];
 			/* TODO */
 			alias->predicted_transfer = 0;
-
-			_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[local_worker]);
-
-			worker_exp_start[local_worker] = STARPU_MAX(worker_exp_start[local_worker], starpu_timing_now());
+			pthread_mutex_t *sched_mutex;
+			pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(sched_ctx_id, local_worker, &sched_mutex, &sched_cond);
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			worker_exp_len[local_worker] += alias->predicted;
 			worker_exp_end[local_worker] = exp_end_predicted;
-			ntasks[local_worker]++;
+			worker_exp_start[local_worker] = exp_end_predicted - worker_exp_len[local_worker];
 
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[local_worker]);
+			ntasks[local_worker]++;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&global_push_mutex);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&hd->global_push_mutex);
 
 		//TODO : free task
 
@@ -175,7 +185,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 static double compute_expected_end(int workerid, double length)
 {
-	if (workerid < (int)nworkers)
+	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		/* This is a basic worker */
 		return worker_exp_start[workerid] + worker_exp_len[workerid] + length;
@@ -205,7 +215,7 @@ static double compute_expected_end(int workerid, double length)
 static double compute_ntasks_end(int workerid)
 {
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
-	if (workerid < (int)nworkers)
+	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		/* This is a basic worker */
 		return ntasks[workerid] / starpu_worker_get_relative_speedup(perf_arch);
@@ -230,90 +240,110 @@ static double compute_ntasks_end(int workerid)
 	}
 }
 
-static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
+static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
-	unsigned worker;
-	int best = -1;
+	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	unsigned nworkers_ctx = workers->nworkers;
+
+	unsigned worker, worker_ctx = 0;
+	int best = -1, best_id_ctx = -1;
+	
 	/* this flag is set if the corresponding worker is selected because
 	   there is no performance prediction available yet */
-	int forced_best = -1, forced_nimpl = -1;
+	int forced_best = -1, forced_best_ctx = -1, forced_nimpl = -1;
 
-	double local_task_length[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double local_data_penalty[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double local_exp_end[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
-	double fitness[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
+	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	double max_exp_end = 0.0;
 
-	int skip_worker[nworkers+ncombinedworkers][STARPU_MAXIMPLEMENTATIONS];
+	int skip_worker[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	double best_exp_end = DBL_MAX;
 	//double penality_best = 0.0;
 
-	int ntasks_best = -1, nimpl_best = -1;
+	int ntasks_best = -1, ntasks_best_ctx = -1, nimpl_best = -1;
 	double ntasks_best_end = 0.0;
 	int calibrating = 0;
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
+	if(workers->init_cursor)
+                workers->init_cursor(workers);
 
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		/* Sometimes workers didn't take the tasks as early as we expected */
-		_STARPU_PTHREAD_MUTEX_LOCK(&sched_mutex[worker]);
-		worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
-		worker_exp_end[worker] = worker_exp_start[worker] + worker_exp_len[worker];
-		if (worker_exp_end[worker] > max_exp_end)
-			max_exp_end = worker_exp_end[worker];
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_mutex[worker]);
+	while(workers->has_next(workers))
+        {
+                worker = workers->get_next(workers);
+
+		if(!starpu_worker_is_combined_worker(worker))
+		{
+			pthread_mutex_t *sched_mutex;
+			pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+			/* Sometimes workers didn't take the tasks as early as we expected */
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+			worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
+			worker_exp_end[worker] = worker_exp_start[worker] + worker_exp_len[worker];
+			if (worker_exp_end[worker] > max_exp_end)
+				max_exp_end = worker_exp_end[worker];
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		}
 	}
 
 	unsigned nimpl;
-	for (worker = 0; worker < (nworkers+ncombinedworkers); worker++)
+	worker_ctx = 0;
+	while(workers->has_next(workers))
 	{
+                worker = workers->get_next(workers);
+
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
 			if (!starpu_combined_worker_can_execute_task(worker, task, nimpl))
 			{
 				/* no one on that queue may execute this task */
-				skip_worker[worker][nimpl] = 1;
+				skip_worker[worker_ctx][nimpl] = 1;
 				continue;
 			}
 			else
 			{
-				skip_worker[worker][nimpl] = 0;
+				skip_worker[worker_ctx][nimpl] = 0;
 			}
 
+       
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 
-			local_task_length[worker][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
+			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
 
 			unsigned memory_node = starpu_worker_get_memory_node(worker);
-			local_data_penalty[worker][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
+			local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
 
 			double ntasks_end = compute_ntasks_end(worker);
 
 			if (ntasks_best == -1
 			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-			    || (!calibrating && isnan(local_task_length[worker][nimpl])) /* Not calibrating but this worker is being calibrated */
-			    || (calibrating && isnan(local_task_length[worker][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+			    || (!calibrating && isnan(local_task_length[worker_ctx][nimpl])) /* Not calibrating but this worker is being calibrated */
+			    || (calibrating && isnan(local_task_length[worker_ctx][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
 					)
 			{
 				ntasks_best_end = ntasks_end;
 				ntasks_best = worker;
+				ntasks_best_ctx = worker_ctx;
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_task_length[worker][nimpl]))
+			if (isnan(local_task_length[worker_ctx][nimpl]))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
 
-			if (isnan(local_task_length[worker][nimpl])
-					|| _STARPU_IS_ZERO(local_task_length[worker][nimpl]))
+			if (isnan(local_task_length[worker_ctx][nimpl])
+					|| _STARPU_IS_ZERO(local_task_length[worker_ctx][nimpl]))
 				/* there is no prediction available for that task
 				 * with that arch yet, so switch to a greedy strategy */
 				unknown = 1;
@@ -321,69 +351,77 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			if (unknown)
 				continue;
 
-			local_exp_end[worker][nimpl] = compute_expected_end(worker, local_task_length[worker][nimpl]);
+			local_exp_end[worker_ctx][nimpl] = compute_expected_end(worker, local_task_length[worker_ctx][nimpl]);
 
-			//fprintf(stderr, "WORKER %d -> length %e end %e\n", worker, local_task_length[worker][nimpl], local_exp_end[worker][nimpl]);
+			//fprintf(stderr, "WORKER %d -> length %e end %e\n", worker, local_task_length[worker_ctx][nimpl], local_exp_end[worker][nimpl]);
 
-			if (local_exp_end[worker][nimpl] < best_exp_end)
+			if (local_exp_end[worker_ctx][nimpl] < best_exp_end)
 			{
 				/* a better solution was found */
-				best_exp_end = local_exp_end[worker][nimpl];
+				best_exp_end = local_exp_end[worker_ctx][nimpl];
 				nimpl_best = nimpl;
 			}
 
 
-			local_power[worker][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
-			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker][nimpl],local_power[worker][nimpl],worker,nimpl);
+			local_power[worker_ctx][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
+			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
 
-			if (isnan(local_power[worker][nimpl]))
-				local_power[worker][nimpl] = 0.;
+			if (isnan(local_power[worker_ctx][nimpl]))
+				local_power[worker_ctx][nimpl] = 0.;
 
-		} //end for
+		}
+		worker_ctx++;
 	}
 
 	if (unknown) {
 		forced_best = ntasks_best;
+		forced_best_ctx = ntasks_best_ctx;
 		forced_nimpl = nimpl_best;
 	}
 
 	double best_fitness = -1;
 
-
 	if (forced_best == -1)
 	{
-		for (worker = 0; worker < nworkers+ncombinedworkers; worker++)
+		worker_ctx = 0;
+		while(workers->has_next(workers))
 		{
+			worker = workers->get_next(workers);
+			
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
-				if (skip_worker[worker][nimpl])
+				if (skip_worker[worker_ctx][nimpl])
 				{
 					/* no one on that queue may execute this task */
 					continue;
 				}
 
-				fitness[worker][nimpl] = alpha*(local_exp_end[worker][nimpl] - best_exp_end)
-						+ beta*(local_data_penalty[worker][nimpl])
-						+ _gamma*(local_power[worker][nimpl]);
+				fitness[worker_ctx][nimpl] = hd->alpha*(local_exp_end[worker_ctx][nimpl] - best_exp_end) 
+						+ hd->beta*(local_data_penalty[worker_ctx][nimpl])
+						+ hd->_gamma*(local_power[worker_ctx][nimpl]);
 
-				if (local_exp_end[worker][nimpl] > max_exp_end)
+				if (local_exp_end[worker_ctx][nimpl] > max_exp_end)
 					/* This placement will make the computation
 					 * longer, take into account the idle
 					 * consumption of other cpus */
-					fitness[worker][nimpl] += _gamma * idle_power * (local_exp_end[worker][nimpl] - max_exp_end) / 1000000.0;
+					fitness[worker_ctx][nimpl] += hd->_gamma * hd->idle_power * (local_exp_end[worker_ctx][nimpl] - max_exp_end) / 1000000.0;
 
-				if (best == -1 || fitness[worker][nimpl] < best_fitness)
+				if (best == -1 || fitness[worker_ctx][nimpl] < best_fitness)
 				{
 					/* we found a better solution */
-					best_fitness = fitness[worker][nimpl];
+					best_fitness = fitness[worker_ctx][nimpl];
 					best = worker;
+					best_id_ctx = worker_ctx;
 					nimpl_best = nimpl;
 				}
 
 			//	fprintf(stderr, "FITNESS worker %d -> %e local_exp_end %e - local_data_penalty %e\n", worker, fitness[worker][nimpl], local_exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl]);
 			}
+			worker_ctx++;
 		}
 	}
+
+        if(workers->init_cursor)                                                                                                                                                                                                    workers->deinit_cursor(workers);
 
 	STARPU_ASSERT(forced_best != -1 || best != -1);
 
@@ -393,83 +431,98 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		 * with that arch we want to speed-up calibration time
 		 * so we force this measurement */
 		best = forced_best;
+		best_id_ctx = forced_best_ctx;
 		nimpl_best = forced_nimpl;
 		//penality_best = 0.0;
 		best_exp_end = compute_expected_end(best, 0);
 	}
 	else
 	{
-		//penality_best = local_data_penalty[best][nimpl_best];
-		best_exp_end = local_exp_end[best][nimpl_best];
+		//penality_best = local_data_penalty[best_id_ctx][nimpl_best];
+		best_exp_end = local_exp_end[best_id_ctx][nimpl_best];
 	}
-
 
 	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", nimpl_best);
 	_starpu_get_job_associated_to_task(task)->nimpl = nimpl_best;
 	/* we should now have the best worker in variable "best" */
-	return push_task_on_best_worker(task, best, best_exp_end, prio);
+	return push_task_on_best_worker(task, best, best_exp_end, prio, sched_ctx_id);
 }
 
 static int parallel_heft_push_task(struct starpu_task *task)
 {
-	if (task->priority == STARPU_MAX_PRIO)
-		return _parallel_heft_push_task(task, 1);
+	unsigned sched_ctx_id = task->sched_ctx;
+	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	unsigned nworkers;
+	int ret_val = -1;
 
-	return _parallel_heft_push_task(task, 0);
+	if (task->priority == STARPU_MAX_PRIO)
+	{  
+		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+                nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+                if(nworkers == 0)
+                {
+                        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+                        return ret_val;
+                }
+		
+		ret_val = _parallel_heft_push_task(task, 1, sched_ctx_id);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+                return ret_val;
+        }
+
+
+	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+	nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+        if(nworkers == 0)
+	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+                return ret_val;
+        }
+
+        ret_val = _parallel_heft_push_task(task, 0, sched_ctx_id);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+	return ret_val;
 }
 
-static void initialize_parallel_heft_policy(struct starpu_machine_topology *topology,
-	 __attribute__ ((unused)) struct starpu_sched_policy *_policy)
+static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	nworkers = topology->nworkers;
-
-	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
-	if (strval_alpha)
-		alpha = atof(strval_alpha);
-
-	const char *strval_beta = getenv("STARPU_SCHED_BETA");
-	if (strval_beta)
-		beta = atof(strval_beta);
-
-	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
-	if (strval_gamma)
-		_gamma = atof(strval_gamma);
-
-	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
-	if (strval_idle_power)
-		idle_power = atof(strval_idle_power);
-
-	_starpu_sched_find_worker_combinations(topology);
-
-	ncombinedworkers = topology->ncombinedworkers;
-
-	unsigned workerid;
-	for (workerid = 0; workerid < nworkers; workerid++)
+	int workerid;
+	unsigned i;
+	for (i = 0; i < nworkers; i++)
 	{
-		worker_exp_start[workerid] = starpu_timing_now();
-		worker_exp_len[workerid] = 0.0;
-		worker_exp_end[workerid] = worker_exp_start[workerid];
-		ntasks[workerid] = 0;
+		workerid = workerids[i];
+		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
+		/* init these structures only once for each worker */
+		if(!workerarg->has_prev_init)
+		{
+			worker_exp_start[workerid] = starpu_timing_now();
+			worker_exp_len[workerid] = 0.0;
+			worker_exp_end[workerid] = worker_exp_start[workerid]; 
+			ntasks[workerid] = 0;
+			workerarg->has_prev_init = 1;
+		}
 
-		_STARPU_PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-		_STARPU_PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
-
-		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
+		starpu_worker_init_sched_condition(sched_ctx_id, workerid);
 	}
+	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
-	/* We pre-compute an array of all the perfmodel archs that are applicable */
-	unsigned total_worker_count = nworkers + ncombinedworkers;
+// start_unclear_part: not very clear where this is used
+/* 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config(); */
+/* 	ncombinedworkers = config->topology.ncombinedworkers; */
 
-	unsigned used_perf_archtypes[STARPU_NARCH_VARIATIONS];
-	memset(used_perf_archtypes, 0, sizeof(used_perf_archtypes));
+/* 	/\* We pre-compute an array of all the perfmodel archs that are applicable *\/ */
+/* 	unsigned total_worker_count = nworkers + ncombinedworkers; */
 
-	for (workerid = 0; workerid < total_worker_count; workerid++)
-	{
-		enum starpu_perf_archtype perf_archtype = starpu_worker_get_perf_archtype(workerid);
-		used_perf_archtypes[perf_archtype] = 1;
-	}
+/* 	unsigned used_perf_archtypes[STARPU_NARCH_VARIATIONS]; */
+/* 	memset(used_perf_archtypes, 0, sizeof(used_perf_archtypes)); */
 
-	_STARPU_PTHREAD_MUTEX_INIT(&global_push_mutex, NULL);
+/* 	for (workerid = 0; workerid < total_worker_count; workerid++) */
+/* 	{ */
+/* 		enum starpu_perf_archtype perf_archtype = starpu_worker_get_perf_archtype(workerid); */
+/* 		used_perf_archtypes[perf_archtype] = 1; */
+/* 	} */
+
+// end_unclear_part
 
 //	napplicable_perf_archtypes = 0;
 
@@ -479,14 +532,66 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology *topo
 //		if (used_perf_archtypes[arch])
 //			applicable_perf_archtypes[napplicable_perf_archtypes++] = arch;
 //	}
+
+}
+
+static void parallel_heft_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+{
+	unsigned i;
+	int worker;
+	for(i = 0; i < nworkers; i++)
+	{
+		worker = workerids[i];
+		starpu_worker_deinit_sched_condition(sched_ctx_id, worker);
+	}
+}
+static void initialize_parallel_heft_policy(unsigned sched_ctx_id) 
+{	
+	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	pheft_data *hd = (pheft_data*)malloc(sizeof(pheft_data));
+	hd->alpha = _STARPU_DEFAULT_ALPHA;
+	hd->beta = _STARPU_DEFAULT_BETA;
+	hd->_gamma = _STARPU_DEFAULT_GAMMA;
+	hd->idle_power = 0.0;
+	
+	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)hd);
+
+	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
+	if (strval_alpha)
+		hd->alpha = atof(strval_alpha);
+
+	const char *strval_beta = getenv("STARPU_SCHED_BETA");
+	if (strval_beta)
+		hd->beta = atof(strval_beta);
+
+	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+	if (strval_gamma)
+		hd->_gamma = atof(strval_gamma);
+
+	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+	if (strval_idle_power)
+		hd->idle_power = atof(strval_idle_power);
+	
+	_STARPU_PTHREAD_MUTEX_INIT(&hd->global_push_mutex, NULL);
+
+}
+
+static void parallel_heft_deinit(unsigned sched_ctx_id) 
+{
+	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&hd->global_push_mutex);
+	free(hd);
 }
 
 /* TODO: use post_exec_hook to fix the expected start */
 struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 {
 	.init_sched = initialize_parallel_heft_policy,
-	.deinit_sched = NULL,
-	.push_task = parallel_heft_push_task,
+	.deinit_sched = parallel_heft_deinit,
+	.add_workers = parallel_heft_add_workers,
+	.remove_workers = parallel_heft_remove_workers,
+	.push_task = parallel_heft_push_task, 
 	.pop_task = NULL,
 	.pre_exec_hook = parallel_heft_pre_exec_hook,
 	.post_exec_hook = NULL,

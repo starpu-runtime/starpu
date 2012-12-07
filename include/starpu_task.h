@@ -3,6 +3,7 @@
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -200,6 +201,21 @@ struct starpu_task
 	 * have not been properly initialised.
 	 */
 	int magic;
+
+	/* Scheduling context */
+	unsigned sched_ctx;
+
+	/* flag to differentiate tasks needed by starpu management purposes 
+	 from the ones provided by the appl*/
+	unsigned control_task;
+
+	int hypervisor_tag;
+	
+	double flops;
+
+	unsigned already_pushed;
+
+	unsigned scheduled;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -225,7 +241,13 @@ struct starpu_task
 	.predicted = -1.0,				\
 	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
-	.magic = 42                  			\
+	.magic = 42,                  			\
+	.sched_ctx = 0,					\
+	.control_task = 0,				\
+	.hypervisor_tag = 0,				\
+	.flops = 0.0,					\
+	.already_pushed = 0,				\
+		.scheduled = 0				\
 }
 
 /*
@@ -293,6 +315,7 @@ struct starpu_task *starpu_task_create(void);
  * allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
 /* This function blocks until the task was executed. It is not possible to
  * synchronize with a task more than once. It is not possible to wait
@@ -304,6 +327,8 @@ int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 /* This function waits until all the tasks that were already submitted have
  * been executed. */
 int starpu_task_wait_for_all(void);
+
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx);
 
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);

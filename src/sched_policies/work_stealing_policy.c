@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
- * Copyright (C) 2012	Inria
+ * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,19 +24,18 @@
 #include <sched_policies/deque_queues.h>
 #include <core/debug.h>
 
-static unsigned nworkers;
-static unsigned last_pop_worker;
-static unsigned last_push_worker;
-static struct _starpu_deque_jobq *queue_array[STARPU_NMAXWORKERS];
-
-static _starpu_pthread_mutex_t global_sched_mutex;
-static _starpu_pthread_cond_t global_sched_cond;
-
-/**
- * Keep track of the work performed from the beginning of the algorithm to make
- * better decisions about which queue to select when stealing or deferring work
- */
-static int performed_total;
+typedef struct{
+	struct _starpu_deque_jobq **queue_array;
+	unsigned rr_worker;
+	/* keep track of the work performed from the beginning of the algorithm to make
+	 * better decisions about which queue to select when stealing or deferring work
+	 */
+	unsigned performed_total;
+	_starpu_pthread_mutex_t sched_mutex;
+	_starpu_pthread_cond_t sched_cond;
+	unsigned last_pop_worker;
+	unsigned last_push_worker;
+} work_stealing_data;
 
 #ifdef USE_OVERLOAD
 
@@ -55,16 +54,18 @@ static int calibration_value = 0;
  * the worker previously selected doesn't own any task,
  * then we return the first non-empty worker.
  */
-static unsigned select_victim_round_robin(void)
+static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 {
-	unsigned worker = last_pop_worker;
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	unsigned worker = ws->last_pop_worker;
+	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
-	while (!queue_array[worker]->njobs)
+	while (!ws->queue_array[worker]->njobs)
 	{
 		worker = (worker + 1) % nworkers;
-		if (worker == last_pop_worker)
+		if (worker == ws->last_pop_worker)
 		{
 			/* We got back to the first worker,
 			 * don't go in infinite loop */
@@ -72,7 +73,7 @@ static unsigned select_victim_round_robin(void)
 		}
 	}
 
-	last_pop_worker = (worker + 1) % nworkers;
+	ws->last_pop_worker = (worker + 1) % nworkers;
 
 	return worker;
 }
@@ -81,11 +82,13 @@ static unsigned select_victim_round_robin(void)
  * Return a worker to whom add a task.
  * Selecting a worker is done in a round-robin fashion.
  */
-static unsigned select_worker_round_robin(void)
+static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 {
-	unsigned worker = last_push_worker;
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	unsigned worker = ws->last_push_worker;
+	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 
-	last_push_worker = (last_push_worker + 1) % nworkers;
+	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
 
 	return worker;
 }
@@ -100,13 +103,14 @@ static unsigned select_worker_round_robin(void)
  * 		a smaller value implies a faster worker with an relatively emptier queue : more suitable to put tasks in
  * 		a bigger value implies a slower worker with an reletively more replete queue : more suitable to steal tasks from
  */
-static float overload_metric(unsigned id)
+static float overload_metric(unsigned sched_ctx_id, unsigned id)
 {
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	float execution_ratio = 0.0f;
 	float current_ratio = 0.0f;
 
-	int nprocessed = _starpu_get_deque_nprocessed(queue_array[id]);
-	unsigned njobs = _starpu_get_deque_njobs(queue_array[id]);
+	int nprocessed = _starpu_get_deque_nprocessed(ws->queue_array[id]);
+	unsigned njobs = _starpu_get_deque_njobs(ws->queue_array[id]);
 
 	/* Did we get enough information ? */
 	if (performed_total > 0 && nprocessed > 0)
@@ -131,7 +135,7 @@ static float overload_metric(unsigned id)
  * by the tasks are taken into account to select the most suitable
  * worker to steal task from.
  */
-static unsigned select_victim_overload(void)
+static unsigned select_victim_overload(unsigned sched_ctx_id)
 {
 	unsigned worker;
 	float  worker_ratio;
@@ -141,11 +145,17 @@ static unsigned select_victim_overload(void)
 	/* Don't try to play smart until we get
 	 * enough informations. */
 	if (performed_total < calibration_value)
-		return select_victim_round_robin();
+		return select_victim_round_robin(sched_ctx_id);
 
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		worker_ratio = overload_metric(worker);
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+
+        if(workers->init_cursor)
+                workers->init_cursor(workers);
+
+	while(workers->has_next(workers))
+        {
+                worker = workers->get_next(workers);
+		worker_ratio = overload_metric(sched_ctx_id, worker);
 
 		if (worker_ratio > best_ratio)
 		{
@@ -153,6 +163,9 @@ static unsigned select_victim_overload(void)
 			best_ratio = worker_ratio;
 		}
 	}
+
+	if(workers->init_cursor)
+                workers->deinit_cursor(workers);
 
 	return best_worker;
 }
@@ -164,7 +177,7 @@ static unsigned select_victim_overload(void)
  * by the tasks are taken into account to select the most suitable
  * worker to add a task to.
  */
-static unsigned select_worker_overload(void)
+static unsigned select_worker_overload(unsigned sched_ctx_id)
 {
 	unsigned worker;
 	float  worker_ratio;
@@ -174,11 +187,18 @@ static unsigned select_worker_overload(void)
 	/* Don't try to play smart until we get
 	 * enough informations. */
 	if (performed_total < calibration_value)
-		return select_worker_round_robin();
+		return select_worker_round_robin(sched_ctx_id);
 
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		worker_ratio = overload_metric(worker);
+	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+
+        if(workers->init_cursor)
+                workers->init_cursor(workers);
+
+	while(workers->has_next(workers))
+        {
+                worker = workers->get_next(workers);
+
+		worker_ratio = overload_metric(sched_ctx_id, worker);
 
 		if (worker_ratio < best_ratio)
 		{
@@ -186,6 +206,9 @@ static unsigned select_worker_overload(void)
 			best_ratio = worker_ratio;
 		}
 	}
+
+	if(workers->init_cursor)
+                workers->deinit_cursor(workers);
 
 	return best_worker;
 }
@@ -198,12 +221,12 @@ static unsigned select_worker_overload(void)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline unsigned select_victim(void)
+static inline unsigned select_victim(unsigned sched_ctx_id)
 {
 #ifdef USE_OVERLOAD
-	return select_victim_overload();
+	return select_victim_overload(sched_ctx_id);
 #else
-	return select_victim_round_robin();
+	return select_victim_round_robin(sched_ctx_id);
 #endif /* USE_OVERLOAD */
 }
 
@@ -212,29 +235,23 @@ static inline unsigned select_victim(void)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline unsigned select_worker(void)
+static inline unsigned select_worker(unsigned sched_ctx_id)
 {
 #ifdef USE_OVERLOAD
-	return select_worker_overload();
+	return select_worker_overload(sched_ctx_id);
 #else
-	return select_worker_round_robin();
+	return select_worker_round_robin(sched_ctx_id);
 #endif /* USE_OVERLOAD */
 }
 
 
 #ifdef STARPU_DEVEL
-#warning TODO rewrite ... this will not scale at all now ...
-#warning and the overload versions are useless with a global mutex ...
+#warning TODO rewrite ... this will not scale at all now
 #endif
-
-/**
- * Return a task to execute.
- * If possible from the calling worker queue, else
- * stealing from an other.
- * For now mutex must be locked before calling this function.
- */
-static struct starpu_task *ws_pop_task(void)
+static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 {
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+
 	struct starpu_task *task;
 	struct _starpu_deque_jobq *q;
 
@@ -242,27 +259,27 @@ static struct starpu_task *ws_pop_task(void)
 
 	STARPU_ASSERT(workerid != -1);
 
-	q = queue_array[workerid];
+	q = ws->queue_array[workerid];
 
 	task = _starpu_deque_pop_task(q, workerid);
 	if (task)
 	{
 		/* there was a local task */
-		performed_total++;
+		ws->performed_total++;
 		q->nprocessed++;
 		q->njobs--;
 		return task;
 	}
 
 	/* we need to steal someone's job */
-	unsigned victim = select_victim();
-	struct _starpu_deque_jobq *victimq = queue_array[victim];
+	unsigned victim = select_victim(sched_ctx_id);
+	struct _starpu_deque_jobq *victimq = ws->queue_array[victim];
 
 	task = _starpu_deque_pop_task(victimq, workerid);
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(q, workerid);
-		performed_total++;
+		ws->performed_total++;
 
 		/* Beware : we have to increase the number of processed tasks of
 		 * the stealer, not the victim ! */
@@ -273,26 +290,37 @@ static struct starpu_task *ws_pop_task(void)
 	return task;
 }
 
-/**
- * Push a task in the calling worker's queue.
- * If the calling thread is not a worker, push
- * the task in a worker chosen on the fly.
- */
-static int ws_push_task(struct starpu_task *task)
+int ws_push_task(struct starpu_task *task)
 {
+	unsigned sched_ctx_id = task->sched_ctx;
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+
 	struct _starpu_deque_jobq *deque_queue;
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task); 
 	int workerid = starpu_worker_get_id();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&global_sched_mutex);
+	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+        unsigned nworkers;
+        int ret_val = -1;
+
+	/* if the context has no workers return */
+        _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+        nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+        if(nworkers == 0)
+        {
+                _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+                return ret_val;
+        }
+
+	_STARPU_PTHREAD_MUTEX_LOCK(&ws->sched_mutex);
 
 	/* If the current thread is not a worker but
 	 * the main thread (-1), we find the better one to
 	 * put task on its queue */
 	if (workerid == -1)
-		workerid = select_worker();
+		workerid = select_worker(sched_ctx_id);
 
-	deque_queue = queue_array[workerid];
+	deque_queue = ws->queue_array[workerid];
 
 	_STARPU_TRACE_JOB_PUSH(task, 0);
 #ifdef HAVE_AYUDAME_H
@@ -304,58 +332,90 @@ static int ws_push_task(struct starpu_task *task)
 	_starpu_job_list_push_back(deque_queue->jobq, j);
 	deque_queue->njobs++;
 
-	_STARPU_PTHREAD_COND_SIGNAL(&global_sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+	_STARPU_PTHREAD_COND_SIGNAL(&ws->sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&ws->sched_mutex);
+
+        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 	return 0;
 }
 
-/**
- * Initializing the work stealing scheduler.
- */
-static void initialize_ws_policy(struct starpu_machine_topology *topology,
-		__attribute__ ((unused)) struct starpu_sched_policy *_policy)
+static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworkers) 
 {
-	unsigned workerid;
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
-	nworkers = topology->nworkers;
-	last_pop_worker = 0;
-	last_push_worker = 0;
+	unsigned i;
+	int workerid;
+	
+	for (i = 0; i < nworkers; i++)
+	{
+		workerid = workerids[i];
+		ws->queue_array[workerid] = _starpu_create_deque();
+		/**
+		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,
+		 * we need to initialize it at -1.
+		 */
+		ws->queue_array[workerid]->nprocessed = -1;
+		ws->queue_array[workerid]->njobs = 0;
+
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &ws->sched_mutex, &ws->sched_cond);
+	}
+}
+
+static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+{
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+
+	unsigned i;
+	int workerid;
+	
+	for (i = 0; i < nworkers; i++)
+	{
+		workerid = workerids[i];
+		_starpu_destroy_deque(ws->queue_array[workerid]);
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+	}
+}
+
+static void initialize_ws_policy(unsigned sched_ctx_id) 
+{
+	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+
+	work_stealing_data *ws = (work_stealing_data*)malloc(sizeof(work_stealing_data));
+	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)ws);
+	
+	ws->last_pop_worker = 0;
+	ws->last_push_worker = 0;
 
 	/**
 	 * The first WS_POP_TASK will increase PERFORMED_TOTAL though no task was actually performed yet,
 	 * we need to initialize it at -1.
 	 */
-	performed_total = -1;
+	ws->performed_total = -1;
 
-	_STARPU_PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&global_sched_cond, NULL);
+	ws->queue_array = (struct _starpu_deque_jobq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_deque_jobq*));
 
-	for (workerid = 0; workerid < nworkers; workerid++)
-	{
-		queue_array[workerid] = _starpu_create_deque();
+	_STARPU_PTHREAD_MUTEX_INIT(&ws->sched_mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&ws->sched_cond, NULL);
+}
 
-		/**
-		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,
-		 * we need to initialize it at -1.
-		 */
-		queue_array[workerid]->nprocessed = -1;
-		queue_array[workerid]->njobs = 0;
+static void deinit_ws_policy(unsigned sched_ctx_id)
+{
+	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
-		starpu_worker_set_sched_condition(workerid, &global_sched_cond, &global_sched_mutex);
-
-#ifdef USE_OVERLOAD
-		enum starpu_perf_archtype perf_arch;
-		perf_arch = starpu_worker_get_perf_archtype(workerid);
-		calibration_value += (unsigned int) starpu_worker_get_relative_speedup(perf_arch);
-#endif /* USE_OVERLOAD */
-	}
+	free(ws->queue_array);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&ws->sched_mutex);
+	_STARPU_PTHREAD_COND_DESTROY(&ws->sched_cond);
+        free(ws);
+        starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_ws_policy =
 {
 	.init_sched = initialize_ws_policy,
-	.deinit_sched = NULL,
+	.deinit_sched = deinit_ws_policy,
+	.add_workers = ws_add_workers,
+	.remove_workers = ws_remove_workers,
 	.push_task = ws_push_task,
 	.pop_task = ws_pop_task,
 	.pre_exec_hook = NULL,

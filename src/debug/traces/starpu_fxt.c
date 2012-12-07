@@ -333,21 +333,36 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 
 	/* create the Paje state */
 	if (out_paje_file)
-	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
+	{
+		fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
+		fprintf(out_paje_file, "6       %s       Ctx1       %s \"255.0 255.0 0.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx2       %s \".0 255.0 .0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx3       %s \"75.0 .0 130.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx4       %s \".0 245.0 255.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx5       %s \".0 .0 .0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx6       %s \".0 .0 128.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx7       %s \"105.0 105.0 105.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx8       %s \"255.0 .0 255.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx9       %s \".0 .0 1.0\" \n", name, name);
+		fprintf(out_paje_file, "6       %s       Ctx10       %s \"154.0 205.0 50.0\" \n", name, name);
+
+	}
+		
 }
 
 
 static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
-	worker = find_worker_id(ev->param[1]);
+	worker = find_worker_id(ev->param[2]);
 
+	unsigned sched_ctx = ev->param[1];
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
 
-	unsigned long has_name = ev->param[2];
-	char *name = has_name?(char *)&ev->param[3]:"unknown";
+	unsigned long has_name = ev->param[3];
+	char *name = has_name?(char *)&ev->param[4]:"unknown";
 
 	snprintf(last_codelet_symbol[worker], 128, "%s", name);
 
@@ -357,7 +372,32 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	create_paje_state_if_not_found(name, options);
 
 	if (out_paje_file)
-	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[1], name);
+	{
+	  	  fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+
+		if(sched_ctx == 1)
+		  fprintf(out_paje_file, "10       %f	Ctx1      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 2)
+		  fprintf(out_paje_file, "10       %f	Ctx2      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 3)
+		  fprintf(out_paje_file, "10       %f	Ctx3      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 4)
+		  fprintf(out_paje_file, "10       %f	Ctx4      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 5)
+		  fprintf(out_paje_file, "10       %f	Ctx5      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 6)
+		  fprintf(out_paje_file, "10       %f	Ctx6      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 7)
+		  fprintf(out_paje_file, "10       %f	Ctx7      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 8)
+		  fprintf(out_paje_file, "10       %f	Ctx8      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 9)
+		  fprintf(out_paje_file, "10       %f	Ctx9      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+		else if(sched_ctx == 10)
+		  fprintf(out_paje_file, "10       %f	Ctx10      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[2], name);
+
+	}
+	
 }
 
 static long dumped_codelets_count;

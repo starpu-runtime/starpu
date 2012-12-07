@@ -96,7 +96,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 
 	task->synchronous = !asynchronous;
 
-	int ret = starpu_task_submit(task);
+	int ret = _starpu_task_submit_internally(task);
 	STARPU_ASSERT(!ret);
 
 	return 0;
