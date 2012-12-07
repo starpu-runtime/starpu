@@ -19,6 +19,11 @@
 
 #include <starpu.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /* generic structure used by the scheduling contexts to iterate the workers */
 struct starpu_sched_ctx_worker_collection
 {
@@ -126,5 +131,9 @@ void starpu_stop_task_submission(void);
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx, unsigned inheritor);
 
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __STARPU_SCHED_CTX_H__ */
