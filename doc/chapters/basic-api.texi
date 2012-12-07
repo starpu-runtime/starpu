@@ -1202,8 +1202,8 @@ Allocate @var{size} bytes on node @var{dst_node}. This returns 0 if allocation
 failed, the allocation method should then return -ENOMEM as allocated size.
 @end deftypefun
 
-@deftypefun void starpu_free_buffer_on_node (uint32_t @var{dst_node}, uintptr_t @var{data}, size_t @var{size})
-Free @var{data} of @var{size} bytes on node @var{dst_node}.
+@deftypefun void starpu_free_buffer_on_node (uint32_t @var{dst_node}, uintptr_t @var{addr}, size_t @var{size})
+Free @var{addr} of @var{size} bytes on node @var{dst_node}.
 @end deftypefun
 
 @node Data Partition
@@ -2433,7 +2433,7 @@ variable @code{STARPU_WORKER_STATS} is defined. The function is called
 automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
-@deftypefun void starpu_display_memory_stats ()
+@deftypefun void starpu_memory_display_stats ()
 Display statistics about the current data handles registered within
 StarPU. StarPU must have been configured with the option
 @code{----enable-memory-stats} (@pxref{Memory feedback}).
