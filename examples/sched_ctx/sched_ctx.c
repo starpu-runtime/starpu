@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	/* tell starpu when you finished submitting tasks to this context
 	   in order to allow moving resources from this context to the inheritor one
 	   when its corresponding tasks finished executing */
-	starpu_sched_ctx_finished_submit(sched_ctx1);
+//	starpu_sched_ctx_finished_submit(sched_ctx1);
 
 	for (i = 0; i < ntasks/2; i++)
 	{
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 	}
 
 
-	starpu_sched_ctx_finished_submit(sched_ctx2);
+//	starpu_sched_ctx_finished_submit(sched_ctx2);
 
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
