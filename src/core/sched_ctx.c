@@ -18,7 +18,7 @@
 #include <core/sched_ctx.h>
 #include <common/utils.h>
 
-extern struct worker_collection worker_list;
+extern struct starpu_sched_ctx_worker_collection worker_list;
 static _starpu_pthread_mutex_t sched_ctx_manag = PTHREAD_MUTEX_INITIALIZER;
 static _starpu_pthread_mutex_t finished_submit_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
@@ -117,7 +117,7 @@ void starpu_stop_task_submission()
 static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers, 
 				       int *added_workers, int *n_added_workers)
 {
-	struct worker_collection *workers = sched_ctx->workers;
+	struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
 	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
@@ -158,7 +158,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, 
 						  int nworkers, int *removed_workers, int *n_removed_workers)
 {
-	struct worker_collection *workers = sched_ctx->workers;
+	struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
 
 	int i = 0;
 
@@ -786,10 +786,10 @@ void starpu_worker_deinit_sched_condition(unsigned sched_ctx_id, int workerid)
 	free(sched_ctx->sched_cond[workerid]);
 }
 
-struct worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int worker_collection_type)
+struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int worker_collection_type)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->workers = (struct worker_collection*)malloc(sizeof(struct worker_collection));
+	sched_ctx->workers = (struct starpu_sched_ctx_worker_collection*)malloc(sizeof(struct starpu_sched_ctx_worker_collection));
 
 	switch(worker_collection_type)
 	{
@@ -817,7 +817,7 @@ void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id)
 	free(sched_ctx->workers);
 }
 
-struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id)
+struct starpu_sched_ctx_worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return sched_ctx->workers;
@@ -827,7 +827,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	
-	struct worker_collection *workers = sched_ctx->workers;
+	struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
 	int worker;
 
 	int npus = 0;
@@ -869,8 +869,8 @@ unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id
         struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
         struct _starpu_sched_ctx *sched_ctx2 = _starpu_get_sched_ctx_struct(sched_ctx_id2);
 
-        struct worker_collection *workers = sched_ctx->workers;
-        struct worker_collection *workers2 = sched_ctx2->workers;
+        struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
+        struct starpu_sched_ctx_worker_collection *workers2 = sched_ctx2->workers;
         int worker, worker2;
         int shared_workers = 0;
 

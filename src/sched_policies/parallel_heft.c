@@ -244,7 +244,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 {
 	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 
 	unsigned worker, worker_ctx = 0;

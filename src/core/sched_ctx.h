@@ -42,7 +42,7 @@ struct _starpu_sched_ctx {
 	/* data necessary for the policy */
 	void *policy_data;
 
-	struct worker_collection *workers;
+	struct starpu_sched_ctx_worker_collection *workers;
 	
 	/* mutex for temp_nworkers_in_ctx*/
 	_starpu_pthread_mutex_t changing_ctx_mutex;

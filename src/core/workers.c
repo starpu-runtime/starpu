@@ -1265,7 +1265,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 			{
 				if(config.sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 				{
-					struct worker_collection *workers = config.sched_ctxs[s].workers;
+					struct starpu_sched_ctx_worker_collection *workers = config.sched_ctxs[s].workers;
 					if(workers->init_cursor)
 						workers->init_cursor(workers);
 					

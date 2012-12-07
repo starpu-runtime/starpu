@@ -343,7 +343,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	
 	unsigned best_impl = 0;
 	unsigned nimpl;
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	
 	if(workers->init_cursor)
 		workers->init_cursor(workers);
@@ -465,7 +465,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	starpu_task_bundle_t bundle = task->bundle;
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 		
 	while(workers->has_next(workers))
 	{
@@ -578,7 +578,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	int forced_impl = -1;
 
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];

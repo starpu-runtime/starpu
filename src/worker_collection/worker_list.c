@@ -1,7 +1,7 @@
 #include <starpu.h>
 #include <pthread.h>
 
-static unsigned list_has_next(struct worker_collection *workers)
+static unsigned list_has_next(struct starpu_sched_ctx_worker_collection *workers)
 {
 	int nworkers = (int)workers->nworkers;
 
@@ -14,7 +14,7 @@ static unsigned list_has_next(struct worker_collection *workers)
 	return ret;
 }
 
-static int list_get_next(struct worker_collection *workers)
+static int list_get_next(struct starpu_sched_ctx_worker_collection *workers)
 {
 	int *workerids = (int *)workers->workerids;
 	int nworkers = (int)workers->nworkers;
@@ -28,7 +28,7 @@ static int list_get_next(struct worker_collection *workers)
 	return ret;
 }
 
-static unsigned _worker_belongs_to_ctx(struct worker_collection *workers, int workerid)
+static unsigned _worker_belongs_to_ctx(struct starpu_sched_ctx_worker_collection *workers, int workerid)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
@@ -42,7 +42,7 @@ static unsigned _worker_belongs_to_ctx(struct worker_collection *workers, int wo
 	return 0;
 }
 
-static int list_add(struct worker_collection *workers, int worker)
+static int list_add(struct starpu_sched_ctx_worker_collection *workers, int worker)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
@@ -90,7 +90,7 @@ static void _rearange_workerids(int *workerids, int old_nworkers)
 	  }
 }
 
-static int list_remove(struct worker_collection *workers, int worker)
+static int list_remove(struct starpu_sched_ctx_worker_collection *workers, int worker)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
@@ -122,7 +122,7 @@ static void _init_workers(int *workerids)
 	return;
 }
 
-static void* list_init(struct worker_collection *workers)
+static void* list_init(struct starpu_sched_ctx_worker_collection *workers)
 {
 	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
 	_init_workers(workerids);
@@ -132,27 +132,27 @@ static void* list_init(struct worker_collection *workers)
 	return (void*)workerids;
 }
 
-static void list_deinit(struct worker_collection *workers)
+static void list_deinit(struct starpu_sched_ctx_worker_collection *workers)
 {
 	free(workers->workerids);
 	pthread_key_delete(workers->cursor_key);
 }
 
-static void list_init_cursor(struct worker_collection *workers)
+static void list_init_cursor(struct starpu_sched_ctx_worker_collection *workers)
 {
 	int *cursor = (int*)malloc(sizeof(int));
 	*cursor = 0;
 	pthread_setspecific(workers->cursor_key, (void*)cursor);
 }
 
-static void list_deinit_cursor(struct worker_collection *workers)
+static void list_deinit_cursor(struct starpu_sched_ctx_worker_collection *workers)
 {
 	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
 	*cursor = 0;
 	free(cursor);
 }
 
-struct worker_collection worker_list = {
+struct starpu_sched_ctx_worker_collection worker_list = {
 	.has_next = list_has_next,
 	.get_next = list_get_next,
 	.add = list_add,

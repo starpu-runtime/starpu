@@ -321,7 +321,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 
 	starpu_task_bundle_t bundle = task->bundle;
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
 	while(workers->has_next(workers))
 	{
@@ -439,7 +439,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	   there is no performance prediction available yet */
 	int forced_worker;
 	int forced_impl;
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];

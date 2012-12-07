@@ -19,8 +19,9 @@
 
 #include <starpu.h>
 
-/* generic structure used by the scheduling contexts to iterated the workers */
-struct worker_collection {
+/* generic structure used by the scheduling contexts to iterate the workers */
+struct starpu_sched_ctx_worker_collection
+{
 	/* hidden data structure used to memorize the workers */
 	void *workerids;
 	/* the number of workers in the collection */
@@ -30,27 +31,28 @@ struct worker_collection {
 	/* the type of structure (WORKER_LIST,...) */
 	int type;
 	/* checks if there is another element in collection */
-	unsigned (*has_next)(struct worker_collection *workers);
+	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers);
 	/* return the next element in the collection */
-	int (*get_next)(struct worker_collection *workers);
+	int (*get_next)(struct starpu_sched_ctx_worker_collection *workers);
 	/* add a new element in the collection */
-	int (*add)(struct worker_collection *workers, int worker);
+	int (*add)(struct starpu_sched_ctx_worker_collection *workers, int worker);
 	/* remove an element from the collection */
-	int (*remove)(struct worker_collection *workers, int worker);
+	int (*remove)(struct starpu_sched_ctx_worker_collection *workers, int worker);
 	/* initialize the structure */
-	void* (*init)(struct worker_collection *workers);
+	void* (*init)(struct starpu_sched_ctx_worker_collection *workers);
 	/* free the structure */
-	void (*deinit)(struct worker_collection *workers);
+	void (*deinit)(struct starpu_sched_ctx_worker_collection *workers);
 	/* initialize the cursor if there is one */
-	void (*init_cursor)(struct worker_collection *workers);
+	void (*init_cursor)(struct starpu_sched_ctx_worker_collection *workers);
 	/* free the cursor if there is one */
-	void (*deinit_cursor)(struct worker_collection *workers);
+	void (*deinit_cursor)(struct starpu_sched_ctx_worker_collection *workers);
 };
 
 /* types of structures the worker collection can implement */
 #define WORKER_LIST 0
 
-struct starpu_performance_counters {
+struct starpu_performance_counters
+{
 	void (*notify_idle_cycle)(unsigned sched_ctx, int worker, double idle_time);
 	void (*notify_idle_end)(unsigned sched_ctx, int worker);
 	void (*notify_pushed_task)(unsigned sched_ctx, int worker);
@@ -67,7 +69,7 @@ void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 
 unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_name);
 
-unsigned starpu_create_sched_ctx_inside_interval(const char *policy_name, const char *sched_name, 
+unsigned starpu_create_sched_ctx_inside_interval(const char *policy_name, const char *sched_name,
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap);
 
@@ -89,11 +91,11 @@ void starpu_worker_init_sched_condition(unsigned sched_ctx, int workerid);
 
 void starpu_worker_deinit_sched_condition(unsigned sched_ctx, int workerid);
 
-struct worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
-	
-void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id); 
+struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
 
-struct worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id);
+void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id);
+
+struct starpu_sched_ctx_worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id);
 
 pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
 

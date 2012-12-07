@@ -147,7 +147,7 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 	if (performed_total < calibration_value)
 		return select_victim_round_robin(sched_ctx_id);
 
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
         if(workers->init_cursor)
                 workers->init_cursor(workers);
@@ -189,7 +189,7 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 	if (performed_total < calibration_value)
 		return select_worker_round_robin(sched_ctx_id);
 
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 
         if(workers->init_cursor)
                 workers->init_cursor(workers);

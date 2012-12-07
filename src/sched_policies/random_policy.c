@@ -31,7 +31,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	double alpha_sum = 0.0;
 
 	unsigned sched_ctx_id = task->sched_ctx;
-	struct worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
         int worker;
         if(workers->init_cursor)
                 workers->init_cursor(workers);
