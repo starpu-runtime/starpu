@@ -238,7 +238,7 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 
 void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 {
-	struct hypervisor_policy policy;
+	struct starpu_sched_ctx_hypervisor_policy policy;
 	policy.custom = 0;
 	policy.name = "idle";
 	struct starpu_performance_counters *perf_counters = sched_ctx_hypervisor_init(&policy);

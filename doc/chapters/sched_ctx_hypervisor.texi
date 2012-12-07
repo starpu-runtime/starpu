@@ -27,7 +27,7 @@ Basic strategies of resizing scheduling contexts already exist but a platform fo
 @section Managing the hypervisor
 There is a single hypervisor that is in charge of resizing contexts and the resizing strategy is chosen at the initialization of the hypervisor. A single resize can be done at a time.
 
-@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init ({struct hypervisor_policy*} @var{policy})
+@deftypefun struct starpu_performance_counters* sched_ctx_hypervisor_init ({struct starpu_sched_ctx_hypervisor_policy*} @var{policy})
 Initializes the hypervisor to use the strategy provided as parameter and creates the performance counters (see @pxref{Performance Counters}).
 These performance counters represent actually some callbacks that will be used by the contexts to notify the information needed by the hypervisor.
 @end deftypefun
@@ -248,7 +248,7 @@ it may sometimes be desirable to implement custom
 policies to address specific problems.  The API described below allows
 users to write their own resizing policy.
 
-@deftp {Data Type} {struct hypervisor_policy}
+@deftp {Data Type} {struct starpu_sched_ctx_hypervisor_policy}
 This structure contains all the methods that implement a hypervisor resizing policy. 
 
 @table @asis
@@ -271,7 +271,7 @@ It is called whenever a tag task has just been executed. The table of resize req
 
 The Hypervisor provides also a structure with configuration information of each context, which can be used to construct new resize strategies.
 
-@deftp {Data Type} {struct policy_config }
+@deftp {Data Type} {struct starpu_sched_ctx_hypervisor_policy_config }
 This structure contains all configuration information of a context
 
 @table @asis
@@ -295,14 +295,14 @@ Indicates the maximum idle time accepted before a resize is triggered for the wo
 Additionally, the hypervisor provides a structure with information obtained from StarPU by means of the performance counters
 
 
-@deftp {Data Type} {struct sched_ctx_wrapper}
+@deftp {Data Type} {struct starpu_sched_ctx_hypervisor_wrapper}
 This structure is a wrapper of the contexts available in StarPU
 and contains all information about a context obtained by incrementing the performance counters
 
 @table @asis
 @item @code{unsigned sched_ctx}
 The context wrapped
-@item @code{struct policy_config *config}
+@item @code{struct starpu_sched_ctx_hypervisor_policy_config *config}
 The corresponding resize configuration
 @item @code{double current_idle_time[STARPU_NMAXWORKERS]}
 The idle time counter of each worker of the context
@@ -320,12 +320,12 @@ The number of flops executed by each worker of the context from last resize
 The number of flops that still have to be executed by the workers in the context
 @item @code{double start_time}
 The time when he started executed
-@item @code{struct resize_ack resize_ack}
+@item @code{struct starpu_sched_ctx_hypervisor_resize_ack resize_ack}
 The structure confirming the last resize finished and a new one can be done
 @end table
 @end deftp
 
-@deftp {Data Type} {struct resize_ack}
+@deftp {Data Type} {struct starpu_sched_ctx_hypervisor_resize_ack}
 This structures checks if the workers moved to another context are actually taken into account in that context
 @table @asis
 @item @code{int receiver_sched_ctx}
@@ -345,7 +345,7 @@ The following functions can be used in the resizing strategies.
 Moves workers from one context to another
 @end deftypefun
 
-@deftypefun {struct policy_config*} sched_ctx_hypervisor_get_config (unsigned @var{sched_ctx});
+@deftypefun {struct starpu_sched_ctx_hypervisor_policy_config*} sched_ctx_hypervisor_get_config (unsigned @var{sched_ctx});
 Returns the configuration structure of a context
 @end deftypefun
 
@@ -357,11 +357,11 @@ Gets the contexts managed by the hypervisor
 Gets the number of contexts managed by the hypervisor
 @end deftypefun
 
-@deftypefun {struct sched_ctx_wrapper*} sched_ctx_hypervisor_get_wrapper (unsigned @var{sched_ctx});
+@deftypefun {struct starpu_sched_ctx_hypervisor_wrapper*} sched_ctx_hypervisor_get_wrapper (unsigned @var{sched_ctx});
 Returns the wrapper corresponding the context @code{sched_ctx}
 @end deftypefun
 
-@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx ({struct sched_ctx_wrapper*} @var{sc_w});
+@deftypefun double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx ({struct starpu_sched_ctx_hypervisor_wrapper*} @var{sc_w});
 Returns the flops of a context elapsed from the last resize
 @end deftypefun
 
@@ -375,7 +375,7 @@ Returns the name of the resizing policy the hypervisor uses
 @cartouche
 @smallexample
 
-struct hypervisor_policy dummy_policy = 
+struct starpu_sched_ctx_hypervisor_policy dummy_policy = 
 @{
        .handle_poped_task = dummy_handle_poped_task,
        .handle_pushed_task = dummy_handle_pushed_task,

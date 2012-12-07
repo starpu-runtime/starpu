@@ -86,7 +86,7 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 }
 
 #ifdef STARPU_HAVE_GLPK_H
-struct hypervisor_policy lp_policy = {
+struct starpu_sched_ctx_hypervisor_policy lp_policy = {
 	.size_ctxs = lp_size_ctxs,
 	.handle_poped_task = lp_handle_poped_task,
 	.handle_pushed_task = NULL,

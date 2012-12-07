@@ -16,9 +16,9 @@
 
 #include <sched_ctx_hypervisor_intern.h>
 
-static struct policy_config* _create_config(void)
+static struct starpu_sched_ctx_hypervisor_policy_config* _create_config(void)
 {
-	struct policy_config *config = (struct policy_config *)malloc(sizeof(struct policy_config));
+	struct starpu_sched_ctx_hypervisor_policy_config *config = (struct starpu_sched_ctx_hypervisor_policy_config *)malloc(sizeof(struct starpu_sched_ctx_hypervisor_policy_config));
 	config->min_nworkers = -1;
 	config->max_nworkers = -1;
 	config->new_workers_max_idle = -1.0;
@@ -37,7 +37,7 @@ static struct policy_config* _create_config(void)
 	return config;
 }
 
-static void _update_config(struct policy_config *old, struct policy_config* new)
+static void _update_config(struct starpu_sched_ctx_hypervisor_policy_config *old, struct starpu_sched_ctx_hypervisor_policy_config* new)
 {
 	old->min_nworkers = new->min_nworkers != -1 ? new->min_nworkers : old->min_nworkers ;
 	old->max_nworkers = new->max_nworkers != -1 ? new->max_nworkers : old->max_nworkers ;
@@ -69,7 +69,7 @@ void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 
 void _add_config(unsigned sched_ctx)
 {
-	struct policy_config *config = _create_config();
+	struct starpu_sched_ctx_hypervisor_policy_config *config = _create_config();
 	config->min_nworkers = 0;
 	config->max_nworkers = STARPU_NMAXWORKERS;
 	config->new_workers_max_idle = MAX_IDLE_TIME;
@@ -93,14 +93,14 @@ void _remove_config(unsigned sched_ctx)
 	sched_ctx_hypervisor_set_config(sched_ctx, NULL);
 }
 
-struct policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx)
+struct starpu_sched_ctx_hypervisor_policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx)
 {
 	return hypervisor.sched_ctx_w[sched_ctx].config;
 }
 
-static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
+static struct starpu_sched_ctx_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 {
-	struct policy_config *config = NULL;
+	struct starpu_sched_ctx_hypervisor_policy_config *config = NULL;
 
 	if(later)
 		config = _create_config();
@@ -229,7 +229,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	va_start(varg_list, sched_ctx);
 
 	/* if config not null => save hypervisor configuration and consider it later */
-	struct policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
+	struct starpu_sched_ctx_hypervisor_policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
 	if(config != NULL)
 	{
 		struct configuration_entry *entry;

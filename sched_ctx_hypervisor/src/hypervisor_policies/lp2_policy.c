@@ -179,7 +179,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 		}
 
 		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
-		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
+		struct starpu_sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
 		int i;
 		for(i = 0; i < nadd; i++)
 			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
@@ -246,7 +246,7 @@ static void size_if_required()
 
 	if(has_req)
 	{
-		struct sched_ctx_wrapper* sc_w = NULL;
+		struct starpu_sched_ctx_hypervisor_wrapper* sc_w = NULL;
 		unsigned ready_to_size = 1;
 		int s;
 		pthread_mutex_lock(&act_hypervisor_mutex);
@@ -503,7 +503,7 @@ static double _find_tmax(double t1, double t2)
 
 static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 {
-	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct starpu_sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
@@ -580,7 +580,7 @@ static void lp2_size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int n
 	sched_ctx_hypervisor_save_size_req(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
-struct hypervisor_policy lp2_policy = {
+struct starpu_sched_ctx_hypervisor_policy lp2_policy = {
 	.size_ctxs = lp2_size_ctxs,
 	.handle_poped_task = lp2_handle_poped_task,
 	.handle_pushed_task = NULL,

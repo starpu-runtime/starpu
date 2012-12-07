@@ -110,7 +110,7 @@ int main()
 	unsigned sched_ctx1 = starpu_create_sched_ctx("heft", ressources1, nres1, "sched_ctx1");
 	unsigned sched_ctx2 = starpu_create_sched_ctx("heft", ressources2, nres2, "sched_ctx2");
 
-	struct hypervisor_policy policy;
+	struct starpu_sched_ctx_hypervisor_policy policy;
 	policy.custom = 0;
 	policy.name = "app_driven";
 	void *perf_counters = sched_ctx_hypervisor_init(&policy);

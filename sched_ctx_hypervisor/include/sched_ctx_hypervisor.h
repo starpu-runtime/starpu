@@ -20,6 +20,8 @@
 #include <starpu.h>
 #include <pthread.h>
 
+#warning rename all objects to start with starpu_sched_ctx_hypervisor
+
 /* ioctl properties*/
 #define HYPERVISOR_MAX_IDLE -1
 #define HYPERVISOR_MIN_WORKING -2
@@ -39,7 +41,7 @@ pthread_mutex_t act_hypervisor_mutex;
 #define MAX_IDLE_TIME 5000000000
 #define MIN_WORKING_TIME 500
 
-struct policy_config
+struct starpu_sched_ctx_hypervisor_policy_config
 {
 	/* underneath this limit we cannot resize */
 	int min_nworkers;
@@ -71,7 +73,7 @@ struct policy_config
 	double empty_ctx_max_idle[STARPU_NMAXWORKERS];
 };
 
-struct resize_ack
+struct starpu_sched_ctx_hypervisor_resize_ack
 {
 	int receiver_sched_ctx;
 	int *moved_workers;
@@ -79,10 +81,10 @@ struct resize_ack
 	int *acked_workers;
 };
 
-struct sched_ctx_wrapper
+struct starpu_sched_ctx_hypervisor_wrapper
 {
 	unsigned sched_ctx;
-	struct policy_config *config;
+	struct starpu_sched_ctx_hypervisor_policy_config *config;
 	double current_idle_time[STARPU_NMAXWORKERS];
 	int worker_to_be_removed[STARPU_NMAXWORKERS];
 	int pushed_tasks[STARPU_NMAXWORKERS];
@@ -93,7 +95,7 @@ struct sched_ctx_wrapper
 	double submitted_flops;
 	double remaining_flops;
 	double start_time;
-	struct resize_ack resize_ack;
+	struct starpu_sched_ctx_hypervisor_resize_ack resize_ack;
 	pthread_mutex_t mutex;
 };
 
@@ -101,7 +103,7 @@ struct sched_ctx_wrapper
  * FIXME: Remove when no longer exposed.  */
 struct resize_request_entry;
 
-struct hypervisor_policy
+struct starpu_sched_ctx_hypervisor_policy
 {
 	const char* name;
 	unsigned custom;
@@ -116,7 +118,7 @@ struct hypervisor_policy
 	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
 };
 
-struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_policy* policy);
+struct starpu_performance_counters* sched_ctx_hypervisor_init(struct starpu_sched_ctx_hypervisor_policy* policy);
 
 void sched_ctx_hypervisor_shutdown(void);
 
@@ -136,7 +138,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
-struct policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
+struct starpu_sched_ctx_hypervisor_policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx);
 
 int* sched_ctx_hypervisor_get_sched_ctxs();
 
@@ -144,11 +146,11 @@ int sched_ctx_hypervisor_get_nsched_ctxs();
 
 int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch);
 
-struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
+struct starpu_sched_ctx_hypervisor_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
-double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
+double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper* sc_w);
 
-double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w);
+double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper* sc_w);
 
 const char* sched_ctx_hypervisor_get_policy();
 

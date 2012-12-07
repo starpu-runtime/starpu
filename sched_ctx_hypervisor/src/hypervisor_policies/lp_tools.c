@@ -182,7 +182,7 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 	double flops[nsched_ctxs];
 #endif
 	int i = 0;
-	struct sched_ctx_wrapper* sc_w;
+	struct starpu_sched_ctx_hypervisor_wrapper* sc_w;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
@@ -392,7 +392,7 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 				{
 					sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nworkers_to_add, current_sched_ctxs[s]);
 					sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);
-					struct policy_config *new_config = sched_ctx_hypervisor_get_config(current_sched_ctxs[s]);
+					struct starpu_sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(current_sched_ctxs[s]);
 					int i;
 					for(i = 0; i < nworkers_to_add; i++)
 						new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;

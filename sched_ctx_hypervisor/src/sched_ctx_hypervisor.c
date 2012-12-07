@@ -28,16 +28,16 @@ static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
 static void notify_idle_end(unsigned sched_ctx, int  worker);
 static void notify_submitted_job(struct starpu_task *task, unsigned footprint);
 
-extern struct hypervisor_policy idle_policy;
-extern struct hypervisor_policy app_driven_policy;
-extern struct hypervisor_policy gflops_rate_policy;
+extern struct starpu_sched_ctx_hypervisor_policy idle_policy;
+extern struct starpu_sched_ctx_hypervisor_policy app_driven_policy;
+extern struct starpu_sched_ctx_hypervisor_policy gflops_rate_policy;
 #ifdef STARPU_HAVE_GLPK_H
-extern struct hypervisor_policy lp_policy;
-extern struct hypervisor_policy lp2_policy;
+extern struct starpu_sched_ctx_hypervisor_policy lp_policy;
+extern struct starpu_sched_ctx_hypervisor_policy lp2_policy;
 #endif // STARPU_HAVE_GLPK_H
 
 
-static struct hypervisor_policy *predefined_policies[] =
+static struct starpu_sched_ctx_hypervisor_policy *predefined_policies[] =
 {
         &idle_policy,
 	&app_driven_policy,
@@ -48,7 +48,7 @@ static struct hypervisor_policy *predefined_policies[] =
 	&gflops_rate_policy
 };
 
-static void _load_hypervisor_policy(struct hypervisor_policy *policy)
+static void _load_hypervisor_policy(struct starpu_sched_ctx_hypervisor_policy *policy)
 {
 	STARPU_ASSERT(policy);
 
@@ -63,7 +63,7 @@ static void _load_hypervisor_policy(struct hypervisor_policy *policy)
 }
 
 
-static struct hypervisor_policy *_find_hypervisor_policy_from_name(const char *policy_name)
+static struct starpu_sched_ctx_hypervisor_policy *_find_hypervisor_policy_from_name(const char *policy_name)
 {
 
 	if (!policy_name)
@@ -72,7 +72,7 @@ static struct hypervisor_policy *_find_hypervisor_policy_from_name(const char *p
 	unsigned i;
 	for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
 	{
-		struct hypervisor_policy *p;
+		struct starpu_sched_ctx_hypervisor_policy *p;
 		p = predefined_policies[i];
 		if (p->name)
 		{
@@ -88,9 +88,9 @@ static struct hypervisor_policy *_find_hypervisor_policy_from_name(const char *p
 	return NULL;
 }
 
-static struct hypervisor_policy *_select_hypervisor_policy(struct hypervisor_policy* hypervisor_policy)
+static struct starpu_sched_ctx_hypervisor_policy *_select_hypervisor_policy(struct starpu_sched_ctx_hypervisor_policy* hypervisor_policy)
 {
-	struct hypervisor_policy *selected_policy = NULL;
+	struct starpu_sched_ctx_hypervisor_policy *selected_policy = NULL;
 
 	if(hypervisor_policy && hypervisor_policy->custom)
 		return hypervisor_policy;
@@ -120,7 +120,7 @@ static struct hypervisor_policy *_select_hypervisor_policy(struct hypervisor_pol
 
 
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
-struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_policy *hypervisor_policy)
+struct starpu_performance_counters* sched_ctx_hypervisor_init(struct starpu_sched_ctx_hypervisor_policy *hypervisor_policy)
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
@@ -157,7 +157,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_
 		}
 	}
 
-	struct hypervisor_policy *selected_hypervisor_policy = _select_hypervisor_policy(hypervisor_policy);
+	struct starpu_sched_ctx_hypervisor_policy *selected_hypervisor_policy = _select_hypervisor_policy(hypervisor_policy);
 	_load_hypervisor_policy(selected_hypervisor_policy);
 
 	perf_counters = (struct starpu_performance_counters*)malloc(sizeof(struct starpu_performance_counters));
@@ -399,7 +399,7 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 				pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 			}
 		}
-		struct policy_config *new_config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
+		struct starpu_sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
 		int i;
 		for(i = 0; i < nworkers_to_move; i++)
 			new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
@@ -418,7 +418,7 @@ void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned
 /* 			printf(" %d", workers_to_add[j]); */
 /* 		printf("\n"); */
 		starpu_add_workers_to_sched_ctx(workers_to_add, nworkers_to_add, sched_ctx);
-		struct policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctx);
+		struct starpu_sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctx);
 		int i;
 		for(i = 0; i < nworkers_to_add; i++)
 			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
@@ -488,7 +488,7 @@ static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
 		hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[i] = val;
 }
 
-double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w)
+double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper* sc_w)
 {
 	double ret_val = 0.0;
 	int i;
@@ -497,7 +497,7 @@ double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_wra
 	return ret_val;
 }
 
-double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sched_ctx_wrapper* sc_w)
+double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct starpu_sched_ctx_hypervisor_wrapper* sc_w)
 {
 	double ret_val = 0.0;
 	int i;
@@ -511,7 +511,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 	if(worker != -1 && !starpu_worker_belongs_to_sched_ctx(worker, sched_ctx))
 		return 0;
 
-	struct resize_ack *resize_ack = NULL;
+	struct starpu_sched_ctx_hypervisor_resize_ack *resize_ack = NULL;
 	unsigned sender_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
 	int i;
@@ -519,7 +519,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 	{
 		if(hypervisor.sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS)
 		{
-			struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[hypervisor.sched_ctxs[i]];
+			struct starpu_sched_ctx_hypervisor_wrapper *sc_w = &hypervisor.sched_ctx_w[hypervisor.sched_ctxs[i]];
 			pthread_mutex_lock(&sc_w->mutex);
 			unsigned only_remove = 0;
 			if(sc_w->resize_ack.receiver_sched_ctx == -1 && hypervisor.sched_ctxs[i] != sched_ctx &&
@@ -591,8 +591,8 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 				starpu_remove_workers_from_sched_ctx(moved_workers, nmoved_workers, sender_sched_ctx);
 
 				/* info concerning only the gflops_rate strateg */
-				struct sched_ctx_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
-				struct sched_ctx_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
+				struct starpu_sched_ctx_hypervisor_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
+				struct starpu_sched_ctx_hypervisor_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
 
 				double start_time =  starpu_timing_now();
 				sender_sc_w->start_time = start_time;
@@ -655,7 +655,7 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 {
 	if(hypervisor.resize[sched_ctx])
 	{
-		struct sched_ctx_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
+		struct starpu_sched_ctx_hypervisor_wrapper *sc_w = &hypervisor.sched_ctx_w[sched_ctx];
 		sc_w->current_idle_time[worker] += idle_time;
 		if(hypervisor.policy.handle_idle_cycle)
 		{
@@ -723,7 +723,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 
 		if (entry != NULL)
 		{
-			struct policy_config *config = entry->configuration;
+			struct starpu_sched_ctx_hypervisor_policy_config *config = entry->configuration;
 
 			sched_ctx_hypervisor_set_config(conf_sched_ctx, config);
 			HASH_DEL(hypervisor.configurations[conf_sched_ctx], entry);
@@ -779,7 +779,7 @@ void sched_ctx_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *worke
 		hypervisor.policy.size_ctxs(curr_sched_ctxs, curr_nsched_ctxs, workers, nworkers);
 }
 
-struct sched_ctx_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx)
+struct starpu_sched_ctx_hypervisor_wrapper* sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx)
 {
 	return &hypervisor.sched_ctx_w[sched_ctx];
 }
