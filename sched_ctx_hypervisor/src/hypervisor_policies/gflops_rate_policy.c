@@ -48,7 +48,7 @@ double _get_flops_left_pct(unsigned sched_ctx)
 	double total_elapsed_flops = _get_total_elapsed_flops_per_sched_ctx(sched_ctx);
 	if(wrapper->total_flops == total_elapsed_flops || total_elapsed_flops > wrapper->total_flops)
 		return 0.0;
-       
+
 	return (wrapper->total_flops - total_elapsed_flops)/wrapper->total_flops;
 }
 
@@ -113,10 +113,10 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
                 }
 		else
                 {
-			/*if the needed number of workers is to big we only move the number of workers 
+			/*if the needed number of workers is to big we only move the number of workers
 			  corresponding to the granularity set by the user */
                         int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
-			
+
                         if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
                         {
                                 unsigned nshared_workers = starpu_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
@@ -246,7 +246,7 @@ static void gflops_rate_resize(unsigned sched_ctx)
 	_get_exp_end(sched_ctx);
 	double flops_left_pct = _get_flops_left_pct(sched_ctx);
 
-	/* if the context finished all the instructions it had to execute 
+	/* if the context finished all the instructions it had to execute
 	 we move all the resources to the slowest context */
 	if(flops_left_pct == 0.0f)
 	{

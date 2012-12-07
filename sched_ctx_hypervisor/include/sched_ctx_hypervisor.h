@@ -39,13 +39,14 @@ pthread_mutex_t act_hypervisor_mutex;
 #define MAX_IDLE_TIME 5000000000
 #define MIN_WORKING_TIME 500
 
-struct policy_config {
+struct policy_config
+{
 	/* underneath this limit we cannot resize */
 	int min_nworkers;
 
 	/* above this limit we cannot resize */
 	int max_nworkers;
-	
+
 	/*resize granularity */
 	int granularity;
 
@@ -70,15 +71,16 @@ struct policy_config {
 	double empty_ctx_max_idle[STARPU_NMAXWORKERS];
 };
 
-
-struct resize_ack{
+struct resize_ack
+{
 	int receiver_sched_ctx;
 	int *moved_workers;
 	int nmoved_workers;
 	int *acked_workers;
 };
 
-struct sched_ctx_wrapper {
+struct sched_ctx_wrapper
+{
 	unsigned sched_ctx;
 	struct policy_config *config;
 	double current_idle_time[STARPU_NMAXWORKERS];
@@ -99,7 +101,8 @@ struct sched_ctx_wrapper {
  * FIXME: Remove when no longer exposed.  */
 struct resize_request_entry;
 
-struct hypervisor_policy {
+struct hypervisor_policy
+{
 	const char* name;
 	unsigned custom;
 	void (*size_ctxs)(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
@@ -112,7 +115,6 @@ struct hypervisor_policy {
 
 	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
 };
-
 
 struct starpu_performance_counters* sched_ctx_hypervisor_init(struct hypervisor_policy* policy);
 
@@ -156,9 +158,9 @@ void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, 
 
 void sched_ctx_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
-unsigned sched_ctx_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);	
+unsigned sched_ctx_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);
 
-void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);	
+void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 void sched_ctx_hypervisor_free_size_req(void);
 

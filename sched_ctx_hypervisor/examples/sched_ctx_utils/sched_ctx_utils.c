@@ -29,7 +29,8 @@ unsigned gpu;
 unsigned gpu1;
 unsigned gpu2;
 
-typedef struct {
+typedef struct
+{
 	unsigned id;
 	unsigned ctx;
 	int the_other_ctx;
@@ -41,7 +42,8 @@ typedef struct {
 	float *mat[NSAMPLES];
 } params;
 
-typedef struct {
+typedef struct
+{
 	double flops;
 	double avg_timing;
 } retvals;
@@ -87,7 +89,8 @@ void update_sched_ctx_timing_results(double flops, double avg_timing)
 	rv[*id].avg_timing += avg_timing;
 }
 
-void* start_bench(void *val){
+void* start_bench(void *val)
+{
 	params *p = (params*)val;
 	int i;
 
@@ -98,7 +101,7 @@ void* start_bench(void *val){
 
 	for(i = 0; i < NSAMPLES; i++)
 		p->bench(p->mat[i], p->size, p->nblocks);
-	
+
 	/* if(p->ctx != 0) */
 	/* { */
 	/* 	pthread_mutex_lock(&mut); */
@@ -106,7 +109,7 @@ void* start_bench(void *val){
 	/* 		sched_ctx_hypervisor_unregiser_ctx(p->ctx); */
 	/* 		starpu_delete_sched_ctx(p->ctx, p->the_other_ctx); */
 	/* 	} */
-		
+
 	/* 	first = 0; */
 	/* 	pthread_mutex_unlock(&mut); */
 	/* } */
@@ -136,7 +139,7 @@ void start_2benchs(void (*bench)(float*, unsigned, unsigned))
 	p1.bench = bench;
 	p1.size = size1;
 	p1.nblocks = nblocks1;
-	
+
 	p2.bench = bench;
 	p2.size = size2;
 	p2.nblocks = nblocks2;
@@ -158,7 +161,7 @@ void start_2benchs(void (*bench)(float*, unsigned, unsigned))
 
 	pthread_create(&tid[0], NULL, (void*)start_bench, (void*)&p1);
 	pthread_create(&tid[1], NULL, (void*)start_bench, (void*)&p2);
- 
+
 	pthread_join(tid[0], NULL);
 	pthread_join(tid[1], NULL);
 
@@ -214,7 +217,7 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 	{
 		p2.mat[i] = construct_matrix(p2.size);
 	}
-	
+
 	struct timeval start;
 	struct timeval end;
 
@@ -261,14 +264,14 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 
 
 	for(i = 0; i < 12; i++)
-		p1.workers[i] = i; 
+		p1.workers[i] = i;
 
 	p1.ctx = starpu_create_sched_ctx("heft", p1.workers, nworkers1, "sched_ctx1");
 	starpu_set_perf_counters(p1.ctx, perf_counters);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
 	sched_ctx_hypervisor_register_ctx(p1.ctx, 0.0);
-	
+
 	/* sched_ctx_hypervisor_ioctl(p1.ctx, */
 	/* 			   HYPERVISOR_MAX_IDLE, p1.workers, p1.nworkers, 5000.0, */
 	/* 			   HYPERVISOR_MAX_IDLE, p1.workers, gpu+gpu1, 100000.0, */
@@ -304,7 +307,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;
 	sched_ctx_hypervisor_register_ctx(p2.ctx, 0.0);
-	
+
 	/* sched_ctx_hypervisor_ioctl(p2.ctx, */
 	/* 			   HYPERVISOR_MAX_IDLE, p2.workers, p2.nworkers, 2000.0, */
 	/* 			   HYPERVISOR_MAX_IDLE, p2.workers, gpu+gpu2, 5000.0, */
@@ -366,7 +369,7 @@ void set_hypervisor_conf(int event, int task_tag)
 /* 				sched_ctx_hypervisor_resize(p1.ctx, task_tag); */
 /* 			} */
 /* 			it++; */
-				
+
 /* 		} */
 /* 	} */
 /* 	else */
@@ -426,7 +429,7 @@ void set_hypervisor_conf(int event, int task_tag)
 	/* 		} */
 	/* 		it2++; */
 	/* 	} */
-		
+
 	/* } else { */
 	/* 	if(event == START_BENCH) */
 	/* 	{ */
@@ -457,7 +460,7 @@ void set_hypervisor_conf(int event, int task_tag)
 	/* 						   HYPERVISOR_TIME_TO_APPLY, task_tag, */
 	/* 						   NULL); */
 	/* 		} */
-			
+
 	/* 		it++; */
 	/* 	} */
 
@@ -485,7 +488,7 @@ void parse_args_ctx(int argc, char **argv)
 			char *argptr;
 			nblocks1 = strtol(argv[++i], &argptr, 10);
 		}
-		
+
 		if (strcmp(argv[i], "-size2") == 0) {
 			char *argptr;
 			size2 = strtol(argv[++i], &argptr, 10);
@@ -499,27 +502,26 @@ void parse_args_ctx(int argc, char **argv)
 		if (strcmp(argv[i], "-cpu1") == 0) {
 			char *argptr;
 			cpu1 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
 		if (strcmp(argv[i], "-cpu2") == 0) {
 			char *argptr;
 			cpu2 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
 		if (strcmp(argv[i], "-gpu") == 0) {
 			char *argptr;
 			gpu = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
 		if (strcmp(argv[i], "-gpu1") == 0) {
 			char *argptr;
 			gpu1 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
 		if (strcmp(argv[i], "-gpu2") == 0) {
 			char *argptr;
 			gpu2 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 	}
 }
-

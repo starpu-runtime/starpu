@@ -23,10 +23,10 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers);
 static double _find_tmax(double t1, double t2);
 static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], int *sched_ctxs, int *workers)
-{	
+{
 	double draft_tasks[nw][nt];
 	double draft_w_in_s[ns][nw];
-	
+
 	int w,t, s;
 	for(w = 0; w < nw; w++)
 		for(t = 0; t < nt; t++)
@@ -34,7 +34,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 			tasks[w][t] = 0.0;
 			draft_tasks[w][t] = 0.0;
 		}
-	
+
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
 		{
@@ -42,11 +42,11 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 			draft_w_in_s[s][w] = 0.0;
 		}
 
-	/* smallest possible tmax, difficult to obtain as we 
+	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
 	double smallest_tmax = _lp_get_tmax(nw, workers);
 	double tmax = smallest_tmax * ns;
-	
+
 	double res = 1.0;
 	unsigned has_sol = 0;
 	double tmin = 0.0;
@@ -79,7 +79,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 		}
 		else
 			has_sol = 0;
-		
+
 		/* if we have a solution with this tmax try a smaller value
 		   bigger than the old min */
 		if(has_sol)
@@ -96,7 +96,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 		}
 		if(tmin == tmax) break;
 		tmax = _find_tmax(tmin, tmax);
-		
+
 		if(tmax < smallest_tmax)
 		{
 			tmax = old_tmax;
@@ -109,7 +109,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
 	long diff_us = end_time.tv_usec  - start_time.tv_usec;
-	
+
 	float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
 //        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
@@ -155,7 +155,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 						if(s2 != s && w_in_s[s2][w] >= 0.5)
 							destination_ctx[w][s2] = 1;
 						else
-							destination_ctx[w][s2] = 0;	
+							destination_ctx[w][s2] = 0;
 				}
 			}
 			else
@@ -174,7 +174,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 							destination_ctx[w][s2] = 0;
 				}
 			}
-	
+
 		}
 
 		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
@@ -182,7 +182,7 @@ static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_
 		int i;
 		for(i = 0; i < nadd; i++)
 			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
-		
+
 		if(!first_time)
 		{
 			/* do not remove workers if they can't go anywhere */
@@ -228,9 +228,9 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	struct bound_task_pool * tp;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
-	
+
 	double w_in_s[ns][nw];
-	
+
 	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, NULL, sched_ctxs, workers);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
@@ -241,7 +241,7 @@ static void size_if_required()
 {
 	int nsched_ctxs, nworkers;
 	int *sched_ctxs, *workers;
-	unsigned has_req = sched_ctx_hypervisor_get_size_req(&sched_ctxs, &nsched_ctxs, &workers, &nworkers);	
+	unsigned has_req = sched_ctx_hypervisor_get_size_req(&sched_ctxs, &nsched_ctxs, &workers, &nworkers);
 
 	if(has_req)
 	{
@@ -307,13 +307,13 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *w
                         if (isnan(length))
                                 times[w][t] = NAN;
                        else
-                                times[w][t] = length / 1000.;	
+                                times[w][t] = length / 1000.;
                 }
         }
 }
 
-/*                                                                                                                                                                                                                  
- * GNU Linear Programming Kit backend                                                                                                                                                                               
+/*
+ * GNU Linear Programming Kit backend
  */
 #ifdef HAVE_GLPK_H
 #include <glpk.h>
@@ -360,7 +360,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 			{
 				char name[32];
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
-				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);	
+				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);
 				glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
 			}
 
@@ -503,7 +503,7 @@ static double _find_tmax(double t1, double t2)
 static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 {
 	struct sched_ctx_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
-	
+
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
@@ -521,7 +521,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 			struct bound_task_pool * tp;
 			for (tp = task_pools; tp; tp = tp->next)
 				nt++;
-			
+
 			double w_in_s[ns][nw];
 			double tasks_per_worker[nw][nt];
 
@@ -546,7 +546,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 					for(w = 0; w < nw; w++)
 					{
 						enum starpu_perf_archtype arch = starpu_worker_get_type(w);
-						
+
 						if(arch == STARPU_CUDA_WORKER)
 						{
 							nworkers[s][0] += w_in_s[s][w];
@@ -570,7 +570,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 			}
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
-	}		
+	}
 }
 
 
@@ -590,6 +590,5 @@ struct hypervisor_policy lp2_policy = {
 	.custom = 0,
 	.name = "lp2"
 };
-	
-#endif /* HAVE_GLPK_H */
 
+#endif /* HAVE_GLPK_H */

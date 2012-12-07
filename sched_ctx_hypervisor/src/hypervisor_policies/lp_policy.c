@@ -22,12 +22,12 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 	if(_velocity_gap_btw_ctxs())
 	{
 		int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
-		
+
 		double nworkers[nsched_ctxs][2];
 
 		int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
-		{ 
+		{
 			int total_nw[2];
 			_get_total_nw(NULL, -1, 2, total_nw);
 
@@ -47,15 +47,15 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 			if(vmax != 0.0)
 			{
 				int nworkers_rounded[nsched_ctxs][2];
-				_lp_round_double_to_int(nsched_ctxs, 2, nworkers, nworkers_rounded);				
+				_lp_round_double_to_int(nsched_ctxs, 2, nworkers, nworkers_rounded);
 				_lp_redistribute_resources_in_ctxs(nsched_ctxs, 2, nworkers_rounded, nworkers);
 			}
 			pthread_mutex_unlock(&act_hypervisor_mutex);
 		}
-	}		
+	}
 }
 static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
-{	
+{
 	int nsched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : ns;
 	double nworkers_per_type[nsched_ctxs][2];
 	int total_nw[2];
@@ -78,7 +78,7 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 /* 			printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]); */
 /* 			printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]); */
 /* 		} */
-		
+
 		_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, 2, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
 	}
 	pthread_mutex_unlock(&act_hypervisor_mutex);
@@ -96,6 +96,5 @@ struct hypervisor_policy lp_policy = {
 	.custom = 0,
 	.name = "lp"
 };
-	
-#endif /* HAVE_GLPK_H */
 
+#endif /* HAVE_GLPK_H */

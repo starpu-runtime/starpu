@@ -1,3 +1,19 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2012  INRIA
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #include <sched_ctx_hypervisor.h>
 #include <pthread.h>
 
@@ -53,7 +69,7 @@ static unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_mov
 			}
 		}
 	}
-	
+
 	return sched_ctx;
 }
 
@@ -94,7 +110,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 							break;
 						}
 					}
-					
+
 					if(!considered)
 					{
 						/* the first iteration*/
@@ -118,7 +134,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 				}
 			}
 		}
-			
+
 		if(curr_workers[index] < 0)
 		{
 			*nworkers = index;
@@ -153,7 +169,7 @@ static unsigned _get_potential_nworkers(struct policy_config *config, unsigned s
 	}
 	if(workers->init_cursor)
 		workers->deinit_cursor(workers);
-	
+
 	return potential_workers;
 }
 
@@ -162,26 +178,26 @@ static unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
        	struct policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
-	
+
 	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, 0);
 	if(potential_moving_workers > 0)
 	{
 		if(potential_moving_workers <= config->min_nworkers)
-			/* if we have to give more than min better give it all */ 
+			/* if we have to give more than min better give it all */
 			/* => empty ctx will block until having the required workers */
-			
-			nworkers_to_move = potential_moving_workers; 
+
+			nworkers_to_move = potential_moving_workers;
 		else if(potential_moving_workers > config->max_nworkers)
 		{
 			if((potential_moving_workers - config->granularity) > config->max_nworkers)
 				nworkers_to_move = config->granularity;
 			else
 				nworkers_to_move = potential_moving_workers - config->max_nworkers;
- 
+
 		}
 		else if(potential_moving_workers > config->granularity)
 		{
-			if((nworkers - config->granularity) > config->min_nworkers)	
+			if((nworkers - config->granularity) > config->min_nworkers)
 				nworkers_to_move = config->granularity;
 			else
 				nworkers_to_move = potential_moving_workers - config->min_nworkers;
@@ -192,7 +208,7 @@ static unsigned _get_nworkers_to_move(unsigned req_sched_ctx)
 			if(nfixed_workers >= config->min_nworkers)
 				nworkers_to_move = potential_moving_workers;
 			else
-				nworkers_to_move = potential_moving_workers - (config->min_nworkers - nfixed_workers);	
+				nworkers_to_move = potential_moving_workers - (config->min_nworkers - nfixed_workers);
 		}
 
 		if((nworkers - nworkers_to_move) > config->max_nworkers)
@@ -209,7 +225,7 @@ static unsigned _simple_resize(unsigned sender_sched_ctx, unsigned receiver_sche
 	else
 		ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
-	{					
+	{
 		unsigned nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
 
 		if(nworkers_to_move > 0)
@@ -230,18 +246,18 @@ static unsigned _simple_resize(unsigned sender_sched_ctx, unsigned receiver_sche
 
 
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-			{						
+			{
 				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, 0);
 				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move);
-				
+
 				struct policy_config *new_config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				int i;
 				for(i = 0; i < nworkers_to_move; i++)
 					new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
-				
+
 				free(workers_to_move);
 			}
-		}	
+		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 		return 1;
 	}
@@ -256,10 +272,10 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
         double receiver_remainig_flops = sched_ctx_hypervisor_get_flops_left(receiver_sched_ctx);
         double sender_exp_end = sched_ctx_hypervisor_get_exp_end(sender_sched_ctx);
         double sender_v_cpu = sched_ctx_hypervisor_get_cpu_velocity(sender_sched_ctx);
-//      double v_gcpu = sched_ctx_hypervisor_get_gpu_velocity(sender_sched_ctx);                                                                                                                                                                                                                                                                                                                                                                                                              
+//      double v_gcpu = sched_ctx_hypervisor_get_gpu_velocity(sender_sched_ctx);
 
         double v_for_rctx = (receiver_remainig_flops/(sender_exp_end - starpu_timing_now())) - v_receiver;
-//      v_for_rctx /= 2;                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+//      v_for_rctx /= 2;
 
         int nworkers_needed = v_for_rctx/sender_v_cpu;
 /*      printf("%d->%d: v_rec %lf v %lf v_cpu %lf w_needed %d \n", sender_sched_ctx, receiver_sched_ctx, */
@@ -474,9 +490,9 @@ static void simple_manage_gflops_rate(unsigned sched_ctx)
 		double slowest_exp_end = sched_ctx_hypervisor_get_exp_end(slowest_sched_ctx);
 		double fastest_bef_res_exp_end = sched_ctx_hypervisor_get_bef_res_exp_end(fastest_sched_ctx);
 		double slowest_bef_res_exp_end = sched_ctx_hypervisor_get_bef_res_exp_end(slowest_sched_ctx);
-//					       (fastest_bef_res_exp_end < slowest_bef_res_exp_end || 
+//					       (fastest_bef_res_exp_end < slowest_bef_res_exp_end ||
 //						fastest_bef_res_exp_end == 0.0 || slowest_bef_res_exp_end == 0)))
-		
+
 		if((slowest_exp_end == -1.0 && fastest_exp_end != -1.0) || ((fastest_exp_end + (fastest_exp_end*0.5)) < slowest_exp_end ))
 		{
 			double fast_flops_left_pct = sched_ctx_hypervisor_get_flops_left_pct(fastest_sched_ctx);
@@ -487,19 +503,22 @@ static void simple_manage_gflops_rate(unsigned sched_ctx)
 }
 
 
-struct hypervisor_policy idle_policy = {
+struct hypervisor_policy idle_policy =
+{
 	.manage_idle_time = simple_manage_idle_time,
 	.manage_gflops_rate = simple_manage_gflops_rate,
 	.resize = simple_resize,
 };
 
-struct hypervisor_policy app_driven_policy = {
+struct hypervisor_policy app_driven_policy =
+{
 	.manage_idle_time = simple_manage_idle_time,
 	.manage_gflops_rate = simple_manage_gflops_rate,
 	.resize = simple_resize,
 };
 
-struct hypervisor_policy gflops_rate_policy = {
+struct hypervisor_policy gflops_rate_policy =
+{
 	.manage_idle_time = simple_manage_idle_time,
 	.manage_gflops_rate = simple_manage_gflops_rate,
 	.resize = simple_resize,

@@ -16,7 +16,8 @@
 
 #include <sched_ctx_hypervisor.h>
 #include <common/uthash.h>
-struct size_request {
+struct size_request
+{
 	int *workers;
 	int nworkers;
 	int *sched_ctxs;
@@ -25,7 +26,8 @@ struct size_request {
 
 
 /* Entry in the resize request hash table.  */
-struct resize_request_entry {
+struct resize_request_entry
+{
 	/* Key: the tag of tasks concerned by this resize request.  */
 	uint32_t task_tag;
 
@@ -38,7 +40,8 @@ struct resize_request_entry {
 	UT_hash_handle hh;
 };
 
-struct configuration_entry {
+struct configuration_entry
+{
 	/* Key: the tag of tasks concerned by this configuration.  */
 	uint32_t task_tag;
 
@@ -49,7 +52,8 @@ struct configuration_entry {
 	UT_hash_handle hh;
 };
 
-struct sched_ctx_hypervisor {
+struct sched_ctx_hypervisor
+{
 	struct sched_ctx_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
 	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	unsigned nsched_ctxs;
@@ -68,7 +72,8 @@ struct sched_ctx_hypervisor {
 	int check_min_tasks[STARPU_NMAX_SCHED_CTXS];
 };
 
-struct sched_ctx_hypervisor_adjustment {
+struct sched_ctx_hypervisor_adjustment
+{
 	int workerids[STARPU_NMAXWORKERS];
 	int nworkers;
 };

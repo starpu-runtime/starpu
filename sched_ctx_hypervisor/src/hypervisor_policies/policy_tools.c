@@ -1,3 +1,19 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2012  INRIA
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 /* #include <sched_ctx_hypervisor.h> */
 /* #include <pthread.h> */
 
@@ -56,14 +72,14 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 			}
 		}
 	}
-	
+
 	return sched_ctx;
 }
 
 int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch)
 {
 	int *curr_workers = (int*)malloc((*nworkers)*sizeof(int));
-	
+
 	int w, worker;
 	int nfound_workers = 0;
 	for(w = 0; w < nall_workers; w++)
@@ -121,7 +137,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 							break;
 						}
 					}
-					
+
 					if(!considered)
 					{
 						/* the first iteration*/
@@ -145,7 +161,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 				}
 			}
 		}
-			
+
 		if(curr_workers[index] < 0)
 		{
 			*nworkers = index;
@@ -181,26 +197,26 @@ unsigned _get_potential_nworkers(struct policy_config *config, unsigned sched_ct
 	}
 	if(workers->init_cursor)
 		workers->deinit_cursor(workers);
-	
+
 	return potential_workers;
 }
 
 /* compute the number of workers that should be moved depending:
-   - on the min/max number of workers in a context imposed by the user, 
+   - on the min/max number of workers in a context imposed by the user,
    - on the resource granularity imposed by the user for the resizing process*/
 int _get_nworkers_to_move(unsigned req_sched_ctx)
 {
        	struct policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
-	
+
 	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, STARPU_ANY_WORKER);
 	if(potential_moving_workers > 0)
 	{
 		if(potential_moving_workers <= config->min_nworkers)
-			/* if we have to give more than min better give it all */ 
+			/* if we have to give more than min better give it all */
 			/* => empty ctx will block until having the required workers */
-			nworkers_to_move = potential_moving_workers; 
+			nworkers_to_move = potential_moving_workers;
 		else if(potential_moving_workers > config->max_nworkers)
 		{
 			if((potential_moving_workers - config->granularity) > config->max_nworkers)
@@ -208,11 +224,11 @@ int _get_nworkers_to_move(unsigned req_sched_ctx)
 				nworkers_to_move = potential_moving_workers;
 			else
 				nworkers_to_move = potential_moving_workers - config->max_nworkers;
- 
+
 		}
 		else if(potential_moving_workers > config->granularity)
 		{
-			if((nworkers - config->granularity) > config->min_nworkers)	
+			if((nworkers - config->granularity) > config->min_nworkers)
 				nworkers_to_move = config->granularity;
 			else
 				nworkers_to_move = potential_moving_workers - config->min_nworkers;
@@ -223,7 +239,7 @@ int _get_nworkers_to_move(unsigned req_sched_ctx)
 			if(nfixed_workers >= config->min_nworkers)
 				nworkers_to_move = potential_moving_workers;
 			else
-				nworkers_to_move = potential_moving_workers - (config->min_nworkers - nfixed_workers);	
+				nworkers_to_move = potential_moving_workers - (config->min_nworkers - nfixed_workers);
 		}
 
 		if((nworkers - nworkers_to_move) > config->max_nworkers)
@@ -240,7 +256,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 	else
 		ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
-	{					
+	{
 		int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
 		if(nworkers_to_move > 0)
 		{
@@ -260,18 +276,18 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 				if(nworkers_to_move == 0) poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 			}
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-			{						
+			{
 				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
 				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move, now);
-				
+
 				struct policy_config *new_config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				int i;
 				for(i = 0; i < nworkers_to_move; i++)
 					new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
-				
+
 				free(workers_to_move);
 			}
-		}	
+		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 		return 1;
 	}
@@ -317,7 +333,7 @@ double _get_ctx_velocity(struct sched_ctx_wrapper* sc_w)
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
 	double prc = elapsed_flops/sc_w->total_flops;
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sc_w->sched_ctx);
-	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;  
+	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;
 	if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
@@ -352,7 +368,7 @@ int _velocity_gap_btw_ctxs()
 	int i = 0, j = 0;
 	struct sched_ctx_wrapper* sc_w;
 	struct sched_ctx_wrapper* other_sc_w;
-	
+
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
@@ -370,9 +386,9 @@ int _velocity_gap_btw_ctxs()
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
 						if(gap > 1.5)
 							return 1;
-					} 
+					}
 					else
-						return 1;						
+						return 1;
 				}
 			}
 		}

@@ -1,3 +1,19 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2012  INRIA
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #include <math.h>
 #include "lp_tools.h"
 
@@ -7,7 +23,7 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 {
 	int s, w;
 	glp_prob *lp;
-	
+
 	int ne =
 		(ns*nw+1)*(ns+nw)
 		+ 1; /* glp dumbness */
@@ -21,7 +37,7 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 	glp_set_obj_dir(lp, GLP_MAX);
         glp_set_obj_name(lp, "max speed");
 
-	/* we add nw*ns columns one for each type of worker in each context 
+	/* we add nw*ns columns one for each type of worker in each context
 	   and another column corresponding to the 1/tmax bound (bc 1/tmax is a variable too)*/
 	glp_add_cols(lp, nw*ns+1);
 
@@ -83,7 +99,7 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 //		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
 		n++;
 	}
-	
+
 	/*we add another linear constraint : sum(all cpus) = 9 and sum(all gpus) = 3 */
 	glp_add_rows(lp, nw);
 
@@ -126,7 +142,7 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
 
 		/*sum(all cpus) = 9*/
-		if(w == 1) 
+		if(w == 1)
 			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
 	}
 
@@ -138,7 +154,7 @@ static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double
 	glp_init_smcp(&parm);
 	parm.msg_lev = GLP_MSG_OFF;
 	glp_simplex(lp, &parm);
-	
+
 	double vmax = glp_get_obj_val(lp);
 
 	n = 1;
@@ -177,7 +193,7 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 #endif
 	}
 
-#ifdef HAVE_GLPK_H	
+#ifdef HAVE_GLPK_H
 	return 1/_glp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
 #else
 	return 0.0;
@@ -191,7 +207,7 @@ double _lp_get_tmax(int nw, int *workers)
 	_get_total_nw(workers, nw, 2, total_nw);
 
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
-	
+
 	double res[nsched_ctxs][ntypes_of_workers];
 	return _lp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, res, total_nw) * 1000;
 }
@@ -209,7 +225,7 @@ void _lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded
 			int x = floor(res[s][w]);
 			double x_double = (double)x;
 			double diff = res[s][w] - x_double;
-			
+
 			if(diff != 0.0)
 			{
 				if(diff > 0.5)
@@ -249,7 +265,7 @@ void _lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded
 				}
 			}
 		}
-	}		
+	}
 }
 
 void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw])
@@ -300,7 +316,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 							int i;
 							for(i = 0; i < x; i++)
 								workers_move[nw_move++] = workers_to_move[i];
-							
+
 						}
 						free(workers_to_move);
 					}
@@ -313,19 +329,19 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 							int i;
 							for(i = 0; i < x-1; i++)
 								workers_move[nw_move++] = workers_to_move[i];
-							
+
 							if(diff > 0.8)
 								workers_move[nw_move++] = workers_to_move[x-1];
 							else
 								if(diff > 0.3)
 									workers_add[nw_add++] = workers_to_move[x-1];
-							
+
 						}
 						free(workers_to_move);
 					}
 				}
 			}
-			
+
 			for(s2 = 0; s2 < ns; s2++)
 			{
 				if(sched_ctxs[s2] != sched_ctxs[s])
@@ -394,7 +410,7 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 					if(x > 0)
 					{
 						sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, x, current_sched_ctxs[s]);
-						sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);						
+						sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);
 					}
 					free(workers_to_add);
 				}
@@ -410,10 +426,10 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 							sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, x-1, current_sched_ctxs[s]);
 						sched_ctx_hypervisor_start_resize(current_sched_ctxs[s]);
 					}
-					free(workers_to_add);			
+					free(workers_to_add);
 				}
 			}
-			
+
 		}
 		sched_ctx_hypervisor_stop_resize(current_sched_ctxs[s]);
 	}

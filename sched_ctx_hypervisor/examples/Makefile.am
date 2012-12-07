@@ -23,7 +23,7 @@ noinst_HEADERS = 				\
 	sched_ctx_utils/sched_ctx_utils.h
 endif
 
-AM_LDFLAGS = $(top_builddir)/src/libstarpu-1.0.la 
+AM_LDFLAGS = $(top_builddir)/src/libstarpu-1.0.la
 
 LIBS = $(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
 
@@ -49,9 +49,9 @@ cholesky_cholesky_implicit_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
 
 app_driven_test_app_driven_test_SOURCES =		\
-	app_driven_test/app_driven_test.c		
+	app_driven_test/app_driven_test.c
 
 app_driven_test_app_driven_test_LDADD =		\
-	$(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la 
+	$(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
 
 endif

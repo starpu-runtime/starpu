@@ -20,7 +20,7 @@ static struct policy_config* _create_config(void)
 {
 	struct policy_config *config = (struct policy_config *)malloc(sizeof(struct policy_config));
 	config->min_nworkers = -1;
-	config->max_nworkers = -1;	
+	config->max_nworkers = -1;
 	config->new_workers_max_idle = -1.0;
 
 	int i;
@@ -33,7 +33,7 @@ static struct policy_config* _create_config(void)
 		config->empty_ctx_max_idle[i] = -1.0;
 		config->min_working[i] = -1.0;
 	}
-	
+
 	return config;
 }
 
@@ -63,7 +63,7 @@ void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 	}
 	else
 		hypervisor.sched_ctx_w[sched_ctx].config = config;
-	
+
 	return;
 }
 
@@ -71,7 +71,7 @@ void _add_config(unsigned sched_ctx)
 {
 	struct policy_config *config = _create_config();
 	config->min_nworkers = 0;
-	config->max_nworkers = STARPU_NMAXWORKERS;	
+	config->max_nworkers = STARPU_NMAXWORKERS;
 	config->new_workers_max_idle = MAX_IDLE_TIME;
 
 	int i;
@@ -114,7 +114,7 @@ static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsig
 	int *workerids;
 	int nworkers;
 
-	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL) 
+	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL)
 	{
 		switch(arg_type)
 		{
@@ -131,7 +131,7 @@ static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsig
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			double empty_ctx_max_idle = va_arg(varg_list, double);
-			
+
 			for(i = 0; i < nworkers; i++)
 				config->empty_ctx_max_idle[workerids[i]] = empty_ctx_max_idle;
 
@@ -151,7 +151,7 @@ static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsig
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			int priority = va_arg(varg_list, int);
-	
+
 			for(i = 0; i < nworkers; i++)
 				config->priority[workerids[i]] = priority;
 			break;
@@ -180,7 +180,7 @@ static struct policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsig
 			config->new_workers_max_idle = va_arg(varg_list, double);
 			break;
 
-/* not important for the strateg, needed just to jump these args in the iteration of the args */			
+/* not important for the strateg, needed just to jump these args in the iteration of the args */
 		case HYPERVISOR_TIME_TO_APPLY:
 			va_arg(varg_list, int);
 			break;
@@ -207,7 +207,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	int stop = 0;
 	int task_tag = -1;
 
-	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL) 
+	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL)
 	{
 		switch(arg_type)
 		{
