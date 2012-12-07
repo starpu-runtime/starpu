@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu_config.h>
 #include "lp_tools.h"
 #include <math.h>
 
@@ -315,7 +316,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *w
 /*
  * GNU Linear Programming Kit backend
  */
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers)
 {
@@ -591,4 +592,4 @@ struct hypervisor_policy lp2_policy = {
 	.name = "lp2"
 };
 
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */

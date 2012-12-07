@@ -26,9 +26,9 @@
 #include <profiling/bound.h>
 #include <core/jobs.h>
 
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 
 /* TODO: output duration between starpu_bound_start and starpu_bound_stop */
 
@@ -887,7 +887,7 @@ void starpu_bound_print_mps(FILE *output)
 /*
  * Solve bound system thanks to GNU Linear Programming Kit backend
  */
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 static glp_prob *_starpu_bound_glp_resolve(int integer)
 {
 	struct bound_task_pool * tp;
@@ -1018,12 +1018,12 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 
 	return lp;
 }
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 
 /* Print the computed bound as well as the optimized distribution of tasks */
 void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 {
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 	if (recorddeps)
 	{
 		fprintf(output, "Not supported\n");
@@ -1066,15 +1066,15 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 		fprintf(stderr, "Simplex failed\n");
 	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-#else /* HAVE_GLPK_H */
+#else /* STARPU_HAVE_GLPK_H */
 	fprintf(output, "Please rebuild StarPU with glpk installed.\n");
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 }
 
 /* Compute and return the bound */
 void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unused)), int integer __attribute__ ((unused)))
 {
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 	double ret;
 
 	if (recorddeps)
@@ -1096,7 +1096,7 @@ void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unuse
 		ret = 0.;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	*res = ret;
-#else /* HAVE_GLPK_H */
+#else /* STARPU_HAVE_GLPK_H */
 	*res = 0.;
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 }

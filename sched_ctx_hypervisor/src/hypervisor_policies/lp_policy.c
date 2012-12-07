@@ -15,6 +15,7 @@
  */
 
 #include "lp_tools.h"
+#include <starpu_config.h>
 
 
 static void lp_handle_poped_task(unsigned sched_ctx, int worker)
@@ -84,7 +85,7 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 struct hypervisor_policy lp_policy = {
 	.size_ctxs = lp_size_ctxs,
 	.handle_poped_task = lp_handle_poped_task,
@@ -97,4 +98,4 @@ struct hypervisor_policy lp_policy = {
 	.name = "lp"
 };
 
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */

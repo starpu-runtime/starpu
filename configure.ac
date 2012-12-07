@@ -1015,9 +1015,7 @@ if test x$enable_memory_stats = xyes; then
         AC_DEFINE(STARPU_MEMORY_STATS, [1], [enable memory stats])
 fi
 
-AC_CHECK_HEADERS([glpk.h])
-STARPU_HAVE_LIBRARY(GLPK, [glpk])
-AM_CONDITIONAL([STARPU_HAVE_GLPK], [test "x$build_sched_ctx_hypervisor" = "xyes"])
+AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
 AC_CHECK_HEADERS([Ayudame.h])
 
 ###############################################################################

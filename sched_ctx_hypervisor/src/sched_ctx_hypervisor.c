@@ -16,6 +16,7 @@
 
 #include <sched_ctx_hypervisor_intern.h>
 #include <common/uthash.h>
+#include <starpu_config.h>
 
 unsigned imposed_resize = 0;
 struct starpu_performance_counters* perf_counters = NULL;
@@ -30,20 +31,20 @@ static void notify_submitted_job(struct starpu_task *task, unsigned footprint);
 extern struct hypervisor_policy idle_policy;
 extern struct hypervisor_policy app_driven_policy;
 extern struct hypervisor_policy gflops_rate_policy;
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 extern struct hypervisor_policy lp_policy;
 extern struct hypervisor_policy lp2_policy;
-#endif
+#endif // STARPU_HAVE_GLPK_H
 
 
 static struct hypervisor_policy *predefined_policies[] =
 {
         &idle_policy,
 	&app_driven_policy,
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 	&lp_policy,
 	&lp2_policy,
-#endif
+#endif // STARPU_HAVE_GLPK_H
 	&gflops_rate_policy
 };
 
