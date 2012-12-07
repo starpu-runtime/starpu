@@ -510,10 +510,10 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 		_starpu_clock_gettime(&pop_start_time);
 
 pick:
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 
 	/* get tasks from the stacks of the strategy */
@@ -685,7 +685,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -697,7 +697,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so

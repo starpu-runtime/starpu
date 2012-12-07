@@ -247,8 +247,8 @@ static struct _starpu_worker_set gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
-	_starpu_pthread_cond_t *cond = workerarg->sched_cond;
-	_starpu_pthread_mutex_t *mutex = workerarg->sched_mutex;
+	_starpu_pthread_cond_t *cond = &workerarg->sched_cond;
+	_starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -375,8 +375,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		/* afterwards there would be a mutex + cond for the list of each strategy */
 		workerarg->run_by_starpu = 1;
 
-		_STARPU_PTHREAD_MUTEX_INIT(workerarg->sched_mutex, NULL);
-		_STARPU_PTHREAD_COND_INIT(workerarg->sched_cond, NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+		_STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks

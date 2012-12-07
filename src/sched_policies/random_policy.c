@@ -107,7 +107,7 @@ static void random_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	{
 		workerid = workerids[i];
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, workerarg->sched_mutex, workerarg->sched_cond);
+		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &workerarg->sched_mutex, &workerarg->sched_cond);
 	}
 }
 

@@ -761,8 +761,8 @@ void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, _sta
 	if(!*sched_mutex)
 	{
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		*sched_mutex = workerarg->sched_mutex;
-		*sched_cond = workerarg->sched_cond;
+		*sched_mutex = &workerarg->sched_mutex;
+		*sched_cond = &workerarg->sched_cond;
 		starpu_worker_set_sched_condition(sched_ctx_id, workerid, *sched_mutex, *sched_cond);
 	}
 

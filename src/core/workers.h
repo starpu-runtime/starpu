@@ -70,8 +70,8 @@ struct _starpu_worker
 	int worker_size; /* size of the worker in case we use a combined worker */
         _starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
-	_starpu_pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
-	_starpu_pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
+	_starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
+	_starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task *current_task; /* task currently executed by this worker */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
