@@ -24,6 +24,8 @@ extern "C"
 {
 #endif
 
+#warning rename all objects to start with starpu_sched_ctx
+
 /* generic structure used by the scheduling contexts to iterate the workers */
 struct starpu_sched_ctx_worker_collection
 {
