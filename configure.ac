@@ -1016,6 +1016,7 @@ if test x$enable_memory_stats = xyes; then
 fi
 
 AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
+STARPU_HAVE_LIBRARY(GLPK, [glpk])
 AC_CHECK_HEADERS([Ayudame.h])
 
 ###############################################################################
