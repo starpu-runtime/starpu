@@ -105,6 +105,9 @@ static void starpu_top_get_device_type(int id, char* type)
 	case STARPU_GORDON_WORKER:
 		strncpy(type, "GORDON",9);
 		break;
+	case STARPU_ANY_WORKER:
+		strncpy(type, "ANY",9);
+		break;
 	}
 }
 

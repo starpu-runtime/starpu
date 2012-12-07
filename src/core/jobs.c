@@ -412,15 +412,15 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 
 	if (back)
 		starpu_task_list_push_back(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
-	_STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	_STARPU_PTHREAD_COND_BROADCAST(worker->sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 
 	return 0;
 }

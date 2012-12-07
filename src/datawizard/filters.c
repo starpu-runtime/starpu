@@ -20,6 +20,7 @@
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
 #include <datawizard/interfaces/data_interface.h>
+#include <core/task.h>
 
 static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f);
 

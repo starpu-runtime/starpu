@@ -225,7 +225,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(workerid, task->sched_ctx);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
-	
+
 	if (is_basic_worker)
 	{
 		unsigned node = starpu_worker_get_memory_node(workerid);
@@ -292,14 +292,14 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 	struct worker_collection *workers = sched_ctx->workers;
 	if(workers->init_cursor)
 		workers->init_cursor(workers);
-	
+
 	while(workers->has_next(workers))
 	{
 		worker = workers->get_next(workers);
 		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_is_ctxs_turn(worker, sched_ctx->id))
 			nworkers++;
 	}
-	
+
 	if(workers->init_cursor)
 		workers->deinit_cursor(workers);
 	return nworkers;
@@ -311,14 +311,14 @@ int _starpu_push_task(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	unsigned nworkers = 0; 
+	unsigned nworkers = 0;
 
 	if(!sched_ctx->is_initial_sched)
 	{
-		/*if there are workers in the ctx that are not able to execute tasks 
+		/*if there are workers in the ctx that are not able to execute tasks
 		  we consider the ctx empty */
 		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
-		
+
 		if(nworkers == 0)
 		{
 			if(task->already_pushed)
@@ -338,7 +338,7 @@ int _starpu_push_task(struct _starpu_job *j)
 			}
 		}
 	}
-	
+
 	_STARPU_LOG_IN();
 
 	_starpu_increment_nready_tasks();
@@ -377,9 +377,9 @@ int _starpu_push_task(struct _starpu_job *j)
 			ret = _starpu_push_task(j);
 		}
 	}
-	
+
 	_starpu_profiling_set_task_push_end_time(task);
-	
+
 	_STARPU_LOG_OUT();
 	return ret;
 }
@@ -472,16 +472,16 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
 		sched_ctx = worker->sched_ctx[i];
-		
-		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && 
-		   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs && 
+
+		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
+		   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
 		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
 		{
 			good_sched_ctx = sched_ctx;
 			smallest_counter = sched_ctx->pop_counter[worker->workerid];
 		}
 	}
-	
+
 	if(good_sched_ctx == NULL)
 	{
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -490,7 +490,7 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 				sched_ctx->pop_counter[worker->workerid] = 0;
 		}
-		
+
 		return _get_next_sched_ctx_to_pop_into(worker);
 	}
 	return good_sched_ctx;
@@ -510,18 +510,18 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 		_starpu_clock_gettime(&pop_start_time);
 
 pick:
-	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
-	
-	
+	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+
+
 	/* get tasks from the stacks of the strategy */
 	if(!task)
 	{
 		struct _starpu_sched_ctx *sched_ctx;
 		_starpu_pthread_mutex_t *sched_ctx_mutex;
-		
+
 		int been_here[STARPU_NMAX_SCHED_CTXS];
 		int i;
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -539,7 +539,7 @@ pick:
 				if(sched_ctx_mutex != NULL)
 				{
 					_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
-					
+
 					if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
 
@@ -551,9 +551,9 @@ pick:
 			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
 				break;
 
-			
+
 			been_here[sched_ctx->id] = 1;
-			
+
 			sched_ctx->pop_counter[worker->workerid]++;
 
 		}
@@ -585,7 +585,7 @@ pick:
 	if (!task)
 		goto profiling;
 
-	/* Make sure we do not bother with all the multiformat-specific code if 
+	/* Make sure we do not bother with all the multiformat-specific code if
 	 * it is not necessary. */
 	if (!_starpu_task_uses_multiformat_handles(task))
 		goto profiling;
@@ -603,7 +603,7 @@ pick:
 	node = starpu_worker_get_memory_node(worker_id);
 
 	/*
-	 * We do have a task that uses multiformat handles. Let's create the 
+	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
 	unsigned i;
@@ -672,7 +672,7 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	if(task->hypervisor_tag > 0 && sched_ctx != NULL && 
+	if(task->hypervisor_tag > 0 && sched_ctx != NULL &&
 	   sched_ctx->id != 0 && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_post_exec_hook(sched_ctx->id, task->hypervisor_tag);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -685,7 +685,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -697,7 +697,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so
@@ -710,9 +710,8 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 	int ret =  _starpu_push_local_task(worker, task, back);
-	
+
 	task->scheduled = 1;
 
 	return ret;
 }
-

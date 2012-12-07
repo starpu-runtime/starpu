@@ -21,6 +21,7 @@
 #define NTASKS 1000
 int tasks_executed = 0;
 pthread_mutex_t mut;
+
 static void sched_ctx_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 	pthread_mutex_lock(&mut);
@@ -33,7 +34,7 @@ static struct starpu_codelet sched_ctx_codelet =
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {sched_ctx_func, NULL},
 	.cuda_funcs = {sched_ctx_func, NULL},
-    .opencl_funcs = {sched_ctx_func, NULL},
+	.opencl_funcs = {sched_ctx_func, NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -43,7 +44,6 @@ int main(int argc, char **argv)
 {
 	int ntasks = NTASKS;
 	int ret;
-	struct starpu_conf conf;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -57,25 +57,25 @@ int main(int argc, char **argv)
 	pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
-    int procs1[20], procs2[20];
+	int procs1[20], procs2[20];
 	procs1[0] = 0;
 	procs2[0] = 0;
 
 #ifdef STARPU_USE_CPU
 	unsigned ncpus =  starpu_cpu_worker_get_count();
-    starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 
 	nprocs1 = ncpus;
 #endif
 
 #ifdef STARPU_USE_CUDA
 	unsigned ncuda = starpu_cuda_worker_get_count();
-    starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
+	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
 
 	nprocs2 = ncuda;
 #endif
 
-    /*create contexts however you want*/
+	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_create_sched_ctx("heft", procs1, nprocs1, "ctx1");
 	unsigned sched_ctx2 = starpu_create_sched_ctx("heft", procs2, nprocs2, "ctx2");
 
@@ -86,13 +86,13 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks/2; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-	
+
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = NULL;
-	
+
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
-			
+
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -104,10 +104,10 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks/2; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-	
+
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = NULL;
-	
+
 		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
 
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

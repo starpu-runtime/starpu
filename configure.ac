@@ -1893,9 +1893,9 @@ AC_MSG_NOTICE([
 	       FFT Support:                                 $fft_support
 	       GCC plug-in:                                 $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
-	       SOCL enabled:  $build_socl
-               Scheduler Hypervisor: $build_sched_ctx_hypervisor
-               SOCL test suite: $run_socl_check
+	       SOCL enabled:                                $build_socl
+               SOCL test suite:                             $run_socl_check
+               Scheduler Hypervisor:                        $build_sched_ctx_hypervisor
                simgrid enabled:                             $enable_simgrid
                ayudame enabled:                             $ac_cv_header_Ayudame_h
 ])

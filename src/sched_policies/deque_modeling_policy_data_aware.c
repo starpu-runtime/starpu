@@ -53,6 +53,11 @@ typedef struct {
 	long int ready_task_cnt;
 } dmda_data;
 
+static double alpha = _STARPU_DEFAULT_ALPHA;
+static double beta = _STARPU_DEFAULT_BETA;
+static double _gamma = _STARPU_DEFAULT_GAMMA;
+static double idle_power = 0.0;
+
 #ifdef STARPU_USE_TOP
 static const float alpha_minimum=0;
 static const float alpha_maximum=10.0;

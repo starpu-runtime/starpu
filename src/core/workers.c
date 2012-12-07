@@ -247,8 +247,8 @@ static struct _starpu_worker_set gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
-	_starpu_pthread_cond_t *cond = &workerarg->sched_cond;
-	_starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
+	_starpu_pthread_cond_t *cond = workerarg->sched_cond;
+	_starpu_pthread_mutex_t *mutex = workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -375,8 +375,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		/* afterwards there would be a mutex + cond for the list of each strategy */
 		workerarg->run_by_starpu = 1;
 
-		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
-		_STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+		_STARPU_PTHREAD_MUTEX_INIT(workerarg->sched_mutex, NULL);
+		_STARPU_PTHREAD_COND_INIT(workerarg->sched_cond, NULL);
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -786,14 +786,11 @@ int starpu_init(struct starpu_conf *user_conf)
 	 * threads */
 	_starpu_initialize_current_task_key();
 
-
-	struct _starpu_sched_ctx *sched_ctx;
 	if(user_conf == NULL)
-		sched_ctx = _starpu_create_sched_ctx(NULL, NULL, -1, 1, "init");
+		_starpu_create_sched_ctx(NULL, NULL, -1, 1, "init");
 	else
-		sched_ctx = _starpu_create_sched_ctx(user_conf->sched_policy_name, NULL, -1, 1, "init");
+		_starpu_create_sched_ctx(user_conf->sched_policy_name, NULL, -1, 1, "init");
 
-//	starpu_set_sched_ctx(&sched_ctx->id);
 	_starpu_initialize_registered_performance_models();
 
 	/* Launch "basic" workers (ie. non-combined workers) */
@@ -930,9 +927,9 @@ void starpu_display_stats()
 	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
 		starpu_worker_profiling_helper_display_summary();
 }
+
 void starpu_shutdown(void)
 {
-	const char *stats;
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
 	if (init_count)

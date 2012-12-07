@@ -33,7 +33,7 @@ static unsigned _worker_belongs_to_ctx(struct worker_collection *workers, int wo
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
 	
-	int i;
+	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
 		if(workerids[i] == workerid)
