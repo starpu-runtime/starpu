@@ -37,3 +37,6 @@ libsched_ctx_hypervisor_la_SOURCES = 			\
 noinst_HEADERS = sched_ctx_hypervisor_intern.h		\
 	hypervisor_policies/policy_tools.h		\
 	hypervisor_policies/lp_tools.h
+
+showcheck:
+	-cat /dev/null

@@ -55,3 +55,6 @@ app_driven_test_app_driven_test_LDADD =		\
 	$(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
 
 endif
+
+showcheck:
+	-cat $(TEST_LOGS) /dev/null

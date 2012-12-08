@@ -19,3 +19,8 @@ versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 
 versinclude_HEADERS = include/sched_ctx_hypervisor.h
 
+showcheck:
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done
+
