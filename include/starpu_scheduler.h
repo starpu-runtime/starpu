@@ -87,7 +87,7 @@ struct starpu_sched_policy
 	 * task is explicitely assigned to a worker. This method therefore
 	 * permits to keep the timing state of the scheduler coherent even
 	 * when StarPU bypasses the scheduling strategy. */
-	void (*push_task_notify)(struct starpu_task *, int workerid);
+	void (*push_task_notify)(struct starpu_task *, int workerid, unsigned sched_ctx_id);
 
 	/* Get a task from the scheduler. The mutex associated to the worker is
 	 * already taken when this method is called. */

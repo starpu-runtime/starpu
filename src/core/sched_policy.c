@@ -217,7 +217,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		sched_ctx = worker->sched_ctx[i];
 		if (sched_ctx != NULL && sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
 		{
-			sched_ctx->sched_policy->push_task_notify(task, workerid);
+			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
 		}
 
 	}

@@ -857,9 +857,8 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-static void dmda_push_task_notify(struct starpu_task *task, int workerid)
+static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
 {
-	unsigned sched_ctx_id = task->sched_ctx;
 	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */
