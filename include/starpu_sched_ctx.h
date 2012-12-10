@@ -76,21 +76,21 @@ void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
-unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name);
+unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name);
 
-unsigned starpu_create_sched_ctx_inside_interval(const char *policy_name, const char *sched_name,
+unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name,
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap);
 
-void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id);
+void starpu_sched_ctx_delete(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id);
 
-void starpu_add_workers_to_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
+void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
 
-void starpu_remove_workers_from_sched_ctx(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
+void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
 
-void starpu_set_sched_ctx_policy_data(unsigned sched_ctx_id, void *policy_data);
+void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
-void* starpu_get_sched_ctx_policy_data(unsigned sched_ctx);
+void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx);
 
 struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
 

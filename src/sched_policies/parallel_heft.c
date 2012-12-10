@@ -90,7 +90,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 	
-	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	pheft_data *hd = (pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* Is this a basic worker or a combined worker ? */
 	unsigned memory_node;
@@ -242,7 +242,7 @@ static double compute_ntasks_end(int workerid)
 
 static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
-	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	pheft_data *hd = (pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
@@ -555,7 +555,7 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	hd->_gamma = _STARPU_DEFAULT_GAMMA;
 	hd->idle_power = 0.0;
 	
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)hd);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
@@ -579,7 +579,7 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 
 static void parallel_heft_deinit(unsigned sched_ctx_id) 
 {
-	pheft_data *hd = (pheft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	pheft_data *hd = (pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&hd->global_push_mutex);
 	free(hd);

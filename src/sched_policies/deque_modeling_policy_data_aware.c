@@ -153,7 +153,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 
 static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task;
 
@@ -188,7 +188,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 
 static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task;
 
@@ -221,7 +221,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *new_list;
 
@@ -251,7 +251,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 				    double predicted, double predicted_transfer,
 				    int prio, unsigned sched_ctx_id)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
@@ -326,7 +326,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 /* TODO: factorize with dmda!! */
 static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker, worker_ctx = 0;
 	int best = -1;
 	
@@ -464,7 +464,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	unsigned nimpl;
 
 	starpu_task_bundle_t bundle = task->bundle;
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 		
 	while(workers->has_next(workers))
@@ -577,7 +577,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	int forced_best = -1;
 	int forced_impl = -1;
 
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
@@ -746,7 +746,7 @@ static int dmda_push_task(struct starpu_task *task)
 
 static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int workerid;
 	unsigned i;
@@ -760,7 +760,7 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 
 static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int workerid;
 	unsigned i;
@@ -782,7 +782,7 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 	dt->_gamma = _STARPU_DEFAULT_GAMMA;
 	dt->idle_power = 0.0;
 
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)dt);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
 	dt->queue_array = (struct _starpu_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
 
@@ -825,7 +825,7 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 
 static void deinitialize_dmda_policy(unsigned sched_ctx_id) 
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	free(dt->queue_array);
 	free(dt);
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
@@ -840,7 +840,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	int workerid = starpu_worker_get_id();
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
@@ -859,7 +859,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 
 static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
 {
-	dmda_data *dt = (dmda_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	dmda_data *dt = (dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);

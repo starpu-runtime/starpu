@@ -70,7 +70,7 @@ static void param_modified(struct starpu_top_param* d)
 
 static void heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int workerid;
 	unsigned i;
@@ -86,7 +86,7 @@ static void heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 
 static void heft_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int workerid;
 	unsigned i;
@@ -109,7 +109,7 @@ static void heft_init(unsigned sched_ctx_id)
 	hd->_gamma = _STARPU_DEFAULT_GAMMA;
 	hd->idle_power = 0.0;
 	
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)hd);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 
 	hd->queue_array = (struct _starpu_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
 
@@ -143,7 +143,7 @@ static void heft_pre_exec_hook(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	int workerid = starpu_worker_get_id();
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = hd->queue_array[workerid];
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
@@ -163,7 +163,7 @@ static void heft_pre_exec_hook(struct starpu_task *task)
 static void heft_push_task_notify(struct starpu_task *task, int workerid)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = hd->queue_array[workerid];
 	/* Compute the expected penality */
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
@@ -222,7 +222,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = hd->queue_array[best_workerid];
 
 	pthread_mutex_t *sched_mutex;
@@ -318,7 +318,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	int worker, worker_ctx = 0;
 	unsigned nimpl;
 
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	starpu_task_bundle_t bundle = task->bundle;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
@@ -429,7 +429,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 /* TODO: factorize with dmda */
 static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int worker, worker_ctx = 0;
 	unsigned nimpl;
 	int best = -1, best_in_ctx = -1;
@@ -602,7 +602,7 @@ static struct starpu_task *heft_pop_task(unsigned sched_ctx_id)
 	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
-	heft_data *hd = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = hd->queue_array[workerid];
 
 	task = _starpu_fifo_pop_local_task(fifo);
@@ -619,7 +619,7 @@ static struct starpu_task *heft_pop_task(unsigned sched_ctx_id)
 
 static void heft_deinit(unsigned sched_ctx_id) 
 {
-	heft_data *ht = (heft_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	heft_data *ht = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	free(ht);
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }

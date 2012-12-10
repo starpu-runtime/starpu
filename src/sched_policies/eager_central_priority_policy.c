@@ -76,7 +76,7 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 
 static void eager_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
 {
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	unsigned i;
 	int workerid;
@@ -109,7 +109,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	/* only a single queue (even though there are several internaly) */
 	data->taskq = _starpu_create_priority_taskq();
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)data);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
 	_STARPU_PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&data->sched_cond, NULL);
@@ -119,7 +119,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id) 
 {
 	/* TODO check that there is no task left in the queue */
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* deallocate the task queue */
 	_starpu_destroy_priority_taskq(data->taskq);
@@ -135,7 +135,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 static int _starpu_priority_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
@@ -178,7 +178,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	unsigned workerid = starpu_worker_get_id();
 	int skipped = 0;
 
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	
 	struct _starpu_priority_taskq *taskq = data->taskq;
 

@@ -107,7 +107,7 @@ void* start_bench(void *val)
 	/* 	pthread_mutex_lock(&mut); */
 	/* 	if(first){ */
 	/* 		sched_ctx_hypervisor_unregiser_ctx(p->ctx); */
-	/* 		starpu_delete_sched_ctx(p->ctx, p->the_other_ctx); */
+	/* 		starpu_sched_ctx_delete(p->ctx, p->the_other_ctx); */
 	/* 	} */
 
 	/* 	first = 0; */
@@ -266,7 +266,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	for(i = 0; i < 12; i++)
 		p1.workers[i] = i;
 
-	p1.ctx = starpu_create_sched_ctx("heft", p1.workers, nworkers1, "sched_ctx1");
+	p1.ctx = starpu_sched_ctx_create("heft", p1.workers, nworkers1, "sched_ctx1");
 	starpu_set_perf_counters(p1.ctx, perf_counters);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
@@ -302,7 +302,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	/* for(i = n_all_gpus  + cpu1; i < n_all_gpus + cpu1 + cpu2; i++) */
 	/* 	p2.workers[k++] = i; */
 
-	p2.ctx = starpu_create_sched_ctx("heft", p2.workers, 0, "sched_ctx2");
+	p2.ctx = starpu_sched_ctx_create("heft", p2.workers, 0, "sched_ctx2");
 	starpu_set_perf_counters(p2.ctx, perf_counters);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;

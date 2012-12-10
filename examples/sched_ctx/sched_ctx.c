@@ -76,8 +76,8 @@ int main(int argc, char **argv)
 #endif
 
 	/*create contexts however you want*/
-	unsigned sched_ctx1 = starpu_create_sched_ctx("dmda", procs1, nprocs1, "ctx1");
-	unsigned sched_ctx2 = starpu_create_sched_ctx("dmda", procs2, nprocs2, "ctx2");
+	unsigned sched_ctx1 = starpu_sched_ctx_create("dmda", procs1, nprocs1, "ctx1");
+	unsigned sched_ctx2 = starpu_sched_ctx_create("dmda", procs2, nprocs2, "ctx2");
 
 	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);

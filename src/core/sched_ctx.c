@@ -329,7 +329,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 /*TODO: hierarchical ctxs: get n good workers: close to the other ones I already assigned to the ctx */
 						for(i = 0; i < n; i++)
 							workers[(*nw)++] = _pus[i];
-						starpu_remove_workers_from_sched_ctx(_pus, n, config->sched_ctxs[s].id);
+						starpu_sched_ctx_remove_workers(_pus, n, config->sched_ctxs[s].id);
 					}
 				}
 			}
@@ -382,7 +382,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 							pus_to_remove[c++] = _pus[i];
 						}
 						if(!allow_overlap)
-							starpu_remove_workers_from_sched_ctx(pus_to_remove, npus_to_remove, config->sched_ctxs[s].id);
+							starpu_sched_ctx_remove_workers(pus_to_remove, npus_to_remove, config->sched_ctxs[s].id);
 					}
 
 				}
@@ -391,7 +391,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_ar
 	}
 }
 
-unsigned starpu_create_sched_ctx_inside_interval(const char *policy_name, const char *sched_name, 
+unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, 
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap)
 {
@@ -420,7 +420,7 @@ unsigned starpu_create_sched_ctx_inside_interval(const char *policy_name, const 
 	return sched_ctx->id;
 	
 }
-unsigned starpu_create_sched_ctx(const char *policy_name, int *workerids, 
+unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids, 
 				 int nworkers, const char *sched_name)
 {
 	struct _starpu_sched_ctx *sched_ctx = NULL;
@@ -464,7 +464,7 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
 }
 
-void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id)
+void starpu_sched_ctx_delete(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(inheritor_sched_ctx_id);
@@ -480,7 +480,7 @@ void starpu_delete_sched_ctx(unsigned sched_ctx_id, unsigned inheritor_sched_ctx
 
 	if(!(sched_ctx->workers->nworkers == nworkers && sched_ctx->workers->nworkers == inheritor_sched_ctx->workers->nworkers) && sched_ctx->workers->nworkers > 0 && inheritor_sched_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
-		starpu_add_workers_to_sched_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, inheritor_sched_ctx_id);
+		starpu_sched_ctx_add_workers(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, inheritor_sched_ctx_id);
 	}
 
 	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id) && !_starpu_wait_for_all_tasks_of_sched_ctx(0))
@@ -545,7 +545,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 	return;
 
 }
-void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id)
+void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int added_workers[nworkers_to_add];
@@ -569,7 +569,7 @@ void starpu_add_workers_to_sched_ctx(int *workers_to_add, int nworkers_to_add, u
 	return;
 }
 
-void starpu_remove_workers_from_sched_ctx(int *workers_to_remove, int nworkers_to_remove, unsigned sched_ctx_id)
+void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_remove, unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int removed_workers[sched_ctx->workers->nworkers];
@@ -677,7 +677,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 		if(sched_ctx->finished_submit)
 		{
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
-			starpu_delete_sched_ctx(sched_ctx_id, sched_ctx->inheritor);
+			starpu_sched_ctx_delete(sched_ctx_id, sched_ctx->inheritor);
 			return;
 		}
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
@@ -721,13 +721,13 @@ unsigned _starpu_get_nsched_ctxs()
 	return config->topology.nsched_ctxs;
 }
 
-void starpu_set_sched_ctx_policy_data(unsigned sched_ctx_id, void* policy_data)
+void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void* policy_data)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->policy_data = policy_data;
 }
 
-void* starpu_get_sched_ctx_policy_data(unsigned sched_ctx_id)
+void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return sched_ctx->policy_data;

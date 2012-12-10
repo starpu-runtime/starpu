@@ -83,7 +83,7 @@ void* start_bench(void *val){
 	{
 		pthread_mutex_lock(&mut);
 		if(first){
-			starpu_delete_sched_ctx(p->ctx, p->the_other_ctx);
+			starpu_sched_ctx_delete(p->ctx, p->the_other_ctx);
 		}
 		
 		first = 0;
@@ -213,7 +213,7 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	}
 	printf("\n ");
 
-	p1.ctx = starpu_create_sched_ctx("heft", procs, nprocs1, "sched_ctx1");
+	p1.ctx = starpu_sched_ctx_create("heft", procs, nprocs1, "sched_ctx1");
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.procs = procs;
 	p1.nprocs = nprocs1;
@@ -240,7 +240,7 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	}
 	printf("\n");
 
-	p2.ctx = starpu_create_sched_ctx("heft", procs2, nprocs2, "sched_ctx2");
+	p2.ctx = starpu_sched_ctx_create("heft", procs2, nprocs2, "sched_ctx2");
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.procs = procs2;
 	p2.nprocs = nprocs2;

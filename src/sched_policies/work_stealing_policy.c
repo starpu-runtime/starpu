@@ -56,7 +56,7 @@ static int calibration_value = 0;
  */
 static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 
@@ -84,7 +84,7 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
  */
 static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_push_worker;
 	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 
@@ -105,7 +105,7 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
  */
 static float overload_metric(unsigned sched_ctx_id, unsigned id)
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	float execution_ratio = 0.0f;
 	float current_ratio = 0.0f;
 
@@ -250,7 +250,7 @@ static inline unsigned select_worker(unsigned sched_ctx_id)
 #endif
 static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task;
 	struct _starpu_deque_jobq *q;
@@ -293,7 +293,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 int ws_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct _starpu_deque_jobq *deque_queue;
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task); 
@@ -342,7 +342,7 @@ int ws_push_task(struct starpu_task *task)
 
 static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworkers) 
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	unsigned i;
 	int workerid;
@@ -364,7 +364,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 
 static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	unsigned i;
 	int workerid;
@@ -382,7 +382,7 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
 
 	work_stealing_data *ws = (work_stealing_data*)malloc(sizeof(work_stealing_data));
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)ws);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);
 	
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
@@ -401,7 +401,7 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 
 static void deinit_ws_policy(unsigned sched_ctx_id)
 {
-	work_stealing_data *ws = (work_stealing_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	work_stealing_data *ws = (work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	free(ws->queue_array);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&ws->sched_mutex);

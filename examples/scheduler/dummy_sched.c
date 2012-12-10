@@ -29,7 +29,7 @@ typedef struct dummy_sched_data {
 
 static void dummy_sched_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	
 	unsigned i;
 	int workerid;
@@ -64,14 +64,14 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 	pthread_mutex_init(&data->sched_mutex, NULL);
 	pthread_cond_init(&data->sched_cond, NULL);
 
-	starpu_set_sched_ctx_policy_data(sched_ctx_id, (void*)data);		
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);		
 
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
 static void deinit_dummy_sched(unsigned sched_ctx_id)
 {
-	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_ASSERT(starpu_task_list_empty(&data->sched_list));
 
@@ -88,7 +88,7 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 static int push_task_dummy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	pthread_mutex_lock(&data->sched_mutex);
 
@@ -109,7 +109,7 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * through the entire list until we find a task that is executable from
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
-	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_get_sched_ctx_policy_data(sched_ctx_id);
+	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	return starpu_task_list_pop_back(&data->sched_list);
 }
 

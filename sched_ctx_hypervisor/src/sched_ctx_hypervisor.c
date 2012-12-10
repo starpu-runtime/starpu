@@ -361,9 +361,9 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 		_get_cpus(workers_to_move, nworkers_to_move, cpus, &ncpus);
 
 //		if(ncpus != 0)
-//			starpu_remove_workers_from_sched_ctx(cpus, ncpus, sender_sched_ctx);
+//			starpu_sched_ctx_remove_workers(cpus, ncpus, sender_sched_ctx);
 
-		starpu_add_workers_to_sched_ctx(workers_to_move, nworkers_to_move, receiver_sched_ctx);
+		starpu_sched_ctx_add_workers(workers_to_move, nworkers_to_move, receiver_sched_ctx);
 
 		if(now)
 		{
@@ -373,7 +373,7 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 /* 				printf(" %d", workers_to_move[j]); */
 /* 			printf("\n"); */
 
-			starpu_remove_workers_from_sched_ctx(workers_to_move, nworkers_to_move, sender_sched_ctx);
+			starpu_sched_ctx_remove_workers(workers_to_move, nworkers_to_move, sender_sched_ctx);
 		}
 		else
 		{
@@ -417,7 +417,7 @@ void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned
 /* 		for(j = 0; j < nworkers_to_add; j++) */
 /* 			printf(" %d", workers_to_add[j]); */
 /* 		printf("\n"); */
-		starpu_add_workers_to_sched_ctx(workers_to_add, nworkers_to_add, sched_ctx);
+		starpu_sched_ctx_add_workers(workers_to_add, nworkers_to_add, sched_ctx);
 		struct starpu_sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctx);
 		int i;
 		for(i = 0; i < nworkers_to_add; i++)
@@ -447,7 +447,7 @@ void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, 
 /* 					printf(" %d", workers_to_remove[j]); */
 /* 				printf("\n"); */
 
-				starpu_remove_workers_from_sched_ctx(workers_to_remove, nworkers_to_remove, sched_ctx);
+				starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, sched_ctx);
 		}
 		else
 		{
@@ -588,7 +588,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 /* 					printf(" %d", moved_workers[j]); */
 /* 				printf("\n"); */
 
-				starpu_remove_workers_from_sched_ctx(moved_workers, nmoved_workers, sender_sched_ctx);
+				starpu_sched_ctx_remove_workers(moved_workers, nmoved_workers, sender_sched_ctx);
 
 				/* info concerning only the gflops_rate strateg */
 				struct starpu_sched_ctx_hypervisor_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];

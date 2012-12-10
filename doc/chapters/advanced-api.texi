@@ -537,20 +537,20 @@ StarPU permits on one hand grouping workers in combined workers in order to exec
 In contrast when we group workers in scheduling contexts we submit starpu tasks to them and we schedule them with the policy assigned to the context.
 Scheduling contexts can be created, deleted and modified dynamically.
 
-@deftypefun unsigned starpu_create_sched_ctx (const char *@var{policy_name}, int *@var{workerids_ctx}, int @var{nworkers_ctx}, const char *@var{sched_ctx_name})
+@deftypefun unsigned starpu_sched_ctx_create (const char *@var{policy_name}, int *@var{workerids_ctx}, int @var{nworkers_ctx}, const char *@var{sched_ctx_name})
 This function creates a scheduling context which uses the scheduling policy indicated in the first argument and assigns the workers indicated in the second argument to execute the tasks submitted to it.
 The return value represents the identifier of the context that has just been created. It will be further used to indicate the context the tasks will be submitted to. The return value should be at most @code{STARPU_NMAX_SCHED_CTXS}.
 @end deftypefun
 
-@deftypefun void starpu_delete_sched_ctx (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id})
+@deftypefun void starpu_sched_ctx_delete (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id})
 Delete scheduling context @var{sched_ctx_id} and lets scheduling context @var{inheritor_sched_ctx_id} take over its workers.
 @end deftypefun
 
-@deftypefun void starpu_add_workers_to_sched_ctx ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
+@deftypefun void starpu_sched_ctx_add_workers ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
 This function adds dynamically the workers indicated in the first argument to the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
 @end deftypefun
 
-@deftypefun void starpu_remove_workers_from_sched_ctx ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
+@deftypefun void starpu_sched_ctx_remove_workers ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx})
 This function removes the workers indicated in the first argument from the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
 @end deftypefun
 
@@ -713,12 +713,12 @@ This function returns the condition variables associated to a worker in a contex
 It is used in the policy to access to the local queue of the worker
 @end deftypefun
 
-@deftypefun void starpu_set_sched_ctx_policy_data (unsigned @var{sched_ctx_id}, {void *} @var{policy_data})
+@deftypefun void starpu_sched_ctx_set_policy_data (unsigned @var{sched_ctx_id}, {void *} @var{policy_data})
 Each scheduling policy uses some specific data (queues, variables, additional condition variables).
 It is memorize through a local structure. This function assigns it to a scheduling context.
 @end deftypefun
 
-@deftypefun void* starpu_get_sched_ctx_policy_data (unsigned @var{sched_ctx})
+@deftypefun void* starpu_sched_ctx_get_policy_data (unsigned @var{sched_ctx})
 Returns the policy data previously assigned to a context
 @end deftypefun
 
