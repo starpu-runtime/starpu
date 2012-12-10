@@ -92,14 +92,6 @@ void starpu_set_sched_ctx_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void* starpu_get_sched_ctx_policy_data(unsigned sched_ctx);
 
-void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
-
-void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
-
-void starpu_worker_init_sched_condition(unsigned sched_ctx_id, int workerid);
-
-void starpu_worker_deinit_sched_condition(unsigned sched_ctx_id, int workerid);
-
 struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
 
 void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id);

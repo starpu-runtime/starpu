@@ -99,6 +99,13 @@ int starpu_worker_get_devid(int id);
 }
 #endif
 
+void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
+
+void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
+
+void starpu_worker_init_sched_condition(unsigned sched_ctx_id, int workerid);
+
+void starpu_worker_deinit_sched_condition(unsigned sched_ctx_id, int workerid);
 
 #endif /* __STARPU_WORKER_H__ */
 
