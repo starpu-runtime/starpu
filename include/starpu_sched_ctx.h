@@ -107,9 +107,9 @@ void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, pthr
 #endif
 
 void starpu_sched_ctx_set_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
-#endif
 
 void starpu_sched_ctx_get_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
+#endif
 
 void starpu_sched_ctx_init_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid);
 

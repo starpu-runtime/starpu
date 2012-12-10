@@ -250,6 +250,10 @@ unsigned _starpu_execute_registered_progression_hooks(void);
 void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, _starpu_pthread_mutex_t *sched_mutex, _starpu_pthread_cond_t *sched_cond);
 
 void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond);
+
+void starpu_sched_ctx_set_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, _starpu_pthread_cond_t *sched_cond);
+
+void starpu_sched_ctx_get_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond);
 #endif
 
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
