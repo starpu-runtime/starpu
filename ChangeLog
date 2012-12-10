@@ -48,8 +48,8 @@ New features:
 	  environment variable STARPU_MPI_CACHE to 0.
         - Initialisation functions starpu_mpi_initialize_extended()
   	  and starpu_mpi_initialize() have been made deprecated. One
-	  should now use starpu_mpi_init() which will initialise MPI
-	  by calling MPI_Init_Thread if is not already done.
+	  should now use starpu_mpi_init(int *, char ***, int). The
+	  last parameter indicates if MPI should be initialised.
         - Collective detached operations have new parameters, a
 	  callback function and a argument. This is to be consistent
 	  with the detached point-to-point communications.
