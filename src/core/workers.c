@@ -76,7 +76,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 		unsigned impl;
 		for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
 		{
-			/* We could call task->cl->can_execute(i, task, impl) 
+			/* We could call task->cl->can_execute(i, task, impl)
 			   here, it would definitely work. It is probably
 			   cheaper to check whether it is necessary in order to
 			   avoid a useless function call, though. */
@@ -1268,7 +1268,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 					struct starpu_sched_ctx_worker_collection *workers = config.sched_ctxs[s].workers;
 					if(workers->init_cursor)
 						workers->init_cursor(workers);
-					
+
 					while(workers->has_next(workers))
 					{
 						worker = workers->get_next(workers);
@@ -1278,7 +1278,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 							break;
 						}
 					}
-					
+
 					if (workers->deinit_cursor)
 						workers->deinit_cursor(workers);
 					if(found) break;
@@ -1302,7 +1302,11 @@ int
 starpu_driver_run(struct starpu_driver *d)
 {
 	if (!d)
+	{
+		_STARPU_DEBUG("Invalid argument\n");
 		return -EINVAL;
+	}
+
 
 	switch (d->type)
 	{
@@ -1320,7 +1324,10 @@ starpu_driver_run(struct starpu_driver *d)
 #endif
 	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
+	{
+		_STARPU_DEBUG("Invalid device type\n");
 		return -EINVAL;
+	}
 	}
 }
 
