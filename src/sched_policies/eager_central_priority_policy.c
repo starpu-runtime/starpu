@@ -42,11 +42,12 @@ struct _starpu_priority_taskq
 	unsigned total_ntasks;
 };
 
-typedef struct eager_central_prio_data{
+struct _starpu_eager_central_prio_data
+{
 	struct _starpu_priority_taskq *taskq;
 	_starpu_pthread_mutex_t sched_mutex;
 	_starpu_pthread_cond_t sched_cond;
-} eager_central_prio_data;
+};
 
 /*
  * Centralized queue with priorities
@@ -74,9 +75,9 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 	free(priority_queue);
 }
 
-static void eager_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
+static void eager_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	unsigned i;
 	int workerid;
@@ -95,13 +96,13 @@ static void eager_priority_remove_workers(unsigned sched_ctx_id, int *workerids,
 	{
 		workerid = workerids[i];
 		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
-	}	
+	}
 }
 
-static void initialize_eager_center_priority_policy(unsigned sched_ctx_id) 
+static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
-	eager_central_prio_data *data = (eager_central_prio_data*)malloc(sizeof(eager_central_prio_data));
+	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
 	starpu_sched_set_min_priority(MIN_LEVEL);
@@ -113,13 +114,12 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	_STARPU_PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&data->sched_cond, NULL);
-
 }
 
-static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id) 
+static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
 	/* TODO check that there is no task left in the queue */
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* deallocate the task queue */
 	_starpu_destroy_priority_taskq(data->taskq);
@@ -129,13 +129,12 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
         free(data);
-	
 }
 
 static int _starpu_priority_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
@@ -178,8 +177,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	unsigned workerid = starpu_worker_get_id();
 	int skipped = 0;
 
-	eager_central_prio_data *data = (eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	
+	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	/* block until some event happens */

@@ -69,7 +69,8 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		int id = selected;
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
@@ -102,7 +103,7 @@ static int random_push_task(struct starpu_task *task)
         return ret_val;
 }
 
-static void random_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
+static void random_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	unsigned i;
 	int workerid;
@@ -126,13 +127,13 @@ static void random_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 
 }
 
-static void initialize_random_policy(unsigned sched_ctx_id) 
+static void initialize_random_policy(unsigned sched_ctx_id)
 {
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
 	starpu_srand48(time(NULL));
 }
 
-static void deinitialize_random_policy(unsigned sched_ctx_id) 
+static void deinitialize_random_policy(unsigned sched_ctx_id)
 {
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 }

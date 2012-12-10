@@ -24,15 +24,16 @@
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 
-typedef struct {
+struct _starpu_eager_center_policy_data
+{
 	struct _starpu_fifo_taskq *fifo;
 	_starpu_pthread_mutex_t sched_mutex;
 	_starpu_pthread_cond_t sched_cond;
-} eager_center_policy_data;
+};
 
-static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
+static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	eager_center_policy_data *data = (eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;
 	int workerid;
 	for (i = 0; i < nworkers; i++)
@@ -53,11 +54,11 @@ static void eager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned
 	}
 }
 
-static void initialize_eager_center_policy(unsigned sched_ctx_id) 
+static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
 
-	eager_center_policy_data *data = (eager_center_policy_data*)malloc(sizeof(eager_center_policy_data));
+	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)malloc(sizeof(struct _starpu_eager_center_policy_data));
 
 	_STARPU_DISP("Warning: you are running the default eager scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda scheduler instead.\n");
 
@@ -70,31 +71,31 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 
-static void deinitialize_eager_center_policy(unsigned sched_ctx_id) 
+static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	/* TODO check that there is no task left in the queue */
 
-	eager_center_policy_data *data = (eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(data->fifo);
 
 	_STARPU_PTHREAD_MUTEX_DESTROY(&data->sched_mutex);
 	_STARPU_PTHREAD_COND_DESTROY(&data->sched_cond);
-	
+
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 
-	free(data);	
+	free(data);
 }
 
 static int push_task_eager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	eager_center_policy_data *data = (eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
-	
+
 	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
 	nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
 	if(nworkers == 0)
@@ -110,15 +111,15 @@ static int push_task_eager_policy(struct starpu_task *task)
 
 static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 {
-	eager_center_policy_data *data = (eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	return _starpu_fifo_pop_every_task(data->fifo, &data->sched_mutex, starpu_worker_get_id());
 }
 
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
 	unsigned workerid = starpu_worker_get_id();
-	eager_center_policy_data *data = (eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	
+	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
 	return _starpu_fifo_pop_task(data->fifo, workerid);
 }
 

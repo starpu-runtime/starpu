@@ -38,7 +38,8 @@
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
 
-typedef struct {
+struct _starpu_pheft_data
+{
 	double alpha;
 	double beta;
 	double _gamma;
@@ -46,7 +47,7 @@ typedef struct {
 /* When we push a task on a combined worker we need all the cpu workers it contains
  * to be locked at once */
 	_starpu_pthread_mutex_t global_push_mutex;
-} pheft_data;
+};
 
 static double worker_exp_start[STARPU_NMAXWORKERS];
 static double worker_exp_end[STARPU_NMAXWORKERS];
@@ -54,8 +55,8 @@ static double worker_exp_len[STARPU_NMAXWORKERS];
 static int ntasks[STARPU_NMAXWORKERS];
 
 
-/*!!!!!!! It doesn't work with several contexts because the combined workers are constructed         
-  from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!          
+/*!!!!!!! It doesn't work with several contexts because the combined workers are constructed
+  from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!
 */
 
 static void parallel_heft_pre_exec_hook(struct starpu_task *task)
@@ -89,8 +90,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 {
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
-	
-	pheft_data *hd = (pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* Is this a basic worker or a combined worker ? */
 	unsigned memory_node;
@@ -242,14 +243,14 @@ static double compute_ntasks_end(int workerid)
 
 static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
-	pheft_data *hd = (pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 
 	unsigned worker, worker_ctx = 0;
 	int best = -1, best_id_ctx = -1;
-	
+
 	/* this flag is set if the corresponding worker is selected because
 	   there is no performance prediction available yet */
 	int forced_best = -1, forced_best_ctx = -1, forced_nimpl = -1;
@@ -314,7 +315,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				skip_worker[worker_ctx][nimpl] = 0;
 			}
 
-       
+
 			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
@@ -373,7 +374,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		worker_ctx++;
 	}
 
-	if (unknown) {
+	if (unknown)
+	{
 		forced_best = ntasks_best;
 		forced_best_ctx = ntasks_best_ctx;
 		forced_nimpl = nimpl_best;
@@ -387,7 +389,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		while(workers->has_next(workers))
 		{
 			worker = workers->get_next(workers);
-			
+
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (skip_worker[worker_ctx][nimpl])
@@ -396,7 +398,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 					continue;
 				}
 
-				fitness[worker_ctx][nimpl] = hd->alpha*(local_exp_end[worker_ctx][nimpl] - best_exp_end) 
+				fitness[worker_ctx][nimpl] = hd->alpha*(local_exp_end[worker_ctx][nimpl] - best_exp_end)
 						+ hd->beta*(local_data_penalty[worker_ctx][nimpl])
 						+ hd->_gamma*(local_power[worker_ctx][nimpl]);
 
@@ -457,7 +459,7 @@ static int parallel_heft_push_task(struct starpu_task *task)
 	int ret_val = -1;
 
 	if (task->priority == STARPU_MAX_PRIO)
-	{  
+	{
 		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
                 nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
                 if(nworkers == 0)
@@ -465,7 +467,7 @@ static int parallel_heft_push_task(struct starpu_task *task)
                         _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
                         return ret_val;
                 }
-		
+
 		ret_val = _parallel_heft_push_task(task, 1, sched_ctx_id);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
                 return ret_val;
@@ -498,7 +500,7 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 		{
 			worker_exp_start[workerid] = starpu_timing_now();
 			worker_exp_len[workerid] = 0.0;
-			worker_exp_end[workerid] = worker_exp_start[workerid]; 
+			worker_exp_end[workerid] = worker_exp_start[workerid];
 			ntasks[workerid] = 0;
 			workerarg->has_prev_init = 1;
 		}
@@ -546,15 +548,15 @@ static void parallel_heft_remove_workers(unsigned sched_ctx_id, int *workerids, 
 		starpu_sched_ctx_deinit_worker_mutex_and_cond(sched_ctx_id, worker);
 	}
 }
-static void initialize_parallel_heft_policy(unsigned sched_ctx_id) 
-{	
+static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
+{
 	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
-	pheft_data *hd = (pheft_data*)malloc(sizeof(pheft_data));
+	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
 	hd->alpha = _STARPU_DEFAULT_ALPHA;
 	hd->beta = _STARPU_DEFAULT_BETA;
 	hd->_gamma = _STARPU_DEFAULT_GAMMA;
 	hd->idle_power = 0.0;
-	
+
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
@@ -572,14 +574,14 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
 		hd->idle_power = atof(strval_idle_power);
-	
+
 	_STARPU_PTHREAD_MUTEX_INIT(&hd->global_push_mutex, NULL);
 
 }
 
-static void parallel_heft_deinit(unsigned sched_ctx_id) 
+static void parallel_heft_deinit(unsigned sched_ctx_id)
 {
-	pheft_data *hd = (pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&hd->global_push_mutex);
 	free(hd);
@@ -592,7 +594,7 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.deinit_sched = parallel_heft_deinit,
 	.add_workers = parallel_heft_add_workers,
 	.remove_workers = parallel_heft_remove_workers,
-	.push_task = parallel_heft_push_task, 
+	.push_task = parallel_heft_push_task,
 	.pop_task = NULL,
 	.pre_exec_hook = parallel_heft_pre_exec_hook,
 	.post_exec_hook = NULL,

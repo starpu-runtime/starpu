@@ -27,121 +27,122 @@
 
 static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], unsigned *n)
 {
-		if (!obj->userdata)
-				/* Not something we run something on, don't care */
-				return;
-		if (obj->userdata == (void*) -1)
-		{
-				/* Intra node, recurse */
-				unsigned i;
-				for (i = 0; i < obj->arity; i++)
-						find_workers(obj->children[i], cpu_workers, n);
-				return;
-		}
-		
-		/* Got to a PU leaf */
-		struct _starpu_worker *worker = obj->userdata;
-		/* is it a CPU worker? */
-		if (worker->perf_arch == STARPU_CPU_DEFAULT)
-		{
-				_STARPU_DEBUG("worker %d is part of it\n", worker->workerid);
-				/* Add it to the combined worker */
-				cpu_workers[(*n)++] = worker->workerid;
-		}
+	if (!obj->userdata)
+		/* Not something we run something on, don't care */
+		return;
+	if (obj->userdata == (void*) -1)
+	{
+		/* Intra node, recurse */
+		unsigned i;
+		for (i = 0; i < obj->arity; i++)
+			find_workers(obj->children[i], cpu_workers, n);
+		return;
+	}
+
+	/* Got to a PU leaf */
+	struct _starpu_worker *worker = obj->userdata;
+	/* is it a CPU worker? */
+	if (worker->perf_arch == STARPU_CPU_DEFAULT)
+	{
+		_STARPU_DEBUG("worker %d is part of it\n", worker->workerid);
+		/* Add it to the combined worker */
+		cpu_workers[(*n)++] = worker->workerid;
+	}
 }
 
 static void synthesize_intermediate_workers(hwloc_obj_t *children, unsigned arity, unsigned n, unsigned synthesize_arity)
 {
-		unsigned nworkers, i, j;
-		unsigned chunk_size = (n + synthesize_arity-1) / synthesize_arity;
-		unsigned chunk_start;
-		int cpu_workers[STARPU_NMAXWORKERS];
-		int ret;
-		
-		if (n <= synthesize_arity)
-				/* Not too many children, do not synthesize */
-				return;
+	unsigned nworkers, i, j;
+	unsigned chunk_size = (n + synthesize_arity-1) / synthesize_arity;
+	unsigned chunk_start;
+	int cpu_workers[STARPU_NMAXWORKERS];
+	int ret;
 
-		_STARPU_DEBUG("%u children > %u, synthesizing intermediate combined workers of size %u\n", n, synthesize_arity, chunk_size);
+	if (n <= synthesize_arity)
+		/* Not too many children, do not synthesize */
+		return;
 
-		n = 0;
-		j = 0;
-		nworkers = 0;
-		chunk_start = 0;
-		for (i = 0 ; i < arity; i++)
+	_STARPU_DEBUG("%u children > %u, synthesizing intermediate combined workers of size %u\n", n, synthesize_arity, chunk_size);
+
+	n = 0;
+	j = 0;
+	nworkers = 0;
+	chunk_start = 0;
+	for (i = 0 ; i < arity; i++)
+	{
+		if (children[i]->userdata)
 		{
-				if (children[i]->userdata) 
-				{
-						n++;
-						_STARPU_DEBUG("child %u\n", i);
-						find_workers(children[i], cpu_workers, &nworkers);
-						j++;
-				}
-				/* Completed a chunk, or last bit (but not if it's just 1 subobject) */
-				if (j == chunk_size || (i == arity-1 && j > 1)) 
-				{
-						_STARPU_DEBUG("Adding it\n");
-						ret = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
-						STARPU_ASSERT(ret >= 0);
-						/* Recurse there */
-						synthesize_intermediate_workers(children+chunk_start, i - chunk_start, n, synthesize_arity);
-						/* And restart another one */
-						n = 0;
-						j = 0;
-						nworkers = 0;
-						chunk_start = i+1;
-				}
+			n++;
+			_STARPU_DEBUG("child %u\n", i);
+			find_workers(children[i], cpu_workers, &nworkers);
+			j++;
 		}
+		/* Completed a chunk, or last bit (but not if it's just 1 subobject) */
+		if (j == chunk_size || (i == arity-1 && j > 1))
+		{
+			_STARPU_DEBUG("Adding it\n");
+			ret = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
+			STARPU_ASSERT(ret >= 0);
+			/* Recurse there */
+			synthesize_intermediate_workers(children+chunk_start, i - chunk_start, n, synthesize_arity);
+			/* And restart another one */
+			n = 0;
+			j = 0;
+			nworkers = 0;
+			chunk_start = i+1;
+		}
+	}
 }
 
 static void find_and_assign_combinations(hwloc_obj_t obj, unsigned synthesize_arity)
 {
-    char name[64];
-    unsigned i, n, nworkers;
-    int cpu_workers[STARPU_NMAXWORKERS];
+	char name[64];
+	unsigned i, n, nworkers;
+	int cpu_workers[STARPU_NMAXWORKERS];
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct starpu_machine_topology *topology = &config->topology;
 
-    hwloc_obj_snprintf(name, sizeof(name), topology->hwtopology, obj, "#", 0);
-    _STARPU_DEBUG("Looking at %s\n", name);
+	hwloc_obj_snprintf(name, sizeof(name), topology->hwtopology, obj, "#", 0);
+	_STARPU_DEBUG("Looking at %s\n", name);
 
-    for (n = 0, i = 0; i < obj->arity; i++)
-			if (obj->children[i]->userdata)
-					/* it has a CPU worker */
-					n++;
-	
-    if (n == 1) {
-			/* If there is only one child, we go to the next level right away */
-			find_and_assign_combinations(obj->children[0], synthesize_arity);
-			return;
-    }
-	
-    /* Add this object */
-    nworkers = 0;
-    find_workers(obj, cpu_workers, &nworkers);
-	
-    if (nworkers > 1)
-    {
-			_STARPU_DEBUG("Adding it\n");
-			unsigned sched_ctx_id  = starpu_get_sched_ctx();
-			if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
-					sched_ctx_id = 0; 
-			
-			struct starpu_sched_ctx_worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	for (n = 0, i = 0; i < obj->arity; i++)
+		if (obj->children[i]->userdata)
+			/* it has a CPU worker */
+			n++;
 
-			int newworkerid = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
-			STARPU_ASSERT(newworkerid >= 0);
-			workers->add(workers,newworkerid);
-    }
-	
-    /* Add artificial intermediate objects recursively */
-    synthesize_intermediate_workers(obj->children, obj->arity, n, synthesize_arity);
-	
-    /* And recurse */
-    for (i = 0; i < obj->arity; i++)
-			if (obj->children[i]->userdata == (void*) -1)
-					find_and_assign_combinations(obj->children[i], synthesize_arity);
+	if (n == 1)
+	{
+		/* If there is only one child, we go to the next level right away */
+		find_and_assign_combinations(obj->children[0], synthesize_arity);
+		return;
+	}
+
+	/* Add this object */
+	nworkers = 0;
+	find_workers(obj, cpu_workers, &nworkers);
+
+	if (nworkers > 1)
+	{
+		_STARPU_DEBUG("Adding it\n");
+		unsigned sched_ctx_id  = starpu_get_sched_ctx();
+		if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+			sched_ctx_id = 0;
+
+		struct starpu_sched_ctx_worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+
+		int newworkerid = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
+		STARPU_ASSERT(newworkerid >= 0);
+		workers->add(workers,newworkerid);
+	}
+
+	/* Add artificial intermediate objects recursively */
+	synthesize_intermediate_workers(obj->children, obj->arity, n, synthesize_arity);
+
+	/* And recurse */
+	for (i = 0; i < obj->arity; i++)
+		if (obj->children[i]->userdata == (void*) -1)
+			find_and_assign_combinations(obj->children[i], synthesize_arity);
 }
 
 static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers)
@@ -149,10 +150,10 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct starpu_machine_topology *topology = &config->topology;
 	int synthesize_arity = starpu_get_env_number("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER");
-	
+
 	if (synthesize_arity == -1)
 		synthesize_arity = 2;
-	
+
 	/* First, mark nodes which contain CPU workers, simply by setting their userdata field */
 	int i;
 	for (i = 0; i < nworkers; i++)
@@ -163,7 +164,8 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
 			STARPU_ASSERT(obj->userdata == worker);
 			obj = obj->parent;
-			while (obj) {
+			while (obj)
+			{
 				obj->userdata = (void*) -1;
 				obj = obj->parent;
 			}
@@ -176,40 +178,39 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 
 static void find_and_assign_combinations_without_hwloc(int *workerids, int nworkers)
 {
-    unsigned sched_ctx_id  = starpu_get_sched_ctx();
-    if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
-	    sched_ctx_id = 0; 
-	
-    struct starpu_sched_ctx_worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
-	
-	
-    /* We put the id of all CPU workers in this array */
-    int cpu_workers[STARPU_NMAXWORKERS];
-    unsigned ncpus = 0;
-	
-    struct _starpu_worker *worker;
-    unsigned i;
-    for (i = 0; i < nworkers; i++)
-    {
-	    worker = _starpu_get_worker_struct(workerids[i]);
-		
-	    if (worker->perf_arch == STARPU_CPU_DEFAULT)
-		    cpu_workers[ncpus++] = i;
-    }
-	
-    unsigned size;
-    for (size = 2; size <= ncpus; size *= 2)
-    {
+	unsigned sched_ctx_id  = starpu_get_sched_ctx();
+	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+		sched_ctx_id = 0;
+
+	struct starpu_sched_ctx_worker_collection* workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+
+	/* We put the id of all CPU workers in this array */
+	int cpu_workers[STARPU_NMAXWORKERS];
+	unsigned ncpus = 0;
+
+	struct _starpu_worker *worker;
+	unsigned i;
+	for (i = 0; i < nworkers; i++)
+	{
+		worker = _starpu_get_worker_struct(workerids[i]);
+
+		if (worker->perf_arch == STARPU_CPU_DEFAULT)
+			cpu_workers[ncpus++] = i;
+	}
+
+	unsigned size;
+	for (size = 2; size <= ncpus; size *= 2)
+	{
 		unsigned first_cpu;
 		for (first_cpu = 0; first_cpu < ncpus; first_cpu += size)
 		{
 			if (first_cpu + size <= ncpus)
 			{
 				int found_workerids[size];
-				
+
 				for (i = 0; i < size; i++)
 					found_workerids[i] = cpu_workers[first_cpu + i];
-				
+
 				/* We register this combination */
 				int newworkerid;
 				newworkerid = starpu_combined_worker_assign_workerid(size, found_workerids);
@@ -217,11 +218,10 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 				workers->add(workers, newworkerid);
 			}
 		}
-    }
+	}
 }
 
 #endif /* STARPU_HAVE_HWLOC */
-
 
 static void combine_all_cpu_workers(int *workerids, int nworkers)
 {
@@ -236,11 +236,11 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 	for (i = 0; i < nworkers; i++)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);
-		
+
 		if (worker->perf_arch == STARPU_CPU_DEFAULT)
 			cpu_workers[ncpus++] = workerids[i];
 	}
-	
+
 	for (i = 1; i <= ncpus; i++)
 	{
 		int newworkerid;
@@ -252,16 +252,16 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 
 void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 {
-    struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-    if (config->conf->single_combined_worker > 0)
-	    combine_all_cpu_workers(workerids, nworkers);
-    else
-    {
+	if (config->conf->single_combined_worker > 0)
+		combine_all_cpu_workers(workerids, nworkers);
+	else
+	{
 #ifdef STARPU_HAVE_HWLOC
-	    find_and_assign_combinations_with_hwloc(workerids, nworkers);
+		find_and_assign_combinations_with_hwloc(workerids, nworkers);
 #else
-	    find_and_assign_combinations_without_hwloc(workerids, nworkers);
+		find_and_assign_combinations_without_hwloc(workerids, nworkers);
 #endif
-    }
+	}
 }
