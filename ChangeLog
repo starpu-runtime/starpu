@@ -64,7 +64,20 @@ New features:
   * Update OpenCL driver to only enable CPU devices (the environment
         variable STARPU_OPENCL_ONLY_ON_CPUS must be set to a positive
 	value when executing an application)
-
+  * Add Scheduling contexts to separate computation resources
+    	- Scheduling policies take into account the set of resources corresponding
+	to the context it belongs to
+	- Add support to dynamically change scheduling contexts
+	(Create and Delete a context, Add Workers to a context, Remove workers from a context)
+	- Add support to indicate to which contexts the tasks are submitted
+  * Add the Hypervisor to manage the Scheduling Contexts automatically
+    	- The Contexts can be registered to the Hypervisor
+	- Only the registered contexts are managed by the Hypervisor
+	- The Hypervisor can detect the initial distribution of resources of 
+	a context and constructs it consequently (the cost of execution is required)
+    	- Several policies can adapt dynamically the distribution of resources
+	in contexts if the initial one was not appropriate
+	- Add a platform to implement new policies of redistribution of resources
 Changes:
   * Fix the block filter functions.
   * Fix StarPU-MPI on Darwin.
