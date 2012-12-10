@@ -28,8 +28,8 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
-
-struct _starpu_sched_ctx {
+struct _starpu_sched_ctx
+{
 	/* id of the context used in user mode*/
 	unsigned id;
 
@@ -43,12 +43,12 @@ struct _starpu_sched_ctx {
 	void *policy_data;
 
 	struct starpu_sched_ctx_worker_collection *workers;
-	
+
 	/* mutex for temp_nworkers_in_ctx*/
 	_starpu_pthread_mutex_t changing_ctx_mutex;
 
 	/* we keep an initial sched which we never delete */
-	unsigned is_initial_sched; 
+	unsigned is_initial_sched;
 
 	/* wait for the tasks submitted to the context to be executed */
 	struct _starpu_barrier_counter tasks_barrier;
@@ -69,7 +69,7 @@ struct _starpu_sched_ctx {
 	struct starpu_task_list empty_ctx_tasks;
 
 	/* mutext protecting empty_ctx_tasks list */
-	_starpu_pthread_mutex_t empty_ctx_mutex; 
+	_starpu_pthread_mutex_t empty_ctx_mutex;
 
 	/* min CPUs to execute*/
 	int min_ncpus;
@@ -80,9 +80,9 @@ struct _starpu_sched_ctx {
 	/* min GPUs to execute*/
 	int min_ngpus;
 
-	/* max GPUs to execute*/	
+	/* max GPUs to execute*/
 	int max_ngpus;
-	
+
 	/* needed for overlapping contexts to help the workers
 	   determine which is the next context to pop tasks from */
 	unsigned pop_counter[STARPU_NMAXWORKERS];
@@ -118,7 +118,7 @@ void _starpu_delete_all_sched_ctxs();
  * context have been executed. */
 int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id);
 
-/* In order to implement starpu_wait_for_all_tasks_of_ctx, we keep track of the number of 
+/* In order to implement starpu_wait_for_all_tasks_of_ctx, we keep track of the number of
  * task currently submitted to the context */
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
 void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
@@ -132,7 +132,7 @@ unsigned _starpu_get_nsched_ctxs();
 /* Get the mutex corresponding to the global workerid */
 _starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_ctx, int worker);
 
-/* Get workers belonging to a certain context, it returns the number of workers 
+/* Get workers belonging to a certain context, it returns the number of workers
  take care: no mutex taken, the list of workers might not be updated */
 int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_archtype arch);
 
