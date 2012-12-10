@@ -190,8 +190,13 @@ test_opencl(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
+	cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+	if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+		device_type |= CL_DEVICE_TYPE_CPU;
+	if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+		device_type = CL_DEVICE_TYPE_CPU;
+
 	cl_device_id device_id;
-	int device_type = CL_DEVICE_TYPE_GPU; /* TODO Support CPU */
         err = clGetDeviceIDs(platform, device_type, 1, &device_id, NULL);
         if (err != CL_SUCCESS)
 	{
