@@ -211,10 +211,12 @@ struct starpu_task
 
 	int hypervisor_tag;
 	
+	/* Number of flops computed by this tag, used by resource reallocation for contexts */
 	double flops;
 
 	unsigned already_pushed;
 
+	/* Whether the scheduler has pushed the task on some queue */
 	unsigned scheduled;
 };
 

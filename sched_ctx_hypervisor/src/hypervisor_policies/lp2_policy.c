@@ -303,7 +303,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *w
                 {
                         enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_perf_archtype(w) :
 				starpu_worker_get_perf_archtype(workers[w]);
-                        double length = starpu_history_based_job_expected_perf(tp->cl->model, arch, tp->footprint);
+                        double length = starpu_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
 
                         if (isnan(length))
                                 times[w][t] = NAN;

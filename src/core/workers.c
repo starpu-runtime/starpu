@@ -730,14 +730,6 @@ int starpu_init(struct starpu_conf *user_conf)
 		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
 	}
 #endif
-	_starpu_open_debug_logfile();
-
-	_starpu_data_interface_init();
-
-	_starpu_timing_init();
-
-	_starpu_profiling_init();
-
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
@@ -757,8 +749,6 @@ int starpu_init(struct starpu_conf *user_conf)
 	     config.default_conf = 0;
 	}
 
-	_starpu_load_bus_performance_files();
-
 	_starpu_conf_check_environment(config.conf);
 
 	_starpu_init_all_sched_ctxs(&config);
@@ -769,6 +759,16 @@ int starpu_init(struct starpu_conf *user_conf)
 #ifdef STARPU_USE_FXT
 	_starpu_start_fxt_profiling();
 #endif
+
+	_starpu_open_debug_logfile();
+
+	_starpu_data_interface_init();
+
+	_starpu_timing_init();
+
+	_starpu_profiling_init();
+
+	_starpu_load_bus_performance_files();
 
 	ret = _starpu_build_topology(&config);
 	if (ret)
@@ -786,10 +786,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	 * threads */
 	_starpu_initialize_current_task_key();
 
-	if(user_conf == NULL)
-		_starpu_create_sched_ctx(NULL, NULL, -1, 1, "init");
-	else
-		_starpu_create_sched_ctx(user_conf->sched_policy_name, NULL, -1, 1, "init");
+	_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
 
 	_starpu_initialize_registered_performance_models();
 

@@ -313,6 +313,8 @@ int _starpu_push_task(struct _starpu_job *j)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	unsigned nworkers = 0;
 
+	_STARPU_LOG_IN();
+
 	if(!sched_ctx->is_initial_sched)
 	{
 		/*if there are workers in the ctx that are not able to execute tasks
@@ -326,6 +328,7 @@ int _starpu_push_task(struct _starpu_job *j)
 				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 				starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				_STARPU_LOG_OUT();
 				return -1;
 			}
 			else
@@ -334,13 +337,13 @@ int _starpu_push_task(struct _starpu_job *j)
 				task->already_pushed = 1;
 				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+				_STARPU_LOG_OUT();
 				return 0;
 			}
 		}
 	}
 
-	_STARPU_LOG_IN();
-
+	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
 #ifdef HAVE_AYUDAME_H
@@ -373,6 +376,7 @@ int _starpu_push_task(struct _starpu_job *j)
 		if(ret == -1)
 		{
 			fprintf(stderr, "repush task \n");
+			_STARPU_TRACE_JOB_POP(task, task->priority > 0);
 			_starpu_decrement_nready_tasks();
 			ret = _starpu_push_task(j);
 		}
@@ -583,7 +587,7 @@ pick:
 
 
 	if (!task)
-		goto profiling;
+		return NULL;
 
 	/* Make sure we do not bother with all the multiformat-specific code if
 	 * it is not necessary. */
@@ -631,7 +635,7 @@ pick:
 	goto pick;
 
 profiling:
-	if (profiling && task)
+	if (profiling)
 	{
 		struct starpu_task_profiling_info *profiling_info;
 		profiling_info = task->profiling_info;

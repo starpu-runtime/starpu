@@ -62,8 +62,6 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue,
 
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
-	_STARPU_TRACE_JOB_PUSH(task, 0);
-
 	if (list->head == NULL)
 	{
 		list->head = task;
@@ -129,14 +127,11 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, _starpu_pthrea
 
 	if (task->priority > 0)
 	{
-		_STARPU_TRACE_JOB_PUSH(task, 1);
 		_starpu_fifo_push_sorted_task(fifo_queue, sched_mutex,
 					      sched_cond, task);
 	}
 	else
 	{
-		_STARPU_TRACE_JOB_PUSH(task, 0);
-
 		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		starpu_task_list_push_front(&fifo_queue->taskq, task);
 

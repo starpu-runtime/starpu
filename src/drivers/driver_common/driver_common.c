@@ -160,8 +160,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 	if (task == NULL)
 	{
-		/*TODO: check this out after the merge */
-
+#ifdef STARPU_DEVEL
+#warning TODO: check this out after the merge (atomicity issue)
+#endif
 
 		/* Note: we need to keep the sched condition mutex all along the path
 		 * from popping a task from the scheduler to blocking. Otherwise the

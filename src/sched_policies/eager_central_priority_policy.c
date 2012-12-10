@@ -156,8 +156,6 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	/* wake people waiting for a task */
 	_STARPU_PTHREAD_MUTEX_LOCK(&data->sched_mutex);
 
-	_STARPU_TRACE_JOB_PUSH(task, 1);
-
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
 	starpu_task_list_push_back(&taskq->taskq[priolevel], task);

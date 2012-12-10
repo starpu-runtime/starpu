@@ -323,7 +323,6 @@ int ws_push_task(struct starpu_task *task)
 
 	deque_queue = ws->queue_array[workerid];
 
-	_STARPU_TRACE_JOB_PUSH(task, 0);
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{

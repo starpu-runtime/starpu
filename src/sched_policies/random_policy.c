@@ -79,8 +79,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
                 workers->deinit_cursor(workers);
 
 	/* we should now have the best worker in variable "selected" */
-	int n = starpu_push_local_task(selected, task, prio);
-	return n;
+	return starpu_push_local_task(selected, task, prio);
 }
 
 static int random_push_task(struct starpu_task *task)

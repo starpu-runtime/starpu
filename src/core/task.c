@@ -433,29 +433,11 @@ int starpu_task_submit(struct starpu_task *task)
 		_starpu_detect_implicit_data_deps(task);
 
 
-		if(task->bundle)
-		{
-			struct _starpu_task_bundle_entry *entry;
-			entry = task->bundle->list;
-			while(entry)
-			{
-				if (entry->task->cl->model && task->cl->model->symbol)
-					_starpu_load_perfmodel(entry->task->cl->model);
-				
-				if (entry->task->cl->power_model && task->cl->power_model->symbol)
-					_starpu_load_perfmodel(entry->task->cl->power_model);
+		if (task->cl->model && task->cl->model->symbol)
+			_starpu_load_perfmodel(task->cl->model);
 
-				entry = entry->next;
-			}
-		}
-		else
-		{
-			if (task->cl->model && task->cl->model->symbol)
-				_starpu_load_perfmodel(task->cl->model);
-			
-			if (task->cl->power_model && task->cl->power_model->symbol)
-				_starpu_load_perfmodel(task->cl->power_model);
-		}
+		if (task->cl->power_model && task->cl->power_model->symbol)
+			_starpu_load_perfmodel(task->cl->power_model);
 	}
 
 	if (bundle)
@@ -684,7 +666,13 @@ int starpu_task_wait_for_all(void)
 #endif
 	}
 	else
+	{
 		_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+#ifdef HAVE_AYUDAME_H
+		/* TODO: improve Temanejo into knowing about contexts ... */
+		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
+#endif
+	}
 	return 0;
 }
 

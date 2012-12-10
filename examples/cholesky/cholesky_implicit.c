@@ -137,7 +137,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	end = starpu_timing_now();
 
-	//double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	double timing = end - start;
 	unsigned long n = starpu_matrix_get_nx(dataA);
 

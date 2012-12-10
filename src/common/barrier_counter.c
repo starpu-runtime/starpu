@@ -74,13 +74,17 @@ int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier
 int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_counter *barrier_c)
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	int ret = 0;
 	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 	
 	if(++barrier->reached_start == barrier->count)
+	{
+		ret = 1;
 		_STARPU_PTHREAD_COND_BROADCAST(&barrier_c->cond2);
+	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
-	return 0;
+	return ret;
 }
 
 int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c)

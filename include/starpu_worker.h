@@ -28,9 +28,7 @@ extern "C"
 
 enum starpu_archtype
 {
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	STARPU_ANY_WORKER, /* any worker, used in the hypervisor */
-#endif
+	STARPU_ANY_WORKER,    /* any worker, used in the hypervisor */
 	STARPU_CPU_WORKER,    /* CPU core */
 	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER, /* OpenCL device */

@@ -17,6 +17,8 @@
 # - If any interfaces have been removed or changed since the last
 #   public release, then set age to 0. change
 
+# Note for StarPU 1.1: we have changed ABI
+
 # Libtool interface versioning (info "(libtool) Versioning").
 LIBSTARPU_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPU_INTERFACE_REVISION=0	# increment upon implementation change

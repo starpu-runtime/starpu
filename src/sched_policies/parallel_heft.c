@@ -80,7 +80,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	worker_exp_len[workerid] -= model + transfer_model;
-	worker_exp_start[workerid] = starpu_timing_now();
+	worker_exp_start[workerid] = starpu_timing_now() + model;
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
