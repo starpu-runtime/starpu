@@ -61,6 +61,9 @@ New features:
   * Add support for OpenCL simulators (which provide simulated execution time)
   * Add support for Temanejo, a task graph debugger
   * Theoretical bound lp output now includes data transfer time.
+  * Update OpenCL driver to only enable CPU devices (the environment
+        variable STARPU_OPENCL_ONLY_ON_CPUS must be set to a positive
+	value when executing an application)
 
 Changes:
   * Fix the block filter functions.

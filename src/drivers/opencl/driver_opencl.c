@@ -345,6 +345,8 @@ void _starpu_opencl_init(void)
                 // Get Platforms
 		if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
 		     device_type |= CL_DEVICE_TYPE_CPU;
+		if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+		     device_type = CL_DEVICE_TYPE_CPU;
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);

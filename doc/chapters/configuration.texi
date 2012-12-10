@@ -348,6 +348,13 @@ devices. By setting the environment variable
 CPU devices.
 @end defvr
 
+@defvr {Environment variable} STARPU_OPENCL_ONLY_ON_CPUS
+By default, the OpenCL driver enables GPU and accelerator
+devices. By setting the environment variable
+@code{STARPU_OPENCL_ONLY_ON_CPUS} to 1, the OpenCL driver will ONLY enable
+CPU devices.
+@end defvr
+
 @defvr {Environment variable} STARPU_WORKERS_NOBIND
 Setting it to non-zero will prevent StarPU from binding its threads to
 CPUs. This is for instance useful when running the testsuite in parallel.
