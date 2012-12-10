@@ -972,6 +972,15 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_DECLS([enable_fut_flush])
 	AC_CHECK_DECLS([fut_set_filename])
 	CFLAGS="$save_CFLAGS"
+
+	##########################################
+	# Poti is a library to generate paje trace files
+	##########################################
+	PKG_CHECK_MODULES([POTI], [poti], [
+		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti])
+	], [:])
+	FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+	FXT_LIBS="$FXT_LIBS $POTI_LIBS"
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)

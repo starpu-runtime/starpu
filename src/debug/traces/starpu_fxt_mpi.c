@@ -1,5 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
+ * Copyright (C) 2012  Université Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +21,10 @@
 #ifdef STARPU_USE_FXT
 
 #include "starpu_fxt.h"
+#ifdef STARPU_HAVE_POTI
+#include <poti.h>
+#define STARPU_POTI_STR_LEN 200
+#endif
 
 struct mpi_transfer
 {
@@ -219,8 +224,19 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 			/* TODO replace 0 by a MPI program ? */
 			if (out_paje_file)
 			{
-				fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %ld	mpi_%d_p	mpicom_%lu\n", start_date, size, /* XXX */src, id);
-				fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %ld	mpi_%d_p	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+#ifdef STARPU_HAVE_POTI
+				char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
+				snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
+				snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
+				char mpi_container[STARPU_POTI_STR_LEN];
+				snprintf(mpi_container, sizeof(mpi_container), "mpi_%d_p", /* XXX */src);
+				poti_StartLink(start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key);
+				snprintf(mpi_container, sizeof(mpi_container), "mpi_%d_p", /* XXX */dst);
+				poti_EndLink(end_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key);
+#else
+				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%ld	mpi_%d_p	mpicom_%lu\n", start_date, size, /* XXX */src, id);
+				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%ld	mpi_%d_p	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+#endif
 			}
 		}
 		else
