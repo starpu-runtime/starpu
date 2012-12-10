@@ -1,3 +1,19 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #include "sched_ctx_utils.h"
 #include <starpu.h>
 
@@ -11,7 +27,8 @@ unsigned gpu;
 unsigned gpu1;
 unsigned gpu2;
 
-typedef struct {
+struct params
+{
 	unsigned id;
 	unsigned ctx;
 	int the_other_ctx;
@@ -20,18 +37,19 @@ typedef struct {
 	void (*bench)(unsigned, unsigned);
 	unsigned size;
 	unsigned nblocks;
-} params;
+};
 
-typedef struct {
+struct retvals
+{
 	double flops;
 	double avg_timing;
-} retvals;
+};
 
 #define NSAMPLES 1
 int first = 1;
 pthread_mutex_t mut;
-retvals rv[2];
-params p1, p2;
+struct retvals rv[2];
+struct params p1, p2;
 
 pthread_key_t key;
 
@@ -67,8 +85,9 @@ void update_sched_ctx_timing_results(double flops, double avg_timing)
 	rv[*id].avg_timing += avg_timing;
 }
 
-void* start_bench(void *val){
-	params *p = (params*)val;
+void* start_bench(void *val)
+{
+	struct params *p = (struct params*)val;
 	int i;
 
 	pthread_setspecific(key, &p->id);
@@ -82,10 +101,11 @@ void* start_bench(void *val){
 	if(p->ctx != 0)
 	{
 		pthread_mutex_lock(&mut);
-		if(first){
+		if(first)
+		{
 			starpu_sched_ctx_delete(p->ctx, p->the_other_ctx);
 		}
-		
+
 		first = 0;
 		pthread_mutex_unlock(&mut);
 	}
@@ -102,12 +122,12 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 	p1.size = size1;
 	printf("size %d\n", size1);
 	p1.nblocks = nblocks1;
-	
+
 	p2.bench = bench;
 	p2.size = size2;
 	printf("size %d\n", size2);
 	p2.nblocks = nblocks2;
-	
+
 	pthread_t tid[2];
 	pthread_mutex_init(&mut, NULL);
 
@@ -118,14 +138,14 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 
 	pthread_create(&tid[0], NULL, (void*)start_bench, (void*)&p1);
 	pthread_create(&tid[1], NULL, (void*)start_bench, (void*)&p2);
- 
+
 	pthread_join(tid[0], NULL);
 	pthread_join(tid[1], NULL);
 
 	gettimeofday(&end, NULL);
 
 	pthread_mutex_destroy(&mut);
-  
+
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
 
@@ -139,7 +159,7 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 	p1.bench = bench;
 	p1.size = size1;
 	p1.nblocks = nblocks1;
-	
+
 	struct timeval start;
 	struct timeval end;
 
@@ -150,7 +170,7 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 	gettimeofday(&end, NULL);
 
 	pthread_mutex_destroy(&mut);
-  
+
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
 
@@ -163,7 +183,7 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 	p2.bench = bench;
 	p2.size = size2;
 	p2.nblocks = nblocks2;
-	
+
 	struct timeval start;
 	struct timeval end;
 
@@ -174,7 +194,7 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 	gettimeofday(&end, NULL);
 
 	pthread_mutex_destroy(&mut);
-  
+
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
 
@@ -251,51 +271,60 @@ void parse_args_ctx(int argc, char **argv)
 {
 	init();
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size1") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size1") == 0)
+		{
 			char *argptr;
 			size1 = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks1") == 0) {
+		if (strcmp(argv[i], "-nblocks1") == 0)
+		{
 			char *argptr;
 			nblocks1 = strtol(argv[++i], &argptr, 10);
 		}
-		
-		if (strcmp(argv[i], "-size2") == 0) {
+
+		if (strcmp(argv[i], "-size2") == 0)
+		{
 			char *argptr;
 			size2 = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks2") == 0) {
+		if (strcmp(argv[i], "-nblocks2") == 0)
+		{
 			char *argptr;
 			nblocks2 = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-cpu1") == 0) {
+		if (strcmp(argv[i], "-cpu1") == 0)
+		{
 			char *argptr;
 			cpu1 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
-		if (strcmp(argv[i], "-cpu2") == 0) {
+		if (strcmp(argv[i], "-cpu2") == 0)
+		{
 			char *argptr;
 			cpu2 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
-		if (strcmp(argv[i], "-gpu") == 0) {
+		if (strcmp(argv[i], "-gpu") == 0)
+		{
 			char *argptr;
 			gpu = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
-		if (strcmp(argv[i], "-gpu1") == 0) {
+		if (strcmp(argv[i], "-gpu1") == 0)
+		{
 			char *argptr;
 			gpu1 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 
-		if (strcmp(argv[i], "-gpu2") == 0) {
+		if (strcmp(argv[i], "-gpu2") == 0)
+		{
 			char *argptr;
 			gpu2 = strtol(argv[++i], &argptr, 10);
-		}    
+		}
 	}
 }
-

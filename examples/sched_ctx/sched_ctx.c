@@ -15,8 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include<starpu.h>
-#include<pthread.h>
+#include <starpu.h>
+#include <pthread.h>
 
 #define NTASKS 1000
 int tasks_executed = 0;
