@@ -228,8 +228,8 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
-	pthread_mutex_t *sched_mutex;
-	pthread_cond_t *sched_cond;
+	_starpu_pthread_mutex_t *sched_mutex;
+	_starpu_pthread_cond_t *sched_cond;
 	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 	new_list = _starpu_fifo_pop_every_task(fifo, sched_mutex, workerid);
 
@@ -257,8 +257,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
-	pthread_mutex_t *sched_mutex;
-	pthread_cond_t *sched_cond;
+	_starpu_pthread_mutex_t *sched_mutex;
+	_starpu_pthread_cond_t *sched_cond;
 	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -365,8 +365,8 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			}
 			
 			double exp_end;
-			pthread_mutex_t *sched_mutex;
-			pthread_cond_t *sched_cond;
+			_starpu_pthread_mutex_t *sched_mutex;
+			_starpu_pthread_cond_t *sched_cond;
 			starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 			
 			/* Sometimes workers didn't take the tasks as early as we expected */
@@ -483,8 +483,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			}
 
 			/* Sometimes workers didn't take the tasks as early as we expected */
-			pthread_mutex_t *sched_mutex;
-			pthread_cond_t *sched_cond;
+			_starpu_pthread_mutex_t *sched_mutex;
+			_starpu_pthread_cond_t *sched_cond;
 			starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
@@ -685,7 +685,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 static int dmda_push_sorted_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-        pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+        _starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
         unsigned nworkers;
         int ret_val = -1;
 
@@ -706,7 +706,7 @@ static int dmda_push_sorted_task(struct starpu_task *task)
 static int dm_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-        pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+        _starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
         unsigned nworkers;
         int ret_val = -1;
 
@@ -726,7 +726,7 @@ static int dm_push_task(struct starpu_task *task)
 static int dmda_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-        pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+        _starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
         unsigned nworkers;
         int ret_val = -1;
 
@@ -845,8 +845,8 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 
-	pthread_mutex_t *sched_mutex;
-	pthread_cond_t *sched_cond;
+	_starpu_pthread_mutex_t *sched_mutex;
+	_starpu_pthread_cond_t *sched_cond;
 	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
@@ -869,8 +869,8 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 			_starpu_get_job_associated_to_task(task)->nimpl);
 
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
-	pthread_mutex_t *sched_mutex;
-	pthread_cond_t *sched_cond;
+	_starpu_pthread_mutex_t *sched_mutex;
+	_starpu_pthread_cond_t *sched_cond;
 	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 
 

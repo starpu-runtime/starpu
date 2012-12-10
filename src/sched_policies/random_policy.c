@@ -21,6 +21,9 @@
 #include <core/workers.h>
 #include <core/sched_ctx.h>
 #include <sched_policies/fifo_queues.h>
+#ifdef HAVE_AYUDAME_H
+#include <Ayudame.h>
+#endif
 
 static int _random_push_task(struct starpu_task *task, unsigned prio)
 {
@@ -82,7 +85,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 static int random_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
         int ret_val = -1;
 

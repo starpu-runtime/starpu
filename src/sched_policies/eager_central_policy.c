@@ -26,8 +26,8 @@
 
 typedef struct {
 	struct _starpu_fifo_taskq *fifo;
-	pthread_mutex_t sched_mutex;
-	pthread_cond_t sched_cond;
+	_starpu_pthread_mutex_t sched_mutex;
+	_starpu_pthread_cond_t sched_cond;
 } eager_center_policy_data;
 
 static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers) 
@@ -91,7 +91,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	eager_center_policy_data *data = (eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
 	

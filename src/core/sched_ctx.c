@@ -19,8 +19,8 @@
 #include <common/utils.h>
 
 extern struct starpu_sched_ctx_worker_collection worker_list;
-static _starpu_pthread_mutex_t sched_ctx_manag = PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_mutex_t finished_submit_mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t sched_ctx_manag = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t finished_submit_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
 pthread_key_t sched_ctx_key;
 unsigned with_hypervisor = 0;

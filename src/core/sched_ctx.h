@@ -136,4 +136,8 @@ _starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched
  take care: no mutex taken, the list of workers might not be updated */
 int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_archtype arch);
 
+#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
+_starpu_pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
+#endif
+
 #endif // __SCHED_CONTEXT_H__

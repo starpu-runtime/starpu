@@ -140,7 +140,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	/* if the context has no workers return */
-	pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
         unsigned nworkers;
         int ret_val = -1;
 
