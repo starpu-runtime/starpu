@@ -101,7 +101,7 @@ static void heft_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void heft_init(unsigned sched_ctx_id)
 {
-	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 
 	heft_data *hd = (heft_data*)malloc(sizeof(heft_data));
 	hd->alpha = _STARPU_DEFAULT_ALPHA;
@@ -321,7 +321,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	heft_data *hd = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	starpu_task_bundle_t bundle = task->bundle;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	while(workers->has_next(workers))
 	{
@@ -439,7 +439,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	   there is no performance prediction available yet */
 	int forced_worker;
 	int forced_impl;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
@@ -621,7 +621,7 @@ static void heft_deinit(unsigned sched_ctx_id)
 {
 	heft_data *ht = (heft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	free(ht);
-	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_heft_policy =

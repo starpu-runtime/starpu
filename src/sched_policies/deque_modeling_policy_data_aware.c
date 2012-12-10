@@ -345,7 +345,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	unsigned best_impl = 0;
 	unsigned nimpl;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	if(workers->init_cursor)
 		workers->init_cursor(workers);
@@ -467,7 +467,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	starpu_task_bundle_t bundle = task->bundle;
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	while(workers->has_next(workers))
 	{
@@ -580,7 +580,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	int forced_impl = -1;
 
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
@@ -776,7 +776,7 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
-	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)malloc(sizeof(struct _starpu_dmda_data));
 	dt->alpha = _STARPU_DEFAULT_ALPHA;
@@ -830,7 +830,7 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	free(dt->queue_array);
 	free(dt);
-	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
 	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", dt->total_task_cnt, dt->ready_task_cnt, (100.0f*dt->ready_task_cnt)/dt->total_task_cnt);
 }

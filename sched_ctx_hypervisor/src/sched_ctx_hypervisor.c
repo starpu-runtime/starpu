@@ -327,7 +327,7 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
 {
 	int nworkers_ctx = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 
 	if(workers->init_cursor)

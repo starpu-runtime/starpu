@@ -148,7 +148,7 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 	if (performed_total < calibration_value)
 		return select_victim_round_robin(sched_ctx_id);
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         if(workers->init_cursor)
                 workers->init_cursor(workers);
@@ -190,7 +190,7 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 	if (performed_total < calibration_value)
 		return select_worker_round_robin(sched_ctx_id);
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         if(workers->init_cursor)
                 workers->init_cursor(workers);
@@ -381,7 +381,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 
 static void initialize_ws_policy(unsigned sched_ctx_id)
 {
-	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)malloc(sizeof(struct _starpu_work_stealing_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);
@@ -409,7 +409,7 @@ static void deinit_ws_policy(unsigned sched_ctx_id)
 	_STARPU_PTHREAD_MUTEX_DESTROY(&ws->sched_mutex);
 	_STARPU_PTHREAD_COND_DESTROY(&ws->sched_cond);
         free(ws);
-        starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+        starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_ws_policy =

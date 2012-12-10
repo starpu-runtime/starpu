@@ -56,7 +56,7 @@ static void eager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
-	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)malloc(sizeof(struct _starpu_eager_center_policy_data));
 
@@ -83,7 +83,7 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 	_STARPU_PTHREAD_MUTEX_DESTROY(&data->sched_mutex);
 	_STARPU_PTHREAD_COND_DESTROY(&data->sched_cond);
 
-	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
 	free(data);
 }

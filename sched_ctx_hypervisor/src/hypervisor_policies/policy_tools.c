@@ -25,7 +25,7 @@ static int _compute_priority(unsigned sched_ctx)
 
 	int total_priority = 0;
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 
 	if(workers->init_cursor)
@@ -109,7 +109,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 	for(i = 0; i < *nworkers; i++)
 		curr_workers[i] = -1;
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int index;
 	int worker;
 	int considered = 0;
@@ -178,7 +178,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 /* get the number of workers in the context that are allowed to be moved (that are not fixed) */
 unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
 {
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 
 	unsigned potential_workers = 0;
 	int worker;
@@ -304,7 +304,7 @@ unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 static double _get_elapsed_flops(struct starpu_sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
 {
 	double ret_val = 0.0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sc_w->sched_ctx);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
         int worker;
 
 	if(workers->init_cursor)

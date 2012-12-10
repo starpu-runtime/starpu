@@ -113,11 +113,11 @@ void starpu_sched_ctx_init_worker_mutex_and_cond(unsigned sched_ctx_id, int work
 
 void starpu_sched_ctx_deinit_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid);
 
-struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
+struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type);
 
-void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id);
+void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 
-struct starpu_sched_ctx_worker_collection* starpu_get_worker_collection_of_sched_ctx(unsigned sched_ctx_id);
+struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
 
 #if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
 pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);

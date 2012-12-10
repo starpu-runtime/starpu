@@ -34,7 +34,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	double alpha_sum = 0.0;
 
 	unsigned sched_ctx_id = task->sched_ctx;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_get_worker_collection_of_sched_ctx(sched_ctx_id);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
         int worker;
         if(workers->init_cursor)
                 workers->init_cursor(workers);
@@ -129,13 +129,13 @@ static void random_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
-	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 	starpu_srand48(time(NULL));
 }
 
 static void deinitialize_random_policy(unsigned sched_ctx_id)
 {
-	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_random_policy =

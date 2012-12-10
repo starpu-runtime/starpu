@@ -53,7 +53,7 @@ static void dummy_sched_remove_workers(unsigned sched_ctx_id, int *workerids, un
 
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
-	starpu_create_worker_collection_for_sched_ctx(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 
 	struct dummy_sched_data *data = (struct dummy_sched_data*)malloc(sizeof(struct dummy_sched_data));
 	
@@ -78,7 +78,7 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 	pthread_cond_destroy(&data->sched_cond);
 	pthread_mutex_destroy(&data->sched_mutex);
 
-	starpu_delete_worker_collection_for_sched_ctx(sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
 	free(data);
 	

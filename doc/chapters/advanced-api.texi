@@ -587,15 +587,15 @@ Deinitialize the cursor if there is one
 @end table
 @end deftp
 
-@deftypefun struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx (unsigned @var{sched_ctx_id}, int @var{type})
+@deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
 Creates a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
 @end deftypefun
 
-@deftypefun void starpu_delete_worker_collection_for_sched_ctx (unsigned @var{sched_ctx_id})
+@deftypefun void starpu_sched_ctx_delete_worker_collection (unsigned @var{sched_ctx_id})
 Deletes the worker collection of the specified scheduling context
 @end deftypefun
 
-@deftypefun struct starpu_sched_ctx_worker_collection* starpu_get_worker_collection_of_sched_ctx (unsigned @var{sched_ctx_id})
+@deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection (unsigned @var{sched_ctx_id})
 Returns the worker collection managed by the indicated context
 @end deftypefun
 
