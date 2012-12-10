@@ -100,8 +100,6 @@ of a scheduling strategy with a single task queue, the same condition variable
 would be used to block and wake up all workers.  The initialization method of a
 scheduling strategy (init_sched) must call this function once per worker. */
 #if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
-void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
-
 #ifdef STARPU_DEVEL
 #warning do we really need both starpu_sched_ctx_set_worker_mutex_and_cond and starpu_sched_ctx_init_worker_mutex_and_cond functions
 #endif
