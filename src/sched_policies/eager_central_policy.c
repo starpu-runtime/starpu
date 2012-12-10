@@ -38,7 +38,7 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
 	}
 }
 
@@ -49,7 +49,7 @@ static void eager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
 	}
 }
 

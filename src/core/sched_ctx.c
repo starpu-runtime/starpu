@@ -741,7 +741,7 @@ _starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched
 		return NULL;
 }
 
-void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, _starpu_pthread_mutex_t *sched_mutex, _starpu_pthread_cond_t *sched_cond)
+void starpu_sched_ctx_set_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, _starpu_pthread_mutex_t *sched_mutex, _starpu_pthread_cond_t *sched_cond)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx->sched_mutex && sched_ctx->sched_cond)
@@ -751,7 +751,7 @@ void starpu_worker_set_sched_condition(unsigned sched_ctx_id, int workerid, _sta
 	}
 }
 
-void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond)
+void starpu_sched_ctx_get_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	*sched_mutex = sched_ctx->sched_mutex[workerid];
@@ -763,12 +763,12 @@ void starpu_worker_get_sched_condition(unsigned sched_ctx_id, int workerid, _sta
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
 		*sched_mutex = &workerarg->sched_mutex;
 		*sched_cond = &workerarg->sched_cond;
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, *sched_mutex, *sched_cond);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, *sched_mutex, *sched_cond);
 	}
 
 }
 
-void starpu_worker_init_sched_condition(unsigned sched_ctx_id, int workerid)
+void starpu_sched_ctx_init_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->sched_mutex[workerid] = (_starpu_pthread_mutex_t*)malloc(sizeof(_starpu_pthread_mutex_t));
@@ -777,7 +777,7 @@ void starpu_worker_init_sched_condition(unsigned sched_ctx_id, int workerid)
 	_STARPU_PTHREAD_COND_INIT(sched_ctx->sched_cond[workerid], NULL);
 }
 
-void starpu_worker_deinit_sched_condition(unsigned sched_ctx_id, int workerid)
+void starpu_sched_ctx_deinit_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	_STARPU_PTHREAD_MUTEX_DESTROY(sched_ctx->sched_mutex[workerid]);

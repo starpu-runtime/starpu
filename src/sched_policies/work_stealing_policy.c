@@ -358,7 +358,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		ws->queue_array[workerid]->nprocessed = -1;
 		ws->queue_array[workerid]->njobs = 0;
 
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &ws->sched_mutex, &ws->sched_cond);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &ws->sched_mutex, &ws->sched_cond);
 	}
 }
 
@@ -373,7 +373,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	{
 		workerid = workerids[i];
 		_starpu_destroy_deque(ws->queue_array[workerid]);
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
 	}
 }
 

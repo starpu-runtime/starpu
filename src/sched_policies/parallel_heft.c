@@ -73,7 +73,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
@@ -108,7 +108,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		task->predicted_transfer = 0;
 		pthread_mutex_t *sched_mutex;
 		pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
+		starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
 
 		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		worker_exp_len[best_workerid] += task->predicted;
@@ -162,7 +162,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			alias->predicted_transfer = 0;
 			pthread_mutex_t *sched_mutex;
 			pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(sched_ctx_id, local_worker, &sched_mutex, &sched_cond);
+			starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, local_worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			worker_exp_len[local_worker] += alias->predicted;
 			worker_exp_end[local_worker] = exp_end_predicted;
@@ -284,7 +284,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		{
 			pthread_mutex_t *sched_mutex;
 			pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+			starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
@@ -503,7 +503,7 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 			workerarg->has_prev_init = 1;
 		}
 
-		starpu_worker_init_sched_condition(sched_ctx_id, workerid);
+		starpu_sched_ctx_init_worker_mutex_and_cond(sched_ctx_id, workerid);
 	}
 	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
@@ -543,7 +543,7 @@ static void parallel_heft_remove_workers(unsigned sched_ctx_id, int *workerids, 
 	for(i = 0; i < nworkers; i++)
 	{
 		worker = workerids[i];
-		starpu_worker_deinit_sched_condition(sched_ctx_id, worker);
+		starpu_sched_ctx_deinit_worker_mutex_and_cond(sched_ctx_id, worker);
 	}
 }
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id) 

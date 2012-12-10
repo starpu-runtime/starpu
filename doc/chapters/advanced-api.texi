@@ -696,7 +696,7 @@ Description of the policy.
 @end table
 @end deftp
 
-@deftypefun void starpu_worker_set_sched_condition (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_mutex_t *@var{sched_mutex}, {pthread_cond_t *}@var{sched_cond})
+@deftypefun void starpu_sched_ctx_set_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_mutex_t *@var{sched_mutex}, {pthread_cond_t *}@var{sched_cond})
 This function specifies the condition variable associated to a worker per context
 When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
@@ -708,7 +708,7 @@ The initialization method of a scheduling strategy (@code{init_sched}) must
 call this function once per worker.
 @end deftypefun
 
-@deftypefun void starpu_worker_get_sched_condition (unsigned @var{sched_ctx_id}, int @var{workerid}, {pthread_mutex_t **}@var{sched_mutex}, {pthread_cond_t **}@var{sched_cond})
+@deftypefun void starpu_sched_ctx_get_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, {pthread_mutex_t **}@var{sched_mutex}, {pthread_cond_t **}@var{sched_cond})
 This function returns the condition variables associated to a worker in a context
 It is used in the policy to access to the local queue of the worker
 @end deftypefun

@@ -92,6 +92,18 @@ void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx);
 
+#ifdef STARPU_DEVEL
+#warning do we really need both starpu_sched_ctx_set_worker_mutex_and_cond and starpu_sched_ctx_init_worker_mutex_and_cond functions
+#endif
+
+void starpu_sched_ctx_set_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
+
+void starpu_sched_ctx_get_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
+
+void starpu_sched_ctx_init_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid);
+
+void starpu_sched_ctx_deinit_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid);
+
 struct starpu_sched_ctx_worker_collection* starpu_create_worker_collection_for_sched_ctx(unsigned sched_ctx_id, int type);
 
 void starpu_delete_worker_collection_for_sched_ctx(unsigned sched_ctx_id);

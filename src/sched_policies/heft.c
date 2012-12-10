@@ -78,7 +78,7 @@ static void heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 	{
 		workerid = workerids[i];
 		hd->queue_array[workerid] = _starpu_create_fifo();
-		starpu_worker_init_sched_condition(sched_ctx_id, workerid);
+		starpu_sched_ctx_init_worker_mutex_and_cond(sched_ctx_id, workerid);
 
 		current_time[workerid][sched_ctx_id] = 0.0;
 	}
@@ -94,7 +94,7 @@ static void heft_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	{
 		workerid = workerids[i];
 		_starpu_destroy_fifo(hd->queue_array[workerid]);
-		starpu_worker_deinit_sched_condition(sched_ctx_id, workerid);
+		starpu_sched_ctx_deinit_worker_mutex_and_cond(sched_ctx_id, workerid);
 		current_time[workerid][sched_ctx_id] = 0.0;
 	}
 }
@@ -150,7 +150,7 @@ static void heft_pre_exec_hook(struct starpu_task *task)
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -175,7 +175,7 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 
 
 	/* Update the predictions */
@@ -227,7 +227,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(best_workerid, sched_ctx_id);
@@ -341,7 +341,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				struct _starpu_fifo_taskq *fifo = hd->queue_array[worker];
 				pthread_mutex_t *sched_mutex;
 				pthread_cond_t *sched_cond;
-				starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+				starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 				fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 				exp_end[worker_ctx][nimpl] = fifo->exp_start + fifo->exp_len;

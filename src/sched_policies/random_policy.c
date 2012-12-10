@@ -107,7 +107,7 @@ static void random_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	{
 		workerid = workerids[i];
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, &workerarg->sched_mutex, &workerarg->sched_cond);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &workerarg->sched_mutex, &workerarg->sched_cond);
 	}
 }
 
@@ -118,7 +118,7 @@ static void random_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
 	}
 
 }

@@ -113,9 +113,9 @@ static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 		/* All masters use the same condition/mutex */
 		if (master == workerid)
-			starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
+			starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
 		else
-			starpu_worker_set_sched_condition(sched_ctx_id, workerid, &data->master_sched_mutex[master], &data->master_sched_cond[master]);
+			starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &data->master_sched_mutex[master], &data->master_sched_cond[master]);
 	}
 
 #if 0
@@ -137,7 +137,7 @@ static void pgreedy_remove_workers(unsigned sched_ctx_id, int *workerids, unsign
         {
 		workerid = workerids[i];
 		_starpu_destroy_fifo(data->local_fifo[workerid]);
-		starpu_worker_set_sched_condition(sched_ctx_id, workerid, NULL, NULL);
+		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
 		_STARPU_PTHREAD_MUTEX_DESTROY(&data->master_sched_mutex[workerid]);
 		_STARPU_PTHREAD_COND_DESTROY(&data->master_sched_cond[workerid]);
 	}

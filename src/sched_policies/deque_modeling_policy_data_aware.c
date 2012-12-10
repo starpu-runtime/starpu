@@ -230,7 +230,7 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 	new_list = _starpu_fifo_pop_every_task(fifo, sched_mutex, workerid);
 
 	while (new_list)
@@ -259,7 +259,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, best_workerid, &sched_mutex, &sched_cond);
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	starpu_call_pushed_task_cb(best_workerid, sched_ctx_id);
@@ -367,7 +367,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			double exp_end;
 			pthread_mutex_t *sched_mutex;
 			pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+			starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 			
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -485,7 +485,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			pthread_mutex_t *sched_mutex;
 			pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(sched_ctx_id, worker, &sched_mutex, &sched_cond);
+			starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
@@ -754,7 +754,7 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 	{
 		workerid = workerids[i];
 		dt->queue_array[workerid] = _starpu_create_fifo();
-		starpu_worker_init_sched_condition(sched_ctx_id, workerid);
+		starpu_sched_ctx_init_worker_mutex_and_cond(sched_ctx_id, workerid);
 	}
 }
 
@@ -768,7 +768,7 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	{
 		workerid = workerids[i];
 		_starpu_destroy_fifo(dt->queue_array[workerid]);
-		starpu_worker_deinit_sched_condition(sched_ctx_id, workerid);
+		starpu_sched_ctx_deinit_worker_mutex_and_cond(sched_ctx_id, workerid);
 	}
 }
 
@@ -847,7 +847,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -871,7 +871,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 	pthread_mutex_t *sched_mutex;
 	pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
+	starpu_sched_ctx_get_worker_mutex_and_cond(sched_ctx_id, workerid, &sched_mutex, &sched_cond);
 
 
 	/* Update the predictions */
