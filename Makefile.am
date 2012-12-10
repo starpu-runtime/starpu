@@ -56,6 +56,7 @@ versinclude_HEADERS = 				\
 	include/starpu.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
+	include/starpu_worker.h			\
 	include/starpu_task.h			\
 	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
