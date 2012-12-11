@@ -13,6 +13,11 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS)
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/examples -I$(top_builddir)/include -I$(top_srcdir)/sched_ctx_hypervisor/include
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
+
 if !NO_BLAS_LIB
 noinst_PROGRAMS =				\
 	cholesky/cholesky_implicit  \
@@ -22,18 +27,6 @@ noinst_HEADERS = 				\
 	cholesky/cholesky.h			\
 	sched_ctx_utils/sched_ctx_utils.h
 endif
-
-AM_LDFLAGS = $(top_builddir)/src/libstarpu-1.0.la
-
-LIBS = $(top_builddir)/sched_ctx_hypervisor/src/libsched_ctx_hypervisor.la
-
-AM_CPPFLAGS =						\
-  -I$(top_srcdir)/include				\
-  -I$(top_srcdir)/examples				\
-  -I$(top_builddir)/include				\
-  -I$(top_srcdir)/sched_ctx_hypervisor/include		\
-  $(STARPU_OPENCL_CPPFLAGS) $(STARPU_CUDA_CPPFLAGS)
-
 
 if !NO_BLAS_LIB
 
