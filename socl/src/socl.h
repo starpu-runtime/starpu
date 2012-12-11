@@ -77,8 +77,15 @@ struct entity {
 
 
 
-struct _cl_platform_id {struct _cl_icd_dispatch *dispatch;};
-struct _cl_device_id {struct _cl_icd_dispatch *dispatch; int device_id; int worker_id;};
+struct _cl_platform_id {
+   struct _cl_icd_dispatch *dispatch;
+};
+
+struct _cl_device_id {
+   struct _cl_icd_dispatch *dispatch; 
+   int device_id;
+   int worker_id;
+};
 
 #define RETURN_EVENT(cmd, event) \
 	if (event != NULL) { \
@@ -121,6 +128,9 @@ struct _cl_context {
   /* Associated devices */
   cl_device_id * devices;
   cl_uint num_devices;
+
+  /* Scheduling context */
+  unsigned sched_ctx;
 
   /* Properties */
   cl_context_properties * properties;

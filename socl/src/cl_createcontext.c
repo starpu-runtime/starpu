@@ -23,6 +23,9 @@ static void release_callback_context(void * e) {
   if (context->properties != NULL)
     free(context->properties);
 
+#warning TODO: to be fixed
+  //starpu_sched_ctx_finished_submit(context->sched_ctx);
+
   free(context->devices);
 }
 
@@ -99,6 +102,15 @@ soclCreateContext(const cl_context_properties * properties,
 
    ctx->devices = malloc(sizeof(cl_device_id) * num_devices);
    memcpy(ctx->devices, devices, sizeof(cl_device_id)*num_devices);
+
+   // Create context
+   int workers[num_devices];
+   unsigned int i;
+   for (i=0; i<num_devices; i++) {
+      workers[i] = ctx->devices[i]->worker_id;
+   }
+   //TODO use context property to set scheduling strategy and name
+   ctx->sched_ctx = starpu_sched_ctx_create("dmda", workers, num_devices, "ctx");
 
    if (errcode_ret != NULL)
       *errcode_ret = CL_SUCCESS;

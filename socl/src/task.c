@@ -45,57 +45,60 @@ static void task_release_callback(void *arg) {
  * Create a StarPU task
  */
 starpu_task task_create() {
-	struct starpu_task * task;
+  struct starpu_task * task;
 
-	/* Create StarPU task */
-	task = starpu_task_create();
+  /* Create StarPU task */
+  task = starpu_task_create();
 
-	/* Set task common settings */
-	task->destroy = 0;
-	task->detach = 0;
+  /* Set task common settings */
+  task->destroy = 0;
+  task->detach = 0;
 
-	task->use_tag = 1;
-	task->tag_id = event_unique_id();
+  task->use_tag = 1;
+  task->tag_id = event_unique_id();
 
-	return task;
+  return task;
 }
 
 
 void task_depends_on(starpu_task task, cl_uint num_events, cl_event *events) {
 
-	if (num_events != 0) {
-		cl_uint i;
+  if (num_events != 0) {
+    cl_uint i;
 
-		starpu_tag_t * tags = malloc(num_events * sizeof(starpu_tag_t));	
+    starpu_tag_t * tags = malloc(num_events * sizeof(starpu_tag_t));	
 
-		for (i=0; i<num_events; i++) {
-			tags[i] = events[i]->id;
-			DEBUG_MSG_NOHEAD(" %u", events[i]->id);
-		}
-		DEBUG_MSG_NOHEAD("\n");
+    for (i=0; i<num_events; i++) {
+       tags[i] = events[i]->id;
+       DEBUG_MSG_NOHEAD(" %u", events[i]->id);
+    }
+    DEBUG_MSG_NOHEAD("\n");
 
-		starpu_tag_declare_deps_array(task->tag_id, num_events, tags);
+    starpu_tag_declare_deps_array(task->tag_id, num_events, tags);
 
-		free(tags);
-	}
+    free(tags);
+  }
 }
 
 cl_int task_submit_ex(starpu_task task, cl_command cmd) {
 
-	/* Associated the task to the command */
-	cmd->task = task;
+  /* Associated the task to the command */
+  cmd->task = task;
 
-	task_depends_on(task, command_num_events_get(cmd), command_events_get(cmd));
+  task_depends_on(task, command_num_events_get(cmd), command_events_get(cmd));
 
-	task->callback_func = task_release_callback;
-	task->callback_arg = cmd;
+  task->callback_func = task_release_callback;
+  task->callback_arg = cmd;
 
-	/* Submit task */
-	int ret = starpu_task_submit(task);
-	if (ret != 0)
-		DEBUG_ERROR("Unable to submit a task. Error %d\n", ret);
+  /* Submit task */
+  int ret = (task->cl != NULL && task->cl->where == STARPU_OPENCL ?
+        starpu_task_submit_to_ctx(task, cmd->cq->context->sched_ctx) :
+        starpu_task_submit(task));
 
-	return CL_SUCCESS;
+  if (ret != 0)
+     DEBUG_ERROR("Unable to submit a task. Error %d\n", ret);
+
+  return CL_SUCCESS;
 }
 
 
