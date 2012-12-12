@@ -264,7 +264,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 #ifdef STARPU_HAVE_POTI
 			poti_SetVariable(get_event_time_stamp(ev, options), new_memnode_container_alias, "bw", 0.0);
 #else
-			fprintf(out_paje_file, "13	%.9f	%sMEMNODE%"PRIu64"	bw	0.0\n", 0.0f, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smn%"PRIu64"	bw	0.0\n", 0.0f, prefix, ev->param[0]);
 #endif
 	}
 }
