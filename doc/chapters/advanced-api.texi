@@ -696,6 +696,10 @@ Description of the policy.
 @end table
 @end deftp
 
+@deftypefun {struct starpu_sched_policy **} starpu_sched_get_predefined_policies ()
+Return an NULL-terminated array of all the predefined scheduling policies.
+@end deftypefun
+
 @deftypefun void starpu_sched_ctx_set_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_mutex_t *@var{sched_mutex}, {pthread_cond_t *}@var{sched_cond})
 This function specifies the condition variable associated to a worker per context
 When there is no available task for a worker, StarPU blocks this worker on a

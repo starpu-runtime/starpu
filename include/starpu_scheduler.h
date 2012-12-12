@@ -118,6 +118,7 @@ struct starpu_sched_policy
 	const char *policy_description;
 };
 
+struct starpu_sched_policy **starpu_sched_get_predefined_policies();
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
