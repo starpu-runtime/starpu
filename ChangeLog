@@ -78,6 +78,7 @@ New features:
     	- Several policies can adapt dynamically the distribution of resources
 	in contexts if the initial one was not appropriate
 	- Add a platform to implement new policies of redistribution of resources
+
 Changes:
   * Fix the block filter functions.
   * Fix StarPU-MPI on Darwin.
@@ -104,6 +105,7 @@ Changes:
   * Fix data transfer arrows in paje traces
   * The "heft" scheduler no longer exists. Users should now pick "dmda"
     instead.
+  * StarPU can now use poti to generate paje traces.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
