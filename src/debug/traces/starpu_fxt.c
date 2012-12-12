@@ -221,7 +221,7 @@ static void memnode_set_state(double time, const char *prefix, unsigned int memn
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	memnode_container_alias(container, STARPU_POTI_STR_LEN, prefix, memnodeid);
-	poti_SetState(time, container, "S", name);
+	poti_SetState(time, container, "MS", name);
 #else
 	fprintf(out_paje_file, "10	%.9f	%smn%u	MS	%s\n", time, prefix, memnodeid, name);
 #endif
