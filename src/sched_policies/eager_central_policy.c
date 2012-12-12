@@ -135,5 +135,5 @@ struct starpu_sched_policy _starpu_sched_eager_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
-	.policy_description = "greedy policy"
+	.policy_description = "eager policy with a central queue"
 };

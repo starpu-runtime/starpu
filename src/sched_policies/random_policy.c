@@ -149,5 +149,5 @@ struct starpu_sched_policy _starpu_sched_random_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "random",
-	.policy_description = "weighted random"
+	.policy_description = "weighted random based on worker overall performance"
 };
