@@ -106,6 +106,7 @@ Changes:
   * The "heft" scheduler no longer exists. Users should now pick "dmda"
     instead.
   * StarPU can now use poti to generate paje traces.
+  * Rename scheduling policy "parallel greedy" to "parallel eager"
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
