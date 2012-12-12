@@ -23,7 +23,7 @@ unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
 
 	int i;
 	for(i = 0; i < nsched_ctxs; i++)
-		if(sched_ctxs[i] != sched_ctx && starpu_worker_belongs_to_sched_ctx(worker, sched_ctxs[i]))
+		if(sched_ctxs[i] != sched_ctx && starpu_sched_ctx_contains_worker(worker, sched_ctxs[i]))
 			return 1;
 	return 0;
 }

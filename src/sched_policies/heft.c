@@ -275,7 +275,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 
 	double max_time_on_ctx = starpu_get_max_time_worker_on_ctx();
-	if(max_time_on_ctx != -1.0 && starpu_are_overlapping_ctxs_on_worker(best_workerid) && starpu_is_ctxs_turn(best_workerid, sched_ctx_id))
+	if(max_time_on_ctx != -1.0 && starpu_sched_ctx_overlapping_ctxs_on_worker(best_workerid) && starpu_is_ctxs_turn(best_workerid, sched_ctx_id))
 	{
 		current_time[best_workerid][sched_ctx_id] += predicted;
 		
@@ -571,7 +571,7 @@ static int heft_push_task(struct starpu_task *task)
 	if (task->priority > 0)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-		nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+		nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 		if(nworkers == 0)
 		{
 			_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
@@ -584,7 +584,7 @@ static int heft_push_task(struct starpu_task *task)
 	}
 
 	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 	if(nworkers == 0)
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);

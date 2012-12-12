@@ -854,7 +854,7 @@ _starpu_pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id)
 	return &sched_ctx->changing_ctx_mutex;
 }
 
-unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx_id)
+unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx != NULL)
@@ -864,7 +864,7 @@ unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx_id)
 
 }
 
-unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2)
+unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2)
 {
         struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
         struct _starpu_sched_ctx *sched_ctx2 = _starpu_get_sched_ctx_struct(sched_ctx_id2);
@@ -900,7 +900,7 @@ unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id
 	return shared_workers;
 }
 
-unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id)
+unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	unsigned i;
@@ -912,7 +912,7 @@ unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id)
 	return 0;
 }
 
-unsigned starpu_are_overlapping_ctxs_on_worker(int workerid)
+unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return worker->nsched_ctxs > 1;

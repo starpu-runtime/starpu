@@ -59,7 +59,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 	{
 		if(sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS && sched_ctxs[i] != req_sched_ctx)
 		{
-			unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctxs[i]);
+			unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctxs[i]);
 			config  = sched_ctx_hypervisor_get_config(sched_ctxs[i]);
 			if((nworkers + nworkers_to_move) <= config->max_nworkers)
 			{
@@ -207,7 +207,7 @@ unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_policy_confi
 int _get_nworkers_to_move(unsigned req_sched_ctx)
 {
        	struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
-	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(req_sched_ctx);
+	unsigned nworkers = starpu_sched_ctx_get_nworkers(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
 
 	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, STARPU_ANY_WORKER);
@@ -269,8 +269,8 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 			{
 				poor_sched_ctx = receiver_sched_ctx;
 				struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
-				unsigned nworkers = starpu_get_nworkers_of_sched_ctx(poor_sched_ctx);
-				unsigned nshared_workers = starpu_get_nshared_workers(sender_sched_ctx, poor_sched_ctx);
+				unsigned nworkers = starpu_sched_ctx_get_nworkers(poor_sched_ctx);
+				unsigned nshared_workers = starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, poor_sched_ctx);
 				if((nworkers+nworkers_to_move-nshared_workers) > config->max_nworkers)
 					nworkers_to_move = nworkers > config->max_nworkers ? 0 : (config->max_nworkers - nworkers+nshared_workers);
 				if(nworkers_to_move == 0) poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -332,7 +332,7 @@ double _get_ctx_velocity(struct starpu_sched_ctx_hypervisor_wrapper* sc_w)
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
 	double prc = elapsed_flops/sc_w->total_flops;
-	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sc_w->sched_ctx);
+	unsigned nworkers = starpu_sched_ctx_get_nworkers(sc_w->sched_ctx);
 	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;
 	if(prc >= redim_sample)
         {

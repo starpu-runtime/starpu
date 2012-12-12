@@ -457,7 +457,7 @@ void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, 
 
 				int i;
 				for(i = 0; i < nworkers_to_remove; i++)
-					if(starpu_worker_belongs_to_sched_ctx(workers_to_remove[i], sched_ctx))
+					if(starpu_sched_ctx_contains_worker(workers_to_remove[i], sched_ctx))
 						workers[nworkers++] = workers_to_remove[i];
 
 				hypervisor.sched_ctx_w[sched_ctx].resize_ack.receiver_sched_ctx = -1;
@@ -508,7 +508,7 @@ double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct starpu_
 
 static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 {
-	if(worker != -1 && !starpu_worker_belongs_to_sched_ctx(worker, sched_ctx))
+	if(worker != -1 && !starpu_sched_ctx_contains_worker(worker, sched_ctx))
 		return 0;
 
 	struct starpu_sched_ctx_hypervisor_resize_ack *resize_ack = NULL;
@@ -523,7 +523,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 			pthread_mutex_lock(&sc_w->mutex);
 			unsigned only_remove = 0;
 			if(sc_w->resize_ack.receiver_sched_ctx == -1 && hypervisor.sched_ctxs[i] != sched_ctx &&
-			   sc_w->resize_ack.nmoved_workers > 0 && starpu_worker_belongs_to_sched_ctx(worker, hypervisor.sched_ctxs[i]))
+			   sc_w->resize_ack.nmoved_workers > 0 && starpu_sched_ctx_contains_worker(worker, hypervisor.sched_ctxs[i]))
 			{
 				int j;
 				for(j = 0; j < sc_w->resize_ack.nmoved_workers; j++)

@@ -610,12 +610,12 @@ Sets the scheduling context the task will be submitted to
 Returns the scheduling contexts the tasks are currently submitted to
 @end deftypefun
 
-@deftypefun unsigned starpu_get_nworkers_of_sched_ctx (unsigned @var{sched_ctx})
+@deftypefun unsigned starpu_sched_ctx_get_nworkers (unsigned @var{sched_ctx})
 Returns the number of workers managed by the specified contexts
 (Usually needed to verify if it manages any workers or if it should be blocked)
 @end deftypefun
 
-@deftypefun unsigned starpu_get_nshared_workers (unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
+@deftypefun unsigned starpu_sched_ctx_get_nshared_workers (unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
 Returns the number of workers shared by two contexts
 @end deftypefun
 

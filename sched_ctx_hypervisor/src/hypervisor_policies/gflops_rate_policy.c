@@ -72,9 +72,9 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
                 struct starpu_sched_ctx_hypervisor_policy_config *sender_config = sched_ctx_hypervisor_get_config(sender_sched_ctx);
                 unsigned potential_moving_cpus = _get_potential_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
                 unsigned potential_moving_gpus = _get_potential_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
-                unsigned sender_nworkers = starpu_get_nworkers_of_sched_ctx(sender_sched_ctx);
+                unsigned sender_nworkers = starpu_sched_ctx_get_nworkers(sender_sched_ctx);
                 struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
-                unsigned nworkers_ctx = starpu_get_nworkers_of_sched_ctx(receiver_sched_ctx);
+                unsigned nworkers_ctx = starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
 
                 if(nworkers_needed < (potential_moving_cpus + 5 * potential_moving_gpus))
                 {
@@ -119,7 +119,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 
                         if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
                         {
-                                unsigned nshared_workers = starpu_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
+                                unsigned nshared_workers = starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
                                 if((nworkers_ctx + nworkers_to_move - nshared_workers) > config->max_nworkers)
                                         nworkers_to_move = nworkers_ctx > config->max_nworkers ? 0 : (config->max_nworkers - nworkers_ctx + nshared_workers);
 

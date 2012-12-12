@@ -183,7 +183,7 @@ static int push_task_pgreedy_policy(struct starpu_task *task)
 
 	/* if the context has no workers return */
 	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
    	if(nworkers == 0)
 	{

@@ -131,13 +131,13 @@ void starpu_notify_hypervisor_exists(void);
 
 unsigned starpu_check_if_hypervisor_exists(void);
 
-unsigned starpu_get_nworkers_of_sched_ctx(unsigned sched_ctx);
+unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx);
 
-unsigned starpu_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
+unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
 
-unsigned starpu_worker_belongs_to_sched_ctx(int workerid, unsigned sched_ctx_id);
+unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
 
-unsigned starpu_are_overlapping_ctxs_on_worker(int workerid);
+unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 
 unsigned starpu_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
 

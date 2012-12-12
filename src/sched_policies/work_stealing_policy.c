@@ -59,7 +59,7 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
-	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
@@ -87,7 +87,7 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_push_worker;
-	unsigned nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
 	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
 
@@ -306,7 +306,7 @@ int ws_push_task(struct starpu_task *task)
 
 	/* if the context has no workers return */
         _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-        nworkers = starpu_get_nworkers_of_sched_ctx(sched_ctx_id);
+        nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
         if(nworkers == 0)
         {
                 _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
