@@ -25,31 +25,6 @@
 
 #define NTASKS           8
 
-extern struct starpu_sched_policy _starpu_sched_ws_policy;
-extern struct starpu_sched_policy _starpu_sched_prio_policy;
-extern struct starpu_sched_policy _starpu_sched_random_policy;
-extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_peager_policy;
-
-static struct starpu_sched_policy *policies[] =
-{
-	&_starpu_sched_ws_policy,
-	&_starpu_sched_prio_policy,
-	&_starpu_sched_dm_policy,
-	&_starpu_sched_dmda_policy,
-	&_starpu_sched_dmda_ready_policy,
-	&_starpu_sched_dmda_sorted_policy,
-	&_starpu_sched_random_policy,
-	&_starpu_sched_eager_policy,
-	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_peager_policy
-};
-
 static void
 dummy(void *buffers[], void *args)
 {
@@ -71,7 +46,7 @@ run(struct starpu_sched_policy *p)
 		exit(STARPU_TEST_SKIPPED);
 
 	struct starpu_task *tasks[NTASKS] = { NULL };
-	struct starpu_codelet cl = 
+	struct starpu_codelet cl =
 	{
 		.cpu_funcs    = {dummy, NULL},
 		.cuda_funcs   = {dummy, NULL},
@@ -100,6 +75,7 @@ run(struct starpu_sched_policy *p)
 		struct _starpu_job *j = tasks[i]->starpu_private;
 		if (j == NULL || j->terminated == 0)
 		{
+			FPRINTF(stderr, "Error with policy %s.\n", p->policy_name);
 			ret = 1;
 			break;
 		}
@@ -118,16 +94,21 @@ int
 main(void)
 {
 	int i;
-	int n_policies = sizeof(policies)/sizeof(policies[0]);
-	for (i = 0; i < n_policies; ++i)
+	struct starpu_sched_policy **policies;
+
+	policies = starpu_sched_get_predefined_policies();
+	i = 0;
+	struct starpu_sched_policy *policy = policies[i];
+
+	while (policy != NULL)
 	{
-		struct starpu_sched_policy *policy = policies[i];
-		FPRINTF(stdout, "Running with policy %s.\n",
-			policy->policy_name);
+		FPRINTF(stderr, "Running with policy %s.\n", policy->policy_name);
 		int ret;
 		ret = run(policy);
 		if (ret == 1)
 			return EXIT_FAILURE;
+		i++;
+		policy = policies[i];
 	}
 
 	return EXIT_SUCCESS;

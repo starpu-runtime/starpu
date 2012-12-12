@@ -83,40 +83,19 @@ enodev:
 	return -ENODEV;
 }
 
-extern struct starpu_sched_policy _starpu_sched_ws_policy;
-extern struct starpu_sched_policy _starpu_sched_prio_policy;
-extern struct starpu_sched_policy _starpu_sched_random_policy;
-extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_peager_policy;
-
-static struct starpu_sched_policy *policies[] =
-{
-	&_starpu_sched_ws_policy,
-	&_starpu_sched_prio_policy,
-	&_starpu_sched_dm_policy,
-	&_starpu_sched_dmda_policy,
-	&_starpu_sched_dmda_ready_policy,
-	&_starpu_sched_dmda_sorted_policy,
-	&_starpu_sched_random_policy,
-	&_starpu_sched_eager_policy,
-	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_peager_policy
-};
-
 int
 main(void)
 {
 	int i;
-	int n_policies = sizeof(policies)/sizeof(policies[0]);
-	for (i = 0; i < n_policies; ++i)
+	struct starpu_sched_policy **policies;
+
+	policies = starpu_sched_get_predefined_policies();
+	i = 0;
+	struct starpu_sched_policy *policy = policies[i];
+
+	while (policy != NULL)
 	{
-		struct starpu_sched_policy *policy = policies[i];
-		FPRINTF(stdout, "Running with policy %s.\n",
+		FPRINTF(stderr, "Running with policy %s.\n",
 			policy->policy_name);
 		int ret;
 		ret = run(policy);
@@ -124,6 +103,9 @@ main(void)
 			return STARPU_TEST_SKIPPED;
 		if (ret == 1)
 			return EXIT_FAILURE;
+
+		i++;
+		policy = policies[i];
 	}
 
 	return EXIT_SUCCESS;
