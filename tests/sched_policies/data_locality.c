@@ -154,7 +154,7 @@ extern struct starpu_sched_policy _starpu_sched_dmda_policy;
 //extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 //extern struct starpu_sched_policy _starpu_sched_eager_policy;
 extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-//extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
+//extern struct starpu_sched_policy _starpu_sched_peager_policy;
 
 static struct starpu_sched_policy *policies[] =
 {
@@ -167,7 +167,7 @@ static struct starpu_sched_policy *policies[] =
 	//&_starpu_sched_random_policy,
 	//&_starpu_sched_eager_policy,
 	&_starpu_sched_parallel_heft_policy,
-	//&_starpu_sched_pgreedy_policy
+	//&_starpu_sched_peager_policy
 };
 
 int

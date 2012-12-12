@@ -144,7 +144,7 @@ starpu.log
 /tests/parallel_tasks/explicit_combined_worker
 /tests/parallel_tasks/parallel_kernels
 /tests/parallel_tasks/parallel_kernels_spmd
-/tests/parallel_tasks/spmd_pgreedy
+/tests/parallel_tasks/spmd_peager
 /tests/perfmodels/non_linear_regression_based
 /tests/perfmodels/regression_based
 /tools/cbc2paje

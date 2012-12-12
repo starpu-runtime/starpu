@@ -26,7 +26,7 @@
 struct starpu_machine_config;
 struct starpu_sched_policy *_starpu_get_sched_policy( struct _starpu_sched_ctx *sched_ctx);
 
-void _starpu_init_sched_policy(struct _starpu_machine_config *config, 
+void _starpu_init_sched_policy(struct _starpu_machine_config *config,
 			       struct _starpu_sched_ctx *sched_ctx, const char *required_policy);
 
 void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx);
@@ -57,7 +57,7 @@ extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy _starpu_sched_eager_policy;
 extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
+extern struct starpu_sched_policy _starpu_sched_peager_policy;
 
 
 #endif // __SCHED_POLICY_H__

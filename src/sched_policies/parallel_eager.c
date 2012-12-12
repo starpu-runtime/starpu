@@ -21,7 +21,7 @@
 #include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
 
-struct _starpu_pgreedy_data
+struct _starpu_peager_data
 {
 	struct _starpu_fifo_taskq *fifo;
 	struct _starpu_fifo_taskq *local_fifo[STARPU_NMAXWORKERS];
@@ -45,9 +45,9 @@ static int possible_combinations_size[STARPU_NMAXWORKERS][10];
   from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!
  */
 
-static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	struct _starpu_pgreedy_data *data = (struct _starpu_pgreedy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
@@ -129,9 +129,9 @@ static void pgreedy_add_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 #endif
 }
 
-static void pgreedy_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	struct _starpu_pgreedy_data *data = (struct _starpu_pgreedy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int workerid;
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -144,11 +144,11 @@ static void pgreedy_remove_workers(unsigned sched_ctx_id, int *workerids, unsign
 	}
 }
 
-static void initialize_pgreedy_policy(unsigned sched_ctx_id)
+static void initialize_peager_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
 
-	struct _starpu_pgreedy_data *data = (struct _starpu_pgreedy_data*)malloc(sizeof(struct _starpu_pgreedy_data));
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)malloc(sizeof(struct _starpu_peager_data));
 	/* masters pick tasks from that queue */
 	data->fifo = _starpu_create_fifo();
 
@@ -158,10 +158,10 @@ static void initialize_pgreedy_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 
-static void deinitialize_pgreedy_policy(unsigned sched_ctx_id)
+static void deinitialize_peager_policy(unsigned sched_ctx_id)
 {
 	/* TODO check that there is no task left in the queue */
-	struct _starpu_pgreedy_data *data = (struct _starpu_pgreedy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(data->fifo);
@@ -174,7 +174,7 @@ static void deinitialize_pgreedy_policy(unsigned sched_ctx_id)
 	free(data);
 }
 
-static int push_task_pgreedy_policy(struct starpu_task *task)
+static int push_task_peager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
@@ -190,16 +190,16 @@ static int push_task_pgreedy_policy(struct starpu_task *task)
    		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 		return ret_val;
 	}
-	struct _starpu_pgreedy_data *data = (struct _starpu_pgreedy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	ret_val = _starpu_fifo_push_task(data->fifo, &data->sched_mutex, &data->sched_cond, task);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 	return ret_val;
 }
 
-static struct starpu_task *pop_task_pgreedy_policy(unsigned sched_ctx_id)
+static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_pgreedy_data *data = (struct _starpu_pgreedy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int workerid = starpu_worker_get_id();
 
@@ -291,17 +291,17 @@ static struct starpu_task *pop_task_pgreedy_policy(unsigned sched_ctx_id)
 	}
 }
 
-struct starpu_sched_policy _starpu_sched_pgreedy_policy =
+struct starpu_sched_policy _starpu_sched_peager_policy =
 {
-	.init_sched = initialize_pgreedy_policy,
-	.deinit_sched = deinitialize_pgreedy_policy,
-	.add_workers = pgreedy_add_workers,
-	.remove_workers = pgreedy_remove_workers,
-	.push_task = push_task_pgreedy_policy,
-	.pop_task = pop_task_pgreedy_policy,
+	.init_sched = initialize_peager_policy,
+	.deinit_sched = deinitialize_peager_policy,
+	.add_workers = peager_add_workers,
+	.remove_workers = peager_remove_workers,
+	.push_task = push_task_peager_policy,
+	.pop_task = pop_task_peager_policy,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
-	.policy_name = "pgreedy",
-	.policy_description = "parallel greedy policy"
+	.policy_name = "peager",
+	.policy_description = "parallel eager policy"
 };

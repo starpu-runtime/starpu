@@ -197,7 +197,7 @@ is now just an alias for @b{dmda}.
 The @b{pheft} (parallel HEFT) scheduler is similar to heft, it also supports
 parallel tasks (still experimental).
 
-The @b{pgreedy} (parallel greedy) scheduler is similar to greedy, it also
+The @b{peager} (parallel eager) scheduler is similar to eager, it also
 supports parallel tasks (still experimental).
 
 @node Task scheduling contexts

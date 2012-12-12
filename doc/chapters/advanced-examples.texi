@@ -917,7 +917,7 @@ buffer.
 
 To benefit from parallel tasks, a parallel-task-aware StarPU scheduler has to
 be used. When exposed to codelets with a Fork or SPMD flag, the @code{pheft}
-(parallel-heft) and @code{pgreedy} (parallel greedy) schedulers will indeed also
+(parallel-heft) and @code{peager} (parallel eager) schedulers will indeed also
 try to execute tasks with several CPUs. It will automatically try the various
 available combined worker sizes and thus be able to avoid choosing a large
 combined worker if the codelet does not actually scale so much.
@@ -935,7 +935,7 @@ permits to tune the maximum arity between levels of combined workers.
 The combined workers actually produced can be seen in the output of the
 @code{starpu_machine_display} tool (the @code{STARPU_SCHED} environment variable
 has to be set to a combined worker-aware scheduler such as @code{pheft} or
-@code{pgreedy}).
+@code{peager}).
 
 @subsection Concurrent parallel tasks
 

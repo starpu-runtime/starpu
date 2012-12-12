@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
         struct starpu_conf conf;
 	starpu_conf_init(&conf);
-        conf.sched_policy_name = "pgreedy";
+        conf.sched_policy_name = "peager";
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

@@ -65,23 +65,23 @@ static void init_x11(int width, int height, unsigned *buffer)
 {
 	/* Attempt to open the display */
 	dpy = XOpenDisplay(NULL);
-	
+
 	/* Failure */
 	if (!dpy)
 		exit(0);
-	
+
 	unsigned long white = WhitePixel(dpy,DefaultScreen(dpy));
 	unsigned long black = BlackPixel(dpy,DefaultScreen(dpy));
 
 	win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), 0, 0,
 					width, height, 0, black, white);
-	
+
 	/* We want to be notified when the window appears */
 	XSelectInput(dpy, win, StructureNotifyMask);
-	
+
 	/* Make it appear */
 	XMapWindow(dpy, win);
-	
+
 	XTextProperty tp;
 	char name[128] = "Mandelbrot - StarPU";
 	char *n = name;
@@ -91,7 +91,7 @@ static void init_x11(int width, int height, unsigned *buffer)
 
 	/* Wait for the MapNotify event */
 	XFlush(dpy);
-	
+
 	int depth = DefaultDepth(dpy, DefaultScreen(dpy));
 	Visual *visual = DefaultVisual(dpy, DefaultScreen(dpy));
 
@@ -99,13 +99,13 @@ static void init_x11(int width, int height, unsigned *buffer)
 	bitmap = XCreateImage(dpy, visual, depth,
 		ZPixmap, 0, (char *)buffer,
 		width, height, 32, 0);
-	
+
 	/* Init GC */
 	gc = XCreateGC(dpy, win, 0, NULL);
 	XSetForeground(dpy, gc, black);
-	
+
 	XSelectInput(dpy, win, ExposureMask | KeyPressMask | StructureNotifyMask);
-	
+
 	Atom wmDeleteMessage;
 	wmDeleteMessage = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 	XSetWMProtocols(dpy, win, &wmDeleteMessage, 1);
@@ -311,7 +311,7 @@ static void compute_block(void *descr[], void *cl_arg)
 				x = x2 - y2 + cx;
 				y = twoxy + cy;
 			}
-	
+
 			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
 			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
 		}
@@ -338,7 +338,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 			break;
 
 		iy = iby*block_size + local_iy;
-	
+
 		for (ix = 0; ix < width; ix++)
 		{
 			double cx = leftX + ix * stepX;
@@ -362,7 +362,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 				x = x2 - y2 + cx;
 				y = twoxy + cy;
 			}
-	
+
 			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
 			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
 		}
@@ -477,7 +477,7 @@ int main(int argc, char **argv)
 	conf.ncuda = 0;
 
 	if (use_spmd)
-		conf.sched_policy_name = "pgreedy";
+		conf.sched_policy_name = "peager";
 
 	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -498,7 +498,7 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_data_handle_t block_handles[nblocks];
-	
+
 	int iby;
 	for (iby = 0; iby < nblocks; iby++)
 	{
@@ -592,7 +592,7 @@ int main(int argc, char **argv)
 				topY -= (zoom_factor/2)*heightY;
 				bottomY += (zoom_factor/2)*heightY;
 			}
-	
+
 		}
 #ifdef STARPU_HAVE_X11
 		else if (use_x11 && handle_events())
