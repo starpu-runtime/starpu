@@ -167,7 +167,20 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 		starpu_cuda_func_t cuda_func = _starpu_task_get_cuda_nth_implementation(cl, nimpl);
 		starpu_opencl_func_t opencl_func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		starpu_gordon_func_t gordon_func = _starpu_task_get_gordon_nth_implementation(cl, nimpl);
-		return (cpu_func != NULL && cuda_func != NULL && opencl_func != NULL && gordon_func != NULL);
+		return (
+#ifdef STARPU_USE_CPU
+			cpu_func != NULL &&
+#endif
+#ifdef STARPU_USE_CUDA
+			cuda_func != NULL &&
+#endif
+#ifdef STARPU_USE_OPENCL
+			opencl_func != NULL &&
+#endif
+#ifdef STARPU_USE_GORDON
+			gordon_func != NULL &&
+#endif
+			1);
 	}
 	case STARPU_CPU_WORKER:
 	{
