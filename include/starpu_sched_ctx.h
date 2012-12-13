@@ -62,11 +62,11 @@ struct starpu_sched_ctx_worker_collection
 
 struct starpu_performance_counters
 {
-	void (*notify_idle_cycle)(unsigned sched_ctx, int worker, double idle_time);
-	void (*notify_idle_end)(unsigned sched_ctx, int worker);
-	void (*notify_pushed_task)(unsigned sched_ctx, int worker);
-	void (*notify_poped_task)(unsigned sched_ctx, int worker, double flops);
-	void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid);
+	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
+	void (*notify_idle_end)(unsigned sched_ctx_id, int worker);
+	void (*notify_pushed_task)(unsigned sched_ctx_id, int worker);
+	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, double flops);
+	void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid);
 	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint);
 };
 
@@ -84,13 +84,13 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 
 void starpu_sched_ctx_delete(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id);
 
-void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
+void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 
-void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx);
+void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
-void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx);
+void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
 /* When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
@@ -123,7 +123,7 @@ struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collectio
 pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
 #endif
 
-void starpu_set_sched_ctx(unsigned *sched_ctx);
+void starpu_set_sched_ctx(unsigned *sched_ctx_id);
 
 unsigned starpu_get_sched_ctx(void);
 
@@ -131,7 +131,7 @@ void starpu_notify_hypervisor_exists(void);
 
 unsigned starpu_check_if_hypervisor_exists(void);
 
-unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx);
+unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
 
@@ -147,7 +147,7 @@ double starpu_get_max_time_worker_on_ctx(void);
 
 void starpu_stop_task_submission(void);
 
-void starpu_sched_ctx_set_inheritor(unsigned sched_ctx, unsigned inheritor);
+void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
 
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 

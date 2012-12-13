@@ -215,16 +215,16 @@ The Scheduling Context Hypervisor Plugin provides a series of performance counte
 @anchor{struct starpu_performance_counters}
 
 @table @asis
-@item @code{void (*notify_idle_cycle)(unsigned sched_ctx, int worker, double idle_time)}
+@item @code{void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time)}
 Informs the hypervisor for how long a worker has been idle in the specified context
-@item @code{void (*notify_idle_end)(unsigned sched_ctx, int worker)}
+@item @code{void (*notify_idle_end)(unsigned sched_ctx_id, int worker)}
 Informs the hypervisor that after a period of idle, the worker has just executed a task in the specified context.
 The idle counter it though reset.
-@item @code{void (*notify_pushed_task)(unsigned sched_ctx, int worker)}
+@item @code{void (*notify_pushed_task)(unsigned sched_ctx_id, int worker)}
 Notifies the hypervisor a task has been scheduled on the queue of the worker corresponding to the specified context
-@item @code{void (*notify_poped_task)(unsigned sched_ctx, int worker, double flops)}
+@item @code{void (*notify_poped_task)(unsigned sched_ctx_id, int worker, double flops)}
 Informs the hypervisor a task executing a specified number of instructions has been poped from the worker
-@item @code{void (*notify_post_exec_hook)(unsigned sched_ctx, int taskid)}
+@item @code{void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid)}
 Notifies the hypervisor a task has just been executed
 
 @end table
@@ -256,15 +256,15 @@ This structure contains all the methods that implement a hypervisor resizing pol
 Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
 @item @code{unsigned custom}
 Indicates whether the policy is custom or not
-@item @code{void (*handle_idle_cycle)(unsigned sched_ctx, int worker)}
+@item @code{void (*handle_idle_cycle)(unsigned sched_ctx_id, int worker)}
 It is called whenever the indicated worker executes another idle cycle in @code{sched_ctx}
-@item @code{void (*handle_pushed_task)(unsigned sched_ctx, int worker)}
+@item @code{void (*handle_pushed_task)(unsigned sched_ctx_id, int worker)}
 It is called whenever a task is pushed on the worker's queue corresponding to the context @code{sched_ctx}
-@item @code{void (*handle_poped_task)(unsigned sched_ctx, int worker)}
+@item @code{void (*handle_poped_task)(unsigned sched_ctx_id, int worker)}
 It is called whenever a task is poped from the worker's queue corresponding to the context @code{sched_ctx}
-@item @code{void (*handle_idle_end)(unsigned sched_ctx, int worker)}
+@item @code{void (*handle_idle_end)(unsigned sched_ctx_id, int worker)}
 It is called whenever a task is executed on the indicated worker and context after a long period of idle time
-@item @code{void (*handle_post_exec_hook)(unsigned sched_ctx, struct starpu_htbl32_node* resize_requests, int task_tag)}
+@item @code{void (*handle_post_exec_hook)(unsigned sched_ctx_id, struct starpu_htbl32_node* resize_requests, int task_tag)}
 It is called whenever a tag task has just been executed. The table of resize requests is provided as well as the tag
 @end table
 @end deftp
