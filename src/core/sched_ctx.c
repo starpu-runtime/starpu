@@ -732,7 +732,7 @@ void starpu_task_set_context(unsigned *sched_ctx)
 	pthread_setspecific(sched_ctx_key, (void*)sched_ctx);
 }
 
-unsigned starpu_task_get_sched_ctx()
+unsigned starpu_task_get_context()
 {
 	unsigned *sched_ctx = (unsigned*)pthread_getspecific(sched_ctx_key);
 	if(sched_ctx == NULL)
