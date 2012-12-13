@@ -181,7 +181,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 	nworkers = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, d->id.cpu_id+1);
 	if (nworkers >= 0 && (unsigned) nworkers < d->id.cpu_id)
 		return NULL; // No device was found.
-	
+
 	return _starpu_get_worker_struct(workers[d->id.cpu_id]);
 }
 
@@ -200,9 +200,9 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 
 	cpu_worker->status = STATUS_UNKNOWN;
 
-	_STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END;
 
-        /* tell the main thread that we are ready */
+	/* tell the main thread that we are ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
 	cpu_worker->worker_is_initialized = 1;
 	_STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
@@ -223,7 +223,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	_starpu_datawizard_progress(memnode, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
-        struct _starpu_job *j;
+	struct _starpu_job *j;
 	struct starpu_task *task;
 	int res;
 

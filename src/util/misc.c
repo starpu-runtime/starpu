@@ -42,7 +42,7 @@ const char *_starpu_job_get_model_name(struct _starpu_job *j)
 
 #ifdef STARPU_USE_FXT
 	if (!ret)
-                ret = j->model_name;
+		ret = j->model_name;
 #endif
-        return ret;
+	return ret;
 }

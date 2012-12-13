@@ -29,7 +29,7 @@ void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...)
 
 	/* Compute the size */
 	va_start(varg_list, arg_buffer_size);
-        *arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+	*arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
 	va_start(varg_list, arg_buffer_size);
 	_starpu_codelet_pack_args(*arg_buffer_size, arg_buffer, varg_list);
@@ -71,7 +71,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	/* Compute the size */
 	size_t arg_buffer_size = 0;
 	va_start(varg_list, cl);
-        arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+	arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
 	if (arg_buffer_size)
 	{
@@ -80,7 +80,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	}
 
 	va_start(varg_list, cl);
-        struct starpu_task *task = starpu_task_create();
+	struct starpu_task *task = starpu_task_create();
 	int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, cl, &task, varg_list);
 
 	if (ret == -ENODEV)
@@ -88,6 +88,5 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
-        return ret;
+	return ret;
 }
-

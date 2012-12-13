@@ -110,7 +110,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
-	
+
 	/* hack to force the initialization */
 	cudaFree(0);
 

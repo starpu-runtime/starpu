@@ -76,9 +76,9 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 	va_list vl;
 	char *user;
 
-        char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
-        if (!fxt_prefix)
-			fxt_prefix = "/tmp/";
+	char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
+	if (!fxt_prefix)
+	     fxt_prefix = "/tmp/";
 
 	va_start(vl, last);
 	vsprintf(_STARPU_PROF_FILE_USER, fxt_prefix, vl);
@@ -96,9 +96,9 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 
 void starpu_set_profiling_id(int new_id)
 {
-        _STARPU_DEBUG("Set id to <%d>\n", new_id);
+	_STARPU_DEBUG("Set id to <%d>\n", new_id);
 	_starpu_id = new_id;
-        _starpu_profile_set_tracefile(NULL);
+	_starpu_profile_set_tracefile(NULL);
 }
 
 void _starpu_start_fxt_profiling(void)

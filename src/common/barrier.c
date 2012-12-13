@@ -35,14 +35,14 @@ int _starpu_barrier_test(struct _starpu_barrier *barrier)
 	 * Check whether any threads are known to be waiting; report
 	 * "BUSY" if so.
 	 */
-        _STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex_exit);
-        if (barrier->reached_exit != barrier->count)
+	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex_exit);
+	if (barrier->reached_exit != barrier->count)
 	{
-                _STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex_exit);
-                return EBUSY;
-        }
-        _STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex_exit);
-        return 0;
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex_exit);
+		return EBUSY;
+	}
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex_exit);
+	return 0;
 }
 
 int _starpu_barrier_destroy(struct _starpu_barrier *barrier)
@@ -64,7 +64,7 @@ int _starpu_barrier_wait(struct _starpu_barrier *barrier)
 {
 	int ret=0;
 
-        // Wait until all threads enter the barrier
+	// Wait until all threads enter the barrier
 	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 	barrier->reached_exit=0;
 	barrier->reached_start++;
@@ -76,11 +76,11 @@ int _starpu_barrier_wait(struct _starpu_barrier *barrier)
 	}
 	else
 	{
-                _STARPU_PTHREAD_COND_WAIT(&barrier->cond,&barrier->mutex);
+		_STARPU_PTHREAD_COND_WAIT(&barrier->cond,&barrier->mutex);
 	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 
-        // Count number of threads that exit the barrier
+	// Count number of threads that exit the barrier
 	_STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex_exit);
 	barrier->reached_exit ++;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex_exit);

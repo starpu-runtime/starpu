@@ -105,14 +105,14 @@ void _starpu_clock_gettime(struct timespec *ts)
 #if defined(__i386__) || defined(__pentium__) || defined(__pentiumpro__) || defined(__i586__) || defined(__i686__) || defined(__k6__) || defined(__k7__) || defined(__x86_64__)
 union starpu_u_tick
 {
-  uint64_t tick;
+	uint64_t tick;
 
-  struct
-  {
-    uint32_t low;
-    uint32_t high;
-  }
-  sub;
+	struct
+	{
+		uint32_t low;
+		uint32_t high;
+	}
+		sub;
 };
 
 #define STARPU_GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
@@ -127,36 +127,36 @@ static int _starpu_inited = 0;
 
 void _starpu_timing_init(void)
 {
-  static union starpu_u_tick t1, t2;
-  int i;
+	static union starpu_u_tick t1, t2;
+	int i;
 
-  if (_starpu_inited) return;
+	if (_starpu_inited) return;
 
-  _starpu_residual = (unsigned long long)1 << 63;
+	_starpu_residual = (unsigned long long)1 << 63;
 
-  for(i = 0; i < 20; i++)
-    {
-      STARPU_GET_TICK(t1);
-      STARPU_GET_TICK(t2);
-      _starpu_residual = STARPU_MIN(_starpu_residual, STARPU_TICK_RAW_DIFF(t1, t2));
-    }
+	for(i = 0; i < 20; i++)
+	{
+		STARPU_GET_TICK(t1);
+		STARPU_GET_TICK(t2);
+		_starpu_residual = STARPU_MIN(_starpu_residual, STARPU_TICK_RAW_DIFF(t1, t2));
+	}
 
-  {
-    struct timeval tv1,tv2;
+	{
+		struct timeval tv1,tv2;
 
-    STARPU_GET_TICK(t1);
-    gettimeofday(&tv1,0);
-    usleep(500000);
-    STARPU_GET_TICK(t2);
-    gettimeofday(&tv2,0);
-    _starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
-		     (tv1.tv_sec*1e6 + tv1.tv_usec)) /
-      (double)(STARPU_TICK_DIFF(t1, t2));
-  }
+		STARPU_GET_TICK(t1);
+		gettimeofday(&tv1,0);
+		usleep(500000);
+		STARPU_GET_TICK(t2);
+		gettimeofday(&tv2,0);
+		_starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
+				 (tv1.tv_sec*1e6 + tv1.tv_usec)) /
+			(double)(STARPU_TICK_DIFF(t1, t2));
+	}
 
-  STARPU_GET_TICK(_starpu_reference_start_tick);
+	STARPU_GET_TICK(_starpu_reference_start_tick);
 
-  _starpu_inited = 1;
+	_starpu_inited = 1;
 }
 
 void _starpu_clock_gettime(struct timespec *ts)
