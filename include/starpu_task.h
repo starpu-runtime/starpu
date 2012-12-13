@@ -205,12 +205,12 @@ struct starpu_task
 	/* Scheduling context */
 	unsigned sched_ctx;
 
-	/* flag to differentiate tasks needed by starpu management purposes 
+	/* flag to differentiate tasks needed by starpu management purposes
 	 from the ones provided by the appl*/
 	unsigned control_task;
 
 	int hypervisor_tag;
-	
+
 	/* Number of flops computed by this tag, used by resource reallocation for contexts */
 	double flops;
 
@@ -330,7 +330,7 @@ int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
  * been executed. */
 int starpu_task_wait_for_all(void);
 
-int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx);
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
 
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);
