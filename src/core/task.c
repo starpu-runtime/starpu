@@ -861,24 +861,20 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 
 starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
-	STARPU_ASSERT(cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS);
 	return cl->cpu_funcs[nimpl];
 }
 
 starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
-	STARPU_ASSERT(cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS);
 	return cl->cuda_funcs[nimpl];
 }
 
 starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
-	STARPU_ASSERT(cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS);
 	return cl->opencl_funcs[nimpl];
 }
 
 starpu_gordon_func_t _starpu_task_get_gordon_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
-	STARPU_ASSERT(cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS);
 	return cl->gordon_funcs[nimpl];
 }
