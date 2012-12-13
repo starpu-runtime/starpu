@@ -941,12 +941,8 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
 
 void starpu_display_stats()
 {
-	const char *stats;
-	if ((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))
-		starpu_bus_profiling_helper_display_summary();
-
-	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
-		starpu_worker_profiling_helper_display_summary();
+	starpu_bus_profiling_helper_display_summary();
+	starpu_worker_profiling_helper_display_summary();
 }
 
 void starpu_shutdown(void)
