@@ -45,15 +45,12 @@ void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo);
 
 int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo);
 
-int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue,
-				  _starpu_pthread_mutex_t *sched_mutex,
-				  _starpu_pthread_cond_t *sched_cond,
-				  struct starpu_task *task);
+int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task);
 
-int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo, _starpu_pthread_mutex_t *sched_mutex, _starpu_pthread_cond_t *sched_cond, struct starpu_task *task);
+int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo, struct starpu_task *task);
 
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo, int workerid);
 struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo);
-struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo, _starpu_pthread_mutex_t *sched_mutex, int workerid);
+struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo, int workerid);
 
 #endif // __FIFO_QUEUES_H__

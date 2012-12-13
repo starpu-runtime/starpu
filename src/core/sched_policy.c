@@ -519,17 +519,14 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
 		_starpu_clock_gettime(&pop_start_time);
 
 pick:
-	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 
 	/* get tasks from the stacks of the strategy */
 	if(!task)
 	{
 		struct _starpu_sched_ctx *sched_ctx;
-		_starpu_pthread_mutex_t *sched_ctx_mutex;
 
 		int been_here[STARPU_NMAX_SCHED_CTXS];
 		int i;
@@ -545,17 +542,9 @@ pick:
 
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
-				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
-				if(sched_ctx_mutex != NULL)
-				{
-					_STARPU_PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
 
-					if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
-						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
-
-					_STARPU_PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
-
-				}
+				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
+					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
 			}
 
 			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)

@@ -1239,6 +1239,12 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 	config.workers[workerid].status = status;
 }
 
+void starpu_worker_get_sched_condition(int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond)
+{
+	*sched_cond = &config.workers[workerid].sched_cond;
+	*sched_mutex = &config.workers[workerid].sched_mutex;
+}
+
 int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();

@@ -27,32 +27,7 @@
 struct _starpu_eager_center_policy_data
 {
 	struct _starpu_fifo_taskq *fifo;
-	_starpu_pthread_mutex_t sched_mutex;
-	_starpu_pthread_cond_t sched_cond;
 };
-
-static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
-	int workerid;
-	for (i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
-	}
-}
-
-static void eager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	unsigned i;
-	int workerid;
-	for (i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
-	}
-}
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
@@ -65,9 +40,6 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();
 
-	_STARPU_PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&data->sched_cond, NULL);
-
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 
@@ -79,9 +51,6 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(data->fifo);
-
-	_STARPU_PTHREAD_MUTEX_DESTROY(&data->sched_mutex);
-	_STARPU_PTHREAD_COND_DESTROY(&data->sched_cond);
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
@@ -104,7 +73,35 @@ static int push_task_eager_policy(struct starpu_task *task)
 		return ret_val;
 	}
 
-	ret_val = _starpu_fifo_push_task(data->fifo, &data->sched_mutex, &data->sched_cond, task);
+	unsigned worker = 0;
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	if(workers->init_cursor)
+        workers->init_cursor(workers);
+
+	while(workers->has_next(workers))
+	{
+		worker = workers->get_next(workers);
+		_starpu_pthread_mutex_t *sched_mutex;
+		_starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	}
+		
+	ret_val = _starpu_fifo_push_task(data->fifo, task);
+
+	while(workers->has_next(workers))
+	{
+		worker = workers->get_next(workers);
+		_starpu_pthread_mutex_t *sched_mutex;
+		_starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	}
+		
+	if (workers->deinit_cursor)
+		workers->deinit_cursor(workers);
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 	return ret_val;
 }
@@ -112,7 +109,16 @@ static int push_task_eager_policy(struct starpu_task *task)
 static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	return _starpu_fifo_pop_every_task(data->fifo, &data->sched_mutex, starpu_worker_get_id());
+    int workerid = starpu_worker_get_id();
+
+    _starpu_pthread_mutex_t *sched_mutex;
+    _starpu_pthread_cond_t *sched_cond;
+    starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	struct starpu_task* task = _starpu_fifo_pop_every_task(data->fifo, workerid);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	return task;
 }
 
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
@@ -127,8 +133,8 @@ struct starpu_sched_policy _starpu_sched_eager_policy =
 {
 	.init_sched = initialize_eager_center_policy,
 	.deinit_sched = deinitialize_eager_center_policy,
-	.add_workers = eager_add_workers,
-	.remove_workers = eager_remove_workers,
+	.add_workers = NULL,
+	.remove_workers = NULL,
 	.push_task = push_task_eager_policy,
 	.pop_task = pop_task_eager_policy,
 	.pre_exec_hook = NULL,

@@ -45,8 +45,6 @@ struct _starpu_priority_taskq
 struct _starpu_eager_central_prio_data
 {
 	struct _starpu_priority_taskq *taskq;
-	_starpu_pthread_mutex_t sched_mutex;
-	_starpu_pthread_cond_t sched_cond;
 };
 
 /*
@@ -75,30 +73,6 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 	free(priority_queue);
 }
 
-static void eager_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	unsigned i;
-	int workerid;
-	for (i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &data->sched_mutex, &data->sched_cond);
-	}
-}
-
-static void eager_priority_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	unsigned i;
-	int workerid;
-	for (i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
-	}
-}
-
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
@@ -111,9 +85,6 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	/* only a single queue (even though there are several internaly) */
 	data->taskq = _starpu_create_priority_taskq();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
-
-	_STARPU_PTHREAD_MUTEX_INIT(&data->sched_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&data->sched_cond, NULL);
 }
 
 static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
@@ -124,11 +95,8 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	/* deallocate the task queue */
 	_starpu_destroy_priority_taskq(data->taskq);
 
-	_STARPU_PTHREAD_MUTEX_DESTROY(&data->sched_mutex);
-        _STARPU_PTHREAD_COND_DESTROY(&data->sched_cond);
-
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
-        free(data);
+	free(data);
 }
 
 static int _starpu_priority_push_task(struct starpu_task *task)
@@ -140,21 +108,33 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 	/* if the context has no workers return */
 	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
-        unsigned nworkers;
-        int ret_val = -1;
-
-        _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-        nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-        if(nworkers == 0)
-        {
-                _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-                return ret_val;
-        }
+	unsigned nworkers;
+	int ret_val = -1;
+	
+	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
+	if(nworkers == 0)
+	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+		return ret_val;
+	}
 
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
-	_STARPU_PTHREAD_MUTEX_LOCK(&data->sched_mutex);
+	unsigned worker = 0;
+    struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+    if(workers->init_cursor)
+        workers->init_cursor(workers);
+
+    while(workers->has_next(workers))
+    {
+		worker = workers->get_next(workers);
+        _starpu_pthread_mutex_t *sched_mutex;
+        _starpu_pthread_cond_t *sched_cond;
+        starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+        _STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+    }
 
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
@@ -162,11 +142,21 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 
-	_STARPU_PTHREAD_COND_SIGNAL(&data->sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->sched_mutex);
+	while(workers->has_next(workers))
+    {
+		worker = workers->get_next(workers);
+        _starpu_pthread_mutex_t *sched_mutex;
+        _starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+        _STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+        _STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+    }
 
-        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-        return 0;
+    if (workers->deinit_cursor)
+		workers->deinit_cursor(workers);
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+	return 0;
 }
 
 static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
@@ -186,7 +176,11 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		return NULL;
 #else
-		_STARPU_PTHREAD_COND_WAIT(&data->sched_cond, &data->sched_mutex);
+        _starpu_pthread_mutex_t *sched_mutex;
+        _starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+
+		_STARPU_PTHREAD_COND_WAIT(sched_cond, sched_mutex);
 #endif
 	}
 
@@ -221,8 +215,28 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	}
 
 	if (!chosen_task && skipped)
+	{
 		/* Notify another worker to do that task */
-		_STARPU_PTHREAD_COND_SIGNAL(&data->sched_cond);
+		unsigned worker = 0;
+		struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+		if(workers->init_cursor)
+			workers->init_cursor(workers);
+		
+		while(workers->has_next(workers))
+		{
+			worker = workers->get_next(workers);
+			if(worker != workerid)
+			{
+				_starpu_pthread_mutex_t *sched_mutex;
+				_starpu_pthread_cond_t *sched_cond;
+				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+				_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+			}
+		}
+
+		if (workers->deinit_cursor)
+			workers->deinit_cursor(workers);
+	}
 
 	return chosen_task;
 }
@@ -231,8 +245,6 @@ struct starpu_sched_policy _starpu_sched_prio_policy =
 {
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
-        .add_workers = eager_priority_add_workers,
-        .remove_workers = eager_priority_remove_workers,
 	/* we always use priorities in that policy */
 	.push_task = _starpu_priority_push_task,
 	.pop_task = _starpu_priority_pop_task,

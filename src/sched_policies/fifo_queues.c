@@ -53,14 +53,9 @@ int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo)
 }
 
 int
-_starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue,
-			      _starpu_pthread_mutex_t *sched_mutex,
-			      _starpu_pthread_cond_t *sched_cond,
-			      struct starpu_task *task)
+_starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	if (list->head == NULL)
 	{
@@ -115,31 +110,23 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue,
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
-	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
 	return 0;
 }
 
 /* TODO: revert front/back? */
-int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, _starpu_pthread_mutex_t *sched_mutex, _starpu_pthread_cond_t *sched_cond, struct starpu_task *task)
+int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
 
 	if (task->priority > 0)
 	{
-		_starpu_fifo_push_sorted_task(fifo_queue, sched_mutex,
-					      sched_cond, task);
+		_starpu_fifo_push_sorted_task(fifo_queue, task);
 	}
 	else
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		starpu_task_list_push_front(&fifo_queue->taskq, task);
 
 		fifo_queue->ntasks++;
 		fifo_queue->nprocessed++;
-
-		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 
 	return 0;
@@ -188,15 +175,13 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, _starpu_pthread_mutex_t *sched_mutex, int workerid)
+struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task_list *old_list;
 	unsigned size;
 
 	struct starpu_task *new_list = NULL;
 	struct starpu_task *new_list_tail = NULL;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	size = fifo_queue->ntasks;
 
@@ -245,8 +230,6 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 
 		fifo_queue->ntasks -= new_list_size;
 	}
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;
 }

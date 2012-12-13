@@ -156,19 +156,15 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 {
 	struct starpu_task *task;
 
+	_STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	task = _starpu_pop_task(args);
 
 	if (task == NULL)
 	{
-#ifdef STARPU_DEVEL
-#warning TODO: check this out after the merge (atomicity issue)
-#endif
-
 		/* Note: we need to keep the sched condition mutex all along the path
 		 * from popping a task from the scheduler to blocking. Otherwise the
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
-		_STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 
 		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
 		{
@@ -184,6 +180,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 		return NULL;
 	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
 	{
