@@ -830,6 +830,7 @@ void starpu_profiling_init()
 {
 	_starpu_profiling_init();
 }
+
 /*
  * Handle runtime termination
  */
@@ -896,7 +897,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *config)
 #endif
 		}
 
-out:
+out:		
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
@@ -1183,7 +1184,7 @@ unsigned starpu_worker_is_combined_worker(int id)
 
 struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-        STARPU_ASSERT(id <= STARPU_NMAX_SCHED_CTXS);
+	if (id == STARPU_NMAX_SCHED_CTXS) return NULL;
 	return &config.sched_ctxs[id];
 }
 

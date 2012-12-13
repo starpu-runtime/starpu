@@ -28,6 +28,9 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
+/* used when changes (delete, modify) are applyed to contexts */
+_starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
+
 struct _starpu_sched_ctx
 {
 	/* id of the context used in user mode*/
@@ -43,9 +46,6 @@ struct _starpu_sched_ctx
 	void *policy_data;
 
 	struct starpu_sched_ctx_worker_collection *workers;
-
-	/* mutex for temp_nworkers_in_ctx*/
-	_starpu_pthread_mutex_t changing_ctx_mutex;
 
 	/* we keep an initial sched which we never delete */
 	unsigned is_initial_sched;

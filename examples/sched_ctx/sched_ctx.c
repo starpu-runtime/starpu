@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	   when its corresponding tasks finished executing */
 
 #warning TODO: to be fixed
-//	starpu_sched_ctx_finished_submit(sched_ctx1);
+	starpu_sched_ctx_finished_submit(sched_ctx1);
 
 	for (i = 0; i < ntasks/2; i++)
 	{
@@ -116,11 +116,13 @@ int main(int argc, char **argv)
 	}
 
 #warning TODO: to be fixed
-//	starpu_sched_ctx_finished_submit(sched_ctx2);
+	starpu_sched_ctx_finished_submit(sched_ctx2);
 
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
+	starpu_sched_ctx_delete(sched_ctx1);
+	starpu_sched_ctx_delete(sched_ctx2);
 	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
 	starpu_shutdown();
 

@@ -222,10 +222,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	{
 		sched_ctx = worker->sched_ctx[i];
 		if (sched_ctx != NULL && sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
-		{
 			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
-		}
-
 	}
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -258,6 +255,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			for (i = 0; i < task->cl->nbuffers; i++)
 				task->handles[i]->mf_node = node;
 		}
+//		if(task->sched_ctx != _starpu_get_initial_sched_ctx()->id)
+			
 		if(task->priority > 0)
 			return _starpu_push_local_task(worker, task, 1);
 		else
@@ -543,6 +542,7 @@ pick:
 				sched_ctx = _starpu_get_initial_sched_ctx();
 			else
 				sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
+
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);

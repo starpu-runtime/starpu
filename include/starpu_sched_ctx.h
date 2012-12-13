@@ -82,7 +82,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap);
 
-void starpu_sched_ctx_delete(unsigned sched_ctx_id, unsigned inheritor_sched_ctx_id);
+void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 

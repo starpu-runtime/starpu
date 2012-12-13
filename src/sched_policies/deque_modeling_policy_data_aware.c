@@ -755,8 +755,13 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		dt->queue_array[workerid] = _starpu_create_fifo();
-		starpu_sched_ctx_init_worker_mutex_and_cond(sched_ctx_id, workerid);
+		/* if the worker has alreadry belonged to this context
+		   the queue and the synchronization variables have been already initialized */
+		if(dt->queue_array[workerid] ==NULL)
+		{
+			dt->queue_array[workerid] = _starpu_create_fifo();
+			starpu_sched_ctx_init_worker_mutex_and_cond(sched_ctx_id, workerid);
+		}
 	}
 }
 
@@ -770,6 +775,7 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	{
 		workerid = workerids[i];
 		_starpu_destroy_fifo(dt->queue_array[workerid]);
+		dt->queue_array[workerid] = NULL;
 		starpu_sched_ctx_deinit_worker_mutex_and_cond(sched_ctx_id, workerid);
 	}
 }
@@ -787,6 +793,10 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
 	dt->queue_array = (struct _starpu_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
+
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		dt->queue_array[i] = NULL;
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
