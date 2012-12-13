@@ -361,20 +361,22 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 /* application should submit new tasks to StarPU through this function */
 int starpu_task_submit(struct starpu_task *task)
 {
+	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 	STARPU_ASSERT(task->magic == 42);
-	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
-	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
-
-	if(task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
-		set_sched_ctx = starpu_task_get_context();
-	if(set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		task->sched_ctx = set_sched_ctx;
 
 	int ret;
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
-	_STARPU_LOG_IN();
+	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
+	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
+
+	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
+	{
+		set_sched_ctx = starpu_task_get_context();
+		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+			task->sched_ctx = set_sched_ctx;
+	}
 
 	if (is_sync)
 	{
@@ -643,12 +645,13 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl)
 int starpu_task_wait_for_all(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
-	unsigned sched_ctx = nsched_ctxs == 1 ? 0 : starpu_task_get_context();
+	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_task_get_context();
 
 	/* if there is no indication about which context to wait,
 	   we wait for all tasks submitted to starpu */
-	if(sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	if (sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 	{
+		_STARPU_DEBUG("Waiting for all tasks\n");
 		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 			return -EDEADLK;
 
@@ -667,7 +670,8 @@ int starpu_task_wait_for_all(void)
 	}
 	else
 	{
-		_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
+		_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id);
 #ifdef HAVE_AYUDAME_H
 		/* TODO: improve Temanejo into knowing about contexts ... */
 		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
