@@ -686,6 +686,9 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 static int dmda_push_sorted_task(struct starpu_task *task)
 {
+#ifdef STARPU_DEVEL
+#warning TODO: after defining a scheduling window, use that instead of empty_ctx_tasks
+#endif
 	unsigned sched_ctx_id = task->sched_ctx;
         _starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
         unsigned nworkers;
