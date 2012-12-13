@@ -222,7 +222,7 @@ int workerids[3] = @{1, 3, 10@};
 int id_ctx = starpu_sched_ctx_create("heft", workerids, 3, "my_ctx");
 
 /* @b{let StarPU know that the folowing tasks will be submitted to this context} */
-starpu_set_sched_ctx(id);
+starpu_task_set_context(id);
 
 /* @b{submit the task to StarPU} */
 starpu_task_submit(task);

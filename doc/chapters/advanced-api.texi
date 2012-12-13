@@ -603,11 +603,11 @@ Return the worker collection managed by the indicated context
 TODO
 @end deftypefun
 
-@deftypefun void starpu_set_sched_ctx (unsigned *@var{sched_ctx_id})
+@deftypefun void starpu_task_set_context (unsigned *@var{sched_ctx_id})
 Set the scheduling context the subsequent tasks will be submitted to
 @end deftypefun
 
-@deftypefun unsigned starpu_get_sched_ctx (void)
+@deftypefun unsigned starpu_task_get_context (void)
 Return the scheduling context the tasks are currently submitted to
 @end deftypefun
 

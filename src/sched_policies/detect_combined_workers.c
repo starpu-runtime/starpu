@@ -125,7 +125,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned synthesize_ar
 	if (nworkers > 1)
 	{
 		_STARPU_DEBUG("Adding it\n");
-		unsigned sched_ctx_id  = starpu_get_sched_ctx();
+		unsigned sched_ctx_id  = starpu_task_get_context();
 		if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 			sched_ctx_id = 0;
 
@@ -178,7 +178,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 
 static void find_and_assign_combinations_without_hwloc(int *workerids, int nworkers)
 {
-	unsigned sched_ctx_id  = starpu_get_sched_ctx();
+	unsigned sched_ctx_id  = starpu_task_get_context();
 	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 		sched_ctx_id = 0;
 
@@ -225,7 +225,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 
 static void combine_all_cpu_workers(int *workerids, int nworkers)
 {
-	unsigned sched_ctx_id  = starpu_get_sched_ctx();
+	unsigned sched_ctx_id  = starpu_task_get_context();
 	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 		sched_ctx_id = 0;
 	struct starpu_sched_ctx_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);

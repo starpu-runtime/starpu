@@ -691,12 +691,12 @@ void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 	_starpu_barrier_counter_increment(&sched_ctx->tasks_barrier);
 }
 
-void starpu_set_sched_ctx(unsigned *sched_ctx)
+void starpu_task_set_context(unsigned *sched_ctx)
 {
 	pthread_setspecific(sched_ctx_key, (void*)sched_ctx);
 }
 
-unsigned starpu_get_sched_ctx()
+unsigned starpu_task_get_context()
 {
 	unsigned *sched_ctx = (unsigned*)pthread_getspecific(sched_ctx_key);
 	if(sched_ctx == NULL)

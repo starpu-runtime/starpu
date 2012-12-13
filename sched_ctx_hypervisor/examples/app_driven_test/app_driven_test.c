@@ -48,7 +48,7 @@ int tag = 1;
 void* start_thread(void *arg)
 {
 	unsigned sched_ctx = *((unsigned*)arg);
-	starpu_set_sched_ctx(&sched_ctx);
+	starpu_task_set_context(&sched_ctx);
 
 	struct starpu_task *task[10];
 	struct params params[10];
