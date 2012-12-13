@@ -542,8 +542,8 @@ This function creates a scheduling context which uses the scheduling policy indi
 The return value represents the identifier of the context that has just been created. It will be further used to indicate the context the tasks will be submitted to. The return value should be at most @code{STARPU_NMAX_SCHED_CTXS}.
 @end deftypefun
 
-@deftypefun void starpu_sched_ctx_delete (unsigned @var{sched_ctx_id}, unsigned @var{inheritor_sched_ctx_id})
-Delete scheduling context @var{sched_ctx_id} and lets scheduling context @var{inheritor_sched_ctx_id} take over its workers.
+@deftypefun void starpu_sched_ctx_delete (unsigned @var{sched_ctx_id})
+Delete scheduling context @var{sched_ctx_id} and transfer remaining workers to the inheritor scheduling context.
 @end deftypefun
 
 @deftypefun void starpu_sched_ctx_add_workers ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx_id})
