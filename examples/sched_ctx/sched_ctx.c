@@ -19,7 +19,7 @@
 #include <pthread.h>
 
 #ifdef STARPU_QUICK_CHECK
-#define NTASKS 1000
+#define NTASKS 50
 #else
 #define NTASKS 1000
 #endif
