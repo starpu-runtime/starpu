@@ -26,7 +26,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 {
 	unsigned i;
 #ifdef STARPU_HAVE_POTI
-	poti_header(1); /* 1 as parameter means basic, no extended events */
+	poti_header(1, 1); /* 1 as parameter means basic, no extended events */
 #else
 	fprintf(file, "%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "%%	Alias	string\n");
