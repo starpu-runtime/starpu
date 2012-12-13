@@ -18,11 +18,7 @@
 #include <starpu.h>
 #include <pthread.h>
 
-#ifdef STARPU_QUICK_CHECK
-#define NTASKS 50
-#else
 #define NTASKS 1000
-#endif
 
 int tasks_executed = 0;
 pthread_mutex_t mut;
