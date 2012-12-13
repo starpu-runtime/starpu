@@ -588,35 +588,36 @@ Deinitialize the cursor if there is one
 @end deftp
 
 @deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
-Creates a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
+Create a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
 @end deftypefun
 
 @deftypefun void starpu_sched_ctx_delete_worker_collection (unsigned @var{sched_ctx_id})
-Deletes the worker collection of the specified scheduling context
+Delete the worker collection of the specified scheduling context
 @end deftypefun
 
 @deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection (unsigned @var{sched_ctx_id})
-Returns the worker collection managed by the indicated context
+Return the worker collection managed by the indicated context
 @end deftypefun
 
 @deftypefun pthread_mutex_t* starpu_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
+TODO
 @end deftypefun
 
 @deftypefun void starpu_set_sched_ctx (unsigned *@var{sched_ctx_id})
-Sets the scheduling context the task will be submitted to
+Set the scheduling context the subsequent tasks will be submitted to
 @end deftypefun
 
 @deftypefun unsigned starpu_get_sched_ctx (void)
-Returns the scheduling contexts the tasks are currently submitted to
+Return the scheduling context the tasks are currently submitted to
 @end deftypefun
 
 @deftypefun unsigned starpu_sched_ctx_get_nworkers (unsigned @var{sched_ctx_id})
-Returns the number of workers managed by the specified contexts
+Return the number of workers managed by the specified contexts
 (Usually needed to verify if it manages any workers or if it should be blocked)
 @end deftypefun
 
 @deftypefun unsigned starpu_sched_ctx_get_nshared_workers (unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
-Returns the number of workers shared by two contexts
+Return the number of workers shared by two contexts
 @end deftypefun
 
 @node Defining a new scheduling policy
