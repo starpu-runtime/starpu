@@ -10,7 +10,7 @@ StarPU proposes a platform for constructing Scheduling Contexts, for deleting an
 A parallel kernel, can thus be isolated into a scheduling context and interferences between several parallel kernels are avoided.
 If the user knows exactly how many workers each scheduling context needs, he can assign them to the contexts at their creation time or modify them during the execution of the program.
 
-The Scheduling Context Hypervisor Plugin is available for the users who do not dispose of a regular parallelism, who cannot not know in advance the exact size of the context and need to resize the contexts according to the behavior of the parallel kernel.
+The Scheduling Context Hypervisor Plugin is available for the users who do not dispose of a regular parallelism, who cannot know in advance the exact size of the context and need to resize the contexts according to the behavior of the parallel kernel.
 The Hypervisor receives information from StarPU concerning the execution of the tasks, the efficiency of the resources, etc. and it decides accordingly when and how the contexts can be resized.
 Basic strategies of resizing scheduling contexts already exist but a platform for implementing additional custom ones is available.
 
