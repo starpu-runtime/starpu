@@ -73,7 +73,7 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->magic = 42;
 	task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
-	
+
 	task->flops = 0.0;
 }
 
@@ -211,7 +211,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
-	
+
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 	if(sched_ctx != NULL && j->task->sched_ctx != 0 && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
@@ -225,7 +225,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* We retain handle reference count */
 	if (task->cl) {
 		unsigned i;
-		for (i=0; i<task->cl->nbuffers; i++) 
+		for (i=0; i<task->cl->nbuffers; i++)
 		{
 			starpu_data_handle_t handle = task->handles[i];
 			_starpu_spin_lock(&handle->header_lock);
@@ -365,7 +365,7 @@ int starpu_task_submit(struct starpu_task *task)
 	STARPU_ASSERT(task->magic == 42);
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
-	
+
 	if(task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
 		set_sched_ctx = starpu_get_sched_ctx();
 	if(set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -818,8 +818,8 @@ _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 	node_kind = starpu_node_get_kind(node);
 
 	/*
-	 * Here, we assume that CUDA devices and OpenCL devices use the 
-	 * same data structure. A conversion is only needed when moving 
+	 * Here, we assume that CUDA devices and OpenCL devices use the
+	 * same data structure. A conversion is only needed when moving
 	 * data from a CPU to a GPU, or the other way around.
 	 */
 	switch (node_kind)
