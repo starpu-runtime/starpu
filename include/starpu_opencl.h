@@ -40,7 +40,7 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 static inline void starpu_opencl_report_error(const char *func, const char *file, int line, const char *msg, cl_int status)
 {
 	starpu_opencl_display_error(func, file, line, msg, status);
-        assert(0);
+	assert(0);
 }
 #define STARPU_OPENCL_REPORT_ERROR(status)			\
 	starpu_opencl_report_error(__starpu_func__, __FILE__, __LINE__, NULL, status)
@@ -50,7 +50,7 @@ static inline void starpu_opencl_report_error(const char *func, const char *file
 
 struct starpu_opencl_program
 {
-        cl_program programs[STARPU_MAXOPENCLDEVS];
+	cl_program programs[STARPU_MAXOPENCLDEVS];
 };
 
 size_t starpu_opencl_get_global_mem_size(int devid);

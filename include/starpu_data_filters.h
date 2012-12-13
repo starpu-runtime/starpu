@@ -32,11 +32,11 @@ struct starpu_data_interface_ops;
 struct starpu_data_filter
 {
 	void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);
-        unsigned nchildren;
-        unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle);
-        struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
-        unsigned filter_arg;
-        void *filter_arg_ptr;
+	unsigned nchildren;
+	unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle);
+	struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
+	unsigned filter_arg;
+	void *filter_arg_ptr;
 };
 
 void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f);

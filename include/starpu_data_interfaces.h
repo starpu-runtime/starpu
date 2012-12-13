@@ -79,7 +79,7 @@ struct starpu_data_copy_methods
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 	/* for asynchronous OpenCL transfers */
-        int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
+	int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 #endif
@@ -133,7 +133,7 @@ struct starpu_data_interface_ops
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
 	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
-        int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count);
+	int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count);
 	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr, size_t count);
 };
@@ -176,8 +176,8 @@ extern struct starpu_data_interface_ops _starpu_interface_matrix_ops;
 struct starpu_matrix_interface
 {
 	uintptr_t ptr;
-        uintptr_t dev_handle;
-        size_t offset;
+	uintptr_t dev_handle;
+	size_t offset;
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t ld;
@@ -243,8 +243,8 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_nod
 struct starpu_block_interface
 {
 	uintptr_t ptr;
-        uintptr_t dev_handle;
-        size_t offset;
+	uintptr_t dev_handle;
+	size_t offset;
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t nz;
@@ -277,8 +277,8 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 struct starpu_vector_interface
 {
 	uintptr_t ptr;
-        uintptr_t dev_handle;
-        size_t offset;
+	uintptr_t dev_handle;
+	size_t offset;
 	uint32_t nx;
 	size_t elemsize;
 };
@@ -330,9 +330,9 @@ struct starpu_csr_interface
 	uint32_t *colind; /* position of non-zero entries on the row */
 	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
 
-        /* k for k-based indexing (0 or 1 usually) */
-        /* also useful when partitionning the matrix ... */
-        uint32_t firstentry;
+	/* k for k-based indexing (0 or 1 usually) */
+	/* also useful when partitionning the matrix ... */
+	uint32_t firstentry;
 
 	size_t elemsize;
 };
@@ -373,9 +373,9 @@ struct starpu_bcsr_interface
 /*	uint32_t *rowind; */ /* position of non-zero entried on the col */
 	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
 
-        /* k for k-based indexing (0 or 1 usually) */
-        /* also useful when partitionning the matrix ... */
-        uint32_t firstentry;
+	/* k for k-based indexing (0 or 1 usually) */
+	/* also useful when partitionning the matrix ... */
+	uint32_t firstentry;
 
 	/* size of the blocks */
 	uint32_t r;

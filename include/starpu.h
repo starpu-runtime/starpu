@@ -131,13 +131,13 @@ struct starpu_conf
 	/* Create only one combined worker, containing all CPU workers */
 	int single_combined_worker;
 
-        /* indicate if all asynchronous copies should be disabled */
+	/* indicate if all asynchronous copies should be disabled */
 	int disable_asynchronous_copy;
 
-        /* indicate if asynchronous copies to CUDA devices should be disabled */
+	/* indicate if asynchronous copies to CUDA devices should be disabled */
 	int disable_asynchronous_cuda_copy;
 
-        /* indicate if asynchronous copies to OpenCL devices should be disabled */
+	/* indicate if asynchronous copies to OpenCL devices should be disabled */
 	int disable_asynchronous_opencl_copy;
 
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
