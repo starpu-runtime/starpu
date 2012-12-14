@@ -93,22 +93,17 @@ run(struct starpu_sched_policy *p)
 int
 main(void)
 {
-	int i;
 	struct starpu_sched_policy **policies;
+	struct starpu_sched_policy **policy;
 
 	policies = starpu_sched_get_predefined_policies();
-	i = 0;
-	struct starpu_sched_policy *policy = policies[i];
-
-	while (policy != NULL)
+	for(policy=policies ; *policy!=NULL ; policy++)
 	{
-		FPRINTF(stderr, "Running with policy %s.\n", policy->policy_name);
+		FPRINTF(stderr, "Running with policy %s.\n", (*policy)->policy_name);
 		int ret;
-		ret = run(policy);
+		ret = run(*policy);
 		if (ret == 1)
 			return EXIT_FAILURE;
-		i++;
-		policy = policies[i];
 	}
 
 	return EXIT_SUCCESS;

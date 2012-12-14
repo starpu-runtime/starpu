@@ -86,26 +86,21 @@ enodev:
 int
 main(void)
 {
-	int i;
 	struct starpu_sched_policy **policies;
+	struct starpu_sched_policy **policy;
 
 	policies = starpu_sched_get_predefined_policies();
-	i = 0;
-	struct starpu_sched_policy *policy = policies[i];
-
-	while (policy != NULL)
+	policies = starpu_sched_get_predefined_policies();
+	for(policy=policies ; *policy!=NULL ; policy++)
 	{
-		FPRINTF(stderr, "Running with policy %s.\n",
-			policy->policy_name);
 		int ret;
-		ret = run(policy);
+
+		FPRINTF(stderr, "Running with policy %s.\n", (*policy)->policy_name);
+		ret = run(*policy);
 		if (ret == -ENODEV)
 			return STARPU_TEST_SKIPPED;
 		if (ret == 1)
 			return EXIT_FAILURE;
-
-		i++;
-		policy = policies[i];
 	}
 
 	return EXIT_SUCCESS;
