@@ -181,6 +181,9 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #elif defined(__ppc__) || defined(__ppc64__)
 #define STARPU_RMB() __asm__ __volatile__("sync" ::: "memory")
 #define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
+#else
+#define STARPU_RMB() STARPU_SYNCHRONIZE()
+#define STARPU_WMB() STARPU_SYNCHRONIZE()
 #endif
 
 #ifdef __cplusplus
