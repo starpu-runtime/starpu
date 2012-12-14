@@ -126,6 +126,7 @@ static void display_sched_help_message(void)
 		{
 			struct starpu_sched_policy *p;
 			p = predefined_policies[i];
+			if (p == NULL) continue; // We reached the end of the array
 			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
 		}
 	 }
