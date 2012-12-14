@@ -52,7 +52,7 @@ static void change_worker_sched_ctx(unsigned sched_ctx_id)
 	else 
 	{
 		/* remove context from worker */
-		if(worker->sched_ctx[worker_sched_ctx_id]->sched_policy)
+		if(worker->sched_ctx[worker_sched_ctx_id]->sched_policy && worker->sched_ctx[worker_sched_ctx_id]->sched_policy->remove_workers)
 			worker->sched_ctx[worker_sched_ctx_id]->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1);
 		worker->sched_ctx[worker_sched_ctx_id] = NULL;
 		worker->nsched_ctxs--;
@@ -147,14 +147,16 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		}
 	}
 
-	if(added_workers)
+	if(sched_ctx->sched_policy->add_workers)
 	{
-		if(*n_added_workers > 0)
-			sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);	
+		if(added_workers)
+		{
+			if(*n_added_workers > 0)
+				sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);	
+		}
+		else
+			sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);		
 	}
-	else
-		sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);		
-
 	return;
 }
 
@@ -187,7 +189,7 @@ static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sch
 	
 	int is_list =_get_workers_list(sched_ctx->workers, &workerids);
 				
-	if(nworkers_ctx > 0)
+	if(nworkers_ctx > 0 && sched_ctx->sched_policy->remove_workers)
 		sched_ctx->sched_policy->remove_workers(sched_ctx->id, workerids, nworkers_ctx);
 	if(!is_list)
 		free(workerids);
