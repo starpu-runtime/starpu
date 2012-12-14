@@ -44,7 +44,8 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_peager_policy
+	&_starpu_sched_peager_policy,
+	NULL
 };
 
 struct starpu_sched_policy **starpu_sched_get_predefined_policies()
@@ -96,6 +97,7 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 	{
 		struct starpu_sched_policy *p;
 		p = predefined_policies[i];
+		if (p == NULL) continue; // We reached the end of the array
 		if (p->policy_name)
 		{
 			if (strcmp(policy_name, p->policy_name) == 0)
