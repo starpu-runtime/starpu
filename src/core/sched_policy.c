@@ -92,12 +92,10 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 		return &_starpu_sched_dmda_policy;
 	}
 
-	unsigned i;
-	for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
+	struct starpu_sched_policy **policy;
+	for(policy=predefined_policies ; *policy!=NULL ; policy++)
 	{
-		struct starpu_sched_policy *p;
-		p = predefined_policies[i];
-		if (p == NULL) continue; // We reached the end of the array
+		struct starpu_sched_policy *p = *policy;
 		if (p->policy_name)
 		{
 			if (strcmp(policy_name, p->policy_name) == 0)
@@ -118,15 +116,13 @@ static void display_sched_help_message(void)
 	const char *sched_env = getenv("STARPU_SCHED");
 	if (sched_env && (strcmp(sched_env, "help") == 0))
 	{
-		fprintf(stderr, "STARPU_SCHED can be either of\n");
-
 		/* display the description of all predefined policies */
-		unsigned i;
-		for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
+		struct starpu_sched_policy **policy;
+
+		fprintf(stderr, "STARPU_SCHED can be either of\n");
+		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
-			struct starpu_sched_policy *p;
-			p = predefined_policies[i];
-			if (p == NULL) continue; // We reached the end of the array
+			struct starpu_sched_policy *p = *policy;
 			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
 		}
 	 }
