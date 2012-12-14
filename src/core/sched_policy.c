@@ -44,8 +44,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_peager_policy,
-	NULL
+	&_starpu_sched_peager_policy
 };
 
 struct starpu_sched_policy **starpu_sched_get_predefined_policies()
