@@ -60,6 +60,16 @@ soclCreateContext(const cl_context_properties * properties,
                   return NULL;
                }
                break;
+
+            case CL_CONTEXT_SCHEDULER_SOCL:
+            case CL_CONTEXT_NAME_SOCL:
+               i++;
+               if (p[i] == NULL) {
+                  if (errcode_ret != NULL)
+                     *errcode_ret = CL_INVALID_PROPERTY;
+                  return NULL;
+               }
+               break;
          }
          i++;
       }
@@ -77,8 +87,12 @@ soclCreateContext(const cl_context_properties * properties,
    ctx->num_properties = 0;
    ctx->properties = NULL;
 
-   // Cache properties
+   char * scheduler = "dmda";
+   char * name = "default";
+
+   // Properties
    if (properties != NULL) {
+
       //Count properties
       const cl_context_properties * p = properties;
       do {
@@ -89,6 +103,20 @@ soclCreateContext(const cl_context_properties * properties,
       //Copy properties
       ctx->properties = malloc(sizeof(cl_context_properties) * ctx->num_properties);
       memcpy(ctx->properties, properties, sizeof(cl_context_properties) * ctx->num_properties);
+
+      //Selected scheduler
+      int i = 0;
+      for (i=0; i<ctx->num_properties; i++) {
+         if (p[i] == CL_CONTEXT_SCHEDULER_SOCL) {
+            i++;
+            scheduler = p[i];
+         }
+         if (p[i] == CL_CONTEXT_NAME_SOCL) {
+            i++;
+            name = p[i];
+         }
+      }
+
    }
 
    ctx->pfn_notify = pfn_notify;
@@ -109,8 +137,7 @@ soclCreateContext(const cl_context_properties * properties,
    for (i=0; i<num_devices; i++) {
       workers[i] = ctx->devices[i]->worker_id;
    }
-   //TODO use context property to set scheduling strategy and name
-   ctx->sched_ctx = starpu_sched_ctx_create("dmda", workers, num_devices, "ctx");
+   ctx->sched_ctx = starpu_sched_ctx_create(scheduler, workers, num_devices, name);
 
    if (errcode_ret != NULL)
       *errcode_ret = CL_SUCCESS;

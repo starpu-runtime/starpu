@@ -18,6 +18,9 @@
 #ifndef SOCL_H
 #define SOCL_H
 
+#define CL_CONTEXT_SCHEDULER_SOCL   0xFF01
+#define CL_CONTEXT_NAME_SOCL        0xFF02
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
