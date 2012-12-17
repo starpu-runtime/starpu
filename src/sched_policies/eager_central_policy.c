@@ -21,7 +21,7 @@
  *	JOB QUEUE.
  */
 
-#include <core/workers.h>
+//#include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 
 struct _starpu_eager_center_policy_data
@@ -60,7 +60,7 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 }
 
 static int push_task_eager_policy(struct starpu_task *task)
-{
+ {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
