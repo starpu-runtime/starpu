@@ -27,30 +27,6 @@ typedef struct dummy_sched_data {
 	pthread_cond_t sched_cond;
 } dummy_sched_data;
 
-static void dummy_sched_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	
-	unsigned i;
-	int workerid;
-	for(i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &data->sched_mutex,  &data->sched_cond);
-	}
-}
-
-static void dummy_sched_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	unsigned i;
-	int workerid;
-	for(i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL,  NULL);
-	}
-}
-
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
@@ -116,8 +92,8 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 static struct starpu_sched_policy dummy_sched_policy =
 {
 	.init_sched = init_dummy_sched,
-	.add_workers = dummy_sched_add_workers,
-	.remove_workers = dummy_sched_remove_workers,
+	.add_workers = NULL,
+	.remove_workers = NULL,
 	.deinit_sched = deinit_dummy_sched,
 	.push_task = push_task_dummy,
 	.pop_task = pop_task_dummy,

@@ -95,27 +95,6 @@ void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
-/* When there is no available task for a worker, StarPU blocks this worker on a
-condition variable. This function specifies which condition variable (and the
-associated mutex) should be used to block (and to wake up) a worker. Note that
-multiple workers may use the same condition variable. For instance, in the case
-of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.  The initialization method of a
-scheduling strategy (init_sched) must call this function once per worker. */
-#if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
-#ifdef STARPU_DEVEL
-#warning do we really need both starpu_sched_ctx_set_worker_mutex_and_cond and starpu_sched_ctx_init_worker_mutex_and_cond functions
-#endif
-
-void starpu_sched_ctx_set_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond);
-
-void starpu_sched_ctx_get_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
-#endif
-
-void starpu_sched_ctx_init_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid);
-
-void starpu_sched_ctx_deinit_worker_mutex_and_cond(unsigned sched_ctx_id, int workerid);
-
 struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type);
 
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);

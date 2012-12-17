@@ -54,12 +54,6 @@ struct _starpu_sched_ctx
 	/* wait for the tasks submitted to the context to be executed */
 	struct _starpu_barrier_counter tasks_barrier;
 
-	/* table of sched cond corresponding to each worker in this ctx */
-	_starpu_pthread_cond_t **sched_cond;
-
-	/* table of sched mutex corresponding to each worker in this ctx */
-	_starpu_pthread_mutex_t **sched_mutex;
-
 	/* cond to block push when there are no workers in the ctx */
 	_starpu_pthread_cond_t no_workers_cond;
 

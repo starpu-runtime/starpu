@@ -101,30 +101,6 @@ static int random_push_task(struct starpu_task *task)
         return ret_val;
 }
 
-static void random_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	unsigned i;
-	int workerid;
-	for (i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &workerarg->sched_mutex, &workerarg->sched_cond);
-	}
-}
-
-static void random_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
-{
-	unsigned i;
-	int workerid;
-	for (i = 0; i < nworkers; i++)
-	{
-		workerid = workerids[i];
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
-	}
-
-}
-
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
@@ -139,8 +115,8 @@ static void deinitialize_random_policy(unsigned sched_ctx_id)
 struct starpu_sched_policy _starpu_sched_random_policy =
 {
 	.init_sched = initialize_random_policy,
-	.add_workers = random_add_workers,
-	.remove_workers = random_remove_workers,
+	.add_workers = NULL,
+	.remove_workers = NULL,
 	.deinit_sched = deinitialize_random_policy,
 	.push_task = random_push_task,
 	.pop_task = NULL,
