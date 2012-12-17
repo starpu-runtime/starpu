@@ -265,28 +265,20 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		q->njobs--;
 		return task;
 	}
-
-	int worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	struct starpu_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		if(worker != workerid)
-		{
-			_starpu_pthread_mutex_t *sched_mutex;
-			_starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		}
-	}
-
+	_starpu_pthread_mutex_t *worker_sched_mutex;
+	_starpu_pthread_cond_t *worker_sched_cond;
+	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
+       
 
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id);
+
+	_starpu_pthread_mutex_t *victim_sched_mutex;
+	_starpu_pthread_cond_t *victim_sched_cond;
+
+	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
+	_STARPU_PTHREAD_MUTEX_LOCK(victim_sched_mutex);
 	struct _starpu_deque_jobq *victimq = ws->queue_array[victim];
 
 	task = _starpu_deque_pop_task(victimq, workerid);
@@ -301,17 +293,21 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		victimq->njobs--;
 	}
 
-	while(workers->has_next(workers, &it))
+	_STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
+
+	_STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
+	if(!task)
 	{
-		worker = workers->get_next(workers, &it);
-		if(worker != workerid)
+		task = _starpu_deque_pop_task(q, workerid);
+		if (task)
 		{
-			_starpu_pthread_mutex_t *sched_mutex;
-			_starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+			/* there was a local task */
+			ws->performed_total++;
+			q->nprocessed++;
+			q->njobs--;
+			return task;
 		}
-	}		
+	}
 
 	return task;
 }
