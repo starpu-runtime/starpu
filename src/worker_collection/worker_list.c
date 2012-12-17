@@ -1,29 +1,26 @@
 #include <starpu.h>
 #include <pthread.h>
 
-static unsigned list_has_next(struct starpu_sched_ctx_worker_collection *workers)
+static unsigned list_has_next(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it)
 {
 	int nworkers = (int)workers->nworkers;
+	STARPU_ASSERT(it != NULL);
 
-	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
+	unsigned ret = it->cursor < nworkers ;
 
-	unsigned ret = cursor ? *cursor < nworkers : 0;
-
-	if(!ret && cursor) *cursor = 0;
+	if(!ret) it->cursor = 0;
 
 	return ret;
 }
 
-static int list_get_next(struct starpu_sched_ctx_worker_collection *workers)
+static int list_get_next(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it)
 {
 	int *workerids = (int *)workers->workerids;
 	int nworkers = (int)workers->nworkers;
 
-	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
+	STARPU_ASSERT(it->cursor < nworkers);
 
-	STARPU_ASSERT(*cursor < nworkers);
-
-	int ret = workerids[(*cursor)++];
+	int ret = workerids[(it->cursor)++];
 
 	return ret;
 }
@@ -127,29 +124,17 @@ static void* list_init(struct starpu_sched_ctx_worker_collection *workers)
 	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
 	_init_workers(workerids);
 
-	pthread_key_create(&workers->cursor_key, NULL);
-
 	return (void*)workerids;
 }
 
 static void list_deinit(struct starpu_sched_ctx_worker_collection *workers)
 {
 	free(workers->workerids);
-	pthread_key_delete(workers->cursor_key);
 }
 
-static void list_init_cursor(struct starpu_sched_ctx_worker_collection *workers)
+static void list_init_iterator(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it)
 {
-	int *cursor = (int*)malloc(sizeof(int));
-	*cursor = 0;
-	pthread_setspecific(workers->cursor_key, (void*)cursor);
-}
-
-static void list_deinit_cursor(struct starpu_sched_ctx_worker_collection *workers)
-{
-	int *cursor = (int*)pthread_getspecific(workers->cursor_key);
-	*cursor = 0;
-	free(cursor);
+	*((int*)it) = 0;
 }
 
 struct starpu_sched_ctx_worker_collection worker_list = {
@@ -159,8 +144,7 @@ struct starpu_sched_ctx_worker_collection worker_list = {
 	.remove = list_remove,
 	.init = list_init,
 	.deinit = list_deinit,
-	.init_cursor = list_init_cursor,
-	.deinit_cursor = list_deinit_cursor,
+	.init_iterator = list_init_iterator,
 	.type = WORKER_LIST
 };
 

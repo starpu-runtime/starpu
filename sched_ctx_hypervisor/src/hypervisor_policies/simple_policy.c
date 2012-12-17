@@ -25,18 +25,16 @@ static int _compute_priority(unsigned sched_ctx)
 
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
+	
+	starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
-
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		total_priority += config->priority[worker];
 	}
-
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 	return total_priority;
 }
 
@@ -87,15 +85,16 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 	int worker;
 	int considered = 0;
 
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
+	starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 
 	for(index = 0; index < *nworkers; index++)
 	{
-		while(workers->has_next(workers))
+		while(workers->has_next(workers, &it))
 		{
 			considered = 0;
-			worker = workers->get_next(workers);
+			worker = workers->get_next(workers, &it);
 			enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
 			if(arch == 0 || curr_arch == arch)
 			{
@@ -142,9 +141,6 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 		}
 	}
 
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
-
 	return curr_workers;
 }
 
@@ -154,12 +150,13 @@ static unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_polic
 
 	unsigned potential_workers = 0;
 	int worker;
-
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
-	while(workers->has_next(workers))
+	
+	starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
                 if(arch == 0 || curr_arch == arch)
                 {
@@ -167,8 +164,6 @@ static unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_polic
 				potential_workers++;
 		}
 	}
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 
 	return potential_workers;
 }

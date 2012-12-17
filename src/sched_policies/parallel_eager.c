@@ -164,12 +164,14 @@ static int push_task_peager_policy(struct starpu_task *task)
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int worker = 0;
     struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-    if(workers->init_cursor)
-        workers->init_cursor(workers);
 
-    while(workers->has_next(workers))
+    struct starpu_iterator it;
+    if(workers->init_iterator)
+	    workers->init_iterator(workers, &it);
+
+    while(workers->has_next(workers, &it))
     {
-        worker = workers->get_next(workers);
+	    worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
@@ -184,9 +186,9 @@ static int push_task_peager_policy(struct starpu_task *task)
 
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
     {
-		worker = workers->get_next(workers);
+	    worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
@@ -198,9 +200,6 @@ static int push_task_peager_policy(struct starpu_task *task)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
     }
-
-    if (workers->deinit_cursor)
-        workers->deinit_cursor(workers);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 

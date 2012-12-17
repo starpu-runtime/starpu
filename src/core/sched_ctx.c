@@ -838,8 +838,7 @@ struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collec
 		sched_ctx->workers->remove = worker_list.remove;
 		sched_ctx->workers->init = worker_list.init;
 		sched_ctx->workers->deinit = worker_list.deinit;
-		sched_ctx->workers->init_cursor = worker_list.init_cursor;
-		sched_ctx->workers->deinit_cursor = worker_list.deinit_cursor;
+		sched_ctx->workers->init_iterator = worker_list.init_iterator;
 		sched_ctx->workers->type = WORKER_LIST; 
 		break;
 	}
@@ -852,17 +851,16 @@ static unsigned _get_workers_list(struct starpu_sched_ctx_worker_collection *wor
 	*workerids = (int*)malloc(workers->nworkers*sizeof(int));
 	int worker;
 	int i = 0;
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 	
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		(*workerids)[i++] = worker;
 	}
 	
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 	return 0;
 }
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id)
@@ -887,20 +885,18 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 	int worker;
 
 	int npus = 0;
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 	
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
-	
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch)
 			pus[npus++] = worker;
 	}
 	
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 	return npus;
 }
 
@@ -929,28 +925,23 @@ unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sc
         int worker, worker2;
         int shared_workers = 0;
 
-        if(workers->init_cursor)
-                workers->init_cursor(workers);
+	struct starpu_iterator it1, it2;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it1);
 
-        if(workers2->init_cursor)
-                workers2->init_cursor(workers2);
+        if(workers2->init_iterator)
+                workers2->init_iterator(workers2, &it2);
 
-        while(workers->has_next(workers))
+        while(workers->has_next(workers, &it1))
         {
-                worker = workers->get_next(workers);
-                while(workers2->has_next(workers2))
+                worker = workers->get_next(workers, &it1);
+                while(workers2->has_next(workers2, &it2))
 		{
-                        worker2 = workers2->get_next(workers2);
+                        worker2 = workers2->get_next(workers2, &it2);
                         if(worker == worker2)
 				shared_workers++;
                 }
         }
-
-        if (workers->deinit_cursor)
-                workers->deinit_cursor(workers);
-
-        if (workers2->deinit_cursor)
-                workers2->deinit_cursor(workers2);
 
 	return shared_workers;
 }

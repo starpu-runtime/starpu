@@ -32,8 +32,6 @@ struct _starpu_work_stealing_data
 	 * better decisions about which queue to select when stealing or deferring work
 	 */
 	unsigned performed_total;
-	_starpu_pthread_mutex_t sched_mutex;
-	_starpu_pthread_cond_t sched_cond;
 	unsigned last_pop_worker;
 	unsigned last_push_worker;
 };
@@ -150,12 +148,13 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-        if(workers->init_cursor)
-                workers->init_cursor(workers);
+	struct starpu_iterator it;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
         {
-                worker = workers->get_next(workers);
+                worker = workers->get_next(workers, &it);
 		worker_ratio = overload_metric(sched_ctx_id, worker);
 
 		if (worker_ratio > best_ratio)
@@ -164,9 +163,6 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 			best_ratio = worker_ratio;
 		}
 	}
-
-	if (workers->deinit_cursor)
-                workers->deinit_cursor(workers);
 
 	return best_worker;
 }
@@ -192,12 +188,13 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-        if(workers->init_cursor)
-                workers->init_cursor(workers);
+	struct starpu_iterator it;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
         {
-                worker = workers->get_next(workers);
+                worker = workers->get_next(workers, &it);
 
 		worker_ratio = overload_metric(sched_ctx_id, worker);
 
@@ -207,9 +204,6 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 			best_ratio = worker_ratio;
 		}
 	}
-
-	if (workers->deinit_cursor)
-                workers->deinit_cursor(workers);
 
 	return best_worker;
 }
@@ -272,6 +266,25 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		return task;
 	}
 
+	int worker = 0;
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+	
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		if(worker != workerid)
+		{
+			_starpu_pthread_mutex_t *sched_mutex;
+			_starpu_pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		}
+	}
+
+
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id);
 	struct _starpu_deque_jobq *victimq = ws->queue_array[victim];
@@ -287,6 +300,18 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		q->nprocessed++;
 		victimq->njobs--;
 	}
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		if(worker != workerid)
+		{
+			_starpu_pthread_mutex_t *sched_mutex;
+			_starpu_pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		}
+	}		
 
 	return task;
 }
@@ -313,8 +338,22 @@ int ws_push_task(struct starpu_task *task)
                 return ret_val;
         }
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&ws->sched_mutex);
-
+	unsigned worker = 0;
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+	
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		_starpu_pthread_mutex_t *sched_mutex;
+		_starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	}
+	
+	
 	/* If the current thread is not a worker but
 	 * the main thread (-1), we find the better one to
 	 * put task on its queue */
@@ -333,9 +372,16 @@ int ws_push_task(struct starpu_task *task)
 	_starpu_job_list_push_back(deque_queue->jobq, j);
 	deque_queue->njobs++;
 
-	_STARPU_PTHREAD_COND_SIGNAL(&ws->sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&ws->sched_mutex);
-
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		_starpu_pthread_mutex_t *sched_mutex;
+		_starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	}
+		
         _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 	return 0;
@@ -358,8 +404,6 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		 */
 		ws->queue_array[workerid]->nprocessed = -1;
 		ws->queue_array[workerid]->njobs = 0;
-
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, &ws->sched_mutex, &ws->sched_cond);
 	}
 }
 
@@ -374,7 +418,6 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	{
 		workerid = workerids[i];
 		_starpu_destroy_deque(ws->queue_array[workerid]);
-		starpu_sched_ctx_set_worker_mutex_and_cond(sched_ctx_id, workerid, NULL, NULL);
 	}
 }
 
@@ -395,9 +438,6 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 	ws->performed_total = -1;
 
 	ws->queue_array = (struct _starpu_deque_jobq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_deque_jobq*));
-
-	_STARPU_PTHREAD_MUTEX_INIT(&ws->sched_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&ws->sched_cond, NULL);
 }
 
 static void deinit_ws_policy(unsigned sched_ctx_id)
@@ -405,8 +445,6 @@ static void deinit_ws_policy(unsigned sched_ctx_id)
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	free(ws->queue_array);
-	_STARPU_PTHREAD_MUTEX_DESTROY(&ws->sched_mutex);
-	_STARPU_PTHREAD_COND_DESTROY(&ws->sched_cond);
         free(ws);
         starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }

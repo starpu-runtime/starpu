@@ -330,12 +330,13 @@ int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch || arch == STARPU_ANY_WORKER)
 			nworkers_ctx++;

@@ -28,6 +28,13 @@ extern "C"
 #  warning rename all objects to start with starpu_sched_ctx
 #endif
 
+//struct starpu_iterator;
+struct starpu_iterator
+{
+	int cursor;
+};
+
+
 /* generic structure used by the scheduling contexts to iterate the workers */
 struct starpu_sched_ctx_worker_collection
 {
@@ -35,14 +42,12 @@ struct starpu_sched_ctx_worker_collection
 	void *workerids;
 	/* the number of workers in the collection */
 	unsigned nworkers;
-	/* the current cursor of the collection*/
-	pthread_key_t cursor_key;
 	/* the type of structure (WORKER_LIST,...) */
 	int type;
 	/* checks if there is another element in collection */
-	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers);
+	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
 	/* return the next element in the collection */
-	int (*get_next)(struct starpu_sched_ctx_worker_collection *workers);
+	int (*get_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
 	/* add a new element in the collection */
 	int (*add)(struct starpu_sched_ctx_worker_collection *workers, int worker);
 	/* remove an element from the collection */
@@ -52,9 +57,7 @@ struct starpu_sched_ctx_worker_collection
 	/* free the structure */
 	void (*deinit)(struct starpu_sched_ctx_worker_collection *workers);
 	/* initialize the cursor if there is one */
-	void (*init_cursor)(struct starpu_sched_ctx_worker_collection *workers);
-	/* free the cursor if there is one */
-	void (*deinit_cursor)(struct starpu_sched_ctx_worker_collection *workers);
+	void (*init_iterator)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
 };
 
 /* types of structures the worker collection can implement */

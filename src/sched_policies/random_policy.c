@@ -36,12 +36,13 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
         int worker;
-        if(workers->init_cursor)
-                workers->init_cursor(workers);
+	struct starpu_iterator it;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
 
-        while(workers->has_next(workers))
+        while(workers->has_next(workers, &it))
 	{
-                worker = workers->get_next(workers);
+                worker = workers->get_next(workers, &it);
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		alpha_sum += starpu_worker_get_relative_speedup(perf_arch);
@@ -51,9 +52,9 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 //	_STARPU_DEBUG("my rand is %e\n", random);
 
 	double alpha = 0.0;
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
         {
-                worker = workers->get_next(workers);
+                worker = workers->get_next(workers, &it);
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
@@ -75,8 +76,6 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif
-	if (workers->deinit_cursor)
-                workers->deinit_cursor(workers);
 
 	/* we should now have the best worker in variable "selected" */
 	return starpu_push_local_task(selected, task, prio);

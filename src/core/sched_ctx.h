@@ -28,6 +28,7 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
+
 /* used when changes (delete, modify) are applyed to contexts */
 _starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 

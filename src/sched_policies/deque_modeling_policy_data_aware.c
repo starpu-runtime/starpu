@@ -359,12 +359,13 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	unsigned nimpl;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
@@ -445,9 +446,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
-
 	_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
 
 	/* we should now have the best worker in variable "best" */
@@ -481,9 +479,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-	while(workers->has_next(workers))
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
@@ -604,27 +606,29 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
 
 	compute_all_performance_predictions(task,
-										local_task_length,
-										exp_end,
-										&max_exp_end,
-										&best_exp_end,
-										local_data_penalty,
-										local_power,
-										&forced_best,
-										&forced_impl, sched_ctx_id);
-
+					    local_task_length,
+					    exp_end,
+					    &max_exp_end,
+					    &best_exp_end,
+					    local_data_penalty,
+					    local_power,
+					    &forced_best,
+					    &forced_impl, sched_ctx_id);
+	
 	double best_fitness = -1;
 
 	unsigned nimpl;
 	if (forced_best == -1)
 	{
-		while(workers->has_next(workers))
+		while(workers->has_next(workers, &it))
 		{
-			worker = workers->get_next(workers);
+			worker = workers->get_next(workers, &it);
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))
@@ -687,8 +691,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	if (task->bundle)
 		starpu_task_bundle_remove(task->bundle, task);
-        if (workers->deinit_cursor)
-                workers->deinit_cursor(workers);
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
 	 _starpu_get_job_associated_to_task(task)->nimpl = selected_impl;

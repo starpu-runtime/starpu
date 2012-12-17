@@ -274,12 +274,13 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
-	if(workers->init_cursor)
-                workers->init_cursor(workers);
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
         {
-                worker = workers->get_next(workers);
+                worker = workers->get_next(workers, &it);
 
 		if(!starpu_worker_is_combined_worker(worker))
 		{
@@ -298,9 +299,9 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 	unsigned nimpl;
 	worker_ctx = 0;
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-                worker = workers->get_next(workers);
+                worker = workers->get_next(workers, &it);
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -386,9 +387,9 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	if (forced_best == -1)
 	{
 		worker_ctx = 0;
-		while(workers->has_next(workers))
+		while(workers->has_next(workers, &it))
 		{
-			worker = workers->get_next(workers);
+			worker = workers->get_next(workers, &it);
 
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
@@ -422,9 +423,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			worker_ctx++;
 		}
 	}
-
-        if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 
 	STARPU_ASSERT(forced_best != -1 || best != -1);
 

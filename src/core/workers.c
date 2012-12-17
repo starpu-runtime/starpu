@@ -1289,12 +1289,13 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 				if(config.sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 				{
 					struct starpu_sched_ctx_worker_collection *workers = config.sched_ctxs[s].workers;
-					if(workers->init_cursor)
-						workers->init_cursor(workers);
+					struct starpu_iterator it;
+					if(workers->init_iterator)
+						workers->init_iterator(workers, &it);
 
-					while(workers->has_next(workers))
+					while(workers->has_next(workers, &it))
 					{
-						worker = workers->get_next(workers);
+						worker = workers->get_next(workers, &it);
 						if(worker == id)
 						{
 							found = 1;
@@ -1302,8 +1303,6 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 						}
 					}
 
-					if (workers->deinit_cursor)
-						workers->deinit_cursor(workers);
 					if(found) break;
 				}
 			}

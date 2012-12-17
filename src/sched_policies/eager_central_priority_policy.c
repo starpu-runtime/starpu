@@ -124,16 +124,18 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	/* wake people waiting for a task */
 	unsigned worker = 0;
     struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-    if(workers->init_cursor)
-        workers->init_cursor(workers);
 
-    while(workers->has_next(workers))
+    struct starpu_iterator it;
+    if(workers->init_iterator)
+	    workers->init_iterator(workers, &it);
+
+    while(workers->has_next(workers,&it))
     {
-		worker = workers->get_next(workers);
-        _starpu_pthread_mutex_t *sched_mutex;
-        _starpu_pthread_cond_t *sched_cond;
-        starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-        _STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	    worker = workers->get_next(workers, &it);
+	    _starpu_pthread_mutex_t *sched_mutex;
+	    _starpu_pthread_cond_t *sched_cond;
+	    starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+	    _STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
     }
 
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
@@ -142,18 +144,15 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
     {
-		worker = workers->get_next(workers);
+	    worker = workers->get_next(workers, &it);
         _starpu_pthread_mutex_t *sched_mutex;
         _starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
         _STARPU_PTHREAD_COND_SIGNAL(sched_cond);
         _STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
     }
-
-    if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 	return 0;
@@ -219,12 +218,14 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		/* Notify another worker to do that task */
 		unsigned worker = 0;
 		struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-		if(workers->init_cursor)
-			workers->init_cursor(workers);
+
+		struct starpu_iterator it;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
 		
-		while(workers->has_next(workers))
+		while(workers->has_next(workers, &it))
 		{
-			worker = workers->get_next(workers);
+			worker = workers->get_next(workers, &it);
 			if(worker != workerid)
 			{
 				_starpu_pthread_mutex_t *sched_mutex;
@@ -234,8 +235,6 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 			}
 		}
 
-		if (workers->deinit_cursor)
-			workers->deinit_cursor(workers);
 	}
 
 	return chosen_task;

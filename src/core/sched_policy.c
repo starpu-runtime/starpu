@@ -293,18 +293,18 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 {
 	int worker = -1, nworkers = 0;
 	struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
-	if(workers->init_cursor)
-		workers->init_cursor(workers);
+	
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers))
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers);
+		worker = workers->get_next(workers, &it);
 		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_is_ctxs_turn(worker, sched_ctx->id))
 			nworkers++;
 	}
 
-	if (workers->deinit_cursor)
-		workers->deinit_cursor(workers);
 	return nworkers;
 }
 
