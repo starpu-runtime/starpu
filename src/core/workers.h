@@ -254,4 +254,9 @@ int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, in
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+
+#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
+void starpu_worker_get_sched_condition(int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond);
+#endif
+
 #endif // __WORKERS_H__

@@ -125,8 +125,10 @@ condition variable. This function specifies which condition variable (and the
 associated mutex) should be used to block (and to wake up) a worker. Note that
 multiple workers may use the same condition variable. For instance, in the case
 of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.   */	
-	void starpu_worker_get_sched_condition(int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
+would be used to block and wake up all workers.   */
+#if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
+void starpu_worker_get_sched_condition(int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
+#endif
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
