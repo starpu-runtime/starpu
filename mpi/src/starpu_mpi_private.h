@@ -66,7 +66,8 @@ enum _starpu_mpi_request_type
 	RECV_REQ=1,
 	WAIT_REQ=2,
 	TEST_REQ=3,
-	BARRIER_REQ=4
+	BARRIER_REQ=4,
+	PROBE_REQ=5
 };
 
 LIST_TYPE(_starpu_mpi_req,
