@@ -31,10 +31,10 @@ struct starpu_codelet double_display =
 	.modes = {STARPU_R}
 };
 
-void test_handle(starpu_data_handle_t handle, struct starpu_codelet *codelet, int rank)
+void test_handle(starpu_data_handle_t handle, struct starpu_codelet *codelet, int rank, int tag)
 {
 	starpu_data_set_rank(handle, 1);
-	starpu_data_set_tag(handle, 42);
+	starpu_data_set_tag(handle, tag);
 
 	if (rank == 0)
 	{
@@ -83,8 +83,8 @@ int main(int argc, char **argv)
 		starpu_complex_data_register(&handle_complex, 0, real, imaginary, 2);
 		starpu_variable_data_register(&handle_var, 0, (uintptr_t)&foo, sizeof(double));
 
-		test_handle(handle_var, &double_display, rank);
-		test_handle(handle_complex, &cl_display, rank);
+		test_handle(handle_var, &double_display, rank, 11);
+		test_handle(handle_complex, &cl_display, rank, 22);
 
 		starpu_data_unregister(handle_complex);
 		starpu_data_unregister(handle_var);
