@@ -97,7 +97,6 @@ int main(int argc, char **argv)
 	   in order to allow moving resources from this context to the inheritor one
 	   when its corresponding tasks finished executing */
 
-#warning TODO: to be fixed
 	starpu_sched_ctx_finished_submit(sched_ctx1);
 
 	for (i = 0; i < ntasks/2; i++)
@@ -112,7 +111,6 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-#warning TODO: to be fixed
 	starpu_sched_ctx_finished_submit(sched_ctx2);
 
 	/* wait for all tasks at the end*/

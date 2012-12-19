@@ -504,12 +504,9 @@ void _starpu_delete_all_sched_ctxs()
 		_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[i]);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
-			if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx->id) && !_starpu_wait_for_all_tasks_of_sched_ctx(0))
-			{
-				_starpu_sched_ctx_free_scheduling_data(sched_ctx);
-				_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
-				_starpu_delete_sched_ctx(sched_ctx);
-			}
+			_starpu_sched_ctx_free_scheduling_data(sched_ctx);
+			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
+			_starpu_delete_sched_ctx(sched_ctx);
 		}
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[i]);
 		
