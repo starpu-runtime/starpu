@@ -275,13 +275,10 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		starpu_data_handle_t count_handle;
-
 		struct _starpu_mpi_irecv_size_callback *callback = malloc(sizeof(struct _starpu_mpi_irecv_size_callback));
-		starpu_variable_data_register(&count_handle, 0, (uintptr_t)&req->count, sizeof(req->count));
-		callback->handle = count_handle;
 		callback->req = req;
-		_starpu_mpi_irecv_common(count_handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_irecv_size_callback, callback);
+		starpu_variable_data_register(&callback->handle, 0, (uintptr_t)&(callback->req->count), sizeof(callback->req->count));
+		_starpu_mpi_irecv_common(callback->handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_irecv_size_callback, callback);
 	}
 }
 
