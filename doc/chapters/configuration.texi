@@ -567,7 +567,7 @@ as it emulates devices that have a limited amount of memory.
 @end defvr
 
 @defvr {Environment variable} STARPU_GENERATE_TRACE
-When set to 1, this variable indicates that StarPU should automatically
+When set to @code{1}, this variable indicates that StarPU should automatically
 generate a Paje trace when @code{starpu_shutdown()} is called.
 @end defvr
 

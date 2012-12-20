@@ -295,7 +295,7 @@ generate a trace in the Paje format by calling:
 @end example
 
 Or alternatively, setting the @code{STARPU_GENERATE_TRACE} environment variable
-to 1 before application execution will make StarPU do it automatically at
+to @code{1} before application execution will make StarPU do it automatically at
 application shutdown.
 
 This will create a @code{paje.trace} file in the current directory that
