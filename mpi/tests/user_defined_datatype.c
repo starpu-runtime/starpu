@@ -31,7 +31,9 @@ struct starpu_codelet double_display =
 	.modes = {STARPU_R}
 };
 
-void test_handle(starpu_data_handle_t handle, struct starpu_codelet *codelet, int rank, int tag)
+typedef void (*test_func)(starpu_data_handle_t, struct starpu_codelet *, int, int);
+
+void test_handle_irecv_isend_detached(starpu_data_handle_t handle, struct starpu_codelet *codelet, int rank, int tag)
 {
 	starpu_data_set_rank(handle, 1);
 	starpu_data_set_tag(handle, tag);
@@ -46,6 +48,22 @@ void test_handle(starpu_data_handle_t handle, struct starpu_codelet *codelet, in
 		starpu_insert_task(codelet, STARPU_R, handle, 0);
 	}
 }
+
+void test_handle_recv_send(starpu_data_handle_t handle, struct starpu_codelet *codelet, int rank, int tag)
+{
+	if (rank == 1)
+	{
+	     starpu_mpi_send(handle, 0, tag, MPI_COMM_WORLD);
+	}
+	else if (rank == 0)
+	{
+	     MPI_Status status;
+	     starpu_insert_task(codelet, STARPU_R, handle, 0);
+	     starpu_mpi_recv(handle, 1, tag, MPI_COMM_WORLD, &status);
+	     starpu_insert_task(codelet, STARPU_R, handle, 0);
+	}
+}
+
 
 int main(int argc, char **argv)
 {
@@ -66,30 +84,39 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		double real[2] = {0.0, 0.0};
-		double imaginary[2] = {0.0, 0.0};
-		double foo=8;
-		starpu_data_handle_t handle_complex;
-		starpu_data_handle_t handle_var;
-
-		if (rank == 1)
+		test_func funcs[3] = {test_handle_recv_send, test_handle_irecv_isend_detached, NULL};
+		test_func *func;
+		for(func=funcs ; *func!=NULL ; func++)
 		{
-			foo = 42;
-			real[0] = 12.0;
-			real[1] = 45.0;
-			imaginary[0] = 7.0;
-			imaginary[1] = 42.0;
+			test_func f = *func;
+			double real[2] = {0.0, 0.0};
+			double imaginary[2] = {0.0, 0.0};
+			double foo=8;
+			starpu_data_handle_t handle_complex;
+			starpu_data_handle_t handle_var;
+
+			fprintf(stderr, "\nTesting with function %p\n", f);
+
+			if (rank == 1)
+			{
+				foo = 42;
+				real[0] = 12.0;
+				real[1] = 45.0;
+				imaginary[0] = 7.0;
+				imaginary[1] = 42.0;
+			}
+			starpu_complex_data_register(&handle_complex, 0, real, imaginary, 2);
+			starpu_variable_data_register(&handle_var, 0, (uintptr_t)&foo, sizeof(double));
+
+			f(handle_var, &double_display, rank, 11);
+			f(handle_complex, &cl_display, rank, 22);
+
+			starpu_data_unregister(handle_complex);
+			starpu_data_unregister(handle_var);
+			starpu_task_wait_for_all();
+			fflush(stderr);
 		}
-		starpu_complex_data_register(&handle_complex, 0, real, imaginary, 2);
-		starpu_variable_data_register(&handle_var, 0, (uintptr_t)&foo, sizeof(double));
-
-		test_handle(handle_var, &double_display, rank, 11);
-		test_handle(handle_complex, &cl_display, rank, 22);
-
-		starpu_data_unregister(handle_complex);
-		starpu_data_unregister(handle_var);
 	}
-	starpu_task_wait_for_all();
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
