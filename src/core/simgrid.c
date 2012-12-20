@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 " <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
 " <platform version='3'>\n"
 " <config id='General'>\n"
-"   <prop id='network/TCP_gamma' value='1000000000'></prop>\n"
+"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
 "   <prop id='network/latency_factor' value='1'></prop>\n"
 "   <prop id='network/bandwidth_factor' value='1'></prop>\n"
 " </config>\n"
