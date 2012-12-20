@@ -495,7 +495,7 @@ application, specifying the requested number of devices:
 @cartouche
 @smallexample
 $ ./configure --enable-simgrid && make
-$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult --cfg=network/TCP_gamma:1000000000
+$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
 TEST FAILED !!!
 @end smallexample
 @end cartouche
@@ -503,15 +503,12 @@ TEST FAILED !!!
 It is normal that the test fails: since the computation are not actually done
 (that is the whole point of simgrid), the result is wrong, of course.
 
-The @code{cfg=network/TCP_gamma} is needed for now to fix CPU/GPU transfer
-simulation.
-
 If the performance model is not calibrated enough, the following error
 message will be displayed
 
 @cartouche
 @smallexample
-$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult --cfg=network/TCP_gamma:1000000000
+$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
 [0.000000] [xbt_cfg/INFO] type in variable = 2
 [0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
 [starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
@@ -528,7 +525,7 @@ parameter @code{--cfg=contexts/stack_size}, for example:
 
 @cartouche
 @smallexample
-$ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192 --cfg=network/TCP_gamma:1000000000
+$ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
 [0.000000] [xbt_cfg/INFO] type in variable = 2
 [0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
 TEST FAILED !!!

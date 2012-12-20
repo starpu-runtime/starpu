@@ -69,9 +69,6 @@ int main(int argc, char **argv)
 	}
 
 	MSG_init(&argc, argv);
-	//MSG_config("network/TCP_gamma", "1000000000");
-	//MSG_config("network/latency_factor", "1");
-	//MSG_config("network/bandwidth_factor", "1");
 	MSG_config("workstation/model", "ptask_L07");
 
 	/* Create platform file */
@@ -116,6 +113,11 @@ int main(int argc, char **argv)
 "<?xml version='1.0'?>\n"
 " <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
 " <platform version='3'>\n"
+" <config id='General'>\n"
+"   <prop id='network/TCP_gamma' value='1000000000'></prop>\n"
+"   <prop id='network/latency_factor' value='1'></prop>\n"
+"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
+" </config>\n"
 " <AS  id='AS0'  routing='Full'>\n"
 "   <host id='MAIN' power='1'/>\n"
 		);
