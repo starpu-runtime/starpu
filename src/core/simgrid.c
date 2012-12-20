@@ -69,6 +69,9 @@ int main(int argc, char **argv)
 	}
 
 	MSG_init(&argc, argv);
+	//MSG_config("network/TCP_gamma", "20000");
+	//MSG_config("network/latency_factor", "1");
+	//MSG_config("network/bandwidth_factor", "1");
 	MSG_config("workstation/model", "ptask_L07");
 
 	/* Create platform file */
