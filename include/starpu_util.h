@@ -211,7 +211,10 @@ static __inline int starpu_get_env_number(const char *str)
 		char *check;
 
 		val = (int)strtol(strval, &check, 10);
-		STARPU_ASSERT(strcmp(check, "\0") == 0);
+		if (*check) {
+			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
+			STARPU_ABORT();
+		}
 
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
 		return val;
