@@ -334,7 +334,13 @@ static void _starpu_mpi_probe_func(struct _starpu_mpi_req *req)
 	req->count = 1;
 	req->ptr = starpu_handle_get_local_ptr(req->data_handle);
 
-	_STARPU_MPI_DEBUG("MPI probe tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, (int)req->count, &req->request);
+	_STARPU_MPI_DEBUG("MPI probe tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, (int)req->count, req);
+
+	/* somebody is perhaps waiting for the MPI request to be posted */
+	_STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	req->submitted = 1;
+	_STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
 
 	_starpu_mpi_handle_detached_request(req);
 
@@ -600,7 +606,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
+	_STARPU_MPI_DEBUG("complete MPI req %p (%s) srcdst %d - data %p - tag %d - user datatype %d\n", req, _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, req->mpi_tag, req->user_datatype);
 	if (req->request_type == PROBE_REQ)
 	{
 #ifdef STARPU_DEVEL
@@ -656,7 +662,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	_starpu_mpi_req_list_push_front(new_requests, req);
 	newer_requests = 1;
-	_STARPU_MPI_DEBUG("Pushing new request type %s\n", _starpu_mpi_request_type(req->request_type));
+	_STARPU_MPI_DEBUG("Pushing new request type %p (%s)\n", req, _starpu_mpi_request_type(req->request_type));
 	_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	_STARPU_MPI_LOG_OUT();
@@ -751,7 +757,7 @@ static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
 	STARPU_ASSERT(req);
 
 	/* submit the request to MPI */
-	_STARPU_MPI_DEBUG("Handling new request type %s\n", _starpu_mpi_request_type(req->request_type));
+	_STARPU_MPI_DEBUG("Handling new request type %p (%s)\n", req, _starpu_mpi_request_type(req->request_type));
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();
