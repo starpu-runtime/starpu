@@ -21,7 +21,7 @@
  *	JOB QUEUE.
  */
 
-//#include <core/workers.h>
+#include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 
 struct _starpu_eager_center_policy_data
