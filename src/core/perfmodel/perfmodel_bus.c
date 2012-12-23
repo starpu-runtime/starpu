@@ -618,7 +618,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 static void benchmark_all_gpu_devices(void)
 {
 #ifdef STARPU_SIMGRID
-	_STARPU_DISP("can not measure bus in simgrid mode\n");
+	_STARPU_DISP("can not measure bus in simgrid mode, please run starpu_calibrate_bus in non-simgrid mode to make sure the bus performance model was calibrated\n");
 	STARPU_ABORT();
 #else /* !SIMGRID */
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
