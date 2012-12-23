@@ -84,7 +84,7 @@ static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
 static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
-struct starpu_data_interface_ops _starpu_interface_matrix_ops =
+struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
@@ -178,7 +178,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, uint32_t home_
                 .offset = 0
 	};
 
-	starpu_data_register(handleptr, home_node, &matrix_interface, &_starpu_interface_matrix_ops);
+	starpu_data_register(handleptr, home_node, &matrix_interface, &starpu_interface_matrix_ops);
 }
 
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle)

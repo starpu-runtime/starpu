@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -112,7 +112,7 @@ unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f
 
 struct starpu_data_interface_ops *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
 {
-  return &_starpu_interface_matrix_ops;
+  return &starpu_interface_matrix_ops;
 }
 
 void call_filters(void)
