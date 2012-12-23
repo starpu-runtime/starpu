@@ -95,6 +95,9 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 #ifdef STARPU_USE_TOP
 static void param_modified(struct starpu_top_param* d)
 {
+#ifdef STARPU_DEVEL
+#warning FIXME: get sched ctx to get alpha/beta/gamma/idle values
+#endif
 	/* Just to show parameter modification. */
 	fprintf(stderr,
 		"%s has been modified : "
