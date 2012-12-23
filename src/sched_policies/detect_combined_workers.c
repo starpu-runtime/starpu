@@ -189,7 +189,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	unsigned ncpus = 0;
 
 	struct _starpu_worker *worker;
-	unsigned i;
+	int i;
 	for (i = 0; i < nworkers; i++)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);
@@ -198,7 +198,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 			cpu_workers[ncpus++] = i;
 	}
 
-	unsigned size;
+	int size;
 	for (size = 2; size <= ncpus; size *= 2)
 	{
 		unsigned first_cpu;
