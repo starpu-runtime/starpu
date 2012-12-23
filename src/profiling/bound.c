@@ -586,7 +586,7 @@ void starpu_bound_print_lp(FILE *output)
 			}
 
 
-		fprintf(output, "\n/* Each tag finishes when its corresponding task finishes */");
+		fprintf(output, "\n/* Each tag finishes when its corresponding task finishes */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 			if (t1->use_tag)
 			{
