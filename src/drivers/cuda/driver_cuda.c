@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -38,7 +38,9 @@
 static int ncudagpus;
 
 static cudaStream_t streams[STARPU_NMAXWORKERS];
-static cudaStream_t transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t peer_transfer_streams[STARPU_NMAXWORKERS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 
 #ifndef STARPU_SIMGRID
@@ -110,11 +112,25 @@ size_t starpu_cuda_get_global_mem_size(unsigned devid)
 	return (size_t)props[devid].totalGlobalMem;
 }
 
-cudaStream_t starpu_cuda_get_local_transfer_stream(void)
+cudaStream_t starpu_cuda_get_local_in_transfer_stream(void)
 {
 	int worker = starpu_worker_get_id();
 
-	return transfer_streams[worker];
+	return in_transfer_streams[worker];
+}
+
+cudaStream_t starpu_cuda_get_local_out_transfer_stream(void)
+{
+	int worker = starpu_worker_get_id();
+
+	return out_transfer_streams[worker];
+}
+
+cudaStream_t starpu_cuda_get_local_peer_transfer_stream(void)
+{
+	int worker = starpu_worker_get_id();
+
+	return peer_transfer_streams[worker];
 }
 
 cudaStream_t starpu_cuda_get_local_stream(void)
@@ -226,7 +242,15 @@ static void init_context(unsigned devid)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cures = cudaStreamCreate(&transfer_streams[workerid]);
+	cures = cudaStreamCreate(&in_transfer_streams[workerid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&out_transfer_streams[workerid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&peer_transfer_streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
@@ -236,7 +260,9 @@ static void deinit_context(int workerid, unsigned devid)
 	cudaError_t cures;
 
 	cudaStreamDestroy(streams[workerid]);
-	cudaStreamDestroy(transfer_streams[workerid]);
+	cudaStreamDestroy(in_transfer_streams[workerid]);
+	cudaStreamDestroy(out_transfer_streams[workerid]);
+	cudaStreamDestroy(peer_transfer_streams[workerid]);
 
 	unlimit_gpu_mem_if_needed(devid);
 

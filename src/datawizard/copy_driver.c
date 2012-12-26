@@ -169,7 +169,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			cures = cudaEventCreate(&req->async_channel.event.cuda_event);
 			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_transfer_stream();
+			stream = starpu_cuda_get_local_out_transfer_stream();
 			ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
 
 			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
@@ -195,7 +195,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			if (STARPU_UNLIKELY(cures != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_transfer_stream();
+			stream = starpu_cuda_get_local_in_transfer_stream();
 			ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
 			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
@@ -218,7 +218,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			cures = cudaEventCreate(&req->async_channel.event.cuda_event);
 			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_transfer_stream();
+			stream = starpu_cuda_get_local_peer_transfer_stream();
 			ret = copy_methods->cuda_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
 			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
