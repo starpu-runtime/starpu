@@ -197,7 +197,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	}
 #endif
 
-	/* Note: with CUDA, performance seems a bit better when issuing the transfer from the destination (tested without GPUDirect) */
+	/* Note: with CUDA, performance seems a bit better when issuing the transfer from the destination (tested without GPUDirect, but GPUDirect probably behave the same) */
 	if (worker_supports_direct_access(src_node, dst_node))
 	{
 		*handling_node = dst_node;
