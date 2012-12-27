@@ -132,6 +132,11 @@ possibility according to task size, one can run
 @code{tests/microbenchs/tasks_size_overhead.sh} which draws curves of the
 speedup of independent tasks of very small sizes.
 
+The choice of scheduler also has impact over the overhead: for instance, the
+@code{dmda} scheduler takes time to make a decision, while @code{eager} does
+not. @code{tasks_size_overhead.sh} can again be used to get a grasp at how much
+impact that has on the target machine.
+
 @node Task submission
 @section Task submission
 
