@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,11 @@ New features:
 	- A new pass was added that warns about the use of possibly
 	  unregistered memory buffers.
   * SOCL
-        - Manual mapping of commands on specific devices is now possible
+        - Manual mapping of commands on specific devices is now
+	  possible
+        - SOCL does not require StarPU CPU tasks anymore. CPU workers
+          are automatically disabled to enhance performance of OpenCL
+          CPU devices
   * New interface: COO matrix.
   * Data interfaces: The pack operation of user-defined data interface
     defines a new parameter count which should be set to the size of
