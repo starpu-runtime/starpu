@@ -44,6 +44,11 @@ void ERROR_CL(char *s, cl_int err);
    #define DEBUG_CL(...) while(0);
 #endif
 
+#ifdef DEBUG
+#define DEBUG_PARAM(p) p
+#else
+#define DEBUG_PARAM(p) UNUSED(p)
+#endif
 
 
 #endif /* SOCL_DEBUG_H */

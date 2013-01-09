@@ -23,7 +23,7 @@ static void release_callback_context(void * e) {
   if (context->properties != NULL)
     free(context->properties);
 
-#warning TODO: to be fixed
+  //FIXME: should we free StarPU contexts?
   //starpu_sched_ctx_finished_submit(context->sched_ctx);
 
   free(context->devices);
@@ -64,7 +64,7 @@ soclCreateContext(const cl_context_properties * properties,
             case CL_CONTEXT_SCHEDULER_SOCL:
             case CL_CONTEXT_NAME_SOCL:
                i++;
-               if (p[i] == NULL) {
+               if (p[i] == 0) {
                   if (errcode_ret != NULL)
                      *errcode_ret = CL_INVALID_PROPERTY;
                   return NULL;
@@ -105,15 +105,15 @@ soclCreateContext(const cl_context_properties * properties,
       memcpy(ctx->properties, properties, sizeof(cl_context_properties) * ctx->num_properties);
 
       //Selected scheduler
-      int i = 0;
+      cl_uint i = 0;
       for (i=0; i<ctx->num_properties; i++) {
          if (p[i] == CL_CONTEXT_SCHEDULER_SOCL) {
             i++;
-            scheduler = p[i];
+            scheduler = (char*)p[i];
          }
          if (p[i] == CL_CONTEXT_NAME_SOCL) {
             i++;
-            name = p[i];
+            name = (char*)p[i];
          }
       }
 

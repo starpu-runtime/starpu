@@ -106,7 +106,7 @@ void gc_stop(void) {
   pthread_join(gc_thread, NULL);
 }
 
-int gc_entity_release_ex(entity e, const char * caller) {
+int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {
 
   /* Decrement reference count */
   int refs = __sync_sub_and_fetch(&e->refs, 1);
@@ -176,10 +176,14 @@ void * gc_entity_alloc(unsigned int size, void (*release_callback)(void*), char 
 }
 
 /** Retain entity */
-void gc_entity_retain_ex(void *arg, const char * caller) {
+void gc_entity_retain_ex(void *arg, const char * DEBUG_PARAM(caller)) {
 	struct entity * e = (entity)arg;
 
-	int refs = __sync_add_and_fetch(&e->refs, 1);
+   #ifdef DEBUG
+	int refs =
+   #endif
+      __sync_add_and_fetch(&e->refs, 1);
+
 
    DEBUG_MSG("[%s] Incrementing refcount of %s %p to %d\n", caller, e->name, e, refs);
 }
