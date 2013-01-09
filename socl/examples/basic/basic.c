@@ -145,7 +145,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
 #ifdef PROFILING
    cq = clCreateCommandQueue(context, NULL, CL_QUEUE_PROFILING_ENABLE, &err);
 #else
-   cq = clCreateCommandQueue(context, NULL, 0, &err);
+   cq = clCreateCommandQueue(context, NULL, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
 #endif
    check(err, "clCreateCommandQueue");
 
@@ -208,7 +208,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    err |= clReleaseEvent(eventW2);
    err |= clReleaseEvent(eventK);
    err |= clReleaseEvent(eventR);
-   check(err, "clReleaseCommandQueue");
+   check(err, "clReleaseEvents");
 
    printf("Releasing command queue...\n");
    err = clReleaseCommandQueue(cq);
