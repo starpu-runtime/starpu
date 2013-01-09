@@ -142,11 +142,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    printf("Creating command queue...\n");
    cl_event eventW1, eventW2, eventK, eventR;
 
-#ifdef PROFILING
-   cq = clCreateCommandQueue(context, NULL, CL_QUEUE_PROFILING_ENABLE, &err);
-#else
-   cq = clCreateCommandQueue(context, NULL, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
-#endif
+   cq = clCreateCommandQueue(context, NULL, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE, &err);
    check(err, "clCreateCommandQueue");
 
    printf("Enqueueing WriteBuffers...\n");
@@ -186,7 +182,6 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       printf("\n");
    }
 
-#ifdef PROFILING
    #define DURATION(event,label) do { \
       cl_ulong t0,t1; \
       err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &t0, NULL);\
@@ -200,8 +195,6 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    DURATION(eventW2, "second buffer writing");
    DURATION(eventK, "kernel execution");
    DURATION(eventR, "result buffer reading");
-#endif
-
 
    printf("Releasing events...\n");
    err = clReleaseEvent(eventW1);
