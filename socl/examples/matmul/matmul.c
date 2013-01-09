@@ -191,6 +191,7 @@ int main(int argc, const char** argv) {
 	cl_device_type dev_type = CL_DEVICE_TYPE_ALL;
 
 	void * ptrs[BLOCKS];
+	cl_command_queue cqs[BLOCKS];
 	cl_mem d_A[BLOCKS];
 	cl_mem d_C[BLOCKS];
 	cl_mem d_B[BLOCKS];
@@ -362,7 +363,8 @@ int main(int argc, const char** argv) {
 		check(clEnqueueNDRangeKernel(commandQueue[p][dev], multiplicationKernel[p], 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &GPUExecution[i]));
 
 		// Non-blocking copy of result from device to host
-		check2(ptrs[i] = clEnqueueMapBuffer(commandQueue[p][dev], d_C[i], CL_FALSE, CL_MAP_READ, 0, WC * sizeof(TYPE) * workSize[i], 1, &GPUExecution[i], &GPUDone[i], &err));
+		 cqs[i] = commandQueue[p][dev];
+		check2(ptrs[i] = clEnqueueMapBuffer(cqs[i], d_C[i], CL_FALSE, CL_MAP_READ, 0, WC * sizeof(TYPE) * workSize[i], 1, &GPUExecution[i], &GPUDone[i], &err));
 
 		if(i+1 < BLOCKS)
 			workOffset[i + 1] = workOffset[i] + workSize[i];
@@ -387,19 +389,6 @@ int main(int argc, const char** argv) {
 	printf("Throughput = %.4f GFlops/s, Time = %.5f s, Size = %.0f, NumDevsUsed = %d, Blocks = %ld, Workgroup = %zu\n", 
 			gflops, dSeconds, dNumOps, device_count, BLOCKS, localWorkSize[0] * localWorkSize[1]);
 
-	for (i=0; i<device_count; i++) {
-		clReleaseMemObject(d_B[i]);
-	}
-
-	for(i = 0; i < BLOCKS; i++) 
-	{
-		clReleaseMemObject(d_A[i]);
-		clReleaseMemObject(d_C[i]);
-		clReleaseEvent(GPUExecution[i]);
-		clReleaseEvent(GPUDone[i]);
-	}
-
-
 	// compute reference solution
 	if (check) {
 		printf("Comparing results with CPU computation... ");
@@ -415,6 +404,29 @@ int main(int argc, const char** argv) {
 		else printf("PASSED\n\n");
 		free(reference);
 	}
+
+	for(i = 0; i < BLOCKS; i++) 
+	{
+		clEnqueueUnmapMemObject(cqs[i], d_C[i], ptrs[i], 0, NULL, NULL);
+	}
+
+	for(i = 0; i < BLOCKS; i++) 
+	{
+		clFinish(cqs[i]);
+	}
+
+	for (i=0; i<device_count; i++) {
+		clReleaseMemObject(d_B[i]);
+	}
+
+	for(i = 0; i < BLOCKS; i++) 
+	{
+		clReleaseMemObject(d_A[i]);
+		clReleaseMemObject(d_C[i]);
+		clReleaseEvent(GPUExecution[i]);
+		clReleaseEvent(GPUDone[i]);
+	}
+
 
 	for (p=0; p<platform_count;p++) {
 		if (devs[p] == 0)
