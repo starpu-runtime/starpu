@@ -92,7 +92,10 @@ static void release_callback_kernel(void * e) {
   }
 
   //Release perfmodel
-  free(kernel->perfmodel);
+  //FIXME: we cannot release performance models before StarPU shutdown as it
+  //will use them to store kernel execution times
+
+  //free(kernel->perfmodel);
 
   gc_entity_unstore(&kernel->program);
 
