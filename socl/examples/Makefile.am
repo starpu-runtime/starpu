@@ -49,6 +49,7 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
+	testmap/testmap		\
 	clinfo/clinfo 		\
 	matmul/matmul 		\
 	mansched/mansched
@@ -56,11 +57,13 @@ examplebin_PROGRAMS +=		\
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
+	testmap/testmap		\
 	clinfo/clinfo		\
 	matmul/matmul		 \
 	mansched/mansched
 
 basic_basic_SOURCES = basic/basic.c
+testmap_testmap_SOURCES = testmap/testmap.c
 clinfo_clinfo_SOURCES = clinfo/clinfo.c
 matmul_matmul_SOURCES = matmul/matmul.c
 matmul_matmul_LDADD = -lm
