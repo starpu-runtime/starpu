@@ -44,7 +44,7 @@ soclCreateCommandQueue(cl_context                   context,
    cl_command_queue cq;
 
    cq = (cl_command_queue)gc_entity_alloc(sizeof(struct _cl_command_queue),
-                                          release_callback_command_queue);
+                                          release_callback_command_queue, "command_queue");
    if (cq == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;

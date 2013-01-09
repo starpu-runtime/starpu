@@ -29,6 +29,8 @@ static void soclEnqueueWriteBuffer_cpu_task(void *descr[], void *args) {
    // Maybe we should report the bug here... for now, we just avoid memcpy crash due to overlapping regions...
    if (ptr+cmd->offset != cmd->ptr)
       memcpy(ptr+cmd->offset, cmd->ptr, cmd->cb);
+
+   gc_entity_release_cmd(cmd);
 }
 
 static void soclEnqueueWriteBuffer_opencl_task(void *descr[], void *args) {
@@ -50,6 +52,8 @@ static void soclEnqueueWriteBuffer_opencl_task(void *descr[], void *args) {
 
    clWaitForEvents(1, &ev);
    clReleaseEvent(ev);
+
+   gc_entity_release_cmd(cmd);
 }
 
 static struct starpu_perfmodel write_buffer_perfmodel = {
@@ -91,13 +95,13 @@ cl_int command_write_buffer_submit(command_write_buffer cmd) {
 	else 
 		task->cl = &codelet_writebuffer;
 
-	task->cl_arg = cmd;
+	gc_entity_store_cmd(&task->cl_arg, cmd);
 	task->cl_arg_size = sizeof(*cmd);
 
 	/* Execute the task on a specific worker? */
-	if (cmd->_command.cq->device != NULL) {
+	if (cmd->_command.event->cq->device != NULL) {
 	  task->execute_on_a_specific_worker = 1;
-	  task->workerid = cmd->_command.cq->device->worker_id;
+	  task->workerid = cmd->_command.event->cq->device->worker_id;
 	}
 
 	//The buffer now contains meaningful data
@@ -121,11 +125,11 @@ soclEnqueueWriteBuffer(cl_command_queue cq,
 { 
 	command_write_buffer cmd = command_write_buffer_create(buffer, offset, cb, ptr);
 
+   cl_event ev = command_event_get(cmd);
+
 	command_queue_enqueue(cq, cmd, num_events, events);
 
-	RETURN_EVENT(cmd, event);
-
-	MAY_BLOCK(blocking);
+	MAY_BLOCK_THEN_RETURN_EVENT(ev, blocking, event);
 
 	return CL_SUCCESS;
 }

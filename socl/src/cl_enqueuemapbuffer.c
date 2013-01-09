@@ -16,19 +16,12 @@
 
 #include "socl.h"
 
-static void mapbuffer_callback(void *args) {
-	command_map_buffer cmd = (command_map_buffer)args;
-
-	starpu_tag_notify_from_apps(cmd->event->id);
-	cmd->event->status = CL_COMPLETE;
-}
-
 static void mapbuffer_task(void *args) {
 	command_map_buffer cmd = (command_map_buffer)args;
 
 	enum starpu_access_mode mode = (cmd->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
 
-	starpu_data_acquire_cb(cmd->buffer->handle, mode, mapbuffer_callback, cmd);
+	starpu_data_acquire_cb(cmd->buffer->handle, mode, command_completed_task_callback, cmd);
 }
 
 cl_int command_map_buffer_submit(command_map_buffer cmd) {
@@ -36,7 +29,9 @@ cl_int command_map_buffer_submit(command_map_buffer cmd) {
 		.name = "SOCL_MAP_BUFFER"
 	};
 
-	cpu_task_submit(cmd, mapbuffer_task, cmd, 0, &codelet, 0, NULL);
+   gc_entity_retain(cmd);
+
+	cpu_task_submit(cmd, mapbuffer_task, cmd, 0, 0, &codelet, 0, NULL);
 
 	return CL_SUCCESS;
 }
@@ -53,18 +48,17 @@ soclEnqueueMapBuffer(cl_command_queue cq,
                    cl_event *       event,
                    cl_int *         errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-	cl_event ev = event_create();
 
-	command_map_buffer cmd = command_map_buffer_create(buffer, map_flags, offset, cb, ev);
+	command_map_buffer cmd = command_map_buffer_create(buffer, map_flags, offset, cb);
+
+   cl_event ev = command_event_get(cmd);
 
 	command_queue_enqueue(cq, cmd, num_events, events);
 
 	if (errcode_ret != NULL)
 		*errcode_ret = CL_SUCCESS;
 
-	RETURN_CUSTOM_EVENT(ev,event);
+	MAY_BLOCK_THEN_RETURN_EVENT(ev,blocking,event);
 
-	MAY_BLOCK_CUSTOM(blocking,ev);
-	
 	return (void*)(starpu_variable_get_local_ptr(buffer->handle) + offset);
 }

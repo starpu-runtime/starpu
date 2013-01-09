@@ -77,7 +77,7 @@ soclCreateContext(const cl_context_properties * properties,
 
 
    cl_context ctx;
-   ctx = (cl_context)gc_entity_alloc(sizeof(struct _cl_context), release_callback_context);
+   ctx = (cl_context)gc_entity_alloc(sizeof(struct _cl_context), release_callback_context, "context");
    if (ctx == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;

@@ -68,9 +68,7 @@ static void release_callback_kernel(void * e) {
   for (i=0; i<kernel->num_args; i++) {
     switch (kernel->arg_type[i]) {
       case Null:
-        break;
       case Buffer:
-        gc_entity_unstore((cl_mem*)&kernel->arg_value[i]);
         break;
       case Immediate:
         free(kernel->arg_value[i]);
@@ -119,7 +117,7 @@ soclCreateKernel(cl_program    program,
    //TODO: check programs (see opencl specs)
 
    /* Create Kernel structure */
-   k = (cl_kernel)gc_entity_alloc(sizeof(struct _cl_kernel), release_callback_kernel);
+   k = (cl_kernel)gc_entity_alloc(sizeof(struct _cl_kernel), release_callback_kernel, "kernel");
    if (k == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;

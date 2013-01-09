@@ -32,6 +32,7 @@ void socl_init_starpu(void) {
     struct starpu_conf conf;
     starpu_conf_init(&conf);
     conf.ncuda = 0;
+    conf.ncpus = 0;
 
 
     _starpu_init_failed = starpu_init(&conf);
@@ -40,11 +41,6 @@ void socl_init_starpu(void) {
        DEBUG_MSG("Error when calling starpu_init: %d\n", _starpu_init_failed);
     }
     else {
-       if (starpu_cpu_worker_get_count() == 0)
-       {
-	    DEBUG_MSG("StarPU did not find any CPU device. SOCL needs at least 1 CPU.\n");
-	    _starpu_init_failed = -ENODEV;
-       }
        if (starpu_opencl_worker_get_count() == 0)
        {
 	    DEBUG_MSG("StarPU didn't find any OpenCL device. Try disabling CUDA support in StarPU (export STARPU_NCUDA=0).\n");
@@ -88,8 +84,10 @@ void soclShutdown() {
 
       int active_entities = gc_active_entity_count();
 
-      if (active_entities != 0)
+      if (active_entities != 0) {
          DEBUG_MSG("Unreleased entities: %d\n", active_entities);
+         gc_print_remaining_entities();
+      }
 
       if( _starpu_init )
          starpu_shutdown();

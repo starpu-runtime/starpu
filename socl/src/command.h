@@ -21,6 +21,9 @@
 
 typedef struct cl_command_t * cl_command;
 
+#define gc_entity_store_cmd(dest,cmd) gc_entity_store(dest, &cmd->_command)
+#define gc_entity_release_cmd(cmd) gc_entity_release(&cmd->_command)
+
 /**
  * Initialize a command structure
  *
@@ -30,6 +33,8 @@ typedef struct cl_command_t * cl_command;
 void command_init_ex(cl_command cmd, cl_command_type typ, void (*cb)(void*));
 #define command_init(cmd,typ,cb) \
 	command_init_ex((cl_command)cmd,typ,cb)
+
+void command_release(cl_command cmd);
 
 /** Submit a command for execution */
 void command_submit_ex(cl_command cmd);
@@ -52,17 +57,22 @@ struct cl_command_t {
 	cl_uint 	num_events;	/* Number of dependencies */
 	cl_event * 	events;		/* Dependencies */
 	cl_event  	event;		/* Event for this command */
-	cl_command_queue cq;		/* Command queue the command is enqueued in */
 	starpu_task	task;		/* Associated StarPU task, if any */
 	char		submitted;	/* True if the command has been submitted to StarPU */
+   void (*release_callback)(void*); /* Command specific destructor */
 };
 
 #define command_type_get(cmd) (((cl_command)cmd)->typ)
-#define command_event_get(cmd) (((cl_command)cmd)->event)
-#define command_num_events_get(cmd) (((cl_command)cmd)->num_events)
-#define command_events_get(cmd) (((cl_command)cmd)->events)
-#define command_task_get(cmd) (((cl_command)cmd)->task)
-#define command_cq_get(cmd) (((cl_command)cmd)->cq)
+
+cl_event command_event_get_ex(cl_command cmd);
+#define command_event_get(cmd) command_event_get_ex(&cmd->_command)
+
+#define command_num_events_get_ex(cmd) (cmd->num_events)
+#define command_num_events_get(cmd) ((cmd)->_command.num_events)
+#define command_events_get_ex(cmd) ((cmd)->events)
+#define command_events_get(cmd) ((cmd)->_command.events)
+#define command_task_get(cmd) ((cmd)->_command.task)
+#define command_cq_get(cmd) ((cmd)->_command.cq)
 
 #define CL_COMMAND struct cl_command_t _command;
 
@@ -122,7 +132,6 @@ typedef struct command_map_buffer_t {
 	cl_map_flags map_flags;
 	size_t offset;
 	size_t cb;
-	cl_event event;
 } * command_map_buffer;
 
 
@@ -163,8 +172,7 @@ command_map_buffer command_map_buffer_create(
 		cl_mem buffer,
 		cl_map_flags map_flags,
 		size_t offset,
-		size_t cb,
-		cl_event event);
+		size_t cb);
 
 command_unmap_mem_object command_unmap_mem_object_create(
 		cl_mem buffer,

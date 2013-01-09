@@ -58,6 +58,9 @@ struct entity {
   /* Callback called on release */
   void (*release_callback)(void*entity);
 
+  /* Entity identifier (used for debugging purpose) */
+  char * name;
+
   /* Next entity in garbage collector queue */
   entity prev;
   entity next;
@@ -90,29 +93,19 @@ struct _cl_device_id {
    int worker_id;
 };
 
-#define RETURN_EVENT(cmd, event) \
-	if (event != NULL) { \
-		cl_event ev = command_event_get(cmd);\
-		gc_entity_retain(ev);\
+#define RETURN_EVENT(ev, event) \
+	if ((event) != NULL) { \
 		*event = ev; \
-	}
+	} \
+   else {\
+      gc_entity_release(ev);\
+   }
 
-#define RETURN_CUSTOM_EVENT(src, tgt) \
-	if (tgt != NULL) { \
-		gc_entity_retain(src); \
-		*tgt = src; \
-	}
-
-#define MAY_BLOCK(blocking) \
+#define MAY_BLOCK_THEN_RETURN_EVENT(ev,blocking,event) \
 	if ((blocking) == CL_TRUE) {\
-		cl_event ev = command_event_get(cmd);\
 		soclWaitForEvents(1, &ev);\
-	}
-
-#define MAY_BLOCK_CUSTOM(blocking,event) \
-	if ((blocking) == CL_TRUE) {\
-		soclWaitForEvents(1, &(event));\
-	}
+	}\
+   RETURN_EVENT(ev,event);\
 
 /* Constants */
 const char * SOCL_PROFILE;

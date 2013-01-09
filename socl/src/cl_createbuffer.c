@@ -85,7 +85,7 @@ soclCreateBuffer(cl_context   context,
 
 
    //Alloc cl_mem structure
-   mem = (cl_mem)gc_entity_alloc(sizeof(struct _cl_mem), release_callback_memobject);
+   mem = (cl_mem)gc_entity_alloc(sizeof(struct _cl_mem), release_callback_memobject, "buffer");
    if (mem == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;

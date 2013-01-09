@@ -80,40 +80,6 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
    }
 }
 
-static void cleaning_task_callback(void *args) {
-	command_ndrange_kernel cmd = (command_ndrange_kernel)args;
-
-	free(cmd->arg_sizes);
-	free(cmd->arg_types);
-
-	unsigned int i;
-	for (i=0; i<cmd->num_args; i++) {
-		free(cmd->args[i]);
-	}
-	free(cmd->args);
-
-	for (i=0; i<cmd->num_buffers; i++)
-		gc_entity_unstore(&cmd->buffers[i]);
-
-	free(cmd->buffers);
-
-	if (cmd->global_work_offset != NULL) {
-	  free((void*)cmd->global_work_offset);
-	  cmd->global_work_offset = NULL;
-	}
-
-	if (cmd->global_work_size != NULL) {
-	  free((void*)cmd->global_work_size);
-	  cmd->global_work_size = NULL;
-	}
-
-	if (cmd->local_work_size != NULL) {
-	  free((void*)cmd->local_work_size);
-	  cmd->local_work_size = NULL;
-	}
-
-}
-
 /**
  * Real kernel enqueuing command
  */
@@ -126,9 +92,9 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 	task->cl_arg_size = sizeof(cmd);
 
 	/* Execute the task on a specific worker? */
-	if (cmd->_command.cq->device != NULL) {
+	if (cmd->_command.event->cq->device != NULL) {
 	  task->execute_on_a_specific_worker = 1;
-	  task->workerid = cmd->_command.cq->device->worker_id;
+	  task->workerid = cmd->_command.event->cq->device->worker_id;
 	}
 
 	struct starpu_codelet * codelet = task->cl;
@@ -172,15 +138,6 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	task_submit(task, cmd);
 
-	/* Enqueue a cleaning task */
-	//FIXME: execute this in the callback?
-	cl_event ev = command_event_get(cmd);
-
-	static struct starpu_codelet cdl = {
-		.name = "SOCL_NDRANGE_CLEANING_TASK"
-	};
-	cpu_task_submit(cmd, cleaning_task_callback, cmd, 0, &cdl, 1, &ev);
-
 	return CL_SUCCESS;
 }
 
@@ -199,9 +156,11 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 	command_ndrange_kernel cmd = command_ndrange_kernel_create(kernel, work_dim,
 			global_work_offset, global_work_size, local_work_size);
 
+   cl_event ev = command_event_get(cmd);
+
 	command_queue_enqueue(cq, cmd, num_events, events);
 
-	RETURN_EVENT(cmd, event);
+	RETURN_EVENT(ev, event);
 
 	return CL_SUCCESS;
 }

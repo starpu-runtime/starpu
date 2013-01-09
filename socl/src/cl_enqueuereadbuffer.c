@@ -26,6 +26,8 @@ static void soclEnqueueReadBuffer_cpu_task(void *descr[], void *args) {
    //They should use buffer mapping facilities instead.
    if (ptr+cmd->offset != cmd->ptr)
       memcpy(cmd->ptr, ptr+cmd->offset, cmd->cb);
+
+   gc_entity_release_cmd(cmd);
 }
 
 static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
@@ -47,6 +49,7 @@ static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
    clWaitForEvents(1, &ev);
    clReleaseEvent(ev);
 
+   gc_entity_release_cmd(cmd);
 }
 
 static struct starpu_perfmodel read_buffer_perfmodel = {
@@ -71,12 +74,12 @@ cl_int command_read_buffer_submit(command_read_buffer cmd) {
 	task->cl = &codelet_readbuffer;
 
 	/* Execute the task on a specific worker? */
-	if (cmd->_command.cq->device != NULL) {
+	if (cmd->_command.event->cq->device != NULL) {
 	  task->execute_on_a_specific_worker = 1;
-	  task->workerid = cmd->_command.cq->device->worker_id;
+	  task->workerid = cmd->_command.event->cq->device->worker_id;
 	}
 
-	task->cl_arg = cmd;
+	gc_entity_store_cmd(&task->cl_arg, cmd);
 	task->cl_arg_size = sizeof(*cmd);
 
 	task_submit(task, cmd);
@@ -99,11 +102,11 @@ soclEnqueueReadBuffer(cl_command_queue  cq,
 
 	command_read_buffer cmd = command_read_buffer_create(buffer, offset, cb, ptr);
 
+   cl_event ev = command_event_get(cmd);
+
 	command_queue_enqueue(cq, cmd, num_events, events);
 
-	RETURN_EVENT(cmd, event);
-
-	MAY_BLOCK(blocking);
+	MAY_BLOCK_THEN_RETURN_EVENT(ev, blocking, event);
 
 	return CL_SUCCESS;
 }

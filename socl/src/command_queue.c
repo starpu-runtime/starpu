@@ -33,7 +33,6 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	int is_barrier = (cmd->typ == CL_COMMAND_BARRIER || !(cq->properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE));
 
 	/* Add references to the command queue */
-	gc_entity_store(&cmd->cq, cq);
 	gc_entity_store(&cmd->event->cq, cq);
 
 	/* Lock command queue */
@@ -61,13 +60,14 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	int n = 0;
 
 	/* Add dependency to last barrier if applicable */
-	if (cq->barrier != NULL) deps[n++] = cq->barrier->event;
+	if (cq->barrier != NULL) 
+      gc_entity_store(&deps[n++], cq->barrier->event);
 
 	/* Add dependencies to out-of-order events (if any) */
 	if (is_barrier) {
 		command_list cl = cq->commands;
 		while (cl != NULL) {
-			deps[n++] = cl->cmd->event;
+			gc_entity_store(&deps[n++], cl->cmd->event);
 			cl = cl->next;
 		}
 	}
@@ -75,15 +75,12 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	/* Add explicit dependencies */
 	unsigned i;
 	for (i=0; i<num_events; i++) {
-		deps[n++] = events[i];
+		gc_entity_store(&deps[n++], events[i]);
 	}
 
 	/* Make all dependencies explicit for the command */
 	cmd->num_events = ndeps;
 	cmd->events = deps;
-
-	/* Increment event ref count */
-	gc_entity_retain(cmd->event);
 
 	/* Insert command in the queue */
 	if (is_barrier) {
@@ -97,9 +94,14 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 		cq->commands = command_list_cons(cmd, cq->commands);
 	}
 
+	/* Submit command 
+    * We need to do it before unlocking because we don't want events to get
+    * released while we use them to set dependencies
+    */
+   command_submit_ex(cmd);
+
 	/* Unlock command queue */
 	pthread_mutex_unlock(&cq->mutex);
 
-	/* Submit command */
-	command_submit_ex(cmd);
+   gc_entity_release(cmd);
 }

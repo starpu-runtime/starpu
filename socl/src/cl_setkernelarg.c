@@ -38,8 +38,7 @@ soclSetKernelArg(cl_kernel  kernel,
          break;
       case Buffer:
          kernel->arg_type[arg_index] = Null;
-         gc_entity_unstore((cl_mem*)kernel->arg_value[arg_index]);
-	 free(kernel->arg_value[arg_index]);
+         free(kernel->arg_value[arg_index]);
          kernel->arg_value[arg_index] = NULL;
          break;
       case Immediate:
@@ -62,7 +61,7 @@ soclSetKernelArg(cl_kernel  kernel,
          DEBUG_MSG("Found buffer %d \n", buf->id);
          kernel->arg_type[arg_index] = Buffer;
          kernel->arg_value[arg_index] = malloc(sizeof(void*));
-	 gc_entity_store((cl_mem*)kernel->arg_value[arg_index], buf);
+         *(cl_mem*)kernel->arg_value[arg_index] = buf; //We do not use gc_entity_store here because kernels do not hold reference on buffers (see OpenCL spec)
       }
       else {
          /* Argument must be an immediate buffer  */

@@ -20,18 +20,60 @@
 /* Forward extern declaration */
 extern void soclEnqueueNDRangeKernel_task(void *descr[], void *args);
 
+cl_event command_event_get_ex(cl_command cmd) {
+   cl_event ev = cmd->event;
+   gc_entity_retain(ev);
+   return ev;
+}
+
+static void command_release_callback(void *a) {
+  cl_command cmd = (cl_command)a;
+
+  // Call command specific release callback
+  if (cmd->release_callback != NULL)
+     cmd->release_callback(cmd);
+
+  // Generic command destructor
+  cl_uint i;
+  for (i=0; i<cmd->num_events; i++) {
+     gc_entity_unstore(&cmd->events[i]);
+  }
+  cmd->num_events = 0;
+  free(cmd->events);
+
+  /* Remove from command queue */
+  cl_command_queue cq = cmd->event->cq;
+  if (cq != NULL) {
+    /* Lock command queue */
+    pthread_mutex_lock(&cq->mutex);
+
+    /* Remove barrier if applicable */
+    if (cq->barrier == cmd)
+      cq->barrier = NULL;
+
+    /* Remove from the list of out-of-order commands */
+    cq->commands = command_list_remove(cq->commands, cmd);
+
+    /* Unlock command queue */
+    pthread_mutex_unlock(&cq->mutex);
+  }
+
+  // Events may survive to commands that created them
+  cmd->event->command = NULL;
+  gc_entity_unstore(&cmd->event); 
+}
+
 void command_init_ex(cl_command cmd, cl_command_type typ, void (*cb)(void*)) {
-	gc_entity_init(&cmd->_entity, cb);
+	gc_entity_init(&cmd->_entity, command_release_callback, "command");
+   cmd->release_callback = cb;
 	cmd->typ = typ;
 	cmd->num_events = 0;
 	cmd->events = NULL;
-	cmd->event = event_create();
+	cmd->event = event_create(); // we do not use gc_entity_store here because if nobody requires the event, it should be destroyed with the command
 	cmd->event->command = cmd;
-	cmd->cq = NULL;
 	cmd->task = NULL;
 	cmd->submitted = 0;
 }
-
 
 void command_submit_ex(cl_command cmd) {
 #define SUBMIT(typ,name) case typ:\
@@ -115,9 +157,16 @@ void command_ndrange_kernel_release(void * arg) {
 	free(cmd->arg_sizes);
 	free(cmd->arg_types);
 	unsigned int i;
-	for (i=0; i<cmd->num_args; i++)
+	for (i=0; i<cmd->num_args; i++) {
 		free(cmd->args[i]);
+      cmd->args[i] = NULL;
+   }
 	free(cmd->args);
+
+	for (i=0; i<cmd->num_buffers; i++)
+		gc_entity_unstore(&cmd->buffers[i]);
+
+	free(cmd->buffers);
 }
 
 command_ndrange_kernel command_ndrange_kernel_create (
@@ -185,21 +234,16 @@ command_marker command_marker_create () {
 	return cmd;
 }
 
-void command_map_buffer_release(void * arg) {
-	command_map_buffer cmd = (command_map_buffer)arg;
-
+void command_map_buffer_release(void * UNUSED(arg)) {
 	/* We DO NOT unstore (release) the buffer as unmap will do it
 	  gc_entity_unstore(&cmd->buffer); */
-
-	gc_entity_unstore(&cmd->event);
 }
 
 command_map_buffer command_map_buffer_create(
 		cl_mem buffer,
 		cl_map_flags map_flags,
 		size_t offset,
-		size_t cb,
-		cl_event event
+		size_t cb
 		) {
 
 	command_map_buffer cmd = malloc(sizeof(struct command_map_buffer_t));
@@ -209,7 +253,6 @@ command_map_buffer command_map_buffer_create(
 	dup(map_flags);
 	dup(offset);
 	dup(cb);
-	gc_entity_store(&cmd->event, event);
 
 	return cmd;
 }

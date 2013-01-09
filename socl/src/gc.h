@@ -22,21 +22,26 @@
 void gc_start(void);
 void gc_stop(void);
 
-void gc_entity_init(void *arg, void (*release_callback)(void*));
-void * gc_entity_alloc(unsigned int size, void (*release_callback)(void*));
-void gc_entity_retain(void *arg);
+void gc_entity_init(void *arg, void (*release_callback)(void*), char*name);
+
+void * gc_entity_alloc(unsigned int size, void (*release_callback)(void*), char * name);
+
+void gc_entity_retain_ex(void *arg, const char *);
+#define gc_entity_retain(arg) gc_entity_retain_ex(arg, __func__)
 
 /** Decrement reference counter and release entity if applicable */
-int gc_entity_release_ex(entity e);
+int gc_entity_release_ex(entity e, const char*);
 
 int gc_active_entity_count(void);
+void gc_print_remaining_entities(void);
 
-#define gc_entity_release(a) gc_entity_release_ex(&(a)->_entity)
+#define gc_entity_release(a) gc_entity_release_ex(&(a)->_entity, __func__)
 
 #define gc_entity_store(dest,e) \
   do {\
-    gc_entity_retain(e); \
-    *dest = e;\
+    void * _e = e;\
+    gc_entity_retain(_e); \
+    *dest = _e;\
   } while(0);
 
 #define gc_entity_unstore(dest) \

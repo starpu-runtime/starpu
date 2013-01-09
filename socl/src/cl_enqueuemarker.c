@@ -25,9 +25,11 @@ soclEnqueueMarker(cl_command_queue  cq,
 	
 	command_marker cmd = command_marker_create();
 
+   cl_event ev = command_event_get(cmd);
+
 	command_queue_enqueue(cq, cmd, 0, NULL);
 
-	RETURN_EVENT(cmd, event);
+	RETURN_EVENT(ev, event);
 
 	return CL_SUCCESS;
 }

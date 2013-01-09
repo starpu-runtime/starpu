@@ -21,6 +21,9 @@
 
 starpu_task task_create();
 void task_dependency_add(starpu_task task, cl_uint num_events, cl_event *events);
+void command_completed(cl_command cmd);
+
+void command_completed_task_callback(void *);
 
 /* Execute callback(arg) in a CPU task (with no buffer)
  * Associate this task to the command cmd (i.e. when this task completes, the command is completed)
@@ -28,7 +31,7 @@ void task_dependency_add(starpu_task task, cl_uint num_events, cl_event *events)
  * The codelet is used to give a fixed name to the task without allocating a
  * new codelet structure each time. This function will fill the other fields
  * as appropriate */
-void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int free_arg, struct starpu_codelet *, unsigned num_events, cl_event * events); 
+void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int free_arg, int release_cmd, struct starpu_codelet *, unsigned num_events, cl_event * events); 
 
 #define cpu_task_submit(cmd, args...) cpu_task_submit_ex((cl_command)cmd, args)
 

@@ -21,9 +21,11 @@ soclFinish(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0 {
 
 	command_barrier cmd = command_barrier_create();
 
+   cl_event ev = command_event_get(cmd);
+
 	command_queue_enqueue(cq, cmd, 0, NULL);
 
-	MAY_BLOCK(CL_TRUE)
+	MAY_BLOCK_THEN_RETURN_EVENT(ev, CL_TRUE, (cl_event*)NULL);
 
 	return CL_SUCCESS;
 }

@@ -83,7 +83,7 @@ soclCreateProgramWithSource(cl_context      context,
    }
 
    /* Alloc cl_program structure */
-   p = (cl_program)gc_entity_alloc(sizeof(struct _cl_program), release_callback_program);
+   p = (cl_program)gc_entity_alloc(sizeof(struct _cl_program), release_callback_program, "program");
    if (p == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;

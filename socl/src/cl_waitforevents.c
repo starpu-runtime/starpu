@@ -22,6 +22,12 @@ soclWaitForEvents(cl_uint           num_events,
 {
    unsigned int i;
    DEBUG_MSG("Waiting for events: ");
+   for (i=0; i<num_events; i++) {
+      char * sep = i == (num_events-1) ? "" : ", ";
+      DEBUG_MSG_NOHEAD("%d%s", event_list[i]->id, sep);
+   }
+   DEBUG_MSG_NOHEAD("\n");
+
    for (i=0; i<num_events; i++)
       starpu_tag_wait(event_list[i]->id);
 
