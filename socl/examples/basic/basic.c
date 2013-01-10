@@ -167,7 +167,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    check(err, "clEnqueueNDRangeKernel");
 
    printf("Enqueueing ReadBuffer...\n");
-   err = clEnqueueReadBuffer(cq, dm, CL_FALSE, 0, REALSIZE, d, 0, NULL, &eventR);
+   err = clEnqueueReadBuffer(cq, dm, CL_FALSE, 0, REALSIZE, d, 1, &eventK, &eventR);
    check(err, "clEnqueueReadBuffer");
 
    printf("Finishing queue...\n");
