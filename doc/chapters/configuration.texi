@@ -304,6 +304,13 @@ Enable memory statistics (@pxref{Memory feedback}).
 @defvr {Configure option} --enable-simgrid
 Enable simulation of execution in simgrid, to allow easy experimentation with
 various numbers of cores and GPUs, or amount of memory, etc. Experimental.
+
+The path to simgrid can be specified through the @code{SIMGRID_CFLAGS} and
+@code{SIMGRID_LIBS} environment variables, for instance:
+@example
+export SIMGRID_CFLAGS="-I/usr/local/simgrid/include"
+export SIMGRID_LIBS="-L/usr/local/simgrid/lib -lsimgrid"
+@end example
 @end defvr
 
 @node Execution configuration through environment variables
