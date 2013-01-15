@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -60,10 +60,12 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 	/* Would be very odd */
 	STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
 
-	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
 		/* unknown, using logical procesors as fallback */
+		_STARPU_DISP("Warning: OS did not report CPU cores. Assuming there is only one thread per core.\n");
 		config->cpu_depth = hwloc_get_type_depth(topology->hwtopology,
 							 HWLOC_OBJ_PU);
+	}
 
 	topology->nhwcpus = hwloc_get_nbobjs_by_depth (topology->hwtopology,
 						       config->cpu_depth);
