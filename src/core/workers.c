@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -781,7 +781,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_init_fxt_profiling(user_conf->no_auto_profile);
+	_starpu_init_fxt_profiling(conf.conf->no_auto_profile);
 #endif
 
 	_starpu_open_debug_logfile();
