@@ -227,8 +227,10 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtyp
 	MSG_task_execute(simgrid_task);
 }
 
-struct completion {
+struct transfer {
 	msg_task_t task;
+	unsigned src_node;
+	unsigned dst_node;
 	unsigned *finished;
 	_starpu_pthread_mutex_t *mutex;
 	_starpu_pthread_cond_t *cond;
@@ -236,27 +238,15 @@ struct completion {
 
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct completion *completion = MSG_process_get_data(MSG_process_self());
-	MSG_task_execute(completion->task);
-	MSG_task_destroy(completion->task);
-	_STARPU_PTHREAD_MUTEX_LOCK(completion->mutex);
-	*completion->finished = 1;
-	_STARPU_PTHREAD_COND_BROADCAST(completion->cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(completion->mutex);
-	free(completion);
+	struct transfer *transfer = MSG_process_get_data(MSG_process_self());
+	MSG_task_execute(transfer->task);
+	MSG_task_destroy(transfer->task);
+	_STARPU_PTHREAD_MUTEX_LOCK(transfer->mutex);
+	*transfer->finished = 1;
+	_STARPU_PTHREAD_COND_BROADCAST(transfer->cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(transfer->mutex);
+	free(transfer);
 	return 0;
-}
-
-static void _starpu_simgrid_post_task(msg_task_t task, unsigned *finished, _starpu_pthread_mutex_t *mutex, _starpu_pthread_cond_t *cond)
-{
-	struct completion *completion = malloc(sizeof (*completion));
-	completion->task = task;
-	completion->finished = finished;
-	completion->mutex = mutex;
-	completion->cond = cond;
-	xbt_dynar_t hosts = MSG_hosts_as_dynar();
-	MSG_process_create("transfer task", transfer_execute, completion, xbt_dynar_get_as(hosts, 0, msg_host_t));
-	xbt_dynar_free(&hosts);
 }
 
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
@@ -283,7 +273,16 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	req->async_channel.event.finished = 0;
 	_STARPU_PTHREAD_MUTEX_INIT(&req->async_channel.event.mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&req->async_channel.event.cond, NULL);
-	_starpu_simgrid_post_task(task, &req->async_channel.event.finished, &req->async_channel.event.mutex, &req->async_channel.event.cond);
+
+	struct transfer *transfer = malloc(sizeof (*transfer));
+	transfer->task = task;
+	transfer->finished = &req->async_channel.event.finished;
+	transfer->mutex = &req->async_channel.event.mutex;
+	transfer->cond = &req->async_channel.event.cond;
+	transfer->src_node = src_node;
+	transfer->dst_node = dst_node;
+	MSG_process_create("transfer task", transfer_execute, transfer, MSG_get_host_by_name("MAIN"));
+
 	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 	return -EAGAIN;
