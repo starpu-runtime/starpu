@@ -234,8 +234,7 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 	_starpu_init_sched_policy(config, sched_ctx, policy_name);
 
 	/* construct the collection of workers(list/tree/etc.) */
-	sched_ctx->workers->workerids = sched_ctx->workers->init(sched_ctx->workers);
-	sched_ctx->workers->nworkers = 0;
+	sched_ctx->workers->init(sched_ctx->workers);
 
 	/* after having an worker_collection on the ressources add them */
 	_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers_ctx, NULL, NULL);

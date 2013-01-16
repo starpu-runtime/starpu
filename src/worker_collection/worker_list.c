@@ -119,12 +119,15 @@ static void _init_workers(int *workerids)
 	return;
 }
 
-static void* list_init(struct starpu_sched_ctx_worker_collection *workers)
+static void list_init(struct starpu_sched_ctx_worker_collection *workers)
 {
 	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
 	_init_workers(workerids);
 
-	return (void*)workerids;
+	workers->workerids = (void*)workerids;
+	workers->nworkers = 0;
+
+	return;
 }
 
 static void list_deinit(struct starpu_sched_ctx_worker_collection *workers)

@@ -53,7 +53,7 @@ struct starpu_sched_ctx_worker_collection
 	/* remove an element from the collection */
 	int (*remove)(struct starpu_sched_ctx_worker_collection *workers, int worker);
 	/* initialize the structure */
-	void* (*init)(struct starpu_sched_ctx_worker_collection *workers);
+	void (*init)(struct starpu_sched_ctx_worker_collection *workers);
 	/* free the structure */
 	void (*deinit)(struct starpu_sched_ctx_worker_collection *workers);
 	/* initialize the cursor if there is one */
