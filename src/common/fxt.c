@@ -103,7 +103,7 @@ void starpu_set_profiling_id(int new_id)
 
 void starpu_start_fxt_profiling()
 {
-	threadid = _starpu_gettid();
+	unsigned threadid = _starpu_gettid();
 	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
 }
 
