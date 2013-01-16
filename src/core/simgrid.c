@@ -234,7 +234,7 @@ struct completion {
 	_starpu_pthread_cond_t *cond;
 };
 
-int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	struct completion *completion = MSG_process_get_data(MSG_process_self());
 	MSG_task_execute(completion->task);
