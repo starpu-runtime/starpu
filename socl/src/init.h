@@ -23,8 +23,8 @@
 #ifndef SOCL_INIT_H
 #define SOCL_INIT_H
 
-int _starpu_init_failed;
-volatile int _starpu_init;
+extern int _starpu_init_failed;
+extern volatile int _starpu_init;
 /**
  * Initialize StarPU
  */

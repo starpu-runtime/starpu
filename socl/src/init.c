@@ -23,7 +23,7 @@
 #include "mem_objects.h"
 
 int _starpu_init_failed;
-int _starpu_init = 0;
+volatile int _starpu_init = 0;
 static pthread_mutex_t _socl_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct starpu_conf conf;
 
