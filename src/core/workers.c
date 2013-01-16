@@ -781,7 +781,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_init_fxt_profiling(conf.conf->no_auto_profile);
+	_starpu_init_fxt_profiling(conffig.conf->no_auto_profile);
 #endif
 
 	_starpu_open_debug_logfile();
