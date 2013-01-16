@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Université de Bordeaux 1
+ * Copyright (C) 2012-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -227,20 +227,6 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtyp
 	MSG_task_execute(simgrid_task);
 }
 
-msg_task_t _starpu_simgrid_transfer_task_create(unsigned src_node, unsigned dst_node, size_t size)
-{
-	msg_host_t *hosts = calloc(2, sizeof(*hosts));
-	double *computation = calloc(2, sizeof(*computation));
-	double *communication = calloc(4, sizeof(*communication));
-
-	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
-	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
-	STARPU_ASSERT(hosts[0] != hosts[1]);
-	communication[1] = size;
-
-	return MSG_parallel_task_create("copy", 2, hosts, computation, communication, NULL);
-}
-
 struct completion {
 	msg_task_t task;
 	unsigned *finished;
@@ -261,7 +247,7 @@ int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRI
 	return 0;
 }
 
-void _starpu_simgrid_post_task(msg_task_t task, unsigned *finished, _starpu_pthread_mutex_t *mutex, _starpu_pthread_cond_t *cond)
+static void _starpu_simgrid_post_task(msg_task_t task, unsigned *finished, _starpu_pthread_mutex_t *mutex, _starpu_pthread_cond_t *cond)
 {
 	struct completion *completion = malloc(sizeof (*completion));
 	completion->task = task;
@@ -271,6 +257,36 @@ void _starpu_simgrid_post_task(msg_task_t task, unsigned *finished, _starpu_pthr
 	xbt_dynar_t hosts = MSG_hosts_as_dynar();
 	MSG_process_create("transfer task", transfer_execute, completion, xbt_dynar_get_as(hosts, 0, msg_host_t));
 	xbt_dynar_free(&hosts);
+}
+
+int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
+{
+	msg_task_t task;
+	msg_host_t *hosts = calloc(2, sizeof(*hosts));
+	double *computation = calloc(2, sizeof(*computation));
+	double *communication = calloc(4, sizeof(*communication));
+
+	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
+	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
+	STARPU_ASSERT(hosts[0] != hosts[1]);
+	communication[1] = size;
+
+	task = MSG_parallel_task_create("copy", 2, hosts, computation, communication, NULL);
+
+	if (!req) {
+		/* this is not associated to a request so it's synchronous */
+		MSG_task_execute(task);
+		MSG_task_destroy(task);
+		return 0;
+	}
+	_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+	req->async_channel.event.finished = 0;
+	_STARPU_PTHREAD_MUTEX_INIT(&req->async_channel.event.mutex, NULL);
+	_STARPU_PTHREAD_COND_INIT(&req->async_channel.event.cond, NULL);
+	_starpu_simgrid_post_task(task, &req->async_channel.event.finished, &req->async_channel.event.mutex, &req->async_channel.event.cond);
+	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	return -EAGAIN;
 }
 
 static int last_key;

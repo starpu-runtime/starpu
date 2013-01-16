@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,21 +104,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	_starpu_comm_amounts_inc(src_node, dst_node, handle->ops->get_size(handle));
 
 #ifdef STARPU_SIMGRID
-	msg_task_t task = _starpu_simgrid_transfer_task_create(src_node, dst_node, handle->ops->get_size(handle));
-	if (!req) {
-		/* this is not associated to a request so it's synchronous */
-		MSG_task_execute(task);
-		MSG_task_destroy(task);
-		return 0;
-	}
-	_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-	req->async_channel.event.finished = 0;
-	_STARPU_PTHREAD_MUTEX_INIT(&req->async_channel.event.mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&req->async_channel.event.cond, NULL);
-	_starpu_simgrid_post_task(task, &req->async_channel.event.finished, &req->async_channel.event.mutex, &req->async_channel.event.cond);
-	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, handle->ops->get_size(handle));
-	return -EAGAIN;
+	return _starpu_simgrid_transfer(handle->ops->get_size(handle), src_node, dst_node, req);
 #else /* !SIMGRID */
 
 	int ret = 0;
