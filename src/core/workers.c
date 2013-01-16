@@ -654,6 +654,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_opencl_copy = 0;
 #endif
 
+	conf->no_auto_profile = 0;
 	return 0;
 }
 
@@ -780,7 +781,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_start_fxt_profiling();
+	_starpu_init_fxt_profiling(config.no_auto_profile);
 #endif
 
 	_starpu_open_debug_logfile();

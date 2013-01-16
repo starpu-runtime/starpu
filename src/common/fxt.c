@@ -101,7 +101,13 @@ void starpu_set_profiling_id(int new_id)
 	_starpu_profile_set_tracefile(NULL);
 }
 
-void _starpu_start_fxt_profiling(void)
+void starpu_start_fxt_profiling()
+{
+	threadid = _starpu_gettid();
+	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
+}
+
+void _starpu_init_fxt_profiling(unsigned no_auto_profile)
 {
 	unsigned threadid;
 
@@ -127,13 +133,15 @@ void _starpu_start_fxt_profiling(void)
 
 	atexit(_starpu_stop_fxt_profiling);
 
-	if (fut_setup(_STARPU_PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0)
+	unsigned int key_mask = no_auto_profile ? 0 : FUT_KEYMASKALL;
+
+	if (fut_setup(_STARPU_PROF_BUFFER_SIZE, key_mask, threadid) < 0)
 	{
 		perror("fut_setup");
 		STARPU_ABORT();
 	}
 
-	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
+	fut_keychange(FUT_ENABLE, key_mask, threadid);
 
 	return;
 }

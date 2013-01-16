@@ -147,6 +147,10 @@ struct starpu_conf
 	/* A driver that the application will run in one of its own threads. */
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
+
+	/* Indicates whether we start the profiling automatically
+	   or we leave the appl start it if it wants to */
+	unsigned no_auto_profile;
 };
 
 /* Initialize a starpu_conf structure with default values. */
