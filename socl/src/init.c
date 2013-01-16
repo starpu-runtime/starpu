@@ -24,12 +24,12 @@
 
 int _starpu_init_failed;
 int _starpu_init = 0;
-pthread_mutex_t _socl_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _socl_mutex = PTHREAD_MUTEX_INITIALIZER;
+static struct starpu_conf conf;
 
 void socl_init_starpu(void) {
   pthread_mutex_lock(&_socl_mutex);
   if( ! _starpu_init ){
-    struct starpu_conf conf;
     starpu_conf_init(&conf);
     conf.ncuda = 0;
     conf.ncpus = 0;
