@@ -39,6 +39,7 @@ static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
+static cl_command_queue alloc_queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
 
@@ -168,6 +169,9 @@ cl_int _starpu_opencl_init_context(int devid)
         transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        alloc_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
 	limit_gpu_mem_if_needed(devid);
@@ -192,6 +196,9 @@ cl_int _starpu_opencl_deinit_context(int devid)
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseCommandQueue(transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clReleaseCommandQueue(alloc_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
@@ -221,10 +228,10 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t
 	 * want to know this __now__, so we just perform a dummy copy.
 	 */
 	char dummy = 0;
-	err = clEnqueueWriteBuffer(queues[worker->devid], memory, CL_TRUE,
+	err = clEnqueueWriteBuffer(alloc_queues[worker->devid], memory, CL_TRUE,
 				   0, sizeof(dummy), &dummy,
 				   0, NULL, NULL);
-	clFinish(queues[worker->devid]);
+	clFinish(alloc_queues[worker->devid]);
 	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 		return err;
 	if (err == CL_OUT_OF_RESOURCES)
@@ -417,6 +424,7 @@ void _starpu_opencl_init(void)
                         contexts[i] = NULL;
                         queues[i] = NULL;
                         transfer_queues[i] = NULL;
+                        alloc_queues[i] = NULL;
                 }
 
                 init_done=1;
