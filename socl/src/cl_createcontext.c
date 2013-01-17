@@ -30,6 +30,8 @@ static void release_callback_context(void * e) {
 }
 
 
+static char * defaultScheduler = "dmda";
+static char * defaultName = "default";
 
 CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContext(const cl_context_properties * properties,
@@ -87,8 +89,10 @@ soclCreateContext(const cl_context_properties * properties,
    ctx->num_properties = 0;
    ctx->properties = NULL;
 
-   char * scheduler = "dmda";
-   char * name = "default";
+   char * sched = getenv("STARPU_SCHED");
+   char * scheduler = sched == NULL ? defaultScheduler : sched;
+
+   char * name = defaultName;
 
    // Properties
    if (properties != NULL) {
