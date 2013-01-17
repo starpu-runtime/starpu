@@ -71,7 +71,10 @@ int main(int argc, char **argv)
 	}
 
 	MSG_init(&argc, argv);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 10)
+	/* Versions earlier than 3.10 didn't support our communication tasks */
 	MSG_config("workstation/model", "ptask_L07");
+#endif
 
 	/* Create platform file */
 	starpu_conf_init(&conf);
