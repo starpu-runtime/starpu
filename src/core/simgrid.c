@@ -311,7 +311,8 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct transfer *transfer = MSG_process_get_data(MSG_process_self()), **wakep;
+	struct transfer *transfer = MSG_process_get_data(MSG_process_self());
+	unsigned i;
 	MSG_task_execute(transfer->task);
 	MSG_task_destroy(transfer->task);
 	_STARPU_PTHREAD_MUTEX_LOCK(transfer->mutex);
@@ -320,8 +321,10 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	_STARPU_PTHREAD_MUTEX_UNLOCK(transfer->mutex);
 
 	/* Wake transfers waiting for my termination */
-	for (wakep = &transfer->wake[0]; wakep < &transfer->wake[transfer->nwake]; wakep++) {
-		struct transfer *wake = *wakep;
+	/* Note: due to possible preemption inside process_create, the array
+	 * may grow while doing this */
+	for (i = 0; i < transfer->nwake; i++) {
+		struct transfer *wake = transfer->wake[i];
 		STARPU_ASSERT(wake->nwait > 0);
 		wake->nwait--;
 		if (!wake->nwait) {
