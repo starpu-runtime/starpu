@@ -395,8 +395,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			fprintf(stderr, "repush task \n");
 			_STARPU_TRACE_JOB_POP(task, task->priority > 0);
-			_starpu_decrement_nready_tasks();
-			ret = _starpu_push_task(j);
+			ret = _starpu_push_task_to_workers(task);
 		}
 	}
 
