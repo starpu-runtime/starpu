@@ -326,8 +326,6 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
-	if (async_channel->event.finished)
-		return;
 	_STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
 	while (!async_channel->event.finished)
 		_STARPU_PTHREAD_COND_WAIT(&async_channel->event.cond, &async_channel->event.mutex);
