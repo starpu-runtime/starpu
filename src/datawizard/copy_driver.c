@@ -378,7 +378,11 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
-	return async_channel->event.finished;
+	unsigned ret;
+	_STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
+	ret = async_channel->event.finished;
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
+	return ret;
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
 	unsigned success = 0;
