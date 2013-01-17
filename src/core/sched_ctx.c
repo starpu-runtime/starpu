@@ -542,8 +542,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 		if(old_task == &stop_submission_task)
 			break;
 
-		struct _starpu_job *old_j = _starpu_get_job_associated_to_task(old_task);
-		int ret = _starpu_push_task(old_j);
+		int ret =  _starpu_push_task_to_workers(old_task);
 		/* if we should stop poping from empty ctx tasks */
 		if(ret == -1) break;
 	}

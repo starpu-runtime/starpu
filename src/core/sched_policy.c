@@ -318,34 +318,6 @@ int _starpu_push_task(struct _starpu_job *j)
 
 	_STARPU_LOG_IN();
 
-	if(!sched_ctx->is_initial_sched)
-	{
-		/*if there are workers in the ctx that are not able to execute tasks
-		  we consider the ctx empty */
-		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
-
-		if(nworkers == 0)
-		{
-			if(task->already_pushed)
-			{
-				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
-				starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-				_STARPU_LOG_OUT();
-				return -1;
-			}
-			else
-			{
-				_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
-				task->already_pushed = 1;
-				starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-				_STARPU_LOG_OUT();
-				return 0;
-			}
-		}
-	}
-
 	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
@@ -355,7 +327,50 @@ int _starpu_push_task(struct _starpu_job *j)
 		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
 	}
 #endif
+	/* if the context does not have any workers save the tasks in a temp list */
+	if(!sched_ctx->is_initial_sched)
+	{
+		/*if there are workers in the ctx that are not able to execute tasks
+		  we consider the ctx empty */
+		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+
+		if(nworkers == 0)
+		{
+			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			return -1;
+		}
+	}
+
+	return _starpu_push_task_to_workers(task);
+}
+
+int _starpu_push_task_to_workers(struct starpu_task *task)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	unsigned nworkers = 0;
+
+	/* if the contexts still does not have workers put the task back to its place in
+	   the empty ctx list */
+	if(!sched_ctx->is_initial_sched)
+	{
+		/*if there are workers in the ctx that are not able to execute tasks
+		  we consider the ctx empty */
+		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+
+		if (nworkers == 0)
+		{
+			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			return -1;
+		}
+	}
+
 	_starpu_profiling_set_task_push_start_time(task);
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
@@ -389,8 +404,8 @@ int _starpu_push_task(struct _starpu_job *j)
 
 	_STARPU_LOG_OUT();
 	return ret;
-}
 
+} 
 /*
  * Given a handle that needs to be converted in order to be used on the given
  * node, returns a task that takes care of the conversion.
