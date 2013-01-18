@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -62,7 +62,7 @@ If hwloc is not available on your system, the option
 @code{--without-hwloc} should be explicitely given when calling the
 configure script. If hwloc is installed with a @code{pkg-config} file,
 no option is required, it will be detected automatically, otherwise
-the @code{with-hwloc=prefix} should be used to specified the location
+the @code{with-hwloc=prefix} should be used to specify the location
 of hwloc.
 
 @node Configuration of StarPU
@@ -95,6 +95,20 @@ availability of @code{autoconf}, @code{automake} >= 2.60, and @code{makeinfo}.
 Details about options that are useful to give to @code{./configure} are given in
 @ref{Compilation configuration}.
 
+By default, the files produced during the compilation are placed in
+the source directory. As the compilation generates a lot of files, it
+is advised to to put them all in a separate directory. It is then
+easier to cleanup, and this allows to compile several configurations
+out of the same source tree. For that, simply enter the directory
+where you want the compilation to produce its files, and invoke the
+configure script located in the StarPU source directory.
+
+@example
+% mkdir build
+% cd build
+% ../configure
+@end example
+
 @node Building and Installing StarPU
 @section Building and Installing StarPU
 
@@ -114,8 +128,11 @@ Details about options that are useful to give to @code{./configure} are given in
 @node Sanity Checks
 @subsection Sanity Checks
 
-In order to make sure that StarPU is working properly on the system, it is also
-possible to run a test suite.
+Once everything is built, you may want to test the result. An
+extensive set of regression tests is provided with StarPU. Running the
+tests is done by calling @code{make check}. These tests are run every night
+and the result from the main profile is publicly
+@url{http://starpu.gforge.inria.fr/testing/,available}.
 
 @example
 % make check
