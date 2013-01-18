@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -676,6 +676,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		 * with that arch we want to speed-up calibration time
 		 * so we force this measurement */
 		best = forced_best;
+		selected_impl = forced_impl;
 		model_best = 0.0;
 		transfer_model_best = 0.0;
 	}
