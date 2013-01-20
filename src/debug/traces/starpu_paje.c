@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,7 +136,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineContainerType("MPIP", "0", "MPI Program");
 	poti_DefineContainerType("P", "MPIP", "Program");
 	poti_DefineContainerType("Mn", "P", "Memory Node");
-	poti_DefineContainerType("T", "Mn", "Worker");
+	poti_DefineContainerType("T", "Mn", "Thread");
+	poti_DefineContainerType("W", "T", "Worker");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 
 	/* Types for the memory node */
@@ -191,7 +192,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 1       MPIP      0       \"MPI Program\"                      	\n\
 1       P      MPIP       \"Program\"                      	\n\
 1       Mn      P       \"Memory Node\"                         \n\
-1       T      Mn       \"Worker\"                               \n\
+1       T      Mn       \"Thread\"                               \n\
+1       W      T       \"Worker\"                               \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       event   T       \"event type\"				\n\
 3       S       T       \"Thread State\"                        \n");

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -194,8 +194,8 @@ do {									\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
 	FUT_DO_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
 
-#define _STARPU_TRACE_WORKER_INIT_START(workerkind, devid, memnode)	\
-	FUT_DO_PROBE4(_STARPU_FUT_WORKER_INIT_START, workerkind, devid, memnode, _starpu_gettid());
+#define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode)	\
+	FUT_DO_PROBE5(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_INIT_END				\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid());
