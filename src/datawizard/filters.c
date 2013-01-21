@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 INRIA
@@ -356,6 +356,9 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 			if (local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
+#ifdef STARPU_DEVEL
+#warning FIXME!! this needs access to the child interface, which was freed above!
+#endif
 				_starpu_request_mem_chunk_removal(child_handle, node, 1);
 		}
 
