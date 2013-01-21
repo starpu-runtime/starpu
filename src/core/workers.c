@@ -441,10 +441,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 						_starpu_cpu_worker,
 						workerarg,
 						worker+1);
+#ifdef STARPU_USE_FXT
 					_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
 						_STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 					_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+#endif
 				}
 				else
 				{
@@ -466,10 +468,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 						_starpu_cuda_worker,
 						workerarg,
 						worker+1);
+#ifdef STARPU_USE_FXT
 					_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
 						_STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 					_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+#endif
 				}
 				else
 				{
@@ -494,10 +498,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 					_starpu_opencl_worker,
 					workerarg,
 					worker+1);
+#ifdef STARPU_USE_FXT
 				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_running)
 					_STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+#endif
 				break;
 #endif
 #ifdef STARPU_USE_GORDON
