@@ -286,6 +286,17 @@ chosen by the means of the @code{starpu_worker_get_count_by_type} function, or
 by passing a value greater or equal to @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
+@deftypefun int starpu_worker_get_by_type ({enum starpu_archtype} @var{type}, int @var{n})
+This returns the identifier of the @var{n}-th worker that has the specified type
+@var{type}. If there are no such worker, -1 is returned.
+@end deftypefun
+
+@deftypefun int starpu_worker_get_by_devid ({enum starpu_archtype} @var{type}, int @var{devid})
+This returns the identifier of the worker that has the specified type
+@var{type} and devid @var{devid} (which may not be the n-th, if some devices are
+skipped for instance). If there are no such worker, -1 is returned.
+@end deftypefun
+
 @deftypefun int starpu_worker_get_devid (int @var{id})
 This functions returns the device id of the given worker. The worker
 should be identified with the value returned by the @code{starpu_worker_get_id} function. In the case of a

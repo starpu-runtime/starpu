@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -629,15 +629,11 @@ int _starpu_run_cuda(struct starpu_driver *d)
 {
 	STARPU_ASSERT(d && d->type == STARPU_CUDA_WORKER);
 
-	int workers[d->id.cuda_id + 1];
-	int nworkers;
-	nworkers = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, workers, d->id.cuda_id+1);
-	if (nworkers >= 0 && (unsigned) nworkers < d->id.cuda_id)
-		return -ENODEV;
-	
+	int workerid = starpu_worker_get_by_devid(STARPU_CUDA_WORKER, d->id.cuda_id);
+
 	_STARPU_DEBUG("Running cuda %u from the application\n", d->id.cuda_id);
 
-	struct _starpu_worker *workerarg = _starpu_get_worker_struct(workers[d->id.cuda_id]);
+	struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
 
 	workerarg->set = NULL;
 	workerarg->worker_is_initialized = 0;

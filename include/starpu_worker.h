@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -78,6 +78,12 @@ int starpu_worker_get_count_by_type(enum starpu_archtype type);
  * starpu_worker_get_count_by_type function, or by passing a value greater or
  * equal to STARPU_NMAXWORKERS. */
 int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+
+/* Return the identifier of the n-th worker of a specific type */
+int starpu_worker_get_by_type(enum starpu_archtype type, int num);
+
+/* Return the identifier of the worker devid of a specific type */
+int starpu_worker_get_by_devid(enum starpu_archtype type, int devid);
 
 /* StarPU associates a unique human readable string to each processing unit.
  * This function copies at most the "maxlen" first bytes of the unique

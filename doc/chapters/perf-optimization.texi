@@ -19,6 +19,7 @@ TODO: improve!
 * Task distribution vs Data transfer::
 * Data prefetch::
 * Power-based scheduling::
+* Forcing scheduling::
 * Profiling::
 * CUDA-specific optimizations::
 * Performance debugging::
@@ -401,6 +402,20 @@ the user can for instance run a given task a thousand times, measure the global
 consumption for that series of tasks, divide it by a thousand, repeat for
 varying kinds of tasks and task sizes, and eventually feed StarPU
 with these manual measurements through @code{starpu_perfmodel_update_history}.
+
+@node Static scheduling
+@section Static scheduling
+
+In some cases, one may want to force some scheduling, for instance force a given
+set of tasks to GPU0, another set to GPU1, etc. while letting some other tasks
+be scheduled on any other device. This can indeed be useful to guide StarPU into
+some work distribution, while still letting some degree of dynamism. For
+instance, to force execution of a task on CUDA0:
+
+@example
+task->execute_on_a_specific_worker = 1;
+task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+@end example
 
 @node Profiling
 @section Profiling

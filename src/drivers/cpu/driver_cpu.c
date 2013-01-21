@@ -178,13 +178,10 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 static struct _starpu_worker*
 _starpu_get_worker_from_driver(struct starpu_driver *d)
 {
-	int workers[d->id.cpu_id + 1];
-	int nworkers;
-	nworkers = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, d->id.cpu_id+1);
-	if (nworkers >= 0 && (unsigned) nworkers < d->id.cpu_id)
-		return NULL; // No device was found.
-
-	return _starpu_get_worker_struct(workers[d->id.cpu_id]);
+	int n = starpu_worker_get_by_devid(STARPU_CPU_WORKER, d->id.cpu_id);
+	if (n == -1)
+		return NULL;
+	return _starpu_get_worker_struct(n);
 }
 
 int _starpu_cpu_driver_init(struct starpu_driver *d)

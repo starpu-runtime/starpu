@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -224,7 +224,6 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 					    unsigned nimpl)
 {
 	unsigned i;
-	int err;
 	double sum = 0.0;
 	int node;
 
@@ -235,25 +234,22 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	 */
 #ifdef STARPU_USE_CPU
 	int cpu_worker, cpu_node;
-	err = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
-					    &cpu_worker, 1);
-	if (err != 1 && err != -ERANGE)
+	cpu_worker = starpu_worker_get_by_type(STARPU_CPU_WORKER, 0);
+	if (cpu_worker == -1)
 		return 0.0;
 	cpu_node = starpu_worker_get_memory_node(cpu_worker);
 #endif
 #ifdef STARPU_USE_CUDA
 	int cuda_worker, cuda_node;
-	err = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
-					    &cuda_worker, 1);
-	if (err != 1 && err != -ERANGE)
+	cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+	if (cuda_worker == -1)
 		return 0.0;
 	cuda_node = starpu_worker_get_memory_node(cuda_worker);
 #endif
 #ifdef STARPU_USE_OPENCL
 	int opencl_worker, opencl_node;
-	err = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
-					    &opencl_worker, 1);
-	if (err != 1 && err != -ERANGE)
+	opencl_worker = starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0);
+	if (opencl_worker == -1)
 		return 0.0;
 
 	opencl_node = starpu_worker_get_memory_node(opencl_worker);

@@ -1243,6 +1243,40 @@ int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int
 	return cnt;
 }
 
+int starpu_worker_get_by_type(enum starpu_archtype type, int num)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	int cnt = 0;
+
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+	{
+		if (starpu_worker_get_type(id) == type)
+		{
+			if (num == cnt)
+				return id;
+			cnt++;
+		}
+	}
+
+	/* Not found */
+	return -1;
+}
+
+int starpu_worker_get_by_devid(enum starpu_archtype type, int devid)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+		if (starpu_worker_get_type(id) == type && starpu_worker_get_devid(id) == devid)
+			return id;
+
+	/* Not found */
+	return -1;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = config.workers[id].name;
