@@ -139,6 +139,11 @@ soclCreateKernel(cl_program    program,
    k->arg_value = NULL;
    k->arg_size = NULL;
 
+   k->split_func = NULL;
+   k->split_space = 0;
+   k->split_data = NULL;
+   pthread_mutex_init(&k->split_lock, NULL);
+
    #ifdef DEBUG
    static int id = 0;
    k->id = id++;

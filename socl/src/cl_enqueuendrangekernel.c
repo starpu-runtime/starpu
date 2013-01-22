@@ -157,14 +157,61 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 		const cl_event * events,
 		cl_event *       event) CL_API_SUFFIX__VERSION_1_1
 {
-	command_ndrange_kernel cmd = command_ndrange_kernel_create(kernel, work_dim,
-			global_work_offset, global_work_size, local_work_size);
 
-   cl_event ev = command_event_get(cmd);
+   if (kernel->split_func != NULL && !pthread_mutex_trylock(&kernel->split_lock)) {
 
-	command_queue_enqueue(cq, cmd, num_events, events);
+      cl_event beforeEvent, afterEvent;
 
-	RETURN_EVENT(ev, event);
+      command_marker cmd = command_marker_create();
+      command_queue_enqueue(cq, cmd, num_events, events);
+      beforeEvent = command_event_get(cmd);
+   
+      cl_uint iter = 1;
+      cl_uint split_min = CL_UINT_MAX;
+      cl_uint split_min_iter = 1;
+      while (kernel->split_perfs[iter] != 0 && iter < kernel->split_space) {
+         if (kernel->split_perfs[iter] < split_min) {
+            split_min = kernel->split_perfs[iter];
+            split_min_iter = iter;
+         }
+         iter++;
+      }
+
+      if (iter == kernel->split_space) {
+         iter = split_min_iter;
+      }
+
+      cl_int ret = kernel->split_func(cq, iter, kernel->split_data, beforeEvent, &afterEvent);
+
+      if (ret == CL_SUCCESS) {
+         //FIXME: blocking call
+         soclWaitForEvents(1, &afterEvent);
+
+         /* Store perf */
+         cl_ulong start,end;
+         soclGetEventProfilingInfo(beforeEvent, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &start, NULL);
+         soclGetEventProfilingInfo(afterEvent, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &end, NULL);
+
+         kernel->split_perfs[iter] = end-start;
+
+         pthread_mutex_unlock(&kernel->split_lock);
+
+         RETURN_EVENT(afterEvent,event);
+      }
+
+      return ret;
+   }
+   else {
+
+      command_ndrange_kernel cmd = command_ndrange_kernel_create(kernel, work_dim,
+            global_work_offset, global_work_size, local_work_size);
+
+      cl_event ev = command_event_get(cmd);
+
+      command_queue_enqueue(cq, cmd, num_events, events);
+
+      RETURN_EVENT(ev, event);
+   }
 
 	return CL_SUCCESS;
 }

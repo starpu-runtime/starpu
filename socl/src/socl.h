@@ -249,6 +249,8 @@ struct _cl_program {
 
 enum kernel_arg_type { Null, Buffer, Immediate };
 
+typedef cl_int (*split_func_t)(cl_command_queue, cl_uint, void *, const cl_event, cl_event *);
+
 struct _cl_kernel {
   CL_ENTITY;
 
@@ -272,6 +274,13 @@ struct _cl_kernel {
   size_t *arg_size;
   enum kernel_arg_type  *arg_type;
   void  **arg_value;
+
+  /* Partition function */
+  cl_uint split_space;
+  split_func_t split_func;
+  cl_ulong * split_perfs;
+  void * split_data;
+  pthread_mutex_t split_lock;
 
   /* ID  */
 #ifdef DEBUG

@@ -25,6 +25,23 @@ soclSetKernelArg(cl_kernel  kernel,
    if (kernel == NULL)
       return CL_INVALID_KERNEL;
 
+   if (arg_index == (cl_uint)-1) {
+      kernel->split_func = arg_value;
+      return CL_SUCCESS;
+   }
+   else if (arg_index == (cl_uint)-2) {
+      kernel->split_space = *(cl_uint*)arg_value;
+      if (kernel->split_perfs != NULL) {
+         free(kernel->split_perfs);
+      }
+      kernel->split_perfs = calloc(kernel->split_space, sizeof(cl_ulong));
+      return CL_SUCCESS;
+   }
+   else if (arg_index == (cl_uint)-3) {
+      kernel->split_data = (void *)arg_value;
+      return CL_SUCCESS;
+   }
+
    if (arg_index >= kernel->num_args)
       return CL_INVALID_ARG_INDEX;
 
