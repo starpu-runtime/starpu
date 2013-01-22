@@ -24,23 +24,14 @@ soclGetEventProfilingInfo(cl_event          event,
                         void *              param_value,
                         size_t *            param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   struct starpu_task_profiling_info * prof = event->profiling_info;
-
-   if (prof == NULL)
-      return CL_PROFILING_INFO_NOT_AVAILABLE;
-
-   #define TONANO(t) ((cl_ulong)t.tv_nsec + (cl_ulong)(t.tv_sec)*1e9)
-
    switch (param_name) {
-      case CL_PROFILING_COMMAND_QUEUED:
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_SUBMIT, cl_ulong, TONANO(prof->submit_time));
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_START, cl_ulong, TONANO(prof->start_time));
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_END, cl_ulong, TONANO(prof->end_time));
+      INFO_CASE_VALUE(CL_PROFILING_COMMAND_QUEUED, cl_ulong, event->prof_queued);
+      INFO_CASE_VALUE(CL_PROFILING_COMMAND_SUBMIT, cl_ulong, event->prof_submit);
+      INFO_CASE_VALUE(CL_PROFILING_COMMAND_START, cl_ulong, event->prof_start);
+      INFO_CASE_VALUE(CL_PROFILING_COMMAND_END, cl_ulong, event->prof_end);
       default:
          return CL_INVALID_VALUE;
    }
-
-   #undef TONANO
 
    return CL_SUCCESS;
 }

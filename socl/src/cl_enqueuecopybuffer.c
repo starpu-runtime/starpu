@@ -22,6 +22,10 @@ static void soclEnqueueCopyBuffer_opencl_task(void *descr[], void *args) {
    cl_event ev;
    command_copy_buffer cmd = (command_copy_buffer)args;;
 
+  cl_event event = command_event_get(cmd);
+  event->prof_start = _socl_nanotime();
+  gc_entity_release(event);
+
    wid = starpu_worker_get_id();
    starpu_opencl_get_queue(wid, &cq);
 
@@ -37,6 +41,10 @@ static void soclEnqueueCopyBuffer_opencl_task(void *descr[], void *args) {
 
 static void soclEnqueueCopyBuffer_cpu_task(void *descr[], void *args) {
    command_copy_buffer cmd = (command_copy_buffer)args;;
+
+  cl_event ev = command_event_get(cmd);
+  ev->prof_start = _socl_nanotime();
+  gc_entity_release(ev);
 
    void * src = (void*)STARPU_VARIABLE_GET_PTR(descr[0]);
    void * dst = (void*)STARPU_VARIABLE_GET_PTR(descr[1]);

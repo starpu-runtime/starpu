@@ -29,6 +29,10 @@
 
 void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_events, const cl_event * events) {
 
+  cl_event ev = command_event_get_ex(cmd);
+  ev->prof_queued = _socl_nanotime();
+  gc_entity_release(ev);
+
 	/* Check if the command is a barrier */
 	int is_barrier = (cmd->typ == CL_COMMAND_BARRIER || !(cq->properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE));
 

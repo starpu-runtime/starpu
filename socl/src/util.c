@@ -52,3 +52,10 @@ void ** memdup_deep_varsize_safea(const void **p, unsigned n, size_t * size) {
 	}
 	return s;
 }
+
+cl_ulong _socl_nanotime() {
+   struct timespec ts;
+   clock_gettime(CLOCK_MONOTONIC, &ts);
+
+   return (ts.tv_sec * 1e9 + ts.tv_nsec);
+}

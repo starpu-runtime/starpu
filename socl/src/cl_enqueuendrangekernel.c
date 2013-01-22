@@ -24,6 +24,10 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
    int wid;
    cl_int err;
 
+  cl_event ev = command_event_get(cmd);
+  ev->prof_start = _socl_nanotime();
+  gc_entity_release(ev);
+
    wid = starpu_worker_get_id();
    starpu_opencl_get_queue(wid, &cq);
 

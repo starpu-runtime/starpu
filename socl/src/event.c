@@ -38,7 +38,10 @@ cl_event event_create(void) {
    ev->id = event_unique_id();
    ev->status = CL_SUBMITTED;
    ev->command = NULL;
-   ev->profiling_info = NULL;
+   ev->prof_queued = 0L;
+   ev->prof_submit = 0L;
+   ev->prof_start = 0L;
+   ev->prof_end = 0L;
    ev->cq = NULL;
 
    return ev;
@@ -52,9 +55,5 @@ static void release_callback_event(void * e) {
   /* Destruct object */
   //FIXME
   //starpu_tag_remove(event->id);
-  if (event->profiling_info != NULL) {
-    free(event->profiling_info);
-    event->profiling_info = NULL;
-  }
 }
 

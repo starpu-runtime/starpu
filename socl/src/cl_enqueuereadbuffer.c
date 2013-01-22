@@ -19,6 +19,10 @@
 static void soclEnqueueReadBuffer_cpu_task(void *descr[], void *args) {
    command_read_buffer cmd = (command_read_buffer)args;
 
+  cl_event ev = command_event_get(cmd);
+  ev->prof_start = _socl_nanotime();
+  gc_entity_release(ev);
+
    void * ptr = (void*)STARPU_VARIABLE_GET_PTR(descr[0]);
    DEBUG_MSG("[Buffer %d] Reading %ld bytes from %p to %p\n", cmd->buffer->id, cmd->cb, ptr+cmd->offset, cmd->ptr);
 
@@ -32,6 +36,10 @@ static void soclEnqueueReadBuffer_cpu_task(void *descr[], void *args) {
 
 static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
    command_read_buffer cmd = (command_read_buffer)args;
+
+  cl_event event = command_event_get(cmd);
+  event->prof_start = _socl_nanotime();
+  gc_entity_release(event);
 
    cl_mem mem = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 

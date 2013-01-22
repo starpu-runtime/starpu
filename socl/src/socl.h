@@ -178,8 +178,8 @@ struct _cl_event {
    */
   int id;
 
-  /* Profiling info are copied here */
-  struct starpu_task_profiling_info *profiling_info;
+  /* Profiling info */
+  cl_ulong prof_queued, prof_submit, prof_start, prof_end;
 };
 
 struct _cl_mem {

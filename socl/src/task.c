@@ -23,15 +23,16 @@ void command_completed(cl_command cmd) {
   
   cl_event ev = command_event_get_ex(cmd);
   ev->status = CL_COMPLETE;
+  
+  ev->prof_end = _socl_nanotime();
+
+  /* Commands without codelets (marker, barrier, unmap...) take no time */
+  if (task->cl == NULL) 
+    ev->prof_start = ev->prof_end;
 
   /* Trigger the tag associated to the command event */
   DEBUG_MSG("Trigger event %d\n", ev->id);
   starpu_tag_notify_from_apps(ev->id);
-
-  if (task->profiling_info != NULL && (intptr_t)task->profiling_info != -ENOSYS) {
-    ev->profiling_info = malloc(sizeof(*task->profiling_info));
-    memcpy(ev->profiling_info, task->profiling_info, sizeof(*task->profiling_info));
-  }
 
   gc_entity_release(ev);
 }
@@ -98,6 +99,10 @@ cl_int task_submit_ex(starpu_task task, cl_command cmd) {
 
   task->callback_func = command_completed_task_callback;
   gc_entity_store(&task->callback_arg, cmd);
+
+  cl_event ev = command_event_get_ex(cmd);
+  ev->prof_submit = _socl_nanotime();
+  gc_entity_release(ev);
 
   /* Submit task */
   int ret = (task->cl != NULL && task->cl->where == STARPU_OPENCL ?
