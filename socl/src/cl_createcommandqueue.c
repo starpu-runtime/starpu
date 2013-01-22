@@ -53,7 +53,11 @@ soclCreateCommandQueue(cl_context                   context,
 
    cq->properties = properties;
    gc_entity_store(&cq->context, context);
-   cq->device = device;
+
+   char * fd = getenv("SOCL_FORCE_DYNAMIC");
+   int force_dynamic = fd == NULL ? 0 : atoi(fd);
+
+   cq->device = force_dynamic ? NULL : device;
 
    #ifdef DEBUG
    static int id = 0;
