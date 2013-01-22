@@ -135,7 +135,7 @@ static void list_deinit(struct starpu_sched_ctx_worker_collection *workers)
 	free(workers->workerids);
 }
 
-static void list_init_iterator(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it)
+static void list_init_iterator(struct starpu_sched_ctx_worker_collection *workers STARPU_ATTRIBUTE_UNUSED, struct starpu_iterator *it)
 {
 	*((int*)it) = 0;
 }
