@@ -361,6 +361,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	memset(h_buffer, 0, size);
         err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+        clFinish(queue);
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 
@@ -375,6 +376,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	{
                 err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+                clFinish(queue);
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -387,6 +389,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	{
                 err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+                clFinish(queue);
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -399,6 +402,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	{
 		err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+                clFinish(queue);
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -411,6 +415,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	{
 		err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+                clFinish(queue);
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
