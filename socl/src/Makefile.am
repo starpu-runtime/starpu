@@ -126,6 +126,8 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_enqueuetask.c \
   cl_enqueuendrangekernel.c \
   cl_enqueuenativekernel.c \
+  cl_enqueuemarkerwithwaitlist.c \
+  cl_enqueuebarrierwithwaitlist.c \
   cl_geteventprofilinginfo.c \
   cl_getextensionfunctionaddress.c \
   cl_icdgetplatformidskhr.c
