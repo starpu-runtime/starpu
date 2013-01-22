@@ -19,7 +19,7 @@ TODO: improve!
 * Task distribution vs Data transfer::
 * Data prefetch::
 * Power-based scheduling::
-* Forcing scheduling::
+* Static scheduling::
 * Profiling::
 * CUDA-specific optimizations::
 * Performance debugging::
