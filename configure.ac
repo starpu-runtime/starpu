@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2009-2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
@@ -822,8 +822,6 @@ AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
 			[Enable simulating execution in simgrid])],
 			enable_simgrid=$enableval, enable_simgrid=no)
 if test x$enable_simgrid = xyes ; then
-	OLD_CLAGS=$CFLAGS
-	OLD_LDFLAGS=$LDFLAGS
 	if test -n "$SIMGRID_CFLAGS" ; then
 		CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	fi
@@ -843,11 +841,6 @@ if test x$enable_simgrid = xyes ; then
 	                 [
 			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
 		         ])
-	if test -z "$SIMGRID_LIBS" ; then
-		SIMGRID_LIBS=-lsimgrid
-	fi
-	CLAGS=$OLD_CFLAGS
-	LDFLAGS=$OLD_LDFLAGS
 	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
 	# Avoid the starpu top thread compilation
 	enable_starpu_top=no
@@ -856,6 +849,8 @@ if test x$enable_simgrid = xyes ; then
 	# In simgrid, it's much better to let workers block than spinlock
 	enable_blocking=yes
 fi
+AC_SUBST(SIMGRID_CFLAGS)
+AC_SUBST(SIMGRID_LIBS)
 
 AC_MSG_CHECKING(whether blocking drivers should be disabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
