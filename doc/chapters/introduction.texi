@@ -9,6 +9,8 @@
 @menu
 * Motivation::                  Why StarPU ?
 * StarPU in a Nutshell::        The Fundamentals of StarPU
+* Glossary::
+* Research Papers::
 @end menu
 
 @node Motivation
@@ -72,8 +74,6 @@ The remainder of this section describes the main concepts used in StarPU.
 @menu
 * Codelet and Tasks::
 * StarPU Data Management Library::
-* Glossary::
-* Research Papers::
 @end menu
 
 @c explain the notion of codelet and task (i.e. g(A, B)
@@ -125,7 +125,7 @@ allows multiple copies of the same data to reside at the same time on
 several processing units as long as it is not modified.
 
 @node Glossary
-@subsection Glossary
+@section Glossary
 
 A @b{codelet} records pointers to various implementations of the same
 theoretical function.
@@ -178,7 +178,7 @@ unregister it.
 
 
 @node Research Papers
-@subsection Research Papers
+@section Research Papers
 
 Research papers about StarPU can be found at
 @url{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}.

@@ -16,6 +16,8 @@
 @node Setting flags for compiling
 @section Setting flags for compiling, linking and running applications
 
+StarPU provides a pkg-config executable to obtain relevant compiler
+and linker flags.
 Compiling and linking an application against StarPU may require to use
 specific flags or libraries (for instance @code{CUDA} or @code{libspe2}).
 To this end, it is possible to use the @code{pkg-config} tool.
