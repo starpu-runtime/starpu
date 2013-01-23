@@ -27,26 +27,33 @@ can be used to install StarPU.
 @node Getting Sources
 @subsection Getting Sources
 
-The latest official release tarballs of StarPU sources are available
-for download from
-@indicateurl{https://gforge.inria.fr/frs/?group_id=1570}.
+StarPU's sources can be obtained from the
+@url{http://runtime.bordeaux.inria.fr/StarPU/files/,download page} of
+the StarPU website.
 
-The latest nightly development snapshot is available from
-@indicateurl{http://starpu.gforge.inria.fr/testing/}.
+All releases and the development tree of StarPU are freely available
+on INRIA's gforge under the LGPL license. Some releases are available
+under the BSD license.
+
+The latest release can be downloaded from the
+@url{http://gforge.inria.fr/frs/?group_id=1570,INRIA's gforge} or
+directly from the @url{http://runtime.bordeaux.inria.fr/StarPU/files/,StarPU download page}.
+
+The latest nightly snapshot can be downloaded from the @url{http://starpu.gforge.inria.fr/testing/,StarPU gforge website}.
 
 @example
 % wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
 @end example
 
-Additionally, the code can be directly checked out of Subversion, it
-should be done only if you need the very latest changes (i.e. less
-than a day!).@footnote{The client side of the software Subversion can
-be obtained from @indicateurl{http://subversion.tigris.org}. If you
+And finally, current development version is also accessible via svn.
+It should be done only if you need the very latest changes (i.e. less
+than a day!)@footnote{The client side of the software Subversion can
+be obtained from @url{http://subversion.tigris.org}. If you
 are running on Windows, you will probably prefer to use
 @url{http://tortoisesvn.tigris.org/, TortoiseSVN}.}.
 
 @example
-% svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
+svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk StarPU
 @end example
 
 @node Optional dependencies
