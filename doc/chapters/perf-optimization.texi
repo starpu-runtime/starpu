@@ -297,7 +297,8 @@ application without execution, if e.g. the application already has a series of
 measurements. This can be done by using @code{starpu_perfmodel_update_history},
 for instance:
 
-@example
+@cartouche
+@smallexample
 static struct starpu_perfmodel perf_model = @{
     .type = STARPU_HISTORY_BASED,
     .symbol = "my_perfmodel",
@@ -329,7 +330,8 @@ void feed(void) @{
 	starpu_data_unregister(handle);
     @}
 @}
-@end example
+@end smallexample
+@end cartouche
 
 Measurement has to be provided in milliseconds for the completion time models,
 and in Joules for the energy consumption models.
@@ -412,10 +414,12 @@ be scheduled on any other device. This can indeed be useful to guide StarPU into
 some work distribution, while still letting some degree of dynamism. For
 instance, to force execution of a task on CUDA0:
 
-@example
+@cartouche
+@smallexample
 task->execute_on_a_specific_worker = 1;
 task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
-@end example
+@end smallexample
+@end cartouche
 
 @node Profiling
 @section Profiling
@@ -494,16 +498,16 @@ StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform. The idea is to first compile StarPU normally, and run the application,
 so as to automatically benchmark the bus and the codelets.
 
-@cartouche
 @smallexample
 $ ./configure && make
 $ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
-[starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult
+   is not calibrated, forcing calibration for this run. Use the
+   STARPU_CALIBRATE environment variable to control this.
 $ ...
 $ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
 TEST PASSED
 @end smallexample
-@end cartouche
 
 Note that we force to use the dmda scheduler to generate performance
 models for the application. The application may need to be run several
@@ -512,13 +516,11 @@ times before the model is calibrated.
 Then, recompile StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
 application, specifying the requested number of devices:
 
-@cartouche
 @smallexample
 $ ./configure --enable-simgrid && make
 $ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
 TEST FAILED !!!
 @end smallexample
-@end cartouche
 
 It is normal that the test fails: since the computation are not actually done
 (that is the whole point of simgrid), the result is wrong, of course.
@@ -526,16 +528,16 @@ It is normal that the test fails: since the computation are not actually done
 If the performance model is not calibrated enough, the following error
 message will be displayed
 
-@cartouche
 @smallexample
 $ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
 [0.000000] [xbt_cfg/INFO] type in variable = 2
 [0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
-[starpu][_starpu_load_history_based_model] Warning: model matvecmult is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.
-[starpu][_starpu_simgrid_execute_job][assert failure] Codelet matvecmult does not have a perfmodel, or is not calibrated enough
-$
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult
+    is not calibrated, forcing calibration for this run. Use the
+    STARPU_CALIBRATE environment variable to control this.
+[starpu][_starpu_simgrid_execute_job][assert failure] Codelet
+    matvecmult does not have a perfmodel, or is not calibrated enough
 @end smallexample
-@end cartouche
 
 For now, only the number of cpus can be arbitrarily chosen. The number of CUDA
 and OpenCL devices have to be lower than the real number on the current machine.
@@ -543,14 +545,12 @@ and OpenCL devices have to be lower than the real number on the current machine.
 The Simgrid default stack size is small, to increase it use the
 parameter @code{--cfg=contexts/stack_size}, for example:
 
-@cartouche
 @smallexample
 $ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
 [0.000000] [xbt_cfg/INFO] type in variable = 2
 [0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
 TEST FAILED !!!
 @end smallexample
-@end cartouche
 
 Note: of course, if the application uses @code{gettimeofday} to make its
 performance measurements, the real time will be used, which will be bogus. To
