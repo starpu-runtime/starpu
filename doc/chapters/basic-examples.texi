@@ -7,42 +7,11 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Compiling and linking options::
 * Hello World::                 Submitting Tasks
 * Vector Scaling Using the C Extension::
 * Vector Scaling Using StarPu's API::
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 @end menu
-
-@node Compiling and linking options
-@section Compiling and linking options
-
-Let's suppose StarPU has been installed in the directory
-@code{$STARPU_DIR}. As explained in @ref{Setting flags for compiling and linking applications},
-the variable @code{PKG_CONFIG_PATH} needs to be set. It is also
-necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
-libraries at runtime.
-
-@example
-% PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-% LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
-@end example
-
-The Makefile could for instance contain the following lines to define which
-options must be given to the compiler and to the linker:
-
-@cartouche
-@example
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.0)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.0)
-@end example
-@end cartouche
-
-Make sure that @code{pkg-config --libs starpu-1.0} actually produces some output
-before going further: @code{PKG_CONFIG_PATH} has to point to the place where
-@code{starpu-1.0.pc} was installed during @code{make install}.
-
-Also pass the @code{--static} option if the application is to be linked statically.
 
 @node Hello World
 @section Hello World
@@ -106,8 +75,8 @@ $ gcc hello-starpu.c \
     `pkg-config starpu-1.0 --libs`
 @end example
 
-As can be seen above, basic use the C extensions allows programmers to
-use StarPU tasks while essentially annotating ``regular'' C code.
+As can be seen above, the C extensions allows programmers to
+use StarPU tasks by essentially annotating ``regular'' C code.
 
 @node Hello World using StarPU's API
 @subsection Hello World using StarPU's API
