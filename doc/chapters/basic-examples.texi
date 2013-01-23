@@ -244,7 +244,11 @@ callback function is always executed on a CPU. The @code{callback_arg}
 pointer is passed as an argument of the callback. The prototype of a callback
 function must be:
 
-@code{void (*callback_function)(void *);}
+@cartouche
+@example
+void (*callback_function)(void *);
+@end example
+@end cartouche
 
 If the @code{synchronous} field is non-zero, task submission will be
 synchronous: the @code{starpu_task_submit} function will not return until the
