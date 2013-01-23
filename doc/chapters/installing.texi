@@ -42,7 +42,7 @@ directly from the @url{http://runtime.bordeaux.inria.fr/StarPU/files/,StarPU dow
 The latest nightly snapshot can be downloaded from the @url{http://starpu.gforge.inria.fr/testing/,StarPU gforge website}.
 
 @example
-% wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
+$ wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
 @end example
 
 And finally, current development version is also accessible via svn.
@@ -89,14 +89,14 @@ the configure scripts and the Makefiles. This requires the
 availability of @code{autoconf}, @code{automake} >= 2.60, and @code{makeinfo}.
 
 @example
-% ./autogen.sh
+$ ./autogen.sh
 @end example
 
 @node Running the configuration
 @subsection Running the configuration
 
 @example
-% ./configure
+$ ./configure
 @end example
 
 Details about options that are useful to give to @code{./configure} are given in
@@ -111,9 +111,9 @@ where you want the compilation to produce its files, and invoke the
 configure script located in the StarPU source directory.
 
 @example
-% mkdir build
-% cd build
-% ../configure
+$ mkdir build
+$ cd build
+$ ../configure
 @end example
 
 @node Building and Installing StarPU
@@ -129,7 +129,7 @@ configure script located in the StarPU source directory.
 @subsection Building
 
 @example
-% make
+$ make
 @end example
 
 @node Sanity Checks
@@ -142,7 +142,7 @@ and the result from the main profile is publicly
 @url{http://starpu.gforge.inria.fr/testing/,available}.
 
 @example
-% make check
+$ make check
 @end example
 
 @node Installing
@@ -152,7 +152,7 @@ In order to install StarPU at the location that was specified during
 configuration:
 
 @example
-% make install
+$ make install
 @end example
 
 Libtool interface versioning information are included in

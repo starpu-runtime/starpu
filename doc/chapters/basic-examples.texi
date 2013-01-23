@@ -264,9 +264,9 @@ disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
 @subsubsection Execution of Hello World
 
 @smallexample
-% make hello_world
+$ make hello_world
 cc $(pkg-config --cflags starpu-1.0)  $(pkg-config --libs starpu-1.0) hello_world.c -o hello_world
-% ./hello_world
+$ ./hello_world
 Hello world (params = @{1, 2.000000@} )
 Callback function (arg 42)
 @end smallexample
@@ -662,9 +662,9 @@ constant factor from this pointer.
 @subsection Execution of Vector Scaling
 
 @smallexample
-% make vector_scal
+$ make vector_scal
 cc $(pkg-config --cflags starpu-1.0)  $(pkg-config --libs starpu-1.0)  vector_scal.c   -o vector_scal
-% ./vector_scal
+$ ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
@@ -928,20 +928,20 @@ clean:
 @end cartouche
 
 @smallexample
-% make
+$ make
 @end smallexample
 
 and to execute it, with the default configuration:
 
 @smallexample
-% ./vector_scal
+$ ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
 or for example, by disabling CPU devices:
 
 @smallexample
-% STARPU_NCPU=0 ./vector_scal
+$ STARPU_NCPU=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
@@ -949,6 +949,6 @@ or by disabling CUDA devices (which may permit to enable the use of OpenCL,
 see @ref{Enabling OpenCL}):
 
 @smallexample
-% STARPU_NCUDA=0 ./vector_scal
+$ STARPU_NCUDA=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample

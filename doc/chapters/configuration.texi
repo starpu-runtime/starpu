@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -44,7 +44,7 @@ at runtime by setting the environment variable @code{STARPU_SILENT} to
 any value.
 
 @smallexample
-% STARPU_SILENT=1 ./vector_scal
+$ STARPU_SILENT=1 ./vector_scal
 @end smallexample
 @end defvr
 
