@@ -401,6 +401,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 	_starpu_profiling_set_task_push_end_time(task);
 
+	task->scheduled = 1;
 	_STARPU_LOG_OUT();
 	return ret;
 
@@ -720,9 +721,5 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-	int ret =  _starpu_push_local_task(worker, task, back);
-
-	task->scheduled = 1;
-
-	return ret;
+	return  _starpu_push_local_task(worker, task, back);
 }
