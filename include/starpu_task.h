@@ -204,10 +204,7 @@ struct starpu_task
 	/* Scheduling context */
 	unsigned sched_ctx;
 
-	/* flag to differentiate tasks needed by starpu management purposes
-	 from the ones provided by the appl*/
-	unsigned control_task;
-
+  /* Helps the hypervisor monitor the execution of this task */
 	int hypervisor_tag;
 
 	/* Number of flops computed by this tag, used by resource reallocation for contexts */
@@ -244,7 +241,6 @@ struct starpu_task
 	.starpu_private = NULL,				\
 	.magic = 42,                  			\
 	.sched_ctx = 0,					\
-	.control_task = 0,				\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
 	.already_pushed = 0,				\

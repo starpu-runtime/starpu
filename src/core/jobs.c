@@ -203,7 +203,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && !task->control_task)
+	if(j->task_size == 1 && task->cl != NULL && !j->exclude_from_dag)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR

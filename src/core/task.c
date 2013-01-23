@@ -371,7 +371,12 @@ int starpu_task_submit(struct starpu_task *task)
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
-	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !task->control_task)
+	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
+	* task structure, it is possible that this job structure was already
+	* allocated. */
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->exclude_from_dag)
 	{
 		set_sched_ctx = starpu_task_get_context();
 		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -393,11 +398,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
-
-	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
-	* task structure, it is possible that this job structure was already
-	* allocated. */
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	if (task->cl)
 	{
@@ -496,7 +496,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 int _starpu_task_submit_internally(struct starpu_task *task)
 {
-	task->control_task = 1;
+	_starpu_exclude_task_from_dag(task);
 	return starpu_task_submit(task);
 }
 
