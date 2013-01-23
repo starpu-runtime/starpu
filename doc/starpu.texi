@@ -8,10 +8,10 @@
 @include chapters/version.texi
 
 @copying
-Copyright @copyright{} 2009--2011  Universit@'e de Bordeaux 1
+Copyright @copyright{} 2009--2013  Universit@'e de Bordeaux 1
 
 @noindent
-Copyright @copyright{} 2010, 2011, 2012  Centre National de la Recherche Scientifique
+Copyright @copyright{} 2010--2013  Centre National de la Recherche Scientifique
 
 @noindent
 Copyright @copyright{} 2011, 2012 Institut National de Recherche en Informatique et Automatique
