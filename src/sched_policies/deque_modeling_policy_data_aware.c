@@ -172,11 +172,11 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		double model = task->predicted;
 
 		if(!isnan(model))
-		  {
-		    fifo->exp_len -= model;
-		    fifo->exp_start = starpu_timing_now() + model;
-		    fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		  }
+		{
+			fifo->exp_len -= model;
+			fifo->exp_start = starpu_timing_now() + model;
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		}
 
 #ifdef STARPU_VERBOSE
 		if (task->cl)
@@ -207,11 +207,11 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	{
 		double model = task->predicted;
 		if(!isnan(model))
-		  {
-		    fifo->exp_len -= model;
-		    fifo->exp_start = starpu_timing_now() + model;
-		    fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		  }
+		{
+			fifo->exp_len -= model;
+			fifo->exp_start = starpu_timing_now() + model;
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		}
 		  
 #ifdef STARPU_VERBOSE
 		if (task->cl)
@@ -247,11 +247,11 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 	{
 		double model = new_list->predicted;
 		if(!isnan(model)) 
-		  {
-		    fifo->exp_len -= model;
-		    fifo->exp_start = starpu_timing_now() + model;
-		    fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		  }
+		{
+			fifo->exp_len -= model;
+			fifo->exp_start = starpu_timing_now() + model;
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		}
 
 		new_list = new_list->next;
 	}
@@ -283,11 +283,11 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	if(!isnan(predicted))
-	  {
-	    fifo->exp_end += predicted;
-	    fifo->exp_len += predicted;
-	  }
-
+	{
+		fifo->exp_end += predicted;
+		fifo->exp_len += predicted;
+	}
+	
 	if (starpu_timing_now() + predicted_transfer < fifo->exp_end)
 	{
 		/* We may hope that the transfer will be finished by
@@ -302,10 +302,10 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		predicted_transfer -= fifo->exp_end;
 	}
 	if(!isnan(predicted_transfer)) 
-	  {
-	    fifo->exp_end += predicted_transfer;
-	    fifo->exp_len += predicted_transfer;
-	  }
+	{
+		fifo->exp_end += predicted_transfer;
+		fifo->exp_len += predicted_transfer;
+	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
@@ -892,11 +892,11 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	 * of work. */
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	if(!isnan(transfer_model))
-	  {
-	    fifo->exp_len-= transfer_model;
-	    fifo->exp_start = starpu_timing_now() + model;
-	    fifo->exp_end= fifo->exp_start + fifo->exp_len;
-	  }
+	{
+		fifo->exp_len-= transfer_model;
+		fifo->exp_start = starpu_timing_now() + model;
+		fifo->exp_end= fifo->exp_start + fifo->exp_len;
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
