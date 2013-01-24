@@ -18,8 +18,16 @@
 #ifndef __STARPU_CUBLAS_H__
 #define __STARPU_CUBLAS_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /* Some helper functions for application using CUBLAS kernels */
 void starpu_helper_cublas_init(void);
 void starpu_helper_cublas_shutdown(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __STARPU_CUBLAS_H__ */
