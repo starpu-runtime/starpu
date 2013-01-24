@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Execution of test '%s' took %f s\n", test_name, timing/1000000);
+	fprintf(stderr, "#Execution_time_in_seconds %f %s\n", timing/1000000, test_name);
 
 	return ret;
 }
