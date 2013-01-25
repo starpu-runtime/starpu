@@ -104,7 +104,8 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
 
-		STARPU_ASSERT(next_child < current_handle->nchildren);
+		STARPU_ASSERT_MSG(current_handle->nchildren == 0, "Data has to be partitioned before accessing children");
+		STARPU_ASSERT_MSG(next_child < current_handle->nchildren, "Bogus child number");
 
 		current_handle = &current_handle->children[next_child];
 	}
