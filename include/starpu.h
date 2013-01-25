@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -148,9 +148,9 @@ struct starpu_conf
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
 
-	/* Indicates whether we start the profiling automatically
-	   or we leave the appl start it if it wants to */
-	unsigned no_auto_profile;
+	/* Indicates whether we start the tracing automatically
+	   or we leave the appl start it when it wants to */
+	unsigned no_auto_start_trace;
 };
 
 /* Initialize a starpu_conf structure with default values. */
