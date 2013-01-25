@@ -21,7 +21,7 @@
 
 static int _compute_priority(unsigned sched_ctx)
 {
-	struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
+	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
 
 	int total_priority = 0;
 
@@ -52,7 +52,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
 
 
-	struct starpu_sched_ctx_hypervisor_policy_config *config = NULL;
+	struct sched_ctx_hypervisor_policy_config *config = NULL;
 
 	for(i = 0; i < nsched_ctxs; i++)
 	{
@@ -100,8 +100,8 @@ int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nwork
 /* get first nworkers with the highest idle time in the context */
 int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
 {
-	struct starpu_sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
-	struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
+	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
 
 	int *curr_workers = (int*)malloc((*nworkers) * sizeof(int));
 	int i;
@@ -174,7 +174,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 }
 
 /* get the number of workers in the context that are allowed to be moved (that are not fixed) */
-unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
+unsigned _get_potential_nworkers(struct sched_ctx_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
 {
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 
@@ -203,7 +203,7 @@ unsigned _get_potential_nworkers(struct starpu_sched_ctx_hypervisor_policy_confi
    - on the resource granularity imposed by the user for the resizing process*/
 int _get_nworkers_to_move(unsigned req_sched_ctx)
 {
-       	struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
+       	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(req_sched_ctx);
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
 
@@ -265,7 +265,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 			else
 			{
 				poor_sched_ctx = receiver_sched_ctx;
-				struct starpu_sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
+				struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				unsigned nworkers = starpu_sched_ctx_get_nworkers(poor_sched_ctx);
 				unsigned nshared_workers = starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, poor_sched_ctx);
 				if((nworkers+nworkers_to_move-nshared_workers) > config->max_nworkers)
@@ -277,7 +277,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
 				sched_ctx_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move, now);
 
-				struct starpu_sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
+				struct sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(poor_sched_ctx);
 				int i;
 				for(i = 0; i < nworkers_to_move; i++)
 					new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
@@ -298,7 +298,7 @@ unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
 }
 
-static double _get_elapsed_flops(struct starpu_sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
+static double _get_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
 {
 	double ret_val = 0.0;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
@@ -322,7 +322,7 @@ static double _get_elapsed_flops(struct starpu_sched_ctx_hypervisor_wrapper* sc_
 	return ret_val;
 }
 
-double _get_ctx_velocity(struct starpu_sched_ctx_hypervisor_wrapper* sc_w)
+double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 {
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
@@ -339,7 +339,7 @@ double _get_ctx_velocity(struct starpu_sched_ctx_hypervisor_wrapper* sc_w)
 }
 
 /* compute an average value of the cpu velocity */
-double _get_velocity_per_worker_type(struct starpu_sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
         int npus = 0;
         double elapsed_flops = _get_elapsed_flops(sc_w, &npus, arch);
@@ -361,8 +361,8 @@ int _velocity_gap_btw_ctxs()
 	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
 	int i = 0, j = 0;
-	struct starpu_sched_ctx_hypervisor_wrapper* sc_w;
-	struct starpu_sched_ctx_hypervisor_wrapper* other_sc_w;
+	struct sched_ctx_hypervisor_wrapper* sc_w;
+	struct sched_ctx_hypervisor_wrapper* other_sc_w;
 
 	for(i = 0; i < nsched_ctxs; i++)
 	{

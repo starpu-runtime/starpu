@@ -46,7 +46,7 @@ struct configuration_entry
 	uint32_t task_tag;
 
 	/* Value: configuration of the scheduling context.  */
-	struct starpu_sched_ctx_hypervisor_policy_config *configuration;
+	struct sched_ctx_hypervisor_policy_config *configuration;
 
 	/* Bookkeeping.  */
 	UT_hash_handle hh;
@@ -54,12 +54,12 @@ struct configuration_entry
 
 struct sched_ctx_hypervisor
 {
-	struct starpu_sched_ctx_hypervisor_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
+	struct sched_ctx_hypervisor_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
 	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	unsigned nsched_ctxs;
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
 	int min_tasks;
-	struct starpu_sched_ctx_hypervisor_policy policy;
+	struct sched_ctx_hypervisor_policy policy;
 
 	struct configuration_entry *configurations[STARPU_NMAX_SCHED_CTXS];
 

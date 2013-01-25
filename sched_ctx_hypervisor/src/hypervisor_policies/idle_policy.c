@@ -30,8 +30,8 @@ unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
 
 void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
-	struct starpu_sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
-	struct starpu_sched_ctx_hypervisor_policy_config *config = sc_w->config;
+	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sched_ctx_hypervisor_policy_config *config = sc_w->config;
 	if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
 	{
 		if(worker_belong_to_other_sched_ctx(sched_ctx, worker))
@@ -41,7 +41,7 @@ void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 	}
 }
 
-struct starpu_sched_ctx_hypervisor_policy idle_policy =
+struct sched_ctx_hypervisor_policy idle_policy =
 {
 	.size_ctxs = NULL,
 	.handle_poped_task = NULL,

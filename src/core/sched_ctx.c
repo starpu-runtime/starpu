@@ -31,7 +31,7 @@ static unsigned _starpu_worker_get_first_free_sched_ctx(struct _starpu_worker *w
 
 static unsigned _starpu_worker_get_sched_ctx_id(struct _starpu_worker *worker, unsigned sched_ctx_id);
 
-static unsigned	_get_workers_list(struct starpu_sched_ctx_worker_collection *workers, int **workerids);
+static void _get_workers_list(struct starpu_sched_ctx_worker_collection *workers, int **workerids);
 
 static void change_worker_sched_ctx(unsigned sched_ctx_id)
 {
@@ -187,12 +187,12 @@ static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sch
 	unsigned nworkers_ctx = sched_ctx->workers->nworkers;
 	int *workerids = NULL;
 
-	int is_list =_get_workers_list(sched_ctx->workers, &workerids);
+	_get_workers_list(sched_ctx->workers, &workerids);
 
 	if(nworkers_ctx > 0 && sched_ctx->sched_policy->remove_workers)
 		sched_ctx->sched_policy->remove_workers(sched_ctx->id, workerids, nworkers_ctx);
-	if(!is_list)
-		free(workerids);
+
+	free(workerids);
 	return;
 
 }
@@ -459,12 +459,8 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
 	unsigned nworkers_ctx = sched_ctx->workers->nworkers;
 	int *workerids;
-	unsigned is_list = _get_workers_list(sched_ctx->workers, &workerids);
-	_starpu_update_workers(workerids, nworkers_ctx, sched_ctx->id);
-
-	if(!is_list)
-		free(workerids);
-
+	_get_workers_list(sched_ctx->workers, &workerids);
+	
 	/*if both of them have all the ressources is pointless*/
 	/*trying to transfer ressources from one ctx to the other*/
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
@@ -485,11 +481,17 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
+		_starpu_update_workers(workerids, nworkers_ctx, sched_ctx_id);
 		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 		_starpu_delete_sched_ctx(sched_ctx);
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	}
+
+	/* workerids is malloc-ed in _get_workers_list, don't forget to free it when
+	   you don't use it anymore */
+	free(workerids);
+
 	return;
 }
 
@@ -523,7 +525,7 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 	for(i = 0; i < nworkers; i++)
 	{
 		/* take care the user does not ask for a resource that does not exist */
-		STARPU_ASSERT(workerids[i] >= 0 &&  workerids[i] <= nworkers_conf);
+		STARPU_ASSERT_MSG(workerids[i] >= 0 &&  workerids[i] <= nworkers_conf, "workerid = %d", workerids[i]);
 	}
 }
 
@@ -557,10 +559,11 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 	int added_workers[nworkers_to_add];
 	int n_added_workers = 0;
 
+	_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+
 	STARPU_ASSERT(workers_to_add != NULL && nworkers_to_add > 0);
 	_starpu_check_workers(workers_to_add, nworkers_to_add);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
 	/* if the context has not already been deleted */
 	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 	{
@@ -693,13 +696,12 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
 			unsigned nworkers = sched_ctx->workers->nworkers;
 			int *workerids = NULL;
-			unsigned is_list = _get_workers_list(sched_ctx->workers, &workerids);
+			_get_workers_list(sched_ctx->workers, &workerids);
 
 			starpu_sched_ctx_add_workers(workerids, nworkers, sched_ctx->inheritor);
 			starpu_sched_ctx_remove_workers(workerids, nworkers, sched_ctx_id);
-
-			if(!is_list)
-				free(workerids);
+			
+			free(workerids);
 
 			return;
 		}
@@ -778,7 +780,7 @@ struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collec
 	return sched_ctx->workers;
 }
 
-static unsigned _get_workers_list(struct starpu_sched_ctx_worker_collection *workers, int **workerids)
+static void _get_workers_list(struct starpu_sched_ctx_worker_collection *workers, int **workerids)
 {
 	*workerids = (int*)malloc(workers->nworkers*sizeof(int));
 	int worker;
@@ -793,7 +795,7 @@ static unsigned _get_workers_list(struct starpu_sched_ctx_worker_collection *wor
 		(*workerids)[i++] = worker;
 	}
 
-	return 0;
+	return;
 }
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id)
 {

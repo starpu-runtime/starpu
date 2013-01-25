@@ -23,7 +23,7 @@ static void app_driven_handle_post_exec_hook(unsigned sched_ctx, int task_tag)
 	_resize_to_unknown_receiver(sched_ctx, 1);
 }
 
-struct starpu_sched_ctx_hypervisor_policy app_driven_policy =
+struct sched_ctx_hypervisor_policy app_driven_policy =
 {
 	.size_ctxs = NULL,
 	.handle_poped_task = NULL,
