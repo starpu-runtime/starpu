@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -31,10 +31,6 @@ unsigned *advance_22; /* array of nblocks *nblocks*nblocks */
 
 struct timeval start;
 struct timeval end;
-
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-static unsigned finished = 0;
 
 static unsigned no_prio = 0;
 
@@ -347,11 +343,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 
 	if (i == nblocks - 1) 
 	{
-		/* we are done : wake the application up  */
-		pthread_mutex_lock(&mutex);
-		finished = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
+		/* we are done */
 		free(argcb);
 		return;
 	}
@@ -464,11 +456,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 
 	if (args->i == args->nblocks - 1) 
 	{
-		/* we are done : wake the application up  */
-		pthread_mutex_lock(&mutex);
-		finished = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
+		/* we are done */
 		free(argcb);
 		return;
 	}
@@ -641,13 +629,7 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* stall the application until the end of computations */
-	pthread_mutex_lock(&mutex);
-
-	if (!finished)
-		pthread_cond_wait(&cond, &mutex);
-
-	pthread_mutex_unlock(&mutex);
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
@@ -697,13 +679,7 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 		exit(0);
 	}
 
-	/* stall the application until the end of computations */
-	pthread_mutex_lock(&mutex);
-
-	if (!finished)
-		pthread_cond_wait(&cond, &mutex);
-
-	pthread_mutex_unlock(&mutex);
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
