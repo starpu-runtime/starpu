@@ -2280,7 +2280,8 @@ Return the current profiling status or a negative value in case there was an err
 @end deftypefun
 
 @deftypefun void starpu_set_profiling_id (int @var{new_id})
-This function sets the ID used for profiling trace filename
+This function sets the ID used for profiling trace filename. It needs to be
+called before starpu_init.
 @end deftypefun
 
 @deftp {Data Type} {struct starpu_task_profiling_info}
