@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -242,6 +242,8 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 		scan_history_entry(f, entry);
 
 		/* insert the entry in the hashtable and the list structures  */
+		/* TODO: Insert it at the end of the list, to avoid reversing
+		 * the order... But efficiently! We may have a lot of entries */
 		if (scan_history)
 			insert_history_entry(entry, &per_arch_model->list, &per_arch_model->history);
 	}
