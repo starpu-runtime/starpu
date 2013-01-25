@@ -649,6 +649,7 @@ and attaches them as reduction methods for its dtq handle:
 
 @cartouche
 @smallexample
+starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
 starpu_data_set_reduction_methods(dtq_handle,
         &accumulate_variable_cl, &bzero_variable_cl);
 @end smallexample
@@ -659,19 +660,25 @@ with partitioned vectors:
 
 @cartouche
 @smallexample
-int dots(starpu_data_handle_t v1, starpu_data_handle_t v2,
-         starpu_data_handle_t s, unsigned nblocks)
-@{
-    starpu_insert_task(&bzero_variable_cl, STARPU_W, s, 0);
-    for (b = 0; b < nblocks; b++)
-        starpu_insert_task(&dot_kernel_cl,
-            STARPU_RW, s,
-            STARPU_R, starpu_data_get_sub_data(v1, 1, b),
-            STARPU_R, starpu_data_get_sub_data(v2, 1, b),
-            0);
-@}
+for (b = 0; b < nblocks; b++)
+    starpu_insert_task(&dot_kernel_cl,
+        STARPU_REDUX, dtq_handle,
+        STARPU_R, starpu_data_get_sub_data(v1, 1, b),
+        STARPU_R, starpu_data_get_sub_data(v2, 1, b),
+        0);
 @end smallexample
 @end cartouche
+
+During registration, we have here provided NULL, i.e. there is no initial value
+to be taken into account during reduction. StarPU will thus only take into
+account the contributions from the @code{dot_kernel_cl} tasks. Also, it will not
+allocate any memory for @code{dtq_handle} before @code{dot_kernel_cl} tasks are
+ready to run.
+
+If another dot product has to be performed, one could unregister
+@code{dtq_handle}, and re-register it. But one can also use
+@code{starpu_invalidate(dtq_handle)}, which will clear all data from the handle,
+thus resetting it back to the initial @code{register(NULL)} state.
 
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading
 to yet more relaxed dependencies and more parallelism.
