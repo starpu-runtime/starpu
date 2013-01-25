@@ -190,8 +190,13 @@ This has to be set to the size of the array pointed to by the
 @item @code{struct starpu_driver *not_launched_drivers}
 The drivers that should not be launched by StarPU.
 
-@item @code{unsigned nnot_launched_drivers}
+@item @code{unsigned n_not_launched_drivers}
 The number of StarPU drivers that should not be launched by StarPU.
+
+@item @code{no_auto_start_trace}
+The default (0) means that the FxT tracing will start as soon as
+@code{starpu_init} is called.
+Setting it to 1 permits to avoid tracing start so early, and instead start when the application calls @code{starpu_start_fxt_profiling}.
 
 @end table
 @end deftp
