@@ -151,6 +151,9 @@ struct starpu_conf
 	/* Indicates whether we start the tracing automatically
 	   or we leave the appl start it when it wants to */
 	unsigned no_auto_start_trace;
+
+	/* Specifies the buffer size for tracing */
+	unsigned trace_buffer_size;
 };
 
 /* Initialize a starpu_conf structure with default values. */

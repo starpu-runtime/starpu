@@ -678,6 +678,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 #endif
 
 	conf->no_auto_start_trace = 0;
+	/* 64MiB by default */
+	conf->trace_buffer_size = 64<<20;
 	return 0;
 }
 
@@ -804,7 +806,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_init_fxt_profiling(config.conf->no_auto_start_trace);
+	_starpu_init_fxt_profiling(config.conf->no_auto_start_trace, config.conf->trace_buffer_size);
 #endif
 
 	_starpu_open_debug_logfile();

@@ -35,8 +35,6 @@
 #include <sys/thr.h>       /* for thr_self() */
 #endif
 
-#define _STARPU_PROF_BUFFER_SIZE  (8*1024*1024)
-
 static char _STARPU_PROF_FILE_USER[128];
 static int _starpu_fxt_started = 0;
 
@@ -107,7 +105,7 @@ void starpu_start_fxt_profiling()
 	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
 }
 
-void _starpu_init_fxt_profiling(unsigned no_auto_start_trace)
+void _starpu_init_fxt_profiling(unsigned no_auto_start_trace, unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
@@ -136,7 +134,7 @@ void _starpu_init_fxt_profiling(unsigned no_auto_start_trace)
 
 	unsigned int key_mask = no_auto_start_trace ? 0 : FUT_KEYMASKALL;
 
-	if (fut_setup(_STARPU_PROF_BUFFER_SIZE, key_mask, threadid) < 0)
+	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
 	{
 		perror("fut_setup");
 		STARPU_ABORT();

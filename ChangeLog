@@ -116,6 +116,10 @@ Changes:
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
+  * Add no_auto_start_trace configuration field to permit avoiding starting FxT
+  traces from starpu_init.
+  * Add trace_buffer_size configuration field to permit to specify the tracing
+  buffer size.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
