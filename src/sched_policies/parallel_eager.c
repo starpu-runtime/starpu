@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,10 @@ static int possible_combinations_size[STARPU_NMAXWORKERS][10];
 static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
+	unsigned nbasic_workers = starpu_worker_get_count();
+	unsigned ncombined_workers = starpu_combined_worker_get_count();
+	unsigned ntotal_workers = nbasic_workers + ncombined_workers;
+		
 	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
 	unsigned workerid, i;
@@ -67,7 +70,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 
 	for (i = 0; i < ncombinedworkers; i++)
 	{
-		workerid = nworkers + i;
+		workerid = ntotal_workers + i;
 
 		/* Note that we ASSUME that the workers are sorted by size ! */
 		int *workers;
@@ -117,7 +120,8 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 	for(i = 0; i < nworkers; i++)
         {
 		workerid = workerids[i];
-		_starpu_destroy_fifo(data->local_fifo[workerid]);
+		if(!starpu_worker_is_combined_worker(workerid))
+			_starpu_destroy_fifo(data->local_fifo[workerid]);
 	}
 }
 
@@ -151,11 +155,11 @@ static int push_task_peager_policy(struct starpu_task *task)
 	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
-
+	
 	/* if the context has no workers return */
 	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
 	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-
+	
    	if(nworkers == 0)
 	{
    		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
@@ -163,15 +167,15 @@ static int push_task_peager_policy(struct starpu_task *task)
 	}
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int worker = 0;
-    struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-
-    struct starpu_iterator it;
-    if(workers->init_iterator)
-	    workers->init_iterator(workers, &it);
-
-    while(workers->has_next(workers, &it))
-    {
-	    worker = workers->get_next(workers, &it);
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+	
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
@@ -181,15 +185,15 @@ static int push_task_peager_policy(struct starpu_task *task)
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		}
-    }
-
-
+	}
+	
+	
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
 	_starpu_push_task_end(task);
 
 	while(workers->has_next(workers, &it))
-    {
-	    worker = workers->get_next(workers, &it);
+	{
+		worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
@@ -200,8 +204,8 @@ static int push_task_peager_policy(struct starpu_task *task)
 			_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
-    }
-
+	}
+	
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 	return ret_val;
