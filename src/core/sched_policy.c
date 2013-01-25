@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -276,6 +276,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
+		/* Note: we have to call that early, or else the task may have
+		 * disappeared already */
+		_starpu_push_task_end(task);
+
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
@@ -398,14 +402,21 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			ret = _starpu_push_task_to_workers(task);
 		}
 	}
-
-	_starpu_profiling_set_task_push_end_time(task);
-
-	task->scheduled = 1;
+	/* Note: from here, the task might have been destroyed already! */
 	_STARPU_LOG_OUT();
 	return ret;
 
 } 
+
+/* This is called right after the scheduler has pushed a task to a queue
+ * but just before releasing mutexes: we need the task to still be alive!
+ */
+int _starpu_push_task_end(struct starpu_task *task)
+{
+	_starpu_profiling_set_task_push_end_time(task);
+	task->scheduled = 1;
+}
+
 /*
  * Given a handle that needs to be converted in order to be used on the given
  * node, returns a task that takes care of the conversion.
