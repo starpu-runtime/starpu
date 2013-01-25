@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,8 @@
 #include <core/sched_policy.h>
 #include <core/sched_ctx.h>
 #include <common/utils.h>
+
+_starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
 extern struct starpu_sched_ctx_worker_collection worker_list;
 static _starpu_pthread_mutex_t sched_ctx_manag = _STARPU_PTHREAD_MUTEX_INITIALIZER;
