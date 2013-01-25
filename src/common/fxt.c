@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -114,6 +114,7 @@ void _starpu_init_fxt_profiling(unsigned no_auto_profile)
 	if (!_starpu_fxt_started)
 	{
 		_starpu_fxt_started = 1;
+		_starpu_written = 0;
 		_starpu_profile_set_tracefile(NULL);
 	}
 
@@ -188,6 +189,7 @@ void _starpu_stop_fxt_profiling(void)
 		}
 
 		_starpu_written = 1;
+		_starpu_fxt_started = 0;
 	}
 }
 
