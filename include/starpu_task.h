@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -210,8 +210,6 @@ struct starpu_task
 	/* Number of flops computed by this tag, used by resource reallocation for contexts */
 	double flops;
 
-	unsigned already_pushed;
-
 	/* Whether the scheduler has pushed the task on some queue */
 	unsigned scheduled;
 };
@@ -243,7 +241,6 @@ struct starpu_task
 	.sched_ctx = 0,					\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
-	.already_pushed = 0,				\
 		.scheduled = 0				\
 }
 
