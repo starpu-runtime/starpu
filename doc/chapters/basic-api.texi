@@ -196,7 +196,7 @@ The number of StarPU drivers that should not be launched by StarPU.
 @item @code{no_auto_start_trace}
 The default (0) means that the FxT tracing will start as soon as
 @code{starpu_init} is called.
-Setting it to 1 permits to avoid tracing start so early, and instead start when the application calls @code{starpu_start_fxt_profiling}.
+Setting it to 1 permits to avoid tracing start so early, and instead start when the application calls @code{starpu_fxt_start_profiling}.
 
 @item @code{trace_buffer_size}
 Specifies the buffer size used for FxT tracing. Starting from FxT version

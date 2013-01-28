@@ -70,7 +70,7 @@ struct starpu_fxt_options
 
 void starpu_fxt_options_init(struct starpu_fxt_options *options);
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
-void starpu_start_fxt_profiling();
+void starpu_fxt_start_profiling();
 
 #ifdef __cplusplus
 }
