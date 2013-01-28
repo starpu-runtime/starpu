@@ -542,6 +542,7 @@ to 0. It is enabled by default or for any other values of the variable
 @subsection Miscellaneous and debug
 
 @defvr {Environment variable} STARPU_HOME
+@anchor{STARPU_HOME}
 This specifies the main directory in which StarPU stores its
 configuration files. The default is @code{$HOME} on Unix environments,
 and @code{$USERPROFILE} on Windows environments.
