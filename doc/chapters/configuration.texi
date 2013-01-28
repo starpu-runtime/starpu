@@ -547,6 +547,13 @@ configuration files. The default is @code{$HOME} on Unix environments,
 and @code{$USERPROFILE} on Windows environments.
 @end defvr
 
+@defvr {Environment variable} STARPU_HOSTNAME
+When set, force the hostname to be used when dealing performance model
+files. Models are indexed by machine name. When running for example on
+a homogenenous cluster, it is possible to share the models between
+machines by setting @code{export STARPU_HOSTNAME=some_global_name}.
+@end defvr
+
 @defvr {Environment variable} STARPU_OPENCL_PROGRAM_DIR
 @anchor{STARPU_OPENCL_PROGRAM_DIR}
 This specifies the directory where the OpenCL codelet source files are
