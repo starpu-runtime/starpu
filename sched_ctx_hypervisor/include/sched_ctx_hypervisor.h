@@ -20,6 +20,11 @@
 #include <starpu.h>
 #include <pthread.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #ifdef STARPU_DEVEL
 #  warning rename all objects to start with sched_ctx_hypervisor
 #endif
@@ -169,5 +174,9 @@ void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *w
 void sched_ctx_hypervisor_free_size_req(void);
 
 unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
