@@ -103,7 +103,7 @@ static int random_push_task(struct starpu_task *task)
 
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	starpu_srand48(time(NULL));
 }
 

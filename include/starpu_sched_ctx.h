@@ -42,7 +42,7 @@ struct starpu_sched_ctx_worker_collection
 	void *workerids;
 	/* the number of workers in the collection */
 	unsigned nworkers;
-	/* the type of structure (WORKER_LIST,...) */
+	/* the type of structure (STARPU_WORKER_LIST,...) */
 	int type;
 	/* checks if there is another element in collection */
 	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
@@ -61,7 +61,7 @@ struct starpu_sched_ctx_worker_collection
 };
 
 /* types of structures the worker collection can implement */
-#define WORKER_LIST 0
+#define STARPU_WORKER_LIST 0
 
 struct starpu_performance_counters
 {

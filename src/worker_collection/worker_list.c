@@ -148,6 +148,6 @@ struct starpu_sched_ctx_worker_collection worker_list = {
 	.init = list_init,
 	.deinit = list_deinit,
 	.init_iterator = list_init_iterator,
-	.type = WORKER_LIST
+	.type = STARPU_WORKER_LIST
 };
 

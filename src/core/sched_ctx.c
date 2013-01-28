@@ -767,7 +767,7 @@ struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collec
 
 	switch(worker_collection_type)
 	{
-	case WORKER_LIST:
+	case STARPU_WORKER_LIST:
 		sched_ctx->workers->has_next = worker_list.has_next;
 		sched_ctx->workers->get_next = worker_list.get_next;
 		sched_ctx->workers->add = worker_list.add;
@@ -775,7 +775,7 @@ struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collec
 		sched_ctx->workers->init = worker_list.init;
 		sched_ctx->workers->deinit = worker_list.deinit;
 		sched_ctx->workers->init_iterator = worker_list.init_iterator;
-		sched_ctx->workers->type = WORKER_LIST;
+		sched_ctx->workers->type = STARPU_WORKER_LIST;
 		break;
 	}
 

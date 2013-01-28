@@ -535,7 +535,7 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
 	hd->alpha = _STARPU_DEFAULT_ALPHA;
 	hd->beta = _STARPU_DEFAULT_BETA;

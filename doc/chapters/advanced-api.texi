@@ -799,7 +799,7 @@ The number of workerids
 @item @code{pthread_key_t cursor_key} (optional)
 The cursor needed to iterate the collection (depending on the data structure)
 @item @code{int type}
-The type of structure (currently WORKER_LIST is the only one available)
+The type of structure (currently STARPU_WORKER_LIST is the only one available)
 @item @code{unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers)}
 Checks if there is a next worker
 @item @code{int (*get_next)(struct starpu_sched_ctx_worker_collection *workers)}
