@@ -240,18 +240,26 @@ handle.
 
 The internal algorithm is as follows:
 @enumerate
-@item Find out whether we (as an MPI node) are to execute the codelet
-because we own the data to be written to. If different nodes own data
-to be written to, the argument @code{STARPU_EXECUTE_ON_NODE} or
-@code{STARPU_EXECUTE_ON_DATA} has to be used to specify which MPI node will
-execute the task.
+@item Find out which MPI node is going to execute the codelet.
+      @enumerate
+      @item If there is only one node owning data in W mode, it will
+      be selected;
+      @item If there is several nodes owning data in W node, the one
+      selected will be the one having the least data in R mode so as
+      to minimize the amount of data to be transfered;
+      @item The argument @code{STARPU_EXECUTE_ON_NODE} followed by an
+      integer can be used to specify the node;
+      @item The argument @code{STARPU_EXECUTE_ON_DATA} followed by a
+      data handle can be used to specify that the node owing the given
+      data will execute the codelet.
+      @end enumerate
 @item Send and receive data as requested. Nodes owning data which need to be
 read by the task are sending them to the MPI node which will execute it. The
 latter receives them.
 @item Execute the codelet. This is done by the MPI node selected in the
 1st step of the algorithm.
-@item In the case when different MPI nodes own data to be written to, send
-written data back to their owners.
+@item If several MPI nodes own data to be written to, send written
+data back to their owners.
 @end enumerate
 
 The algorithm also includes a communication cache mechanism that
