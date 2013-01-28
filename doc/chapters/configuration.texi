@@ -541,6 +541,12 @@ to 0. It is enabled by default or for any other values of the variable
 @node Misc
 @subsection Miscellaneous and debug
 
+@defvr {Environment variable} STARPU_HOME
+This specifies the main directory in which StarPU stores its
+configuration files. The default is @code{$HOME} on Unix environments,
+and @code{$USERPROFILE} on Windows environments.
+@end defvr
+
 @defvr {Environment variable} STARPU_OPENCL_PROGRAM_DIR
 @anchor{STARPU_OPENCL_PROGRAM_DIR}
 This specifies the directory where the OpenCL codelet source files are
