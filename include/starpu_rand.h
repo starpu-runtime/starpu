@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,11 @@
 
 #include <stdlib.h>
 #include <starpu_config.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #ifdef STARPU_USE_DRAND48
 #  define starpu_srand48(seed)				srand48(seed)
@@ -40,6 +45,10 @@ typedef int starpu_drand48_data;
 #  define starpu_erand48(xsubi)				starpu_drand48()
 #  define starpu_srand48_r(seed, buffer) 		srand((unsigned int)seed)
 #  define starpu_erand48_r(xsubi, buffer, result)	do {*(result) = ((double)(rand()) / RAND_MAX);} while (0)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __STARPU_RAND_H__ */
