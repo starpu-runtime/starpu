@@ -57,6 +57,10 @@ Specify tests and examples should be run on a smaller data set, i.e
 allowing a faster execution time
 @end defvr
 
+@defvr {Configure option} --enable-long-check
+Enable some exhaustive checks which take a really long time.
+@end defvr
+
 @defvr {Configure option} --with-hwloc
 Specify hwloc should be used by StarPU. hwloc should be found by the
 means of the tools @code{pkg-config}.

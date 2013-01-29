@@ -134,7 +134,6 @@ noinst_PROGRAMS =				\
 	main/declare_deps_in_callback		\
 	main/declare_deps_after_submission	\
 	main/declare_deps_after_submission_synchronous	\
-	main/tag_task_data_deps			\
 	main/get_current_task			\
 	main/starpu_init			\
 	main/starpu_worker_exists		\
@@ -158,7 +157,6 @@ noinst_PROGRAMS =				\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
 	datawizard/user_interaction_implicit	\
-	datawizard/reclaim			\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
@@ -220,6 +218,12 @@ noinst_PROGRAMS =				\
 	sched_policies/execute_all_tasks        \
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
+
+if STARPU_LONG_CHECK
+noinst_PROGRAMS +=				\
+	main/tag_task_data_deps			\
+	datawizard/reclaim
+endif
 
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\

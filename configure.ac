@@ -191,6 +191,15 @@ if  test x$enable_quick_check = xyes; then
 fi
 AM_CONDITIONAL([STARPU_QUICK_CHECK], [test "x$enable_quick_check" = "xyes"])
 
+# Define long check
+AC_ARG_ENABLE(long-check, [AS_HELP_STRING([--enable-long-check],
+				   [Enable some exhaustive checks which take a really long time])],
+				   enable_long_check=$enableval, enable_long_check=no)
+if  test x$enable_long_check = xyes; then
+	AC_DEFINE(STARPU_LONG_CHECK, [1], [enable long check])
+fi
+AM_CONDITIONAL([STARPU_LONG_CHECK], [test "x$enable_long_check" = "xyes"])
+
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
 AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
