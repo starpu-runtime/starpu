@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,8 +25,6 @@
 
 #include <starpu.h>
 #include "../helper.h"
-
-#define NLOOPS	(128*1024)
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg)
 {
@@ -79,7 +77,8 @@ static struct starpu_task *create_dummy_task(int write, int data, unsigned durat
 int main(int argc, char **argv)
 {
 	int ret;
-	unsigned loop, nloops = NLOOPS;
+	/* We have 27 toggles to try below, thus 2^27 possibilities */
+	unsigned loop, nloops = 128*1024;
 	unsigned duration = 1000;
 
 	starpu_data_handle_t handle1, handle2;
