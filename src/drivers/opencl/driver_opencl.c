@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -249,37 +249,38 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t
 
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
-	cl_int err;
-	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+   cl_int err;
+   struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	if (event)
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
-	cl_event ev;
-	err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
+   if (event)
+      _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
-	if (event)
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+   cl_event ev;
+   err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 
-	if (STARPU_LIKELY(err == CL_SUCCESS))
-	{
-	     if (event == NULL)
-	     {
-		  /* We want a synchronous copy, let's synchronise the queue */
-		  clWaitForEvents(1, &ev);
-		  clReleaseEvent(ev);
-	     }
-	     else
-	     {
-		  *event = ev;
-	     }
+   if (event)
+      _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 
-	     if (ret)
-	     {
-		  *ret = (event == NULL) ? 0 : -EAGAIN;
-	     }
-	}
-	return err;
+
+   if (STARPU_LIKELY(err == CL_SUCCESS))
+   {
+      if (event == NULL)
+      {
+         /* We want a synchronous copy, let's synchronise the queue */
+         clWaitForEvents(1, &ev);
+         clReleaseEvent(ev);
+      }
+      else {
+         *event = ev;
+      }
+
+      if (ret)
+      {
+         *ret = (event == NULL) ? 0 : -EAGAIN;
+      }
+   }
+   return err;
 }
 
 cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
@@ -289,30 +290,27 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 
 	if (event)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-
 	cl_event ev;
 	err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-
 	if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
-	     if (event == NULL)
-	     {
-		  /* We want a synchronous copy, let's synchronise the queue */
-		  clWaitForEvents(1, &ev);
-		  clReleaseEvent(ev);
-	     }
-	     else
-	     {
+	  if (event == NULL)
+	  {
+		 /* We want a synchronous copy, let's synchronise the queue */
+		 clWaitForEvents(1, &ev);
+		 clReleaseEvent(ev);
+	 }
+	  else {
 		  *event = ev;
-	     }
+	  }
 
-	     if (ret)
-	     {
-		  *ret = (event == NULL) ? 0 : -EAGAIN;
-	     }
-	}
+	  if (ret)
+	  {
+		 *ret = (event == NULL) ? 0 : -EAGAIN;
+	 }
+  }
 	return err;
 }
 
@@ -321,7 +319,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
-	cl_int err;
+        cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
