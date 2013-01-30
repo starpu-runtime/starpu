@@ -956,10 +956,16 @@ if test x$use_fxt = xyes; then
 	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
 
 	if test x$use_fxt_from_system = xno; then
+	    save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+	    PKG_CONFIG_PATH="$fxtdir/lib/pkgconfig:$PKG_CONFIG_PATH"
+	    PKG_CHECK_MODULES([FXT],  [fxt], , [
+		AC_MSG_WARN([Old FxT without fxt.pc file, hoping link will succeed])
 		FXT_CFLAGS="-I$fxtdir/include/ "
 		FXT_LDFLAGS="-L$fxtdir/lib/"
 		AC_ARG_VAR(FXT_LDFLAGS)
 		FXT_LIBS="-lfxt"
+	    ])
+	    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
 	else
 	    PKG_CHECK_MODULES([FXT],  [fxt])
 	fi
