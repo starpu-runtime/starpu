@@ -326,35 +326,77 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void 
 
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface,
-                                    unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event)
+                                    unsigned dst_node, cl_event *event)
 {
 	struct starpu_variable_interface *src_variable = src_interface;
 	struct starpu_variable_interface *dst_variable = dst_interface;
-        int err,ret;
+	int err,ret;
 
-        err = starpu_opencl_copy_ram_to_opencl((void*)src_variable->ptr, src_node, (cl_mem)dst_variable->ptr, dst_node, src_variable->elemsize,
-					       0, event, &ret);
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+   int devid = _starpu_memory_node_to_devid(dst_node);
+   cl_device_type dt = _starpu_opencl_get_device_type(devid);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+	if (starpu_cpu_worker_get_count() == 0 && dt == CL_DEVICE_TYPE_CPU) {
+      cl_mem dst = (cl_mem)dst_variable->ptr;
+      cl_context ctx;
+      starpu_opencl_get_context(devid, &ctx);;
+
+      err = clGetMemObjectInfo(dst, CL_MEM_CONTEXT, sizeof(ctx), &ctx, NULL);
+      if (STARPU_UNLIKELY(err))
+         STARPU_OPENCL_REPORT_ERROR(err);
+
+		clReleaseMemObject(dst);
+		dst_variable->ptr = (uintptr_t)clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, src_variable->elemsize, (void*)src_variable->ptr, &err);
+
+      if (event != NULL)
+         *event = NULL;
+	}
+	else {
+      assert(src_variable->ptr != NULL);
+
+		err = starpu_opencl_copy_ram_to_opencl((void*)src_variable->ptr, src_node, (cl_mem)dst_variable->ptr, dst_node, src_variable->elemsize,
+				0, event, &ret);
+
+      if (STARPU_UNLIKELY(err))
+         STARPU_OPENCL_REPORT_ERROR(err);
+
+      _STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+   }
 
 	return ret;
 }
 
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event)
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event)
 {
 	struct starpu_variable_interface *src_variable = src_interface;
 	struct starpu_variable_interface *dst_variable = dst_interface;
         int err, ret;
 
-	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_variable->ptr, src_node, (void*)dst_variable->ptr, dst_node, src_variable->elemsize,
-					       0, event, &ret);
+   int devid = _starpu_memory_node_to_devid(src_node);
+   cl_device_type dt = _starpu_opencl_get_device_type(devid);
 
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	if (starpu_cpu_worker_get_count() == 0 && dt == CL_DEVICE_TYPE_CPU) {
+      cl_mem dst = (cl_mem)src_variable->ptr;
+      void * ptr;
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+      err = clGetMemObjectInfo(dst, CL_MEM_HOST_PTR, sizeof(ptr), &ptr, NULL);
+      if (STARPU_UNLIKELY(err))
+         STARPU_OPENCL_REPORT_ERROR(err);
+
+      dst_variable->ptr = (uintptr_t)ptr;
+
+      if (event != NULL)
+         *event = NULL;
+
+   }
+   else {
+      err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_variable->ptr, src_node, (void*)dst_variable->ptr, dst_node, src_variable->elemsize,
+            0, event, &ret);
+
+      if (STARPU_UNLIKELY(err))
+         STARPU_OPENCL_REPORT_ERROR(err);
+
+      _STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+   }
 
 	return ret;
 }
