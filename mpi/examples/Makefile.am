@@ -53,10 +53,10 @@ EXTRA_DIST = 					\
 	mpi_lu/pxlu.c			\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
-	cholesky/mpi_cholesky.h		\
-	cholesky/mpi_cholesky_kernels.h \
-	cholesky/mpi_cholesky_models.h	\
-	cholesky/mpi_cholesky_codelets.h \
+	matrix_decomposition/mpi_cholesky.h	\
+	matrix_decomposition/mpi_kernels.h	\
+	matrix_decomposition/mpi_cholesky_models.h \
+	matrix_decomposition/mpi_cholesky_codelets.h \
 	../tests/helper.h
 
 examplebindir = $(libdir)/starpu/mpi
@@ -133,34 +133,34 @@ endif
 
 if !NO_BLAS_LIB
 examplebin_PROGRAMS +=		\
-	cholesky/mpi_cholesky			\
-	cholesky/mpi_cholesky_distributed
+	matrix_decomposition/mpi_cholesky			\
+	matrix_decomposition/mpi_cholesky_distributed
 
-cholesky_mpi_cholesky_SOURCES	=		\
-	cholesky/mpi_cholesky.c		\
-	cholesky/mpi_cholesky_models.c		\
-	cholesky/mpi_cholesky_kernels.c	\
-	cholesky/mpi_cholesky_codelets.c	\
+matrix_decomposition_mpi_cholesky_SOURCES	=		\
+	matrix_decomposition/mpi_cholesky.c		\
+	matrix_decomposition/mpi_cholesky_models.c		\
+	matrix_decomposition/mpi_cholesky_kernels.c	\
+	matrix_decomposition/mpi_cholesky_codelets.c	\
 	$(top_srcdir)/examples/common/blas.c
 
-cholesky_mpi_cholesky_LDADD =			\
+matrix_decomposition_mpi_cholesky_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS)
 
-cholesky_mpi_cholesky_distributed_SOURCES =	\
-	cholesky/mpi_cholesky_distributed.c	\
-	cholesky/mpi_cholesky_models.c		\
-	cholesky/mpi_cholesky_kernels.c	\
-	cholesky/mpi_cholesky_codelets.c	\
+matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
+	matrix_decomposition/mpi_cholesky_distributed.c	\
+	matrix_decomposition/mpi_cholesky_models.c		\
+	matrix_decomposition/mpi_cholesky_kernels.c	\
+	matrix_decomposition/mpi_cholesky_codelets.c	\
 	$(top_srcdir)/examples/common/blas.c
 
-cholesky_mpi_cholesky_distributed_LDADD =	\
+matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS)
 
 starpu_mpi_EXAMPLES +=				\
-	cholesky/mpi_cholesky			\
-	cholesky/mpi_cholesky_distributed
+	matrix_decomposition/mpi_cholesky			\
+	matrix_decomposition/mpi_cholesky_distributed
 endif
 
 ###################
