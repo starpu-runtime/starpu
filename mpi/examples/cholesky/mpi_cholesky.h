@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,18 +18,6 @@
 #ifndef __MPI_CHOLESKY_H__
 #define __MPI_CHOLESKY_H__
 
-#include <string.h>
-#include <math.h>
-#include <sys/time.h>
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cublas.h>
-#endif
-
-#include <common/blas.h>
-#include <starpu.h>
-
 #define BLOCKSIZE	(size/nblocks)
 
 static unsigned size = 4*1024;
@@ -39,16 +27,6 @@ static unsigned noprio = 0;
 static unsigned display = 0;
 static unsigned dblockx = -1;
 static unsigned dblocky = -1;
-
-void chol_cpu_codelet_update_u11(void **, void *);
-void chol_cpu_codelet_update_u21(void **, void *);
-void chol_cpu_codelet_update_u22(void **, void *);
-
-#ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args);
-void chol_cublas_codelet_update_u21(void *descr[], void *_args);
-void chol_cublas_codelet_update_u22(void *descr[], void *_args);
-#endif
 
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
