@@ -142,6 +142,7 @@ matrix_decomposition_mpi_cholesky_SOURCES	=		\
 	matrix_decomposition/mpi_cholesky_models.c		\
 	matrix_decomposition/mpi_cholesky_kernels.c	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
+	matrix_decomposition/mpi_cholesky_params.c	\
 	$(top_srcdir)/examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_LDADD =			\
@@ -153,6 +154,7 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	matrix_decomposition/mpi_cholesky_models.c		\
 	matrix_decomposition/mpi_cholesky_kernels.c	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
+	matrix_decomposition/mpi_cholesky_params.c	\
 	$(top_srcdir)/examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
