@@ -175,9 +175,14 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		if (_starpu_worker_can_block(memnode))
 			_STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
 #ifdef STARPU_SIMGRID
-		else
-			/* XXX: has to busy-loop for progression hooks  */
-			MSG_process_sleep(0.000010);
+		else {
+			if (_starpu_machine_is_running()) {
+				static int warned;
+				if (!warned)
+					_STARPU_DISP("Has to make simgrid spin for progression hooks\n");
+				MSG_process_sleep(0.000010);
+			}
+		}
 #endif
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
