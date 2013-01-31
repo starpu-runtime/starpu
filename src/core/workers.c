@@ -405,6 +405,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		workerarg->run_by_starpu = 1;
 		workerarg->worker_is_running = 0;
 		workerarg->worker_is_initialized = 0;
+		
+		int ctx;
+		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+			workerarg->removed_from_ctx[ctx] = 0;
 
 		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 		_STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);

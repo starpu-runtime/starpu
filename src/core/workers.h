@@ -87,7 +87,6 @@ struct _starpu_worker
 	struct _starpu_sched_ctx **sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
 	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
-	struct starpu_task *tasks[STARPU_NMAX_SCHED_CTXS];
        
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
@@ -95,6 +94,8 @@ struct _starpu_worker
 	 used for overlapping ctx in order to determine on which 
 	ctx the worker is allowed to pop */
 	unsigned active_ctx;
+
+	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;

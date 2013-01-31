@@ -572,9 +572,14 @@ pick:
 
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
-
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+			}
+
+			if(!task && worker->removed_from_ctx[sched_ctx->id])
+			{
+				_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
+				worker->removed_from_ctx[sched_ctx->id] = 0;
 			}
 
 			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
@@ -596,7 +601,7 @@ pick:
 	for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
 	{
 		sched_ctx = worker->sched_ctx[j];
-		if(sched_ctx != NULL && sched_ctx->id != 0)
+		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
 			perf_counters = sched_ctx->perf_counters;
 			if(perf_counters != NULL && perf_counters->notify_idle_cycle && perf_counters->notify_idle_end)

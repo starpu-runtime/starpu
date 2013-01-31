@@ -466,7 +466,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best,
-									model_best, transfer_model_best, prio, sched_ctx_id);
+					model_best, transfer_model_best, prio, sched_ctx_id);
 }
 
 static void compute_all_performance_predictions(struct starpu_task *task,
@@ -790,7 +790,7 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 		workerid = workerids[i];
 		/* if the worker has alreadry belonged to this context
 		   the queue and the synchronization variables have been already initialized */
-		if(dt->queue_array[workerid] ==NULL)
+		if(dt->queue_array[workerid] == NULL)
 			dt->queue_array[workerid] = _starpu_create_fifo();
 	}
 }
