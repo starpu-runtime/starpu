@@ -21,6 +21,39 @@
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
 
+void display_matrix(float ***bmat, int rank)
+{
+	unsigned i,j,x,y;
+
+	if (display)
+	{
+		printf("[%d] Input :\n", rank);
+
+		for(y=0 ; y<nblocks ; y++)
+		{
+			for(x=0 ; x<nblocks ; x++)
+			{
+				printf("Block %u,%u :\n", x, y);
+				for (j = 0; j < BLOCKSIZE; j++)
+				{
+					for (i = 0; i < BLOCKSIZE; i++)
+					{
+						if (i <= j)
+						{
+							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
+						}
+						else
+						{
+							printf(".\t");
+						}
+					}
+					printf("\n");
+				}
+			}
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	/* create a simple definite positive symetric matrix example
@@ -77,66 +110,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-
-	if (display)
-	{
-		printf("[%d] Input :\n", rank);
-
-		for(y=0 ; y<nblocks ; y++)
-		{
-			for(x=0 ; x<nblocks ; x++)
-			{
-				printf("Block %u,%u :\n", x, y);
-				for (j = 0; j < BLOCKSIZE; j++)
-				{
-					for (i = 0; i < BLOCKSIZE; i++)
-					{
-						if (i <= j)
-						{
-							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
-						}
-						else
-						{
-							printf(".\t");
-						}
-					}
-					printf("\n");
-				}
-			}
-		}
-	}
+	display_matrix(bmat, rank);
 
 	double timing, flops;
 	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
 
-	if (display)
-	{
-		printf("[%d] Results :\n", rank);
-		for(y=0 ; y<nblocks ; y++)
-		{
-			for(x=0 ; x<nblocks ; x++)
-			{
-				printf("Block %u,%u :\n", x, y);
-				for (j = 0; j < BLOCKSIZE; j++)
-				{
-					for (i = 0; i < BLOCKSIZE; i++)
-					{
-						if (i <= j)
-						{
-							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
-						}
-						else
-						{
-							printf(".\t");
-						}
-					}
-					printf("\n");
-				}
-			}
-		}
-	}
+	display_matrix(bmat, rank);
 
 	int correctness;
 	dw_cholesky_check_computation(bmat, size, rank, nodes, &correctness, &flops);
