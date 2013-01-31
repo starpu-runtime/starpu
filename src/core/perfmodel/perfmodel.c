@@ -227,6 +227,13 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	double sum = 0.0;
 	int node;
 
+	/* Quickly check for needed conversion before looking extensively.  */
+	for (i = 0; i < task->cl->nbuffers; i++)
+		if (!_starpu_data_is_multiformat_handle(task->handles[i]))
+			break;
+	if (i == task->cl->nbuffers)
+		return 0.0;
+
 	/* We need to get one node per archtype. This is kinda ugly,
 	 * but it does the job.
 	 * XXX : Should we return 0 if there are no devices ?
