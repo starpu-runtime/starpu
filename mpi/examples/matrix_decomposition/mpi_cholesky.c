@@ -17,7 +17,6 @@
  */
 
 #include <starpu_mpi.h>
-#include <common/blas.h>
 #include "mpi_cholesky_params.h"
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
@@ -139,87 +138,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	float *rmat = malloc(size*size*sizeof(float));
-	for(x=0 ; x<nblocks ; x++)
-	{
-		for(y=0 ; y<nblocks ; y++)
-		{
-			for (i = 0; i < BLOCKSIZE; i++)
-			{
-				for (j = 0; j < BLOCKSIZE; j++)
-				{
-					rmat[j+(y*BLOCKSIZE)+(i+(x*BLOCKSIZE))*size] = bmat[x][y][j +i*BLOCKSIZE];
-				}
-			}
-		}
-	}
-
-	fprintf(stderr, "[%d] compute explicit LLt ...\n", rank);
-	for (j = 0; j < size; j++)
-	{
-		for (i = 0; i < size; i++)
-		{
-			if (i > j)
-			{
-				rmat[j+i*size] = 0.0f; // debug
-			}
-		}
-	}
-	float *test_mat = malloc(size*size*sizeof(float));
-	STARPU_ASSERT(test_mat);
-
-	SSYRK("L", "N", size, size, 1.0f,
-			rmat, size, 0.0f, test_mat, size);
-
-	fprintf(stderr, "[%d] comparing results ...\n", rank);
-	if (display)
-	{
-		for (j = 0; j < size; j++)
-		{
-			for (i = 0; i < size; i++)
-			{
-				if (i <= j)
-				{
-					printf("%2.2f\t", test_mat[j +i*size]);
-				}
-				else
-				{
-					printf(".\t");
-				}
-			}
-			printf("\n");
-		}
-	}
-
-	int correctness = 1;
-	for(x = 0; x < nblocks ; x++)
-	{
-		for (y = 0; y < nblocks; y++)
-		{
-			int mpi_rank = my_distrib(x, y, nodes);
-			if (mpi_rank == rank)
-			{
-				for (i = (size/nblocks)*x ; i < (size/nblocks)*x+(size/nblocks); i++)
-				{
-					for (j = (size/nblocks)*y ; j < (size/nblocks)*y+(size/nblocks); j++)
-					{
-						if (i <= j)
-						{
-							float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-							float err = abs(test_mat[j +i*size] - orig);
-							if (err > 0.00001)
-							{
-								fprintf(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
-								correctness = 0;
-								flops = 0;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	int correctness;
+	dw_cholesky_check_computation(bmat, size, rank, nodes, &correctness, &flops);
 
 	for(x=0 ; x<nblocks ; x++)
 	{
@@ -230,8 +150,6 @@ int main(int argc, char **argv)
 		free(bmat[x]);
 	}
 	free(bmat);
-	free(rmat);
-	free(test_mat);
 
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
