@@ -851,12 +851,8 @@ if test x$enable_simgrid = xyes ; then
 			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
 		         ])
 	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
-	# Avoid the starpu top thread compilation
-	enable_starpu_top=no
 	# We won't bind or detect anything
 	with_hwloc=no
-	# In simgrid, it's much better to let workers block than spinlock
-	enable_blocking=yes
 fi
 AC_SUBST(SIMGRID_CFLAGS)
 AC_SUBST(SIMGRID_LIBS)
@@ -866,7 +862,7 @@ AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [en
 				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
 
-if test x$enable_blocking = xno; then
+if test x$enable_blocking = xno -a x$enable_simgrid != xyes ; then
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
