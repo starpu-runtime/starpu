@@ -28,6 +28,7 @@ int _starpu_spin_init(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SIMGRID
 	lock->taken = 0;
+	return 0;
 #elif defined(STARPU_SPINLOCK_CHECK)
 //	memcpy(&lock->errcheck_lock, PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP, sizeof(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP));
 	int ret;
@@ -150,6 +151,7 @@ int _starpu_spin_unlock(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	lock->taken = 0;
+	return 0;
 #elif defined(STARPU_SPINLOCK_CHECK)
 	int ret = pthread_mutex_unlock(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret);
