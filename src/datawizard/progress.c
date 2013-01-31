@@ -25,6 +25,12 @@
 
 void _starpu_datawizard_progress(uint32_t memory_node, unsigned may_alloc)
 {
+#ifdef STARPU_SIMGRID
+#if STARPU_DEVEL
+#warning FIXME
+#endif
+	MSG_process_sleep(0.000010);
+#endif
 	/* in case some other driver requested data */
 	_starpu_handle_pending_node_data_requests(memory_node);
 	_starpu_handle_node_data_requests(memory_node, may_alloc);
