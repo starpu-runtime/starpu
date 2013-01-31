@@ -178,8 +178,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		else {
 			if (_starpu_machine_is_running()) {
 				static int warned;
-				if (!warned)
+				if (!warned) {
+					warned = 1;
 					_STARPU_DISP("Has to make simgrid spin for progression hooks\n");
+				}
 				MSG_process_sleep(0.000010);
 			}
 		}
