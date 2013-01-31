@@ -323,6 +323,9 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	_STARPU_PTHREAD_COND_BROADCAST(transfer->cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(transfer->mutex);
 
+	/* The workers which started this request may be sleeping out of tasks, wake it  */
+	_starpu_wake_all_blocked_workers_on_node(transfer->run_node);
+
 	/* Wake transfers waiting for my termination */
 	/* Note: due to possible preemption inside process_create, the array
 	 * may grow while doing this */

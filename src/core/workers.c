@@ -945,8 +945,10 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 #else
 	unsigned can_block = 1;
 
+#ifndef STARPU_SIMGRID
 	if (!_starpu_check_that_no_data_request_exists(memnode))
 		can_block = 0;
+#endif
 
 	if (!_starpu_machine_is_running())
 		can_block = 0;
