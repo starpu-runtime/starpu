@@ -63,8 +63,7 @@ int main(int argc, char **argv)
 
 	float ***bmat;
 	int rank, nodes, ret;
-
-	parse_args(argc, argv);
+	unsigned i,j,x,y;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -75,23 +74,8 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
 	starpu_helper_cublas_init();
 
-	if (dblockx == -1 || dblocky == -1)
-	{
-		int factor;
-		dblockx = nodes;
-		dblocky = 1;
-		for(factor=sqrt(nodes) ; factor>1 ; factor--)
-		{
-			if (nodes % factor == 0)
-			{
-				dblockx = nodes/factor;
-				dblocky = factor;
-				break;
-			}
-		}
-	}
+	parse_args(argc, argv, nodes);
 
-	unsigned i,j,x,y;
 	bmat = malloc(nblocks * sizeof(float *));
 	for(x=0 ; x<nblocks ; x++)
 	{

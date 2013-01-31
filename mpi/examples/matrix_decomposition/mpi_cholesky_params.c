@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 unsigned size = 4*1024;
 unsigned nblocks = 16;
@@ -27,7 +28,7 @@ unsigned display = 0;
 unsigned dblockx = -1;
 unsigned dblocky = -1;
 
-void parse_args(int argc, char **argv)
+void parse_args(int argc, char **argv, int nodes)
 {
         int i;
         for (i = 1; i < argc; i++)
@@ -77,6 +78,23 @@ void parse_args(int argc, char **argv)
                         printf("usage : %s [-display] [-size size] [-nblocks nblocks]\n", argv[0]);
                 }
         }
+
         if (nblocks > size) nblocks = size;
+
+	if (dblockx == -1 || dblocky == -1)
+	{
+		int factor;
+		dblockx = nodes;
+		dblocky = 1;
+		for(factor=sqrt(nodes) ; factor>1 ; factor--)
+		{
+			if (nodes % factor == 0)
+			{
+				dblockx = nodes/factor;
+				dblocky = factor;
+				break;
+			}
+		}
+	}
 }
 

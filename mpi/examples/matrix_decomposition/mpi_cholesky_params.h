@@ -28,7 +28,7 @@ extern unsigned display;
 extern unsigned dblockx;
 extern unsigned dblocky;
 
-void parse_args(int argc, char **argv);
+void parse_args(int argc, char **argv, int nodes);
 
 #endif // __MPI_CHOLESKY_PARAMS_H__
 
