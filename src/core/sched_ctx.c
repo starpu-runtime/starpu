@@ -548,7 +548,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 
 		int ret =  _starpu_push_task_to_workers(old_task);
 		/* if we should stop poping from empty ctx tasks */
-		if(ret == -1) break;
+		if(ret == -EAGAIN) break;
 	}
 	if(!unlocked)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);

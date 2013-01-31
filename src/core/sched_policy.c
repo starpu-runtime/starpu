@@ -319,6 +319,7 @@ int _starpu_push_task(struct _starpu_job *j)
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	unsigned nworkers = 0;
+	int ret;
 
 	_STARPU_LOG_IN();
 
@@ -343,11 +344,15 @@ int _starpu_push_task(struct _starpu_job *j)
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-			return -1;
+			return 0;
 		}
 	}
 
-	return _starpu_push_task_to_workers(task);
+	ret = _starpu_push_task_to_workers(task);
+	if (ret == -EAGAIN)
+		/* pushed to empty context, that's fine */
+		ret = 0;
+	return ret;
 }
 
 int _starpu_push_task_to_workers(struct starpu_task *task)
@@ -368,7 +373,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-			return -1;
+			return -EAGAIN;
 		}
 	}
 
@@ -415,6 +420,7 @@ int _starpu_push_task_end(struct starpu_task *task)
 {
 	_starpu_profiling_set_task_push_end_time(task);
 	task->scheduled = 1;
+	return 0;
 }
 
 /*
