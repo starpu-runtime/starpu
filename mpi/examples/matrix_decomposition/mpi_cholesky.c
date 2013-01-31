@@ -20,39 +20,7 @@
 #include "mpi_cholesky_params.h"
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
-
-void display_matrix(float ***bmat, int rank)
-{
-	unsigned i,j,x,y;
-
-	if (display)
-	{
-		printf("[%d] Input :\n", rank);
-
-		for(y=0 ; y<nblocks ; y++)
-		{
-			for(x=0 ; x<nblocks ; x++)
-			{
-				printf("Block %u,%u :\n", x, y);
-				for (j = 0; j < BLOCKSIZE; j++)
-				{
-					for (i = 0; i < BLOCKSIZE; i++)
-					{
-						if (i <= j)
-						{
-							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
-						}
-						else
-						{
-							printf(".\t");
-						}
-					}
-					printf("\n");
-				}
-			}
-		}
-	}
-}
+#include "mpi_cholesky_matrix.h"
 
 int main(int argc, char **argv)
 {
@@ -63,7 +31,8 @@ int main(int argc, char **argv)
 
 	float ***bmat;
 	int rank, nodes, ret;
-	unsigned i,j,x,y;
+	double timing, flops;
+	int correctness;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -76,46 +45,18 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv, nodes);
 
-	bmat = malloc(nblocks * sizeof(float *));
-	for(x=0 ; x<nblocks ; x++)
-	{
-		bmat[x] = malloc(nblocks * sizeof(float *));
-		for(y=0 ; y<nblocks ; y++)
-		{
-			starpu_malloc((void **)&bmat[x][y], BLOCKSIZE*BLOCKSIZE*sizeof(float));
-			for (i = 0; i < BLOCKSIZE; i++)
-			{
-				for (j = 0; j < BLOCKSIZE; j++)
-				{
-					bmat[x][y][j +i*BLOCKSIZE] = (1.0f/(1.0f+(i+(x*BLOCKSIZE)+j+(y*BLOCKSIZE)))) + ((i+(x*BLOCKSIZE) == j+(y*BLOCKSIZE))?1.0f*size:0.0f);
-					//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
-				}
-			}
-		}
-	}
+	matrix_init(&bmat, rank, nodes, 1);
+	matrix_display(bmat, rank);
 
-	display_matrix(bmat, rank);
-
-	double timing, flops;
 	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
 
-	display_matrix(bmat, rank);
+	matrix_display(bmat, rank);
 
-	int correctness;
 	dw_cholesky_check_computation(bmat, size, rank, nodes, &correctness, &flops);
 
-	for(x=0 ; x<nblocks ; x++)
-	{
-		for(y=0 ; y<nblocks ; y++)
-		{
-			starpu_free((void *)bmat[x][y]);
-		}
-		free(bmat[x]);
-	}
-	free(bmat);
-
+	matrix_free(&bmat, rank, nodes, 1);
 	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 

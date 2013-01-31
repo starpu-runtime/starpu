@@ -57,6 +57,7 @@ EXTRA_DIST = 					\
 	matrix_decomposition/mpi_cholesky_kernels.h	\
 	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_cholesky_params.h	\
+	matrix_decomposition/mpi_cholesky_matrix.h	\
 	../tests/helper.h
 
 examplebindir = $(libdir)/starpu/mpi
@@ -142,6 +143,7 @@ matrix_decomposition_mpi_cholesky_SOURCES	=		\
 	matrix_decomposition/mpi_cholesky_kernels.c	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
 	matrix_decomposition/mpi_cholesky_params.c	\
+	matrix_decomposition/mpi_cholesky_matrix.c	\
 	$(top_srcdir)/examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_LDADD =			\
@@ -154,6 +156,7 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	matrix_decomposition/mpi_cholesky_kernels.c	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
 	matrix_decomposition/mpi_cholesky_params.c	\
+	matrix_decomposition/mpi_cholesky_matrix.c	\
 	$(top_srcdir)/examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\

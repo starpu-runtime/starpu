@@ -20,6 +20,7 @@
 #include "mpi_cholesky_params.h"
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
+#include "mpi_cholesky_matrix.h"
 
 int main(int argc, char **argv)
 {
@@ -30,7 +31,7 @@ int main(int argc, char **argv)
 
 	float ***bmat;
 	int rank, nodes, ret;
-	unsigned i,j,x,y;
+	double timing, flops;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -43,56 +44,21 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv, nodes);
 
-	bmat = malloc(nblocks * sizeof(float *));
-	for(x=0 ; x<nblocks ; x++)
-	{
-		bmat[x] = malloc(nblocks * sizeof(float *));
-		for(y=0 ; y<nblocks ; y++)
-		{
-			int mpi_rank = my_distrib(x, y, nodes);
-			if (mpi_rank == rank)
-			{
-				starpu_malloc((void **)&bmat[x][y], BLOCKSIZE*BLOCKSIZE*sizeof(float));
-				for (i = 0; i < BLOCKSIZE; i++)
-				{
-					for (j = 0; j < BLOCKSIZE; j++)
-					{
-						bmat[x][y][j +i*BLOCKSIZE] = (1.0f/(1.0f+(i+(x*BLOCKSIZE)+j+(y*BLOCKSIZE)))) + ((i+(x*BLOCKSIZE) == j+(y*BLOCKSIZE))?1.0f*size:0.0f);
-						//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
-					}
-				}
-			}
-		}
-	}
+	matrix_init(&bmat, rank, nodes, 0);
 
-	double timing, flops;
 	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
+
+	matrix_free(&bmat, rank, nodes, 0);
+	starpu_helper_cublas_shutdown();
+	starpu_shutdown();
 
 	if (rank == 0)
 	{
 		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
 		fprintf(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
 	}
-
-
-	for(x=0 ; x<nblocks ; x++)
-	{
-		for(y=0 ; y<nblocks ; y++)
-		{
-			int mpi_rank = my_distrib(x, y, nodes);
-			if (mpi_rank == rank)
-			{
-				starpu_free((void *)bmat[x][y]);
-			}
-		}
-		free(bmat[x]);
-	}
-	free(bmat);
-
-	starpu_helper_cublas_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }
