@@ -718,6 +718,7 @@ int starpu_init(struct starpu_conf *user_conf)
 {
 	int ret;
 
+#ifndef STARPU_SIMGRID
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
 	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
@@ -745,6 +746,7 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 #ifdef STARPU_ENABLE_STATS
 	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
+#endif
 #endif
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
