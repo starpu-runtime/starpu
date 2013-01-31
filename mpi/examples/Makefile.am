@@ -53,10 +53,9 @@ EXTRA_DIST = 					\
 	mpi_lu/pxlu.c			\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
-	matrix_decomposition/mpi_cholesky.h		\
-	matrix_decomposition/mpi_kernels.h		\
-	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_cholesky_codelets.h 	\
+	matrix_decomposition/mpi_cholesky_kernels.h	\
+	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_cholesky_params.h	\
 	../tests/helper.h
 
