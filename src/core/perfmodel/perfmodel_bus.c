@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -126,8 +126,8 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
-	cudaMalloc((void **)&d_buffer, size);
-	STARPU_ASSERT(d_buffer);
+	cures = cudaMalloc((void **)&d_buffer, size);
+	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -240,8 +240,8 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	/* Allocate a buffer on the device */
 	unsigned char *s_buffer;
-	cudaMalloc((void **)&s_buffer, size);
-	STARPU_ASSERT(s_buffer);
+	cures = cudaMalloc((void **)&s_buffer, size);
+	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(s_buffer, 0, size);
 
 	/* Initialize CUDA context on the destination */
@@ -260,8 +260,8 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
-	cudaMalloc((void **)&d_buffer, size);
-	STARPU_ASSERT(d_buffer);
+	cures = cudaMalloc((void **)&d_buffer, size);
+	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(d_buffer, 0, size);
 
 	unsigned iter;

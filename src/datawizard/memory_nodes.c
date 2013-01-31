@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -196,7 +196,7 @@ unsigned starpu_worker_get_memory_node(unsigned workerid)
 
 	/* We have a combined worker */
 	unsigned ncombinedworkers = config->topology.ncombinedworkers;
-	STARPU_ASSERT(workerid < ncombinedworkers + nworkers);
+	STARPU_ASSERT_MSG(workerid < ncombinedworkers + nworkers, "Bad workerid %u, maximum %u", workerid, ncombinedworkers + nworkers);
 	return config->combined_workers[workerid - nworkers].memory_node;
 
 }

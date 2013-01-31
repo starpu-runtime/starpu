@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -363,7 +363,7 @@ int starpu_task_submit(struct starpu_task *task)
 {
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
-	STARPU_ASSERT(task->magic == 42);
+	STARPU_ASSERT_MSG(task->magic == 42, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
 
 	int ret;
 	unsigned is_sync = task->synchronous;
@@ -404,7 +404,7 @@ int starpu_task_submit(struct starpu_task *task)
 		unsigned i;
 
 		/* Check buffers */
-		STARPU_ASSERT(task->cl->nbuffers <= STARPU_NMAXBUFS);
+		STARPU_ASSERT_MSG(task->cl->nbuffers <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d)", task->cl, task->cl->nbuffers, STARPU_NMAXBUFS);
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
 			starpu_data_handle_t handle = task->handles[i];

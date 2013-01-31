@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -327,6 +327,9 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)
 {
+	if (!ndeps)
+		return;
+
 	unsigned i;
 
 	/* create the associated completion group */
@@ -335,8 +338,6 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	_starpu_spin_lock(&tag_child->lock);
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 	_starpu_spin_unlock(&tag_child->lock);
-
-	STARPU_ASSERT(ndeps != 0);
 
 	for (i = 0; i < ndeps; i++)
 	{
@@ -364,6 +365,9 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 {
+	if (!ndeps)
+		return;
+
 	unsigned i;
 
 	/* create the associated completion group */
@@ -372,8 +376,6 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	_starpu_spin_lock(&tag_child->lock);
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 	_starpu_spin_unlock(&tag_child->lock);
-
-	STARPU_ASSERT(ndeps != 0);
 
 	va_list pa;
 	va_start(pa, ndeps);

@@ -75,7 +75,7 @@ int starpu_data_get_nb_children(starpu_data_handle_t handle)
 
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)
 {
-	STARPU_ASSERT(i < handle->nchildren);
+	STARPU_ASSERT_MSG(i < handle->nchildren, "Invalid child index %u, maximum %u", i, handle->nchildren);
 	return &handle->children[i];
 }
 
@@ -130,7 +130,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	else
 	  nparts = f->nchildren;
 
-	STARPU_ASSERT(nparts > 0);
+	STARPU_ASSERT_MSG(nparts > 0, "Partitioning in 0 piece does not make sense");
 
 	/* allocate the children */
 	starpu_data_create_children(initial_handle, nparts, f);

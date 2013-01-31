@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -556,9 +556,9 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 	/* Release refcnt taken by fetch_data_on_node */
 	replicate->refcnt--;
-	STARPU_ASSERT(replicate->refcnt >= 0);
+	STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times", handle);
 
-	STARPU_ASSERT(handle->busy_count > 0);
+	STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times", handle);
 	handle->busy_count--;
 
 	if (!_starpu_notify_data_dependencies(handle))

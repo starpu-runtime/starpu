@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +30,7 @@ void starpu_block_filter_func_block(void *father_interface, void *child_interfac
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT(nparts <= nx);
+	STARPU_ASSERT_MSG(nparts <= nx, "%u parts for %u elements", nparts, nx);
 
 	uint32_t chunk_size;
 	size_t offset;
@@ -66,7 +67,7 @@ void starpu_block_shadow_filter_func_block(void *father_interface, void *child_i
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT(nparts <= nx);
+	STARPU_ASSERT_MSG(nparts <= nx, "%u parts for %u elements", nparts, nx);
 
 	uint32_t child_nx;
 	size_t offset;
@@ -101,7 +102,7 @@ void starpu_vertical_block_filter_func_block(void *father_interface, void *child
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT(nparts <= ny);
+	STARPU_ASSERT_MSG(nparts <= ny, "%u parts for %u elements", nparts, ny);
 
 	uint32_t child_ny;
 	size_t offset;
@@ -138,7 +139,7 @@ void starpu_vertical_block_shadow_filter_func_block(void *father_interface, void
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT(nparts <= ny);
+	STARPU_ASSERT_MSG(nparts <= ny, "%u parts for %u elements", nparts, ny);
 
 	uint32_t child_ny;
 	size_t offset;
@@ -174,7 +175,7 @@ void starpu_depth_block_filter_func_block(void *father_interface, void *child_in
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT(nparts <= nz);
+	STARPU_ASSERT_MSG(nparts <= nz, "%u parts for %u elements", nparts, nz);
 
 	uint32_t child_nz;
 	size_t offset;
@@ -212,7 +213,7 @@ void starpu_depth_block_shadow_filter_func_block(void *father_interface, void *c
         uint32_t nz = block_father->nz - 2 * shadow_size;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT(nparts <= nz);
+	STARPU_ASSERT_MSG(nparts <= nz, "%u parts for %u elements", nparts, nz);
 
 	uint32_t child_nz;
 	size_t offset;

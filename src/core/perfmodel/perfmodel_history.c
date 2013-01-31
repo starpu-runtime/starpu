@@ -687,7 +687,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	/* overwrite existing file, or create it */
 	FILE *f;
 	f = fopen(path, "w+");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
 	dump_model_file(f, model);
 

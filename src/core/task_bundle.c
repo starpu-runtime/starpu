@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2012  Inria
  *
@@ -103,7 +103,7 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 		return -ENOENT;
 	}
 
-	STARPU_ASSERT(task->bundle == bundle);
+	STARPU_ASSERT_MSG(task->bundle == bundle, "Task %p was not in bundle %p, but in bundle %p", task, bundle, task->bundle);
 	task->bundle = NULL;
 
 	if (item->task == task)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -32,7 +32,7 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT(nchunks <= nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 
 	uint32_t child_nx;
 	size_t offset;
@@ -71,7 +71,7 @@ void starpu_block_shadow_filter_func(void *father_interface, void *child_interfa
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT(nchunks <= nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 
 	uint32_t child_nx;
 	size_t offset;
@@ -106,7 +106,7 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT(nchunks <= ny);
+	STARPU_ASSERT_MSG(nchunks <= ny, "%u parts for %u elements", nchunks, ny);
 
 	uint32_t child_ny;
 	size_t offset;
@@ -142,7 +142,7 @@ void starpu_vertical_block_shadow_filter_func(void *father_interface, void *chil
 	uint32_t ny = matrix_father->ny - 2 * shadow_size;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT(nchunks <= ny);
+	STARPU_ASSERT_MSG(nchunks <= ny, "%u parts for %u elements", nchunks, ny);
 
 	uint32_t child_ny;
 	size_t offset;

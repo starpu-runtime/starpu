@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -28,7 +28,7 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 	uint32_t nx = vector_father->nx;
 	size_t elemsize = vector_father->elemsize;
 
-	STARPU_ASSERT(nchunks <= nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 
 	uint32_t child_nx;
 	size_t offset;
@@ -59,7 +59,7 @@ void starpu_block_shadow_filter_func_vector(void *father_interface, void *child_
 	uint32_t nx = vector_father->nx - 2 * shadow_size;
 	size_t elemsize = vector_father->elemsize;
 
-	STARPU_ASSERT(nchunks <= nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 
 	uint32_t child_nx;
 	size_t offset;
@@ -83,7 +83,7 @@ void starpu_block_shadow_filter_func_vector(void *father_interface, void *child_
 void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
         /* there cannot be more than 2 chunks */
-        STARPU_ASSERT(id < 2);
+	STARPU_ASSERT_MSG(id < 2, "Only %d parts", id);
 
 	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
@@ -93,7 +93,7 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 	uint32_t nx = vector_father->nx;
 	size_t elemsize = vector_father->elemsize;
 
-	STARPU_ASSERT(length_first < nx);
+	STARPU_ASSERT_MSG(length_first < nx, "First part is too long: %u vs %u", length_first, nx);
 
 	/* this is the first child */
 	if (id == 0)
