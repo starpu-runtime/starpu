@@ -82,7 +82,7 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 		static int warned;
 		if (!warned) {
 			warned = 1;
-			_STARPU_DISP("Warning: making simgrid spin for spinlock");
+			_STARPU_DISP("Warning: making simgrid spin for spinlock\n");
 		}
 		MSG_process_sleep(0.000001);
 	}
