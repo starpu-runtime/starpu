@@ -225,42 +225,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 {
 	unsigned i;
 	double sum = 0.0;
-	int node;
-
-	/* Quickly check for needed conversion before looking extensively.  */
-	for (i = 0; i < task->cl->nbuffers; i++)
-		if (!_starpu_data_is_multiformat_handle(task->handles[i]))
-			break;
-	if (i == task->cl->nbuffers)
-		return 0.0;
-
-	/* We need to get one node per archtype. This is kinda ugly,
-	 * but it does the job.
-	 * XXX : Should we return 0 if there are no devices ?
-	 * (err != 1 && err != -ERANGE)
-	 */
-#ifdef STARPU_USE_CPU
-	int cpu_worker, cpu_node;
-	cpu_worker = starpu_worker_get_by_type(STARPU_CPU_WORKER, 0);
-	if (cpu_worker == -1)
-		return 0.0;
-	cpu_node = starpu_worker_get_memory_node(cpu_worker);
-#endif
-#ifdef STARPU_USE_CUDA
-	int cuda_worker, cuda_node;
-	cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
-	if (cuda_worker == -1)
-		return 0.0;
-	cuda_node = starpu_worker_get_memory_node(cuda_worker);
-#endif
-#ifdef STARPU_USE_OPENCL
-	int opencl_worker, opencl_node;
-	opencl_worker = starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0);
-	if (opencl_worker == -1)
-		return 0.0;
-
-	opencl_node = starpu_worker_get_memory_node(opencl_worker);
-#endif
+	enum starpu_node_kind node_kind;
 
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
@@ -271,26 +236,23 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
-		node = -EINVAL;
 #ifdef STARPU_USE_CPU
 		if (arch < STARPU_CUDA_DEFAULT)
-			node = cpu_node;
+			node_kind = STARPU_CPU_RAM;
 #endif
 #ifdef STARPU_USE_CUDA
 		if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
-			node = cuda_node;
+			node_kind = STARPU_CUDA_RAM;
 #endif
 #ifdef STARPU_USE_OPENCL
 		if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
-			node = opencl_node;
+			node_kind = STARPU_OPENCL_RAM;
 #endif
-		if (node == -EINVAL)
-			STARPU_ABORT();
 
-		if (!_starpu_handle_needs_conversion_task(handle, node))
+		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
 
-		conversion_task = _starpu_create_conversion_task(handle, node);
+		conversion_task = _starpu_create_conversion_task_for_arch(handle, node_kind);
 		sum += starpu_task_expected_length(conversion_task, arch, nimpl);
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;

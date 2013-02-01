@@ -430,9 +430,14 @@ int _starpu_push_task_end(struct starpu_task *task)
 struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 						   unsigned int node)
 {
+	_starpu_create_conversion_task_for_arch(handle, starpu_node_get_kind(node));
+}
+
+struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle,
+						   enum starpu_node_kind node_kind)
+{
 	struct starpu_task *conversion_task;
 	struct starpu_multiformat_interface *format_interface;
-	enum starpu_node_kind node_kind;
 
 	conversion_task = starpu_task_create();
 	conversion_task->synchronous = 0;
@@ -440,7 +445,6 @@ struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
-	node_kind = starpu_node_get_kind(node);
 
 	_starpu_spin_lock(&handle->header_lock);
 	handle->refcnt++;

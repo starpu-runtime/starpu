@@ -817,10 +817,13 @@ int
 _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 				     unsigned int node)
 {
-	enum starpu_node_kind node_kind;
+	return _starpu_handle_needs_conversion_task_for_arch(handle, starpu_node_get_kind(node));
+}
 
-	node_kind = starpu_node_get_kind(node);
-
+int
+_starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
+				     enum starpu_node_kind node_kind)
+{
 	/*
 	 * Here, we assume that CUDA devices and OpenCL devices use the
 	 * same data structure. A conversion is only needed when moving

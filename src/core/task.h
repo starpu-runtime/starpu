@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011 INRIA
  *
@@ -59,6 +59,9 @@ int _starpu_task_submit_internally(struct starpu_task *task);
 
 int _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 					 unsigned int node);
+int
+_starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
+				     enum starpu_node_kind node_kind);
 
 int _starpu_task_uses_multiformat_handles(struct starpu_task *task);
 
