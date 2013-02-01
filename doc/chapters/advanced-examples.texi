@@ -676,7 +676,7 @@ ready to run.
 
 If another dot product has to be performed, one could unregister
 @code{dtq_handle}, and re-register it. But one can also use
-@code{starpu_invalidate(dtq_handle)}, which will clear all data from the handle,
+@code{starpu_data_invalidate_submit(dtq_handle)}, which will clear all data from the handle,
 thus resetting it back to the initial @code{register(NULL)} state.
 
 The @code{cg} example also uses reduction for the blocked gemv kernel, leading

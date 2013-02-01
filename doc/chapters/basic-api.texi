@@ -493,9 +493,10 @@ task. No coherency is assumed.
 @end deftypefun
 
 @deftypefun void starpu_data_invalidate (starpu_data_handle_t @var{handle})
-Destroy all replicates of the data handle. After data invalidation, the first
-access to the handle must be performed in write-only mode. Accessing an
-invalidated data in read-mode results in undefined behaviour.
+Destroy all replicates of the data handle immediately. After data invalidation,
+the first access to the handle must be performed in write-only mode.
+Accessing an invalidated data in read-mode results in undefined
+behaviour.
 @end deftypefun
 
 @deftypefun void starpu_data_invalidate_submit (starpu_data_handle_t @var{handle})

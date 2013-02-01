@@ -287,7 +287,7 @@ int dot_kernel(starpu_data_handle_t v1,
 
 	/* Blank the accumulation variable */
 	if (use_reduction)
-		starpu_data_invalidate(s);
+		starpu_data_invalidate_submit(s);
 	else {
 		ret = starpu_insert_task(&bzero_variable_cl, STARPU_W, s, 0);
 		if (ret == -ENODEV) return ret;
