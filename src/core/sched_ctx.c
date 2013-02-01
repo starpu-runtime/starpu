@@ -532,6 +532,17 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 {
 	unsigned unlocked = 0;
 	_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+
+	if(starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
+	{
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+		return;
+	}
+	else
+                /* you're not suppose to get here if you deleted the context
+		   so no point in having the mutex locked */
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
+	
 	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
 	{
 		if(unlocked)
@@ -549,6 +560,10 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 	}
 	if(!unlocked)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+
+
+	/* leave the mutex as it was to avoid pbs in the caller function */
+	_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx->id]);
 	return;
 
 }
