@@ -393,6 +393,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 	{
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_spin_unlock(&child_handle->header_lock);
+		_starpu_spin_destroy(&child_handle->header_lock);
 	}
 
 	/* there is no child anymore */
