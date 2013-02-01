@@ -18,6 +18,7 @@
 #include <starpu_mpi.h>
 #include <common/blas.h>
 #include "mpi_decomposition_params.h"
+#include "mpi_decomposition_matrix.h"
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
 #include "mpi_cholesky_kernels.h"
@@ -61,13 +62,6 @@ static struct starpu_codelet cl22 =
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &chol_model_22
 };
-
-/* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes)
-{
-	//return (x+y) % nb_nodes;
-	return (x%dblockx)+(y%dblocky)*dblockx;
-}
 
 /*
  *	code to bootstrap the factorization

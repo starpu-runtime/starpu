@@ -19,6 +19,9 @@
 #ifndef __MPI_CHOLESKY_MATRIX_H__
 #define __MPI_CHOLESKY_MATRIX_H__
 
+/* Returns the MPI node number where data indexes index is */
+int my_distrib(int x, int y, int nb_nodes);
+
 void matrix_display(float ***bmat, int rank);
 void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere);
 void matrix_free(float ****bmat, int rank, int nodes, int alloc_everywhere);

@@ -19,9 +19,6 @@
 #define __MPI_CHOLESKY_CODELETS_H__
 
 
-/* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes);
-
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG

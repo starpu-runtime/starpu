@@ -21,6 +21,14 @@
 #include "mpi_decomposition_params.h"
 #include "mpi_cholesky_codelets.h"
 
+/* Returns the MPI node number where data indexes index is */
+int my_distrib(int x, int y, int nb_nodes)
+{
+	//return (x+y) % nb_nodes;
+	return (x%dblockx)+(y%dblocky)*dblockx;
+}
+
+
 void matrix_display(float ***bmat, int rank)
 {
 	unsigned i,j,x,y;
