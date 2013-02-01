@@ -469,6 +469,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 					model_best, transfer_model_best, prio, sched_ctx_id);
 }
 
+/* TODO: factorise CPU computations, expensive with a lot of cores */
 static void compute_all_performance_predictions(struct starpu_task *task,
 						double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
 						double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
