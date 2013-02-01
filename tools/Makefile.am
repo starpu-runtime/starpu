@@ -84,15 +84,15 @@ bin_PROGRAMS += 			\
 	starpu_calibrate_bus		\
 	starpu_machine_display
 
-STARPU_TOOLS	+=			\
-	starpu_perfmodel_display	\
-	starpu_perfmodel_plot 		\
-	starpu_machine_display
-
 if STARPU_LONG_CHECK
 STARPU_TOOLS	+=			\
 	starpu_calibrate_bus
 endif
+
+STARPU_TOOLS	+=			\
+	starpu_perfmodel_display	\
+	starpu_perfmodel_plot 		\
+	starpu_machine_display
 
 noinst_PROGRAMS =	cbc2paje lp2paje
 
