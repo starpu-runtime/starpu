@@ -17,8 +17,8 @@
  */
 
 #include <starpu.h>
-#include "mpi_cholesky_matrix.h"
-#include "mpi_cholesky_params.h"
+#include "mpi_decomposition_matrix.h"
+#include "mpi_decomposition_params.h"
 #include "mpi_cholesky_codelets.h"
 
 void matrix_display(float ***bmat, int rank)

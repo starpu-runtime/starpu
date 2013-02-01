@@ -17,10 +17,10 @@
  */
 
 #include <starpu_mpi.h>
-#include "mpi_cholesky_params.h"
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
-#include "mpi_cholesky_matrix.h"
+#include "mpi_decomposition_matrix.h"
+#include "mpi_decomposition_params.h"
 
 int main(int argc, char **argv)
 {

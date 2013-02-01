@@ -17,7 +17,7 @@
 
 #include <starpu_mpi.h>
 #include <common/blas.h>
-#include "mpi_cholesky_params.h"
+#include "mpi_decomposition_params.h"
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
 #include "mpi_cholesky_kernels.h"

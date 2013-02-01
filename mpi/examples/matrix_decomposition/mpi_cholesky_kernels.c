@@ -16,7 +16,7 @@
  */
 
 #include <starpu.h>
-#include "mpi_cholesky_params.h"
+#include "mpi_decomposition_params.h"
 #include "common/blas.h"
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
