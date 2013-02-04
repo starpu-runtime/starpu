@@ -76,15 +76,8 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 			lock->taken = 1;
 			return 0;
 		}
-#ifdef STARPU_DEVEL
-#warning FIXME: better way to spinlock?
-#endif
-		/* Sleep for 1µs */
-		static int warned;
-		if (!warned) {
-			warned = 1;
-			_STARPU_DISP("Warning: making simgrid spin for spinlock\n");
-		}
+		/* Give hand to another thread, hopefully the one which has the
+		 * spinlock and probably just has also a short-lived mutex. */
 		MSG_process_sleep(0.000001);
 	}
 #elif defined(STARPU_SPINLOCK_CHECK)
