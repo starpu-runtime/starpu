@@ -20,6 +20,99 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/workers.h>
 
+static struct starpu_conf conf;
+
+static void bus_name(char *s, size_t size, int num)
+{
+	if (!num)
+		snprintf(s, size, "RAM");
+	else if (num < conf.ncuda + 1)
+		snprintf(s, size, "CUDA%d", num - 1);
+	else
+		snprintf(s, size, "OpenCL%d", num - conf.ncuda - 1);
+}
+
+void starpu_simgrid_write_platform(struct starpu_conf *conf, FILE *file)
+{
+	int i, j;
+
+	fprintf(file,
+"<?xml version='1.0'?>\n"
+" <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
+" <platform version='3'>\n"
+" <config id='General'>\n"
+"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
+"   <prop id='network/latency_factor' value='1'></prop>\n"
+"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
+" </config>\n"
+" <AS  id='AS0'  routing='Full'>\n"
+"   <host id='MAIN' power='1'/>\n"
+		);
+
+	for (i = 0; i < conf->ncpus; i++)
+		fprintf(file, "   <host id='CPU%d' power='2000000000'/>\n", i);
+
+	for (i = 0; i < conf->ncuda; i++)
+		fprintf(file, "   <host id='CUDA%d' power='2000000000'/>\n", i);
+
+	for (i = 0; i < conf->nopencl; i++)
+		fprintf(file, "   <host id='OpenCL%d' power='2000000000'/>\n", i);
+
+	fprintf(file, "\n   <host id='RAM' power='1'/>\n");
+
+	/* Compute maximum bandwidth, taken as machine bandwidth */
+	double max_bandwidth = 0;
+	for (i = 1; i < conf->ncuda + conf->nopencl + 1; i++)
+	{
+		if (max_bandwidth < _starpu_transfer_bandwidth(0, i))
+			max_bandwidth = _starpu_transfer_bandwidth(0, i);
+		if (max_bandwidth < _starpu_transfer_bandwidth(i, 0))
+			max_bandwidth = _starpu_transfer_bandwidth(i, 0);
+	}
+	fprintf(file, "\n   <link id='Share' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
+
+	for (i = 0; i < conf->ncuda + conf->nopencl + 1; i++)
+	{
+		char i_name[16];
+		bus_name(i_name, sizeof(i_name), i);
+
+		for (j = 0; j < conf->ncuda + conf->nopencl + 1; j++)
+		{
+			char j_name[16];
+			if (j == i)
+				continue;
+			bus_name(j_name, sizeof(j_name), j);
+			fprintf(file, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
+				i_name, j_name,
+				_starpu_transfer_bandwidth(i, j) * 1000000,
+				_starpu_transfer_latency(i, j) / 1000000);
+		}
+	}
+
+	for (i = 0; i < conf->ncuda + conf->nopencl + 1; i++)
+	{
+		char i_name[16];
+		bus_name(i_name, sizeof(i_name), i);
+
+		for (j = 0; j < conf->ncuda + conf->nopencl + 1; j++)
+		{
+			char j_name[16];
+			if (j == i)
+				continue;
+			bus_name(j_name, sizeof(j_name), j);
+			fprintf(file,
+"   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Share'/></route>\n",
+				i_name, j_name, i_name, j_name);
+		}
+	}
+
+	fprintf(file, 
+" </AS>\n"
+" </platform>\n"
+		);
+	fclose(file);
+}
+
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
 
@@ -27,8 +120,6 @@
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
-
-static struct starpu_conf conf;
 
 struct main_args {
 	int argc;
@@ -41,16 +132,6 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 	return starpu_main(args->argc, args->argv);
 }
 
-static void bus_name(char *s, size_t size, int num)
-{
-	if (!num)
-		snprintf(s, size, "RAM");
-	else if (num < conf.ncuda + 1)
-		snprintf(s, size, "CUDA%d", num - 1);
-	else
-		snprintf(s, size, "OpenCL%d", num - conf.ncuda - 1);
-}
-
 #ifdef STARPU_DEVEL
 #warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
 #endif
@@ -58,7 +139,7 @@ static void bus_name(char *s, size_t size, int num)
 int main(int argc, char **argv)
 {
 	xbt_dynar_t hosts;
-	int i, j;
+	int i;
 	char name[] = "/tmp/starpu-simgrid-platform.xml.XXXXXX";
 	int fd;
 	FILE *file;
@@ -113,81 +194,7 @@ int main(int argc, char **argv)
 	/* TODO: but still permit the user to provide his own xml */
 	fd = mkstemp(name);
 	file = fdopen(fd, "w");
-	fprintf(file,
-"<?xml version='1.0'?>\n"
-" <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
-" <platform version='3'>\n"
-" <config id='General'>\n"
-"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
-"   <prop id='network/latency_factor' value='1'></prop>\n"
-"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
-" </config>\n"
-" <AS  id='AS0'  routing='Full'>\n"
-"   <host id='MAIN' power='1'/>\n"
-		);
-
-	for (i = 0; i < conf.ncpus; i++)
-		fprintf(file, "   <host id='CPU%d' power='2000000000'/>\n", i);
-
-	for (i = 0; i < conf.ncuda; i++)
-		fprintf(file, "   <host id='CUDA%d' power='2000000000'/>\n", i);
-
-	for (i = 0; i < conf.nopencl; i++)
-		fprintf(file, "   <host id='OpenCL%d' power='2000000000'/>\n", i);
-
-	fprintf(file, "\n   <host id='RAM' power='1'/>\n");
-
-	/* Compute maximum bandwidth, taken as machine bandwidth */
-	double max_bandwidth = 0;
-	for (i = 1; i < conf.ncuda + conf.nopencl + 1; i++)
-	{
-		if (max_bandwidth < _starpu_transfer_bandwidth(0, i))
-			max_bandwidth = _starpu_transfer_bandwidth(0, i);
-		if (max_bandwidth < _starpu_transfer_bandwidth(i, 0))
-			max_bandwidth = _starpu_transfer_bandwidth(i, 0);
-	}
-	fprintf(file, "\n   <link id='Share' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
-
-	for (i = 0; i < conf.ncuda + conf.nopencl + 1; i++)
-	{
-		char i_name[16];
-		bus_name(i_name, sizeof(i_name), i);
-
-		for (j = 0; j < conf.ncuda + conf.nopencl + 1; j++)
-		{
-			char j_name[16];
-			if (j == i)
-				continue;
-			bus_name(j_name, sizeof(j_name), j);
-			fprintf(file, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
-				i_name, j_name,
-				_starpu_transfer_bandwidth(i, j) * 1000000,
-				_starpu_transfer_latency(i, j) / 1000000);
-		}
-	}
-
-	for (i = 0; i < conf.ncuda + conf.nopencl + 1; i++)
-	{
-		char i_name[16];
-		bus_name(i_name, sizeof(i_name), i);
-
-		for (j = 0; j < conf.ncuda + conf.nopencl + 1; j++)
-		{
-			char j_name[16];
-			if (j == i)
-				continue;
-			bus_name(j_name, sizeof(j_name), j);
-			fprintf(file,
-"   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Share'/></route>\n",
-				i_name, j_name, i_name, j_name);
-		}
-	}
-
-	fprintf(file, 
-" </AS>\n"
-" </platform>\n"
-		);
-	fclose(file);
+	starpu_simgrid_write_platform(&conf, file);
 	close(fd);
 
 	/* and load it */
@@ -437,21 +444,26 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	}
 }
 
-static int last_key;
+static int used_key[MAX_TSD];
 
 int _starpu_pthread_key_create(_starpu_pthread_key_t *key)
 {
+	unsigned i;
+
 	/* Note: no synchronization here, we are actually monothreaded anyway. */
-	STARPU_ASSERT(last_key < MAX_TSD);
-	*key = last_key++;
+	for (i = 0; i < MAX_TSD; i++)
+		if (!used_key[i]) {
+			used_key[i] = 1;
+			break;
+		}
+	STARPU_ASSERT(i < MAX_TSD);
+	*key = i;
 	return 0;
 }
 
-int _starpu_pthread_key_delete(_starpu_pthread_key_t key STARPU_ATTRIBUTE_UNUSED)
+int _starpu_pthread_key_delete(_starpu_pthread_key_t key)
 {
-#ifdef STARPU_DEVEL
-#warning TODO: implement pthread_key_delete so simgridified starpu can be restarted at will
-#endif
+	used_key[key] = 0;
 	return 0;
 }
 
