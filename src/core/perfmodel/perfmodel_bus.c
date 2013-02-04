@@ -956,6 +956,8 @@ static int load_bus_latency_file_content(void)
 	char path[256];
 	get_latency_path(path, 256);
 
+	_STARPU_DEBUG("loading latencies from %s\n", path);
+
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
@@ -1111,6 +1113,8 @@ static int load_bus_bandwidth_file_content(void)
 
 	char path[256];
 	get_bandwidth_path(path, 256);
+
+	_STARPU_DEBUG("loading bandwidth from %s\n", path);
 
 	f = fopen(path, "r");
 	if (!f)
