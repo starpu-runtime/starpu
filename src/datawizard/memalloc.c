@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,8 +24,8 @@
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 static _starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
 
-/* This per-node RW-locks protect lru_list */
-static _starpu_pthread_rwlock_t lru_rwlock[STARPU_MAXNODES];
+/* This per-node spinlock protect lru_list */
+static struct _starpu_spinlock lru_rwlock[STARPU_MAXNODES];
 
 /* Last Recently used memory chunkgs */
 static struct _starpu_mem_chunk_lru_list *starpu_lru_list[STARPU_MAXNODES];
@@ -47,7 +47,7 @@ void _starpu_init_mem_chunk_lists(void)
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		_STARPU_PTHREAD_RWLOCK_INIT(&mc_rwlock[i], NULL);
-		_STARPU_PTHREAD_RWLOCK_INIT(&lru_rwlock[i], NULL);
+		_starpu_spin_init(&lru_rwlock[i]);
 		mc_list[i] = _starpu_mem_chunk_list_new();
 		starpu_lru_list[i] = _starpu_mem_chunk_lru_list_new();
 		memchunk_cache[i] = _starpu_mem_chunk_list_new();
@@ -679,6 +679,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 
 	size_t size = _starpu_data_get_size(handle);
 
+	/* TODO: expensive, handle should its own list of chunks? */
 	/* iterate over the list of memory chunks and remove the entry */
 	struct _starpu_mem_chunk *mc, *next_mc;
 	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
@@ -1030,11 +1031,11 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint
 
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&lru_rwlock[node]);
+	_starpu_spin_lock(&lru_rwlock[node]);
 	struct _starpu_mem_chunk_lru *mc_lru=_starpu_mem_chunk_lru_new();
 	mc_lru->mc=mc;
 	_starpu_mem_chunk_lru_list_push_front(starpu_lru_list[node],mc_lru);
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&lru_rwlock[node]);
+	_starpu_spin_unlock(&lru_rwlock[node]);
 }
 
 /* The mc_rwlock[node] rw-lock should be taken prior to calling this function.*/
@@ -1058,7 +1059,7 @@ static void _starpu_memchunk_recently_used_move(struct _starpu_mem_chunk *mc, un
 
 static void starpu_lru(unsigned node)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&lru_rwlock[node]);
+	_starpu_spin_lock(&lru_rwlock[node]);
 	while (!_starpu_mem_chunk_lru_list_empty(starpu_lru_list[node]))
 	{
 		struct _starpu_mem_chunk_lru *mc_lru=_starpu_mem_chunk_lru_list_front(starpu_lru_list[node]);
@@ -1066,7 +1067,7 @@ static void starpu_lru(unsigned node)
 		_starpu_mem_chunk_lru_list_erase(starpu_lru_list[node], mc_lru);
 		_starpu_mem_chunk_lru_delete(mc_lru);
 	}
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&lru_rwlock[node]);
+	_starpu_spin_unlock(&lru_rwlock[node]);
 }
 
 #ifdef STARPU_MEMORY_STATS
