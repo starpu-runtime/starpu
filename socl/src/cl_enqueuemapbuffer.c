@@ -28,14 +28,15 @@ static void mapbuffer_task(void *args) {
 	starpu_data_acquire_cb(cmd->buffer->handle, mode, command_completed_task_callback, cmd);
 }
 
+static struct starpu_codelet codelet_mapbuffer = {
+   .name = "SOCL_MAP_BUFFER"
+};
+
 cl_int command_map_buffer_submit(command_map_buffer cmd) {
-	static struct starpu_codelet codelet = {
-		.name = "SOCL_MAP_BUFFER"
-	};
 
    gc_entity_retain(cmd);
 
-	cpu_task_submit(cmd, mapbuffer_task, cmd, 0, 0, &codelet, 0, NULL);
+	cpu_task_submit(cmd, mapbuffer_task, cmd, 0, 0, &codelet_mapbuffer, 0, NULL);
 
 	return CL_SUCCESS;
 }
