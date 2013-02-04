@@ -96,10 +96,10 @@ static void release_callback_kernel(void * e) {
   //will use them to store kernel execution times
 
   //free(kernel->perfmodel);
+  //free(kernel->kernel_name);
 
   gc_entity_unstore(&kernel->program);
 
-  free(kernel->kernel_name);
   free(kernel->cl_kernels);
   free(kernel->errcodes);
 }
