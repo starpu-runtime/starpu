@@ -63,9 +63,11 @@ struct dev_timing
 static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned was_benchmarked = 0;
+#ifndef STARPU_SIMGRID
 static unsigned ncpus = 0;
 static int ncuda = 0;
 static int nopencl = 0;
+#endif
 
 /* Benchmarking the performance of the bus */
 
@@ -1049,6 +1051,7 @@ static int load_bus_latency_file_content(void)
 	return 1;
 }
 
+#ifndef STARPU_SIMGRID
 static void write_bus_latency_file_content(void)
 {
         int src, dst, maxnode;
@@ -1128,13 +1131,16 @@ static void write_bus_latency_file_content(void)
 
 	fclose(f);
 }
+#endif
 
 static void generate_bus_latency_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
 
+#ifndef STARPU_SIMGRID
 	write_bus_latency_file_content();
+#endif
 }
 
 static void load_bus_latency_file(void)
@@ -1258,6 +1264,7 @@ static int load_bus_bandwidth_file_content(void)
 	return 1;
 }
 
+#ifndef STARPU_SIMGRID
 static void write_bus_bandwidth_file_content(void)
 {
 	int src, dst, maxnode;
@@ -1427,13 +1434,16 @@ void starpu_bus_print_bandwidth(FILE *f)
 	}
 #endif
 }
+#endif
 
 static void generate_bus_bandwidth_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
 
+#ifndef STARPU_SIMGRID
 	write_bus_bandwidth_file_content();
+#endif
 }
 
 static void load_bus_bandwidth_file(void)
@@ -1528,6 +1538,7 @@ static void check_bus_config_file(void)
         }
 }
 
+#ifndef STARPU_SIMGRID
 static void write_bus_config_file_content(void)
 {
 	FILE *f;
@@ -1548,13 +1559,16 @@ static void write_bus_config_file_content(void)
 
         fclose(f);
 }
+#endif
 
 static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
 
+#ifndef STARPU_SIMGRID
 	write_bus_config_file_content();
+#endif
 }
 
 /*
