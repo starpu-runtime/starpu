@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,8 @@ enodev:
 		 * could perform the kernel, so this is not an error from StarPU */
 		return STARPU_TEST_SKIPPED;
 	}
-	else {
+	else
+	{
 		FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 		ret = !(x == 12 && f == 24.0);
 		STARPU_RETURN(ret);

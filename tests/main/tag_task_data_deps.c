@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg)
 		usleep(duration);
 }
 
-static struct starpu_codelet dummy_Rcodelet = 
+static struct starpu_codelet dummy_Rcodelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.model = NULL,
@@ -41,7 +41,7 @@ static struct starpu_codelet dummy_Rcodelet =
 	.modes = {STARPU_R}
 };
 
-static struct starpu_codelet dummy_Wcodelet = 
+static struct starpu_codelet dummy_Wcodelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.model = NULL,
@@ -49,7 +49,7 @@ static struct starpu_codelet dummy_Wcodelet =
 	.modes = {STARPU_W}
 };
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.model = NULL,
@@ -102,7 +102,8 @@ int main(int argc, char **argv)
 	{
 #else
 	loop = 0x258;
-	do {
+	do
+	{
 #endif
 		int durationA = loop & 1 ? duration:0;
 		int durationB = loop & 2 ? duration:0;
@@ -115,21 +116,24 @@ int main(int argc, char **argv)
 		handleA = handle1;
 		writeA = !!(loop & 8);
 		dataA = !!(loop & 16);
-		if (!dataA && writeA) {
+		if (!dataA && writeA)
+		{
 			handleA = handle2;
 			dataA = 1;
 		}
 		handleB = handle1;
 		writeB = !!(loop & 32);
 		dataB = !!(loop & 64);
-		if (!dataB && writeB) {
+		if (!dataB && writeB)
+		{
 			handleB = handle2;
 			dataB = 1;
 		}
 		handleC = handle1;
 		writeC = !!(loop & 128);
 		dataC = !!(loop & 256);
-		if (!dataC && writeC) {
+		if (!dataC && writeC)
+		{
 			handleC = handle2;
 			dataC = 1;
 		}
@@ -142,26 +146,32 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, " longB ");
 		if (durationC)
 			FPRINTF(stderr, " longC ");
-		if (dataA) {
+		if (dataA)
+		{
 			if (writeA)
 				FPRINTF(stderr, " WA");
 			else
 				FPRINTF(stderr, " RA");
-		} else if (writeA)
+		}
+		else if (writeA)
 			FPRINTF(stderr, " wA");
-		if (dataB) {
+		if (dataB)
+		{
 			if (writeB)
 				FPRINTF(stderr, " WB");
 			else
 				FPRINTF(stderr, " RB");
-		} else if (writeB)
+		}
+		else if (writeB)
 			FPRINTF(stderr, " wB");
-		if (dataC) {
+		if (dataC)
+		{
 			if (writeC)
 				FPRINTF(stderr, " WC");
 			else
 				FPRINTF(stderr, " RC");
-		} else if (writeC)
+		}
+		else if (writeC)
 			FPRINTF(stderr, " wC");
 		if (loop & 512)
 			FPRINTF(stderr, " Tag AB");

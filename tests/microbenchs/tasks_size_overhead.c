@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,18 +56,21 @@ static void func(void *descr[] __attribute__ ((unused)), void *arg)
 	unsigned n = (uintptr_t)arg;
 	long usec = 0;
 	gettimeofday(&tv1, NULL);
-	do {
+	do
+	{
 		gettimeofday(&tv2, NULL);
-		if (tv2.tv_usec < tv1.tv_usec) {
+		if (tv2.tv_usec < tv1.tv_usec)
+		{
 			tv2.tv_usec += 1000000;
 			tv2.tv_sec--;
 		}
 		usec = (tv2.tv_sec-tv1.tv_sec)*1000000
 			+ (tv2.tv_usec - tv1.tv_usec);
-	} while (usec < n);
+	}
+	while (usec < n);
 }
 
-static struct starpu_codelet codelet = 
+static struct starpu_codelet codelet =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {func, NULL},
@@ -136,7 +139,8 @@ int main(int argc, char **argv)
 		FPRINTF(stdout, "%u iters(us)\ttotal(s)\t", size);
 	FPRINTF(stdout, "\n");
 	FPRINTF(stdout, "\"seq\"\t");
-	for (size = START; size <= STOP; size *= FACTOR) {
+	for (size = START; size <= STOP; size *= FACTOR)
+	{
 		double dstart, dend;
 		dstart = starpu_timing_now();
 		for (i = 0; i < ntasks; i++)
@@ -148,7 +152,8 @@ int main(int argc, char **argv)
 	fflush(stdout);
 
 	/* For each number of cpus, benchmark */
-	for (ncpus= 1; ncpus <= totcpus; ncpus++) {
+	for (ncpus= 1; ncpus <= totcpus; ncpus++)
+	{
 		FPRINTF(stdout, "%u\t", ncpus);
 		fflush(stdout);
 

@@ -61,7 +61,8 @@ int main(int argc, char **argv)
 
 	starpu_data_partition(handle, &f);
 
-	for (i = 0; i < f.nchildren; i++) {
+	for (i = 0; i < f.nchildren; i++)
+	{
 		struct starpu_task *task = starpu_task_create();
 
 		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
@@ -82,8 +83,10 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	ret = EXIT_SUCCESS;
-	for (i = 0; i < size; i++) {
-		if (foo[i] != i*2) {
+	for (i = 0; i < size; i++)
+	{
+		if (foo[i] != i*2)
+		{
 			FPRINTF(stderr,"value %d is %u instead of %d\n", i, foo[i], 2*i);
 			ret = EXIT_FAILURE;
 		}

@@ -123,25 +123,27 @@ static void test_cleaner(int sig)
 
 static void decode(char **src, char *motif, const char *value)
 {
-     if (*src) {
-	  char *y = strstr(*src, motif);
-	  if (y && value == NULL)
-	  {
-	       fprintf(stderr, "error: $%s undefined\n", motif);
-	       exit(EXIT_FAILURE);
-	  }
-	  while (y) {
-	       char *neo = malloc((strlen(*src)-strlen(motif)+strlen(value)) * sizeof(char));
-	       char *to = neo;
+	if (*src)
+	{
+		char *y = strstr(*src, motif);
+		if (y && value == NULL)
+		{
+			fprintf(stderr, "error: $%s undefined\n", motif);
+			exit(EXIT_FAILURE);
+		}
+		while (y)
+		{
+			char *neo = malloc((strlen(*src)-strlen(motif)+strlen(value)) * sizeof(char));
+			char *to = neo;
 
-	       to = strncpy(to, *src, strlen(*src)-strlen(y)); to += strlen(*src)-strlen(y);
-	       to = strcpy(to, value); to += strlen(value);
-	       strcpy(to, y+strlen(motif));
+			to = strncpy(to, *src, strlen(*src)-strlen(y)); to += strlen(*src)-strlen(y);
+			to = strcpy(to, value); to += strlen(value);
+			strcpy(to, y+strlen(motif));
 
-	       *src = strdup(neo);
-	       y = strstr(*src, motif);
-	  }
-     }
+			*src = strdup(neo);
+			y = strstr(*src, motif);
+		}
+	}
 }
 
 int main(int argc, char *argv[])
