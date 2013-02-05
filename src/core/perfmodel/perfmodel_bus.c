@@ -954,6 +954,7 @@ static int load_bus_latency_file_content(void)
 	int n;
 	unsigned src, dst;
 	FILE *f;
+	double latency;
 
 	char path[256];
 	get_latency_path(path, 256);
@@ -961,24 +962,36 @@ static int load_bus_latency_file_content(void)
 	_STARPU_DEBUG("loading latencies from %s\n", path);
 
 	f = fopen(path, "r");
-	STARPU_ASSERT(f);
+	if (!f)
+	{
+		perror("fopen load_bus_latency_file_content");
+		_STARPU_DISP("path '%s'\n", path);
+		fflush(stderr);
+		STARPU_ABORT();
+	}
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			double latency;
-
 			n = fscanf(f, "%lf", &latency);
 			if (n != 1)
 			{
+				_STARPU_DISP("Error while reading latency file <%s>. Expected a number\n", path);
 				fclose(f);
 				return 0;
 			}
 			n = getc(f);
+			if (n == '\n') {
+				/* No more values, take NAN */
+				for (; dst < STARPU_MAXNODES; dst++)
+					latency_matrix[src][dst] = NAN;
+				break;
+			}
 			if (n != '\t')
 			{
+				_STARPU_DISP("bogus character %c in latency file %s\n", n, path);
 				fclose(f);
 				return 0;
 			}
@@ -986,9 +999,24 @@ static int load_bus_latency_file_content(void)
 			latency_matrix[src][dst] = latency;
 		}
 
-		n = getc(f);
+		while (n == '\t') {
+			/* Look out for \t\n */
+			n = getc(f);
+			if (n == '\n')
+				break;
+			ungetc(n, f);
+
+			n = fscanf(f, "%lf", &latency);
+			if (n && !isnan(latency)) {
+				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
+				fclose(f);
+				return 0;
+			}
+			n = getc(f);
+		}
 		if (n != '\n')
 		{
+			_STARPU_DISP("Bogus character %c in latency file %s\n", n, path);
 			fclose(f);
 			return 0;
 		}
@@ -1067,7 +1095,9 @@ static void write_bus_latency_file_content(void)
 #endif
 			}
 
-			fprintf(f, "%f\t", latency);
+			if (dst)
+				fputc('\t', f);
+			fprintf(f, "%f", latency);
 		}
 
 		fprintf(f, "\n");
@@ -1114,6 +1144,7 @@ static int load_bus_bandwidth_file_content(void)
 	int n;
 	unsigned src, dst;
 	FILE *f;
+	double bandwidth;
 
 	char path[256];
 	get_bandwidth_path(path, 256);
@@ -1134,18 +1165,23 @@ static int load_bus_bandwidth_file_content(void)
 		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			double bandwidth;
-
 			n = fscanf(f, "%lf", &bandwidth);
 			if (n != 1)
 			{
-				_STARPU_DISP("Error while reading sampling file <%s>. Expected a number\n", path);
+				_STARPU_DISP("Error while reading bandwidth file <%s>. Expected a number\n", path);
 				fclose(f);
 				return 0;
 			}
 			n = getc(f);
+			if (n == '\n') {
+				/* No more values, take NAN */
+				for (; dst < STARPU_MAXNODES; dst++)
+					bandwidth_matrix[src][dst] = NAN;
+				break;
+			}
 			if (n != '\t')
 			{
+				_STARPU_DISP("bogus character %c in bandwidth file %s\n", n, path);
 				fclose(f);
 				return 0;
 			}
@@ -1153,7 +1189,21 @@ static int load_bus_bandwidth_file_content(void)
 			bandwidth_matrix[src][dst] = bandwidth;
 		}
 
-		n = getc(f);
+		while (n == '\t') {
+			/* Look out for \t\n */
+			n = getc(f);
+			if (n == '\n')
+				break;
+			ungetc(n, f);
+
+			n = fscanf(f, "%lf", &bandwidth);
+			if (n && !isnan(bandwidth)) {
+				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
+				fclose(f);
+				return 0;
+			}
+			n = getc(f);
+		}
 		if (n != '\n')
 		{
 			fclose(f);
@@ -1233,7 +1283,9 @@ static void write_bus_bandwidth_file_content(void)
 			        bandwidth = 0.0;
 			}
 
-			fprintf(f, "%f\t", bandwidth);
+			if (dst)
+				fputc('\t', f);
+			fprintf(f, "%f", bandwidth);
 		}
 
 		fprintf(f, "\n");
