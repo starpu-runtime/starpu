@@ -236,18 +236,14 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
-#ifdef STARPU_USE_CPU
 		if (arch < STARPU_CUDA_DEFAULT)
 			node_kind = STARPU_CPU_RAM;
-#endif
-#ifdef STARPU_USE_CUDA
-		if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
+		else if (arch < STARPU_OPENCL_DEFAULT)
 			node_kind = STARPU_CUDA_RAM;
-#endif
-#ifdef STARPU_USE_OPENCL
-		if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
+		else if (arch < STARPU_GORDON_DEFAULT)
 			node_kind = STARPU_OPENCL_RAM;
-#endif
+		else
+			node_kind = STARPU_SPU_LS;
 
 		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
