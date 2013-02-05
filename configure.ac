@@ -1048,19 +1048,23 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
-# We have one memory node shared by all CPU workers, one node per GPU
-maxnodes=1
-if test x$enable_cuda = xyes ; then
-	# we could have used nmaxcudadev + 1, but this would certainly give an
-	# odd number.
-	maxnodes=`expr $maxnodes + $nmaxcudadev`
+if test x$enable_simgrid = xyes ; then
+	maxnodes=16
+else
+	# We have one memory node shared by all CPU workers, one node per GPU
+	maxnodes=1
+	if test x$enable_cuda = xyes ; then
+		# we could have used nmaxcudadev + 1, but this would certainly give an
+		# odd number.
+		maxnodes=`expr $nodes + $nmaxcudadev`
+	fi
+	if test x$enable_opencl = xyes ; then
+		# we could have used nmaxcudadev + 1, but this would certainly give an
+		# odd number.
+		maxnodes=`expr $nodes + $nmaxopencldev`
+	fi
+	# todo: set maxnodes to the next power of 2 greater than maxnodes
 fi
-if test x$enable_opencl = xyes ; then
-	# we could have used nmaxcudadev + 1, but this would certainly give an
-	# odd number.
-	maxnodes=`expr $maxnodes + $nmaxopencldev`
-fi
-# todo: set maxnodes to the next power of 2 greater than maxnodes
 
 AC_MSG_CHECKING(maximum number of memory nodes)
 AC_MSG_RESULT($maxnodes)
