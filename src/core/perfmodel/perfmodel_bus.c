@@ -988,12 +988,7 @@ static int load_bus_latency_file_content(void)
 			}
 			n = getc(f);
 			if (n == '\n')
-			{
-				/* No more values, take NAN */
-				for (; dst < STARPU_MAXNODES; dst++)
-					latency_matrix[src][dst] = NAN;
 				break;
-			}
 			if (n != '\t')
 			{
 				_STARPU_DISP("bogus character %c in latency file %s\n", n, path);
@@ -1002,7 +997,17 @@ static int load_bus_latency_file_content(void)
 			}
 
 			latency_matrix[src][dst] = latency;
+
+			/* Look out for \t\n */
+			n = getc(f);
+			if (n == '\n')
+				break;
+			ungetc(n, f);
 		}
+
+		/* No more values, take NAN */
+		for ( ; dst < STARPU_MAXNODES; dst++)
+			latency_matrix[src][dst] = NAN;
 
 		while (n == '\t')
 		{
@@ -1027,7 +1032,18 @@ static int load_bus_latency_file_content(void)
 			fclose(f);
 			return 0;
 		}
+
+		/* Look out for EOF */
+		n = getc(f);
+		if (n == EOF)
+			break;
+		ungetc(n, f);
 	}
+
+	/* No more values, take NAN */
+	for ( ; src < STARPU_MAXNODES; src++)
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
+			latency_matrix[src][dst] = NAN;
 
 	fclose(f);
 	return 1;
@@ -1181,12 +1197,7 @@ static int load_bus_bandwidth_file_content(void)
 			}
 			n = getc(f);
 			if (n == '\n')
-			{
-				/* No more values, take NAN */
-				for (; dst < STARPU_MAXNODES; dst++)
-					bandwidth_matrix[src][dst] = NAN;
 				break;
-			}
 			if (n != '\t')
 			{
 				_STARPU_DISP("bogus character %c in bandwidth file %s\n", n, path);
@@ -1195,7 +1206,17 @@ static int load_bus_bandwidth_file_content(void)
 			}
 
 			bandwidth_matrix[src][dst] = bandwidth;
+
+			/* Look out for \t\n */
+			n = getc(f);
+			if (n == '\n')
+				break;
+			ungetc(n, f);
 		}
+
+		/* No more values, take NAN */
+		for ( ; dst < STARPU_MAXNODES; dst++)
+			bandwidth_matrix[src][dst] = NAN;
 
 		while (n == '\t')
 		{
@@ -1216,10 +1237,22 @@ static int load_bus_bandwidth_file_content(void)
 		}
 		if (n != '\n')
 		{
+			_STARPU_DISP("Bogus character %c in bandwidth file %s\n", n, path);
 			fclose(f);
 			return 0;
 		}
+
+		/* Look out for EOF */
+		n = getc(f);
+		if (n == EOF)
+			break;
+		ungetc(n, f);
 	}
+
+	/* No more values, take NAN */
+	for ( ; src < STARPU_MAXNODES; src++)
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
+			latency_matrix[src][dst] = NAN;
 
 	fclose(f);
 	return 1;
