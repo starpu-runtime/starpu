@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,10 +136,13 @@ char *_starpu_get_home_path(void)
 void _starpu_gethostname(char *hostname, size_t size)
 {
 	char *forced_hostname = getenv("STARPU_HOSTNAME");
-	if (forced_hostname && forced_hostname[0]) {
+	if (forced_hostname && forced_hostname[0])
+	{
 		snprintf(hostname, size-1, "%s", forced_hostname);
 		hostname[size-1] = 0;
-	} else {
+	}
+	else
+	{
 		char *c;
 		gethostname(hostname, size-1);
 		hostname[size-1] = 0;
