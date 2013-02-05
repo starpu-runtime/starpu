@@ -495,7 +495,11 @@ visualize the task graph more easily.
 @section Simulated performance
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. The idea is to first compile StarPU normally, and run the application,
+platform.
+
+@subsection Calibration
+
+The idea is to first compile StarPU normally, and run the application,
 so as to automatically benchmark the bus and the codelets.
 
 @smallexample
@@ -512,6 +516,8 @@ TEST PASSED
 Note that we force to use the dmda scheduler to generate performance
 models for the application. The application may need to be run several
 times before the model is calibrated.
+
+@subsection Simulation
 
 Then, recompile StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
 application, specifying the requested number of devices:
@@ -556,3 +562,35 @@ Note: of course, if the application uses @code{gettimeofday} to make its
 performance measurements, the real time will be used, which will be bogus. To
 get the simulated time, it has to use @code{starpu_timing_now} which returns the
 virtual timestamp in ms.
+
+@subsection Simulation on another machine
+
+The simgrid support even permits to perform simulations on another machine, your
+desktop, typically. To achieve this, one still needs to perform the Calibration
+step on the actual machine to be simulated, then copy them to your desktop
+machine (the @code{$STARPU_HOME/.starpu} directory). One can then performa the
+Simulation step on the desktop machine, by setting the @code{STARPU_HOSTNAME}
+environment variable to the name of the actual machine, to make StarPU use the
+performance models of the simulated machine even on the desktop machine.
+
+If the desktop machine does not have CUDA or OpenCL, StarPU is still able to
+use simgrid to simulate execution with CUDA/OpenCL devices, but the application
+source code will probably disable the CUDA and OpenCL codelets in that
+case. Since during simgrid execution, the functions of the codelet are actually
+not called, one can use dummy functions such as the following to still permit
+CUDA or OpenCL execution:
+
+@smallexample
+static struct starpu_codelet cl11 =
+{
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
+#endif
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
+	.model = &chol_model_11
+};
+@end smallexample
