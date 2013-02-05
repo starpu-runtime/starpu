@@ -20,6 +20,7 @@
 #include <common/utils.h>
 #include <libgen.h>
 #include <errno.h>
+#include <unistd.h>
 
 #ifdef __MINGW32__
 #include <io.h>
