@@ -32,6 +32,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
+#include <common/utils.h>
 
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
@@ -715,12 +716,8 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir_bus(path, maxlen);
 
-	char hostname[32];
-	char *forced_hostname = getenv("STARPU_HOSTNAME");
-	if (forced_hostname && forced_hostname[0])
-		snprintf(hostname, sizeof(hostname), "%s", forced_hostname);
-	else
-		gethostname(hostname, sizeof(hostname));
+	char hostname[65];
+	_starpu_gethostname(hostname, sizeof(hostname));
 	strncat(path, hostname, maxlen);
 	strncat(path, ".", maxlen);
 	strncat(path, type, maxlen);
@@ -743,6 +740,8 @@ static void load_bus_affinity_file_content(void)
 
 	char path[256];
 	get_affinity_path(path, 256);
+
+	_STARPU_DEBUG("loading affinities from %s\n", path);
 
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
@@ -815,6 +814,9 @@ static void write_bus_affinity_file_content(void)
 	FILE *f;
 	char path[256];
 	get_affinity_path(path, 256);
+
+	_STARPU_DEBUG("writing affinities to %s\n", path);
+
 	f = fopen(path, "w+");
 	if (!f)
 	{
@@ -1006,6 +1008,8 @@ static void write_bus_latency_file_content(void)
 	char path[256];
 	get_latency_path(path, 256);
 
+	_STARPU_DEBUG("writing latencies to %s\n", path);
+
 	f = fopen(path, "w+");
 	if (!f)
 	{
@@ -1170,6 +1174,8 @@ static void write_bus_bandwidth_file_content(void)
 
 	char path[256];
 	get_bandwidth_path(path, 256);
+
+	_STARPU_DEBUG("writing bandwidth to %s\n", path);
 
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
@@ -1434,6 +1440,9 @@ static void write_bus_config_file_content(void)
 
 	STARPU_ASSERT(was_benchmarked);
         get_config_path(path, 256);
+
+	_STARPU_DEBUG("writing config to %s\n", path);
+
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
 

@@ -591,12 +591,8 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 	_starpu_get_perf_model_dir_debug(path, maxlen);
 	strncat(path, model->symbol, maxlen);
 
-	char hostname[32];
-	char *forced_hostname = getenv("STARPU_HOSTNAME");
-	if (forced_hostname && forced_hostname[0])
-		snprintf(hostname, sizeof(hostname), "%s", forced_hostname);
-	else
-		gethostname(hostname, sizeof(hostname));
+	char hostname[65];
+	_starpu_gethostname(hostname, sizeof(hostname));
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
 	strncat(path, ".", maxlen);
@@ -661,12 +657,8 @@ static void get_model_path(struct starpu_perfmodel *model, char *path, size_t ma
 	_starpu_get_perf_model_dir_codelets(path, maxlen);
 	strncat(path, model->symbol, maxlen);
 
-	char hostname[32];
-	char *forced_hostname = getenv("STARPU_HOSTNAME");
-	if (forced_hostname && forced_hostname[0])
-		snprintf(hostname, sizeof(hostname), "%s", forced_hostname);
-	else
-		gethostname(hostname, sizeof(hostname));
+	char hostname[65];
+	_starpu_gethostname(hostname, sizeof(hostname));
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
 }
