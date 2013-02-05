@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,10 +29,17 @@
 #else
 #include <CL/cl.h>
 #endif
+#endif
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 struct _starpu_machine_config;
 void
 _starpu_opencl_discover_devices(struct _starpu_machine_config *config);
+#else
+#define _starpu_opencl_discover_devices(config) ((void) (config))
+#endif
+
+#ifdef STARPU_USE_OPENCL
 extern
 char *_starpu_opencl_program_dir;
 
@@ -41,10 +48,14 @@ int _starpu_opencl_init_context(int devid);
 
 extern
 int _starpu_opencl_deinit_context(int devid);
+#endif
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 extern
 unsigned _starpu_opencl_get_device_count(void);
+#endif
 
+#ifdef STARPU_USE_OPENCL
 extern
 cl_device_type _starpu_opencl_get_device_type(int devid);
 
@@ -59,13 +70,17 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node, cl_m
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 #endif
+#endif
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 extern
 void _starpu_opencl_init(void);
 
 extern
 void *_starpu_opencl_worker(void *);
+#endif
 
+#ifdef STARPU_USE_OPENCL
 extern
 int _starpu_run_opencl(struct starpu_driver *);
 
@@ -77,7 +92,5 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *);
 
 extern
 int _starpu_opencl_driver_deinit(struct starpu_driver *);
-#else
-#define _starpu_opencl_discover_devices(config) ((void) (config))
 #endif // STARPU_USE_OPENCL
 #endif //  __DRIVER_OPENCL_H__

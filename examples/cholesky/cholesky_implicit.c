@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -27,7 +27,7 @@ static struct starpu_codelet cl11 =
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined (STARPU_SIMGRID)
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
 #endif
 	.nbuffers = 1,
@@ -40,7 +40,7 @@ static struct starpu_codelet cl21 =
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined (STARPU_SIMGRID)
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
 #endif
 	.nbuffers = 2,
@@ -54,7 +54,7 @@ static struct starpu_codelet cl22 =
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined (STARPU_SIMGRID)
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,

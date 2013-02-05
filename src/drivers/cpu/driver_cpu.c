@@ -44,8 +44,18 @@
 #include <core/simgrid.h>
 #endif
 
-#ifndef STARPU_SIMGRID
-#ifdef STARPU_HAVE_HWLOC
+#ifdef STARPU_SIMGRID
+void
+_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
+{
+#if 0
+	config->topology.nhwcpus = _starpu_simgrid_get_nbhosts("CPU");
+#else
+	/* For now, lie about the number of CPUs we actually have */
+	config->topology.nhwcpus = STARPU_NMAXWORKERS;
+#endif
+}
+#elif defined(STARPU_HAVE_HWLOC)
 void
 _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 {
@@ -98,7 +108,6 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 {
 	config->topology.nhwcpus = 1;
 }
-#endif
 #endif
 
 

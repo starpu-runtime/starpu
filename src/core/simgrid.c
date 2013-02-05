@@ -133,6 +133,24 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 	return starpu_main(args->argc, args->argv);
 }
 
+int _starpu_simgrid_get_nbhosts(const char *prefix)
+{
+	int ret;
+	xbt_dynar_t hosts = MSG_hosts_as_dynar();
+	unsigned i, nb = xbt_dynar_length(hosts);
+	unsigned len = strlen(prefix);
+
+	ret = 0;
+	for (i = 0; i < nb; i++) {
+		const char *name;
+		name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+		if (!strncmp(name, prefix, len))
+			ret++;
+	}
+	xbt_dynar_free(&hosts);
+	return ret;
+}
+
 #ifdef STARPU_DEVEL
 #warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
 #endif
@@ -144,7 +162,6 @@ int main(int argc, char **argv)
 	char name[] = "/tmp/starpu-simgrid-platform.xml.XXXXXX";
 	int fd;
 	FILE *file;
-	struct starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
 	if (!starpu_main)
 	{
@@ -161,38 +178,18 @@ int main(int argc, char **argv)
 	/* Create platform file */
 	starpu_conf_init(&conf);
 	if ((!getenv("STARPU_NCPUS") && !getenv("STARPU_NCPU"))
-#ifdef STARPU_USE_CUDA
-	 || !getenv("STARPU_NCUDA")
-#endif
-#ifdef STARPU_USE_OPENCL
-	 || !getenv("STARPU_NOPENCL")
-#endif
-			)
+	  || !getenv("STARPU_NCUDA")
+	  || !getenv("STARPU_NOPENCL"))
 	{
-		_STARPU_ERROR("Please specify the number of cpus and gpus by setting the environment variables STARPU_NCPU%s%s\n",
-#ifdef STARPU_USE_CUDA
-			      ", STARPU_NCUDA",
-#else
-			      "",
-#endif
-#ifdef STARPU_USE_OPENCL
-			      ", STARPU_NOPENCL"
-#else
-			      ""
-#endif
-			);
+		_STARPU_ERROR("Please specify the number of cpus and gpus by setting the environment variables STARPU_NCPU, STARPU_NCUDA, STARPU_NOPENCL\n");
 		exit(EXIT_FAILURE);
 	}
 	_starpu_conf_check_environment(&conf);
 
 	_starpu_load_bus_performance_files();
 
-	topology->ncpus = conf.ncpus;
-	topology->ncudagpus = conf.ncuda;
-	topology->nopenclgpus = conf.nopencl;
-
-	/* TODO: rather use simgrid/platf.h */
-	/* TODO: but still permit the user to provide his own xml */
+	/* TODO: make the user to provide his own xml */
+	/* And remove the hack in _starpu_cpu_discover_devices */
 	fd = mkstemp(name);
 	file = fdopen(fd, "w");
 	starpu_simgrid_write_platform(&conf, file);
@@ -324,8 +321,10 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 {
 	struct transfer *transfer = MSG_process_get_data(MSG_process_self());
 	unsigned i;
+	_STARPU_DEBUG("transfer %p started\n", transfer);
 	MSG_task_execute(transfer->task);
 	MSG_task_destroy(transfer->task);
+	_STARPU_DEBUG("transfer %p finished\n", transfer);
 	_STARPU_PTHREAD_MUTEX_LOCK(transfer->mutex);
 	*transfer->finished = 1;
 	_STARPU_PTHREAD_COND_BROADCAST(transfer->cond);
@@ -409,6 +408,9 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	task = MSG_parallel_task_create("copy", 2, hosts, computation, communication, NULL);
 
 	struct transfer *transfer = transfer_new();
+
+	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
+
 	transfer->task = task;
 	transfer->src_node = src_node;
 	transfer->dst_node = dst_node;

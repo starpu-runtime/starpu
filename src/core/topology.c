@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -45,7 +45,7 @@
 
 static unsigned topology_is_initialized = 0;
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 
 struct handle_entry
 {
@@ -53,7 +53,7 @@ struct handle_entry
 	unsigned gpuid;
 };
 
-#  ifdef STARPU_USE_CUDA
+#  if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 /* Entry in the `devices_using_cuda' hash table.  */
 static struct handle_entry *devices_using_cuda;
 #  endif
@@ -67,7 +67,7 @@ static unsigned may_bind_automatically = 0;
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 static void
 _starpu_initialize_workers_gpuid (int *explicit_workers_gpuid,
 				  int *current, int *workers_gpuid,
@@ -150,7 +150,7 @@ _starpu_initialize_workers_gpuid (int *explicit_workers_gpuid,
 }
 #endif
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static void
 _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 {
@@ -177,7 +177,7 @@ _starpu_get_next_cuda_gpuid (struct _starpu_machine_config *config)
 }
 #endif
 
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 static void
 _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 {
@@ -272,23 +272,18 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	if (topology_is_initialized)
 		return;
 
-#ifdef STARPU_SIMGRID
-	struct starpu_conf *conf = config->conf;
-	topology->nhwcpus = conf->ncpus?conf->ncpus:1;
-	topology->nhwcudagpus = conf->ncuda;
-	topology->nhwopenclgpus = conf->nopencl;
-#else
 	topology->nhwcpus = 0;
 
+#ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
 	hwloc_topology_load(topology->hwtopology);
+#endif
 #endif
 
 	_starpu_cpu_discover_devices(config);
 	_starpu_cuda_discover_devices(config);
 	_starpu_opencl_discover_devices(config);
-#endif
 
 	topology_is_initialized = 1;
 }
@@ -428,10 +423,10 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 unsigned
 _starpu_topology_get_nhwcpu (struct _starpu_machine_config *config)
 {
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	_starpu_opencl_init();
 #endif
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
@@ -452,20 +447,19 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	topology->ncombinedworkers = 0;
 	topology->nsched_ctxs = 0;
 
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	_starpu_opencl_init();
 #endif
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
 	_starpu_initialize_workers_bindid(config);
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	int ncuda = config->conf->ncuda;
 
-#ifndef STARPU_SIMGRID
 	if (ncuda != 0)
 	{
 		/* The user did not disable CUDA. We need to initialize CUDA
@@ -489,7 +483,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			}
 		}
 	}
-#endif
 
 	/* Now we know how many CUDA devices will be used */
 	topology->ncudagpus = ncuda;
@@ -521,10 +514,9 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	topology->nworkers += topology->ncudagpus;
 #endif
 
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	int nopencl = config->conf->nopencl;
 
-#ifndef STARPU_SIMGRID
 	if (nopencl != 0)
 	{
 		/* The user did not disable OPENCL. We need to initialize
@@ -561,7 +553,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			}
 		}
 	}
-#endif
 
 	topology->nopenclgpus = nopencl;
 	STARPU_ASSERT(topology->nopenclgpus + topology->nworkers <= STARPU_NMAXWORKERS);
@@ -633,7 +624,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
-#ifdef STARPU_USE_CPU
+#if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 	int ncpu = config->conf->ncpus;
 
 	if (ncpu != 0)
@@ -847,14 +838,16 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				_starpu_memory_node_worker_add(ram_memory_node);
 				break;
 #endif
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
+#ifndef STARPU_SIMGRID
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = _starpu_get_cuda_affinity_vector(workerarg->devid);
 					npreferred = config->topology.nhwcpus;
 				}
+#endif
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM, workerarg->devid);
 #ifdef STARPU_SIMGRID
@@ -883,14 +876,16 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				break;
 #endif
 
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		        case STARPU_OPENCL_WORKER:
+#ifndef STARPU_SIMGRID
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = _starpu_get_opencl_affinity_vector(workerarg->devid);
 					npreferred = config->topology.nhwcpus;
 				}
+#endif
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM, workerarg->devid);
 #ifdef STARPU_SIMGRID

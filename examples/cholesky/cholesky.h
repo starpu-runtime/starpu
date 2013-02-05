@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -77,6 +77,10 @@ void chol_cpu_codelet_update_u22(void **, void *);
 void chol_cublas_codelet_update_u11(void *descr[], void *_args);
 void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
+#elif defined(STARPU_SIMGRID)
+#define chol_cublas_codelet_update_u11 ((void*)1)
+#define chol_cublas_codelet_update_u21 ((void*)1)
+#define chol_cublas_codelet_update_u22 ((void*)1)
 #endif
 
 extern struct starpu_perfmodel chol_model_11;

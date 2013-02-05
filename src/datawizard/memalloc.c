@@ -769,10 +769,6 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
-
 #ifdef STARPU_DEVEL
 #warning TODO: we need to use starpu_malloc
 #endif
@@ -784,7 +780,7 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 			_starpu_memory_manager_add_size(size);
 			break;
 		}
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_DEVEL
@@ -794,11 +790,9 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			MSG_process_sleep(0.000010);
 			addr = 1;
-			status = cudaSuccess;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			status = cudaMalloc((void **)&addr, size);
-#endif
+			cudaError_t status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
@@ -806,28 +800,28 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 
 				addr = 0;
 			}
+#endif
 			break;
 #endif
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	        case STARPU_OPENCL_RAM:
 			{
-                                int ret;
-				cl_mem ptr;
 #ifdef STARPU_SIMGRID
 				/* Sleep 10µs for the allocation */
 				_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 				MSG_process_sleep(0.000010);
-				ptr = (cl_mem) 1;
-				ret = CL_SUCCESS;
+				addr = 1;
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
+                                int ret;
+				cl_mem ptr;
 				ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
-#endif
 				if (ret)
 					addr = 0;
 				else
 					addr = (uintptr_t)ptr;
 				break;
+#endif
 			}
 #endif
 		default:
@@ -850,39 +844,37 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 			free((void*)addr);
 			_starpu_memory_manager_sub_size(size);
 			break;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
 		{
-			cudaError_t err;
 #ifdef STARPU_SIMGRID
 			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			/* Sleep 10µs for the free */
 			MSG_process_sleep(0.000010);
-			err = cudaSuccess;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
+			cudaError_t err;
 			err = cudaFree((void*)addr);
-#endif
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
+#endif
 			break;
 		}
 #endif
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
                 case STARPU_OPENCL_RAM:
 		{
-			cl_int err;
 #ifdef STARPU_SIMGRID
 			_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 			/* Sleep 10µs for the free */
 			MSG_process_sleep(0.000010);
-			err = CL_SUCCESS;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
+			cl_int err;
                         err = clReleaseMemObject((void*)addr);
-#endif
 			if (STARPU_UNLIKELY(err != CL_SUCCESS))
 				STARPU_OPENCL_REPORT_ERROR(err);
+#endif
                         break;
 		}
 #endif

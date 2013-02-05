@@ -81,6 +81,8 @@ struct starpu_driver
 		unsigned cuda_id;
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 		cl_device_id opencl_id;
+#elif defined(STARPU_SIMGRID)
+		unsigned opencl_id;
 #endif
 		/*
 		 * HOWTO: add a new kind of device to the starpu_driver structure.

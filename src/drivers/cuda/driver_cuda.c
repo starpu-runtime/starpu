@@ -37,18 +37,22 @@
 /* the number of CUDA devices */
 static int ncudagpus;
 
+#ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t peer_transfer_streams[STARPU_NMAXWORKERS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
+#endif
 
-#ifndef STARPU_SIMGRID
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
+#ifdef STARPU_SIMGRID
+	config->topology.nhwcudagpus = _starpu_simgrid_get_nbhosts("CUDA");
+#else
 	int cnt;
 	cudaError_t cures;
 
@@ -56,8 +60,11 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwcudagpus = cnt;
+#endif
 }
 
+#ifdef STARPU_USE_CUDA
+#ifndef STARPU_SIMGRID
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
  * is launched. */
@@ -283,11 +290,16 @@ static void deinit_context(int workerid, unsigned devid)
 }
 #endif /* !SIMGRID */
 
+#endif /* STARPU_USE_CUDA */
+
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXCUDADEVS */
 
 unsigned _starpu_get_cuda_device_count(void)
 {
+#ifdef STARPU_SIMGRID
+	return _starpu_simgrid_get_nbhosts("CUDA");
+#else
 	int cnt;
 
 	cudaError_t cures;
@@ -301,6 +313,7 @@ unsigned _starpu_get_cuda_device_count(void)
 		cnt = STARPU_MAXCUDADEVS;
 	}
 	return (unsigned)cnt;
+#endif
 }
 
 void _starpu_init_cuda(void)
@@ -527,6 +540,7 @@ void *_starpu_cuda_worker(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_CUDA
 void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
 {
 	char *errormsg;
@@ -658,3 +672,5 @@ int _starpu_run_cuda(struct starpu_driver *d)
 
 	return 0;
 }
+
+#endif /* STARPU_USE_CUDA */

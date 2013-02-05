@@ -431,7 +431,7 @@ int _starpu_push_task_end(struct starpu_task *task)
 struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 						   unsigned int node)
 {
-	_starpu_create_conversion_task_for_arch(handle, starpu_node_get_kind(node));
+	return _starpu_create_conversion_task_for_arch(handle, starpu_node_get_kind(node));
 }
 
 struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle,
@@ -459,7 +459,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		{
 		case STARPU_CPU_RAM:
 			STARPU_ABORT();
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
 		{
 			struct starpu_multiformat_data_interface_ops *mf_ops;
@@ -468,7 +468,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 			break;
 		}
 #endif
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		case STARPU_OPENCL_RAM:
 		{
 			struct starpu_multiformat_data_interface_ops *mf_ops;
@@ -481,7 +481,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 			_STARPU_ERROR("Oops : %u\n", handle->mf_node);
 		}
 		break;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	case STARPU_CUDA_RAM:
 		{
 			struct starpu_multiformat_data_interface_ops *mf_ops;
@@ -490,7 +490,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 			break;
 		}
 #endif
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	case STARPU_OPENCL_RAM:
 	{
 		struct starpu_multiformat_data_interface_ops *mf_ops;

@@ -36,13 +36,8 @@
 #include <hwloc.h>
 #endif
 
-#ifdef STARPU_USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
-#endif
-
-#ifdef STARPU_USE_OPENCL
 #include <drivers/opencl/driver_opencl.h>
-#endif
 
 #ifdef STARPU_USE_GORDON
 #include <drivers/gordon/driver_gordon.h>

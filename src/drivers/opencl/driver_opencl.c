@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -33,17 +33,19 @@
 #include <core/simgrid.h>
 #endif
 
+static int nb_devices = -1;
+static int init_done = 0;
+
 static _starpu_pthread_mutex_t big_lock = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
+#ifdef STARPU_USE_OPENCL
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue alloc_queues[STARPU_MAXOPENCLDEVS];
-static cl_uint nb_devices = -1;
-static int init_done = 0;
+#endif
 
-#ifndef STARPU_SIMGRID
 void
 _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 {
@@ -54,6 +56,8 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 	config->topology.nhwopenclgpus = nb_devices;
 }
 
+#ifdef STARPU_USE_OPENCL
+#ifndef STARPU_SIMGRID
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
  * is launched. */
@@ -355,12 +359,16 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
         return CL_SUCCESS;
 }
 #endif
+#endif /* STARPU_USE_OPENCL */
 
 void _starpu_opencl_init(void)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
         if (!init_done)
 	{
+#ifdef STARPU_SIMGRID
+		nb_devices = _starpu_simgrid_get_nbhosts("OpenCL");
+#else /* STARPU_USE_OPENCL */
                 cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
                 cl_int err;
@@ -447,6 +455,7 @@ void _starpu_opencl_init(void)
                         transfer_queues[i] = NULL;
                         alloc_queues[i] = NULL;
                 }
+#endif /* STARPU_USE_OPENCL */
 
                 init_done=1;
         }
@@ -461,6 +470,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 static struct _starpu_worker*
 _starpu_opencl_get_worker_from_driver(struct starpu_driver *d)
 {
+#ifdef STARPU_USE_OPENCL
 	int nworkers;
 	int workers[STARPU_MAXOPENCLDEVS];
 	nworkers = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, workers, STARPU_MAXOPENCLDEVS);
@@ -481,6 +491,22 @@ _starpu_opencl_get_worker_from_driver(struct starpu_driver *d)
 		return NULL;
 
 	return _starpu_get_worker_struct(workers[i]);
+#else
+	unsigned nworkers = starpu_worker_get_count();
+	unsigned  workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		if (starpu_worker_get_type(workerid) == d->type)
+		{
+			struct _starpu_worker *worker;
+			worker = _starpu_get_worker_struct(workerid);
+			if (worker->devid == d->id.opencl_id)
+				return worker;
+		}
+	}
+
+	return NULL;
+#endif
 }
 
 int _starpu_opencl_driver_init(struct starpu_driver *d)
@@ -603,8 +629,9 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 
 void *_starpu_opencl_worker(void *arg)
 {
-	cl_device_id id;
 	struct _starpu_worker* args = arg;
+#ifdef STARPU_USE_OPENCL
+	cl_device_id id;
 
 	starpu_opencl_get_device(args->devid, &id);
 	struct starpu_driver d =
@@ -612,6 +639,13 @@ void *_starpu_opencl_worker(void *arg)
 			.type         = STARPU_OPENCL_WORKER,
 			.id.opencl_id = id
 		};
+#else
+	struct starpu_driver d =
+		{
+			.type         = STARPU_OPENCL_WORKER,
+			.id.opencl_id = args->devid
+		};
+#endif
 
 	_starpu_opencl_driver_init(&d);
 	while (_starpu_machine_is_running())
@@ -621,6 +655,7 @@ void *_starpu_opencl_worker(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_OPENCL
 #ifndef STARPU_SIMGRID
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 {
@@ -639,16 +674,22 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 	return EXIT_SUCCESS;
 }
 #endif
+#endif
 
 unsigned _starpu_opencl_get_device_count(void)
 {
+#ifdef STARPU_USE_OPENCL
         if (!init_done)
 	{
                 _starpu_opencl_init();
         }
 	return nb_devices;
+#else
+	return _starpu_simgrid_get_nbhosts("OpenCL");
+#endif
 }
 
+#ifdef STARPU_USE_OPENCL
 cl_device_type _starpu_opencl_get_device_type(int devid)
 {
 	int err;
@@ -663,6 +704,7 @@ cl_device_type _starpu_opencl_get_device_type(int devid)
 
 	return type;
 }
+#endif /* STARPU_USE_OPENCL */
 
 static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args)
 {
@@ -723,6 +765,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	return EXIT_SUCCESS;
 }
 
+#ifdef STARPU_USE_OPENCL
 int _starpu_run_opencl(struct starpu_driver *d)
 {
 	STARPU_ASSERT(d && d->type == STARPU_OPENCL_WORKER);
@@ -761,3 +804,4 @@ int _starpu_run_opencl(struct starpu_driver *d)
 
 	return 0;
 }
+#endif /* STARPU_USE_OPENCL */

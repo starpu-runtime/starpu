@@ -854,6 +854,7 @@ if test x$enable_simgrid = xyes ; then
 	# We won't bind or detect anything
 	with_hwloc=no
 fi
+AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
 AC_SUBST(SIMGRID_LIBS)
 

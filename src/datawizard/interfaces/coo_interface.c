@@ -307,6 +307,13 @@ static struct starpu_data_copy_methods coo_copy_data_methods =
 #ifdef NO_STRIDE
 	.cuda_to_cuda_async  = copy_cuda_to_cuda_async,
 #endif
+#else
+#ifdef STARPU_SIMGRID
+#ifdef NO_STRIDE
+	/* Enable GPU-GPU transfers in simgrid */
+	.cuda_to_cuda_async = 1,
+#endif
+#endif
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl       = copy_ram_to_opencl,
