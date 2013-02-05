@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -159,18 +159,21 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 #endif
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (conf->n_cuda_opengl_interoperability) {
+	if (conf->n_cuda_opengl_interoperability)
+	{
 		fprintf(stderr, "OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ABORT();
 	}
 #elif !defined(HAVE_CUDA_GL_INTEROP_H)
-	if (conf->n_cuda_opengl_interoperability) {
+	if (conf->n_cuda_opengl_interoperability)
+	{
 		fprintf(stderr,"OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.");
 		STARPU_ABORT();
 	}
 #else
 	for (i = 0; i < conf->n_cuda_opengl_interoperability; i++)
-		if (conf->cuda_opengl_interoperability[i] == devid) {
+		if (conf->cuda_opengl_interoperability[i] == devid)
+		{
 			cures = cudaGLSetGLDevice(devid);
 			goto done;
 		}
@@ -197,14 +200,18 @@ static void init_context(unsigned devid)
 	starpu_cuda_set_device(devid);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") == 0) {
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") == 0)
+	{
 		int nworkers = starpu_worker_get_count();
-		for (workerid = 0; workerid < nworkers; workerid++) {
+		for (workerid = 0; workerid < nworkers; workerid++)
+		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-			if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid) {
+			if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid)
+			{
 				int can;
 				cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
-				if (!cures && can) {
+				if (!cures && can)
+				{
 					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
 					if (!cures)
 						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
@@ -216,8 +223,10 @@ static void init_context(unsigned devid)
 
 	/* force CUDA to initialize the context for real */
 	cures = cudaFree(0);
-	if (STARPU_UNLIKELY(cures)) {
-		if (cures == cudaErrorDevicesUnavailable) {
+	if (STARPU_UNLIKELY(cures))
+	{
+		if (cures == cudaErrorDevicesUnavailable)
+		{
 			fprintf(stderr,"All CUDA-capable devices are busy or unavailable\n");
 			exit(77);
 		}
@@ -228,7 +237,8 @@ static void init_context(unsigned devid)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (props[devid].computeMode == cudaComputeModeExclusive) {
+	if (props[devid].computeMode == cudaComputeModeExclusive)
+	{
 		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ABORT();
 	}
@@ -503,10 +513,11 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 void *_starpu_cuda_worker(void *arg)
 {
 	struct _starpu_worker* args = arg;
-	struct starpu_driver d = {
-		.type       = STARPU_CUDA_WORKER,
-		.id.cuda_id = args->devid
-	};
+	struct starpu_driver d =
+		{
+			.type       = STARPU_CUDA_WORKER,
+			.id.cuda_id = args->devid
+		};
 
 	_starpu_cuda_driver_init(&d);
 	while (_starpu_machine_is_running())
@@ -614,7 +625,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
-		
+
 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);

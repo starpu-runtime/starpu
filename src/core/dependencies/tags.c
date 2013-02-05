@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,8 @@ static void _starpu_tag_free(void *_tag)
 {
 	struct _starpu_tag *tag = (struct _starpu_tag *) _tag;
 
-	if (tag) {
+	if (tag)
+	{
 		_starpu_spin_lock(&tag->lock);
 
 		unsigned nsuccs = tag->tag_successors.nsuccs;
@@ -139,7 +140,8 @@ void starpu_tag_remove(starpu_tag_t id)
 	struct _starpu_tag_table *entry;
 
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		int id = -1;
 		AYU_event(AYU_REMOVETASK, id + AYUDAME_OFFSET, NULL);
 	}
@@ -199,7 +201,8 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 		HASH_ADD_UINT64_T(tag_htbl, id, entry2);
 
 #ifdef HAVE_AYUDAME_H
-		if (AYU_event) {
+		if (AYU_event)
+		{
 			int64_t AYU_data[2] = {-1, 0};
 			STARPU_ASSERT(id < AYUDAME_OFFSET);
 			AYU_event(AYU_ADDTASK, id + AYUDAME_OFFSET, AYU_data);
@@ -232,7 +235,8 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 
 	_starpu_spin_lock(&tag->lock);
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		int id = -1;
 		AYU_event(AYU_PRERUNTASK, tag->id + AYUDAME_OFFSET, &id);
 		AYU_event(AYU_POSTRUNTASK, tag->id + AYUDAME_OFFSET, NULL);
@@ -258,7 +262,8 @@ void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 {
 	_starpu_spin_lock(&tag->lock);
 
-	if (tag->state == STARPU_DONE) {
+	if (tag->state == STARPU_DONE)
+	{
 		_starpu_spin_unlock(&tag->lock);
 		return;
 	}
@@ -315,7 +320,8 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 			tag->state != STARPU_DONE)
 		tag->state = STARPU_ASSOCIATED;
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		uintptr_t AYU_data1[3] = {id+AYUDAME_OFFSET, 0, 0};
 		uintptr_t AYU_data2[3] = {job->job_id, 0, 0};
 		AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data1);
@@ -353,7 +359,8 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 #ifdef HAVE_AYUDAME_H
-		if (AYU_event) {
+		if (AYU_event)
+		{
 			uintptr_t AYU_data[3] = {dep_id+AYUDAME_OFFSET, 0, 0};
 			AYU_event(AYU_ADDDEPENDENCY, id+AYUDAME_OFFSET, AYU_data);
 		}
@@ -394,7 +401,8 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 #ifdef HAVE_AYUDAME_H
-		if (AYU_event) {
+		if (AYU_event)
+		{
 			uintptr_t AYU_data[3] = {dep_id+AYUDAME_OFFSET, 0, 0};
 			AYU_event(AYU_ADDDEPENDENCY, id+AYUDAME_OFFSET, AYU_data);
 		}

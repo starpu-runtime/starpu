@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -249,38 +249,37 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t
 
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
-   cl_int err;
-   struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	cl_int err;
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
+	if (event)
+		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
-   if (event)
-      _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+	cl_event ev;
+	err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 
-   cl_event ev;
-   err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
+	if (event)
+		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 
-   if (event)
-      _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+	if (STARPU_LIKELY(err == CL_SUCCESS))
+	{
+		if (event == NULL)
+		{
+			/* We want a synchronous copy, let's synchronise the queue */
+			clWaitForEvents(1, &ev);
+			clReleaseEvent(ev);
+		}
+		else
+		{
+			*event = ev;
+		}
 
-
-   if (STARPU_LIKELY(err == CL_SUCCESS))
-   {
-      if (event == NULL)
-      {
-         /* We want a synchronous copy, let's synchronise the queue */
-         clWaitForEvents(1, &ev);
-         clReleaseEvent(ev);
-      }
-      else {
-         *event = ev;
-      }
-
-      if (ret)
-      {
-         *ret = (event == NULL) ? 0 : -EAGAIN;
-      }
-   }
-   return err;
+		if (ret)
+		{
+			*ret = (event == NULL) ? 0 : -EAGAIN;
+		}
+	}
+	return err;
 }
 
 cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
@@ -296,21 +295,22 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
-	  if (event == NULL)
-	  {
-		 /* We want a synchronous copy, let's synchronise the queue */
-		 clWaitForEvents(1, &ev);
-		 clReleaseEvent(ev);
-	 }
-	  else {
-		  *event = ev;
-	  }
+		if (event == NULL)
+		{
+			/* We want a synchronous copy, let's synchronise the queue */
+			clWaitForEvents(1, &ev);
+			clReleaseEvent(ev);
+		}
+		else
+		{
+			*event = ev;
+		}
 
-	  if (ret)
-	  {
-		 *ret = (event == NULL) ? 0 : -EAGAIN;
-	 }
-  }
+		if (ret)
+		{
+			*ret = (event == NULL) ? 0 : -EAGAIN;
+		}
+	}
 	return err;
 }
 
@@ -402,7 +402,8 @@ void _starpu_opencl_init(void)
 						platform_valid = 0;
 					}
 				}
-				if(strcmp(name, "SOCL Platform") == 0) {
+				if(strcmp(name, "SOCL Platform") == 0)
+				{
 					platform_valid = 0;
 					_STARPU_DEBUG("Skipping SOCL Platform\n");
 				}
@@ -606,10 +607,11 @@ void *_starpu_opencl_worker(void *arg)
 	struct _starpu_worker* args = arg;
 
 	starpu_opencl_get_device(args->devid, &id);
-	struct starpu_driver d = {
-		.type         = STARPU_OPENCL_WORKER,
-		.id.opencl_id = id
-	};
+	struct starpu_driver d =
+		{
+			.type         = STARPU_OPENCL_WORKER,
+			.id.opencl_id = id
+		};
 
 	_starpu_opencl_driver_init(&d);
 	while (_starpu_machine_is_running())

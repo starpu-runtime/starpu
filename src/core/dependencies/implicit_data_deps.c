@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,8 @@ static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTR
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		uintptr_t AYU_data[3] = { previous, (uintptr_t) handle, (uintptr_t) handle };
 		AYU_event(AYU_ADDDEPENDENCY, next_job->job_id, AYU_data);
 	}
@@ -117,7 +118,8 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 		while (l)
 		{
 			STARPU_ASSERT(l->task);
-			if (l->task != post_sync_task) {
+			if (l->task != post_sync_task)
+			{
 				task_array[i++] = l->task;
 				_starpu_add_dependency(handle, l->task, pre_sync_task);
 				_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
@@ -327,7 +329,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-		if (new_task) {
+		if (new_task)
+		{
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
@@ -547,7 +550,8 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_a
 		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
-		if (new_task) {
+		if (new_task)
+		{
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}

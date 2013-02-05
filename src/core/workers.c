@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -377,7 +377,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 #endif
 
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		unsigned long n = nworkers;
 		AYU_event(AYU_INIT, 0, (void*) &n);
 	}
@@ -780,7 +781,8 @@ int starpu_init(struct starpu_conf *user_conf)
 /* Dumb value for now */
 #define AYU_RT_STARPU 32
 #endif
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		enum ayu_runtime_t ayu_rt = AYU_RT_STARPU;
 		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
 	}
@@ -796,9 +798,10 @@ int starpu_init(struct starpu_conf *user_conf)
 	}
 	else
 	{
-	     if (user_conf->magic != 42) {
-		_STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
-		return -EINVAL;
+	     if (user_conf->magic != 42)
+	     {
+		  _STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
+		  return -EINVAL;
 	     }
 	     config.conf = user_conf;
 	     config.default_conf = 0;

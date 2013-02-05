@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -156,7 +156,8 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
-		if (new_task) {
+		if (new_task)
+		{
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
@@ -264,7 +265,8 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-		if (new_task) {
+		if (new_task)
+		{
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
@@ -343,7 +345,8 @@ static void _prefetch_data_on_node(void *arg)
 
 	if (wrapper->async)
 		free(wrapper);
-	else {
+	else
+	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		wrapper->finished = 1;
 		_STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);

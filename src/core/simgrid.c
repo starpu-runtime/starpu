@@ -121,7 +121,8 @@ void starpu_simgrid_write_platform(struct starpu_conf *conf, FILE *file)
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
 
-struct main_args {
+struct main_args
+{
 	int argc;
 	char **argv;
 };
@@ -336,11 +337,13 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	/* Wake transfers waiting for my termination */
 	/* Note: due to possible preemption inside process_create, the array
 	 * may grow while doing this */
-	for (i = 0; i < transfer->nwake; i++) {
+	for (i = 0; i < transfer->nwake; i++)
+	{
 		struct transfer *wake = transfer->wake[i];
 		STARPU_ASSERT(wake->nwait > 0);
 		wake->nwait--;
-		if (!wake->nwait) {
+		if (!wake->nwait)
+		{
 			_STARPU_DEBUG("triggering transfer %p\n", wake);
 			MSG_process_create("transfer task", transfer_execute, wake, MSG_get_host_by_name("MAIN"));
 		}
@@ -353,7 +356,8 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 }
 
 /* Look for sequentialization between this transfer and pending transfers, and submit this one */
-static void transfer_submit(struct transfer *transfer) {
+static void transfer_submit(struct transfer *transfer)
+{
 	struct transfer *old;
 
 	if (!pending)
@@ -361,8 +365,10 @@ static void transfer_submit(struct transfer *transfer) {
 
 	for (old  = transfer_list_begin(pending);
 	     old != transfer_list_end(pending);
-	     old  = transfer_list_next(old)) {
-		if (transfers_are_sequential(transfer, old)) {
+	     old  = transfer_list_next(old))
+	{
+		if (transfers_are_sequential(transfer, old))
+		{
 			_STARPU_DEBUG("transfer %p(%d->%d) waits for %p(%d->%d)\n",
 					transfer, transfer->src_node, transfer->dst_node,
 					old, old->src_node, old->dst_node);
@@ -377,7 +383,8 @@ static void transfer_submit(struct transfer *transfer) {
 
 	transfer_list_push_front(pending, transfer);
 
-	if (!transfer->nwait) {
+	if (!transfer->nwait)
+	{
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
 		MSG_process_create("transfer task", transfer_execute, transfer, MSG_get_host_by_name("MAIN"));
 	}
@@ -407,11 +414,14 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->dst_node = dst_node;
 	transfer->run_node = _starpu_get_local_memory_node();
 
-	if (req) {
+	if (req)
+	{
 		transfer->finished = &req->async_channel.event.finished;
 		transfer->mutex = &req->async_channel.event.mutex;
 		transfer->cond = &req->async_channel.event.cond;
-	} else {
+	}
+	else
+	{
 		transfer->finished = &finished;
 		transfer->mutex = &mutex;
 		transfer->cond = &cond;
@@ -430,11 +440,14 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
 
-	if (req) {
+	if (req)
+	{
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 		return -EAGAIN;
-	} else {
+	}
+	else
+	{
 		/* this is not associated to a request so it's synchronous */
 		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		while (!finished)
@@ -452,7 +465,8 @@ int _starpu_pthread_key_create(_starpu_pthread_key_t *key)
 
 	/* Note: no synchronization here, we are actually monothreaded anyway. */
 	for (i = 0; i < MAX_TSD; i++)
-		if (!used_key[i]) {
+		if (!used_key[i])
+		{
 			used_key[i] = 1;
 			break;
 		}

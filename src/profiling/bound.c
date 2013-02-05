@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -537,7 +537,8 @@ void starpu_bound_print_lp(FILE *output)
 		fprintf(output, "\n/* Each task starts after all its task dependencies finish and data is transferred. */\n");
 		fprintf(output, "/* Note that the dependency finish time depends on the worker where it's working */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
-			for (i = 0; i < t1->depsn; i++) {
+			for (i = 0; i < t1->depsn; i++)
+			{
 				fprintf(output, "/* %lu bytes transferred */\n", (unsigned long) t1->deps[i].size);
 				fprintf(output, "s%lu >= c%lu", t1->id, t1->deps[i].dep->id);
 				/* Transfer time: pick up one source node and a worker on it */
@@ -767,10 +768,12 @@ void starpu_bound_print_lp(FILE *output)
 			{
 				int got_one = 0;
 				fprintf(output, "/* task %s key %x */\n0", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
-				for (w = 0; w < nw; w++) {
+				for (w = 0; w < nw; w++)
+				{
 					if (isnan(times[w*nt+t]))
 						fprintf(stderr, "Warning: task %s has no performance measurement for worker %d.\n", _starpu_codelet_get_model_name(tp->cl), w);
-					else {
+					else
+					{
 						got_one = 1;
 						fprintf(output, "\t+w%dt%dn", w, t);
 					}

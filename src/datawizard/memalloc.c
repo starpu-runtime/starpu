@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -702,12 +702,14 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 			/* This is particularly important when
 			 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
 			 * wouldn't even re-use these allocations! */
-			if (starpu_node_get_kind(node) == STARPU_CPU_RAM) {
+			if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
+			{
 				free_memory_on_node(mc, node);
 
 				free(mc->chunk_interface);
 				_starpu_mem_chunk_delete(mc);
-			} else
+			}
+			else
 				/* put it in the list of buffers to be removed */
 				_starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
 
@@ -964,11 +966,13 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			_starpu_spin_unlock(&handle->header_lock);
 
 			_STARPU_TRACE_START_MEMRECLAIM(dst_node);
-			if (is_prefetch) {
+			if (is_prefetch)
+			{
 				_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 				flush_memchunk_cache(dst_node, reclaim);
 				_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
-			} else
+			}
+			else
 				reclaim_memory_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
 

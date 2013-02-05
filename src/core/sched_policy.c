@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -254,7 +254,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 				task->handles[i]->mf_node = node;
 		}
 //		if(task->sched_ctx != _starpu_get_initial_sched_ctx()->id)
-			
+
 		if(task->priority > 0)
 			return _starpu_push_local_task(worker, task, 1);
 		else
@@ -297,7 +297,7 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 {
 	int worker = -1, nworkers = 0;
 	struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
-	
+
 	struct starpu_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
@@ -327,7 +327,8 @@ int _starpu_push_task(struct _starpu_job *j)
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		int id = -1;
 		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
 	}
@@ -411,7 +412,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	_STARPU_LOG_OUT();
 	return ret;
 
-} 
+}
 
 /* This is called right after the scheduler has pushed a task to a queue
  * but just before releasing mutexes: we need the task to still be alive!

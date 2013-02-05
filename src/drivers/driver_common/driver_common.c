@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -175,10 +175,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		if (_starpu_worker_can_block(memnode))
 			_STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
 #ifdef STARPU_SIMGRID
-		else {
-			if (_starpu_machine_is_running()) {
+		else
+		{
+			if (_starpu_machine_is_running())
+			{
 				static int warned;
-				if (!warned) {
+				if (!warned)
+				{
 					warned = 1;
 					_STARPU_DISP("Has to make simgrid spin for progression hooks\n");
 				}
@@ -202,7 +205,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	}
 
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event) {
+	if (AYU_event)
+	{
 		int id = workerid;
 		AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}

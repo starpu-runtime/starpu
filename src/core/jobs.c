@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
  *
@@ -64,7 +64,8 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 	{
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 #ifdef HAVE_AYUDAME_H
-		if (AYU_event) {
+		if (AYU_event)
+		{
 			/* Declare task to Ayudame */
 			int64_t AYU_data[2] = {_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
 			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
@@ -144,9 +145,11 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* We release handle reference count */
-	if (task->cl) {
+	if (task->cl)
+	{
 		unsigned i;
-		for (i=0; i<task->cl->nbuffers; i++) {
+		for (i=0; i<task->cl->nbuffers; i++)
+		{
 			starpu_data_handle_t handle = task->handles[i];
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count--;
@@ -250,7 +253,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
 
 #ifdef HAVE_AYUDAME_H
-		if (AYU_event) {
+		if (AYU_event)
+		{
 			int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
 			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
 		}
@@ -349,7 +353,7 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 		_STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
 	}
-	
+
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{

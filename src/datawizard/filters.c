@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -142,7 +142,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		if (initial_handle->per_node[node].state != STARPU_INVALID)
 			break;
 	}
-	if (node == STARPU_MAXNODES) {
+	if (node == STARPU_MAXNODES)
+	{
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
 		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[0], 0);

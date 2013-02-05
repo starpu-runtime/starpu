@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
  *
@@ -99,7 +99,8 @@ void starpu_task_clean(struct starpu_task *task)
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
-	if (j) {
+	if (j)
+	{
 		_starpu_job_destroy(j);
 		task->starpu_private = NULL;
 	}
@@ -127,22 +128,20 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 void _starpu_task_destroy(struct starpu_task *task)
 {
 
-   /* If starpu_task_destroy is called in a callback, we just set the destroy
-      flag. The task will be destroyed after the callback returns */
-   if (task == starpu_task_get_current()
-       && _starpu_get_local_worker_status() == STATUS_CALLBACK)
-   {
-
-	   task->destroy = 1;
-
-   }
-   else
-   {
-	   starpu_task_clean(task);
-	   /* TODO handle the case of task with detach = 1 and destroy = 1 */
-	   /* TODO handle the case of non terminated tasks -> return -EINVAL */
-	   free(task);
-   }
+	/* If starpu_task_destroy is called in a callback, we just set the destroy
+	   flag. The task will be destroyed after the callback returns */
+	if (task == starpu_task_get_current()
+	    && _starpu_get_local_worker_status() == STATUS_CALLBACK)
+	{
+		task->destroy = 1;
+	}
+	else
+	{
+		starpu_task_clean(task);
+		/* TODO handle the case of task with detach = 1 and destroy = 1 */
+		/* TODO handle the case of non terminated tasks -> return -EINVAL */
+		free(task);
+	}
 }
 
 void starpu_task_destroy(struct starpu_task *task)
@@ -223,7 +222,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 #endif
 
 	/* We retain handle reference count */
-	if (task->cl) {
+	if (task->cl)
+	{
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
@@ -567,7 +567,8 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	/* We retain handle reference count */
 	unsigned i;
-	for (i=0; i<task->cl->nbuffers; i++) {
+	for (i=0; i<task->cl->nbuffers; i++)
+	{
 		starpu_data_handle_t handle = task->handles[i];
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
@@ -716,7 +717,8 @@ void _starpu_decrement_nsubmitted_tasks(void)
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
-	if (--nsubmitted == 0) {
+	if (--nsubmitted == 0)
+	{
 		if (!config->submitting)
 			config->running = 0;
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
@@ -736,7 +738,8 @@ starpu_drivers_request_termination(void)
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	config->submitting = 0;
-	if (nsubmitted == 0) {
+	if (nsubmitted == 0)
+	{
 		config->running = 0;
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}

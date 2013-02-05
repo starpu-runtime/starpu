@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,11 +57,16 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_per
 {
 	struct starpu_task *task = j->task;
 
-	if (model && model->per_arch[arch][nimpl].size_base) {
+	if (model && model->per_arch[arch][nimpl].size_base)
+	{
 		return model->per_arch[arch][nimpl].size_base(task, arch, nimpl);
-	} else if (model && model->size_base) {
+	}
+	else if (model && model->size_base)
+	{
 		return model->size_base(task, nimpl);
-	} else {
+	}
+	else
+	{
 		unsigned nbuffers = task->cl->nbuffers;
 		size_t size = 0;
 
@@ -746,7 +751,8 @@ void _starpu_deinitialize_registered_performance_models(void)
 				archmodel->history = NULL;
 
 				list = archmodel->list;
-				while (list) {
+				while (list)
+				{
 					free(list->entry);
 					plist = list;
 					list = list->next;
@@ -1261,7 +1267,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 	}
 }
 
-void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured) {
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured)
+{
 	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
 
 	_starpu_load_perfmodel(model);

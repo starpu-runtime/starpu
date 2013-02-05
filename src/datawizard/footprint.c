@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,13 +28,18 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum 
 
 	struct starpu_task *task = j->task;
 
-	if (model && model->per_arch[arch][nimpl].size_base) {
+	if (model && model->per_arch[arch][nimpl].size_base)
+	{
 		size_t size = model->per_arch[arch][nimpl].size_base(task, arch, nimpl);
 		footprint = starpu_crc32_be_n(&size, sizeof(size), footprint);
-	} else if (model && model->size_base) {
+	}
+	else if (model && model->size_base)
+	{
 		size_t size = model->size_base(task, nimpl);
 		footprint = starpu_crc32_be_n(&size, sizeof(size), footprint);
-	} else {
+	}
+	else
+	{
 		for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 		{
 			starpu_data_handle_t handle = task->handles[buffer];
