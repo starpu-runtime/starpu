@@ -37,12 +37,19 @@ static void _get_workers_list(struct starpu_sched_ctx_worker_collection *workers
 
 static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_worker *worker)
 {
-	unsigned worker_sched_ctx_id = _starpu_worker_get_first_free_sched_ctx(worker);
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	/* add context to worker */
-	worker->sched_ctx[worker_sched_ctx_id] = sched_ctx;
-	worker->nsched_ctxs++;
-	worker->active_ctx = sched_ctx_id;
+	unsigned worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker, sched_ctx_id);
+	/* the worker was planning to go away in another ctx but finally he changed his mind & 
+	   he's staying */
+	if(worker_sched_ctx_id  == STARPU_NMAX_SCHED_CTXS)
+	{
+		unsigned worker_sched_ctx_id = _starpu_worker_get_first_free_sched_ctx(worker);
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+		/* add context to worker */
+		worker->sched_ctx[worker_sched_ctx_id] = sched_ctx;
+		worker->nsched_ctxs++;
+		worker->active_ctx = sched_ctx_id;
+	}
+	worker->removed_from_ctx[sched_ctx_id] = 0;
 	return;
 }
 
@@ -58,55 +65,60 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 	return;
 }
 
-static void _starpu_update_workers(int *workerids, int nworkers, int sched_ctx_id, unsigned now)
+static void _starpu_update_workers_with_ctx(int *workerids, int nworkers, int sched_ctx_id)
 {
 	int i;
-	struct _starpu_worker *worker[nworkers];
+	struct _starpu_worker *worker = NULL;
  	struct _starpu_worker *curr_worker = _starpu_get_local_worker_key();
-
+	
 	for(i = 0; i < nworkers; i++)
 	{
-		worker[i] = _starpu_get_worker_struct(workerids[i]);
+		worker = _starpu_get_worker_struct(workerids[i]);
 
-
-		unsigned worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker[i], sched_ctx_id);
-		/* if the worker is not in the ctx's list it means the update concerns the addition of ctxs*/
-		if(worker_sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+		/* if the current thread requires resize it's no need
+		   to lock it in order to change its  sched_ctx info */
+		if(curr_worker && curr_worker == worker)
+			_starpu_worker_gets_into_ctx(sched_ctx_id, worker);
+		else
 		{
-			/* if the current thread requires resize it's no need
-			   to lock it in order to change its  sched_ctx info */
-			if((curr_worker && curr_worker == worker[i]) || now)
-				_starpu_worker_gets_into_ctx(sched_ctx_id, worker[i]);
+			_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+			_starpu_worker_gets_into_ctx(sched_ctx_id, worker);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+		}
+	}
+
+	return;
+}
+
+static void _starpu_update_workers_without_ctx(int *workerids, int nworkers, int sched_ctx_id, unsigned now)
+{
+	int i;
+	struct _starpu_worker *worker = NULL;
+ 	struct _starpu_worker *curr_worker = _starpu_get_local_worker_key();
+	
+	for(i = 0; i < nworkers; i++)
+	{
+		worker = _starpu_get_worker_struct(workerids[i]);
+		if(now)
+		{
+			if(curr_worker && curr_worker == worker)
+				_starpu_worker_gets_out_of_ctx(sched_ctx_id, worker);
 			else
 			{
-				_STARPU_PTHREAD_MUTEX_LOCK(&worker[i]->sched_mutex);
-				_starpu_worker_gets_into_ctx(sched_ctx_id, worker[i]);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&worker[i]->sched_mutex);
+					_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+					_starpu_worker_gets_out_of_ctx(sched_ctx_id, worker);
+					_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 			}
 		}
-		else /*remove from context */
+		else
 		{
-			if(now)
-			{
-				if(curr_worker && curr_worker == worker[i])
-					_starpu_worker_gets_out_of_ctx(sched_ctx_id, worker[i]);
-				else
-				{
-					_STARPU_PTHREAD_MUTEX_LOCK(&worker[i]->sched_mutex);
-					_starpu_worker_gets_out_of_ctx(sched_ctx_id, worker[i]);
-					_STARPU_PTHREAD_MUTEX_UNLOCK(&worker[i]->sched_mutex);
-				}
-			}
+			if(curr_worker && curr_worker == worker)
+				worker->removed_from_ctx[sched_ctx_id] = 1;
 			else
 			{
-				if(curr_worker && curr_worker == worker[i])
-					worker[i]->removed_from_ctx[sched_ctx_id] = 1;
-				else
-				{
-					_STARPU_PTHREAD_MUTEX_LOCK(&worker[i]->sched_mutex);
-					worker[i]->removed_from_ctx[sched_ctx_id] = 1;
-					_STARPU_PTHREAD_MUTEX_UNLOCK(&worker[i]->sched_mutex);
-				}
+				_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+				worker->removed_from_ctx[sched_ctx_id] = 1;
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 			}
 		}
 	}
@@ -138,6 +150,13 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			int worker = workers->add(workers, (workerids == NULL ? i : workerids[i]));
 			if(worker >= 0)
 				added_workers[(*n_added_workers)++] = worker;
+			else
+			{
+				struct _starpu_worker *worker_str = _starpu_get_worker_struct(workerids[i]);
+				_STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+				worker_str->removed_from_ctx[sched_ctx->id] = 0;
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+			}
 		}
 		else
 		{
@@ -145,7 +164,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			workers->add(workers, worker);
 			workers_to_add[i] = worker;
 		}
-	}
+}
 
 	if(sched_ctx->sched_policy->add_workers)
 	{
@@ -175,8 +194,6 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 			if(worker >= 0)
 				removed_workers[(*n_removed_workers)++] = worker;
 		}
-/* 		if(*n_removed_workers) */
-/* 			sched_ctx->sched_policy->remove_workers(sched_ctx->id, removed_workers, *n_removed_workers); */
 	}
 
 	return;
@@ -403,7 +420,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	sched_ctx->min_ngpus = min_ngpus;
 	sched_ctx->max_ngpus = max_ngpus;
 
-	_starpu_update_workers(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id, 0);
+	_starpu_update_workers_without_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id, 0);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	sched_ctx->perf_counters = NULL;
 #endif
@@ -416,7 +433,7 @@ unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids,
 	struct _starpu_sched_ctx *sched_ctx = NULL;
 	sched_ctx = _starpu_create_sched_ctx(policy_name, workerids, nworkers, 0, sched_name);
 
-	_starpu_update_workers(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id, 0);
+	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	sched_ctx->perf_counters = NULL;
 #endif
@@ -480,8 +497,8 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
-		_starpu_update_workers(workerids, nworkers_ctx, sched_ctx_id, 1);
-		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
+		_starpu_update_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
+//		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 		_starpu_delete_sched_ctx(sched_ctx);
 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
@@ -584,7 +601,7 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 		_starpu_add_workers_to_sched_ctx(sched_ctx, workers_to_add, nworkers_to_add, added_workers, &n_added_workers);
 		
 		if(n_added_workers > 0)
-			_starpu_update_workers(added_workers, n_added_workers, sched_ctx->id, 0);
+			_starpu_update_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
 
 		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
 	}
@@ -610,7 +627,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 		_starpu_remove_workers_from_sched_ctx(sched_ctx, workers_to_remove, nworkers_to_remove, removed_workers, &n_removed_workers);
 
 		if(n_removed_workers > 0)
-			_starpu_update_workers(removed_workers, n_removed_workers, sched_ctx->id, 0);
+			_starpu_update_workers_without_ctx(removed_workers, n_removed_workers, sched_ctx->id, 0);
 
 	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);

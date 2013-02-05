@@ -520,6 +520,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			_starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 
+			STARPU_ASSERT_MSG(fifo != NULL, "worker %d ctx %d\n", worker, sched_ctx_id);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
@@ -805,8 +806,11 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		_starpu_destroy_fifo(dt->queue_array[workerid]);
-		dt->queue_array[workerid] = NULL;
+		if(dt->queue_array[workerid] != NULL)
+		{
+			_starpu_destroy_fifo(dt->queue_array[workerid]);
+			dt->queue_array[workerid] = NULL;
+		}
 	}
 }
 

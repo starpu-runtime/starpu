@@ -289,7 +289,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 
 			if(w == 1)
 			{
-				int nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch);
+				int nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s], arch);
 				if(nworkers_ctx > res_rounded[s][w])
 				{
 					int nworkers_to_move = nworkers_ctx - res_rounded[s][w];
@@ -302,7 +302,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 			}
 			else
 			{
-				double nworkers_ctx = get_nworkers_ctx(sched_ctxs[s], arch) * 1.0;
+				double nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s], arch) * 1.0;
 				if(nworkers_ctx > res[s][w])
 				{
 					double nworkers_to_move = nworkers_ctx - res[s][w];
@@ -347,7 +347,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 			{
 				if(sched_ctxs[s2] != sched_ctxs[s])
 				{
-					double nworkers_ctx2 = get_nworkers_ctx(sched_ctxs[s2], arch) * 1.0;
+					double nworkers_ctx2 = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s2], arch) * 1.0;
 					if((res[s2][w] - nworkers_ctx2) >= 0.0 && nw_move > 0)
 					{
 						sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);

@@ -769,6 +769,11 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
+	 
+#ifdef STARPU_USE_CUDA  
+	cudaError_t status;  
+#endif
+
 #ifdef STARPU_DEVEL
 #warning TODO: we need to use starpu_malloc
 #endif
@@ -792,7 +797,7 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 			addr = 1;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			cudaError_t status = cudaMalloc((void **)&addr, size);
+			status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))

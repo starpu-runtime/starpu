@@ -327,8 +327,7 @@ double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
 	double prc = elapsed_flops/sc_w->total_flops;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sc_w->sched_ctx);
-	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE*nworkers : HYPERVISOR_REDIM_SAMPLE*nworkers;
+	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE : HYPERVISOR_REDIM_SAMPLE;
 	if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
@@ -374,6 +373,10 @@ int _velocity_gap_btw_ctxs()
 			{
 				if(sched_ctxs[i] != sched_ctxs[j])
 				{
+					unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctxs[j]);
+					if(nworkers == 0) 
+						return 1;
+
 					other_sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[j]);
 					double other_ctx_v = _get_ctx_velocity(other_sc_w);
 					if(other_ctx_v != 0.0)
@@ -382,8 +385,6 @@ int _velocity_gap_btw_ctxs()
 						if(gap > 1.5)
 							return 1;
 					}
-					else
-						return 1;
 				}
 			}
 		}

@@ -324,7 +324,7 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 	}
 }
 
-int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
+int sched_ctx_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
 {
 	int nworkers_ctx = 0;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
@@ -350,11 +350,11 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 {
 	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx])// && hypervisor.resize[receiver_sched_ctx])
 	{
-/* 		int j; */
-/* 		printf("resize ctx %d with", sender_sched_ctx); */
-/* 		for(j = 0; j < nworkers_to_move; j++) */
-/* 			printf(" %d", workers_to_move[j]); */
-/* 		printf("\n"); */
+		int j;
+		printf("resize ctx %d with", sender_sched_ctx);
+		for(j = 0; j < nworkers_to_move; j++)
+			printf(" %d", workers_to_move[j]);
+		printf("\n");
 
 		int *cpus = (int*) malloc(nworkers_to_move * sizeof(int));
 		int ncpus;
@@ -368,11 +368,11 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 
 		if(now)
 		{
-/* 			int j; */
-/* 			printf("remove from ctx %d:", sender_sched_ctx); */
-/* 			for(j = 0; j < nworkers_to_move; j++) */
-/* 				printf(" %d", workers_to_move[j]); */
-/* 			printf("\n"); */
+			int j;
+			printf("remove now from ctx %d:", sender_sched_ctx);
+			for(j = 0; j < nworkers_to_move; j++)
+				printf(" %d", workers_to_move[j]);
+			printf("\n");
 
 			starpu_sched_ctx_remove_workers(workers_to_move, nworkers_to_move, sender_sched_ctx);
 		}
@@ -396,6 +396,7 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 				}
 
 				hypervisor.resize[sender_sched_ctx] = 0;
+//				hypervisor.resize[receiver_sched_ctx] = 0;
 
 				pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 			}
@@ -413,11 +414,11 @@ void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned
 {
 	if(nworkers_to_add > 0 && hypervisor.resize[sched_ctx])
 	{
-/* 		int j; */
-/* 		printf("add to ctx %d:", sched_ctx); */
-/* 		for(j = 0; j < nworkers_to_add; j++) */
-/* 			printf(" %d", workers_to_add[j]); */
-/* 		printf("\n"); */
+		int j;
+		printf("add to ctx %d:", sched_ctx);
+		for(j = 0; j < nworkers_to_add; j++)
+			printf(" %d", workers_to_add[j]);
+		printf("\n");
 		starpu_sched_ctx_add_workers(workers_to_add, nworkers_to_add, sched_ctx);
 		struct sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctx);
 		int i;
@@ -442,13 +443,13 @@ void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, 
 
 		if(now)
 		{
-/* 				int j; */
-/* 				printf("remove from ctx %d:", sched_ctx); */
-/* 				for(j = 0; j < nworkers_to_remove; j++) */
-/* 					printf(" %d", workers_to_remove[j]); */
-/* 				printf("\n"); */
-
-				starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, sched_ctx);
+			int j;
+			printf("remove explicitley now from ctx %d:", sched_ctx);
+			for(j = 0; j < nworkers_to_remove; j++)
+				printf(" %d", workers_to_remove[j]);
+			printf("\n");
+			
+			starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, sched_ctx);
 		}
 		else
 		{
@@ -583,11 +584,11 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 			   whatever the application says */
 			if(!((hypervisor.resize[sender_sched_ctx] == 0 || hypervisor.resize[receiver_sched_ctx] == 0) && imposed_resize))
 			{
-/* 				int j; */
-/* 				printf("remove from ctx %d:", sender_sched_ctx); */
-/* 				for(j = 0; j < nmoved_workers; j++) */
-/* 					printf(" %d", moved_workers[j]); */
-/* 				printf("\n"); */
+				int j;
+				printf("remove after ack from ctx %d:", sender_sched_ctx);
+				for(j = 0; j < nmoved_workers; j++)
+					printf(" %d", moved_workers[j]);
+				printf("\n");
 
 				starpu_sched_ctx_remove_workers(moved_workers, nmoved_workers, sender_sched_ctx);
 

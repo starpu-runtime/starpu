@@ -151,7 +151,7 @@ int *sched_ctx_hypervisor_get_sched_ctxs();
 
 int sched_ctx_hypervisor_get_nsched_ctxs();
 
-int get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch);
+int sched_ctx_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch);
 
 struct sched_ctx_hypervisor_wrapper *sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
