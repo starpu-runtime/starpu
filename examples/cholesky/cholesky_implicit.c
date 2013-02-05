@@ -27,8 +27,10 @@ static struct starpu_codelet cl11 =
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
-#if defined(STARPU_USE_CUDA) || defined (STARPU_SIMGRID)
+#ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -40,8 +42,10 @@ static struct starpu_codelet cl21 =
 	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
-#if defined(STARPU_USE_CUDA) || defined (STARPU_SIMGRID)
+#ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -54,8 +58,10 @@ static struct starpu_codelet cl22 =
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
-#if defined(STARPU_USE_CUDA) || defined (STARPU_SIMGRID)
+#ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
