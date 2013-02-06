@@ -18,8 +18,10 @@
 @section Hello World using the C Extension
 
 This section shows how to implement a simple program that submits a task
-to StarPU using the StarPU C extension (@pxref{C Extensions}). A
-similar example showing how to directly use the StarPU's API is shown
+to StarPU using the StarPU C extension (@pxref{C
+Extensions})@footnote{The complete example, and additional examples,
+is available in the @file{gcc-plugin/examples} directory of the StarPU
+distribution.}. A similar example showing how to directly use the StarPU's API is shown
 in @ref{Hello World using StarPU's API}.
 
 GCC from version 4.5 permit to use the StarPU GCC plug-in (@pxref{C
@@ -280,27 +282,22 @@ Callback function (arg 42)
 @node Vector Scaling Using the C Extension
 @section Vector Scaling Using the C Extension
 
-The previous example has shown how to submit tasks. In this section,
-we show how StarPU tasks can manipulate data. The version of this
-example using StarPU's API is given in the next sections.
-
-
 @menu
 * Adding an OpenCL Task Implementation::
 * Adding a CUDA Task Implementation::
 @end menu
 
-The simplest way to get started writing StarPU programs is using the C
-language extensions provided by the GCC plug-in (@pxref{C Extensions}).
-These extensions map directly to StarPU's main concepts: tasks, task
-implementations for CPU, OpenCL, or CUDA, and registered data buffers.
+The previous example has shown how to submit tasks. In this section,
+we show how StarPU tasks can manipulate data.
 
-The example below is a vector-scaling program, that multiplies elements
-of a vector by a given factor@footnote{The complete example, and
+We will first show how to use the C language extensions provided by
+the GCC plug-in (@pxref{C Extensions})@footnote{The complete example, and
 additional examples, is available in the @file{gcc-plugin/examples}
-directory of the StarPU distribution.}.  For comparison, the standard C
-version that uses StarPU's standard C programming interface is given in
-the next section (@pxref{Vector Scaling Using StarPU's API, standard C
+directory of the StarPU distribution.}. These extensions map directly
+to StarPU's main concepts: tasks, task implementations for CPU,
+OpenCL, or CUDA, and registered data buffers. The standard C version
+that uses StarPU's standard C programming interface is given in the
+next section (@pxref{Vector Scaling Using StarPU's API, standard C
 version of the example}).
 
 First of all, the vector-scaling task and its simple CPU implementation
@@ -395,7 +392,7 @@ The program can be compiled and linked with GCC and the @code{-fplugin}
 flag:
 
 @example
-$ gcc hello-starpu.c \
+$ gcc `pkg-config starpu-1.0 --cflags` vector_scal.c \
     -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
     `pkg-config starpu-1.0 --libs`
 @end example
