@@ -16,7 +16,7 @@
 if STARPU_USE_CPU
 
 noinst_PROGRAMS =				\
-  matrix-mult stencil5 vector_scal/vector_scal
+  hello-starpu matrix-mult stencil5 vector_scal/vector_scal
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
