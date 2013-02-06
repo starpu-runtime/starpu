@@ -1083,8 +1083,8 @@ directory. Simple examples include:
 @item @code{incrementer/}:
     Trivial incrementation test.
 @item @code{basic_examples/}:
-        Simple documented Hello world (as shown in @ref{Hello World}), vector/scalar product (as shown
-        in @ref{Vector Scaling on an Hybrid CPU/GPU Machine}), matrix
+        Simple documented Hello world and vector/scalar product (as
+        shown in @ref{Basic Examples}), matrix
         product examples (as shown in @ref{Performance model example}), an example using the blocked matrix data
         interface, an example using the variable data interface, and an example
         using different formats on CPUs and GPUs.

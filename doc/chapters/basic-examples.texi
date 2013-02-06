@@ -7,26 +7,20 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Hello World::                 Submitting Tasks
+* Hello World using the C Extension::
+* Hello World using StarPU's API::
 * Vector Scaling Using the C Extension::
-* Vector Scaling Using StarPu's API::
+* Vector Scaling Using StarPU's API::
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 @end menu
 
-@node Hello World
-@section Hello World
+@node Hello World using the C Extension
+@section Hello World using the C Extension
 
 This section shows how to implement a simple program that submits a task
-to StarPU. You can either use the StarPU C extension (@pxref{C
-Extensions}) or directly use the StarPU's API.
-
-@menu
-* Hello World using the C Extension::
-* Hello World using StarPU's API::
-@end menu
-
-@node Hello World using the C Extension
-@subsection Hello World using the C Extension
+to StarPU using the StarPU C extension (@pxref{C Extensions}). A
+similar example showing how to directly use the StarPU's API is shown
+in @ref{Hello World using StarPU's API}.
 
 GCC from version 4.5 permit to use the StarPU GCC plug-in (@pxref{C
 Extensions}). This makes writing a task both simpler and less error-prone.
@@ -79,10 +73,10 @@ As can be seen above, the C extensions allows programmers to
 use StarPU tasks by essentially annotating ``regular'' C code.
 
 @node Hello World using StarPU's API
-@subsection Hello World using StarPU's API
+@section Hello World using StarPU's API
 
-The remainder of this section shows how to achieve the same result using
-StarPU's standard C API.
+This section shows how to achieve the same result as in the previous
+section using StarPU's standard C API.
 
 @menu
 * Required Headers::
@@ -92,7 +86,7 @@ StarPU's standard C API.
 @end menu
 
 @node Required Headers
-@subsubsection Required Headers
+@subsection Required Headers
 
 The @code{starpu.h} header should be included in any code using StarPU.
 
@@ -104,7 +98,7 @@ The @code{starpu.h} header should be included in any code using StarPU.
 
 
 @node Defining a Codelet
-@subsubsection Defining a Codelet
+@subsection Defining a Codelet
 
 @cartouche
 @smallexample
@@ -168,10 +162,10 @@ Be aware that this may be a pointer to a
 if the codelet modifies this buffer, there is no guarantee that the initial
 buffer will be modified as well: this for instance implies that the buffer
 cannot be used as a synchronization medium. If synchronization is needed, data
-has to be registered to StarPU, see @ref{Vector Scaling Using StarPu's API}.
+has to be registered to StarPU, see @ref{Vector Scaling Using StarPU's API}.
 
 @node Submitting a Task
-@subsubsection Submitting a Task
+@subsection Submitting a Task
 
 @cartouche
 @smallexample
@@ -261,7 +255,7 @@ disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
 @code{starpu_data_set_sequential_consistency_flag}.
 
 @node Execution of Hello World
-@subsubsection Execution of Hello World
+@subsection Execution of Hello World
 
 @smallexample
 $ make hello_world
@@ -294,7 +288,7 @@ of a vector by a given factor@footnote{The complete example, and
 additional examples, is available in the @file{gcc-plugin/examples}
 directory of the StarPU distribution.}.  For comparison, the standard C
 version that uses StarPU's standard C programming interface is given in
-the next section (@pxref{Vector Scaling Using StarPu's API, standard C
+the next section (@pxref{Vector Scaling Using StarPU's API, standard C
 version of the example}).
 
 First of all, the vector-scaling task and its simple CPU implementation
@@ -539,8 +533,8 @@ CPU task implementation can be added.
 For more details on the C extensions provided by StarPU's GCC plug-in,
 @xref{C Extensions}.
 
-@node Vector Scaling Using StarPu's API
-@section Vector Scaling Using StarPu's API
+@node Vector Scaling Using StarPU's API
+@section Vector Scaling Using StarPU's API
 
 This section shows how to achieve the same result as explained in the
 previous section using StarPU's standard C API.
