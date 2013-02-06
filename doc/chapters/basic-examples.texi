@@ -638,8 +638,8 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
         val[i] *= *factor;
 @}
 
-struct starpu_codelet cl = @{
-    .where = STARPU_CPU,
+struct starpu_codelet cl =
+@{
     .cpu_funcs = @{ scal_cpu_func, NULL @},
     .nbuffers = 1,
     .modes = @{ STARPU_RW @}
@@ -801,10 +801,10 @@ void scal_opencl_func(void *buffers[], void *_args)
 
 The CPU implementation is the same as in the previous section.
 
-Here is the source of the main application. You can notice the value of the
-field @code{where} for the codelet. We specify
-@code{STARPU_CPU|STARPU_CUDA|STARPU_OPENCL} to indicate to StarPU that the codelet
-can be executed either on a CPU or on a CUDA or an OpenCL device.
+Here is the source of the main application. You can notice that the fields
+@code{cuda_funcs} and @code{opencl_funcs} of the codelet are set to
+define the pointers to the CUDA and OpenCL implementations of the
+task.
 
 @cartouche
 @smallexample
@@ -817,11 +817,10 @@ extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
-static struct starpu_codelet cl = @{
-    .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU,} */
-                                     /* @b{on a CUDA device, or on an OpenCL device} */
+static struct starpu_codelet cl =
+@{
     .cuda_funcs = @{ scal_cuda_func, NULL @},
-    .cpu_funcs = @{ scal_cpu_func, NULL @},
+    .cpu_funcs = @{ scal_cpu_func, NULL @},
     .opencl_funcs = @{ scal_opencl_func, NULL @},
     .nbuffers = 1,
     .modes = @{ STARPU_RW @}
