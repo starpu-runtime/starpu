@@ -31,6 +31,8 @@ has a single implementation for CPU:
 
 @cartouche
 @smallexample
+#include <stdio.h>
+
 /* @b{Task declaration.}  */
 static void my_task (int x) __attribute__ ((task));
 
@@ -64,9 +66,19 @@ The code can then be compiled and linked with GCC and the
 @code{-fplugin} flag:
 
 @example
-$ gcc hello-starpu.c \
+$ gcc `pkg-config starpu-1.0 --cflags` hello-starpu.c \
     -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
     `pkg-config starpu-1.0 --libs`
+@end example
+
+The code can also be compiled without the StarPU C extension and will
+behave as a normal sequential code.
+
+@example
+$ gcc hello-starpu.c
+hello-starpu.c:33:1: warning: ‘task’ attribute directive ignored [-Wattributes]
+$ ./a.out
+Hello, world! With x = 42
 @end example
 
 As can be seen above, the C extensions allows programmers to
