@@ -324,10 +324,12 @@ static double _get_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int 
 
 double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 {
+	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
         double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double total_elapsed_flops = sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
-	double prc = elapsed_flops/sc_w->total_flops;
-	double redim_sample = elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE : HYPERVISOR_REDIM_SAMPLE;
+	double prc = config->ispeed_ctx_sample != 0.0 ? elapsed_flops : elapsed_flops/sc_w->total_flops;
+	double redim_sample = config->ispeed_ctx_sample != 0.0 ? config->ispeed_ctx_sample : 
+		(elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE : HYPERVISOR_REDIM_SAMPLE);
 	if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
@@ -335,6 +337,23 @@ double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
                 return elapsed_flops/elapsed_time;
         }
 	return 0.0;
+}
+
+double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsigned worker)
+{
+        double elapsed_flops = sc_w->elapsed_flops[worker];
+	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
+	double sample = config->ispeed_w_sample[worker];
+
+        if( elapsed_flops >= sample)
+        {
+                double curr_time = starpu_timing_now();
+                double elapsed_time = curr_time - sc_w->start_time;
+                return (elapsed_flops/elapsed_time);
+        }
+
+        return -1.0;
+
 }
 
 /* compute an average value of the cpu velocity */

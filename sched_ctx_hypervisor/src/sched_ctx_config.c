@@ -22,6 +22,7 @@ static struct sched_ctx_hypervisor_policy_config* _create_config(void)
 	config->min_nworkers = -1;
 	config->max_nworkers = -1;
 	config->new_workers_max_idle = -1.0;
+	config->ispeed_ctx_sample = 0.0;
 
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -32,6 +33,7 @@ static struct sched_ctx_hypervisor_policy_config* _create_config(void)
 		config->max_idle[i] = -1.0;
 		config->empty_ctx_max_idle[i] = -1.0;
 		config->min_working[i] = -1.0;
+		config->ispeed_w_sample[i] = 0.0;
 	}
 
 	return config;
@@ -178,6 +180,19 @@ static struct sched_ctx_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_
 
 		case HYPERVISOR_NEW_WORKERS_MAX_IDLE:
 			config->new_workers_max_idle = va_arg(varg_list, double);
+			break;
+
+		case HYPERVISOR_ISPEED_W_SAMPLE:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+			double sample = va_arg(varg_list, double);
+
+			for(i = 0; i < nworkers; i++)
+				config->ispeed_w_sample[workerids[i]] = sample;
+			break;
+
+		case HYPERVISOR_ISPEED_CTX_SAMPLE:
+			config->ispeed_ctx_sample = va_arg(varg_list, double);
 			break;
 
 /* not important for the strateg, needed just to jump these args in the iteration of the args */

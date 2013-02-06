@@ -601,7 +601,9 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 		_starpu_add_workers_to_sched_ctx(sched_ctx, workers_to_add, nworkers_to_add, added_workers, &n_added_workers);
 		
 		if(n_added_workers > 0)
+		{
 			_starpu_update_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
+		}
 
 		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
 	}

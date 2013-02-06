@@ -50,6 +50,8 @@ unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now);
 
 double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w);
 
+double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsigned worker); 
+
 double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
 int _velocity_gap_btw_ctxs(void);

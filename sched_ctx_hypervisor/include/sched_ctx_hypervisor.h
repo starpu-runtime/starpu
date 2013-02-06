@@ -42,6 +42,8 @@ extern "C"
 #define HYPERVISOR_TIME_TO_APPLY -10
 #define HYPERVISOR_EMPTY_CTX_MAX_IDLE -11
 #define HYPERVISOR_NULL -12
+#define	HYPERVISOR_ISPEED_W_SAMPLE -13
+#define HYPERVISOR_ISPEED_CTX_SAMPLE -14
 
 pthread_mutex_t act_hypervisor_mutex;
 
@@ -78,6 +80,13 @@ struct sched_ctx_hypervisor_policy_config
 
 	/* above this context we allow removing all workers */
 	double empty_ctx_max_idle[STARPU_NMAXWORKERS];
+
+	/* sample used to compute the instant speed per worker*/
+	double ispeed_w_sample[STARPU_NMAXWORKERS];
+
+	/* sample used to compute the instant speed per ctx*/
+	double ispeed_ctx_sample;
+
 };
 
 struct sched_ctx_hypervisor_resize_ack

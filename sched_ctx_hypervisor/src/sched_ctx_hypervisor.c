@@ -34,6 +34,7 @@ extern struct sched_ctx_hypervisor_policy gflops_rate_policy;
 #ifdef STARPU_HAVE_GLPK_H
 extern struct sched_ctx_hypervisor_policy lp_policy;
 extern struct sched_ctx_hypervisor_policy lp2_policy;
+extern struct sched_ctx_hypervisor_policy ispeed_policy;
 #endif // STARPU_HAVE_GLPK_H
 
 
@@ -45,7 +46,8 @@ static struct sched_ctx_hypervisor_policy *predefined_policies[] =
 	&lp_policy,
 	&lp2_policy,
 #endif // STARPU_HAVE_GLPK_H
-	&gflops_rate_policy
+	&gflops_rate_policy,
+	&ispeed_policy
 };
 
 static void _load_hypervisor_policy(struct sched_ctx_hypervisor_policy *policy)
