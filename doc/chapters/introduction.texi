@@ -9,6 +9,7 @@
 @menu
 * Motivation::                  Why StarPU ?
 * StarPU in a Nutshell::        The Fundamentals of StarPU
+* Application taskification::   How to taskify an application
 * Glossary::
 * Research Papers::
 @end menu
@@ -123,6 +124,19 @@ Moreover, to avoid unnecessary transfers, StarPU keeps data
 where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
 several processing units as long as it is not modified.
+
+@node Application taskification
+@section Application taskification
+
+TODO
+
+@c TODO: section describing what taskifying an application means: before
+@c porting to StarPU, turn the program into:
+@c "pure" functions, which only access data from their passed parameters
+@c a main function which just calls these pure functions
+@c
+@c and then it's trivial to use StarPU or any other kind of task-based library:
+@c simply replace calling the function with submitting a task.
 
 @node Glossary
 @section Glossary
