@@ -110,7 +110,7 @@ static void parse_args(int argc, char **argv)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage(argv);
-		exit(-1);
+		exit(77);
 	}
 }
 
