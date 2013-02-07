@@ -262,7 +262,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		snprintf(new_memnode_container_name, STARPU_POTI_STR_LEN, "MEMNODE%s%"PRIu64"", prefix, ev->param[0]);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_memnode_container_alias, "Mn", program_container, new_memnode_container_name);
 #else
-		fprintf(out_paje_file, "7	%.9f	mn%"PRIu64"	Mn	%sp	MEMNODE%s%"PRIu64"\n", get_event_time_stamp(ev, options), ev->param[0], prefix, options->file_prefix, ev->param[0]);
+		fprintf(out_paje_file, "7	%.9f	mn%s%"PRIu64"	Mn	%sp	MEMNODE%s%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, options->file_prefix, ev->param[0]);
 #endif
 
 		if (!options->no_bus)
