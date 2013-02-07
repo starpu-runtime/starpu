@@ -97,6 +97,10 @@ void starpu_set_profiling_id(int new_id)
 	_STARPU_DEBUG("Set id to <%d>\n", new_id);
 	_starpu_id = new_id;
 	_starpu_profile_set_tracefile(NULL);
+
+#ifdef HAVE_FUT_SET_FILENAME
+	fut_set_filename(_STARPU_PROF_FILE_USER);
+#endif
 }
 
 void starpu_fxt_start_profiling()
