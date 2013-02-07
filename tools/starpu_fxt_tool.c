@@ -30,7 +30,8 @@ static void usage(char **argv)
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
         fprintf(stderr, "\n");
         fprintf(stderr, "Options:\n");
-        fprintf(stderr, "   -i <input file>     specify the input file\n");
+	fprintf(stderr, "   -i <input file>     specify the input file. This can be specified several\n");
+	fprintf(stderr, "                       times for MPI execution case\n");
         fprintf(stderr, "   -o <output file>    specify the output file\n");
         fprintf(stderr, "   -c                  use a different colour for every type of task\n");
         fprintf(stderr, "   -no-counter         set the FxT no counter option\n");
