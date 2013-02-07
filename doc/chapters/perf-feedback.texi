@@ -309,6 +309,13 @@ $ vite paje.trace
 To get names of tasks instead of "unknown", fill the optional @code{name} field
 of the codelets, or use a performance model for them.
 
+In the MPI execution case, collect the trace files from the MPI nodes, and
+specify them all on the @code{starpu_fxt_tool} command, for instance:
+
+@smallexample
+$ starpu_fxt_tool -i filename1 -i filename2
+@end smallexample
+
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option @code{-c} to @code{starpu_fxt_tool}.
 
