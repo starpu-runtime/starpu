@@ -102,21 +102,21 @@ dist_bin_SCRIPTS +=			\
 
 if STARPU_HAVE_HELP2MAN
 starpu_calibrate_bus.1: starpu_calibrate_bus$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_machine_display.1: starpu_machine_display$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
 	chmod +x starpu_workers_activity$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
 	chmod +x starpu_fxt_tool$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 endif
 
 dist_man1_MANS =\
