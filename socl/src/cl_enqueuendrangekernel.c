@@ -163,8 +163,8 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
       cl_event beforeEvent, afterEvent;
 
       command_marker cmd = command_marker_create();
-      command_queue_enqueue(cq, cmd, num_events, events);
       beforeEvent = command_event_get(cmd);
+      command_queue_enqueue(cq, cmd, num_events, events);
    
       cl_uint iter = 1;
       cl_uint split_min = CL_UINT_MAX;
