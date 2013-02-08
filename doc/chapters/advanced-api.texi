@@ -8,6 +8,7 @@
 
 @menu
 * Insert Task::
+* Tracing support::
 * MPI Interface::
 * Defining a new data interface::
 * Multiformat Data Interface::
@@ -95,6 +96,24 @@ Retrieve the arguments of type @code{STARPU_VALUE} associated to a
 task automatically created using the function
 @code{starpu_insert_task} defined above.
 @end deftypefun
+
+@node Tracing support
+@section Tracing support
+
+@deftypefun void starpu_fxt_start_profiling (void)
+Start recording the trace. The trace is by default started from
+@code{starpu_init()} call, unless setting @code{no_auto_start_trace} to 1 in
+@code{starpu_conf}, in which case @code{starpu_fxt_start_profiling} should be
+called to specify when to start recording events.
+@end deftypefun
+
+@deftypefun void starpu_fxt_stop_profiling (void)
+Stop recording the trace. The trace is by default stopped at
+@code{starpu_shutdown()} call. @code{starpu_fxt_stop_profiling} can however be
+used to stop it earlier. @code{starpu_fxt_start_profiling} can then be called to
+start recording it again, etc.
+@end deftypefun
+
 
 @node MPI Interface
 @section MPI Interface

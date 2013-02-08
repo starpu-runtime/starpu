@@ -109,6 +109,12 @@ void starpu_fxt_start_profiling()
 	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
 }
 
+void starpu_fxt_stop_profiling()
+{
+	unsigned threadid = _starpu_gettid();
+	fut_keychange(FUT_DISABLE, FUT_KEYMASKALL, threadid);
+}
+
 void _starpu_init_fxt_profiling(unsigned no_auto_start_trace, unsigned trace_buffer_size)
 {
 	unsigned threadid;
