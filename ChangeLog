@@ -120,7 +120,8 @@ Small features:
   traces from starpu_init.
   * Add trace_buffer_size configuration field to permit to specify the tracing
   buffer size.
-  * Add starpu_codelet_profile, a tool that draws the profile of a codelet.
+  * Add starpu_codelet_profile and starpu_codelet_histo_profile, tools which draw
+  the profile of a codelet.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

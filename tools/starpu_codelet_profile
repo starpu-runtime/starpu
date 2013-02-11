@@ -18,7 +18,7 @@
 
 if [ "$#" -lt 2 -o "$1" = --help -o "$1" = -h ]
 then
-	echo "Offline tool to display codelet profile over a traced execution"
+	echo "Offline tool to draw codelet profile over a traced execution"
 	echo ""
 	echo "Usage: $0 distrib.data codelet_name"
 	exit 1

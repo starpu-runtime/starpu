@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
-# Copyright (C) 2009, 2010  Université de Bordeaux 1
+# Copyright (C) 2009, 2010, 2013  Université de Bordeaux 1
 # Copyright (C) 2010  Centre National de la Recherche Scientifique
 # 
 # StarPU is free software; you can redistribute it and/or modify
@@ -16,6 +16,14 @@
 # 
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+if [ "$#" -lt 2 -o "$1" = --help -o "$1" = -h ]
+then
+	echo "Offline tool to draw codelet profile histogram over a traced execution"
+	echo ""
+	echo "Usage: $0 distrib.data"
+	exit 1
+fi
+
 create_histograms()
 {
 
@@ -23,30 +31,48 @@ inputfile=$1
 
 R --no-save > /dev/null << EOF
 
-handle_hash <- function (hash)
+handle_hash <- function (codelet, arch, hash)
 {
 
-val <- table[table[,1]==hash,3]
+mytable <- table
+mytable <- mytable[mytable[,1]==codelet,]
+mytable <- mytable[mytable[,2]==arch,]
+mytable <- mytable[mytable[,4]==hash,]
+
+val <- mytable[,5]
 
 
 # there is certainly a better way to do this !
-size <- unique(table[table[,1]==hash,2])
+size <- unique(mytable[,3])
 
-pdf(paste("$inputfile", hash, size, "pdf", sep="."));
+pdf(paste("$inputfile", codelet, arch, hash, size, "pdf", sep="."));
 
 h <- hist(val[val > quantile(val,0.01) & val<quantile(val,0.99)], col="red", breaks=50, density=10)
 
+dev.off()
 
 }
 
 table <- read.table("$inputfile")
 
-hashlist <- unique(table[,1])
+codeletlist <- unique(table[,1])
 
-for (hash in hashlist)
+for (codelet in codeletlist)
 {
-	print(hash)
-	handle_hash(hash)
+	archlist <- unique(table[table[,1]==codelet,2])
+
+	for (arch in archlist)
+	{
+		hashlist <- unique(table[table[,2]==arch,4])
+
+		for (hash in hashlist)
+		{
+			print(codelet)
+			print(arch)
+			print(hash)
+			handle_hash(codelet, arch, hash)
+		}
+	}
 }
 
 EOF

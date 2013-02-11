@@ -98,6 +98,7 @@ noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=			\
 	starpu_workers_activity		\
+	starpu_codelet_histo_profile	\
 	starpu_codelet_profile
 
 

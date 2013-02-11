@@ -449,6 +449,15 @@ This will create profiling data files, and a @code{.gp} file in the current
 directory, which draws the distribution of codelet time over the application
 execution, according to data input size.
 
+If you have the R statistical tool installed, you can additionally use
+
+@example
+$ starpu_codelet_histo_profile distrib.data
+@end example
+
+Which will create one pdf file per codelet and per input size, showing a
+histogram of the codelet execution time distribution.
+
 @node Theoretical lower bound on execution time API
 @section Theoretical lower bound on execution time
 
