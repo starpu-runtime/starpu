@@ -78,6 +78,9 @@ AC_HEADER_STDC
 
 AC_C_RESTRICT
 
+# Check if bash is available
+AC_CHECK_PROGS([BASH], [bash])
+
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
