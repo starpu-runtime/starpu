@@ -3,7 +3,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
 # Copyright (C) 2008, 2009, 2010, 2013  Université de Bordeaux 1
-# Copyright (C) 2010  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2013  Centre National de la Recherche Scientifique
 # 
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,12 +16,29 @@
 # 
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-if [ "$#" -lt 2 -o "$1" = --help -o "$1" = -h ]
-then
+PROGNAME=$0
+
+usage()
+{
 	echo "Offline tool to draw codelet profile over a traced execution"
 	echo ""
-	echo "Usage: $0 distrib.data codelet_name"
+	echo "Usage: $PROGNAME distrib.data codelet_name"
+	echo ""
+	echo "Options:"
+	echo "	-h, --help          display this help and exit"
+	echo "	-v, --version       output version information and exit"
+	echo ""
+	echo "Report bugs to <@PACKAGE_BUGREPORT@>"
 	exit 1
+}
+
+if [ "$1" = "-v" ] || [ "$1" = "--version" ] ; then
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+    exit 0
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$2" = "" ] ; then
+    usage
 fi
 
 inputfile=$1

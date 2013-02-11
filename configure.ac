@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
@@ -1828,6 +1828,8 @@ AC_SUBST([LIBSTARPU_LINK])
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x gcc-plugin/tests/run-test
+  chmod +x tools/starpu_codelet_profile
+  chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_workers_activity
 ])
 
@@ -1849,6 +1851,8 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	tools/starpu_codelet_profile
+	tools/starpu_codelet_histo_profile
 	tools/starpu_workers_activity
 	socl/Makefile
 	socl/src/Makefile
