@@ -120,6 +120,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 								config->priority[curr_workers[index]])
 							{
 								double curr_worker_velocity = _get_velocity_per_worker(sc_w, curr_workers[index]);
+//								printf("speed[%d] = %lf speed[%d] = %lf\n", worker, worker_velocity, curr_workers[index], curr_worker_velocity);
 								if(worker_velocity < curr_worker_velocity && curr_worker_velocity != -1.0)
 								{
 									curr_workers[index] = worker;
@@ -163,6 +164,8 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker)
 							new_speed += _get_velocity_per_worker(sched_ctx_hypervisor_get_wrapper(fastest_sched_ctx), workers_to_move[i]);
 						double fastest_speed = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(fastest_sched_ctx));
 						double slowest_speed = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(slowest_sched_ctx));
+//						printf("fast_speed(%d) %lf slow_speed(%d) %lf new speed(%d) %lf \n", fastest_sched_ctx, fastest_speed, slowest_sched_ctx, 
+//						       slowest_speed, workers_to_move[0], new_speed);
 						if((slowest_speed + new_speed) <= (fastest_speed - new_speed))
 						{
 							sched_ctx_hypervisor_move_workers(fastest_sched_ctx, slowest_sched_ctx, workers_to_move, nworkers_to_move, 0);

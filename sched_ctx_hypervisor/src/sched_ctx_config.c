@@ -64,7 +64,9 @@ void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 		_update_config(hypervisor.sched_ctx_w[sched_ctx].config, config);
 	}
 	else
+	{
 		hypervisor.sched_ctx_w[sched_ctx].config = config;
+	}
 
 	return;
 }

@@ -322,6 +322,29 @@ static double _get_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int 
 	return ret_val;
 }
 
+static double _get_ispeed_sample_for_type_of_worker(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype req_arch)
+{
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+        int worker;
+
+	struct starpu_iterator it;
+	if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
+
+        while(workers->has_next(workers, &it))
+	{
+                worker = workers->get_next(workers, &it);
+                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                if(arch == req_arch)
+                {
+			struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
+			return config->ispeed_w_sample[worker];
+		}
+        }
+
+	return 0.0;
+}
+
 double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 {
 	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
@@ -330,6 +353,7 @@ double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 	double prc = config->ispeed_ctx_sample != 0.0 ? elapsed_flops : elapsed_flops/sc_w->total_flops;
 	double redim_sample = config->ispeed_ctx_sample != 0.0 ? config->ispeed_ctx_sample : 
 		(elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE : HYPERVISOR_REDIM_SAMPLE);
+//	printf("%d: prc %lf sample %lf\n", sc_w->sched_ctx, prc, redim_sample);
 	if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
@@ -339,11 +363,40 @@ double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 	return 0.0;
 }
 
+double _get_slowest_ctx_exec_time(void)
+{
+	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+
+	double curr_time = starpu_timing_now();
+	double slowest_time = 0.0;
+
+	int s;
+	struct sched_ctx_hypervisor_wrapper* sc_w;		
+	for(s = 0; s < nsched_ctxs; s++)
+	{
+		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
+
+                double elapsed_time = curr_time - sc_w->start_time;
+		if(elapsed_time > slowest_time)
+			slowest_time = elapsed_time;
+        }
+	return slowest_time;
+}
+
 double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsigned worker)
 {
+	if(!starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx))
+		return -1.0;
+
         double elapsed_flops = sc_w->elapsed_flops[worker];
 	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
 	double sample = config->ispeed_w_sample[worker];
+
+	double ctx_elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+	double ctx_sample = config->ispeed_ctx_sample;
+	if(ctx_elapsed_flops > ctx_sample && elapsed_flops == 0.0)
+		return 0.00000000000001;
 
         if( elapsed_flops >= sample)
         {
@@ -354,6 +407,16 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 
         return -1.0;
 
+/*         if( elapsed_flops != 0.0) */
+/*         { */
+/*                 double curr_time = starpu_timing_now(); */
+/*                 double elapsed_time = curr_time - sc_w->start_time; */
+/*                 return (elapsed_flops/elapsed_time); */
+/*         } */
+
+/*         return 0.00000000000001; */
+
+
 }
 
 /* compute an average value of the cpu velocity */
@@ -361,12 +424,14 @@ double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, 
 {
         int npus = 0;
         double elapsed_flops = _get_elapsed_flops(sc_w, &npus, arch);
+	double avg_elapsed_flops = elapsed_flops / npus;
+	double sample = _get_ispeed_sample_for_type_of_worker(sc_w, arch);
 
-        if( elapsed_flops != 0.0)
+        if( avg_elapsed_flops >= sample)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = curr_time - sc_w->start_time;
-                return (elapsed_flops/elapsed_time) / npus;
+                return elapsed_flops/elapsed_time;
         }
 
         return -1.0;
@@ -422,7 +487,7 @@ void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_
 
 	for(w = 0; w < current_nworkers; w++)
 	{
-		enum starpu_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+ 		enum starpu_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
 			starpu_worker_get_type(workers[w]);
 		if(arch == STARPU_CPU_WORKER)
 			total_nw[1]++;

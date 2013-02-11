@@ -18,6 +18,7 @@
 #include <starpu_config.h>
 
 
+#ifdef STARPU_HAVE_GLPK_H
 static void lp_handle_poped_task(unsigned sched_ctx, int worker)
 {
 	if(_velocity_gap_btw_ctxs())
@@ -85,7 +86,6 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-#ifdef STARPU_HAVE_GLPK_H
 struct sched_ctx_hypervisor_policy lp_policy = {
 	.size_ctxs = lp_size_ctxs,
 	.handle_poped_task = lp_handle_poped_task,

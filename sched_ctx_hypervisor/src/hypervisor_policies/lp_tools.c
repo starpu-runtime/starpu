@@ -20,7 +20,7 @@
 
 #ifdef STARPU_HAVE_GLPK_H
 
-static double _glp_get_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], int  total_nw[nw])
+double _lp_compute_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], int  total_nw[nw])
 {
 	int s, w;
 	glp_prob *lp;
@@ -180,22 +180,19 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 #ifdef STARPU_HAVE_GLPK_H
 	double v[nsched_ctxs][ntypes_of_workers];
 	double flops[nsched_ctxs];
-#endif
+
 	int i = 0;
 	struct sched_ctx_hypervisor_wrapper* sc_w;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
-#ifdef STARPU_HAVE_GLPK_H
 		v[i][0] = 200.0;//_get_velocity_per_worker_type(sc_w, STARPU_CUDA_WORKER);
 		v[i][1] = 20.0;//_get_velocity_per_worker_type(sc_w, STARPU_CPU_WORKER);
 		flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
 //			printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
-#endif
 	}
 
-#ifdef STARPU_HAVE_GLPK_H
-	return 1/_glp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
+	return 1/_lp_compute_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
 #else
 	return 0.0;
 #endif
