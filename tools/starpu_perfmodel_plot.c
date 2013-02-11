@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011-2013  Université de Bordeaux 1
  * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -22,6 +22,9 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <limits.h>
+#ifdef STARPU_USE_FXT
+#include <fxt.h>
+#endif
 
 #include <starpu.h>
 #include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
@@ -45,7 +48,6 @@ static int no_fxt_file = 1;
 
 #ifdef STARPU_USE_FXT
 static struct starpu_fxt_codelet_event *dumped_codelets;
-static long dumped_codelets_count;
 static struct starpu_fxt_options options;
 #endif
 
@@ -177,10 +179,10 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 		fprintf(stderr,"Arch: %s\n", arch_name);
 
 #ifdef STARPU_USE_FXT
-	if (!no_fxt_file && archtype_is_found[arch])
+	if (!no_fxt_file && archtype_is_found[arch] && nimpl == 0)
 	{
 		print_comma(gnuplot_file, first);
-		fprintf(gnuplot_file, "\"< grep -w \\^%d %s\" using 2:3 title \"%s\"", arch, data_file_name, arch_name);
+		fprintf(gnuplot_file, "\"< grep -w \\^%d %s\" using 2:3 title \"Profiling %s\"", arch, data_file_name, arch_name);
 	}
 #endif
 
@@ -238,7 +240,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 			if (arch_model->list) {
 				print_comma(gnuplot_file, first);
-				fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Measured %s\"", avg_file_name, col, col+1, archname);
+				fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", avg_file_name, col, col+1, archname);
 				col += 2;
 			}
 		}
@@ -306,7 +308,7 @@ static void dump_data_file(FILE *data_file)
 	for (i = 0; i < options.dumped_codelets_count; i++)
 	{
 		/* Dump only if the symbol matches user's request */
-		if (strcmp(dumped_codelets[i].symbol, symbol) == 0) {
+		if (strncmp(dumped_codelets[i].symbol, symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0) {
 			enum starpu_perf_archtype archtype = dumped_codelets[i].archtype;
 			archtype_is_found[archtype] = 1;
 

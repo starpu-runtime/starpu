@@ -449,6 +449,16 @@ This will create profiling data files, and a @code{.gp} file in the current
 directory, which draws the distribution of codelet time over the application
 execution, according to data input size.
 
+This is also available in the @code{starpu_perfmodel_plot} tool, by passing it
+the fxt trace:
+
+@example
+$ starpu_perfmodel_display -s non_linear_memset_regression_based.type -i /tmp/prof_file_foo_0
+@end example
+
+It willd produce a @code{.gp} file which contains both the performance model
+curves, and the profiling measurements.
+
 If you have the R statistical tool installed, you can additionally use
 
 @example
