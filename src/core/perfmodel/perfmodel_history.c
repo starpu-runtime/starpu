@@ -1098,16 +1098,17 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				reg_model->maxx = job_size;
 			reg_model->nsample++;
 
-			unsigned n = reg_model->nsample;
-
-			double num = (n*reg_model->sumlnxlny - reg_model->sumlnx*reg_model->sumlny);
-			double denom = (n*reg_model->sumlnx2 - reg_model->sumlnx*reg_model->sumlnx);
-
-			reg_model->beta = num/denom;
-			reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
-
 			if (VALID_REGRESSION(reg_model))
+			{
+				unsigned n = reg_model->nsample;
+
+				double num = (n*reg_model->sumlnxlny - reg_model->sumlnx*reg_model->sumlny);
+				double denom = (n*reg_model->sumlnx2 - reg_model->sumlnx*reg_model->sumlnx);
+
+				reg_model->beta = num/denom;
+				reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 				reg_model->valid = 1;
+			}
 		}
 
 #ifdef STARPU_MODEL_DEBUG
