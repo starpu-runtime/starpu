@@ -383,7 +383,7 @@ file: <starpu_slu_lu_model_12.hannibal>
 @end example
 
 Here, the codelets of the lu example are available. We can examine the
-performance of the 22 kernel (in micro-seconds):
+performance of the 22 kernel (in micro-seconds), which is history-based:
 
 @example
 $ starpu_perfmodel_display -s starpu_slu_lu_model_22
@@ -406,14 +406,48 @@ execution, the GPUs are about 20 times faster than the CPUs (numbers are in
 us). The standard deviation is extremely low for the GPUs, and less than 10% for
 CPUs.
 
-The @code{starpu_regression_display} tool does the same for regression-based
-performance models. It also writes a @code{.gp} file in the current directory,
-to be run in the @code{gnuplot} tool, which shows the corresponding curve.
+This tool can also be used for regression-based performance models. It will then
+display the regression formula, and in the case of non-linear regression, the
+same performance log as for history-based performance models:
+
+@example
+$ starpu_perfmodel_display -s non_linear_memset_regression_based.type
+performance model for cpu_impl_0
+	Regression : #sample = 1400
+	Linear: y = alpha size ^ beta
+		alpha = 1.335973e-03
+		beta = 8.024020e-01
+	Non-Linear: y = a size ^b + c
+		a = 5.429195e-04
+		b = 8.654899e-01
+		c = 9.009313e-01
+# hash		size		mean		stddev		n
+a3d3725e	4096           	4.763200e+00   	7.650928e-01   	100
+870a30aa	8192           	1.827970e+00   	2.037181e-01   	100
+48e988e9	16384          	2.652800e+00   	1.876459e-01   	100
+961e65d2	32768          	4.255530e+00   	3.518025e-01   	100
+...
+@end example
+
+The @code{starpu_perfmodel_plot} tool can be used to draw performance models.
+It writes a @code{.gp} file in the current directory, to be run in the
+@code{gnuplot} tool, which shows the corresponding curve.
 
 The same can also be achieved by using StarPU's library API, see
 @ref{Performance Model API} and notably the @code{starpu_perfmodel_load_symbol}
 function. The source code of the @code{starpu_perfmodel_display} tool can be a
 useful example.
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+get a profiling of each codelet by calling:
+@example
+$ starpu_fxt_tool -i filename
+$ starpu_codelet_profile distrib.data codelet_name
+@end example
+
+This will create profiling data files, and a @code{.gp} file in the current
+directory, which draws the distribution of codelet time over the application
+execution, according to data input size.
 
 @node Theoretical lower bound on execution time API
 @section Theoretical lower bound on execution time

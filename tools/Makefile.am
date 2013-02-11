@@ -97,7 +97,8 @@ STARPU_TOOLS	+=			\
 noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=			\
-	starpu_workers_activity
+	starpu_workers_activity		\
+	starpu_codelet_profile
 
 
 if STARPU_HAVE_HELP2MAN
@@ -111,6 +112,9 @@ starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
 	chmod +x starpu_workers_activity$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_codelet_profile.1: starpu_codelet_profile$(EXEEXT)
+	chmod +x starpu_codelet_profile$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 
 if STARPU_USE_FXT

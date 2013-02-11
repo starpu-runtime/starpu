@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011-2013  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2012 inria
  *
@@ -121,8 +121,8 @@ static void show_task_perfs(int size, struct starpu_task *task)
 		unsigned nimpl;
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			FPRINTF(stdout, "Expected time for %d on %s:\t%f\n",
-				size, name, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid), nimpl));
+			FPRINTF(stdout, "Expected time for %d on %s (impl %d):\t%f\n",
+				size, name, nimpl, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid), nimpl));
 		}
 	}
 }
