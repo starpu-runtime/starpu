@@ -49,12 +49,13 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 				enum starpu_archtype arch = starpu_worker_get_type(worker);
 				velocity[s][w] = _get_velocity_per_worker_type(sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]), arch);
 				if(velocity[s][w] == -1.0)
-					velocity[s][w] = arch == STARPU_CPU_WORKER ? 1 / 5.0 : 1 / 50.0;
+					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 50.0;
 			}
 			
+//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
 		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
-		flops[s] = config->ispeed_ctx_sample;
+		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
 	}
 
 
@@ -284,7 +285,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 		{
 			flops_on_w[s][w] = glp_get_col_prim(lp, colnum(w, s));
 			w_in_s[s][w] = glp_get_col_prim(lp, nw*ns+colnum(w,s));
-//			printf("%d/%d: w in s %lf flops %lf \n", w, s, w_in_s[s][w], flops_on_w[s][w]);
+//			printf("w_in_s[s%d][w%d] = %lf flops[s%d][w%d] = %lf \n", s, w, w_in_s[s][w], s, w, flops_on_w[s][w]);
 		}
 
 	glp_delete_prob(lp);

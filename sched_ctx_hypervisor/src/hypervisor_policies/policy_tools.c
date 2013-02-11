@@ -357,8 +357,8 @@ double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 	if(prc >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - sc_w->start_time;
-                return elapsed_flops/elapsed_time;
+                double elapsed_time = (curr_time - sc_w->start_time) / 1000000; /* in seconds */
+                return (elapsed_flops/1000000000)/elapsed_time;/* in Gflops/s */
         }
 	return 0.0;
 }
@@ -389,9 +389,9 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 	if(!starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx))
 		return -1.0;
 
-        double elapsed_flops = sc_w->elapsed_flops[worker];
+        double elapsed_flops = sc_w->elapsed_flops[worker] / 1000000000; /*in gflops */
 	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
-	double sample = config->ispeed_w_sample[worker];
+	double sample = config->ispeed_w_sample[worker] / 1000000000; /*in gflops */
 
 	double ctx_elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double ctx_sample = config->ispeed_ctx_sample;
@@ -401,8 +401,8 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
         if( elapsed_flops >= sample)
         {
                 double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - sc_w->start_time;
-                return (elapsed_flops/elapsed_time);
+                double elapsed_time = (curr_time - sc_w->start_time) / 1000000; /* in seconds */
+                return (elapsed_flops/elapsed_time); /* in Gflops/s */
         }
 
         return -1.0;
@@ -423,15 +423,15 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
         int npus = 0;
-        double elapsed_flops = _get_elapsed_flops(sc_w, &npus, arch);
+        double elapsed_flops = _get_elapsed_flops(sc_w, &npus, arch) / 1000000000 ; /* in gflops */
 	double avg_elapsed_flops = elapsed_flops / npus;
-	double sample = _get_ispeed_sample_for_type_of_worker(sc_w, arch);
+	double sample = _get_ispeed_sample_for_type_of_worker(sc_w, arch) / 1000000000;
 
         if( avg_elapsed_flops >= sample)
         {
                 double curr_time = starpu_timing_now();
-                double elapsed_time = curr_time - sc_w->start_time;
-                return elapsed_flops/elapsed_time;
+                double elapsed_time = (curr_time - sc_w->start_time) / 1000000; /* in seconds */
+                return avg_elapsed_flops/elapsed_time; /* in Gflops/s */
         }
 
         return -1.0;
