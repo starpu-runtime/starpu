@@ -520,11 +520,11 @@ times before the model is calibrated.
 @subsection Simulation
 
 Then, recompile StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
-application, specifying the requested number of devices:
+application:
 
 @smallexample
 $ ./configure --enable-simgrid && make
-$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
 TEST FAILED !!!
 @end smallexample
 
@@ -535,9 +535,7 @@ If the performance model is not calibrated enough, the following error
 message will be displayed
 
 @smallexample
-$ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/matvecmult/matvecmult
-[0.000000] [xbt_cfg/INFO] type in variable = 2
-[0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
 [starpu][_starpu_load_history_based_model] Warning: model matvecmult
     is not calibrated, forcing calibration for this run. Use the
     STARPU_CALIBRATE environment variable to control this.
@@ -545,16 +543,16 @@ $ STARPU_SCHED=dmda STARPU_NCPU=12 STARPU_NCUDA=0 STARPU_NOPENCL=1 ./examples/ma
     matvecmult does not have a perfmodel, or is not calibrated enough
 @end smallexample
 
-For now, only the number of cpus can be arbitrarily chosen. The number of CUDA
-and OpenCL devices have to be lower than the real number on the current machine.
+The number of devices can be chosen as usual with @code{STARPU_NCPU},
+@code{STARPU_NCUDA}, and @code{STARPU_NOPENCL}.  For now, only the number of
+cpus can be arbitrarily chosen. The number of CUDA and OpenCL devices have to be
+lower than the real number on the current machine.
 
-The Simgrid default stack size is small, to increase it use the
+The Simgrid default stack size is small; to increase it use the
 parameter @code{--cfg=contexts/stack_size}, for example:
 
 @smallexample
-$ STARPU_NCPU=12 STARPU_NCUDA=2 STARPU_NOPENCL=0 ./example --cfg=contexts/stack_size:8192
-[0.000000] [xbt_cfg/INFO] type in variable = 2
-[0.000000] [surf_workstation/INFO] surf_workstation_model_init_ptask_L07
+$ ./example --cfg=contexts/stack_size:8192
 TEST FAILED !!!
 @end smallexample
 
@@ -568,7 +566,7 @@ virtual timestamp in ms.
 The simgrid support even permits to perform simulations on another machine, your
 desktop, typically. To achieve this, one still needs to perform the Calibration
 step on the actual machine to be simulated, then copy them to your desktop
-machine (the @code{$STARPU_HOME/.starpu} directory). One can then performa the
+machine (the @code{$STARPU_HOME/.starpu} directory). One can then perform the
 Simulation step on the desktop machine, by setting the @code{STARPU_HOSTNAME}
 environment variable to the name of the actual machine, to make StarPU use the
 performance models of the simulated machine even on the desktop machine.

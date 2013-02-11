@@ -32,6 +32,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
+#include <core/simgrid.h>
 #include <common/utils.h>
 
 #ifdef STARPU_USE_OPENCL
@@ -743,7 +744,7 @@ static void load_bus_affinity_file_content(void)
 	FILE *f;
 
 	char path[256];
-	get_affinity_path(path, 256);
+	get_affinity_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading affinities from %s\n", path);
 
@@ -818,7 +819,7 @@ static void write_bus_affinity_file_content(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
 	char path[256];
-	get_affinity_path(path, 256);
+	get_affinity_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing affinities to %s\n", path);
 
@@ -884,7 +885,7 @@ static void load_bus_affinity_file(void)
 	int res;
 
 	char path[256];
-	get_affinity_path(path, 256);
+	get_affinity_path(path, sizeof(path));
 
 	res = access(path, F_OK);
 	if (res)
@@ -963,7 +964,7 @@ static int load_bus_latency_file_content(void)
 	double latency;
 
 	char path[256];
-	get_latency_path(path, 256);
+	get_latency_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading latencies from %s\n", path);
 
@@ -1060,7 +1061,7 @@ static void write_bus_latency_file_content(void)
 	STARPU_ASSERT(was_benchmarked);
 
 	char path[256];
-	get_latency_path(path, 256);
+	get_latency_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing latencies to %s\n", path);
 
@@ -1148,7 +1149,7 @@ static void load_bus_latency_file(void)
 	int res;
 
 	char path[256];
-	get_latency_path(path, 256);
+	get_latency_path(path, sizeof(path));
 
 	res = access(path, F_OK);
 	if (res || !load_bus_latency_file_content())
@@ -1176,7 +1177,7 @@ static int load_bus_bandwidth_file_content(void)
 	double bandwidth;
 
 	char path[256];
-	get_bandwidth_path(path, 256);
+	get_bandwidth_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading bandwidth from %s\n", path);
 
@@ -1273,7 +1274,7 @@ static void write_bus_bandwidth_file_content(void)
 	STARPU_ASSERT(was_benchmarked);
 
 	char path[256];
-	get_bandwidth_path(path, 256);
+	get_bandwidth_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing bandwidth to %s\n", path);
 
@@ -1451,7 +1452,7 @@ static void load_bus_bandwidth_file(void)
 	int res;
 
 	char path[256];
-	get_bandwidth_path(path, 256);
+	get_bandwidth_path(path, sizeof(path));
 
 	res = access(path, F_OK);
 	if (res || !load_bus_bandwidth_file_content())
@@ -1476,7 +1477,7 @@ static void check_bus_config_file(void)
         char path[256];
         struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-        get_config_path(path, 256);
+        get_config_path(path, sizeof(path));
         res = access(path, F_OK);
 	if (res || config->conf->bus_calibrate > 0)
 	{
@@ -1538,14 +1539,13 @@ static void check_bus_config_file(void)
         }
 }
 
-#ifndef STARPU_SIMGRID
 static void write_bus_config_file_content(void)
 {
 	FILE *f;
 	char path[256];
 
 	STARPU_ASSERT(was_benchmarked);
-        get_config_path(path, 256);
+        get_config_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing config to %s\n", path);
 
@@ -1559,16 +1559,209 @@ static void write_bus_config_file_content(void)
 
         fclose(f);
 }
-#endif
 
 static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
 
-#ifndef STARPU_SIMGRID
 	write_bus_config_file_content();
+}
+#endif /* !SIMGRID */
+
+void _starpu_simgrid_get_platform_path(char *path, size_t maxlen)
+{
+	get_bus_path("platform.xml", path, maxlen);
+}
+
+#ifndef STARPU_SIMGRID
+static void write_bus_platform_file_content(void)
+{
+	FILE *f;
+	char path[256];
+	int i, j;
+
+	STARPU_ASSERT(was_benchmarked);
+
+	_starpu_simgrid_get_platform_path(path, sizeof(path));
+
+	_STARPU_DEBUG("writing platform to %s\n", path);
+
+	f = fopen(path, "w+");
+	if (!f)
+	{
+		perror("fopen write_bus_platform_file_content");
+		_STARPU_DISP("path '%s'\n", path);
+		fflush(stderr);
+		STARPU_ABORT();
+	}
+
+	fprintf(f,
+"<?xml version='1.0'?>\n"
+" <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
+" <platform version='3'>\n"
+" <config id='General'>\n"
+"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
+"   <prop id='network/latency_factor' value='1'></prop>\n"
+"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
+" </config>\n"
+" <AS  id='AS0'  routing='Full'>\n"
+"   <host id='MAIN' power='1'/>\n"
+		);
+
+	for (i = 0; i < ncpus; i++)
+		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
+
+	for (i = 0; i < ncuda; i++)
+		fprintf(f, "   <host id='CUDA%d' power='2000000000'/>\n", i);
+
+	for (i = 0; i < nopencl; i++)
+		fprintf(f, "   <host id='OpenCL%d' power='2000000000'/>\n", i);
+
+	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
+
+	/* Compute maximum bandwidth, taken as machine bandwidth */
+	double max_bandwidth = 0;
+#ifdef STARPU_USE_CUDA
+	for (i = 0; i < ncuda; i++)
+	{
+		double down_bw = 1.0 / cudadev_timing_dtoh[1+i];
+		double up_bw = 1.0 / cudadev_timing_htod[1+i];
+		if (max_bandwidth < down_bw)
+			max_bandwidth = down_bw;
+		if (max_bandwidth < up_bw)
+			max_bandwidth = up_bw;
+	}
 #endif
+#ifdef STARPU_USE_OPENCL
+	for (i = 0; i < nopencl; i++)
+	{
+		double down_bw = 1.0 / opencldev_timing_dtoh[1+i];
+		double up_bw = 1.0 / opencldev_timing_htod[1+i];
+		if (max_bandwidth < down_bw)
+			max_bandwidth = down_bw;
+		if (max_bandwidth < up_bw)
+			max_bandwidth = up_bw;
+	}
+#endif
+	fprintf(f, "\n   <link id='Share' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
+
+	/* Write bandwidths & latencies */
+#ifdef STARPU_USE_CUDA
+	for (i = 0; i < ncuda; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+			i_name,
+			1000000. / cudadev_timing_htod[1+i],
+			cudadev_latency_htod[1+i]/1000000.);
+		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+			i_name,
+			1000000. / cudadev_timing_dtoh[1+i],
+			cudadev_latency_dtoh[1+i]/1000000.);
+	}
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	for (i = 0; i < ncuda; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		for (j = 0; j < ncuda; j++)
+		{
+			char j_name[16];
+			if (j == i)
+				continue;
+			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
+			fprintf(f, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
+				i_name, j_name,
+				1000000. / cudadev_timing_dtod[1+i][1+j],
+				cudadev_latency_dtod[1+i][1+j]/1000000.);
+		}
+	}
+#endif
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	for (i = 0; i < nopencl; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
+		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+			i_name,
+			1000000 / opencldev_timing_htod[1+i],
+			opencldev_latency_htod[1+i]/1000000.);
+		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+			i_name,
+			1000000 / opencldev_timing_dtoh[1+i],
+			opencldev_latency_dtoh[1+i]/1000000.);
+	}
+#endif
+
+	/* Write routes */
+#ifdef STARPU_USE_CUDA
+	for (i = 0; i < ncuda; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+	}
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	for (i = 0; i < ncuda; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		for (j = 0; j < ncuda; j++)
+		{
+			char j_name[16];
+			if (j == i)
+				continue;
+			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
+			fprintf(f, "   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Share'/></route>\n", i_name, j_name, i_name, j_name);
+		}
+	}
+#endif
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	for (i = 0; i < nopencl; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
+		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+	}
+#endif
+
+	fprintf(f,
+" </AS>\n"
+" </platform>\n"
+		);
+
+	fclose(f);
+}
+
+static void generate_bus_platform_file(void)
+{
+	if (!was_benchmarked)
+		benchmark_all_gpu_devices();
+
+	write_bus_platform_file_content();
+}
+
+static void check_bus_platform_file(void)
+{
+	int res;
+
+	char path[256];
+	_starpu_simgrid_get_platform_path(path, sizeof(path));
+
+	res = access(path, F_OK);
+	if (res)
+	{
+		/* File does not exist yet */
+		generate_bus_platform_file();
+	}
 }
 
 /*
@@ -1583,7 +1776,8 @@ static void starpu_force_bus_sampling(void)
 	generate_bus_affinity_file();
 	generate_bus_latency_file();
 	generate_bus_bandwidth_file();
-        generate_bus_config_file();
+	generate_bus_config_file();
+	generate_bus_platform_file();
 }
 #endif /* !SIMGRID */
 
@@ -1604,6 +1798,9 @@ void _starpu_load_bus_performance_files(void)
 #endif
 	load_bus_latency_file();
 	load_bus_bandwidth_file();
+#ifndef STARPU_SIMGRID
+	check_bus_platform_file();
+#endif
 }
 
 /* (in MB/s) */

@@ -19,99 +19,7 @@
 #include <unistd.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/workers.h>
-
-static struct starpu_conf conf;
-
-static void bus_name(char *s, size_t size, int num)
-{
-	if (!num)
-		snprintf(s, size, "RAM");
-	else if (num < conf.ncuda + 1)
-		snprintf(s, size, "CUDA%d", num - 1);
-	else
-		snprintf(s, size, "OpenCL%d", num - conf.ncuda - 1);
-}
-
-void starpu_simgrid_write_platform(struct starpu_conf *conf, FILE *file)
-{
-	int i, j;
-
-	fprintf(file,
-"<?xml version='1.0'?>\n"
-" <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
-" <platform version='3'>\n"
-" <config id='General'>\n"
-"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
-"   <prop id='network/latency_factor' value='1'></prop>\n"
-"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
-" </config>\n"
-" <AS  id='AS0'  routing='Full'>\n"
-"   <host id='MAIN' power='1'/>\n"
-		);
-
-	for (i = 0; i < conf->ncpus; i++)
-		fprintf(file, "   <host id='CPU%d' power='2000000000'/>\n", i);
-
-	for (i = 0; i < conf->ncuda; i++)
-		fprintf(file, "   <host id='CUDA%d' power='2000000000'/>\n", i);
-
-	for (i = 0; i < conf->nopencl; i++)
-		fprintf(file, "   <host id='OpenCL%d' power='2000000000'/>\n", i);
-
-	fprintf(file, "\n   <host id='RAM' power='1'/>\n");
-
-	/* Compute maximum bandwidth, taken as machine bandwidth */
-	double max_bandwidth = 0;
-	for (i = 1; i < conf->ncuda + conf->nopencl + 1; i++)
-	{
-		if (max_bandwidth < _starpu_transfer_bandwidth(0, i))
-			max_bandwidth = _starpu_transfer_bandwidth(0, i);
-		if (max_bandwidth < _starpu_transfer_bandwidth(i, 0))
-			max_bandwidth = _starpu_transfer_bandwidth(i, 0);
-	}
-	fprintf(file, "\n   <link id='Share' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
-
-	for (i = 0; i < conf->ncuda + conf->nopencl + 1; i++)
-	{
-		char i_name[16];
-		bus_name(i_name, sizeof(i_name), i);
-
-		for (j = 0; j < conf->ncuda + conf->nopencl + 1; j++)
-		{
-			char j_name[16];
-			if (j == i)
-				continue;
-			bus_name(j_name, sizeof(j_name), j);
-			fprintf(file, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
-				i_name, j_name,
-				_starpu_transfer_bandwidth(i, j) * 1000000,
-				_starpu_transfer_latency(i, j) / 1000000);
-		}
-	}
-
-	for (i = 0; i < conf->ncuda + conf->nopencl + 1; i++)
-	{
-		char i_name[16];
-		bus_name(i_name, sizeof(i_name), i);
-
-		for (j = 0; j < conf->ncuda + conf->nopencl + 1; j++)
-		{
-			char j_name[16];
-			if (j == i)
-				continue;
-			bus_name(j_name, sizeof(j_name), j);
-			fprintf(file,
-"   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Share'/></route>\n",
-				i_name, j_name, i_name, j_name);
-		}
-	}
-
-	fprintf(file, 
-" </AS>\n"
-" </platform>\n"
-		);
-	fclose(file);
-}
+#include <core/simgrid.h>
 
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
@@ -159,9 +67,7 @@ int main(int argc, char **argv)
 {
 	xbt_dynar_t hosts;
 	int i;
-	char name[] = "/tmp/starpu-simgrid-platform.xml.XXXXXX";
-	int fd;
-	FILE *file;
+	char path[256];
 
 	if (!starpu_main)
 	{
@@ -175,29 +81,9 @@ int main(int argc, char **argv)
 	MSG_config("workstation/model", "ptask_L07");
 #endif
 
-	/* Create platform file */
-	starpu_conf_init(&conf);
-	if ((!getenv("STARPU_NCPUS") && !getenv("STARPU_NCPU"))
-	  || !getenv("STARPU_NCUDA")
-	  || !getenv("STARPU_NOPENCL"))
-	{
-		_STARPU_ERROR("Please specify the number of cpus and gpus by setting the environment variables STARPU_NCPU, STARPU_NCUDA, STARPU_NOPENCL\n");
-		exit(EXIT_FAILURE);
-	}
-	_starpu_conf_check_environment(&conf);
-
-	_starpu_load_bus_performance_files();
-
-	/* TODO: make the user to provide his own xml */
-	/* And remove the hack in _starpu_cpu_discover_devices */
-	fd = mkstemp(name);
-	file = fdopen(fd, "w");
-	starpu_simgrid_write_platform(&conf, file);
-	close(fd);
-
-	/* and load it */
-	MSG_create_environment(name);
-	unlink(name);
+	/* Load XML platform */
+	_starpu_simgrid_get_platform_path(path, sizeof(path));
+	MSG_create_environment(path);
 
 	hosts = MSG_hosts_as_dynar();
 	int nb = xbt_dynar_length(hosts);
@@ -266,15 +152,15 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 	int new_is_opencl STARPU_ATTRIBUTE_UNUSED, old_is_opencl STARPU_ATTRIBUTE_UNUSED;
 	int new_is_gpu_gpu, old_is_gpu_gpu;
 
-	new_is_cuda  = new_transfer->src_node >= 1 && new_transfer->src_node <= conf.ncuda;
-	new_is_cuda |= new_transfer->dst_node >= 1 && new_transfer->dst_node <= conf.ncuda;
-	old_is_cuda  = old_transfer->src_node >= 1 && old_transfer->src_node <= conf.ncuda;
-	old_is_cuda |= old_transfer->dst_node >= 1 && old_transfer->dst_node <= conf.ncuda;
+	new_is_cuda  = starpu_node_get_kind(new_transfer->src_node) == STARPU_CUDA_RAM;
+	new_is_cuda |= starpu_node_get_kind(new_transfer->dst_node) == STARPU_CUDA_RAM;
+	old_is_cuda  = starpu_node_get_kind(old_transfer->src_node) == STARPU_CUDA_RAM;
+	old_is_cuda |= starpu_node_get_kind(old_transfer->dst_node) == STARPU_CUDA_RAM;
 
-	new_is_opencl  = new_transfer->src_node > conf.ncuda && new_transfer->src_node <= conf.ncuda + conf.nopencl;
-	new_is_opencl |= new_transfer->dst_node > conf.ncuda && new_transfer->dst_node <= conf.ncuda + conf.nopencl;
-	old_is_opencl  = old_transfer->src_node > conf.ncuda && old_transfer->src_node <= conf.ncuda + conf.nopencl;
-	old_is_opencl |= old_transfer->dst_node > conf.ncuda && old_transfer->dst_node <= conf.ncuda + conf.nopencl;
+	new_is_opencl  = starpu_node_get_kind(new_transfer->src_node) == STARPU_OPENCL_RAM;
+	new_is_opencl |= starpu_node_get_kind(new_transfer->dst_node) == STARPU_OPENCL_RAM;
+	old_is_opencl  = starpu_node_get_kind(old_transfer->src_node) == STARPU_OPENCL_RAM;
+	old_is_opencl |= starpu_node_get_kind(old_transfer->dst_node) == STARPU_OPENCL_RAM;
 
 	new_is_gpu_gpu = new_transfer->src_node && new_transfer->dst_node;
 	old_is_gpu_gpu = old_transfer->src_node && old_transfer->dst_node;

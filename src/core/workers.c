@@ -590,11 +590,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				cuda++;
 				break;
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
+#ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
 				if (!_starpu_may_launch_driver(config->conf, &driver))
 					break;
+#endif
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
 				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)

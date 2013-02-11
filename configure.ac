@@ -884,9 +884,7 @@ AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
-	if test x$enable_simgrid != xyes; then
-		AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
-	fi
+	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
 else
 	CFLAGS="-O3 $CFLAGS"
 fi
@@ -1053,6 +1051,7 @@ AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
 if test x$enable_simgrid = xyes ; then
+	# We still need the room for the virtual CUDA/OpenCL devices
 	maxnodes=16
 else
 	# We have one memory node shared by all CPU workers, one node per GPU
