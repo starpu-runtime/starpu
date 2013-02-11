@@ -116,10 +116,10 @@ starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_codelet_profile.1: starpu_codelet_profile$(EXEEXT)
 	chmod +x $<
-	help2man --no-discard-stderr -N --output=$@ ./$<
+	help2man --no-discard-stderr -N --output=$@ $<
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile$(EXEEXT)
 	chmod +x $<
-	help2man --no-discard-stderr -N --output=$@ ./$<
+	help2man --no-discard-stderr -N --output=$@ $<
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
