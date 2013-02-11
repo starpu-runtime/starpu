@@ -142,7 +142,9 @@ void _starpu_init_fxt_profiling(unsigned no_auto_start_trace, unsigned trace_buf
 
 	atexit(_starpu_stop_fxt_profiling);
 
-	unsigned int key_mask = no_auto_start_trace ? 0 : FUT_KEYMASKALL;
+/* TODO: check this out */
+//	unsigned int key_mask = no_auto_start_trace ? 0 : FUT_KEYMASKALL;
+	unsigned int key_mask = FUT_KEYMASKALL;
 
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
 	{
