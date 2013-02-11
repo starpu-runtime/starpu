@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -264,6 +264,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
+		/* Note: we have to call that early, or else the task may have
+		 * disappeared already */
+		_starpu_push_task_end(task);
+
 		for (i = 0; i < worker_size; i++)
 		{
 			struct starpu_task *alias = _starpu_create_task_alias(task);
@@ -306,11 +310,18 @@ int _starpu_push_task(struct _starpu_job *j)
 		STARPU_ASSERT(policy.push_task);
 		ret = policy.push_task(task);
 	}
-
-	_starpu_profiling_set_task_push_end_time(task);
-
+        /* Note: from here, the task might have been destroyed already! */
         _STARPU_LOG_OUT();
         return ret;
+} 
+
+/* This is called right after the scheduler has pushed a task to a queue
+ * but just before releasing mutexes: we need the task to still be alive!
+ */
+int _starpu_push_task_end(struct starpu_task *task)
+{
+	_starpu_profiling_set_task_push_end_time(task);
+	return 0;
 }
 
 /*

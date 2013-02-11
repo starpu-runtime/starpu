@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -64,6 +64,7 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_
 	fifo_queue->nprocessed++;
 
 	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+	_starpu_push_task_end(task);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;

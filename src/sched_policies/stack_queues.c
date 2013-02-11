@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 #include <sched_policies/stack_queues.h>
 #include <errno.h>
 #include <common/utils.h>
+#include <core/sched_policy.h>
 
 /* keep track of the total number of jobs to be scheduled to avoid infinite
  * polling when there are really few jobs in the overall queue */
@@ -71,6 +72,7 @@ void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, pthread_mut
 	stack_queue->nprocessed++;
 
 	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+	_starpu_push_task_end(task);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
