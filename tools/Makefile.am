@@ -112,10 +112,13 @@ starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
 starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
-	chmod +x starpu_workers_activity$(EXEEXT)
+	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_codelet_profile.1: starpu_codelet_profile$(EXEEXT)
-	chmod +x starpu_codelet_profile$(EXEEXT)
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_codelet_histo_profile.1: starpu_codelet_histo_profile$(EXEEXT)
+	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 
 if STARPU_USE_FXT
@@ -129,7 +132,9 @@ dist_man1_MANS =\
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
 	starpu_perfmodel_plot.1	\
-	starpu_workers_activity.1
+	starpu_workers_activity.1 \
+	starpu_codelet_profile.1 \
+	starpu_codelet_histo_profile.1
 
 if STARPU_USE_FXT
 dist_man1_MANS +=\
