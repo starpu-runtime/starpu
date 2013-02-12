@@ -690,7 +690,6 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_opencl_copy = 0;
 #endif
 
-	conf->no_auto_start_trace = 0;
 	/* 64MiB by default */
 	conf->trace_buffer_size = 64<<20;
 	return 0;
@@ -858,9 +857,6 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	/* Launch "basic" workers (ie. non-combined workers) */
 	_starpu_launch_drivers(&config);
-
-	if (config.conf->no_auto_start_trace)
-		starpu_fxt_stop_profiling();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;

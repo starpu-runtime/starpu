@@ -150,10 +150,6 @@ struct starpu_conf
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
 
-	/* Indicates whether we start the tracing automatically
-	   or we leave the appl start it when it wants to */
-	unsigned no_auto_start_trace;
-
 	/* Specifies the buffer size for tracing */
 	unsigned trace_buffer_size;
 };

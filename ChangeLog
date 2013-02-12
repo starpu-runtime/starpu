@@ -116,8 +116,8 @@ Changes:
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
-  * Add no_auto_start_trace configuration field to permit avoiding starting FxT
-  traces from starpu_init.
+  * Add starpu_fxt_stop_profiling/starpu_fxt_start_profiling which permits to
+  pause trace recording.
   * Add trace_buffer_size configuration field to permit to specify the tracing
   buffer size.
   * Add starpu_codelet_profile and starpu_codelet_histo_profile, tools which draw

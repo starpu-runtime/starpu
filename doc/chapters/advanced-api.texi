@@ -102,9 +102,10 @@ task automatically created using the function
 
 @deftypefun void starpu_fxt_start_profiling (void)
 Start recording the trace. The trace is by default started from
-@code{starpu_init()} call, unless setting @code{no_auto_start_trace} to 1 in
-@code{starpu_conf}, in which case @code{starpu_fxt_start_profiling} should be
-called to specify when to start recording events.
+@code{starpu_init()} call, but can be paused by using
+@code{starpu_fxt_stop_profiling}, in which case
+@code{starpu_fxt_start_profiling} should be called to specify when to resume
+recording events.
 @end deftypefun
 
 @deftypefun void starpu_fxt_stop_profiling (void)
