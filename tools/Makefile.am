@@ -84,6 +84,8 @@ bin_PROGRAMS += 			\
 	starpu_calibrate_bus		\
 	starpu_machine_display
 
+starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+
 if STARPU_LONG_CHECK
 STARPU_TOOLS	+=			\
 	starpu_calibrate_bus
