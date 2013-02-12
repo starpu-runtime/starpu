@@ -122,7 +122,7 @@ void fut_set_filename(char *filename);
 long _starpu_gettid(void);
 
 /* Initialize the FxT library. */
-void _starpu_init_fxt_profiling(unsigned no_auto_start_trace, unsigned trace_buffer_size);
+void _starpu_init_fxt_profiling(unsigned trace_buffer_size);
 
 /* Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);

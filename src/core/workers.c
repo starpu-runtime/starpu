@@ -823,7 +823,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_init_fxt_profiling(config.conf->no_auto_start_trace, config.conf->trace_buffer_size);
+	_starpu_init_fxt_profiling(config.conf->trace_buffer_size);
 #endif
 
 	_starpu_open_debug_logfile();
@@ -858,6 +858,9 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	/* Launch "basic" workers (ie. non-combined workers) */
 	_starpu_launch_drivers(&config);
+
+	if (config.conf->no_auto_start_trace)
+		starpu_fxt_stop_profiling();
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;

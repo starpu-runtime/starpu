@@ -115,7 +115,7 @@ void starpu_fxt_stop_profiling()
 	fut_keychange(FUT_DISABLE, FUT_KEYMASKALL, threadid);
 }
 
-void _starpu_init_fxt_profiling(unsigned no_auto_start_trace, unsigned trace_buffer_size)
+void _starpu_init_fxt_profiling(unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
@@ -142,8 +142,6 @@ void _starpu_init_fxt_profiling(unsigned no_auto_start_trace, unsigned trace_buf
 
 	atexit(_starpu_stop_fxt_profiling);
 
-/* TODO: check this out */
-//	unsigned int key_mask = no_auto_start_trace ? 0 : FUT_KEYMASKALL;
 	unsigned int key_mask = FUT_KEYMASKALL;
 
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
