@@ -65,8 +65,8 @@ static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
-static int ncuda = 0;
-static int nopencl = 0;
+static unsigned ncuda = 0;
+static unsigned nopencl = 0;
 
 /* Benchmarking the performance of the bus */
 
@@ -633,10 +633,10 @@ static void benchmark_all_gpu_devices(void)
 	STARPU_ABORT();
 #else /* !SIMGRID */
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	int i;
+	unsigned i;
 #endif
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	int j;
+	unsigned j;
 #endif
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
@@ -753,15 +753,14 @@ static void load_bus_affinity_file_content(void)
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
-        int gpu;
+        unsigned gpu;
 
 #ifdef STARPU_USE_CUDA
 	ncuda = _starpu_get_cuda_device_count();
 	for (gpu = 0; gpu < ncuda; gpu++)
 	{
 		int ret;
-
-		int dummy;
+		unsigned dummy;
 
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &dummy);
@@ -785,8 +784,7 @@ static void load_bus_affinity_file_content(void)
 	for (gpu = 0; gpu < nopencl; gpu++)
 	{
 		int ret;
-
-		int dummy;
+		unsigned dummy;
 
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &dummy);
@@ -833,7 +831,7 @@ static void write_bus_affinity_file_content(void)
 	}
 
 	unsigned cpu;
-        int gpu;
+        unsigned gpu;
 
         fprintf(f, "# GPU\t");
 	for (cpu = 0; cpu < ncpus; cpu++)
@@ -915,7 +913,7 @@ void starpu_bus_print_affinity(FILE *f)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned cpu;
-	int gpu;
+	unsigned gpu;
 #endif
 
 	fprintf(f, "# GPU\tCPU in preference order (logical index)\n");
@@ -1055,7 +1053,7 @@ static int load_bus_latency_file_content(void)
 #ifndef STARPU_SIMGRID
 static void write_bus_latency_file_content(void)
 {
-        int src, dst, maxnode;
+        unsigned src, dst, maxnode;
 	FILE *f;
 
 	STARPU_ASSERT(was_benchmarked);
@@ -1268,7 +1266,7 @@ static int load_bus_bandwidth_file_content(void)
 #ifndef STARPU_SIMGRID
 static void write_bus_bandwidth_file_content(void)
 {
-	int src, dst, maxnode;
+	unsigned src, dst, maxnode;
 	FILE *f;
 
 	STARPU_ASSERT(was_benchmarked);
@@ -1348,7 +1346,7 @@ static void write_bus_bandwidth_file_content(void)
 
 void starpu_bus_print_bandwidth(FILE *f)
 {
-	int src, dst, maxnode;
+	unsigned src, dst, maxnode;
 
         maxnode = ncuda;
 #ifdef STARPU_USE_OPENCL
@@ -1490,7 +1488,8 @@ static void check_bus_config_file(void)
         else
 	{
                 FILE *f;
-                int ret, read_cuda = -1, read_opencl = -1;
+                int ret;
+		unsigned read_cuda = -1, read_opencl = -1;
                 unsigned read_cpus = -1;
 
                 // Loading configuration from file
@@ -1579,7 +1578,7 @@ static void write_bus_platform_file_content(void)
 {
 	FILE *f;
 	char path[256];
-	int i, j;
+	unsigned i;
 
 	STARPU_ASSERT(was_benchmarked);
 
