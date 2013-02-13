@@ -18,7 +18,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	32
+#else
+#  define NITER	2048
+#endif
 
 unsigned token = 42;
 starpu_data_handle_t token_handle;
