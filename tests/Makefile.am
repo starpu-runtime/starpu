@@ -115,10 +115,7 @@ if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
 
-starpu_machine_display_SOURCES	=	../tools/starpu_machine_display.c
-
 noinst_PROGRAMS =				\
-	starpu_machine_display			\
 	main/deprecated_func			\
 	main/deprecated_buffer			\
 	main/restart				\
