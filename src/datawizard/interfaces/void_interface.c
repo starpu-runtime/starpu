@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,6 @@ static int dummy_opencl_copy_async(void *src_interface, unsigned src_node, void 
 static struct starpu_data_copy_methods void_copy_data_methods_s =
 {
 	.ram_to_ram = dummy_copy,
-	.ram_to_spu = dummy_copy,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = dummy_copy,
 	.cuda_to_ram = dummy_copy,
@@ -56,10 +55,6 @@ static struct starpu_data_copy_methods void_copy_data_methods_s =
         .ram_to_opencl_async = dummy_opencl_copy_async,
 	.opencl_to_ram_async = dummy_opencl_copy_async,
 #endif
-	.cuda_to_spu = dummy_copy,
-	.spu_to_ram = dummy_copy,
-	.spu_to_cuda = dummy_copy,
-	.spu_to_spu = dummy_copy
 };
 
 static void register_void_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);

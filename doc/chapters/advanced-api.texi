@@ -297,7 +297,7 @@ Allocate data for the interface on a given node.
 Free data of the interface on a given node.
 
 @item @code{ const struct starpu_data_copy_methods *copy_methods}
-ram/cuda/spu/opencl synchronous and asynchronous transfer methods.
+ram/cuda/opencl synchronous and asynchronous transfer methods.
 
 @item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node)}
 Return the current pointer (if any) for the handle on the given node.
@@ -338,8 +338,8 @@ Unpack the data handle from the contiguous buffer at the address @code{ptr} of s
 @deftp {Data Type} {struct starpu_data_copy_methods}
 Defines the per-interface methods.
 @table @asis
-@item @code{int @{ram,cuda,opencl,spu@}_to_@{ram,cuda,opencl,spu@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
-These 16 functions define how to copy data from the @var{src_interface}
+@item @code{int @{ram,cuda,opencl@}_to_@{ram,cuda,opencl@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+These 12 functions define how to copy data from the @var{src_interface}
 interface on the @var{src_node} node to the @var{dst_interface} interface
 on the @var{dst_node} node. They return 0 on success.
 

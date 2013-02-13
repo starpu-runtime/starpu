@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,6 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void
 static struct starpu_data_copy_methods variable_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
-	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
@@ -66,10 +65,6 @@ static struct starpu_data_copy_methods variable_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu = NULL
 };
 
 static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
@@ -80,9 +75,6 @@ static size_t variable_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
 static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
-#ifdef STARPU_USE_GORDON
-static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
-#endif
 
 static struct starpu_data_interface_ops interface_variable_ops =
 {
@@ -94,9 +86,6 @@ static struct starpu_data_interface_ops interface_variable_ops =
 	.get_size = variable_interface_get_size,
 	.footprint = footprint_variable_interface_crc32,
 	.compare = variable_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon = convert_variable_to_gordon,
-#endif
 	.interfaceid = STARPU_VARIABLE_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_variable_interface),
 	.display = display_variable_interface,
@@ -129,16 +118,6 @@ static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_
 		local_interface->elemsize = STARPU_VARIABLE_GET_ELEMSIZE(data_interface);
 	}
 }
-
-#ifdef STARPU_USE_GORDON
-int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
-{
-	*ptr = STARPU_VARIABLE_GET_PTR(interface);
-	(*ss).size = STARPU_VARIABLE_GET_ELEMSIZE(interface);
-
-	return 0;
-}
-#endif
 
 /* declare a new data with the variable interface */
 void starpu_variable_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,

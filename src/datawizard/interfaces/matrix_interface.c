@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,7 +49,6 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 static struct starpu_data_copy_methods matrix_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
-	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
@@ -73,10 +72,6 @@ static struct starpu_data_copy_methods matrix_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu = NULL
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
@@ -87,9 +82,6 @@ static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
-#ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
-#endif
 
 struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
@@ -101,31 +93,10 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.get_size = matrix_interface_get_size,
 	.footprint = footprint_matrix_interface_crc32,
 	.compare = matrix_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon = convert_matrix_to_gordon,
-#endif
 	.interfaceid = STARPU_MATRIX_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_matrix_interface),
 	.display = display_matrix_interface,
 };
-
-#ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
-{
-	size_t elemsize = GET_MATRIX_ELEMSIZE(interface);
-	uint32_t nx = STARPU_MATRIX_GET_NX(interface);
-	uint32_t ny = STARPU_MATRIX_GET_NY(interface);
-	uint32_t ld = STARPU_MATRIX_GET_LD(interface);
-
-	*ptr = STARPU_MATRIX_GET_PTR(interface);
-
-	/* The gordon_stride_init function may use a contiguous buffer
- 	 * in case nx = ld (in that case, (*ss).size = elemsize*nx*ny */
-	*ss = gordon_stride_init(ny, nx*elemsize, ld*elemsize);
-
-	return 0;
-}
-#endif
 
 static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
 {

@@ -45,7 +45,6 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 static struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
-	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
@@ -66,10 +65,6 @@ static struct starpu_data_copy_methods multiformat_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu = NULL
 };
 
 static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
@@ -81,9 +76,6 @@ static uint32_t footprint_multiformat_interface_crc32(starpu_data_handle_t handl
 static int multiformat_compare(void *data_interface_a, void *data_interface_b);
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f);
 static uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle);
-#ifdef STARPU_USE_GORDON
-static int convert_multiformat_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
-#endif
 
 static struct starpu_multiformat_data_interface_ops*
 get_mf_ops(void *data_interface)
@@ -104,9 +96,6 @@ static struct starpu_data_interface_ops interface_multiformat_ops =
 	.get_size              = multiformat_interface_get_size,
 	.footprint             = footprint_multiformat_interface_crc32,
 	.compare               = multiformat_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon     = NULL,
-#endif
 	.interfaceid           = STARPU_MULTIFORMAT_INTERFACE_ID,
 	.interface_size        = sizeof(struct starpu_multiformat_interface),
 	.display               = display_multiformat_interface,

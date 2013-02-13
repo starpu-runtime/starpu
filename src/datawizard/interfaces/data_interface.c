@@ -553,7 +553,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 				}
 #endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
-				case STARPU_SPU_LS:       /* Not supported */
 				default:
 					STARPU_ABORT();
 			}

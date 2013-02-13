@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,6 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 static struct starpu_data_copy_methods block_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
-	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
@@ -59,10 +58,6 @@ static struct starpu_data_copy_methods block_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu = NULL
 };
 
 
@@ -74,9 +69,6 @@ static size_t block_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle);
 static int block_compare(void *data_interface_a, void *data_interface_b);
 static void display_block_interface(starpu_data_handle_t handle, FILE *f);
-#ifdef STARPU_USE_GORDON
-static int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
-#endif
 
 static struct starpu_data_interface_ops interface_block_ops =
 {
@@ -88,23 +80,10 @@ static struct starpu_data_interface_ops interface_block_ops =
 	.get_size = block_interface_get_size,
 	.footprint = footprint_block_interface_crc32,
 	.compare = block_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon = convert_block_to_gordon,
-#endif
 	.interfaceid = STARPU_BLOCK_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_block_interface),
 	.display = display_block_interface,
 };
-
-#ifdef STARPU_USE_GORDON
-int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
-{
-	/* TODO */
-	STARPU_ABORT();
-
-	return 0;
-}
-#endif
 
 static void *block_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 {

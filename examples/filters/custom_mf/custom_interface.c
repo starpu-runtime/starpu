@@ -49,7 +49,6 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 static struct starpu_data_copy_methods custom_copy_data_methods_s =
 {
 	.ram_to_ram = NULL,
-	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda        = NULL,
 	.cuda_to_ram        = NULL,
@@ -65,10 +64,6 @@ static struct starpu_data_copy_methods custom_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram  = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu  = NULL
 };
 
 static void     register_custom_handle(starpu_data_handle_t handle,

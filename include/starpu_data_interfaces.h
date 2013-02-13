@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,11 +20,6 @@
 #define __STARPU_DATA_INTERFACES_H__
 
 #include <starpu.h>
-
-#ifdef STARPU_USE_GORDON
-/* to get the gordon_strideSize_t data structure from gordon */
-#include <gordon.h>
-#endif
 
 #ifdef STARPU_USE_CUDA
 /* to use CUDA streams */
@@ -50,25 +45,16 @@ struct starpu_data_copy_methods
 	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-	int (*ram_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/* src type is cuda */
 	int (*cuda_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-	int (*cuda_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/* src type is spu */
-	int (*spu_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-	int (*spu_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-	int (*spu_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-	int (*spu_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/* src type is opencl */
 	int (*opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-	int (*opencl_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA
 	/* for asynchronous CUDA transfers */
@@ -112,7 +98,7 @@ struct starpu_data_interface_ops
 	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node);
 	/* Free data of the interface on a given node. */
 	void (*free_data_on_node)(void *data_interface, uint32_t node);
-	/* ram/cuda/spu/opencl synchronous and asynchronous transfer methods */
+	/* ram/cuda/opencl synchronous and asynchronous transfer methods */
 	struct starpu_data_copy_methods *copy_methods;
 	/* Return the current pointer (if any) for the handle on the given node. */
 	void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node);
@@ -124,10 +110,6 @@ struct starpu_data_interface_ops
 	int (*compare)(void *data_interface_a, void *data_interface_b);
 	/* Dump the sizes of a handle to a file */
 	void (*display)(starpu_data_handle_t handle, FILE *f);
-#ifdef STARPU_USE_GORDON
-	/* Convert the data size to the spu size format */
-	int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
-#endif
 	/* an identifier that is unique to each interface */
 	enum starpu_data_interface_id interfaceid;
 	/* The size of the interface data descriptor */

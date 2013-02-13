@@ -460,9 +460,6 @@ struct starpu_data_interface_ops _starpu_interface_coo_ops =
 	.get_size              = coo_interface_get_size,
 	.footprint             = coo_interface_footprint,
 	.compare               = coo_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon     = NULL,
-#endif
 	.interfaceid           = STARPU_COO_INTERFACE_ID,
 	.interface_size        = sizeof(struct starpu_coo_interface),
 	.display               = display_coo_interface
