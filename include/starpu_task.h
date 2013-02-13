@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
  *
@@ -36,8 +36,6 @@ extern "C"
 
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
-#define	STARPU_SPU	((1ULL)<<4),
-#define	STARPU_GORDON	((1ULL)<<5)
 #define STARPU_OPENCL	((1ULL)<<6)
 
 /* Codelet types */
@@ -67,12 +65,10 @@ typedef uint64_t starpu_tag_t;
 typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
 typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
 typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
-typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
 
 #define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
 #define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
 #define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
-#define STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS 255
 
 /*
  * A codelet describes the various function
@@ -91,12 +87,10 @@ struct starpu_codelet
 	starpu_cuda_func_t cuda_func STARPU_DEPRECATED;
 	starpu_cpu_func_t cpu_func STARPU_DEPRECATED;
 	starpu_opencl_func_t opencl_func STARPU_DEPRECATED;
-	uint8_t gordon_func STARPU_DEPRECATED;
 
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
-	starpu_gordon_func_t gordon_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;

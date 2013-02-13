@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,10 +21,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
-
-#ifdef STARPU_USE_GORDON
-#include <gordon.h>
-#endif
 
 #include "../helper.h"
 
@@ -94,19 +90,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_USE_GORDON
-	unsigned elf_id = gordon_register_elf_plugin("./datawizard/sync_and_notify_data_gordon_kernels.spuelf");
-	gordon_load_plugin_on_all_spu(elf_id);
-
-	unsigned kernel_incA_id = gordon_register_kernel(elf_id, "incA");
-	gordon_load_kernel_on_all_spu(kernel_incA_id);
-
-	unsigned kernel_incC_id = gordon_register_kernel(elf_id, "incC");
-	gordon_load_kernel_on_all_spu(kernel_incC_id);
-
-	FPRINTF(stderr, "kernel incA %d incC %d elf %d\n", kernel_incA_id, kernel_incC_id, elf_id);
-#endif
-
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_load_opencl_from_file("tests/datawizard/sync_and_notify_data_opencl_codelet.cl", &opencl_code, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
@@ -123,16 +106,13 @@ int main(int argc, char **argv)
 			/* increment a = v[0] */
 			struct starpu_codelet cl_inc_a =
 			{
-				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
+				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 				.cpu_funcs = {cpu_codelet_incA, NULL},
 #ifdef STARPU_USE_CUDA
 				.cuda_funcs = {cuda_codelet_incA, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
 				.opencl_funcs = {opencl_codelet_incA, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-				.gordon_func = kernel_incA_id,
 #endif
 				.nbuffers = 1,
 				.modes = {STARPU_RW}
@@ -163,16 +143,13 @@ int main(int argc, char **argv)
 			/* increment c = v[2] */
 			struct starpu_codelet cl_inc_c =
 			{
-				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
+				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 				.cpu_funcs = {cpu_codelet_incC, NULL},
 #ifdef STARPU_USE_CUDA
 				.cuda_funcs = {cuda_codelet_incC, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
 				.opencl_funcs = {opencl_codelet_incC, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-				.gordon_func = kernel_incC_id,
 #endif
 				.nbuffers = 1,
 				.modes = {STARPU_RW}

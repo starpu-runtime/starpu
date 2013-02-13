@@ -118,9 +118,6 @@ task_implementation_target_to_int (const_tree target)
   else if (!strncmp (TREE_STRING_POINTER (target), "cuda",
 		     TREE_STRING_LENGTH (target)))
     where_int = STARPU_CUDA;
-  else if (!strncmp (TREE_STRING_POINTER (target), "gordon",
-		     TREE_STRING_LENGTH (target)))
-    where_int = STARPU_GORDON;
   else
     where_int = 0;
 

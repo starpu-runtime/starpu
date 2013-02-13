@@ -36,31 +36,13 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static struct starpu_codelet dummy_codelet =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
         .opencl_funcs = {dummy_func, NULL},
-#ifdef STARPU_USE_GORDON
-	.gordon_func = 0, /* this will be defined later */
-#endif
 	.model = NULL,
 	.nbuffers = 0
 };
-
-static void init_gordon_kernel(void)
-{
-#ifdef STARPU_USE_GORDON
-	unsigned elf_id =
-		gordon_register_elf_plugin("./microbenchs/null_kernel_gordon.spuelf");
-	gordon_load_plugin_on_all_spu(elf_id);
-
-	unsigned gordon_null_kernel =
-		gordon_register_kernel(elf_id, "empty_kernel");
-	gordon_load_kernel_on_all_spu(gordon_null_kernel);
-
-	dummy_codelet.gordon_func = gordon_null_kernel;
-#endif
-}
 
 //static void inject_one_task(void)
 //{
@@ -114,8 +96,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	init_gordon_kernel();
 
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 

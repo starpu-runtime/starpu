@@ -95,10 +95,6 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->opencl_funcs[i] != NULL)
 					test_implementation = 1;
 				break;
-			case STARPU_GORDON_WORKER:
-				if (task->cl->gordon_funcs[i] != 0)
-					test_implementation = 1;
-				break;
 			default:
 				STARPU_ABORT();
 			}
@@ -163,7 +159,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 	{
 	case STARPU_ANY_WORKER:
 	{
-		int cpu_func_enabled=1, cuda_func_enabled=1, opencl_func_enabled=1, gordon_func_enabled=1;
+		int cpu_func_enabled=1, cuda_func_enabled=1, opencl_func_enabled=1;
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 		starpu_cpu_func_t cpu_func = _starpu_task_get_cpu_nth_implementation(cl, nimpl);
@@ -177,12 +173,8 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 		starpu_opencl_func_t opencl_func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		opencl_func_enabled = opencl_func != NULL && starpu_opencl_worker_get_count();
 #endif
-#if defined(STARPU_USE_GORDON) || defined(STARPU_SIMGRID)
-		starpu_gordon_func_t gordon_func = _starpu_task_get_gordon_nth_implementation(cl, nimpl);
-		gordon_func_enabled = gordon_func != 0 && starpu_spu_worker_get_count();
-#endif
 
-		return (cpu_func_enabled && cuda_func_enabled && opencl_func_enabled && gordon_func_enabled);
+		return (cpu_func_enabled && cuda_func_enabled && opencl_func_enabled);
 	}
 	case STARPU_CPU_WORKER:
 	{
@@ -198,11 +190,6 @@ static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct 
 	{
 		starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		return func != NULL;
-	}
-	case STARPU_GORDON_WORKER:
-	{
-		starpu_gordon_func_t func = _starpu_task_get_gordon_nth_implementation(cl, nimpl);
-		return func != 0;
 	}
 	default:
 		STARPU_ASSERT_MSG(0, "Unknown arch type %d", arch);

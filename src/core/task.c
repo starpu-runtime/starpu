@@ -319,21 +319,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->where |= STARPU_OPENCL;
 	}
-
-	/* Gordon */
-	if (cl->gordon_func && cl->gordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
-	{
-		cl->gordon_funcs[0] = cl->gordon_func;
-		cl->gordon_func = STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS;
-	}
-	if (cl->gordon_funcs[0] && cl->gordon_func == 0)
-	{
-		cl->gordon_func = STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS;
-	}
-	if (cl->gordon_funcs[0] && is_where_unset)
-	{
-		cl->where = STARPU_GORDON;
-	}
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task)
@@ -882,9 +867,4 @@ starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codele
 starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->opencl_funcs[nimpl];
-}
-
-starpu_gordon_func_t _starpu_task_get_gordon_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->gordon_funcs[nimpl];
 }
