@@ -108,6 +108,9 @@ Changes:
   * Cell:
     - It is no longer possible to enable the cell support via the
       gordon driver
+    - Data interfaces no longer define functions to copy to and from
+      SPU devices
+    - Codelet no longer define pointer for Gordon implementations
   * Fix data transfer arrows in paje traces
   * The "heft" scheduler no longer exists. Users should now pick "dmda"
     instead.
