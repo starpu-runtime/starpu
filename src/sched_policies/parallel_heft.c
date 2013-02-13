@@ -66,7 +66,6 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 
 	int workerid = starpu_worker_get_id();
 	double model = task->predicted;
-	unsigned sched_ctx_id = task->sched_ctx;
 	double transfer_model = task->predicted_transfer;
 
 	if (isnan(model))
