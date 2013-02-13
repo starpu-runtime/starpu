@@ -373,6 +373,9 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	CPPFLAGS="${SAVED_CPPFLAGS}"
 	unset STARPU_CUDA_LDFLAGS
     else
+	if test x$starpu_windows != xyes ; then
+	    NVCCFLAGS="${NVCCFLAGS} -ccbin \${CC}"
+	fi
 	if test "$__cuda_include_dir" != "no"; then
 	    STARPU_CUDA_CPPFLAGS="-I$__cuda_include_dir"
 	    NVCCFLAGS="${NVCCFLAGS} -I$__cuda_include_dir"
