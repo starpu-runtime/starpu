@@ -125,7 +125,10 @@ starpu_codelet_histo_profile.1: starpu_codelet_histo_profile$(EXEEXT)
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
-	chmod +x starpu_fxt_tool$(EXEEXT)
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_fxt_stats.1: starpu_fxt_stats$(EXEEXT)
+	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 endif
 
@@ -140,7 +143,8 @@ dist_man1_MANS =\
 
 if STARPU_USE_FXT
 dist_man1_MANS +=\
-	starpu_fxt_tool.1
+	starpu_fxt_tool.1 \
+	starpu_fxt_stats.1
 endif
 
 clean-local:
