@@ -472,6 +472,9 @@ if test x$enable_cuda = xyes; then
 	fi
 fi
 
+dnl Hey dude, are you around?
+PKG_PROG_PKG_CONFIG
+
 have_magma=no
 if test x$enable_cuda = xyes; then
 	PKG_CHECK_MODULES([MAGMA],  [magma], [
