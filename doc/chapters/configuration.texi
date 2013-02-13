@@ -45,6 +45,10 @@ any value.
 @item --enable-coverage
 Enable flags for the @code{gcov} coverage tool.
 
+@item --enable-quick-check
+Specify tests and examples should be run on a smaller data set, i.e
+allowing a faster execution time
+
 @item --with-hwloc
 Specify hwloc should be used by StarPU. hwloc should be found by the
 means of the tools @code{pkg-config}.
