@@ -375,7 +375,7 @@ void _starpu_opencl_init(void)
                 cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
                 cl_int err;
-                unsigned int i;
+                int i;
                 cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
 
                 _STARPU_DEBUG("Initialising OpenCL\n");
@@ -392,13 +392,14 @@ void _starpu_opencl_init(void)
                 // Get devices
                 nb_devices = 0;
                 {
-                        for (i=0; i<nb_platforms; i++)
+			unsigned j;
+                        for (j=0; j<nb_platforms; j++)
 			{
                                 cl_uint num;
 				int platform_valid = 1;
 				char name[1024], vendor[1024];
 
-				err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
+				err = clGetPlatformInfo(platform_id[j], CL_PLATFORM_NAME, 1024, name, NULL);
 				if (err != CL_SUCCESS)
 				{
 					STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo NAME", err);
@@ -406,7 +407,7 @@ void _starpu_opencl_init(void)
 				}
 				else
 				{
-					err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
+					err = clGetPlatformInfo(platform_id[j], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
 					if (STARPU_UNLIKELY(err != CL_SUCCESS))
 					{
 						STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo VENDOR", err);
@@ -426,7 +427,7 @@ void _starpu_opencl_init(void)
 #endif
 				if (platform_valid)
 				{
-					err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
+					err = clGetDeviceIDs(platform_id[j], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
 					if (err == CL_DEVICE_NOT_FOUND)
 					{
 						_STARPU_DEBUG("  No devices detected on this platform\n");
