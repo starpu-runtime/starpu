@@ -106,8 +106,13 @@ int main(int argc, char **argv)
 	uint32_t wt_mask = (1<<0);
 	starpu_data_set_wt_mask(handle, wt_mask);
 
+#ifdef STARPU_QUICK_CHECK
+	unsigned ntasks = 32;
+	unsigned nloops = 4;
+#else
 	unsigned ntasks = 1024;
 	unsigned nloops = 16;
+#endif
 
 	unsigned loop;
 	unsigned t;

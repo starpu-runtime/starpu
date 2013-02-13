@@ -18,7 +18,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned nloops = 10;
+#else
 static unsigned nloops = 1000;
+#endif
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {

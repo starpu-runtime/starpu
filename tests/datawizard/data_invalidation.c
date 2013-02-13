@@ -28,9 +28,9 @@
 #include "../helper.h"
 
 #ifdef STARPU_QUICK_CHECK
-#define NLOOPS		100
+#  define NLOOPS		100
 #else
-#define NLOOPS		1000
+#  define NLOOPS		1000
 #endif
 #define VECTORSIZE	1024
 

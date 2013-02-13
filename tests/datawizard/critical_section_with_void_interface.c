@@ -48,12 +48,13 @@ static struct starpu_codelet cl =
 
 int main(int argc, char **argv)
 {
-	int ntasks = 1000;
-	int ret;
-
 #ifdef STARPU_QUICK_CHECK
-	ntasks /= 10;
+	int ntasks = 10;
+#else
+	int ntasks = 1000;
 #endif
+
+	int ret;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

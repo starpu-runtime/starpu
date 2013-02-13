@@ -26,8 +26,13 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#define NLOOPS		128
-#define VECTORSIZE	1024
+#ifdef STARPU_QUICK_CHECK
+#  define NLOOPS		8
+#  define VECTORSIZE		128
+#else
+#  define NLOOPS		128
+#  define VECTORSIZE		1024
+#endif
 
 static unsigned *A;
 starpu_data_handle_t A_handle, B_handle;

@@ -106,8 +106,13 @@ int main(int argc, char **argv)
 	 * to broadcast the handle whenever it is modified. */
 	starpu_data_set_wt_mask(handle, ~0);
 
+#ifdef STARPU_QUICK_CHECK
+	unsigned ntasks = 32;
+	unsigned nloops = 4;
+#else
 	unsigned ntasks = 1024;
 	unsigned nloops = 16;
+#endif
 
 	unsigned loop;
 	unsigned t;

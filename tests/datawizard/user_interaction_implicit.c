@@ -23,8 +23,13 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#define NBUFFERS	16
-#define NITER		128
+#ifdef STARPU_QUICK_CHECK
+#  define NBUFFERS	4
+#  define NITER		16
+#else
+#  define NBUFFERS	16
+#  define NITER		128
+#endif
 
 struct data
 {
@@ -61,11 +66,13 @@ int main(int argc, char **argv)
 
 	unsigned iter;
 	for (iter = 0; iter < NITER; iter++)
-	for (b = 0; b < NBUFFERS; b++)
 	{
-		ret = starpu_data_acquire_cb(buffers[b].handle, STARPU_RW,
-					     callback_sync_data, &buffers[b]);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
+		for (b = 0; b < NBUFFERS; b++)
+		{
+			ret = starpu_data_acquire_cb(buffers[b].handle, STARPU_RW,
+						     callback_sync_data, &buffers[b]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
+		}
 	}
 
 	ret = starpu_task_wait_for_all();
