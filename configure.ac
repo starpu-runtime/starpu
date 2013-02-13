@@ -1603,10 +1603,7 @@ AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)
 
 # is the header file f77.h available ?
-have_f77_h=yes
-AC_CHECK_HEADER([f77.h],,[have_f77_h=no])
-AC_MSG_CHECKING(whether header file f77.h is available)
-AC_MSG_RESULT($have_f77_h)
+AC_CHECK_HEADER([f77.h], [have_f77_h=yes], [have_f77_h=no])
 AC_SUBST(STARPU_HAVE_F77_H, $have_f77_h)
 AM_CONDITIONAL(STARPU_HAVE_F77_H, test x$have_f77_h = xyes)
 if test x$have_f77_h = xyes; then
