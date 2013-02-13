@@ -28,7 +28,7 @@
 #endif
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #  define BLOCK_SIZE (64*1024)
 static unsigned ntasks = 250;
 #else
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	if (2*mb > ntasks)
 		ntasks = 2*mb;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	mb /= 100;
 	if (mb == 0)
 		mb = 1;

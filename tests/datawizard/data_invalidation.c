@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define NLOOPS		100
 #else
 #define NLOOPS		1000

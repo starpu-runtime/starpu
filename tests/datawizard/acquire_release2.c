@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
         FPRINTF(stderr, "Token: %u\n", token);
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	ntasks /= 10;
 #endif
 

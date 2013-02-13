@@ -19,7 +19,7 @@
 #include <limits.h>
 #include <starpu.h>
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned nblocks = 512;
 static unsigned entries_per_bock = 64;
 #else

@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define NTASKS	1000
 #else
 #define NTASKS	10000

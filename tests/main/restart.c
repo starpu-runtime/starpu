@@ -24,7 +24,11 @@
 
 #include "../helper.h"
 
-#define N	10
+#ifdef STARPU_QUICK_CHECK
+  #define N	2
+#else
+  #define N	10
+#endif
 
 struct timeval start;
 struct timeval end;

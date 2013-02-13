@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define NITER		100
 #else
 #define NITER		1000

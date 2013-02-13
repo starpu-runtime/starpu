@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	n /= 10;
 	k /= 16;
 #endif

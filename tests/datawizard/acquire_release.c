@@ -22,7 +22,7 @@
 #endif
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 10;
 #else
 static unsigned ntasks = 10000;
