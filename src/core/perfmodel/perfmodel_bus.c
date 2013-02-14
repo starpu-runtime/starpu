@@ -1663,6 +1663,7 @@ static void write_bus_platform_file_content(void)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 	{
+		unsigned j;
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
 		for (j = 0; j < ncuda; j++)
@@ -1708,6 +1709,7 @@ static void write_bus_platform_file_content(void)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 	{
+		unsigned j;
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
 		for (j = 0; j < ncuda; j++)
