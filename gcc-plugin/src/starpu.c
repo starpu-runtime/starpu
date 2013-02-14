@@ -103,9 +103,6 @@ static int supported_targets = 0
 #ifdef STARPU_USE_OPENCL
     | STARPU_OPENCL
 #endif
-#ifdef STARPU_USE_GORDON
-    | STARPU_GORDON
-#endif
     ;
 
 

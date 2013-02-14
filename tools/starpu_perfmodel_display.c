@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Université de Bordeaux 1
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ static void usage(char **argv)
         fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
-        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda, gordon)\n");
+        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda)\n");
 	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
@@ -98,7 +98,7 @@ static void parse_args(int argc, char **argv)
 			break;
 
 		case 'a':
-			/* architecture (cpu, cuda, gordon) */
+			/* architecture (cpu, cuda) */
 			parch = optarg;
 			break;
 
