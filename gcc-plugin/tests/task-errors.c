@@ -81,8 +81,8 @@ void my_task_with_too_many_pointer_params (/* (error "maximum .* exceeded") */
 static void my_task_without_any_parameters (void)
   __attribute__ ((task));
 
-static void my_task_without_any_parameters_gordon (void)
-  __attribute__ ((task_implementation ("gordon", my_task_without_any_parameters)));
+static void my_task_without_any_parameters_cuda (void)
+  __attribute__ ((task_implementation ("cuda", my_task_without_any_parameters)));
 
 void
 my_task_without_any_parameters (void)
@@ -90,7 +90,7 @@ my_task_without_any_parameters (void)
 }
 
 void
-my_task_without_any_parameters_gordon (void)
+my_task_without_any_parameters_cuda (void)
 {
 }
 
@@ -136,7 +136,3 @@ my_task_that_invokes_task_cpu (int x, char *y)
   my_external_task (x, y); /* (error "cannot be invoked from task implementation") */
 }
 
-static void
-my_task_with_no_usable_implementation_gordon (int x)
-{
-}
