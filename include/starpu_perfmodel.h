@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,9 +47,8 @@ enum starpu_perf_archtype
 	STARPU_CPU_DEFAULT = 0,
 	/* CPU combined workers between 0 and STARPU_MAXCPUS-1 */
 	STARPU_CUDA_DEFAULT = STARPU_MAXCPUS,
-	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS,
+	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS
 	/* STARPU_OPENCL_DEFAULT + devid */
-	STARPU_GORDON_DEFAULT = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS
 };
 
 #ifdef __STDC_VERSION__
@@ -67,7 +66,7 @@ _Static_assert(STARPU_CUDA_DEFAULT < STARPU_OPENCL_DEFAULT,
 #  endif
 #endif
 
-#define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
+#define STARPU_NARCH_VARIATIONS	(STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS)
 
 struct starpu_perfmodel_history_entry
 {

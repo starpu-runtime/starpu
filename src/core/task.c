@@ -827,7 +827,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				case STARPU_CUDA_RAM:      /* Fall through */
 				case STARPU_OPENCL_RAM:
 					return 1;
-				case STARPU_SPU_LS: /* Not supported */
 				default:
 					STARPU_ABORT();
 			}
@@ -841,12 +840,10 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				case STARPU_CUDA_RAM:
 				case STARPU_OPENCL_RAM:
 					return 0;
-				case STARPU_SPU_LS: /* Not supported */
 				default:
 					STARPU_ABORT();
 			}
 			break;
-		case STARPU_SPU_LS:            /* Not supported */
 		default:
 			STARPU_ABORT();
 	}

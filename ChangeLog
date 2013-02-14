@@ -112,6 +112,7 @@ Changes:
       SPU devices
     - Codelet no longer define pointer for Gordon implementations
     - Gordon workers are no longer enabled
+    - Gordon performance models are no longer enabled
   * Fix data transfer arrows in paje traces
   * The "heft" scheduler no longer exists. Users should now pick "dmda"
     instead.

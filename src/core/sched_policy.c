@@ -499,7 +499,6 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		break;
 	}
 #endif
-	case STARPU_SPU_LS: /* Not supported */
 	default:
 		STARPU_ABORT();
 	}

@@ -104,7 +104,7 @@ init_perfmodels(void)
 		model_cpu_task.per_arch[i][0].cost_function = cpu_task_cpu;
 		model_gpu_task.per_arch[i][0].cost_function = gpu_task_cpu;
 	}
-	for (i = STARPU_CUDA_DEFAULT; i < STARPU_GORDON_DEFAULT; i++)
+	for (i = STARPU_CUDA_DEFAULT; i < STARPU_NARCH_VARIATIONS; i++)
 	{
 		model_cpu_task.per_arch[i][0].cost_function = cpu_task_gpu;
 		model_gpu_task.per_arch[i][0].cost_function = gpu_task_gpu;

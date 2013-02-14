@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -99,14 +99,9 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	{
 		return _STARPU_CUDA_ALPHA;
 	}
-	else if (perf_archtype < STARPU_GORDON_DEFAULT)
-	{
-		return _STARPU_OPENCL_ALPHA;
-	}
 	else if (perf_archtype < STARPU_NARCH_VARIATIONS)
 	{
-		/* Gordon value */
-		return _STARPU_GORDON_ALPHA;
+		return _STARPU_OPENCL_ALPHA;
 	}
 
 	STARPU_ABORT();
@@ -240,10 +235,8 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 			node_kind = STARPU_CPU_RAM;
 		else if (arch < STARPU_OPENCL_DEFAULT)
 			node_kind = STARPU_CUDA_RAM;
-		else if (arch < STARPU_GORDON_DEFAULT)
-			node_kind = STARPU_OPENCL_RAM;
 		else
-			node_kind = STARPU_SPU_LS;
+			node_kind = STARPU_OPENCL_RAM;
 
 		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;

@@ -359,21 +359,6 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 			   archmin + STARPU_MIN(narchs, STARPU_MAXOPENCLDEVS),
 			   narchs > STARPU_MAXOPENCLDEVS ? narchs - STARPU_MAXOPENCLDEVS : 0);
 	}
-
-	/* Parsing Gordon implementations */
-	_starpu_drop_comments(f);
-	ret = fscanf(f, "%u\n", &narchs);
-	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
-
-	archmin += STARPU_MAXOPENCLDEVS;
-	_STARPU_DEBUG("Parsing %u Gordon devices\n", narchs);
-	if (narchs > 0)
-	{
-		parse_arch(f, model, scan_history,
-			   archmin,
-			   archmin + STARPU_MAXGORDONDEVS,
-			   narchs > STARPU_MAXGORDONDEVS ? narchs - STARPU_MAXGORDONDEVS : 0);
-	}
 }
 
 
@@ -455,7 +440,6 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		{
 			case STARPU_CUDA_DEFAULT:
 			case STARPU_OPENCL_DEFAULT:
-			case STARPU_GORDON_DEFAULT:
 				arch_base = arch;
 				idx++;
 				break;
@@ -519,15 +503,6 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				fprintf(f, "# %ss\n", name);
 				fprintf(f, "# number of %s architectures\n", name);
 				fprintf(f, "%u\n", my_narch = narch[2]);
-				break;
-			case STARPU_GORDON_DEFAULT:
-				arch_base = arch;
-				name = "GORDON";
-				substract_to_arch += STARPU_MAXOPENCLDEVS;
-				fprintf(f, "##################\n");
-				fprintf(f, "# %ss\n", name);
-				fprintf(f, "# number of %s architectures\n", name);
-				fprintf(f, "%u\n", my_narch = narch[3]);
 				break;
 			default:
 				break;
@@ -1027,10 +1002,6 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 	{
 		int devid = arch - STARPU_OPENCL_DEFAULT;
 		snprintf(archname, maxlen, "opencl_%d_impl_%u", devid,nimpl);
-	}
-	else if (arch == STARPU_GORDON_DEFAULT)
-	{
-		snprintf(archname, maxlen, "gordon_impl_%u",nimpl);
 	}
 	else
 	{
