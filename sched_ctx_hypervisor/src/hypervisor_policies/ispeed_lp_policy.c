@@ -18,7 +18,7 @@
 #include "lp_tools.h"
 #include <math.h>
 
-static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers);
+static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer);
 static double _find_tmax(double t1, double t2);
 
 
@@ -32,6 +32,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
 	int w,s;
+	struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
 
 	for(s = 0; s < ns; s++)
 	{
@@ -43,13 +44,16 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			draft_flops_on_w[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			velocity[s][w] = _get_velocity_per_worker(sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]), worker);
+			sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
+			velocity[s][w] = _get_velocity_per_worker(sc_w, worker);
 			if(velocity[s][w] == -1.0)
 			{
 				enum starpu_archtype arch = starpu_worker_get_type(worker);
-				velocity[s][w] = _get_velocity_per_worker_type(sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]), arch);
+				velocity[s][w] = _get_velocity_per_worker_type(sc_w, arch);
 				if(velocity[s][w] == -1.0)
-					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 50.0;
+					velocity[s][w] = sc_w->ref_velocity[worker];
+				if(velocity[s][w] == -1.0)
+					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 150.0;
 			}
 			
 //			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
@@ -63,7 +67,8 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	   as starting point and then try to minimize it
 	   as increasing it a little for the faster ctxs */
 	double tmax = _get_slowest_ctx_exec_time();
-	double smallest_tmax = tmax - 0.5*tmax;
+	double smallest_tmax = _get_fastest_ctx_exec_time(); //tmax - 0.5*tmax;
+//	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
 
 	double res = 1.0;
 	unsigned has_sol = 0;
@@ -83,7 +88,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 		/* find solution and save the values in draft tables
 		   only if there is a solution for the system we save them
 		   in the proper table */
-		res = _glp_resolve(ns, nw, velocity, flops, tmax, draft_flops_on_w, draft_w_in_s, workers);
+		res = _glp_resolve(ns, nw, velocity, flops, tmax, draft_flops_on_w, draft_w_in_s, workers, 1);
 		if(res != 0.0)
 		{
 			for(s = 0; s < ns; s++)
@@ -140,18 +145,19 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
  */
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers)
+static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer)
 {
 	int w, s;
 	glp_prob *lp;
 
+//	printf("try with tmax %lf\n", tmax);
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
 	glp_set_obj_dir(lp, GLP_MAX);
 	glp_set_obj_name(lp, "total execution time");
 
 	{
-		int ne = 4 * ns * nw /* worker execution time */
+		int ne = 5 * ns * nw /* worker execution time */
 			+ 1; /* glp dumbness */
 		int n = 1;
 		int ia[ne], ja[ne];
@@ -176,7 +182,13 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
 				glp_set_col_name(lp, nw*ns+colnum(w,s), name);
-				glp_set_col_bnds(lp, nw*ns+colnum(w,s), GLP_DB, 0.0, 1.0);
+				if (integer)
+				{
+                                        glp_set_col_kind(lp, nw*ns+colnum(w, s), GLP_IV);
+					glp_set_col_bnds(lp, nw*ns+colnum(w,s), GLP_DB, 0, 1);
+				}
+				else
+					glp_set_col_bnds(lp, nw*ns+colnum(w,s), GLP_DB, 0.0, 1.0);
 
 			}
 
@@ -248,9 +260,33 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 				ar[n] = 1;
 				n++;
 			}
-
-			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
+			if(integer)				
+				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
+			else
+				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
 		}
+
+		curr_row_idx += nw;
+
+		/* sum(nflops[s][w]) > 0*/
+		glp_add_rows(lp, nw);
+		for (w = 0; w < nw; w++)
+		{
+			char name[32], title[64];
+			starpu_worker_get_name(w, name, sizeof(name));
+			snprintf(title, sizeof(title), "flopsw%x", w);
+			glp_set_row_name(lp, curr_row_idx+w+1, title);
+			for(s = 0; s < ns; s++)
+			{
+				ia[n] = curr_row_idx+w+1;
+				ja[n] = colnum(w,s);
+				ar[n] = 1;
+				n++;
+			}
+
+			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_LO, 0.1, 0.);
+		}
+
 		if(n != ne)
 			printf("ns= %d nw = %d n = %d ne = %d\n", ns, nw, n, ne);
 		STARPU_ASSERT(n == ne);
@@ -269,6 +305,14 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 		return 0.0;
 	}
 
+        if (integer)
+        {
+                glp_iocp iocp;
+                glp_init_iocp(&iocp);
+                iocp.msg_lev = GLP_MSG_OFF;
+                glp_intopt(lp, &iocp);
+        }
+
 	int stat = glp_get_prim_stat(lp);
 	/* if we don't have a solution return */
 	if(stat == GLP_NOFEAS)
@@ -284,7 +328,10 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 		for(w = 0; w < nw; w++)
 		{
 			flops_on_w[s][w] = glp_get_col_prim(lp, colnum(w, s));
-			w_in_s[s][w] = glp_get_col_prim(lp, nw*ns+colnum(w,s));
+			if (integer)
+				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*ns+colnum(w, s));
+			else
+				w_in_s[s][w] = glp_get_col_prim(lp, nw*ns+colnum(w,s));
 //			printf("w_in_s[s%d][w%d] = %lf flops[s%d][w%d] = %lf \n", s, w, w_in_s[s][w], s, w, flops_on_w[s][w]);
 		}
 
@@ -344,7 +391,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker)
 						else
 						{
 							nworkers[s][1] += w_in_s[s][w];
-							if(w_in_s[s][w] > 0.3)
+							if(w_in_s[s][w] > 0.5)
 								nworkers_rounded[s][1]++;
 						}
 					}

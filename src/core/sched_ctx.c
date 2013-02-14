@@ -190,9 +190,12 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 	{
 		if(workers->nworkers > 0)
 		{
-			int worker = workers->remove(workers, workerids[i]);
-			if(worker >= 0)
-				removed_workers[(*n_removed_workers)++] = worker;
+			if(_starpu_worker_belongs_to_a_sched_ctx(workerids[i], sched_ctx->id))
+			{
+				int worker = workers->remove(workers, workerids[i]);
+				if(worker >= 0)
+					removed_workers[(*n_removed_workers)++] = worker;
+			}
 		}
 	}
 
@@ -924,6 +927,21 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 	return 0;
 }
 
+unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id)
+{
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	int i;
+	struct _starpu_sched_ctx *sched_ctx = NULL;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		 sched_ctx = &config->sched_ctxs[i];
+		 if(sched_ctx && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && sched_ctx->id != sched_ctx_id)
+			 if(starpu_sched_ctx_contains_worker(workerid, sched_ctx->id))
+				 return 1;
+	}
+	return 0;
+}
+		 
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);

@@ -272,17 +272,17 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 	int s, s2, w;
 	for(s = 0; s < ns; s++)
 	{
+		int workers_move[STARPU_NMAXWORKERS];
+		int nw_move = 0;
+		
+		int workers_add[STARPU_NMAXWORKERS];
+		int nw_add = 0;
+
 		for(w = 0; w < nw; w++)
 		{
 			enum starpu_archtype arch;
 			if(w == 0) arch = STARPU_CUDA_WORKER;
 			if(w == 1) arch = STARPU_CPU_WORKER;
-
-			int workers_move[STARPU_NMAXWORKERS];
-			int nw_move = 0;
-
-			int workers_add[STARPU_NMAXWORKERS];
-			int nw_add = 0;
 
 			if(w == 1)
 			{
@@ -339,30 +339,35 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 					}
 				}
 			}
-
-			for(s2 = 0; s2 < ns; s2++)
-			{
-				if(sched_ctxs[s2] != sched_ctxs[s])
-				{
-					double nworkers_ctx2 = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s2], arch) * 1.0;
-					if((res[s2][w] - nworkers_ctx2) >= 0.0 && nw_move > 0)
-					{
-						sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);
-						nw_move = 0;
-						break;
-					}
-					if((res[s2][w] - nworkers_ctx2) >= 0.0 &&  (res[s2][w] - nworkers_ctx2) <= (double)nw_add && nw_add > 0)
-					{
-						sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s2]);
-						nw_add = 0;
-						break;
-					}
-
-				}
-			}
-			if(nw_move > 0)
-				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 0);
 		}
+
+		for(s2 = 0; s2 < ns; s2++)
+		{
+			if(sched_ctxs[s2] != sched_ctxs[s])
+			{
+				double nworkers_ctx2 = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s2], STARPU_ANY_WORKER) * 1.0;
+				int total_res = 0;
+				for(w = 0; w < nw; w++)
+					total_res += res[s2][w];
+//				if(( total_res - nworkers_ctx2) >= 0.0 && nw_move > 0)
+				if(nw_move > 0)
+				{
+					sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);
+					nw_move = 0;
+//					break;
+				}
+//				if((total_res - nworkers_ctx2) >= 0.0 &&  (total_res - nworkers_ctx2) <= (double)nw_add && nw_add > 0)
+				if(nw_add > 0)
+				{
+					sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s2]);
+					nw_add = 0;
+//					break;
+				}
+				
+			}
+		}
+		if(nw_move > 0)
+			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 0);
 	}
 }
 

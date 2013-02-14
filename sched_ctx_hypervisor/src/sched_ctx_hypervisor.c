@@ -158,6 +158,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct sched_ctx_h
 			hypervisor.sched_ctx_w[i].elapsed_flops[j] = 0.0;
 			hypervisor.sched_ctx_w[i].total_elapsed_flops[j] = 0.0;
 			hypervisor.sched_ctx_w[i].worker_to_be_removed[j] = 0;
+			hypervisor.sched_ctx_w[i].ref_velocity[j] = -1.0;
 		}
 	}
 
@@ -610,7 +611,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 				_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
 
 				hypervisor.resize[sender_sched_ctx] = 1;
-//				hypervisor.resize[receiver_sched_ctx] = 1;
+				//	hypervisor.resize[receiver_sched_ctx] = 1;
 				/* if the user allowed resizing leave the decisions to the application */
 				if(imposed_resize)  imposed_resize = 0;
 

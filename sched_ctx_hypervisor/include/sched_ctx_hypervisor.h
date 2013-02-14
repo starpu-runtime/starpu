@@ -108,6 +108,7 @@ struct sched_ctx_hypervisor_wrapper
 	double total_flops;
 	double total_elapsed_flops[STARPU_NMAXWORKERS];
 	double elapsed_flops[STARPU_NMAXWORKERS];
+	double ref_velocity[STARPU_NMAXWORKERS];
 	double submitted_flops;
 	double remaining_flops;
 	double start_time;

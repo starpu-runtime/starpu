@@ -44,13 +44,13 @@ static unsigned _get_slowest_sched_ctx(void)
 	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
 
 	double smallest_velocity = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(sched_ctxs[0]));
-	unsigned slowest_sched_ctx = smallest_velocity == 0.0  ? STARPU_NMAX_SCHED_CTXS : sched_ctxs[0];
+	unsigned slowest_sched_ctx = smallest_velocity == -1.0  ? STARPU_NMAX_SCHED_CTXS : sched_ctxs[0];
 	double curr_velocity = 0.0;
 	int i;
 	for(i = 1; i < nsched_ctxs; i++)
 	{
 		curr_velocity = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]));
-		if((curr_velocity < smallest_velocity || smallest_velocity == 0.0) && curr_velocity != 0.0)
+		if((curr_velocity < smallest_velocity || smallest_velocity == 0.0) && curr_velocity != -1.0)
 		{
 			smallest_velocity = curr_velocity;
 			slowest_sched_ctx = sched_ctxs[i];
@@ -166,7 +166,7 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker)
 						double slowest_speed = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(slowest_sched_ctx));
 //						printf("fast_speed(%d) %lf slow_speed(%d) %lf new speed(%d) %lf \n", fastest_sched_ctx, fastest_speed, slowest_sched_ctx, 
 //						       slowest_speed, workers_to_move[0], new_speed);
-						if((slowest_speed + new_speed) <= (fastest_speed - new_speed))
+						if(fastest_speed != -1.0 && slowest_speed != -1.0 && (slowest_speed + new_speed) <= (fastest_speed - new_speed))
 						{
 							sched_ctx_hypervisor_move_workers(fastest_sched_ctx, slowest_sched_ctx, workers_to_move, nworkers_to_move, 0);
 						}
