@@ -50,7 +50,6 @@ typedef void (*_starpu_cl_func_t)(void **, void *);
 
 #define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
 #define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
-#define _STARPU_SPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SPU)
 #define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
 
 /* A job is the internal representation of a task. */
