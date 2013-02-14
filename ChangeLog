@@ -14,6 +14,14 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.0.5 (svn revision 8670)
+==============================================
+
+Changes:
+  * Bug fixes
+  * Reduce testcases when configure option quick-check is enabled
+  * Use the environment variable NVCC if set instead of looking for the compiler
+
 StarPU 1.0.4 (svn revision 7624)
 ==============================================
 
