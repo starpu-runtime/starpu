@@ -807,17 +807,6 @@ fi
 
 ###############################################################################
 #                                                                             #
-#                                 Cell                                        #
-#                                                                             #
-###############################################################################
-
-# warning: Cell driver has been removed from configure, but as the
-# source code is still available, we need to define the minimum
-# requirements to compile
-AC_DEFINE_UNQUOTED(STARPU_MAXGORDONDEVS, [1], [maximum number of GORDON devices])
-
-###############################################################################
-#                                                                             #
 #                                 Drivers                                     #
 #                                                                             #
 ###############################################################################
