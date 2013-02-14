@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -106,8 +106,6 @@ noinst_HEADERS = 						\
 	common/barrier_counter.h				\
 	drivers/driver_common/driver_common.h			\
 	drivers/cpu/driver_cpu.h				\
-	drivers/gordon/driver_gordon.h				\
-	drivers/gordon/gordon_interface.h			\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
