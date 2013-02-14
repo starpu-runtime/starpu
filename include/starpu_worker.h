@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,8 +31,7 @@ enum starpu_archtype
 	STARPU_ANY_WORKER,    /* any worker, used in the hypervisor */
 	STARPU_CPU_WORKER,    /* CPU core */
 	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER, /* OpenCL device */
-	STARPU_GORDON_WORKER  /* Cell SPU */
+	STARPU_OPENCL_WORKER  /* OpenCL device */
 };
 
 /* This function returns the number of workers (ie. processing units executing
@@ -43,12 +42,11 @@ unsigned starpu_worker_is_combined_worker(int id);
 
 unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);
-unsigned starpu_spu_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 
 /* Return the identifier of the thread in case this is associated to a worker.
  * This will return -1 if this function is called directly from the application
- * or if it is some SPU worker where a single thread controls different SPUs. */
+ * or if it is a worker in which a single thread controls different devices. */
 int starpu_worker_get_id(void);
 
 int starpu_combined_worker_get_id(void);
@@ -59,8 +57,8 @@ int starpu_combined_worker_get_rank(void);
 /* This function returns the type of worker associated to an identifier (as
  * returned by the starpu_worker_get_id function). The returned value indicates
  * the architecture of the worker: STARPU_CPU_WORKER for a CPU core,
- * STARPU_CUDA_WORKER for a CUDA device, and STARPU_GORDON_WORKER for a Cell
- * SPU. The value returned for an invalid identifier is unspecified.  */
+ * STARPU_CUDA_WORKER for a CUDA device. The value returned for an
+ * invalid identifier is unspecified.  */
 enum starpu_archtype starpu_worker_get_type(int id);
 
 /* Returns the number of workers of the type indicated by the argument. A

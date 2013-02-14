@@ -582,46 +582,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	topology->nworkers += topology->nopenclgpus;
 #endif
 
-#ifdef STARPU_USE_GORDON
-	int ngordon = config->conf->ngordon;
-
-	if (ngordon != 0)
-	{
-		if (ngordon == -1)
-		{
-			/* Nothing was specified, so let's choose ! */
-			ngordon = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
-		}
-		else
-		{
-			STARPU_ASSERT(ngordon <= NMAXGORDONSPUS);
-			if (ngordon > STARPU_MAXGORDONSPUS);
-			{
-				_STARPU_DISP("Warning: %d Gordon CPUs devices requested. Only %d supported\n", ngordon, NMAXGORDONSPUS);
-				ngordon = NMAXGORDONSPUS;
-			}
-		}
-	}
-
-	topology->ngordon_spus = ngordon;
-	STARPU_ASSERT(topology->ngordon_spus + topology->nworkers <= STARPU_NMAXWORKERS);
-
-	unsigned spu;
-	for (spu = 0; spu < config->ngordon_spus; spu++)
-	{
-		int worker_idx = topology->nworkers + spu;
-		config->workers[worker_idx].arch = STARPU_GORDON_WORKER;
-		config->workers[worker_idx].perf_arch = STARPU_GORDON_DEFAULT;
-		config->workers[worker_idx].id = spu;
-		config->workers[worker_idx].worker_is_running = 0;
-		config->workers[worker_idx].worker_mask = STARPU_GORDON;
-		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + spu].workerid);
-		config->worker_mask |= STARPU_GORDON;
-	}
-
-	topology->nworkers += topology->ngordon_spus;
-#endif
-
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
@@ -631,8 +591,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	{
 		if (ncpu == -1)
 		{
-			unsigned already_busy_cpus =
-				(topology->ngordon_spus ? 1 : 0) + topology->ncudagpus + topology->nopenclgpus;
+			unsigned already_busy_cpus = topology->ncudagpus + topology->nopenclgpus;
 			long avail_cpus = topology->nhwcpus - already_busy_cpus;
 			if (avail_cpus < 0)
 				avail_cpus = 0;
@@ -831,13 +790,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				memory_node = ram_memory_node;
 				_starpu_memory_node_worker_add(ram_memory_node);
 				break;
-#ifdef STARPU_USE_GORDON
-			case STARPU_GORDON_WORKER:
-				is_a_set_of_accelerators = 1;
-				memory_node = ram_memory_node;
-				_starpu_memory_node_worker_add(ram_memory_node);
-				break;
-#endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 #ifndef STARPU_SIMGRID

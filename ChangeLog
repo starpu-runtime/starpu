@@ -111,6 +111,7 @@ Changes:
     - Data interfaces no longer define functions to copy to and from
       SPU devices
     - Codelet no longer define pointer for Gordon implementations
+    - Gordon workers are no longer enabled
   * Fix data transfer arrows in paje traces
   * The "heft" scheduler no longer exists. Users should now pick "dmda"
     instead.

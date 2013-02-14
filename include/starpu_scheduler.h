@@ -56,7 +56,6 @@ struct starpu_machine_topology
 	unsigned ncpus;
 	unsigned ncudagpus;
 	unsigned nopenclgpus;
-	unsigned ngordon_spus;
 
 	/* Where to bind workers ? */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];

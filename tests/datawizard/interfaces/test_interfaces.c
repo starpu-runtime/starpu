@@ -350,7 +350,6 @@ create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
 			cl.opencl_funcs[0] = current_config->opencl_func;
 			break;
 #endif /* ! STARPU_USE_OPENCL */
-		case STARPU_GORDON_WORKER: /* Not supported */
 		default:
 			return -ENODEV;
 	}

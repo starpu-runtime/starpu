@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
- * Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -102,9 +102,6 @@ static void starpu_top_get_device_type(int id, char* type)
 		break;
 	case STARPU_OPENCL_WORKER:
 		strncpy(type, "OPENCL",9);
-		break;
-	case STARPU_GORDON_WORKER:
-		strncpy(type, "GORDON",9);
 		break;
 	case STARPU_ANY_WORKER:
 		strncpy(type, "ANY",9);

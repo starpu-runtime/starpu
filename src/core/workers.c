@@ -250,11 +250,6 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  * Runtime initialization methods
  */
 
-#ifdef STARPU_USE_GORDON
-static unsigned gordon_inited = 0;
-static struct _starpu_worker_set gordon_worker_set;
-#endif
-
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
 	_starpu_pthread_cond_t *cond = &workerarg->sched_cond;
@@ -354,7 +349,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 	unsigned nworkers = config->topology.nworkers;
 
-	/* Launch workers asynchronously (except for SPUs) */
+	/* Launch workers asynchronously */
 	unsigned cpu = 0, cuda = 0;
 	unsigned worker;
 
@@ -500,40 +495,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 #endif
 				break;
 #endif
-#if defined(STARPU_USE_GORDON)
-			case STARPU_GORDON_WORKER:
-				/* we will only launch gordon once, but it will handle
-				 * the different SPU workers */
-				if (!gordon_inited)
-				{
-					gordon_worker_set.nworkers = config->ngordon_spus;
-					gordon_worker_set.workers = &config->workers[worker];
-
-					gordon_worker_set.set_is_initialized = 0;
-
-					_STARPU_PTHREAD_CREATE_ON(
-						workerarg->name
-						&gordon_worker_set.worker_thread,
-						NULL,
-						_starpu_gordon_worker,
-						&gordon_worker_set,
-						worker+1);
-
-					_STARPU_PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
-					while (!gordon_worker_set.set_is_initialized)
-						_STARPU_PTHREAD_COND_WAIT(&gordon_worker_set.ready_cond,
-									&gordon_worker_set.mutex);
-					_STARPU_PTHREAD_MUTEX_UNLOCK(&gordon_worker_set.mutex);
-
-					gordon_inited = 1;
-				}
-
-				workerarg->set = &gordon_worker_set;
-				gordon_worker_set.joined = 0;
-				workerarg->worker_is_running = 1;
-
-				break;
-#endif
 			default:
 				STARPU_ABORT();
 		}
@@ -591,12 +552,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 #endif
-#ifdef STARPU_USE_GORDON
-			case STARPU_GORDON_WORKER:
-				/* the initialization of Gordon worker is
-				 * synchronous for now */
-				break;
-#endif
 			default:
 				STARPU_ABORT();
 		}
@@ -635,7 +590,6 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
-	conf->nspus = starpu_get_env_number("STARPU_NGORDON");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
 
@@ -704,7 +658,6 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
-	_starpu_conf_set_value_against_environment("STARPU_NGORDON", &conf->nspus);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
 	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate);
 	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker);
@@ -1073,9 +1026,6 @@ int starpu_worker_get_count_by_type(enum starpu_archtype type)
 		case STARPU_OPENCL_WORKER:
 			return config.topology.nopenclgpus;
 
-		case STARPU_GORDON_WORKER:
-			return config.topology.ngordon_spus;
-
 		default:
 			return -EINVAL;
 	}
@@ -1099,11 +1049,6 @@ unsigned starpu_cuda_worker_get_count(void)
 unsigned starpu_opencl_worker_get_count(void)
 {
 	return config.topology.nopenclgpus;
-}
-
-unsigned starpu_spu_worker_get_count(void)
-{
-	return config.topology.ngordon_spus;
 }
 
 int starpu_asynchronous_copy_disabled(void)
@@ -1409,7 +1354,6 @@ starpu_driver_run(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_run_opencl(d);
 #endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 	{
 		_STARPU_DEBUG("Invalid device type\n");
@@ -1437,7 +1381,6 @@ starpu_driver_init(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_opencl_driver_init(d);
 #endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;
 	}
@@ -1462,7 +1405,6 @@ starpu_driver_run_once(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_opencl_driver_run_once(d);
 #endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;
 	}
@@ -1487,7 +1429,6 @@ starpu_driver_deinit(struct starpu_driver *d)
 	case STARPU_OPENCL_WORKER:
 		return _starpu_opencl_driver_deinit(d);
 #endif
-	case STARPU_GORDON_WORKER: /* Not supported yet */
 	default:
 		return -EINVAL;
 	}

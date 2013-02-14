@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,10 +38,6 @@
 
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
-
-#ifdef STARPU_USE_GORDON
-#include <drivers/gordon/driver_gordon.h>
-#endif
 
 #include <drivers/cpu/driver_cpu.h>
 
