@@ -98,9 +98,6 @@ static struct starpu_data_interface_ops interface_custom_ops =
 	.get_size              = custom_interface_get_size,
 	.footprint             = footprint_custom_interface_crc32,
 	.compare               = NULL,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon     = NULL,
-#endif
 	.interfaceid           = -1,
 	.interface_size        = sizeof(struct custom_data_interface),
 	.display               = display_custom_interface,

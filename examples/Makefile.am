@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 #
@@ -39,7 +39,6 @@ EXTRA_DIST = 					\
 	spmd/vector_scal_spmd.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
-	gordon/null_kernel_gordon.c		\
 	mult/xgemm.c				\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
@@ -61,11 +60,7 @@ EXTRA_DIST = 					\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh
 
-CLEANFILES = 					\
-	gordon/null_kernel_gordon.spuelf
-
-
-CLEANFILES += *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
@@ -106,7 +101,6 @@ noinst_HEADERS = 				\
 	common/blas.h				\
 	mult/simple.h				\
 	mult/double.h				\
-	gordon/null.h				\
 	fortran/bindings/StarPU_fortran.h	\
 	ppm_downscaler/ppm_downscaler.h		\
 	ppm_downscaler/yuv_downscaler.h		\
