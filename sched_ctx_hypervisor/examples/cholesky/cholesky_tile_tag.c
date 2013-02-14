@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,17 +42,10 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-#ifdef SPU_FUNC_POTRF
-	.gordon_func = SPU_FUNC_POTRF,
-#else
-#warning SPU_FUNC_POTRF is not available
-#endif
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
@@ -84,17 +77,10 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 static struct starpu_codelet cl21 =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-#ifdef SPU_FUNC_STRSM
-	.gordon_func = SPU_FUNC_STRSM,
-#else
-#warning SPU_FUNC_STRSM is not available
-#endif
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
@@ -134,17 +120,10 @@ static void create_task_21(unsigned k, unsigned j)
 static struct starpu_codelet cl22 =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-#ifdef SPU_FUNC_SGEMM
-	.gordon_func = SPU_FUNC_SGEMM,
-#else
-#warning SPU_FUNC_SGEMM is not available
-#endif
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22
