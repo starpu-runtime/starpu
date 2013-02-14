@@ -31,7 +31,7 @@ for sched in $SCHEDULERS
 do
     # XXX peager often hangs, we have to fix it.
     # Let's just disable it for now.
-    if [ "$sched" == "peager" ] ; then
+    if [ "$sched" = "peager" ] ; then
         continue
     fi
     echo "cholesky.$sched"
