@@ -167,7 +167,6 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
       totalEvent->prof_submit = totalEvent->prof_start;
       totalEvent->prof_queued = totalEvent->prof_start;
       totalEvent->cq = cq;
-      totalEvent->status = CL_COMPLETE;
 
       command_marker cmd = command_marker_create();
       beforeEvent = command_event_get(cmd);
@@ -204,7 +203,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 
          pthread_mutex_unlock(&kernel->split_lock);
 
-         totalEvent->prof_end = _socl_nanotime();
+         event_complete(totalEvent);
          RETURN_EVENT(totalEvent,event);
       } else {
          soclReleaseEvent(totalEvent);

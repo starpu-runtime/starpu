@@ -31,4 +31,6 @@ cl_event event_create(void);
  */
 int event_unique_id();
 
+void event_complete(cl_event ev);
+
 #endif /* SOCL_EVENT_H */

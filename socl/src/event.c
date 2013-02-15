@@ -47,6 +47,16 @@ cl_event event_create(void) {
    return ev;
 }
 
+void event_complete(cl_event ev) {
+  ev->status = CL_COMPLETE;
+  
+  ev->prof_end = _socl_nanotime();
+
+  /* Trigger the tag associated to the command event */
+  DEBUG_MSG("Trigger event %d\n", ev->id);
+  starpu_tag_notify_from_apps(ev->id);
+}
+
 static void release_callback_event(void * e) {
   cl_event event = (cl_event)e;
 
