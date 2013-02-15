@@ -22,7 +22,7 @@
 StarPU can connect to Temanejo (see
 @url{http://www.hlrs.de/temanejo}), to permit
 nice visual task debugging. To do so, build Temanejo's @code{libayudame.so},
-install @code{Ayudame} to e.g. @code{/usr/local/include}, apply the
+install @code{Ayudame.h} to e.g. @code{/usr/local/include}, apply the
 @code{tools/patch-ayudame} to it to fix C build, re-@code{./configure}, make
 sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
 to your application, any options you want to pass it, the path to libayudame.so.
