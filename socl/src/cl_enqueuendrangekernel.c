@@ -15,6 +15,7 @@
  */
 
 #include "socl.h"
+#include "event.h"
 
 
 void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
