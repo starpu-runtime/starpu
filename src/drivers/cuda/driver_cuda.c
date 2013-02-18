@@ -598,8 +598,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		peer_copy = 1;
-		src_dev = _starpu_memory_node_to_devid(src_node);
-		dst_dev = _starpu_memory_node_to_devid(dst_node);
+		src_dev = _starpu_memory_node_get_devid(src_node);
+		dst_dev = _starpu_memory_node_get_devid(dst_node);
 #else
 		STARPU_ABORT();
 #endif

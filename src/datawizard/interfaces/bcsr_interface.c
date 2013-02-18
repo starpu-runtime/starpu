@@ -206,7 +206,7 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
 uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 

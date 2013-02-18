@@ -37,7 +37,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	/* wake up all workers on that memory node */
 	unsigned cond_id;
 
-	struct _starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
+	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
@@ -61,7 +61,7 @@ void starpu_wake_all_blocked_workers(void)
 	/* workers may be blocked on the various queues' conditions */
 	unsigned cond_id;
 
-	struct _starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
+	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
 	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
@@ -126,7 +126,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
 	{
 		int node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
-		starpu_cuda_set_device(_starpu_memory_node_to_devid(node));
+		starpu_cuda_set_device(_starpu_memory_node_get_devid(node));
 	}
 #endif
 
@@ -141,7 +141,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		/* only the proper CUBLAS thread can initiate this directly ! */
 #if !defined(HAVE_CUDA_MEMCPY_PEER)
-		STARPU_ASSERT(_starpu_get_local_memory_node() == src_node);
+		STARPU_ASSERT(_starpu_memory_node_get_local_key() == src_node);
 #endif
 		STARPU_ASSERT(copy_methods->cuda_to_ram);
 		if (!req || !copy_methods->cuda_to_ram_async)
@@ -166,7 +166,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		/* STARPU_CPU_RAM -> CUBLAS_RAM */
 		/* only the proper CUBLAS thread can initiate this ! */
 #if !defined(HAVE_CUDA_MEMCPY_PEER)
-		STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
+		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node);
 #endif
 		STARPU_ASSERT(copy_methods->ram_to_cuda);
 		if (!req || !copy_methods->ram_to_cuda_async)
@@ -215,7 +215,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #ifdef STARPU_USE_OPENCL
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
 		/* OpenCL -> RAM */
-		if (_starpu_get_local_memory_node() == src_node)
+		if (_starpu_memory_node_get_local_key() == src_node)
 		{
 			STARPU_ASSERT(copy_methods->opencl_to_ram);
 			if (!req || !copy_methods->opencl_to_ram_async)
@@ -237,7 +237,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		break;
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
 		/* STARPU_CPU_RAM -> STARPU_OPENCL_RAM */
-		STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
+		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node);
 		STARPU_ASSERT(copy_methods->ram_to_opencl);
 		if (!req || !copy_methods->ram_to_opencl_async)
 		{

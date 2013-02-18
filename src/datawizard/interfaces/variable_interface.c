@@ -166,7 +166,7 @@ static size_t variable_interface_get_size(starpu_data_handle_t handle)
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -233,8 +233,8 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_i
 	else
 	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		int src_dev = _starpu_memory_node_to_devid(src_node);
-		int dst_dev = _starpu_memory_node_to_devid(dst_node);
+		int src_dev = _starpu_memory_node_get_devid(src_node);
+		int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
 		struct starpu_variable_interface *src_variable = src_interface;
 		struct starpu_variable_interface *dst_variable = dst_interface;
@@ -273,8 +273,8 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void 
 	else
 	{
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		int src_dev = _starpu_memory_node_to_devid(src_node);
-		int dst_dev = _starpu_memory_node_to_devid(dst_node);
+		int src_dev = _starpu_memory_node_get_devid(src_node);
+		int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
 		struct starpu_variable_interface *src_variable = src_interface;
 		struct starpu_variable_interface *dst_variable = dst_interface;

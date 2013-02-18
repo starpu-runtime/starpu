@@ -184,7 +184,7 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle)
 uintptr_t starpu_csr_get_local_nzval(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -197,7 +197,7 @@ uintptr_t starpu_csr_get_local_nzval(starpu_data_handle_t handle)
 uint32_t *starpu_csr_get_local_colind(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -210,7 +210,7 @@ uint32_t *starpu_csr_get_local_colind(starpu_data_handle_t handle)
 uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -326,8 +326,8 @@ static int copy_cuda_peer(void *src_interface STARPU_ATTRIBUTE_UNUSED, unsigned 
 	uint32_t nrow = src_csr->nrow;
 	size_t elemsize = src_csr->elemsize;
 
-	int src_dev = _starpu_memory_node_to_devid(src_node);
-	int dst_dev = _starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_get_devid(src_node);
+	int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
 	cudaError_t cures;
 
@@ -365,8 +365,8 @@ static int copy_cuda_peer_async(void *src_interface STARPU_ATTRIBUTE_UNUSED, uns
 
 	cudaError_t cures;
 
-	int src_dev = _starpu_memory_node_to_devid(src_node);
-	int dst_dev = _starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_get_devid(src_node);
+	int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
 	int synchronous_fallback = 0;
 

@@ -222,7 +222,7 @@ uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
 uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -235,7 +235,7 @@ uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
 uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -248,7 +248,7 @@ uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
 uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 

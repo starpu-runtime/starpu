@@ -75,7 +75,7 @@ static void lock_all_subtree(starpu_data_handle_t handle)
 	{
 		/* this is a leaf */
 		while (_starpu_spin_trylock(&handle->header_lock))
-			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
+			_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
 	}
 	else
 	{
@@ -233,7 +233,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 	struct _starpu_data_replicate *replicate = mc->replicate;
 
 //	while (_starpu_spin_trylock(&handle->header_lock))
-//		_starpu_datawizard_progress(_starpu_get_local_memory_node());
+//		_starpu_datawizard_progress(_starpu_memory_node_get_local_key());
 
 #ifdef STARPU_DEVEL
 #warning can we block here ?
@@ -253,7 +253,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the free method of each
 			 * interface. */
-			starpu_cuda_set_device(_starpu_memory_node_to_devid(node));
+			starpu_cuda_set_device(_starpu_memory_node_get_devid(node));
 		}
 #endif
 
@@ -325,7 +325,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 		STARPU_ASSERT(mc->replicate);
 
 		while (_starpu_spin_trylock(&handle->header_lock))
-			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
+			_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
 
 		if (mc->replicate->refcnt == 0)
 		{
@@ -740,7 +740,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 		{
-			int devid = _starpu_memory_node_to_devid(dst_node);
+			int devid = _starpu_memory_node_get_devid(dst_node);
 			global_mem_size = starpu_cuda_get_global_mem_size(devid);
 			break;
 		}
@@ -748,7 +748,7 @@ static size_t _starpu_get_global_mem_size(int dst_node)
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
 		{
-			int devid = _starpu_memory_node_to_devid(dst_node);
+			int devid = _starpu_memory_node_get_devid(dst_node);
 			global_mem_size = starpu_opencl_get_global_mem_size(devid);
 			break;
 		}
@@ -968,7 +968,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the malloc method of each
 			 * interface. */
-			starpu_cuda_set_device(_starpu_memory_node_to_devid(dst_node));
+			starpu_cuda_set_device(_starpu_memory_node_get_devid(dst_node));
 		}
 #endif
 
@@ -999,7 +999,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
 
 		        while (_starpu_spin_trylock(&handle->header_lock))
-		                _starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
+		                _starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
 
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);

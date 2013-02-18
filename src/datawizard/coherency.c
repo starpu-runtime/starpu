@@ -158,7 +158,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 	if (node == handling_node)
 		return 1;
 
-	if (!_starpu_memory_node_workers(handling_node))
+	if (!_starpu_memory_node_get_nworkers(handling_node))
 		/* No worker to process the request from that node */
 		return 0;
 
@@ -478,7 +478,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 			       enum starpu_access_mode mode, unsigned detached, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg)
 {
-	uint32_t local_node = _starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
 
 	while (_starpu_spin_trylock(&handle->header_lock))
@@ -551,7 +551,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	if ((wt_mask & ~(1<<memory_node)))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
-	uint32_t local_node = _starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_memory_node_get_local_key();
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
@@ -623,7 +623,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	struct starpu_buffer_descr *descrs = j->ordered_buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
-	unsigned local_memory_node = _starpu_get_local_memory_node();
+	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
 	int workerid = starpu_worker_get_id();
 
@@ -699,7 +699,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
         unsigned nbuffers = task->cl->nbuffers;
 
 	int workerid = starpu_worker_get_id();
-	unsigned local_memory_node = _starpu_get_local_memory_node();
+	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)

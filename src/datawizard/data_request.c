@@ -138,7 +138,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	int retval;
 	int do_delete = 0;
 
-	uint32_t local_node = _starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_memory_node_get_local_key();
 
 	do
 	{

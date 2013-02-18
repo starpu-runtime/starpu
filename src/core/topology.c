@@ -756,7 +756,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 	/* note that even if the CPU cpu are not used, we always have a RAM
 	 * node */
 	/* TODO : support NUMA  ;) */
-	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM, -1);
+	ram_memory_node = _starpu_memory_node_register(STARPU_CPU_RAM, -1);
 
 #ifdef STARPU_SIMGRID
 	char name[16];
@@ -788,7 +788,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 			/* "dedicate" a cpu cpu to that worker */
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
-				_starpu_memory_node_worker_add(ram_memory_node);
+				_starpu_memory_node_add_nworkers(ram_memory_node);
 				break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
@@ -801,14 +801,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				}
 #endif
 				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM, workerarg->devid);
+				memory_node = _starpu_memory_node_register(STARPU_CUDA_RAM, workerarg->devid);
 #ifdef STARPU_SIMGRID
 				snprintf(name, sizeof(name), "CUDA%d", workerarg->devid);
 				host = MSG_get_host_by_name(name);
 				STARPU_ASSERT(host);
 				_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
-				_starpu_memory_node_worker_add(memory_node);
+				_starpu_memory_node_add_nworkers(memory_node);
 
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
@@ -839,14 +839,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config)
 				}
 #endif
 				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM, workerarg->devid);
+				memory_node = _starpu_memory_node_register(STARPU_OPENCL_RAM, workerarg->devid);
 #ifdef STARPU_SIMGRID
 				snprintf(name, sizeof(name), "OpenCL%d", workerarg->devid);
 				host = MSG_get_host_by_name(name);
 				STARPU_ASSERT(host);
 				_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
-				_starpu_memory_node_worker_add(memory_node);
+				_starpu_memory_node_add_nworkers(memory_node);
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
 				break;
@@ -911,7 +911,7 @@ _starpu_build_topology (struct _starpu_machine_config *config)
 		return ret;
 
 	/* for the data management library */
-	_starpu_init_memory_nodes();
+	_starpu_memory_nodes_init();
 
 	_starpu_init_workers_binding(config);
 
@@ -923,7 +923,7 @@ _starpu_destroy_topology (
 	struct _starpu_machine_config *config __attribute__ ((unused)))
 {
 	/* cleanup StarPU internal data structures */
-	_starpu_deinit_memory_nodes();
+	_starpu_memory_nodes_deinit();
 
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)

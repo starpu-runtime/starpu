@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ struct _starpu_cond_and_mutex
         _starpu_pthread_mutex_t *mutex;
 };
 
-struct _starpu_mem_node_descr
+struct _starpu_memory_node_descr
 {
 	unsigned nnodes;
 	enum starpu_node_kind nodes[STARPU_MAXNODES];
@@ -52,7 +52,7 @@ struct _starpu_mem_node_descr
 	msg_host_t host[STARPU_MAXNODES];
 #endif
 
-	// TODO move this 2 lists outside struct _starpu_mem_node_descr
+	// TODO move this 2 lists outside struct _starpu_memory_node_descr
 	/* Every worker is associated to a condition variable on which the
 	 * worker waits when there is task available. It is possible that
 	 * multiple worker share the same condition variable, so we maintain a
@@ -67,23 +67,22 @@ struct _starpu_mem_node_descr
 
 };
 
-void _starpu_init_memory_nodes(void);
-void _starpu_deinit_memory_nodes(void);
-void _starpu_set_local_memory_node_key(unsigned *node);
-unsigned _starpu_get_local_memory_node(void);
-void _starpu_memory_node_worker_add(unsigned node);
-unsigned _starpu_memory_node_workers(unsigned node);
+void _starpu_memory_nodes_init(void);
+void _starpu_memory_nodes_deinit(void);
+void _starpu_memory_node_set_local_key(unsigned *node);
+unsigned _starpu_memory_node_get_local_key(void);
+void _starpu_memory_node_add_nworkers(unsigned node);
+unsigned _starpu_memory_node_get_nworkers(unsigned node);
 #ifdef STARPU_SIMGRID
 void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host);
 msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node);
 #endif
-unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid);
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned memory_node);
 
-enum starpu_node_kind _starpu_node_get_kind(uint32_t node);
-int _starpu_memory_node_to_devid(unsigned node);
+int _starpu_memory_node_get_devid(unsigned node);
 
-struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void);
+struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void);
 
 #endif // __MEMORY_NODES_H__

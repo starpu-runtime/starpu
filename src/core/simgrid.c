@@ -300,7 +300,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->task = task;
 	transfer->src_node = src_node;
 	transfer->dst_node = dst_node;
-	transfer->run_node = _starpu_get_local_memory_node();
+	transfer->run_node = _starpu_memory_node_get_local_key();
 
 	if (req)
 	{

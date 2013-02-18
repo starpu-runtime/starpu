@@ -354,7 +354,7 @@ void *starpu_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 void *starpu_handle_get_local_ptr(starpu_data_handle_t handle)
 {
 	return starpu_handle_to_pointer(handle,
-					_starpu_get_local_memory_node());
+					_starpu_memory_node_get_local_key());
 }
 
 int starpu_data_get_rank(starpu_data_handle_t handle)
@@ -685,14 +685,14 @@ int starpu_data_interface_get_next_id(void)
 int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
-	return handle->ops->pack_data(handle, _starpu_get_local_memory_node(), ptr, count);
+	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
 int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT(handle->ops->unpack_data);
 	int ret;
-	ret = handle->ops->unpack_data(handle, _starpu_get_local_memory_node(), ptr, count);
+	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 	free(ptr);
 	return ret;
 }

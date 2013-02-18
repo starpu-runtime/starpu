@@ -214,7 +214,7 @@ uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -227,7 +227,7 @@ uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -355,8 +355,8 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	size_t elemsize = src_matrix->elemsize;
 	cudaError_t cures;
 
-	int src_dev = _starpu_memory_node_to_devid(src_node);
-	int dst_dev = _starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_get_devid(src_node);
+	int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
 
 #if 0

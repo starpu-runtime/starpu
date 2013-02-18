@@ -24,13 +24,13 @@
 #include "copy_driver.h"
 #include "memalloc.h"
 
-static struct _starpu_mem_node_descr descr;
+static struct _starpu_memory_node_descr descr;
 static _starpu_pthread_key_t memory_node_key;
 
-void _starpu_init_memory_nodes(void)
+void _starpu_memory_nodes_init(void)
 {
 	/* there is no node yet, subsequent nodes will be
-	 * added using _starpu_register_memory_node */
+	 * added using _starpu_memory_node_register */
 	descr.nnodes = 0;
 
 	_STARPU_PTHREAD_KEY_CREATE(&memory_node_key, NULL);
@@ -50,7 +50,7 @@ void _starpu_init_memory_nodes(void)
 	descr.total_condition_count = 0;
 }
 
-void _starpu_deinit_memory_nodes(void)
+void _starpu_memory_nodes_deinit(void)
 {
 	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
@@ -58,12 +58,12 @@ void _starpu_deinit_memory_nodes(void)
 	_STARPU_PTHREAD_KEY_DELETE(memory_node_key);
 }
 
-void _starpu_set_local_memory_node_key(unsigned *node)
+void _starpu_memory_node_set_local_key(unsigned *node)
 {
 	_STARPU_PTHREAD_SETSPECIFIC(memory_node_key, node);
 }
 
-unsigned _starpu_get_local_memory_node(void)
+unsigned _starpu_memory_node_get_local_key(void)
 {
 	unsigned *memory_node;
 	memory_node = (unsigned *) _STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
@@ -76,17 +76,17 @@ unsigned _starpu_get_local_memory_node(void)
 	return *memory_node;
 }
 
-void _starpu_memory_node_worker_add(unsigned node)
+void _starpu_memory_node_add_nworkers(unsigned node)
 {
 	descr.nworkers[node]++;
 }
 
-unsigned _starpu_memory_node_workers(unsigned node)
+unsigned _starpu_memory_node_get_nworkers(unsigned node)
 {
 	return descr.nworkers[node];
 }
 
-struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void)
+struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
 {
 	return &descr;
 }
@@ -96,7 +96,7 @@ enum starpu_node_kind starpu_node_get_kind(uint32_t node)
 	return descr.nodes[node];
 }
 
-int _starpu_memory_node_to_devid(unsigned node)
+int _starpu_memory_node_get_devid(unsigned node)
 {
 	return descr.devid[node];
 }
@@ -106,7 +106,7 @@ unsigned starpu_memory_nodes_get_count(void)
 	return descr.nnodes;
 }
 
-unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid)
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */
