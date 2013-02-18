@@ -90,7 +90,6 @@ main(void)
 	struct starpu_sched_policy **policy;
 
 	policies = starpu_sched_get_predefined_policies();
-	policies = starpu_sched_get_predefined_policies();
 	for(policy=policies ; *policy!=NULL ; policy++)
 	{
 		int ret;
