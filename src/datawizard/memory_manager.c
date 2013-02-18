@@ -36,14 +36,13 @@ int _starpu_memory_manager_init()
 	return 0;
 }
 
-int _starpu_memory_manager_add_size(size_t size, unsigned node)
+int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 {
 	used_size[node] += size;
-	return 0;
+	return 1;
 }
 
-int _starpu_memory_manager_sub_size(size_t size, unsigned node)
+void _starpu_memory_manager_deallocate_size(size_t size, unsigned node)
 {
 	used_size[node] -= size;
-	return 0;
 }

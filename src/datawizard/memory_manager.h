@@ -20,8 +20,26 @@
 #include <starpu.h>
 #include <common/config.h>
 
+/**
+ * Initialises the memory manager
+ */
 int _starpu_memory_manager_init();
-int _starpu_memory_manager_add_size(size_t size, unsigned node);
-int _starpu_memory_manager_sub_size(size_t size, unsigned node);
+
+/**
+ * Indicates if memory can be allocated on the given node
+ *
+ * @param size amount of memory to allocate
+ * @param node node where the memory is to be allocated
+ * @return 1 if the given amount of memory can be allocated on the given node
+ */
+int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node) STARPU_WARN_UNUSED_RESULT;
+
+/**
+ * Indicates the given amount of memory is going to be deallocated from the given node
+ *
+ * @param size amount of memory to be deallocated
+ * @param node node where the memory is going to be deallocated
+ */
+void _starpu_memory_manager_deallocate_size(size_t size, unsigned node);
 
 #endif /* __MEMORY_MANAGER_H__ */
