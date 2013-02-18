@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,27 +18,32 @@
 #include <common/config.h>
 #include <datawizard/memory_manager.h>
 
-static size_t global_size;
-static size_t used_size;
+static size_t global_size[STARPU_MAXNODES];
+static size_t used_size[STARPU_MAXNODES];
 
 int _starpu_memory_manager_init()
 {
 #ifdef STARPU_DEVEL
 #  warning use hwloc to get global size
 #endif
-     global_size = 0;
-     used_size = 0;
-     return 0;
+	int i;
+
+	for(i=0 ; i<STARPU_MAXNODES ; i++)
+	{
+		global_size[i] = 0;
+		used_size[i] = 0;
+	}
+	return 0;
 }
 
-int _starpu_memory_manager_add_size(size_t size)
+int _starpu_memory_manager_add_size(size_t size, unsigned node)
 {
-     used_size += size;
-     return 0;
+	used_size[node] += size;
+	return 0;
 }
 
-int _starpu_memory_manager_sub_size(size_t size)
+int _starpu_memory_manager_sub_size(size_t size, unsigned node)
 {
-     used_size -= size;
-     return 0;
+	used_size[node] -= size;
+	return 0;
 }

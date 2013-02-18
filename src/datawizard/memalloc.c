@@ -782,7 +782,7 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 		case STARPU_CPU_RAM:
 		{
 			addr = (uintptr_t)malloc(size);
-			_starpu_memory_manager_add_size(size);
+			_starpu_memory_manager_add_size(size, dst_node);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -805,6 +805,10 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 
 				addr = 0;
 			}
+			else
+			{
+			     _starpu_memory_manager_add_size(size, dst_node);
+			}
 #endif
 			break;
 #endif
@@ -824,7 +828,10 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 				if (ret)
 					addr = 0;
 				else
+				{
 					addr = (uintptr_t)ptr;
+					_starpu_memory_manager_add_size(size, dst_node);
+				}
 				break;
 #endif
 			}
@@ -847,7 +854,7 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 #endif
 		case STARPU_CPU_RAM:
 			free((void*)addr);
-			_starpu_memory_manager_sub_size(size);
+			_starpu_memory_manager_sub_size(size, dst_node);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -862,6 +869,7 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
 			err = cudaFree((void*)addr);
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
+			_starpu_memory_manager_sub_size(size, dst_node);
 #endif
 			break;
 		}
@@ -879,6 +887,7 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
                         err = clReleaseMemObject((void*)addr);
 			if (STARPU_UNLIKELY(err != CL_SUCCESS))
 				STARPU_OPENCL_REPORT_ERROR(err);
+			_starpu_memory_manager_sub_size(size, dst_node);
 #endif
                         break;
 		}

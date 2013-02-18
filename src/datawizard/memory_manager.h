@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
 #include <common/config.h>
 
 int _starpu_memory_manager_init();
-int _starpu_memory_manager_add_size(size_t size);
-int _starpu_memory_manager_sub_size(size_t size);
+int _starpu_memory_manager_add_size(size_t size, unsigned node);
+int _starpu_memory_manager_sub_size(size_t size, unsigned node);
 
 #endif /* __MEMORY_MANAGER_H__ */
