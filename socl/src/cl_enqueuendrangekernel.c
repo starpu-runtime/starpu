@@ -167,7 +167,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
       totalEvent->prof_start = _socl_nanotime();
       totalEvent->prof_submit = totalEvent->prof_start;
       totalEvent->prof_queued = totalEvent->prof_start;
-      totalEvent->cq = cq;
+      gc_entity_store(&totalEvent->cq, cq);
 
       command_marker cmd = command_marker_create();
       beforeEvent = command_event_get(cmd);
