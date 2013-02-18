@@ -185,7 +185,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		{
 			for (task  = starpu_task_list_begin(&taskq->taskq[priolevel]);
 			     task != starpu_task_list_end(&taskq->taskq[priolevel]);
-			     task  = starpu_task_list_next(task)) {
+			     task  = starpu_task_list_next(task)) 
+			{
 				unsigned nimpl;
 				for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 				{
@@ -199,7 +200,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 						taskq->total_ntasks--;
 						_STARPU_TRACE_JOB_POP(task, 0);
 					} else skipped = 1;
-					}
+				}
 			}
 		}
 	}
@@ -225,9 +226,13 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 				_starpu_pthread_mutex_t *sched_mutex;
 				_starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-				_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+                               /* if the worker is busy it means that he's active & we don't have to wake him up */
+				int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(sched_mutex);
+				if(ret != EBUSY)
+				{
+					_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+					_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+				}
 			}
 		}
 
