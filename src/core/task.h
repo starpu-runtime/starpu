@@ -52,8 +52,6 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
  * to a task). */
 struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task);
 
-struct starpu_task *_starpu_create_task_alias(struct starpu_task *task);
-
 /* Submits starpu internal tasks to the initial context */
 int _starpu_task_submit_internally(struct starpu_task *task);
 

@@ -25,6 +25,7 @@
 #include <profiling/profiling.h>
 #include <common/barrier.h>
 #include <core/debug.h>
+#include <core/parallel_task.h>
 
 static int use_prefetch = 0;
 

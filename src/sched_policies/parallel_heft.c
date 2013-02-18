@@ -25,6 +25,7 @@
 #include <starpu_parameters.h>
 #include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
+#include <core/parallel_task.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__

@@ -13,3 +13,12 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+#ifndef __PARALLEL_TASK_H__
+#define __PARALLEL_TASK_H__
+
+#include <starpu.h>
+
+struct starpu_task *_starpu_create_task_alias(struct starpu_task *task);
+
+#endif /* __PARALLEL_TASK_H__ */

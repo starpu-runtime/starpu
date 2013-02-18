@@ -20,6 +20,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
+#include <core/parallel_task.h>
 
 struct _starpu_peager_data
 {
