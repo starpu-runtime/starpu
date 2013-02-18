@@ -769,13 +769,12 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
-	 
-#ifdef STARPU_USE_CUDA  
-	cudaError_t status;  
+#ifdef STARPU_USE_CUDA
+	cudaError_t status;
 #endif
 
 #ifdef STARPU_DEVEL
-#warning TODO: we need to use starpu_malloc
+#warning TODO: we need to use starpu_malloc which should itself inquire from the memory manager is there is enough available memory
 #endif
 	switch(starpu_node_get_kind(dst_node))
 	{
