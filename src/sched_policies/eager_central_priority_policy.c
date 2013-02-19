@@ -176,6 +176,14 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	if (taskq->total_ntasks == 0)
 		return NULL;
 	
+	/* release this mutex before trying to wake up other workers */
+	_starpu_pthread_mutex_t *curr_sched_mutex;
+	_starpu_pthread_cond_t *curr_sched_cond;
+	starpu_worker_get_sched_condition(workerid, &curr_sched_mutex, &curr_sched_cond);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(curr_sched_mutex);
+
+	/* all workers will block on this mutex anyway so 
+	   there's no need for their own mutex to be locked */
 	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
 	unsigned priolevel = NPRIO_LEVELS - 1;
@@ -206,10 +214,9 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	}
 	while (!chosen_task && priolevel-- > 0);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-
 	if (!chosen_task && skipped)
 	{
+
 		/* Notify another worker to do that task */
 		unsigned worker = 0;
 		struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
@@ -226,17 +233,18 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 				_starpu_pthread_mutex_t *sched_mutex;
 				_starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-                               /* if the worker is busy it means that he's active & we don't have to wake him up */
-				int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(sched_mutex);
-				if(ret != EBUSY)
-				{
-					_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-					_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-				}
+				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+				_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+				_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			}
 		}
 
 	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+	/* leave the mutex how it was found before this */
+	_STARPU_PTHREAD_MUTEX_LOCK(curr_sched_mutex);
 
 	return chosen_task;
 }
