@@ -67,10 +67,10 @@ static struct starpu_data_copy_methods variable_copy_data_methods_s =
 #endif
 };
 
-static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
-static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void *variable_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
-static void free_variable_buffer_on_node(void *data_interface, uint32_t node);
+static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node);
+static void *variable_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
+static void free_variable_buffer_on_node(void *data_interface, unsigned node);
 static size_t variable_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
 static int variable_compare(void *data_interface_a, void *data_interface_b);
@@ -91,14 +91,14 @@ static struct starpu_data_interface_ops interface_variable_ops =
 	.display = display_variable_interface,
 };
 
-static void *variable_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	return (void*) STARPU_VARIABLE_GET_PTR(starpu_data_get_interface_on_node(handle, node));
 }
 
-static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -120,7 +120,7 @@ static void register_variable_handle(starpu_data_handle_t handle, uint32_t home_
 }
 
 /* declare a new data with the variable interface */
-void starpu_variable_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
                         uintptr_t ptr, size_t elemsize)
 {
 	struct starpu_variable_interface variable =
@@ -181,7 +181,7 @@ size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the variable interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node)
+static ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface_;
 	size_t elemsize = variable_interface->elemsize;
@@ -196,7 +196,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 	return elemsize;
 }
 
-static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
+static void free_variable_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface;
 	starpu_free_buffer_on_node(node, variable_interface->ptr, variable_interface->elemsize);

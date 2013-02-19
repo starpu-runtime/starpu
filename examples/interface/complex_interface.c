@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,7 @@ int starpu_complex_get_nx(starpu_data_handle_t handle)
 	return complex_interface->nx;
 }
 
-static void complex_register_data_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+static void complex_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 
@@ -58,7 +58,7 @@ static void complex_register_data_handle(starpu_data_handle_t handle, uint32_t h
 	}
 }
 
-static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, uint32_t node)
+static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 
@@ -85,7 +85,7 @@ fail_real:
 	return -ENOMEM;
 }
 
-static void complex_free_data_on_node(void *data_interface, uint32_t node)
+static void complex_free_data_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 	ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
@@ -108,7 +108,7 @@ static uint32_t complex_footprint(starpu_data_handle_t handle)
 	return starpu_crc32_be(starpu_complex_get_nx(handle), 0);
 }
 
-static void *complex_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+static void *complex_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -118,7 +118,7 @@ static void *complex_handle_to_pointer(starpu_data_handle_t handle, uint32_t nod
 	return (void*) complex_interface->real;
 }
 
-static int complex_pack_data(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count)
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -133,7 +133,7 @@ static int complex_pack_data(starpu_data_handle_t handle, uint32_t node, void **
 	return 0;
 }
 
-static int complex_unpack_data(starpu_data_handle_t handle, uint32_t node, void *ptr, size_t count)
+static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -296,7 +296,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.unpack_data = complex_unpack_data
 };
 
-void starpu_complex_data_register(starpu_data_handle_t *handleptr, uint32_t home_node, double *real, double *imaginary, int nx)
+void starpu_complex_data_register(starpu_data_handle_t *handleptr, unsigned home_node, double *real, double *imaginary, int nx)
 {
 	struct starpu_complex_interface complex =
 	{

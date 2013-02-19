@@ -273,12 +273,12 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	if (size == 0)
 		return 0.0;
 
-	uint32_t src_node = _starpu_select_src_node(handle, memory_node);
+	unsigned src_node = _starpu_select_src_node(handle, memory_node);
 	return _starpu_predict_transfer_time(src_node, memory_node, size);
 }
 
 /* Data transfer performance modeling */
-double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task)
+double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task)
 {
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;

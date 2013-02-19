@@ -94,7 +94,7 @@ void starpu_memory_display_stats();
 #define starpu_data_malloc_pinned_if_possible	starpu_malloc
 #define starpu_data_free_pinned_if_possible	starpu_free
 
-int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node);
+int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
@@ -109,7 +109,7 @@ enum starpu_node_kind
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
-enum starpu_node_kind starpu_node_get_kind(uint32_t node);
+enum starpu_node_kind starpu_node_get_kind(unsigned node);
 
 
 /* It is possible to associate a mask to a piece of data (and its children) so
@@ -135,7 +135,7 @@ int starpu_data_get_rank(starpu_data_handle_t handle);
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag);
 int starpu_data_get_tag(starpu_data_handle_t handle);
 
-unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node);
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
 #ifdef __cplusplus
 }

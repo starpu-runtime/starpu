@@ -175,7 +175,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 /* Whether STARPU_PREFETCH was set */
 int starpu_get_prefetch_flag(void);
 /* Prefetch data for a given task on a given node */
-int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 /*
  *	Performance predictions
@@ -188,7 +188,7 @@ double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_ar
 /* Returns an estimated speedup factor relative to CPU speed */
 double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
 /* Returns expected data transfer time in us */
-double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task);
+double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
 /* Predict the transfer time (in us) to move a handle to a memory node */
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_access_mode mode);
 /* Returns expected power consumption in J */

@@ -217,7 +217,7 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 	}
 }
 
-static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, uint32_t node)
+static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 {
 	size_t freed = 0;
 
@@ -457,7 +457,7 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 }
 
 /* This function must be called with mc_rwlock[node] taken in write mode */
-static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(uint32_t node, starpu_data_handle_t handle)
+static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned node, starpu_data_handle_t handle)
 {
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
@@ -527,7 +527,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
  * Free the memory chuncks that are explicitely tagged to be freed. The
  * mc_rwlock[node] rw-lock should be taken prior to calling this function.
  */
-static size_t flush_memchunk_cache(uint32_t node, size_t reclaim)
+static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 {
 	struct _starpu_mem_chunk *mc, *next_mc;
 
@@ -558,7 +558,7 @@ static size_t flush_memchunk_cache(uint32_t node, size_t reclaim)
  * should only be used at the termination of StarPU for instance). The
  * mc_rwlock[node] rw-lock should be taken prior to calling this function.
  */
-static size_t free_potentially_in_use_mc(uint32_t node, unsigned force, size_t reclaim)
+static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim)
 {
 	size_t freed = 0;
 
@@ -592,7 +592,7 @@ static size_t free_potentially_in_use_mc(uint32_t node, unsigned force, size_t r
 	return freed;
 }
 
-static size_t reclaim_memory_generic(uint32_t node, unsigned force, size_t reclaim)
+static size_t reclaim_memory_generic(unsigned node, unsigned force, size_t reclaim)
 {
 	size_t freed = 0;
 
@@ -618,7 +618,7 @@ static size_t reclaim_memory_generic(uint32_t node, unsigned force, size_t recla
  * (for the data replicates). This is not ensuring data coherency, and should
  * only be called while StarPU is getting shut down.
  */
-size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
+size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 {
 	return reclaim_memory_generic(node, 1, 0);
 }
@@ -765,7 +765,7 @@ static _starpu_pthread_mutex_t opencl_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIA
 #endif
 
 uintptr_t
-starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
+starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
@@ -860,7 +860,7 @@ starpu_allocate_buffer_on_node(uint32_t dst_node, size_t size)
 }
 
 void
-starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
+starpu_free_buffer_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 {
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
@@ -925,7 +925,7 @@ starpu_free_buffer_on_node(uint32_t dst_node, uintptr_t addr, size_t size)
  *
  */
 
-static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t dst_node, unsigned is_prefetch)
+static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, unsigned is_prefetch)
 {
 	unsigned attempts = 0;
 	ssize_t allocated_memory;
@@ -1050,7 +1050,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	return 0;
 }
 
-unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, uint32_t memory_node)
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
 	return handle->per_node[memory_node].allocated;
 }

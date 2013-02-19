@@ -64,9 +64,9 @@ static struct starpu_data_copy_methods csr_copy_data_methods_s =
 #endif
 };
 
-static void register_csr_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
-static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void free_csr_buffer_on_node(void *data_interface, uint32_t node);
+static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node);
+static void free_csr_buffer_on_node(void *data_interface, unsigned node);
 static size_t csr_interface_get_size(starpu_data_handle_t handle);
 static int csr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle);
@@ -84,7 +84,7 @@ static struct starpu_data_interface_ops interface_csr_ops =
 	.compare = csr_compare,
 };
 
-static void register_csr_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
 
@@ -115,7 +115,7 @@ static void register_csr_handle(starpu_data_handle_t handle, uint32_t home_node,
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_csr_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+void starpu_csr_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
 	struct starpu_csr_interface csr_interface =
@@ -236,7 +236,7 @@ static size_t csr_interface_get_size(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_csr_buffer_on_node(void *data_interface_, uint32_t dst_node)
+static ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	uintptr_t addr_nzval = 0;
 	uint32_t *addr_colind = NULL, *addr_rowptr = NULL;
@@ -279,7 +279,7 @@ fail_nzval:
 	return -ENOMEM;
 }
 
-static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
+static void free_csr_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
 	uint32_t nnz = csr_interface->nnz;

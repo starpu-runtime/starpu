@@ -324,7 +324,7 @@ static struct starpu_data_copy_methods coo_copy_data_methods =
 };
 
 static void
-register_coo_handle(starpu_data_handle_t handle, uint32_t home_node,
+register_coo_handle(starpu_data_handle_t handle, unsigned home_node,
 		    void *data_interface)
 {
 	struct starpu_coo_interface *coo_interface =
@@ -358,7 +358,7 @@ register_coo_handle(starpu_data_handle_t handle, uint32_t home_node,
 }
 
 static ssize_t
-allocate_coo_buffer_on_node(void *data_interface, uint32_t dst_node)
+allocate_coo_buffer_on_node(void *data_interface, unsigned dst_node)
 {
 	uint32_t *addr_columns = NULL;
 	uint32_t *addr_rows = NULL;
@@ -395,7 +395,7 @@ fail_columns:
 }
 
 static void
-free_coo_buffer_on_node(void *data_interface, uint32_t node)
+free_coo_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_coo_interface *coo_interface = (struct starpu_coo_interface *) data_interface;
 	uint32_t n_values = coo_interface->n_values;
@@ -466,7 +466,7 @@ struct starpu_data_interface_ops _starpu_interface_coo_ops =
 };
 
 void
-starpu_coo_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 			 uint32_t nx, uint32_t ny, uint32_t n_values,
 			 uint32_t *columns, uint32_t *rows,
 			 uintptr_t values, size_t elemsize)

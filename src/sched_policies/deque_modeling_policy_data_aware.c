@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
  *
@@ -70,7 +70,7 @@ static const float idle_power_minimum=0;
 static const float idle_power_maximum=10000.0;
 #endif /* !STARPU_USE_TOP */
 
-static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
+static int count_non_ready_buffers(struct starpu_task *task, unsigned node)
 {
 	int cnt = 0;
 	unsigned nbuffers = task->cl->nbuffers;

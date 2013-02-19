@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -80,7 +80,7 @@ void *gordon_worker_progress(void *arg)
 	return NULL;
 }
 
-static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_job_s *gordon_job, uint32_t memory_node)
+static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_job_s *gordon_job, unsigned memory_node)
 {
 	unsigned buffer;
 	unsigned nin = 0, ninout = 0, nout = 0;

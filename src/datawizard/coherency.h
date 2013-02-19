@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -232,7 +232,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			       struct _starpu_data_replicate *requesting_replicate,
 			       enum starpu_access_mode mode);
 
-uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, uint32_t node);
+uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, unsigned node);
 
 size_t _starpu_data_get_size(starpu_data_handle_t handle);
 
@@ -243,9 +243,9 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask);
 __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
 
-unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, uint32_t node);
+unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);
 
-uint32_t _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
+unsigned _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
 /* is_prefetch is whether the DSM may drop the request (when there is not enough memory for instance
  * async is whether the caller wants a reference on the last request, to be

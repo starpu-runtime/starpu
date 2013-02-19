@@ -293,7 +293,7 @@ struct data_register_arguments expected_register_arguments;
 
 void
 starpu_vector_data_register (starpu_data_handle_t *handle,
-			     uint32_t home_node, uintptr_t ptr,
+			     unsigned home_node, uintptr_t ptr,
 			     uint32_t count, size_t elemsize)
 {
   /* Sometimes tests cannot tell what the pointer will be (for instance, for

@@ -61,10 +61,10 @@ static struct starpu_data_copy_methods block_copy_data_methods_s =
 };
 
 
-static void register_block_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
-static void *block_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
-static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void free_block_buffer_on_node(void *data_interface, uint32_t node);
+static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void *block_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
+static ssize_t allocate_block_buffer_on_node(void *data_interface_, unsigned dst_node);
+static void free_block_buffer_on_node(void *data_interface, unsigned node);
 static size_t block_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle);
 static int block_compare(void *data_interface_a, void *data_interface_b);
@@ -85,7 +85,7 @@ static struct starpu_data_interface_ops interface_block_ops =
 	.display = display_block_interface,
 };
 
-static void *block_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+static void *block_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -95,7 +95,7 @@ static void *block_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
 	return (void*) block_interface->ptr;
 }
 
-static void register_block_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
 
@@ -130,7 +130,7 @@ static void register_block_handle(starpu_data_handle_t handle, uint32_t home_nod
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_block_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
@@ -270,7 +270,7 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the BLOCK interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node)
+static ssize_t allocate_block_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	uintptr_t addr = 0, handle;
 
@@ -303,7 +303,7 @@ static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst
 	return allocated_memory;
 }
 
-static void free_block_buffer_on_node(void *data_interface, uint32_t node)
+static void free_block_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
 	uint32_t nx = block_interface->nx;

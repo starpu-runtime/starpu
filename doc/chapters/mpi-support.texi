@@ -136,7 +136,7 @@ handle.
 
 @cartouche
 @smallexample
-static int complex_pack_data(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count)
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)
 @{
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -156,7 +156,7 @@ static int complex_pack_data(starpu_data_handle_t handle, uint32_t node, void **
 
 @cartouche
 @smallexample
-static int complex_unpack_data(starpu_data_handle_t handle, uint32_t node, void *ptr, size_t count)
+static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 @{
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 

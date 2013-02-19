@@ -287,19 +287,19 @@ The function does nothing if the cache mechanism is disabled (@pxref{STARPU_MPI_
 Per-interface data transfer methods.
 
 @table @asis
-@item @code{void (*register_data_handle)(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)}
+@item @code{void (*register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)}
 Register an existing interface into a data handle.
 
-@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node)}
+@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node)}
 Allocate data for the interface on a given node.
 
-@item @code{ void (*free_data_on_node)(void *data_interface, uint32_t node)}
+@item @code{ void (*free_data_on_node)(void *data_interface, unsigned node)}
 Free data of the interface on a given node.
 
 @item @code{ const struct starpu_data_copy_methods *copy_methods}
 ram/cuda/opencl synchronous and asynchronous transfer methods.
 
-@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node)}
+@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node)}
 Return the current pointer (if any) for the handle on the given node.
 
 @item @code{ size_t (*get_size)(starpu_data_handle_t handle)}
@@ -326,10 +326,10 @@ todo
 @item @code{struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface)}
 todo
 
-@item @code{int (*pack_data)(starpu_data_handle_t handle, uint32_t node, void **ptr, size_t *count)}
+@item @code{int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)}
 Pack the data handle into a contiguous buffer at the address @code{ptr} and set the size of the newly created buffer in @code{count}
 
-@item @code{int (*unpack_data)(starpu_data_handle_t handle, uint32_t node, void *ptr, size_t count)}
+@item @code{int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)}
 Unpack the data handle from the contiguous buffer at the address @code{ptr} of size @var{count}
 
 @end table
@@ -430,7 +430,7 @@ described below.
 @cartouche
 @smallexample
 void starpu_complex_data_register(starpu_data_handle_t *handle,
-     uint32_t home_node, double *real, double *imaginary, int nx)
+     unsigned home_node, double *real, double *imaginary, int nx)
 @{
         struct starpu_complex_interface complex =
         @{
@@ -565,7 +565,7 @@ pointer to a codelet which converts from CUDA to CPU
 @end table
 @end deftp
 
-@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops})
+@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops})
 Register a piece of data that can be represented in different ways, depending upon
 the processing unit that manipulates it. It allows the programmer, for instance, to
 use an array of structures when working on a CPU, and a structure of arrays when
@@ -1031,7 +1031,7 @@ Returns expected task duration in µs
 Returns an estimated speedup factor relative to CPU speed
 @end deftypefun
 
-@deftypefun double starpu_task_expected_data_transfer_time (uint32_t @var{memory_node}, {struct starpu_task *}@var{task})
+@deftypefun double starpu_task_expected_data_transfer_time (unsigned @var{memory_node}, {struct starpu_task *}@var{task})
 Returns expected data transfer time in µs
 @end deftypefun
 

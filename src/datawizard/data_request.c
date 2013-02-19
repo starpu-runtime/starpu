@@ -83,7 +83,7 @@ static void starpu_data_request_destroy(struct _starpu_data_request *r)
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
-							 uint32_t handling_node,
+							 unsigned handling_node,
 							 enum starpu_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch)
@@ -138,7 +138,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	int retval;
 	int do_delete = 0;
 
-	uint32_t local_node = _starpu_memory_node_get_local_key();
+	unsigned local_node = _starpu_memory_node_get_local_key();
 
 	do
 	{
@@ -179,7 +179,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 }
 
 /* this is non blocking */
-void _starpu_post_data_request(struct _starpu_data_request *r, uint32_t handling_node)
+void _starpu_post_data_request(struct _starpu_data_request *r, unsigned handling_node)
 {
 //	_STARPU_DEBUG("POST REQUEST\n");
 
@@ -262,8 +262,8 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 #endif
 
 #ifdef STARPU_USE_FXT
-	uint32_t src_node = src_replicate->memory_node;
-	uint32_t dst_node = dst_replicate->memory_node;
+	unsigned src_node = src_replicate->memory_node;
+	unsigned dst_node = dst_replicate->memory_node;
 	size_t size = _starpu_data_get_size(handle);
 	_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id);
 #endif
@@ -384,7 +384,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	return 0;
 }
 
-void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
+void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
@@ -439,7 +439,7 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 	_starpu_data_request_list_delete(local_list);
 }
 
-void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc)
+void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
@@ -516,7 +516,7 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 	_starpu_data_request_list_delete(local_list);
 }
 
-static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force)
+static void _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 {
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 //
@@ -588,17 +588,17 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 	_starpu_data_request_list_delete(new_data_requests_pending);
 }
 
-void _starpu_handle_pending_node_data_requests(uint32_t src_node)
+void _starpu_handle_pending_node_data_requests(unsigned src_node)
 {
 	_handle_pending_node_data_requests(src_node, 0);
 }
 
-void _starpu_handle_all_pending_node_data_requests(uint32_t src_node)
+void _starpu_handle_all_pending_node_data_requests(unsigned src_node)
 {
 	_handle_pending_node_data_requests(src_node, 1);
 }
 
-int _starpu_check_that_no_data_request_exists(uint32_t node)
+int _starpu_check_that_no_data_request_exists(unsigned node)
 {
 	/* XXX lock that !!! that's a quick'n'dirty test */
 	int no_request;

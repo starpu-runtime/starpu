@@ -67,13 +67,13 @@ static struct starpu_data_copy_methods custom_copy_data_methods_s =
 };
 
 static void     register_custom_handle(starpu_data_handle_t handle,
-				       uint32_t home_node,
+				       unsigned home_node,
 				       void *data_interface);
 static ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
-					       uint32_t dst_node);
+					       unsigned dst_node);
 static void*    custom_handle_to_pointer(starpu_data_handle_t data_handle,
-					 uint32_t node);
-static void     free_custom_buffer_on_node(void *data_interface, uint32_t node);
+					 unsigned node);
+static void     free_custom_buffer_on_node(void *data_interface, unsigned node);
 static size_t   custom_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle);
 static void     display_custom_interface(starpu_data_handle_t handle, FILE *f);
@@ -106,7 +106,7 @@ static struct starpu_data_interface_ops interface_custom_ops =
 };
 
 static void
-register_custom_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+register_custom_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct custom_data_interface *custom_interface;
 	custom_interface = (struct custom_data_interface *) data_interface;
@@ -143,7 +143,7 @@ register_custom_handle(starpu_data_handle_t handle, uint32_t home_node, void *da
 	}
 }
 
-static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t node)
+static ssize_t allocate_custom_buffer_on_node(void *data_interface, unsigned node)
 {
 	ssize_t size = 0;
 	struct custom_data_interface *custom_interface;
@@ -186,7 +186,7 @@ fail_cpu:
 	return -ENOMEM;
 }
 
-static void free_custom_buffer_on_node(void *data_interface, uint32_t node)
+static void free_custom_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct custom_data_interface *custom_interface = (struct custom_data_interface *) data_interface;
 	size_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
@@ -201,7 +201,7 @@ static void free_custom_buffer_on_node(void *data_interface, uint32_t node)
 }
 
 static void*
-custom_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+custom_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	struct custom_data_interface *data_interface =
 		(struct custom_data_interface *) starpu_data_get_interface_on_node(handle, node);
@@ -258,7 +258,7 @@ custom_get_nx(starpu_data_handle_t handle)
 
 
 void custom_data_register(starpu_data_handle_t *handle,
-				 uint32_t home_node,
+				 unsigned home_node,
 				 void *ptr,
 				 uint32_t nx,
 				 struct starpu_multiformat_data_interface_ops *format_ops)

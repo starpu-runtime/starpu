@@ -269,7 +269,7 @@ void _starpu_empty_codelet_function(void *buffers[], void *args)
 	(void) args; // unused;
 }
 
-void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gathering_node)
+void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gathering_node)
 {
 	unsigned child;
 	unsigned node;

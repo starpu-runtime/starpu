@@ -137,7 +137,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			/* Make sure the replicate is not removed */
 			handle->per_worker[worker].refcnt++;
 
-			uint32_t home_node = starpu_worker_get_memory_node(worker);
+			unsigned home_node = starpu_worker_get_memory_node(worker);
 			starpu_data_register(&handle->reduction_tmp_handles[worker],
 				home_node, handle->per_worker[worker].data_interface, handle->ops);
 

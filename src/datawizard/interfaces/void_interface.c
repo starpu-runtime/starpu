@@ -57,9 +57,9 @@ static struct starpu_data_copy_methods void_copy_data_methods_s =
 #endif
 };
 
-static void register_void_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
-static ssize_t allocate_void_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void free_void_buffer_on_node(void *data_interface, uint32_t node);
+static void register_void_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static ssize_t allocate_void_buffer_on_node(void *data_interface_, unsigned dst_node);
+static void free_void_buffer_on_node(void *data_interface, unsigned node);
 static size_t void_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
@@ -80,7 +80,7 @@ static struct starpu_data_interface_ops interface_void_ops =
 };
 
 static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
-				uint32_t home_node STARPU_ATTRIBUTE_UNUSED,
+				unsigned home_node STARPU_ATTRIBUTE_UNUSED,
 				void *data_interface STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Since there is no real data to register, we don't do anything */
@@ -120,14 +120,14 @@ static size_t void_interface_get_size(starpu_data_handle_t handle STARPU_ATTRIBU
 
 /* returns the size of the allocated area */
 static ssize_t allocate_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSED,
-					uint32_t dst_node STARPU_ATTRIBUTE_UNUSED)
+					unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Successfuly allocated 0 bytes */
 	return 0;
 }
 
 static void free_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSED ,
-					uint32_t node STARPU_ATTRIBUTE_UNUSED)
+					unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 	/* There is no buffer actually */
 }

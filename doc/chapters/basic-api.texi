@@ -348,7 +348,7 @@ todo
 @end table
 @end deftp
 
-@deftypefun {enum starpu_node_kind} starpu_node_get_kind (uint32_t @var{node})
+@deftypefun {enum starpu_node_kind} starpu_node_get_kind (unsigned @var{node})
 Returns the type of the given node as defined by @code{enum
 starpu_node_kind}. For example, when defining a new data interface,
 this function should be used in the allocation function to determine
@@ -446,7 +446,7 @@ over the entire machine, so that we can maintain data consistency and locate
 data replicates for instance.
 @end deftp
 
-@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, void *@var{data_interface}, {struct starpu_data_interface_ops} *@var{ops})
+@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, unsigned @var{home_node}, void *@var{data_interface}, {struct starpu_data_interface_ops} *@var{ops})
 Register a piece of data into the handle located at the @var{handleptr}
 address. The @var{data_interface} buffer contains the initial description of the
 data in the home node. The @var{ops} argument is a pointer to a structure
@@ -519,7 +519,7 @@ Return the handle corresponding to the data pointed to by the @var{ptr}
 host pointer.
 @end deftypefun
 
-@deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, uint32_t @var{node})
+@deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, unsigned @var{node})
 Explicitly ask StarPU to allocate room for a piece of data on the specified
 memory node.
 @end deftypefun
@@ -629,7 +629,7 @@ concurrent execution of different tasks accessing the same "void" data
 in read-write concurrently.
 @end deftypefun
 
-@deftypefun void starpu_variable_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
+@deftypefun void starpu_variable_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
 Register the @var{size}-byte element pointed to by @var{ptr}, which is
 typically a scalar, and initialize @var{handle} to represent this data
 item.
@@ -643,7 +643,7 @@ starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{nx}, size_t @var{elemsize})
+@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{nx}, size_t @var{elemsize})
 Register the @var{nx} @var{elemsize}-byte elements pointed to by
 @var{ptr} and initialize @var{handle} to represent it.
 
@@ -657,7 +657,7 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{elemsize})
+@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{elemsize})
 Register the @var{nx}x@var{ny} 2D matrix of @var{elemsize}-byte elements
 pointed by @var{ptr} and initialize @var{handle} to represent it.
 @var{ld} specifies the number of elements between rows.
@@ -675,7 +675,7 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{elemsize})
+@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{elemsize})
 Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{elemsize}-byte
 elements pointed by @var{ptr} and initialize @var{handle} to represent
 it.  Again, @var{ldy} and @var{ldz} specify the number of elements
@@ -692,7 +692,7 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
+@deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of @var{nnz} non-zero blocks of elements of size
@@ -704,13 +704,13 @@ in @code{nzval}, @code{rowptr[i]} is the block-index (in nzval) of the first blo
 or 1).
 @end deftypefun
 
-@deftypefun void starpu_csr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
+@deftypefun void starpu_csr_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the CSR (Compressed
 Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@deftypefun void starpu_coo_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{n_values}, uint32_t *@var{columns}, uint32_t *@var{rows}, uintptr_t @var{values}, size_t @var{elemsize});
+@deftypefun void starpu_coo_data_register (starpu_data_handle_t *@var{handleptr}, unsigned @var{home_node}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{n_values}, uint32_t *@var{columns}, uint32_t *@var{rows}, uintptr_t @var{values}, size_t @var{elemsize});
 Register the @var{nx}x@var{ny} 2D matrix given in the COO format, using the
 @var{columns}, @var{rows}, @var{values} arrays, which must have @var{n_values}
 elements of size @var{elemsize}. Initialize @var{handleptr}.
@@ -757,7 +757,7 @@ The different values are:
 @node Accessing Handle
 @subsubsection Handle
 
-@deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, uint32_t @var{node})
+@deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, unsigned @var{node})
 Return the pointer associated with @var{handle} on node @var{node} or
 @code{NULL} if @var{handle}'s interface does not support this
 operation or data for this handle is not allocated on that node.
@@ -1215,12 +1215,12 @@ Return the size of the elements registered into the matrix designated by
 Applications can provide their own interface. An example is provided in
 @code{examples/interface}. A few helpers are provided.
 
-@deftypefun uintptr_t starpu_allocate_buffer_on_node (uint32_t @var{dst_node}, size_t @var{size})
+@deftypefun uintptr_t starpu_allocate_buffer_on_node (unsigned @var{dst_node}, size_t @var{size})
 Allocate @var{size} bytes on node @var{dst_node}. This returns 0 if allocation
 failed, the allocation method should then return -ENOMEM as allocated size.
 @end deftypefun
 
-@deftypefun void starpu_free_buffer_on_node (uint32_t @var{dst_node}, uintptr_t @var{addr}, size_t @var{size})
+@deftypefun void starpu_free_buffer_on_node (unsigned @var{dst_node}, uintptr_t @var{addr}, size_t @var{size})
 Free @var{addr} of @var{size} bytes on node @var{dst_node}.
 @end deftypefun
 
@@ -1284,7 +1284,7 @@ starpu_data_partition(A_handle, &f);
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, uint32_t @var{gathering_node})
+@deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, unsigned @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
 collected back into one big piece in the @var{gathering_node} (usually 0). Tasks
 working on the partitioned data must be already finished when calling @code{starpu_data_unpartition}.

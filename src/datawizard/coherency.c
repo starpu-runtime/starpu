@@ -24,7 +24,7 @@
 #include <math.h>
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
-uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
+unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 {
 	int src_node = -1;
 	unsigned i;
@@ -32,9 +32,9 @@ uint32_t _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	unsigned nnodes = starpu_memory_nodes_get_count();
 
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
-	uint32_t node;
+	unsigned node;
 
-	uint32_t src_node_mask = 0;
+	unsigned src_node_mask = 0;
 	size_t size = _starpu_data_get_size(handle);
 	double cost = INFINITY;
 
@@ -130,7 +130,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 	if (mode & STARPU_W)
 	{
 		/* the requesting node now has the only valid copy */
-		uint32_t node;
+		unsigned node;
 		for (node = 0; node < nnodes; node++)
 			handle->per_node[node].state = STARPU_INVALID;
 
@@ -141,7 +141,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 		if (requesting_replicate->state != STARPU_OWNER)
 		{
 			/* there was at least another copy of the data */
-			uint32_t node;
+			unsigned node;
 			for (node = 0; node < nnodes; node++)
 			{
 				struct _starpu_data_replicate *replicate = &handle->per_node[node];
@@ -382,7 +382,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID);
 
 	/* find someone who already has the data */
-	uint32_t src_node = 0;
+	unsigned src_node = 0;
 
 	/* if the data is in write only mode, there is no need for a source */
 	if (mode & STARPU_R)
@@ -478,7 +478,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 			       enum starpu_access_mode mode, unsigned detached, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg)
 {
-	uint32_t local_node = _starpu_memory_node_get_local_key();
+	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
 
 	while (_starpu_spin_trylock(&handle->header_lock))
@@ -518,7 +518,7 @@ static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
 }
 
-uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, uint32_t node)
+uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, unsigned node)
 {
 	return handle->per_node[node].refcnt;
 }
@@ -551,7 +551,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	if ((wt_mask & ~(1<<memory_node)))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
-	uint32_t local_node = _starpu_memory_node_get_local_key();
+	unsigned local_node = _starpu_memory_node_get_local_key();
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
@@ -580,7 +580,7 @@ static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replic
 //	_starpu_spin_unlock(&handle->header_lock);
 }
 
-int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 {
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned index;
@@ -734,7 +734,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
-unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, uint32_t node)
+unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsigned node)
 {
 	unsigned ret = 0;
 

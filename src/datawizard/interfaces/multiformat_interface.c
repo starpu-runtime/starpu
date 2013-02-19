@@ -67,10 +67,10 @@ static struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 #endif
 };
 
-static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
-static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void *multiformat_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
-static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node);
+static void register_multiformat_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, unsigned dst_node);
+static void *multiformat_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
+static void free_multiformat_buffer_on_node(void *data_interface, unsigned node);
 static size_t multiformat_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_multiformat_interface_crc32(starpu_data_handle_t handle);
 static int multiformat_compare(void *data_interface_a, void *data_interface_b);
@@ -103,7 +103,7 @@ static struct starpu_data_interface_ops interface_multiformat_ops =
 	.get_mf_ops            = get_mf_ops
 };
 
-static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 	struct starpu_multiformat_interface *multiformat_interface =
@@ -127,7 +127,7 @@ static void *multiformat_handle_to_pointer(starpu_data_handle_t handle, uint32_t
 	return NULL;
 }
 
-static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+static void register_multiformat_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
@@ -164,7 +164,7 @@ static void register_multiformat_handle(starpu_data_handle_t handle, uint32_t ho
 }
 
 void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
-				      uint32_t home_node,
+				      unsigned home_node,
 				      void *ptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
@@ -233,7 +233,7 @@ uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle)
 	return multiformat_interface->nx;
 }
 
-static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, uint32_t dst_node)
+static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface_;
@@ -280,7 +280,7 @@ fail_cpu:
 	return -ENOMEM;
 }
 
-static void free_multiformat_buffer_on_node(void *data_interface, uint32_t node)
+static void free_multiformat_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;

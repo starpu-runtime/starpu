@@ -104,7 +104,7 @@ _starpu_data_is_multiformat_handle(starpu_data_handle_t handle)
  */
 
 static void _starpu_register_new_data(starpu_data_handle_t handle,
-					uint32_t home_node, uint32_t wt_mask)
+					unsigned home_node, uint32_t wt_mask)
 {
 	void *ptr;
 
@@ -281,7 +281,7 @@ starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_o
 	return handle;
 }
 
-void starpu_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 			  void *data_interface,
 			  struct starpu_data_interface_ops *ops)
 {
@@ -338,7 +338,7 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
 	starpu_data_register(handledst, -1, local_interface, handlesrc->ops);
 }
 
-void *starpu_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */

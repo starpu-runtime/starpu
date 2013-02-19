@@ -26,7 +26,7 @@
 
 /* Explicitly ask StarPU to allocate room for a piece of data on the specified
  * memory node. */
-int starpu_data_request_allocation(starpu_data_handle_t handle, uint32_t node)
+int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 {
 	struct _starpu_data_request *r;
 
