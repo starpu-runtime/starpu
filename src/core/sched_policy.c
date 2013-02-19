@@ -350,6 +350,16 @@ int _starpu_push_task(struct _starpu_job *j)
 		}
 	}
 
+	/* in case there is no codelet associated to the task (that's a control
+	 * task), we directly execute its callback and enforce the
+	 * corresponding dependencies */
+	if (task->cl == NULL)
+	{
+		_starpu_handle_job_termination(j);
+		_STARPU_LOG_OUT_TAG("handle_job_termination");
+		return 0;
+	}
+
 	ret = _starpu_push_task_to_workers(task);
 	if (ret == -EAGAIN)
 		/* pushed to empty context, that's fine */
@@ -382,16 +392,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	_starpu_profiling_set_task_push_start_time(task);
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-
-	/* in case there is no codelet associated to the task (that's a control
-	 * task), we directly execute its callback and enforce the
-	 * corresponding dependencies */
-	if (task->cl == NULL)
-	{
-		_starpu_handle_job_termination(j);
-		_STARPU_LOG_OUT_TAG("handle_job_termination");
-		return 0;
-	}
 
 	int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
