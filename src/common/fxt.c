@@ -207,6 +207,15 @@ void _starpu_fxt_register_thread(unsigned cpuid)
 }
 
 #endif // STARPU_USE_FXT
+void starpu_fxt_start_profiling()
+{
+}
+
+void starpu_fxt_stop_profiling()
+{
+}
+
+#endif // STARPU_USE_FXT
 
 void starpu_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
 {
