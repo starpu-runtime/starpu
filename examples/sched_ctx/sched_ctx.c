@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	unsigned ncuda = starpu_cuda_worker_get_count();
 	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
 
-	nprocs2 = ncuda;
+	nprocs2 = ncuda == 0 ? 1 : ncuda;
 #endif
 
 	/*create contexts however you want*/
