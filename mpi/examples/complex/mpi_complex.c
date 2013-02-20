@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
 	if (nodes < 2)
 	{
-		fprintf(stderr, "This program needs at least 2 nodes\n");
+		fprintf(stderr, "This program needs at least 2 nodes (%d available)\n", nodes);
 		ret = 77;
 	}
 	else
