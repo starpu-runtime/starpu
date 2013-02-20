@@ -67,8 +67,15 @@ static cl_mem wasted_memory[STARPU_MAXOPENCLDEVS];
 static void limit_gpu_mem_if_needed(int devid)
 {
 	cl_int err;
+	int limit;
+	char name[30];
 
-	int limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
+	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
+	if (limit == -1)
+	{
+	     sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+	     limit = starpu_get_env_number(name);
+	}
 	if (limit == -1)
 	{
 		wasted_memory[devid] = NULL;

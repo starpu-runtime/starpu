@@ -583,11 +583,29 @@ This variable specifies in which file the debugging output should be saved to.
 This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
 @end defvr
 
+@defvr {Environment variable} STARPU_LIMIT_CUDA_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the CUDA device with the identifier
+@code{devid}. This variable is intended to be used for experimental
+purposes as it emulates devices that have a limited amount of memory.
+When defined, the variable overwrites the value of the variable
+@code{STARPU_LIMIT_CUDA_MEM}.
+@end defvr
+
 @defvr {Environment variable} STARPU_LIMIT_CUDA_MEM
 This variable specifies the maximum number of megabytes that should be
 available to the application on each CUDA devices. This variable is
 intended to be used for experimental purposes as it emulates devices
 that have a limited amount of memory.
+@end defvr
+
+@defvr {Environment variable} STARPU_LIMIT_OPENCL_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the OpenCL device with the identifier
+@code{devid}. This variable is intended to be used for experimental
+purposes as it emulates devices that have a limited amount of memory.
+When defined, the variable overwrites the value of the variable
+@code{STARPU_LIMIT_OPENCL_MEM}.
 @end defvr
 
 @defvr {Environment variable} STARPU_LIMIT_OPENCL_MEM

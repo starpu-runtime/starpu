@@ -74,8 +74,15 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
  */
 static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 {
-	int limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
+	int limit;
+	char name[30];
 
+	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
+	if (limit == -1)
+	{
+		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
+		limit = starpu_get_env_number(name);
+	}
 	if (limit == -1)
 	{
 		return;
