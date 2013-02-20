@@ -60,7 +60,7 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 #ifdef STARPU_USE_OPENCL
 #ifndef STARPU_SIMGRID
 /* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
+ * mean of the STARPU_LIMIT_OPENCL_MEM, we allocate a big buffer when the driver
  * is launched. */
 static cl_mem wasted_memory[STARPU_MAXOPENCLDEVS];
 
@@ -68,7 +68,7 @@ static void limit_gpu_mem_if_needed(int devid)
 {
 	cl_int err;
 
-	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
+	int limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
 	if (limit == -1)
 	{
 		wasted_memory[devid] = NULL;

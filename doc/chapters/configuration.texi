@@ -583,12 +583,18 @@ This variable specifies in which file the debugging output should be saved to.
 This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
 @end defvr
 
-@defvr {Environment variable} STARPU_LIMIT_GPU_MEM
+@defvr {Environment variable} STARPU_LIMIT_CUDA_MEM
 This variable specifies the maximum number of megabytes that should be
-available to the application on each GPUs. In case this value is smaller than
-the size of the memory of a GPU, StarPU pre-allocates a buffer to waste memory
-on the device. This variable is intended to be used for experimental purposes
-as it emulates devices that have a limited amount of memory.
+available to the application on each CUDA devices. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
+@end defvr
+
+@defvr {Environment variable} STARPU_LIMIT_OPENCL_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on each OpenCL devices. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
 @end defvr
 
 @defvr {Environment variable} STARPU_GENERATE_TRACE

@@ -88,6 +88,8 @@ New features:
   * Implement a memory manager which checks the global amount of
     memory available on devices, and checks there is enough memory
     before doing an allocation on the device.
+  * Discard environment variable STARPU_LIMIT_GPU_MEM and define
+    instead STARPU_LIMIT_CUDA_MEM and STARPU_LIMIT_OPENCL_MEM
 
 Changes:
   * Fix the block filter functions.

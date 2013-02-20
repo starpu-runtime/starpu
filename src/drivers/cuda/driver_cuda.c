@@ -67,14 +67,14 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 #ifdef STARPU_USE_CUDA
 #ifndef STARPU_SIMGRID
 /* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_GPU_MEM, we decrease the value of
+ * mean of the STARPU_LIMIT_CUDA_MEM, we decrease the value of
  * props[devid].totalGlobalMem which is the value returned by
  * starpu_cuda_get_global_mem_size() to indicate how much memory can
  * be allocated on the device
  */
 static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 {
-	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
+	int limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
 
 	if (limit == -1)
 	{
