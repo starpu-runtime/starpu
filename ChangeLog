@@ -83,7 +83,11 @@ New features:
 	a context and constructs it consequently (the cost of execution is required)
     	- Several policies can adapt dynamically the distribution of resources
 	in contexts if the initial one was not appropriate
-	- Add a platform to implement new policies of redistribution of resources
+	- Add a platform to implement new policies of redistribution
+	of resources
+  * Implement a memory manager which checks the global amount of
+    memory available on devices, and checks there is enough memory
+    before doing an allocation on the device.
 
 Changes:
   * Fix the block filter functions.
