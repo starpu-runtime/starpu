@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -105,6 +105,8 @@ cl_int starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags fla
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
+
+cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, cl_mem dst, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 #ifdef __cplusplus
 }
