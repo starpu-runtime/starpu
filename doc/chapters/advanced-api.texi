@@ -171,6 +171,18 @@ the DSM provided by StarPU. A MPI request will only be submitted when
 the data is available in the main memory of the node submitting the
 request.
 
+There is two types of asynchronous communications: the classic
+asynchronous communications and the detached communications. The
+classic asynchronous communications (@code{starpu_mpi_isend} and
+@code{starpu_mpi_irecv}) need to be followed by a call to
+@code{starpu_mpi_wait} or to @code{starpu_mpi_test} to wait for or to
+test the completion of the communication. Waiting for or testing the
+completion of detached communications is not possible, this is done
+internally by StarPU-MPI, on completion, the resources are
+automatically released. This mechanism is similar to the pthread
+detach state attribute which determines whether a thread will be
+created in a joinable or a detached state.
+
 @deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 Performs a standard-mode, blocking send of @var{data_handle} to the
 node @var{dest} using the message tag @code{mpi_tag} within the
@@ -187,28 +199,34 @@ communicator @var{comm}.
 Posts a standard-mode, non blocking send of @var{data_handle} to the
 node @var{dest} using the message tag @code{mpi_tag} within the
 communicator @var{comm}. After the call, the pointer to the request
-@var{req} can be used to test the completion of the communication.
+@var{req} can be used to test or to wait for the completion of the communication.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
 Posts a nonblocking receive in @var{data_handle} from the
 node @var{source} using the message tag @code{mpi_tag} within the
 communicator @var{comm}. After the call, the pointer to the request
-@var{req} can be used to test the completion of the communication.
+@var{req} can be used to test or to wait for the completion of the communication.
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend_detached (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
 Posts a standard-mode, non blocking send of @var{data_handle} to the
 node @var{dest} using the message tag @code{mpi_tag} within the
 communicator @var{comm}. On completion, the @var{callback} function is
-called with the argument @var{arg}.
+called with the argument @var{arg}. Similarly to the pthread detached
+functionality, when a detached communication completes, its resources
+are automatically released back to the system, there is no need to
+test or to wait for the completion of the request.
 @end deftypefun
 
 @deftypefun int starpu_mpi_irecv_detached (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
 Posts a nonblocking receive in @var{data_handle} from the
 node @var{source} using the message tag @code{mpi_tag} within the
 communicator @var{comm}. On completion, the @var{callback} function is
-called with the argument @var{arg}.
+called with the argument @var{arg}. Similarly to the pthread detached
+functionality, when a detached communication completes, its resources
+are automatically released back to the system, there is no need to
+test or to wait for the completion of the request.
 @end deftypefun
 
 @deftypefun int starpu_mpi_wait (starpu_mpi_req *@var{req}, MPI_Status *@var{status})
