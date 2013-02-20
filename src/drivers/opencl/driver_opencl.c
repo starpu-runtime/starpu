@@ -370,6 +370,50 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 	return err;
 }
 
+#ifdef STARPU_USE_OPENCL
+cl_int starpu_opencl_copy_async_sync(uintptr_t src, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size, size_t offset, cl_event *event)
+{
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	cl_int err;
+	int ret;
+
+	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	{
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
+		err = starpu_opencl_copy_opencl_to_ram(
+				(cl_mem) src, src_node,
+				(void*) dst, dst_node,
+				size, offset, event, &ret);
+		if (STARPU_UNLIKELY(err))
+			STARPU_OPENCL_REPORT_ERROR(err);
+		return ret;
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
+		err = starpu_opencl_copy_ram_to_opencl(
+				(void*) src, src_node,
+				(cl_mem) dst, dst_node,
+				size, offset, event, &ret);
+		if (STARPU_UNLIKELY(err))
+			STARPU_OPENCL_REPORT_ERROR(err);
+		return ret;
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
+		err = starpu_opencl_copy_opencl_to_opencl(
+				(cl_mem) src, src_node,
+				(cl_mem) dst, dst_node,
+				size, offset, event, &ret);
+		if (STARPU_UNLIKELY(err))
+			STARPU_OPENCL_REPORT_ERROR(err);
+		return ret;
+
+	default:
+		STARPU_ABORT();
+		break;
+	}
+}
+#endif
+
 #if 0
 cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,

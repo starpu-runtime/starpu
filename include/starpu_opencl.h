@@ -108,6 +108,8 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *
 
 cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, cl_mem dst, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
+cl_int starpu_opencl_copy_async_sync(uintptr_t src, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size, size_t offset, cl_event *event);
+
 #ifdef __cplusplus
 }
 #endif
