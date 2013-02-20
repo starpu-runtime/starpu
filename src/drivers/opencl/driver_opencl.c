@@ -28,6 +28,7 @@
 #include "driver_opencl.h"
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
+#include <datawizard/memory_manager.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -528,6 +529,8 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
+
+	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_OPENCL_WORKER, args->devid, args->config);
 
 	args->status = STATUS_UNKNOWN;
 

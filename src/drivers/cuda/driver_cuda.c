@@ -29,6 +29,7 @@
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
 #endif
+#include <datawizard/memory_manager.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -403,6 +404,8 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #ifndef STARPU_SIMGRID
 	init_context(devid);
 #endif
+
+	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_CUDA_WORKER, args->devid, args->config);
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);

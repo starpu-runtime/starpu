@@ -19,11 +19,18 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <core/workers.h>
 
 /**
  * Initialises the memory manager
  */
 int _starpu_memory_manager_init();
+
+/**
+ * Initialises the global memory for the given node
+ *
+ */
+void _starpu_memory_manager_init_global_memory(unsigned node, enum starpu_archtype type, int devid, struct _starpu_machine_config *config);
 
 /**
  * Indicates if memory can be allocated on the given node

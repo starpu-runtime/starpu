@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@
 #include <common/config.h>
 #include <core/jobs.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 #include <core/perfmodel/perfmodel.h>
 #include <common/fxt.h>
@@ -40,5 +41,7 @@ void _starpu_cpu_discover_devices(struct _starpu_machine_config *config);
 	(config)->topology.nhwcpus = 1; \
 } while (0)
 #endif /* !STARPU_USE_CPU */
+
+size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config);
 
 #endif //  __DRIVER_CPU_H__

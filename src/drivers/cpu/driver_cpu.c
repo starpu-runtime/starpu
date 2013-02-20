@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include <core/debug.h>
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
+#include <datawizard/memory_manager.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -197,6 +198,7 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	int devid = cpu_worker->devid;
 
 	_starpu_worker_init(cpu_worker, _STARPU_FUT_CPU_KEY);
+	_starpu_memory_manager_init_global_memory(cpu_worker->memory_node, STARPU_CPU_WORKER, cpu_worker->devid, cpu_worker->config);
 
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
@@ -358,4 +360,25 @@ int _starpu_run_cpu(struct starpu_driver *d)
 	_starpu_cpu_worker(worker);
 
 	return 0;
+}
+
+size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
+{
+#if defined(STARPU_HAVE_HWLOC)
+        unsigned int depth_node;
+	struct starpu_machine_topology *topology = &config->topology;
+        depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+
+#ifdef HWLOC_API_VERSION
+	return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.total_memory;
+#else
+	return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->attr->node.memory_kB * 1024;
+#endif
+
+#else /* STARPU_HAVE_HWLOC */
+#ifdef STARPU_DEVEL
+#  warning use sysinfo when available to get global size
+#endif
+	return 0;
+#endif
 }
