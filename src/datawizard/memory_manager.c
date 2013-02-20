@@ -42,6 +42,7 @@ void _starpu_memory_manager_init_global_memory(unsigned node, enum starpu_archty
 #ifdef STARPU_USE_CPU
 	case STARPU_CPU_WORKER:
 	{
+		/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
 		global_size[node] = _starpu_cpu_get_global_mem_size(node, config);
 		break;
 	}
