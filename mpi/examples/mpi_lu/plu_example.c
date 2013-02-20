@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 #include <numaif.h>
 #endif
 
-static unsigned long size = 16384;
+static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;
 static unsigned p = 1;
