@@ -444,9 +444,9 @@ int main(int argc, char **argv)
 	init_matrix(rank);
 
 	fprintf(stderr, "Rank %d: allocated (%d + %d) MB = %d MB\n", rank,
-                        (int)allocated_memory/(1024*1024),
-			(int)allocated_memory_extra/(1024*1024),
-                        (int)(allocated_memory+allocated_memory_extra)/(1024*1024));
+                        (int)(allocated_memory/(1024*1024)),
+			(int)(allocated_memory_extra/(1024*1024)),
+                        (int)((allocated_memory+allocated_memory_extra)/(1024*1024)));
 
 	display_grid(rank, nblocks);
 
