@@ -75,34 +75,13 @@ static int push_task_eager_policy(struct starpu_task *task)
 		return ret_val;
 	}
 
-	unsigned worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	struct starpu_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		_starpu_pthread_mutex_t *sched_mutex;
-		_starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-	}
 		
+	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
 
 	_starpu_push_task_end(task);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		_starpu_pthread_mutex_t *sched_mutex;
-		_starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-	}
 		
 	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 	return ret_val;
