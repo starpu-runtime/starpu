@@ -365,15 +365,14 @@ int _starpu_run_cpu(struct starpu_driver *d)
 size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
 {
 #if defined(STARPU_HAVE_HWLOC)
-        unsigned int depth_node;
+        int depth_node;
 	struct starpu_machine_topology *topology = &config->topology;
         depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
-#ifdef HWLOC_API_VERSION
-	return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.total_memory;
-#else
-	return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->attr->node.memory_kB * 1024;
-#endif
+	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
+	     return hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+	else
+	     return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
