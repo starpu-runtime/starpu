@@ -67,18 +67,17 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 #ifdef STARPU_USE_CUDA
 #ifndef STARPU_SIMGRID
 /* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
- * is launched. */
-static char *wasted_memory[STARPU_NMAXWORKERS];
-
-static void limit_gpu_mem_if_needed(unsigned devid)
+ * mean of the STARPU_LIMIT_GPU_MEM, we decrease the value of
+ * props[devid].totalGlobalMem which is the value returned by
+ * starpu_cuda_get_global_mem_size() to indicate how much memory can
+ * be allocated on the device
+ */
+static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 {
-	cudaError_t cures;
 	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
 
 	if (limit == -1)
 	{
-		wasted_memory[devid] = NULL;
 		return;
 	}
 
@@ -93,25 +92,6 @@ static void limit_gpu_mem_if_needed(unsigned devid)
 	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
 			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
-
-	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
-	cures = cudaMalloc((void **)&wasted_memory[devid], to_waste);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-}
-
-static void unlimit_gpu_mem_if_needed(unsigned devid)
-{
-	cudaError_t cures;
-
-	if (wasted_memory[devid])
-	{
-		cures = cudaFree(wasted_memory[devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-
-		wasted_memory[devid] = NULL;
-	}
 }
 #endif
 
@@ -252,8 +232,6 @@ static void init_context(unsigned devid)
 	}
 #endif
 
-	limit_gpu_mem_if_needed(devid);
-
 	workerid = starpu_worker_get_id();
 
 	cures = cudaStreamCreate(&streams[workerid]);
@@ -273,7 +251,7 @@ static void init_context(unsigned devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void deinit_context(int workerid, unsigned devid)
+static void deinit_context(int workerid)
 {
 	cudaError_t cures;
 
@@ -281,8 +259,6 @@ static void deinit_context(int workerid, unsigned devid)
 	cudaStreamDestroy(in_transfer_streams[workerid]);
 	cudaStreamDestroy(out_transfer_streams[workerid]);
 	cudaStreamDestroy(peer_transfer_streams[workerid]);
-
-	unlimit_gpu_mem_if_needed(devid);
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();
@@ -405,6 +381,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	init_context(devid);
 #endif
 
+	_starpu_cuda_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_CUDA_WORKER, args->devid, args->config);
 
 	/* one more time to avoid hacks from third party lib :) */
@@ -518,7 +495,7 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 #ifndef STARPU_SIMGRID
-	deinit_context(args->workerid, args->devid);
+	deinit_context(args->workerid);
 #endif
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
