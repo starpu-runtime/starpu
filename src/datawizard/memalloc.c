@@ -773,10 +773,8 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 	cudaError_t status;
 #endif
 
-#ifndef STARPU_SIMGRID
 	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
 		return NULL;
-#endif /* STARPU_SIMGRID */
 
 #ifdef STARPU_DEVEL
 #warning TODO: we need to use starpu_malloc which should itself inquire from the memory manager is there is enough available memory
