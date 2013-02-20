@@ -773,6 +773,11 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 	cudaError_t status;
 #endif
 
+#ifndef STARPU_SIMGRID
+	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
+		return NULL;
+#endif /* STARPU_SIMGRID */
+
 #ifdef STARPU_DEVEL
 #warning TODO: we need to use starpu_malloc which should itself inquire from the memory manager is there is enough available memory
 #endif
@@ -780,14 +785,7 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 	{
 		case STARPU_CPU_RAM:
 		{
-			if (_starpu_memory_manager_can_allocate_size(size, dst_node))
-			{
-				addr = (uintptr_t)malloc(size);
-			}
-			else
-			{
-				addr = NULL;
-			}
+			addr = (uintptr_t)malloc(size);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -802,18 +800,11 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 			addr = 1;
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			if (_starpu_memory_manager_can_allocate_size(size, dst_node))
+			status = cudaMalloc((void **)&addr, size);
+			if (!addr || (status != cudaSuccess))
 			{
-				status = cudaMalloc((void **)&addr, size);
-				if (!addr || (status != cudaSuccess))
-				{
-					if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-						STARPU_CUDA_REPORT_ERROR(status);
-					addr = 0;
-				}
-			}
-			else
-			{
+				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+					STARPU_CUDA_REPORT_ERROR(status);
 				addr = 0;
 			}
 #endif
@@ -832,21 +823,14 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
                                 int ret;
 				cl_mem ptr;
 
-				if (_starpu_memory_manager_can_allocate_size(size, dst_node))
+				ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
+				if (ret)
 				{
-					ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
-					if (ret)
-					{
-						addr = 0;
-					}
-					else
-					{
-						addr = (uintptr_t)ptr;
-					}
+					addr = 0;
 				}
 				else
 				{
-					addr = 0;
+					addr = (uintptr_t)ptr;
 				}
 				break;
 #endif
@@ -856,6 +840,11 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 			STARPU_ABORT();
 	}
 
+	if (addr == 0)
+	{
+		// Allocation failed, gives the memory back to the memory manager
+		_starpu_memory_manager_deallocate_size(size, dst_node);
+	}
 	return addr;
 }
 
