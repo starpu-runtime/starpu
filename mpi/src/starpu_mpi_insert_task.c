@@ -459,14 +459,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE)
-		{
-			va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA)
-		{
-			va_arg(varg_list, int);
-		}
 	}
 	va_end(varg_list);
 
