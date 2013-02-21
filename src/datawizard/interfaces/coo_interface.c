@@ -175,30 +175,33 @@ copy_opencl_common(void *src_interface, unsigned src_node,
 	ret = starpu_opencl_copy_async_sync(
 		(uintptr_t) src_coo->columns,
 		src_node,
+		0,
 		(uintptr_t) dst_coo->columns,
 		dst_node,
-		size,
 		0,
+		size,
 		event);
 
 	/* sizeof(src_coo->columns[0]) == sizeof(src_coo->rows[0]) */
 	ret = starpu_opencl_copy_async_sync(
 		(uintptr_t) src_coo->rows,
 		src_node,
+		0,
 		(uintptr_t) dst_coo->rows,
 		dst_node,
-		size,
 		0,
+		size,
 		event);
 
 	size = src_coo->n_values * src_coo->elemsize;
 	ret = starpu_opencl_copy_async_sync(
 		src_coo->values,
 		src_node,
+		0,
 		(uintptr_t) dst_coo->values,
 		dst_node,
-		size,
 		0,
+		size,
 		event);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node,

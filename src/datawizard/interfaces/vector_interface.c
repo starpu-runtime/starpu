@@ -304,9 +304,9 @@ static int copy_opencl_common(void *src_interface, unsigned src_node,
 	struct starpu_vector_interface *dst_vector = dst_interface;
 	int ret;
 
-	ret = starpu_opencl_copy_async_sync(src_vector->ptr, src_node, dst_vector->dev_handle, dst_node,
-					       src_vector->nx*src_vector->elemsize,
-					       dst_vector->offset, event);
+	ret = starpu_opencl_copy_async_sync(src_vector->dev_handle, src_node, src_vector->offset,
+					    dst_vector->dev_handle, dst_node, dst_vector->offset,
+					       src_vector->nx*src_vector->elemsize, event);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 	return ret;

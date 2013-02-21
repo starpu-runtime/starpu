@@ -378,15 +378,15 @@ static int copy_opencl_common(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-	err = starpu_opencl_copy_async_sync(src_bcsr->nzval, src_node, dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
+	err = starpu_opencl_copy_async_sync(src_bcsr->nzval, src_node, 0, dst_bcsr->nzval, dst_node, 0, nnz*r*c*elemsize, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->colind, src_node, (uintptr_t)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->colind, 0, src_node, (uintptr_t)dst_bcsr->colind, dst_node, 0, nnz*sizeof(uint32_t), NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->rowptr, src_node, (uintptr_t)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->rowptr, 0, src_node, (uintptr_t)dst_bcsr->rowptr, dst_node, 0, (nrow+1)*sizeof(uint32_t), NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 

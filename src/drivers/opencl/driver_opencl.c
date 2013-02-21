@@ -334,7 +334,7 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 	return err;
 }
 
-cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
+cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, size_t src_offset, cl_mem dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t dst_offset, size_t size, cl_event *event, int *ret)
 {
 	cl_int err;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -342,7 +342,7 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 	if (event)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cl_event ev;
-	err = clEnqueueCopyBuffer(transfer_queues[worker->devid], src, dst, CL_FALSE, offset, size, 0, NULL, &ev);
+	err = clEnqueueCopyBuffer(transfer_queues[worker->devid], src, dst, src_offset, dst_offset, size, 0, NULL, &ev);
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
@@ -371,7 +371,7 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 }
 
 #ifdef STARPU_USE_OPENCL
-cl_int starpu_opencl_copy_async_sync(uintptr_t src, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size, size_t offset, cl_event *event)
+cl_int starpu_opencl_copy_async_sync(uintptr_t src, unsigned src_node, size_t src_offset, uintptr_t dst, unsigned dst_node, size_t dst_offset, size_t size, cl_event *event)
 {
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
@@ -383,26 +383,26 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, unsigned src_node, uintptr_t
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
 		err = starpu_opencl_copy_opencl_to_ram(
 				(cl_mem) src, src_node,
-				(void*) dst + offset, dst_node,
-				size, offset, event, &ret);
+				(void*) dst + dst_offset, dst_node,
+				size, src_offset, event, &ret);
 		if (STARPU_UNLIKELY(err))
 			STARPU_OPENCL_REPORT_ERROR(err);
 		return ret;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
 		err = starpu_opencl_copy_ram_to_opencl(
-				(void*) src + offset, src_node,
+				(void*) src + src_offset, src_node,
 				(cl_mem) dst, dst_node,
-				size, offset, event, &ret);
+				size, dst_offset, event, &ret);
 		if (STARPU_UNLIKELY(err))
 			STARPU_OPENCL_REPORT_ERROR(err);
 		return ret;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
 		err = starpu_opencl_copy_opencl_to_opencl(
-				(cl_mem) src, src_node,
-				(cl_mem) dst, dst_node,
-				size, offset, event, &ret);
+				(cl_mem) src, src_node, src_offset,
+				(cl_mem) dst, dst_node, dst_offset,
+				size, event, &ret);
 		if (STARPU_UNLIKELY(err))
 			STARPU_OPENCL_REPORT_ERROR(err);
 		return ret;

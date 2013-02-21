@@ -2502,7 +2502,7 @@ Copy @var{ssize} bytes from the pointer @var{src_ptr} on
 The function first tries to copy the data asynchronous (unless
 @var{stream} is @code{NULL}. If the asynchronous copy fails or if
 @var{stream} is @code{NULL}, it copies the data synchronously.
-The function returns @code{-EAGAIN} if the asynchronous copy was
+The function returns @code{-EAGAIN} if the asynchronous launch was
 successfull. It returns 0 if the synchronous copy was successful, or
 fails otherwise.
 @end deftypefun
@@ -2740,26 +2740,49 @@ valid combination of cl_mem_flags values.
 
 @deftypefun cl_int starpu_opencl_copy_ram_to_opencl ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes from the given @var{ptr} on
-@var{src_node} to the given @var{buffer} on @var{dst_node}.
+RAM @var{src_node} to the given @var{buffer} on OpenCL @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
 if @var{event} is NULL, the copy is synchronous, i.e the queue is
 synchronised before returning. If non NULL, @var{event} can be used
 after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous launch
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
 @deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes asynchronously from the given @var{buffer} on
-@var{src_node} to the given @var{ptr} on @var{dst_node}.
+OpenCL @var{src_node} to the given @var{ptr} on RAM @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
 if @var{event} is NULL, the copy is synchronous, i.e the queue is
 synchronised before returning. If non NULL, @var{event} can be used
 after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous launch
 was successful, or to 0 if event was NULL.
+@end deftypefun
+
+@deftypefun cl_int starpu_opencl_copy_opencl_to_opencl (cl_mem @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, cl_mem @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {cl_event *}@var{event}, {int *}@var{ret})
+Copy @var{size} bytes asynchronously from byte offset @var{src_offset} of
+@var{src} on OpenCL @var{src_node} to byte offset @var{dst_offset} of @var{dst} on
+OpenCL @var{dst_node}.
+if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
+This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous launch
+was successful, or to 0 if event was NULL.
+@end deftypefun
+
+@deftypefun cl_int starpu_opencl_copy_async_sync (cl_mem @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, cl_mem @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {cl_event *}@var{event})
+Copy @var{size} bytes from byte offset @var{src_offset} of
+@var{src} on @var{src_node} to byte offset @var{dst_offset} of @var{dst} on
+@var{dst_node}. if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
+The function returns @code{-EAGAIN} if the asynchronous launch was
+successfull. It returns 0 if the synchronous copy was successful, or
+fails otherwise.
 @end deftypefun
 
 @node Miscellaneous helpers

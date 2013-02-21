@@ -256,7 +256,7 @@ static int copy_opencl_common(void *src_interface, unsigned src_node,
 	struct starpu_variable_interface *dst_variable = dst_interface;
         int ret;
 
-        ret = starpu_opencl_copy_async_sync(src_variable->ptr, src_node, dst_variable->ptr, dst_node, src_variable->elemsize, 0, event);
+	ret = starpu_opencl_copy_async_sync(src_variable->ptr, src_node, 0, dst_variable->ptr, dst_node, 0, src_variable->elemsize, event);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
 
