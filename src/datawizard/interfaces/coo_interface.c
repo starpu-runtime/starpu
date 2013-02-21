@@ -159,12 +159,11 @@ copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 
 #ifdef STARPU_USE_OPENCL
 static int
-copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
+copy_opencl_common(void *src_interface, unsigned src_node,
 			 void *dst_interface, unsigned dst_node,
 			 cl_event *event)
 {
 	int ret = 0;
-	cl_int err;
 	size_t size = 0;
 	struct starpu_coo_interface *src_coo, *dst_coo;
 
@@ -173,43 +172,34 @@ copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 
 	size = src_coo->n_values * sizeof(src_coo->columns[0]);
-	err = starpu_opencl_copy_ram_to_opencl(
-		(void *) src_coo->columns,
+	ret = starpu_opencl_copy_async_sync(
+		(uintptr_t) src_coo->columns,
 		src_node,
-		(cl_mem) dst_coo->columns,
+		(uintptr_t) dst_coo->columns,
 		dst_node,
 		size,
 		0,
-		event,
-		NULL);
-	if (STARPU_UNLIKELY(err))
-		STARPU_OPENCL_REPORT_ERROR(err);
+		event);
 
 	/* sizeof(src_coo->columns[0]) == sizeof(src_coo->rows[0]) */
-	err = starpu_opencl_copy_ram_to_opencl(
-		(void *) src_coo->rows,
+	ret = starpu_opencl_copy_async_sync(
+		(uintptr_t) src_coo->rows,
 		src_node,
-		(cl_mem) dst_coo->rows,
+		(uintptr_t) dst_coo->rows,
 		dst_node,
 		size,
 		0,
-		event,
-		NULL);
-	if (STARPU_UNLIKELY(err))
-		STARPU_OPENCL_REPORT_ERROR(err);
+		event);
 
 	size = src_coo->n_values * src_coo->elemsize;
-	err = starpu_opencl_copy_ram_to_opencl(
-		(void *) src_coo->values,
+	ret = starpu_opencl_copy_async_sync(
+		src_coo->values,
 		src_node,
-		(cl_mem) dst_coo->values,
+		(uintptr_t) dst_coo->values,
 		dst_node,
 		size,
 		0,
-		event,
-		&ret);
-	if (STARPU_UNLIKELY(err))
-		STARPU_OPENCL_REPORT_ERROR(err);
+		event);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node,
 		src_coo->n_values *
@@ -219,62 +209,27 @@ copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 }
 
 static int
+copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
+			 void *dst_interface, unsigned dst_node,
+			 cl_event *event)
+{
+	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
+}
+
+static int
 copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 			 void *dst_interface, unsigned dst_node,
 			 cl_event *event)
 {
-	int ret = 0;
-	cl_int err;
-	size_t size = 0;
-	struct starpu_coo_interface *src_coo, *dst_coo;
+	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
+}
 
-	src_coo = (struct starpu_coo_interface *) src_interface;
-	dst_coo = (struct starpu_coo_interface *) dst_interface;
-
-	size = src_coo->n_values * sizeof(src_coo->columns[0]);
-	err = starpu_opencl_copy_opencl_to_ram(
-		(void *) src_coo->columns,
-		src_node,
-		(cl_mem) dst_coo->columns,
-		dst_node,
-		size,
-		0,
-		event,
-		NULL);
-	if (STARPU_UNLIKELY(err))
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	/* sizeof(src_coo->columns[0]) == sizeof(src_coo->rows[0]) */
-	err = starpu_opencl_copy_opencl_to_ram(
-		(void *) src_coo->rows,
-		src_node,
-		(cl_mem) dst_coo->rows,
-		dst_node,
-		size,
-		0,
-		event,
-		NULL);
-	if (STARPU_UNLIKELY(err))
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	size = src_coo->n_values * src_coo->elemsize;
-	err = starpu_opencl_copy_opencl_to_ram(
-		(void *) src_coo->values,
-		src_node,
-		(cl_mem) dst_coo->values,
-		dst_node,
-		size,
-		0,
-		event,
-		&ret);
-	if (STARPU_UNLIKELY(err))
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node,
-		src_coo->n_values *
-		(2 * sizeof(src_coo->rows[0]) + src_coo->elemsize));
-
-	return ret;
+static int
+copy_opencl_to_opencl_async(void *src_interface, unsigned src_node,
+			 void *dst_interface, unsigned dst_node,
+			 cl_event *event)
+{
+	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
 }
 
 static int
@@ -290,6 +245,14 @@ copy_opencl_to_ram(void *src_interface, unsigned src_node,
 		   void *dst_interface, unsigned dst_node)
 {
 	return copy_opencl_to_ram_async(src_interface, src_node,
+					dst_interface, dst_node,
+					NULL);
+}
+static int
+copy_opencl_to_opencl(void *src_interface, unsigned src_node,
+		   void *dst_interface, unsigned dst_node)
+{
+	return copy_opencl_to_opencl_async(src_interface, src_node,
 					dst_interface, dst_node,
 					NULL);
 }
@@ -318,8 +281,9 @@ static struct starpu_data_copy_methods coo_copy_data_methods =
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl       = copy_ram_to_opencl,
 	.opencl_to_ram       = copy_opencl_to_ram,
+	.opencl_to_opencl    = copy_opencl_to_opencl,
 	.ram_to_opencl_async = copy_ram_to_opencl_async,
-	.opencl_to_ram_async = copy_opencl_to_ram_async,
+	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
 #endif /* !STARPU_USE_OPENCL */
 };
 
