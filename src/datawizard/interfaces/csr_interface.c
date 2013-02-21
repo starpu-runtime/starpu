@@ -318,42 +318,6 @@ static int copy_cuda_async_sync(void *src_interface, unsigned src_node STARPU_AT
 	return ret;
 }
 
-static int copy_cuda_peer(void *src_interface STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-#ifdef HAVE_CUDA_MEMCPY_PEER
-	struct starpu_csr_interface *src_csr = src_interface;
-	struct starpu_csr_interface *dst_csr = dst_interface;
-
-	uint32_t nnz = src_csr->nnz;
-	uint32_t nrow = src_csr->nrow;
-	size_t elemsize = src_csr->elemsize;
-
-	int src_dev = _starpu_memory_node_get_devid(src_node);
-	int dst_dev = _starpu_memory_node_get_devid(dst_node);
-
-	cudaError_t cures;
-
-	cures = cudaMemcpyPeer((char *)dst_csr->nzval, dst_dev, (char *)src_csr->nzval, src_dev, nnz*elemsize);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	cures = cudaMemcpyPeer((char *)dst_csr->colind, dst_dev, (char *)src_csr->colind, src_dev, nnz*sizeof(uint32_t));
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	cures = cudaMemcpyPeer((char *)dst_csr->rowptr, dst_dev, (char *)src_csr->rowptr, src_dev, (nrow+1)*sizeof(uint32_t));
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
-
-	return 0;
-#else
-	STARPU_ABORT();
-	return 0;
-#endif
-}
-
 static int copy_cuda_peer_async(void *src_interface STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 				void *dst_interface STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream STARPU_ATTRIBUTE_UNUSED)
 {
@@ -440,10 +404,7 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_in
 
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	if (src_node == dst_node)
-		return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice, NULL);
-	else
-		return copy_cuda_peer(src_interface, src_node, dst_interface, dst_node);
+	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice, NULL);
 }
 
 static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
