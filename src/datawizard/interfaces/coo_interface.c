@@ -180,7 +180,7 @@ copy_opencl_common(void *src_interface, unsigned src_node,
 		dst_node,
 		0,
 		size,
-		event);
+		NULL);
 
 	/* sizeof(src_coo->columns[0]) == sizeof(src_coo->rows[0]) */
 	ret = starpu_opencl_copy_async_sync(
@@ -191,7 +191,7 @@ copy_opencl_common(void *src_interface, unsigned src_node,
 		dst_node,
 		0,
 		size,
-		event);
+		NULL);
 
 	size = src_coo->n_values * src_coo->elemsize;
 	ret = starpu_opencl_copy_async_sync(

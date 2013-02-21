@@ -540,7 +540,7 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 								    dst_block->dev_handle, dst_node,
 								    dst_block->offset + layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize,
 								       src_block->nx*src_block->elemsize,
-								       NULL);
+								       event);
                         }
                 }
         }
