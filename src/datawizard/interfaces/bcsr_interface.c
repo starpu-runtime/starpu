@@ -382,11 +382,11 @@ static int copy_opencl_common(void *src_interface, unsigned src_node STARPU_ATTR
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->colind, 0, src_node, (uintptr_t)dst_bcsr->colind, dst_node, 0, nnz*sizeof(uint32_t), NULL);
+	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->colind, src_node, 0, (uintptr_t)dst_bcsr->colind, dst_node, 0, nnz*sizeof(uint32_t), NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->rowptr, 0, src_node, (uintptr_t)dst_bcsr->rowptr, dst_node, 0, (nrow+1)*sizeof(uint32_t), NULL);
+	err = starpu_opencl_copy_async_sync((uintptr_t)src_bcsr->rowptr, src_node, 0, (uintptr_t)dst_bcsr->rowptr, dst_node, 0, (nrow+1)*sizeof(uint32_t), NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
