@@ -70,6 +70,9 @@ struct sched_ctx_hypervisor
 	pthread_mutex_t resize_mut[STARPU_NMAX_SCHED_CTXS];
 	struct size_request *sr;
 	int check_min_tasks[STARPU_NMAX_SCHED_CTXS];
+
+	/* time when the hypervisor started */
+	double start_executing_time;
 };
 
 struct sched_ctx_hypervisor_adjustment

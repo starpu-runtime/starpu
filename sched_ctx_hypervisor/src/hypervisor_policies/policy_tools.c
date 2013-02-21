@@ -298,7 +298,7 @@ unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
 }
 
-static double _get_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
+static double _get_best_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
 {
 	double ret_val = 0.0;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
@@ -314,7 +314,8 @@ static double _get_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int 
                 enum starpu_archtype arch = starpu_worker_get_type(worker);
                 if(arch == req_arch)
                 {
-			ret_val += sc_w->elapsed_flops[worker];
+			if(sc_w->elapsed_flops[worker] > ret_val)
+				ret_val = sc_w->elapsed_flops[worker];
 			(*npus)++;
                 }
         }
@@ -327,6 +328,8 @@ static double _get_ispeed_sample_for_type_of_worker(struct sched_ctx_hypervisor_
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
         int worker;
 
+	double avg = 0.0;
+	int n = 0;
 	struct starpu_iterator it;
 	if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
@@ -338,11 +341,12 @@ static double _get_ispeed_sample_for_type_of_worker(struct sched_ctx_hypervisor_
                 if(arch == req_arch)
                 {
 			struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
-			return config->ispeed_w_sample[worker];
+			avg += config->ispeed_w_sample[worker];
+			n++;
 		}
         }
 
-	return 0.0;
+	return n != 0 ? avg/n : 0;
 }
 
 static double _get_ispeed_sample_for_sched_ctx(unsigned sched_ctx)
@@ -377,6 +381,12 @@ double _get_ctx_velocity(struct sched_ctx_hypervisor_wrapper* sc_w)
 /* 	double redim_sample = config->ispeed_ctx_sample != 0.0 ? config->ispeed_ctx_sample :  */
 /* 		(elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE : HYPERVISOR_REDIM_SAMPLE); */
 //	printf("%d: prc %lf sample %lf\n", sc_w->sched_ctx, prc, redim_sample);
+
+/* 	double curr_time2 = starpu_timing_now(); */
+/* 	double elapsed_time2 = (curr_time2 - sc_w->start_time) / 1000000.0; /\* in seconds *\/ */
+/* 	if(elapsed_time2 > 5.0 && elapsed_flops < sample) */
+/* 		return (elapsed_flops/1000000000.0)/elapsed_time2;/\* in Gflops/s *\/ */
+
 	if(elapsed_flops >= sample)
         {
                 double curr_time = starpu_timing_now();
@@ -469,8 +479,9 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-                sc_w->ref_velocity[worker] = (elapsed_flops/elapsed_time);/* in Gflops/s */
-                return sc_w->ref_velocity[worker];
+                double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
+		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 0.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
+                return vel;
         }
 
         return 0.00000000000001;
@@ -482,15 +493,18 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
         int npus = 0;
-        double elapsed_flops = _get_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
-	double avg_elapsed_flops = elapsed_flops / npus;
+        double elapsed_flops = _get_best_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
+	if(npus == 0)
+		return -1.0; 
+
 	double sample = _get_ispeed_sample_for_type_of_worker(sc_w, arch) / 1000000000.0;
 
-        if( avg_elapsed_flops >= sample)
+        if( elapsed_flops != 0.0)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-                return avg_elapsed_flops/elapsed_time; /* in Gflops/s */
+		double velocity = elapsed_flops/elapsed_time; /* in Gflops/s */
+                return velocity;
         }
 
         return -1.0;
@@ -525,7 +539,8 @@ int _velocity_gap_btw_ctxs()
 					if(other_ctx_v != -1.0)
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
-						if(gap > 1.5)
+//						if(gap > 1.5)
+						if(gap > 3.0)
 							return 1;
 					}
 				}

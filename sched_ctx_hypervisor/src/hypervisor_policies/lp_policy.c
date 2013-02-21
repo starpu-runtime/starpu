@@ -94,6 +94,7 @@ struct sched_ctx_hypervisor_policy lp_policy = {
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
+	.end_ctx = NULL,
 	.custom = 0,
 	.name = "lp"
 };

@@ -517,6 +517,8 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	{
 		sched_ctx = worker->sched_ctx[i];
 
+		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && worker->removed_from_ctx[sched_ctx->id])
+			return sched_ctx;
 		if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
 		   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
 		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
@@ -563,6 +565,8 @@ pick:
 	{
 		struct _starpu_sched_ctx *sched_ctx;
 
+		unsigned lucky_ctx = STARPU_NMAX_SCHED_CTXS;
+
 		int been_here[STARPU_NMAX_SCHED_CTXS];
 		int i;
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -578,7 +582,10 @@ pick:
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
+				{
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+					lucky_ctx = sched_ctx->id;
+				}
 			}
 
 			if(!task && worker->removed_from_ctx[sched_ctx->id])
@@ -596,7 +603,6 @@ pick:
 			sched_ctx->pop_counter[worker->workerid]++;
 
 		}
-
 	  }
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR

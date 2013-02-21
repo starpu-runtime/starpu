@@ -272,17 +272,26 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 	int s, s2, w;
 	for(s = 0; s < ns; s++)
 	{
-		int workers_move[STARPU_NMAXWORKERS];
-		int nw_move = 0;
-		
-		int workers_add[STARPU_NMAXWORKERS];
-		int nw_add = 0;
+		int tmp_workers_move[nw][STARPU_NMAXWORKERS];
+		int tmp_nw_move[nw];
 
+		int tmp_workers_add[nw][STARPU_NMAXWORKERS];
+		int tmp_nw_add[nw];
+		
+
+		for(w = 0; w < nw; w++)		
+		{
+			tmp_nw_move[w] = 0;
+			tmp_nw_add[w] = 0;
+		}
+
+		/* find workers that ctx s has to give away */
 		for(w = 0; w < nw; w++)
 		{
-			enum starpu_archtype arch;
+			enum starpu_archtype arch = STARPU_ANY_WORKER;
 			if(w == 0) arch = STARPU_CUDA_WORKER;
 			if(w == 1) arch = STARPU_CPU_WORKER;
+			
 
 			if(w == 1)
 			{
@@ -293,7 +302,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 					int *workers_to_move = _get_first_workers(sched_ctxs[s], &nworkers_to_move, arch);
 					int i;
 					for(i = 0; i < nworkers_to_move; i++)
-						workers_move[nw_move++] = workers_to_move[i];
+						tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
 					free(workers_to_move);
 				}
 			}
@@ -313,7 +322,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 						{
 							int i;
 							for(i = 0; i < x; i++)
-								workers_move[nw_move++] = workers_to_move[i];
+								tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
 
 						}
 						free(workers_to_move);
@@ -326,13 +335,13 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 						{
 							int i;
 							for(i = 0; i < x-1; i++)
-								workers_move[nw_move++] = workers_to_move[i];
+								tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
 
 							if(diff > 0.8)
-								workers_move[nw_move++] = workers_to_move[x-1];
+								tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[x-1];
 							else
 								if(diff > 0.3)
-									workers_add[nw_add++] = workers_to_move[x-1];
+									tmp_workers_add[w][tmp_nw_add[w]++] = workers_to_move[x-1];
 
 						}
 						free(workers_to_move);
@@ -345,29 +354,105 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 		{
 			if(sched_ctxs[s2] != sched_ctxs[s])
 			{
-				double nworkers_ctx2 = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s2], STARPU_ANY_WORKER) * 1.0;
-				int total_res = 0;
+				/* find workers that ctx s2 wants to accept from ctx s 
+				   the rest of it will probably accepted by another ctx */
+				int workers_move[STARPU_NMAXWORKERS];
+				int nw_move = 0;
+				
+				int workers_add[STARPU_NMAXWORKERS];
+				int nw_add = 0;
+
+				int w;
 				for(w = 0; w < nw; w++)
-					total_res += res[s2][w];
-//				if(( total_res - nworkers_ctx2) >= 0.0 && nw_move > 0)
+				{
+					enum starpu_archtype arch = STARPU_ANY_WORKER;
+					if(w == 0) arch = STARPU_CUDA_WORKER;
+					if(w == 1) arch = STARPU_CPU_WORKER;
+
+					int nw_ctx2 = sched_ctx_hypervisor_get_nworkers_ctx(sched_ctxs[s2], arch);
+					int nw_needed = res_rounded[s2][w] - nw_ctx2;
+
+					if( nw_needed > 0 && tmp_nw_move[w] > 0)
+					{
+						nw_move += nw_needed >= tmp_nw_move[w] ? tmp_nw_move[w] : nw_needed;
+						int i = 0, j = 0;
+						for(i = 0; i < STARPU_NMAXWORKERS; i++)
+						{
+							if(tmp_workers_move[w][i] != -1)
+							{
+								workers_move[j++] = tmp_workers_move[w][i];
+								tmp_workers_move[w][i] = -1;
+								if(j == nw_move)
+									break;
+							}
+						}
+						tmp_nw_move[w] -=  nw_move;
+					}
+
+					double needed = res[s2][w] - nw_ctx2 * 1.0;
+					double x_double = (double)nw_needed;
+					double diff = needed - x_double;
+					if(diff > 0.3 && tmp_nw_add[w] != 0)
+					{
+						nw_add = tmp_nw_add[w];
+						int i = 0, j = 0;
+						for(i = 0; i < STARPU_NMAXWORKERS; i++)
+						{
+							if(tmp_workers_add[w][i] != -1)
+							{
+								workers_add[j++] = tmp_workers_add[w][i];
+								tmp_workers_add[w][i] = -1;
+								if(j == nw_add)
+									break;
+							}
+						}
+						tmp_nw_add[w] -=  nw_add;
+					}
+				}
+
+				
 				if(nw_move > 0)
 				{
-					sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);
+					sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 1);
 					nw_move = 0;
-//					break;
 				}
-//				if((total_res - nworkers_ctx2) >= 0.0 &&  (total_res - nworkers_ctx2) <= (double)nw_add && nw_add > 0)
+
 				if(nw_add > 0)
 				{
 					sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s2]);
 					nw_add = 0;
-//					break;
 				}
-				
 			}
 		}
+
+		/* if there are workers that weren't accepted by anyone but ctx s wants
+		   to get rid of them just remove them from ctx s */
+		int workers_move[STARPU_NMAXWORKERS];
+		int nw_move = 0;
+				
+		int w;
+		for(w = 0; w < nw; w++)
+		{
+			if(tmp_nw_move[w] > 0)
+			{
+				nw_move += tmp_nw_move[w];
+				int i = 0, j = 0;
+				for(i = 0; i < STARPU_NMAXWORKERS; i++)
+				{
+					if(tmp_workers_move[w][i] != -1)
+					{
+						workers_move[j++] = tmp_workers_move[w][i];
+						tmp_workers_move[w][i] = -1;
+						if(j == nw_move)
+							break;
+					}
+				}
+
+			}
+		}
+
 		if(nw_move > 0)
-			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 0);
+			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 1);
 	}
 }
 

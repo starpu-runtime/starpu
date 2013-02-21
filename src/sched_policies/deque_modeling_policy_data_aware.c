@@ -548,8 +548,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
 			}
-
-
+			
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
 			if (ntasks_best == -1

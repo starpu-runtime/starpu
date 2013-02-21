@@ -97,22 +97,53 @@ struct sched_ctx_hypervisor_resize_ack
 	int *acked_workers;
 };
 
+/* wrapper attached to a sched_ctx storing monitoring information */
 struct sched_ctx_hypervisor_wrapper
 {
+	/* the sched_ctx it monitors */
 	unsigned sched_ctx;
+
+	/* user configuration meant to limit resizing */
 	struct sched_ctx_hypervisor_policy_config *config;
+
+	/* idle time of workers in this context */
 	double current_idle_time[STARPU_NMAXWORKERS];
+	
+	/* list of workers that will leave this contexts (lazy resizing process) */
 	int worker_to_be_removed[STARPU_NMAXWORKERS];
+
+	/* number of tasks pushed on each worker in this ctx */
 	int pushed_tasks[STARPU_NMAXWORKERS];
+
+	/* number of tasks poped from each worker in this ctx */
 	int poped_tasks[STARPU_NMAXWORKERS];
+
+	/* number of flops the context has to execute */
 	double total_flops;
+
+	/* number of flops executed since the biginning until now */
 	double total_elapsed_flops[STARPU_NMAXWORKERS];
+
+	/* number of flops executed since last resizing */
 	double elapsed_flops[STARPU_NMAXWORKERS];
+
+	/* the average speed of workers when they belonged to this context */
 	double ref_velocity[STARPU_NMAXWORKERS];
+
+	/* number of flops submitted to this ctx */
 	double submitted_flops;
+
+	/* number of flops that still have to be executed in this ctx */
 	double remaining_flops;
+	
+	/* the start time of the resizing sample of this context*/
 	double start_time;
+
+	/* the workers don't leave the current ctx until the receiver ctx 
+	   doesn't ack the receive of these workers */
 	struct sched_ctx_hypervisor_resize_ack resize_ack;
+
+	/* mutex to protect the ack of workers */
 	pthread_mutex_t mutex;
 };
 
@@ -133,6 +164,8 @@ struct sched_ctx_hypervisor_policy
 	void (*handle_post_exec_hook)(unsigned sched_ctx, int task_tag);
 
 	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
+	
+	void (*end_ctx)(unsigned sched_ctx);
 };
 
 struct starpu_performance_counters *sched_ctx_hypervisor_init(struct sched_ctx_hypervisor_policy *policy);

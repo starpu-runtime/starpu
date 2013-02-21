@@ -914,13 +914,31 @@ unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sc
 
 unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 {
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	unsigned i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		if(worker->sched_ctx[i] && worker->sched_ctx[i]->id == sched_ctx_id)
+/* 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid); */
+/* 	unsigned i; */
+/* 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++) */
+/* 	{ */
+/* 		if(worker->sched_ctx[i] && worker->sched_ctx[i]->id == sched_ctx_id) */
+/* 			return 1; */
+/* 	} */
+        struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+        struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
+        int worker;
+
+	struct starpu_iterator it;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
+
+
+        while(workers->has_next(workers, &it))
+        {
+                worker = workers->get_next(workers, &it);
+		if(worker == workerid)
 			return 1;
-	}
+        }
+
+
 	return 0;
 }
 

@@ -56,7 +56,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 150.0;
 			}
 			
-//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
+			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
 		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
 		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
@@ -348,7 +348,8 @@ static double _find_tmax(double t1, double t2)
 
 static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker)
 {
-
+	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	_get_velocity_per_worker(sc_w, worker);
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
@@ -408,6 +409,15 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker)
 	}
 }
 
+static void ispeed_lp_end_ctx(unsigned sched_ctx)
+{
+	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	int worker;
+	for(worker = 0; worker < 12; worker++)
+		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]);
+
+	return;
+}
 
 struct sched_ctx_hypervisor_policy ispeed_lp_policy = {
 	.size_ctxs = NULL,
@@ -417,6 +427,7 @@ struct sched_ctx_hypervisor_policy ispeed_lp_policy = {
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
+	.end_ctx = ispeed_lp_end_ctx,
 	.custom = 0,
 	.name = "ispeed_lp"
 };
