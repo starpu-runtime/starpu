@@ -959,6 +959,14 @@ void starpu_shutdown(void)
 	     }
 	}
 
+	starpu_bus_profiling_helper_display_summary();
+	starpu_worker_profiling_helper_display_summary();
+
+	_starpu_deinitialize_registered_performance_models();
+
+	/* wait for their termination */
+	_starpu_terminate_workers(&config);
+
 	{
 	     int stats = starpu_get_env_number("STARPU_MEMORY_STATS");
 	     if (stats != 0)
@@ -967,14 +975,6 @@ void starpu_shutdown(void)
 		  starpu_memory_display_stats();
 	     }
 	}
-
-	starpu_bus_profiling_helper_display_summary();
-	starpu_worker_profiling_helper_display_summary();
-
-	_starpu_deinitialize_registered_performance_models();
-
-	/* wait for their termination */
-	_starpu_terminate_workers(&config);
 
 	_starpu_delete_all_sched_ctxs();
 
