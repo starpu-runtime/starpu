@@ -313,20 +313,7 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_in
 
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	if (src_node == dst_node)
-	{
-		return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, NULL, cudaMemcpyDeviceToDevice);
-	}
-	else
-	{
-#ifdef HAVE_CUDA_MEMCPY_PEER
-		return copy_cuda_peer_common(src_interface, src_node, dst_interface, dst_node, 0, 0);
-#else
-		/* This is illegal without cudaMemcpyPeer */
-		STARPU_ABORT();
-		return 0;
-#endif
-	}
+	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, NULL, cudaMemcpyDeviceToDevice);
 }
 
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
