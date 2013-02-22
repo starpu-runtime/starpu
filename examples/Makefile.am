@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+# Copyright (C) 2009-2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
@@ -180,12 +180,16 @@ examplebin_PROGRAMS +=				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
-	scheduler/dummy_sched			\
 	sched_ctx/sched_ctx			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
+
+if !STARPU_SIMGRID
+examplebin_PROGRAMS +=				\
+	scheduler/dummy_sched
+endif
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
