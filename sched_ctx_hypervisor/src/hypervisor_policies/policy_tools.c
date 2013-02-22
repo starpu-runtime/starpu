@@ -457,6 +457,7 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 		return -1.0;
 
         double elapsed_flops = sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
+	size_t elapsed_data_used = sc_w->elapsed_data[worker];
 	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
 	double sample = config->ispeed_w_sample[worker] / 1000000000.0; /*in gflops */
 
@@ -479,6 +480,13 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
+ 		enum starpu_archtype arch = starpu_worker_get_type(worker);
+		if(arch == STARPU_CUDA_WORKER)
+		{	
+			double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
+			elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ;
+		}
+			
                 double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
 		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 0.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
                 return vel;

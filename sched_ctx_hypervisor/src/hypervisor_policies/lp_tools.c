@@ -283,6 +283,12 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 		{
 			tmp_nw_move[w] = 0;
 			tmp_nw_add[w] = 0;
+			int i;
+			for(i = 0; i < STARPU_NMAXWORKERS; i++)
+			{
+				tmp_workers_move[w][i] = -1;
+				tmp_workers_add[w][i] = -1;
+			}
 		}
 
 		/* find workers that ctx s has to give away */
@@ -413,7 +419,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 				
 				if(nw_move > 0)
 				{
-					sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 1);
+					sched_ctx_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);
 					nw_move = 0;
 				}
 
@@ -452,7 +458,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 		}
 
 		if(nw_move > 0)
-			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 1);
+			sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 0);
 	}
 }
 

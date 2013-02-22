@@ -1020,12 +1020,12 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops)
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops, size_t data_size)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
-		sched_ctx->perf_counters->notify_poped_task(sched_ctx_id, workerid, flops);
+		sched_ctx->perf_counters->notify_poped_task(sched_ctx_id, workerid, flops, data_size);
 }
 
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)

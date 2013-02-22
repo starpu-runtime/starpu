@@ -23,7 +23,7 @@ struct starpu_performance_counters* perf_counters = NULL;
 
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
 static void notify_pushed_task(unsigned sched_ctx, int worker);
-static void notify_poped_task(unsigned sched_ctx, int worker, double flops);
+static void notify_poped_task(unsigned sched_ctx, int worker, double flops, size_t data_size);
 static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
 static void notify_idle_end(unsigned sched_ctx, int  worker);
 static void notify_submitted_job(struct starpu_task *task, unsigned footprint);
@@ -158,6 +158,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct sched_ctx_h
 			hypervisor.sched_ctx_w[i].pushed_tasks[j] = 0;
 			hypervisor.sched_ctx_w[i].poped_tasks[j] = 0;
 			hypervisor.sched_ctx_w[i].elapsed_flops[j] = 0.0;
+			hypervisor.sched_ctx_w[i].elapsed_data[j] = 0;
 			hypervisor.sched_ctx_w[i].total_elapsed_flops[j] = 0.0;
 			hypervisor.sched_ctx_w[i].worker_to_be_removed[j] = 0;
 			hypervisor.sched_ctx_w[i].ref_velocity[j] = -1.0;
@@ -364,7 +365,11 @@ static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
 {
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
 		hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[i] = val;
+		if(val == 0)
+			hypervisor.sched_ctx_w[sched_ctx].elapsed_data[i] = 0;
+	}
 }
 
 double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_hypervisor_wrapper* sc_w)
@@ -396,7 +401,7 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 	sender_sc_w->start_time = start_time;
 	sender_sc_w->remaining_flops = sender_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sender_sc_w);
 	_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
-	
+
 	receiver_sc_w->start_time = start_time;
 	receiver_sc_w->remaining_flops = receiver_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(receiver_sc_w);
 	_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
@@ -414,14 +419,6 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 		for(j = 0; j < nworkers_to_move; j++)
 			printf(" %d", workers_to_move[j]);
 		printf("\n");
-
-/* 		int *cpus = (int*) malloc(nworkers_to_move * sizeof(int)); */
-/* 		int ncpus; */
-
-/* 		_get_cpus(workers_to_move, nworkers_to_move, cpus, &ncpus); */
-
-/* //		if(ncpus != 0) */
-/* //			starpu_sched_ctx_remove_workers(cpus, ncpus, sender_sched_ctx); */
 
 		starpu_sched_ctx_add_workers(workers_to_move, nworkers_to_move, receiver_sched_ctx);
 
@@ -715,10 +712,11 @@ static void notify_pushed_task(unsigned sched_ctx, int worker)
 }
 
 /* notifies the hypervisor that a task was poped from the queue of the worker */
-static void notify_poped_task(unsigned sched_ctx, int worker, double elapsed_flops)
+static void notify_poped_task(unsigned sched_ctx, int worker, double elapsed_flops, size_t data_size)
 {
 	hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker]++;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[worker] += elapsed_flops;
+	hypervisor.sched_ctx_w[sched_ctx].elapsed_data[worker] += data_size ;
 	hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[worker] += elapsed_flops;
 	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= elapsed_flops; //sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]);
 

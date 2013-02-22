@@ -1344,6 +1344,11 @@ static void write_bus_bandwidth_file_content(void)
 }
 #endif /* STARPU_SIMGRID */
 
+double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
+{
+	return bandwidth_matrix[0][cudadev+1];
+}
+
 void starpu_bus_print_bandwidth(FILE *f)
 {
 	unsigned src, dst, maxnode;

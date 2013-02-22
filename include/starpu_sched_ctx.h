@@ -68,14 +68,14 @@ struct starpu_performance_counters
 	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
 	void (*notify_idle_end)(unsigned sched_ctx_id, int worker);
 	void (*notify_pushed_task)(unsigned sched_ctx_id, int worker);
-	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, double flops);
+	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, double flops, size_t data_size);
 	void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid);
 	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint);
 };
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters);
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops);
+void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops, size_t data_size);
 void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 

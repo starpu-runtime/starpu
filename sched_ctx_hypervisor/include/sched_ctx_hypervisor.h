@@ -127,6 +127,9 @@ struct sched_ctx_hypervisor_wrapper
 	/* number of flops executed since last resizing */
 	double elapsed_flops[STARPU_NMAXWORKERS];
 
+	/* data quantity executed on each worker in this ctx */
+	size_t elapsed_data[STARPU_NMAXWORKERS];
+
 	/* the average speed of workers when they belonged to this context */
 	double ref_velocity[STARPU_NMAXWORKERS];
 

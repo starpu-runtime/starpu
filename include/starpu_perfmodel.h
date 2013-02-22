@@ -212,6 +212,8 @@ void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct star
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
 
+double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev);
+
 #ifdef __cplusplus
 }
 #endif
