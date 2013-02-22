@@ -420,7 +420,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 	}
 	else
 	{
-		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		/* Default case: we transfer all blocks one by one: nz 2D transfers */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{

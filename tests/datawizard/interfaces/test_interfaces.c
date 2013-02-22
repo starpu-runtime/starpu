@@ -550,7 +550,10 @@ ram_to_ram(void)
 	/* We do not care about the nodes */
 	src_interface = starpu_data_get_interface_on_node(src, 0);
 	dst_interface = starpu_data_get_interface_on_node(dst, 0);
-	src->ops->copy_methods->ram_to_ram(src_interface, 0, dst_interface, 0);
+	if (src->ops->copy_methods->ram_to_ram)
+		src->ops->copy_methods->ram_to_ram(src_interface, 0, dst_interface, 0);
+	else
+		src->ops->copy_methods->any_to_any(src_interface, 0, dst_interface, 0, NULL);
 
 	err = create_task(&task, STARPU_CPU_WORKER, -1);
 	if (err != 0)

@@ -73,7 +73,11 @@ struct starpu_data_copy_methods
 	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 #endif
+
+	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 };
+
+int starpu_interface_copy(uintptr_t src, unsigned src_node, size_t src_offset, uintptr_t dst, unsigned dst_node, size_t dst_offset, size_t size, void *async_data);
 
 enum starpu_data_interface_id
 {

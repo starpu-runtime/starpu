@@ -25,48 +25,11 @@
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
 
-static int copy_ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-#ifdef STARPU_USE_CUDA
-static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-#endif
-#ifdef STARPU_USE_OPENCL
-static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_opencl_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_opencl_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-#endif
+static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
 static struct starpu_data_copy_methods variable_copy_data_methods_s =
 {
-	.ram_to_ram = copy_ram_to_ram,
-#ifdef STARPU_USE_CUDA
-	.ram_to_cuda = copy_ram_to_cuda,
-	.cuda_to_ram = copy_cuda_to_ram,
-	.cuda_to_cuda = copy_cuda_to_cuda,
-	.ram_to_cuda_async = copy_ram_to_cuda_async,
-	.cuda_to_ram_async = copy_cuda_to_ram_async,
-	.cuda_to_cuda_async = copy_cuda_to_cuda_async,
-#else
-#ifdef STARPU_SIMGRID
-	/* Enable GPU-GPU transfers in simgrid */
-	.cuda_to_cuda_async = 1,
-#endif
-#endif
-#ifdef STARPU_USE_OPENCL
-	.ram_to_opencl = copy_ram_to_opencl,
-	.opencl_to_ram = copy_opencl_to_ram,
-	.opencl_to_opencl = copy_opencl_to_opencl,
-        .ram_to_opencl_async = copy_ram_to_opencl_async,
-	.opencl_to_ram_async = copy_opencl_to_ram_async,
-	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
-#endif
+	.any_to_any = copy_any_to_any,
 };
 
 static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
@@ -204,101 +167,7 @@ static void free_variable_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_buffer_on_node(node, variable_interface->ptr, variable_interface->elemsize);
 }
 
-#ifdef STARPU_USE_CUDA
-static int copy_cuda_async_sync(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream, enum cudaMemcpyKind kind)
-{
-	struct starpu_variable_interface *src_variable = src_interface;
-	struct starpu_variable_interface *dst_variable = dst_interface;
-	int ret;
-
-	ret = starpu_cuda_copy_async_sync((void *)src_variable->ptr, src_node, (void *)dst_variable->ptr, dst_node, src_variable->elemsize, stream, kind);
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
-	return ret;
-}
-
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, NULL, cudaMemcpyDeviceToHost);
-}
-
-static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, NULL, cudaMemcpyHostToDevice);
-}
-
-static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, NULL, cudaMemcpyDeviceToDevice);
-}
-
-static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
-{
-	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToHost);
-}
-
-static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
-{
-	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyHostToDevice);
-}
-
-static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
-{
-	return copy_cuda_async_sync(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToDevice);
-}
-
-#endif // STARPU_USE_CUDA
-
-#ifdef STARPU_USE_OPENCL
-static int copy_opencl_common(void *src_interface, unsigned src_node,
-				void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	struct starpu_variable_interface *src_variable = src_interface;
-	struct starpu_variable_interface *dst_variable = dst_interface;
-        int ret;
-
-	ret = starpu_opencl_copy_async_sync(src_variable->ptr, src_node, 0, dst_variable->ptr, dst_node, 0, src_variable->elemsize, event);
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
-
-	return ret;
-}
-
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
-					void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
-}
-
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
-					void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
-}
-
-static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node,
-					void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
-}
-
-static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-        return copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
-}
-
-static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-        return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
-}
-
-static int copy_opencl_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
-}
-
-#endif
-
-static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
 	struct starpu_variable_interface *src_variable = (struct starpu_variable_interface *) src_interface;
 	struct starpu_variable_interface *dst_variable = (struct starpu_variable_interface *) dst_interface;
@@ -307,10 +176,11 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 
 	uintptr_t ptr_src = src_variable->ptr;
 	uintptr_t ptr_dst = dst_variable->ptr;
+	int ret;
 
-	memcpy((void *)ptr_dst, (void *)ptr_src, elemsize);
+	ret = starpu_interface_copy(ptr_src, src_node, 0, ptr_dst, dst_node, 0, elemsize, async_data);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, elemsize);
 
-	return 0;
+	return ret;
 }
