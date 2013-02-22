@@ -110,7 +110,8 @@ static void free_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSE
 static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
 			unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 			void *dst_interface STARPU_ATTRIBUTE_UNUSED,
-			unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+			unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+			void *async_data)
 {
 	return 0;
 }
