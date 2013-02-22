@@ -514,8 +514,8 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-			ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_node, src_block->offset,
-								dst_block->dev_handle, dst_node, dst_block->offset,
+			ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
+								dst_block->dev_handle, dst_block->offset, dst_node,
 							       src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
 							       event);
                 }
@@ -535,10 +535,12 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
                         unsigned j;
                         for(j=0 ; j<src_block->ny ; j++)
 			{
-				ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_node,
+				ret = starpu_opencl_copy_async_sync(src_block->dev_handle,
 								    src_block->offset + layer*src_block->ldz*src_block->elemsize + j*src_block->ldy*src_block->elemsize,
-								    dst_block->dev_handle, dst_node,
+								    src_node,
+								    dst_block->dev_handle,
 								    dst_block->offset + layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize,
+								    dst_node,
 								       src_block->nx*src_block->elemsize,
 								       event);
                         }

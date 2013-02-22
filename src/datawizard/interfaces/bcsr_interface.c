@@ -309,13 +309,13 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 
 	int ret = 0;
 
-	if (starpu_interface_copy(src_bcsr->nzval, src_node, 0, dst_bcsr->nzval, dst_node, 0, nnz*elemsize*r*c, async_data))
+	if (starpu_interface_copy(src_bcsr->nzval, 0, src_node, dst_bcsr->nzval, 0, dst_node, nnz*elemsize*r*c, async_data))
 		ret = -EAGAIN;
 
-	if (starpu_interface_copy((uintptr_t)src_bcsr->colind, src_node, 0, (uintptr_t)dst_bcsr->colind, dst_node, 0, nnz*sizeof(uint32_t), async_data))
+	if (starpu_interface_copy((uintptr_t)src_bcsr->colind, 0, src_node, (uintptr_t)dst_bcsr->colind, 0, dst_node, nnz*sizeof(uint32_t), async_data))
 		ret = -EAGAIN;
 
-	if (starpu_interface_copy((uintptr_t)src_bcsr->rowptr, src_node, 0, (uintptr_t)dst_bcsr->rowptr, dst_node, 0, (nrow+1)*sizeof(uint32_t), async_data))
+	if (starpu_interface_copy((uintptr_t)src_bcsr->rowptr, 0, src_node, (uintptr_t)dst_bcsr->rowptr, 0, dst_node, (nrow+1)*sizeof(uint32_t), async_data))
 		ret = -EAGAIN;
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));

@@ -31,22 +31,22 @@ copy_any_to_any(void *src_interface, unsigned src_node,
 
 	size = src_coo->n_values * sizeof(src_coo->columns[0]);
 	if (starpu_interface_copy(
-		(uintptr_t) src_coo->columns, src_node, 0,
-		(uintptr_t) dst_coo->columns, dst_node, 0,
+		(uintptr_t) src_coo->columns, 0, src_node,
+		(uintptr_t) dst_coo->columns, 0, dst_node,
 		size, async_data))
 		ret = -EAGAIN;
 
 	/* sizeof(src_coo->columns[0]) == sizeof(src_coo->rows[0]) */
 	if (starpu_interface_copy(
-		(uintptr_t) src_coo->rows, src_node, 0,
-		(uintptr_t) dst_coo->rows, dst_node, 0,
+		(uintptr_t) src_coo->rows, 0, src_node,
+		(uintptr_t) dst_coo->rows, 0, dst_node,
 		size, async_data))
 		ret = -EAGAIN;
 
 	size = src_coo->n_values * src_coo->elemsize;
 	if (starpu_interface_copy(
-		src_coo->values, src_node, 0,
-		dst_coo->values, dst_node, 0,
+		src_coo->values, 0, src_node,
+		dst_coo->values, 0, dst_node,
 		size, async_data))
 		ret = -EAGAIN;
 

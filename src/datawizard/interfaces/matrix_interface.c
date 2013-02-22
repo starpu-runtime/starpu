@@ -516,8 +516,8 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 
 	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
-	ret = starpu_opencl_copy_async_sync(src_matrix->dev_handle, src_node, src_matrix->offset,
-					    dst_matrix->dev_handle, dst_node, dst_matrix->offset,
+	ret = starpu_opencl_copy_async_sync(src_matrix->dev_handle, src_matrix->offset, src_node,
+					    dst_matrix->dev_handle, dst_matrix->offset, dst_node,
 					    src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
 					    event);
 

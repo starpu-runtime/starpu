@@ -364,7 +364,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 /* This can be used by interfaces to easily transfer a piece of data without
  * caring about the particular CUDA/OpenCL methods.  */
 
-int starpu_interface_copy(uintptr_t src, unsigned src_node, size_t src_offset, uintptr_t dst, unsigned dst_node, size_t dst_offset, size_t size, void *async_data)
+int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
 	struct _starpu_async_channel *async_channel = async_data;
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
@@ -407,8 +407,8 @@ int starpu_interface_copy(uintptr_t src, unsigned src_node, size_t src_offset, u
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
 		return starpu_opencl_copy_async_sync(
-				src, src_node, src_offset,
-				dst, dst_node, dst_offset,
+				src, src_offset, src_node,
+				dst, dst_offset, dst_node,
 				size,
 				&async_channel->event.opencl_event);
 #endif

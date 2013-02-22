@@ -222,8 +222,8 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 	struct starpu_vector_interface *dst_vector = dst_interface;
 	int ret;
 
-	ret = starpu_interface_copy(src_vector->dev_handle, src_node, src_vector->offset,
-				    dst_vector->dev_handle, dst_node, dst_vector->offset,
+	ret = starpu_interface_copy(src_vector->dev_handle, src_vector->offset, src_node,
+				    dst_vector->dev_handle, dst_vector->offset, dst_node,
 				    src_vector->nx*src_vector->elemsize, async_data);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);

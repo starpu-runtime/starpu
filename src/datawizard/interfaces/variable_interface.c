@@ -178,7 +178,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uintptr_t ptr_dst = dst_variable->ptr;
 	int ret;
 
-	ret = starpu_interface_copy(ptr_src, src_node, 0, ptr_dst, dst_node, 0, elemsize, async_data);
+	ret = starpu_interface_copy(ptr_src, 0, src_node, ptr_dst, 0, dst_node, elemsize, async_data);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, elemsize);
 
