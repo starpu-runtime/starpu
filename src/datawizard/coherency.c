@@ -167,9 +167,12 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 	{
 		case STARPU_CUDA_RAM:
 #ifdef HAVE_CUDA_MEMCPY_PEER
+		{
+			enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 			/* GPUs not always allow direct remote access: if CUDA4
 			 * is enabled, we allow two CUDA devices to communicate. */
-			return (starpu_node_get_kind(handling_node) != STARPU_OPENCL_RAM);
+			return kind == STARPU_CPU_RAM || kind == STARPU_CUDA_RAM;
+		}
 #else
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
