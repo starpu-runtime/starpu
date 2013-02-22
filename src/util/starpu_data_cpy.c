@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,21 +34,32 @@ static void data_cpy_func(void *descr[], void *cl_arg)
 	switch (type)
 	{
 		case STARPU_CPU_WORKER:
-			STARPU_ASSERT(copy_methods->ram_to_ram);
-			copy_methods->ram_to_ram(src_interface, memory_node, dst_interface, memory_node);
+			if (copy_methods->ram_to_ram)
+			{
+				copy_methods->ram_to_ram(src_interface, memory_node, dst_interface, memory_node);
+				return;
+			}
 			break;
 		case STARPU_CUDA_WORKER:
-			STARPU_ASSERT(copy_methods->cuda_to_cuda);
-			copy_methods->cuda_to_cuda(src_interface, memory_node, dst_interface, memory_node);
+			if (copy_methods->cuda_to_cuda)
+			{
+				copy_methods->cuda_to_cuda(src_interface, memory_node, dst_interface, memory_node);
+				return;
+			}
 			break;
 		case STARPU_OPENCL_WORKER:
-			STARPU_ASSERT(copy_methods->opencl_to_opencl);
-			copy_methods->opencl_to_opencl(src_interface, memory_node, dst_interface, memory_node);
+			if (copy_methods->opencl_to_opencl)
+			{
+				copy_methods->opencl_to_opencl(src_interface, memory_node, dst_interface, memory_node);
+				return;
+			}
 			break;
 		default:
 			/* unknown architecture */
 			STARPU_ABORT();
 	}
+	STARPU_ASSERT(copy_methods->any_to_any);
+	copy_methods->any_to_any(src_interface, memory_node, dst_interface, memory_node, NULL);
 
 }
 

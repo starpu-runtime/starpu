@@ -350,7 +350,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	}
 	else
 	{
-		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		/* Default case: we transfer all blocks one by one: nz transfers */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
