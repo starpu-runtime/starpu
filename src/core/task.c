@@ -250,6 +250,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 	return ret;
 }
 
+/* Note: this is racy, so valgrind would complain. But since we'll always put
+ * the same values, this is not a problem. */
 void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 {
 	if (!cl)

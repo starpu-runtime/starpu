@@ -648,7 +648,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		}
 		starpu_data_release(req->data_handle);
 	}
-	
+
 	/* Execute the specified callback, if any */
 	if (req->callback)
 		req->callback(req->callback_arg);

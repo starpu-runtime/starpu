@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,6 +24,15 @@
 #include <starpu_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
+static size_t malloc_align = sizeof(void*);
+
+void starpu_malloc_set_align(size_t align)
+{
+	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align must be a power of two");
+	if (malloc_align < align)
+		malloc_align = align;
+}
+
 #if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
 struct malloc_pinned_codelet_struct
 {
@@ -31,6 +40,8 @@ struct malloc_pinned_codelet_struct
 	size_t dim;
 };
 #endif
+
+/* Would be difficult to do it this way, we need to remember the cl_mem to be able to free it later... */
 
 //#ifdef STARPU_USE_OPENCL
 //static void malloc_pinned_opencl_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
@@ -75,6 +86,7 @@ int starpu_malloc(void **A, size_t dim)
 {
 #ifdef STARPU_DEVEL
 #warning TODO: we need to request _starpu_memory_manager_can_allocate_size()
+#warning TODO: if it fails, we should reclaim memory
 #endif
 
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
@@ -143,7 +155,23 @@ int starpu_malloc(void **A, size_t dim)
         else
 #endif
 	{
-		*A = malloc(dim);
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
+		if (malloc_align != sizeof(void*))
+		{
+			if (posix_memalign(A, malloc_align, dim))
+				*A = NULL;
+		}
+		else
+#elif defined(STARPU_HAVE_MEMALIGN)
+		if (malloc_align != sizeof(void*))
+		{
+			*A = memalign(malloc_align, dim);
+		}
+		else
+#endif
+		{
+			*A = malloc(dim);
+		}
 	}
 
 	STARPU_ASSERT(*A);
