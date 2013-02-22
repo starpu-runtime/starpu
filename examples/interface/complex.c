@@ -16,9 +16,33 @@
 
 #include <starpu.h>
 #include "complex_interface.h"
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
+#include "complex_codelet.h"
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+       if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
+               return 1;
+
+#ifdef STARPU_USE_CUDA
+       /* Cuda device */
+       const struct cudaDeviceProp *props;
+       props = starpu_cuda_get_device_properties(workerid);
+       if (props->major >= 2 || props->minor >= 3)
+       {
+               /* At least compute capability 1.3, supports doubles */
+               return 1;
+       }
+       else
+       {
+               /* Old card does not support doubles */
+               return 0;
+       }
+#else
+       return 1;
 #endif
+}
 
 #ifdef STARPU_USE_CUDA
 extern void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) void *_args);
@@ -26,52 +50,6 @@ extern void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) vo
 #ifdef STARPU_USE_OPENCL
 extern void copy_complex_codelet_opencl(void *buffers[], void *args);
 #endif
-
-void compare_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
-{
-	int nx1 = STARPU_COMPLEX_GET_NX(descr[0]);
-	double *real1 = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *imaginary1 = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
-
-	int nx2 = STARPU_COMPLEX_GET_NX(descr[1]);
-	double *real2 = STARPU_COMPLEX_GET_REAL(descr[1]);
-	double *imaginary2 = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
-
-	int compare = (nx1 == nx2);
-	if (nx1 == nx2)
-	{
-		int i;
-		for(i=0 ; i<nx1 ; i++)
-		{
-			if (real1[i] != real2[i] || imaginary1[i] != imaginary2[i])
-			{
-				compare = 0;
-				break;
-			}
-		}
-	}
-	fprintf(stderr, "Complex numbers are%s similar\n", compare==0 ? " NOT" : "");
-}
-
-void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
-{
-	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
-	double *real = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
-	int i;
-
-	for(i=0 ; i<nx ; i++)
-	{
-		fprintf(stderr, "Complex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
-	}
-}
-
-struct starpu_codelet cl_display =
-{
-	.cpu_funcs = {display_complex_codelet, NULL},
-	.nbuffers = 1,
-	.modes = {STARPU_R}
-};
 
 struct starpu_codelet cl_copy =
 {
@@ -82,14 +60,9 @@ struct starpu_codelet cl_copy =
 	.opencl_funcs = {copy_complex_codelet_opencl, NULL},
 #endif
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_W}
-};
-
-struct starpu_codelet cl_compare =
-{
-	.cpu_funcs = {compare_complex_codelet, NULL},
-	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_R}
+	.modes = {STARPU_R, STARPU_W},
+	.can_execute = can_execute,
+	.name = "cl_copy"
 };
 
 #ifdef STARPU_USE_OPENCL
@@ -107,6 +80,9 @@ int main(int argc, char **argv)
 	double copy_real = 78.0;
 	double copy_imaginary = 78.0;
 
+	int compare;
+	int *compare_ptr = &compare;
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -120,59 +96,66 @@ int main(int argc, char **argv)
 	starpu_complex_data_register(&handle2, 0, &copy_real, &copy_imaginary, 1);
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
+				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
 				 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	starpu_task_wait_for_all();
+	if (compare != 0)
+	{
+	     FPRINTF(stderr, "Complex numbers should NOT be similar\n");
+	     goto end;
+	}
 
 	ret = starpu_insert_task(&cl_copy,
 				 STARPU_R, handle1,
 				 STARPU_W, handle2,
 				 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
-
 
 	ret = starpu_insert_task(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
+				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
 				 0);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	starpu_task_wait_for_all();
 
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
-	starpu_shutdown();
-	return 0;
+	if (compare != 1)
+	{
+	     FPRINTF(stderr, "Complex numbers should be similar\n");
+	}
 
-enodev:
+end:
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	{
+	     int ret2 = starpu_opencl_unload_opencl(&opencl_program);
+	     STARPU_CHECK_RETURN_VALUE(ret2, "starpu_opencl_unload_opencl");
+	}
 #endif
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
 	starpu_shutdown();
-	return 77;
+	if (ret == -ENODEV) return 77; else return !compare;
 }

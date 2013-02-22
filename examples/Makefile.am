@@ -1,9 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2012 INRIA
+# Copyright (C) 2011-2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,11 +16,11 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) -Werror=implicit
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) 
 
 SUBDIRS = stencil
 
@@ -39,7 +39,6 @@ EXTRA_DIST = 					\
 	spmd/vector_scal_spmd.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
-	gordon/null_kernel_gordon.c		\
 	mult/xgemm.c				\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
@@ -47,6 +46,8 @@ EXTRA_DIST = 					\
 	lu/xlu_implicit_pivot.c			\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
+	sched_ctx_utils/sched_ctx_utils.c		\
+	sched_ctx/sched_ctx.c		\
 	incrementer/incrementer_kernels_opencl_kernel.cl 	\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
@@ -59,39 +60,14 @@ EXTRA_DIST = 					\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh
 
-CLEANFILES = 					\
-	gordon/null_kernel_gordon.spuelf
-
-
-CLEANFILES += *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS) -arch sm_13
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
-
-endif
-
-if STARPU_USE_GORDON
-
-SPU_CC ?= spu-gcc
-SPU_LD ?= spu-ld
-
-SPULDFLAGS =
-SPULIBS = -lblas #-lc -lgloss -lc
-
-.c.spuo:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_CC) -c -fpic $< -o $@
-
-.spuo.spuelf:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
-
-BUILT_SOURCES +=				\
-	gordon/null_kernel_gordon.spuelf
 
 endif
 
@@ -120,11 +96,11 @@ noinst_HEADERS = 				\
 	lu/complex_double.h			\
 	lu/blas_complex.h			\
 	cholesky/cholesky.h			\
+	sched_ctx_utils/sched_ctx_utils.h	\
 	common/blas_model.h			\
 	common/blas.h				\
 	mult/simple.h				\
 	mult/double.h				\
-	gordon/null.h				\
 	fortran/bindings/StarPU_fortran.h	\
 	ppm_downscaler/ppm_downscaler.h		\
 	ppm_downscaler/yuv_downscaler.h		\
@@ -136,12 +112,14 @@ noinst_HEADERS = 				\
 	filters/custom_mf/custom_interface.h    \
 	filters/custom_mf/custom_types.h	\
 	interface/complex_interface.h		\
+	interface/complex_codelet.h		\
 	pi/pi.h					\
 	pi/SobolQRNG/sobol.h			\
 	pi/SobolQRNG/sobol_gold.h		\
 	pi/SobolQRNG/sobol_gpu.h		\
 	pi/SobolQRNG/sobol_primitives.h         \
-	reductions/dot_product.h
+	reductions/dot_product.h                \
+	basic_examples/vector_scal_cpu_template.h
 
 #####################################
 # What to install and what to check #
@@ -164,7 +142,14 @@ LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
+
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER		=	$(LOADER_BIN)
+else
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
+
 endif
 
 examplebin_PROGRAMS +=				\
@@ -180,6 +165,8 @@ examplebin_PROGRAMS +=				\
 	filters/fblock				\
 	filters/fmatrix				\
 	filters/shadow				\
+	filters/shadow2d			\
+	filters/shadow3d			\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -193,15 +180,20 @@ examplebin_PROGRAMS +=				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
-	scheduler/dummy_sched			\
+	sched_ctx/sched_ctx			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
 
+if !STARPU_SIMGRID
+examplebin_PROGRAMS +=				\
+	scheduler/dummy_sched
+
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
 	basic_examples/vector_scal_fortran
+endif
 endif
 
 if !NO_BLAS_LIB
@@ -260,6 +252,7 @@ STARPU_EXAMPLES +=				\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
+	sched_ctx/sched_ctx				\
 	reductions/dot_product			\
 	reductions/minmax_reduction
 
@@ -310,7 +303,6 @@ basic_examples_vector_scal_SOURCES =		\
 if STARPU_HAVE_ICC
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
-basic_examples/vector_scal_cpu_icc.o: CFLAGS += -Dscal_cpu_func=scal_cpu_func_icc -Dscal_sse_func=scal_sse_func_icc
 endif
 
 if STARPU_USE_CUDA
@@ -523,6 +515,7 @@ cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\
 	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
+	sched_ctx_utils/sched_ctx_utils.c	\
 	common/blas.c
 
 cholesky_cholesky_implicit_LDADD =		\
@@ -663,6 +656,8 @@ cg_cg_SOURCES =					\
 if STARPU_USE_CUDA
 cg_cg_SOURCES +=				\
 	cg/cg_dot_kernel.cu
+cg/cg_dot_kernel.o: cg/cg_dot_kernel.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 cg_cg_LDADD =					\
@@ -755,6 +750,8 @@ interface_complex_SOURCES	=	\
 if STARPU_USE_CUDA
 interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
+interface/complex_kernels.o: interface/complex_kernels.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 if STARPU_USE_OPENCL
@@ -782,6 +779,8 @@ reductions_dot_product_SOURCES =		\
 if STARPU_USE_CUDA
 reductions_dot_product_SOURCES +=		\
 	reductions/dot_product_kernels.cu
+reductions/dot_product_kernels.o: reductions/dot_product_kernels.cu
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
@@ -841,12 +840,19 @@ endif
 
 if HAVE_OPENGL
 examplebin_PROGRAMS +=				\
-	gl_interop/gl_interop
+	gl_interop/gl_interop			\
+	gl_interop/gl_interop_idle
 
 gl_interop_gl_interop_SOURCES =			\
 	gl_interop/gl_interop.c
 
 gl_interop_gl_interop_LDADD =			\
+	$(STARPU_OPENGL_RENDER_LDFLAGS)
+
+gl_interop_gl_interop_idle_SOURCES =		\
+	gl_interop/gl_interop_idle.c
+
+gl_interop_gl_interop_idle_LDADD =		\
 	$(STARPU_OPENGL_RENDER_LDFLAGS)
 endif
 

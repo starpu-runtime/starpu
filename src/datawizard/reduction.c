@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure that the flags are applied to the children as well */
-		struct _starpu_data_state *child_handle = &handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
 			starpu_data_set_reduction_methods(child_handle, redux_cl, init_cl);
 	}
@@ -137,7 +137,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			/* Make sure the replicate is not removed */
 			handle->per_worker[worker].refcnt++;
 
-			uint32_t home_node = starpu_worker_get_memory_node(worker);
+			unsigned home_node = starpu_worker_get_memory_node(worker);
 			starpu_data_register(&handle->reduction_tmp_handles[worker],
 				home_node, handle->per_worker[worker].data_interface, handle->ops);
 
@@ -152,10 +152,13 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 	}
 
 #ifndef NO_TREE_REDUCTION
-	if (empty) {
+	if (empty)
+	{
 		/* Only the final copy will touch the actual handle */
 		handle->reduction_refcnt = 1;
-	} else {
+	}
+	else
+	{
 		unsigned step = 1;
 		handle->reduction_refcnt = 0;
 		while (step < replicate_count)
@@ -254,11 +257,12 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		unsigned i;
 		for (i = 0; i < redux_task_idx; i++)
 		{
-			int ret = starpu_task_submit(redux_tasks[i]);
+			int ret = _starpu_task_submit_internally(redux_tasks[i]);
 			STARPU_ASSERT(ret == 0);
 		}
 #else
-		if (empty) {
+		if (empty)
+		{
 			struct starpu_task *redux_task = starpu_task_create();
 
 			/* Mark these tasks so that StarPU does not block them
@@ -276,7 +280,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl->modes[0] = STARPU_W;
 			redux_task->handles[0] = handle;
 
-			int ret = starpu_task_submit(redux_task);
+			int ret = _starpu_task_submit_internally(redux_task);
 			STARPU_ASSERT(!ret);
 		}
 
@@ -305,12 +309,12 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->handles[0] = handle;
 			redux_task->handles[1] = replicate_array[replicate];
 
-			int ret = starpu_task_submit(redux_task);
+			int ret = _starpu_task_submit_internally(redux_task);
 			STARPU_ASSERT(!ret);
 		}
 #endif
-	/* Get the header lock back */
-	_starpu_spin_lock(&handle->header_lock);
+		/* Get the header lock back */
+		_starpu_spin_lock(&handle->header_lock);
 
 	}
 

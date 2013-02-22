@@ -25,7 +25,11 @@
 /* This is equivalent to calling starpu_task_init later on */
 struct starpu_task task = STARPU_TASK_INITIALIZER;
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 65536;
+#endif
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -64,9 +68,6 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-#ifdef STARPU_SLOW_MACHINE
-	ntasks /= 100;
-#endif
 #ifdef STARPU_HAVE_VALGRIND_H
 	if(RUNNING_ON_VALGRIND) ntasks = 5;
 #endif
@@ -92,7 +93,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	}
 
-	starpu_task_deinit(&task);
+	starpu_task_clean(&task);
 	gettimeofday(&end, NULL);
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000

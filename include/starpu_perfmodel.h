@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,9 +34,6 @@ extern "C"
 #endif
 
 struct starpu_task;
-
-struct starpu_htbl32_node;
-struct starpu_history_list;
 struct starpu_buffer_descr;
 
 /*
@@ -50,9 +47,8 @@ enum starpu_perf_archtype
 	STARPU_CPU_DEFAULT = 0,
 	/* CPU combined workers between 0 and STARPU_MAXCPUS-1 */
 	STARPU_CUDA_DEFAULT = STARPU_MAXCPUS,
-	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS,
+	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS
 	/* STARPU_OPENCL_DEFAULT + devid */
-	STARPU_GORDON_DEFAULT = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS
 };
 
 #ifdef __STDC_VERSION__
@@ -70,9 +66,9 @@ _Static_assert(STARPU_CUDA_DEFAULT < STARPU_OPENCL_DEFAULT,
 #  endif
 #endif
 
-#define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
+#define STARPU_NARCH_VARIATIONS	(STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS)
 
-struct starpu_history_entry
+struct starpu_perfmodel_history_entry
 {
 	//double measured;
 
@@ -108,19 +104,13 @@ struct starpu_history_entry
 #endif
 };
 
-struct starpu_history_list
+struct starpu_perfmodel_history_list
 {
-	struct starpu_history_list *next;
-	struct starpu_history_entry *entry;
+	struct starpu_perfmodel_history_list *next;
+	struct starpu_perfmodel_history_entry *entry;
 };
 
-struct starpu_model_list
-{
-	struct starpu_model_list *next;
-	struct starpu_perfmodel *model;
-};
-
-struct starpu_regression_model
+struct starpu_perfmodel_regression_model
 {
 	/* sum of ln(measured) */
 	double sumlny;
@@ -148,16 +138,20 @@ struct starpu_regression_model
 	unsigned nsample;
 };
 
-struct starpu_per_arch_perfmodel
+struct starpu_perfmodel_history_table;
+
+#define starpu_per_arch_perfmodel starpu_perfmodel_per_arch STARPU_DEPRECATED
+
+struct starpu_perfmodel_per_arch
 {
 	double (*cost_model)(struct starpu_buffer_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
 	double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
 	size_t (*size_base)(struct starpu_task *, enum starpu_perf_archtype arch, unsigned nimpl);
 
 	/* internal variables */
-	struct starpu_htbl32_node *history;
-	struct starpu_history_list *list;
-	struct starpu_regression_model regression;
+	struct starpu_perfmodel_history_table *history;
+	struct starpu_perfmodel_history_list *list;
+	struct starpu_perfmodel_regression_model regression;
 #ifdef STARPU_MODEL_DEBUG
 	char debug_path[256];
 #endif
@@ -184,7 +178,7 @@ struct starpu_perfmodel
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 
 	/* per-architecture model */
-	struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
+	struct starpu_perfmodel_per_arch per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Name of the performance model, this is used as a file name when saving history-based performance models */
 	const char *symbol;
@@ -193,7 +187,7 @@ struct starpu_perfmodel
 	unsigned is_loaded;
 	unsigned benchmarking;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
 	void *model_rwlock;
 #else
 	pthread_rwlock_t model_rwlock;
@@ -204,12 +198,17 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
 
 /* This function is intended to be used by external tools that should read the
  * performance model files */
-int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel *model);
+int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
-int starpu_list_models(FILE *output);
 
-void starpu_force_bus_sampling(void);
+double starpu_history_based_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, uint32_t footprint);
+int starpu_perfmodel_list(FILE *output);
+void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
+int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
+
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
+
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
 

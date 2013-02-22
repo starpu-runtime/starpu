@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,14 +17,16 @@
 
 #include <config.h>
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <pthread.h>
 #include "../helper.h"
 
-#define NTHREADS_DEFAULT	16
-#define NITER_DEFAULT		128
+#ifdef STARPU_QUICK_CHECK
+#  define NTHREADS_DEFAULT	4
+#  define NITER_DEFAULT		8
+#else
+#  define NTHREADS_DEFAULT	16
+#  define NITER_DEFAULT		128
+#endif
 
 static int nthreads = NTHREADS_DEFAULT;
 static int niter = NITER_DEFAULT;
@@ -41,7 +43,7 @@ struct thread_data
 	starpu_data_handle_t handle;
 	pthread_t thread;
 
-	pthread_mutex_t recv_mutex;
+	_starpu_pthread_mutex_t recv_mutex;
 	unsigned recv_flag; // set when a message is received
 	unsigned recv_buf;
 	struct thread_data *neighbour;
@@ -54,8 +56,8 @@ struct data_req
 	struct data_req *next;
 };
 
-static pthread_mutex_t data_req_mutex;
-static pthread_cond_t data_req_cond;
+static _starpu_pthread_mutex_t data_req_mutex;
+static _starpu_pthread_cond_t data_req_cond;
 struct data_req *data_req_list;
 unsigned progress_thread_running;
 
@@ -312,7 +314,7 @@ int main(int argc, char **argv)
 	int ret;
 	void *retval;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	niter /= 16;
 	nthreads /= 4;
 #endif

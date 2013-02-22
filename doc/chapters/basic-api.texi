@@ -2,26 +2,37 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Initialization and Termination::  Initialization and Termination methods
-* Workers' Properties::         Methods to enumerate workers' properties
-* Data Management::                Methods to manipulate data
+* Versioning::
+* Initialization and Termination::
+* Workers' Properties::
+* Data Management::
 * Data Interfaces::
 * Data Partition::
-* Codelets and Tasks::          Methods to construct tasks
-* Explicit Dependencies::       Explicit Dependencies
-* Implicit Data Dependencies::  Implicit Data Dependencies
+* Codelets and Tasks::
+* Explicit Dependencies::
+* Implicit Data Dependencies::
 * Performance Model API::
-* Profiling API::               Profiling API
-* CUDA extensions::             CUDA extensions
-* OpenCL extensions::           OpenCL extensions
-* Cell extensions::             Cell extensions
+* Profiling API::
+* CUDA extensions::
+* OpenCL extensions::
 * Miscellaneous helpers::
 @end menu
+
+@node Versioning
+@section Versioning
+
+@defmac STARPU_MAJOR_VERSION
+Define the major version of StarPU
+@end defmac
+
+@defmac STARPU_MINOR_VERSION
+Define the minor version of StarPU
+@end defmac
 
 @node Initialization and Termination
 @section Initialization and Termination
@@ -82,10 +93,6 @@ be specified with the @code{STARPU_NCUDA} environment variable.
 This is the number of OpenCL devices that StarPU can use. This can
 also be specified with the @code{STARPU_NOPENCL} environment variable.
 
-@item @code{int nspus} (default = -1)
-This is the number of Cell SPUs that StarPU can use. This can also be
-specified with the @code{STARPU_NGORDON} environment variable.
-
 @item @code{unsigned use_explicit_workers_bindid} (default = 0)
 If this flag is set, the @code{workers_bindid} array indicates where the
 different workers are bound, otherwise StarPU automatically selects where to
@@ -123,23 +130,53 @@ contains the logical identifiers of the OpenCL devices to be used.
 
 @item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. If this value is equal to -1, the default value is used. This
-can also be specified with the @code{STARPU_CALIBRATE} environment variable.
+executing tasks. If this value is equal to @code{-1}, the default value is
+used. If the value is equal to @code{1}, it will force continuing
+calibration. If the value is equal to @code{2}, the existing performance
+models will be overwritten. This can also be specified with the
+@code{STARPU_CALIBRATE} environment variable.
+
+@item @code{int bus_calibrate} (default = 0)
+If this flag is set, StarPU will recalibrate the bus.  If this value is equal
+to @code{-1}, the default value is used.  This can also be specified with the
+@code{STARPU_BUS_CALIBRATE} environment variable.
 
 @item @code{int single_combined_worker} (default = 0)
 By default, StarPU executes parallel tasks concurrently.
 Some parallel libraries (e.g. most OpenMP implementations) however do
 not support concurrent calls to parallel code. In such case, setting this flag
-makes StarPU only start one parallel task at a time.
+makes StarPU only start one parallel task at a time (but other
+CPU and GPU tasks are not affected and can be run concurrently). The parallel
+task scheduler will however still however still try varying combined worker
+sizes to look for the most efficient ones.
 This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environment variable.
 
 @item @code{int disable_asynchronous_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
-CPUs and accelerators. This can also be specified with the
+CPUs and all accelerators. This can also be specified with the
 @code{STARPU_DISABLE_ASYNCHRONOUS_COPY} environment variable.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
+This can also be specified at compilation time by giving to the
+configure script the option @code{--disable-asynchronous-copy}.
+
+@item @code{int disable_asynchronous_cuda_copy} (default = 0)
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and CUDA accelerators. This can also be specified with the
+@code{STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY} environment variable.
+This can also be specified at compilation time by giving to the
+configure script the option @code{--disable-asynchronous-cuda-copy}.
+
+@item @code{int disable_asynchronous_opencl_copy} (default = 0)
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and OpenCL accelerators. This can also be specified with the
+@code{STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY} environment variable.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+This can also be specified at compilation time by giving to the
+configure script the option @code{--disable-asynchronous-opencl-copy}.
 
 @item @code{int *cuda_opengl_interoperability} (default = NULL)
 This can be set to an array of CUDA device identifiers for which
@@ -153,8 +190,14 @@ This has to be set to the size of the array pointed to by the
 @item @code{struct starpu_driver *not_launched_drivers}
 The drivers that should not be launched by StarPU.
 
-@item @code{unsigned nnot_launched_drivers}
+@item @code{unsigned n_not_launched_drivers}
 The number of StarPU drivers that should not be launched by StarPU.
+
+@item @code{trace_buffer_size}
+Specifies the buffer size used for FxT tracing. Starting from FxT version
+0.2.12, the buffer will automatically be flushed when it fills in, but it may
+still be interesting to specify a bigger value to avoid any flushing (which
+would disturb the trace).
 
 @end table
 @end deftp
@@ -165,7 +208,7 @@ with the default values. In case some configuration parameters are already
 specified through environment variables, @code{starpu_conf_init} initializes
 the fields of the structure according to the environment variables. For
 instance if @code{STARPU_CALIBRATE} is set, its value is put in the
-@code{.ncuda} field of the structure passed as argument.
+@code{.calibrate} field of the structure passed as argument.
 
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
 indicates that the argument was NULL.
@@ -177,8 +220,18 @@ application: statistics and other post-mortem debugging information are not
 guaranteed to be available until this method has been called.
 @end deftypefun
 
-@deftypefun int starpu_asynchronous_copy_disabled ()
+@deftypefun int starpu_asynchronous_copy_disabled (void)
 Return 1 if asynchronous data transfers between CPU and accelerators
+are disabled.
+@end deftypefun
+
+@deftypefun int starpu_asynchronous_cuda_copy_disabled (void)
+Return 1 if asynchronous data transfers between CPU and CUDA accelerators
+are disabled.
+@end deftypefun
+
+@deftypefun int starpu_asynchronous_opencl_copy_disabled (void)
+Return 1 if asynchronous data transfers between CPU and OpenCL accelerators
 are disabled.
 @end deftypefun
 
@@ -191,7 +244,6 @@ The different values are:
 @item @code{STARPU_CPU_WORKER}
 @item @code{STARPU_CUDA_WORKER}
 @item @code{STARPU_OPENCL_WORKER}
-@item @code{STARPU_GORDON_WORKER}
 @end table
 @end deftp
 
@@ -201,8 +253,8 @@ StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
 @deftypefun int starpu_worker_get_count_by_type ({enum starpu_archtype} @var{type})
-Returns the number of workers of the given type indicated by the argument. A positive
-(or null) value is returned in case of success, @code{-EINVAL} indicates that
+Returns the number of workers of the given @var{type}. A positive
+(or @code{NULL}) value is returned in case of success, @code{-EINVAL} indicates that
 the type is not valid otherwise.
 @end deftypefun
 
@@ -219,10 +271,6 @@ value should be at most @code{STARPU_MAXCUDADEVS}.
 @deftypefun unsigned starpu_opencl_worker_get_count (void)
 This function returns the number of OpenCL devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXOPENCLDEVS}.
-@end deftypefun
-
-@deftypefun unsigned starpu_spu_worker_get_count (void)
-This function returns the number of Cell SPUs controlled by StarPU.
 @end deftypefun
 
 @deftypefun int starpu_worker_get_id (void)
@@ -244,6 +292,17 @@ chosen by the means of the @code{starpu_worker_get_count_by_type} function, or
 by passing a value greater or equal to @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
+@deftypefun int starpu_worker_get_by_type ({enum starpu_archtype} @var{type}, int @var{num})
+This returns the identifier of the @var{num}-th worker that has the specified type
+@var{type}. If there are no such worker, -1 is returned.
+@end deftypefun
+
+@deftypefun int starpu_worker_get_by_devid ({enum starpu_archtype} @var{type}, int @var{devid})
+This returns the identifier of the worker that has the specified type
+@var{type} and devid @var{devid} (which may not be the n-th, if some devices are
+skipped for instance). If there are no such worker, -1 is returned.
+@end deftypefun
+
 @deftypefun int starpu_worker_get_devid (int @var{id})
 This functions returns the device id of the given worker. The worker
 should be identified with the value returned by the @code{starpu_worker_get_id} function. In the case of a
@@ -259,9 +318,8 @@ This function returns the type of processing unit associated to a
 worker. The worker identifier is a value returned by the
 @code{starpu_worker_get_id} function). The returned value
 indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
-core, @code{STARPU_CUDA_WORKER} for a CUDA device,
-@code{STARPU_OPENCL_WORKER} for a OpenCL device, and
-@code{STARPU_GORDON_WORKER} for a Cell SPU. The value returned for an invalid
+core, @code{STARPU_CUDA_WORKER} for a CUDA device, and
+@code{STARPU_OPENCL_WORKER} for a OpenCL device. The value returned for an invalid
 identifier is unspecified.
 @end deftypefun
 
@@ -287,11 +345,10 @@ todo
 @item @code{STARPU_CPU_RAM}
 @item @code{STARPU_CUDA_RAM}
 @item @code{STARPU_OPENCL_RAM}
-@item @code{STARPU_SPU_LS}
 @end table
 @end deftp
 
-@deftypefun {enum starpu_node_kind} starpu_node_get_kind (uint32_t @var{node})
+@deftypefun {enum starpu_node_kind} starpu_node_get_kind (unsigned @var{node})
 Returns the type of the given node as defined by @code{enum
 starpu_node_kind}. For example, when defining a new data interface,
 this function should be used in the allocation function to determine
@@ -377,7 +434,7 @@ extensions at least to define the initial value.  For now, data to be
 used in @code{SCRATCH} mode should be registered with node @code{-1} and
 a @code{NULL} pointer, since the value of the provided buffer is simply
 ignored for now.
-@item @code{STARPU_REDUX} reduction mode.
+@item @code{STARPU_REDUX}: reduction mode. TODO!
 @end table
 @end deftp
 
@@ -389,7 +446,7 @@ over the entire machine, so that we can maintain data consistency and locate
 data replicates for instance.
 @end deftp
 
-@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, uint32_t @var{home_node}, void *@var{data_interface}, {struct starpu_data_interface_ops} *@var{ops})
+@deftypefun void starpu_data_register (starpu_data_handle_t *@var{handleptr}, unsigned @var{home_node}, void *@var{data_interface}, {struct starpu_data_interface_ops} *@var{ops})
 Register a piece of data into the handle located at the @var{handleptr}
 address. The @var{data_interface} buffer contains the initial description of the
 data in the home node. The @var{ops} argument is a pointer to a structure
@@ -425,10 +482,20 @@ This is the same as starpu_data_unregister, except that StarPU does not put back
 a valid copy into the home node, in the buffer that was initially registered.
 @end deftypefun
 
+@deftypefun void starpu_data_unregister_submit (starpu_data_handle_t @var{handle})
+Destroy the data handle once it is not needed anymore by any submitted
+task. No coherency is assumed.
+@end deftypefun
+
 @deftypefun void starpu_data_invalidate (starpu_data_handle_t @var{handle})
-Destroy all replicates of the data handle. After data invalidation, the first
-access to the handle must be performed in write-only mode. Accessing an
-invalidated data in read-mode results in undefined behaviour.
+Destroy all replicates of the data handle immediately. After data invalidation,
+the first access to the handle must be performed in write-only mode.
+Accessing an invalidated data in read-mode results in undefined
+behaviour.
+@end deftypefun
+
+@deftypefun void starpu_data_invalidate_submit (starpu_data_handle_t @var{handle})
+Submits invalidation of the data handle after completion of previously submitted tasks.
 @end deftypefun
 
 @c TODO create a specific sections about user interaction with the DSM ?
@@ -452,7 +519,7 @@ Return the handle corresponding to the data pointed to by the @var{ptr}
 host pointer.
 @end deftypefun
 
-@deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, uint32_t @var{node})
+@deftypefun int starpu_data_request_allocation (starpu_data_handle_t @var{handle}, unsigned @var{node})
 Explicitly ask StarPU to allocate room for a piece of data on the specified
 memory node.
 @end deftypefun
@@ -486,7 +553,7 @@ be consistent with the access mode specified in the @var{mode} argument.
 access the piece of data anymore.  Note that implicit data
 dependencies are also enforced by @code{starpu_data_acquire}, i.e.
 @code{starpu_data_acquire} will wait for all tasks scheduled to work on
-the data, unless that they have not been disabled explictly by calling
+the data, unless they have been disabled explictly by calling
 @code{starpu_data_set_default_sequential_consistency_flag} or
 @code{starpu_data_set_sequential_consistency_flag}.
 @code{starpu_data_acquire} is a blocking call, so that it cannot be called from
@@ -497,16 +564,26 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 
 @deftypefun int starpu_data_acquire_cb (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
-@code{starpu_data_release}. When the data specified in the first argument is
+@code{starpu_data_acquire}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
 The application may access the requested data during the execution of this
 callback. The callback function must call @code{starpu_data_release} once the
 application does not need to access the piece of data anymore.
 Note that implicit data dependencies are also enforced by
-@code{starpu_data_acquire_cb} in case they are enabled.
+@code{starpu_data_acquire_cb} in case they are not disabled.
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
+@end deftypefun
+
+@deftypefun int starpu_data_acquire_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode})
+This is the same as @code{starpu_data_acquire}, except that the data will be
+available on the given memory node instead of main memory.
+@end deftypefun
+
+@deftypefun int starpu_data_acquire_on_node_cb (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+This is the same as @code{starpu_data_acquire_cb}, except that the data will be
+available on the given memory node instead of main memory.
 @end deftypefun
 
 @defmac STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
@@ -522,12 +599,18 @@ This function releases the piece of data acquired by the application either by
 @code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
 @end deftypefun
 
+@deftypefun void starpu_data_release_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node})
+This is the same as @code{starpu_data_release}, except that the data will be
+available on the given memory node instead of main memory.
+@end deftypefun
+
 @node Data Interfaces
 @section Data Interfaces
 
 @menu
 * Registering Data::
 * Accessing Data Interfaces::
+* Defining Interface::
 @end menu
 
 @node Registering Data
@@ -546,7 +629,7 @@ concurrent execution of different tasks accessing the same "void" data
 in read-write concurrently.
 @end deftypefun
 
-@deftypefun void starpu_variable_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
+@deftypefun void starpu_variable_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
 Register the @var{size}-byte element pointed to by @var{ptr}, which is
 typically a scalar, and initialize @var{handle} to represent this data
 item.
@@ -560,7 +643,7 @@ starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{nx}, size_t @var{elemsize})
+@deftypefun void starpu_vector_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{nx}, size_t @var{elemsize})
 Register the @var{nx} @var{elemsize}-byte elements pointed to by
 @var{ptr} and initialize @var{handle} to represent it.
 
@@ -574,7 +657,7 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{elemsize})
+@deftypefun void starpu_matrix_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{elemsize})
 Register the @var{nx}x@var{ny} 2D matrix of @var{elemsize}-byte elements
 pointed by @var{ptr} and initialize @var{handle} to represent it.
 @var{ld} specifies the number of elements between rows.
@@ -592,7 +675,7 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{elemsize})
+@deftypefun void starpu_block_data_register ({starpu_data_handle_t *}@var{handle}, unsigned @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{elemsize})
 Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{elemsize}-byte
 elements pointed by @var{ptr} and initialize @var{handle} to represent
 it.  Again, @var{ldy} and @var{ldz} specify the number of elements
@@ -609,7 +692,7 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
+@deftypefun void starpu_bcsr_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of @var{nnz} non-zero blocks of elements of size
@@ -621,10 +704,16 @@ in @code{nzval}, @code{rowptr[i]} is the block-index (in nzval) of the first blo
 or 1).
 @end deftypefun
 
-@deftypefun void starpu_csr_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
+@deftypefun void starpu_csr_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
 This variant of @code{starpu_data_register} uses the CSR (Compressed
 Sparse Row Representation) sparse matrix interface.
 TODO
+@end deftypefun
+
+@deftypefun void starpu_coo_data_register (starpu_data_handle_t *@var{handleptr}, unsigned @var{home_node}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{n_values}, uint32_t *@var{columns}, uint32_t *@var{rows}, uintptr_t @var{values}, size_t @var{elemsize});
+Register the @var{nx}x@var{ny} 2D matrix given in the COO format, using the
+@var{columns}, @var{rows}, @var{values} arrays, which must have @var{n_values}
+elements of size @var{elemsize}. Initialize @var{handleptr}.
 @end deftypefun
 
 @deftypefun {void *} starpu_data_get_interface_on_node (starpu_data_handle_t @var{handle}, unsigned @var{memory_node})
@@ -636,7 +725,7 @@ Return the interface associated with @var{handle} on @var{memory_node}.
 
 Each data interface is provided with a set of field access functions.
 The ones using a @code{void *} parameter aimed to be used in codelet
-implementations (see for example the code in @ref{Vector Scaling Using StarPu's API}).
+implementations (see for example the code in @ref{Vector Scaling Using StarPU's API}).
 
 @deftp {Data Type} {enum starpu_data_interface_id}
 The different values are:
@@ -649,6 +738,7 @@ The different values are:
 @item @code{STARPU_VARIABLE_INTERFACE_ID}
 @item @code{STARPU_VOID_INTERFACE_ID}
 @item @code{STARPU_MULTIFORMAT_INTERFACE_ID}
+@item @code{STARPU_COO_INTERCACE_ID}
 @item @code{STARPU_NINTERFACES_ID}: number of data interfaces
 @end table
 @end deftp
@@ -661,12 +751,13 @@ The different values are:
 * Accessing Block Data Interfaces::
 * Accessing BCSR Data Interfaces::
 * Accessing CSR Data Interfaces::
+* Accessing COO Data Interfaces::
 @end menu
 
 @node Accessing Handle
 @subsubsection Handle
 
-@deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, uint32_t @var{node})
+@deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, unsigned @var{node})
 Return the pointer associated with @var{handle} on node @var{node} or
 @code{NULL} if @var{handle}'s interface does not support this
 operation or data for this handle is not allocated on that node.
@@ -679,6 +770,28 @@ if @var{handle}'s interface does not have data allocated locally
 
 @deftypefun {enum starpu_data_interface_id} starpu_handle_get_interface_id (starpu_data_handle_t @var{handle})
 Return the unique identifier of the interface associated with the given @var{handle}.
+@end deftypefun
+
+@deftypefun size_t starpu_handle_get_size (starpu_data_handle_t @var{handle})
+Return the size of the data associated with @var{handle}
+@end deftypefun
+
+@deftypefun int starpu_handle_pack_data (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {size_t *}@var{count})
+Execute the packing operation of the interface of the data registered
+at @var{handle} (@pxref{struct starpu_data_interface_ops}). This
+packing operation must allocate a buffer large enough at @var{ptr} and
+copy into the newly allocated buffer the data associated to
+@var{handle}.
+The function also sets @var{count} to the size of the data handle by calling
+@code{starpu_handle_get_size()}.
+@end deftypefun
+
+@deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})
+Unpack in @var{handle} the data located at @var{ptr} of size
+@var{count} as described by the interface of the data. The interface
+registered at @var{handle} must define a unpacking operation
+(@pxref{struct starpu_data_interface_ops}). The memory at the address @code{ptr}
+is freed after calling the data unpacking operation.
 @end deftypefun
 
 @node Accessing Variable Data Interfaces
@@ -698,6 +811,16 @@ Return a pointer to the variable designated by @var{interface}.
 
 @defmac STARPU_VARIABLE_GET_ELEMSIZE ({void *}@var{interface})
 Return the size of the variable designated by @var{interface}.
+@end defmac
+
+@defmac STARPU_VARIABLE_GET_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the variable designated by @var{interface}, to be
+used on OpenCL. The offset documented below has to be used in addition to this.
+@end defmac
+
+@defmac STARPU_VARIABLE_GET_OFFSET ({void *}@var{interface})
+Return the offset in the variable designated by @var{interface}, to be used
+with the device handle.
 @end defmac
 
 @node Accessing Vector Data Interfaces
@@ -922,14 +1045,36 @@ Return the number of non-zero values in the matrix designated by @var{interface}
 Return a pointer to the non-zero values of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_BCSR_GET_NZVAL_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the array of non-zero values in the matrix designated
+by @var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
 @defmac STARPU_BCSR_GET_COLIND ({void *}@var{interface})
 Return a pointer to the column index of the matrix designated by @var{interface}.
+@end defmac
+
+@defmac STARPU_BCSR_GET_COLIND_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the column index of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
 @end defmac
 
 @defmac STARPU_BCSR_GET_ROWPTR ({void *}@var{interface})
 Return a pointer to the row pointer array of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_CSR_GET_ROWPTR_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the row pointer array of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
+@defmac STARPU_BCSR_GET_OFFSET ({void *}@var{interface})
+Return the offset in the arrays (coling, rowptr, nzval) of the matrix
+designated by @var{interface}, to be used with the device handles.
+@end defmac
 
 @node Accessing CSR Data Interfaces
 @subsubsection CSR Data Interfaces
@@ -975,12 +1120,35 @@ Return the size of the row pointer array of the matrix designated by @var{interf
 Return a pointer to the non-zero values of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_CSR_GET_NZVAL_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the array of non-zero values in the matrix designated
+by @var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
 @defmac STARPU_CSR_GET_COLIND ({void *}@var{interface})
 Return a pointer to the column index of the matrix designated by @var{interface}.
 @end defmac
 
+@defmac STARPU_CSR_GET_COLIND_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the column index of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
 @defmac STARPU_CSR_GET_ROWPTR ({void *}@var{interface})
 Return a pointer to the row pointer array of the matrix designated by @var{interface}.
+@end defmac
+
+@defmac STARPU_CSR_GET_ROWPTR_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the row pointer array of the matrix designated by
+@var{interface}. The offset documented below has to be used in addition to
+this.
+@end defmac
+
+@defmac STARPU_CSR_GET_OFFSET ({void *}@var{interface})
+Return the offset in the arrays (colind, rowptr, nzval) of the matrix
+designated by @var{interface}, to be used with the device handles.
 @end defmac
 
 @defmac STARPU_CSR_GET_FIRSTENTRY ({void *}@var{interface})
@@ -991,6 +1159,70 @@ of the @var{interface} start.
 @defmac STARPU_CSR_GET_ELEMSIZE ({void *}@var{interface})
 Return the size of the elements registered into the matrix designated by @var{interface}.
 @end defmac
+
+
+@node Accessing COO Data Interfaces
+@subsubsection COO Data Interfaces
+@defmac STARPU_COO_GET_COLUMNS ({void *}@var{interface})
+Return a pointer to the column array of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_COLUMNS_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the column array of the matrix designated by
+@var{interface}, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
+@end defmac
+@defmac STARPU_COO_GET_ROWS (interface)
+Return a pointer to the rows array of the matrix designated by @var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_ROWS_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the row array of the matrix designated by
+@var{interface}, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
+@end defmac
+@defmac STARPU_COO_GET_VALUES (interface)
+Return a pointer to the values array of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_VALUES_DEV_HANDLE ({void *}@var{interface})
+Return a device handle for the value array of the matrix designated by
+@var{interface}, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
+@end defmac
+@defmac STARPU_COO_GET_OFFSET ({void *}@var{itnerface})
+Return the offset in the arrays of the COO matrix designated by @var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_NX (interface)
+Return the number of elements on the x-axis of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_NY (interface)
+Return the number of elements on the y-axis of the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_NVALUES (interface)
+Return the number of values registered in the matrix designated by
+@var{interface}.
+@end defmac
+@defmac STARPU_COO_GET_ELEMSIZE (interface)
+Return the size of the elements registered into the matrix designated by
+@var{interface}.
+@end defmac
+
+@node Defining Interface
+@subsection Defining Interface
+
+Applications can provide their own interface. An example is provided in
+@code{examples/interface}. A few helpers are provided.
+
+@deftypefun uintptr_t starpu_allocate_buffer_on_node (unsigned @var{dst_node}, size_t @var{size})
+Allocate @var{size} bytes on node @var{dst_node}. This returns 0 if allocation
+failed, the allocation method should then return -ENOMEM as allocated size.
+@end deftypefun
+
+@deftypefun void starpu_free_buffer_on_node (unsigned @var{dst_node}, uintptr_t @var{addr}, size_t @var{size})
+Free @var{addr} of @var{size} bytes on node @var{dst_node}.
+@end deftypefun
 
 @node Data Partition
 @section Data Partition
@@ -1042,7 +1274,7 @@ subdata according to the filter @var{f}, as shown in the following example:
 @cartouche
 @smallexample
 struct starpu_data_filter f = @{
-    .filter_func = starpu_vertical_block_filter_func,
+    .filter_func = starpu_block_filter_func,
     .nchildren = nslicesx,
     .get_nchildren = NULL,
     .get_child_ops = NULL
@@ -1052,9 +1284,10 @@ starpu_data_partition(A_handle, &f);
 @end cartouche
 @end deftypefun
 
-@deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, uint32_t @var{gathering_node})
+@deftypefun void starpu_data_unpartition (starpu_data_handle_t @var{root_data}, unsigned @var{gathering_node})
 This unapplies one filter, thus unpartitioning the data. The pieces of data are
-collected back into one big piece in the @var{gathering_node} (usually 0).
+collected back into one big piece in the @var{gathering_node} (usually 0). Tasks
+working on the partitioned data must be already finished when calling @code{starpu_data_unpartition}.
 @cartouche
 @smallexample
 starpu_data_unpartition(A_handle, 0);
@@ -1107,37 +1340,15 @@ starpu_data_filter.
 @subsection Predefined filter functions
 
 @menu
-* Partitioning BCSR Data::
-* Partitioning BLAS interface::
 * Partitioning Vector Data::
-* Partitioning Block Data::
+* Partitioning Matrix Data::
+* Partitioning 3D Matrix Data::
+* Partitioning BCSR Data::
 @end menu
 
 This section gives a partial list of the predefined partitioning functions.
 Examples on how to use them are shown in @ref{Partitioning Data}. The complete
 list can be found in @code{starpu_data_filters.h} .
-
-@node Partitioning BCSR Data
-@subsubsection Partitioning BCSR Data
-
-@deftypefun void starpu_canonical_block_filter_bcsr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a block-sparse matrix into dense matrices.
-@end deftypefun
-
-@deftypefun void starpu_vertical_block_filter_func_csr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a block-sparse matrix into vertical block-sparse matrices.
-@end deftypefun
-
-@node Partitioning BLAS interface
-@subsubsection Partitioning BLAS interface
-
-@deftypefun void starpu_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix into horizontal blocks.
-@end deftypefun
-
-@deftypefun void starpu_vertical_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a dense Matrix into vertical blocks.
-@end deftypefun
 
 @node Partitioning Vector Data
 @subsubsection Partitioning Vector Data
@@ -1151,7 +1362,7 @@ vector represented by @var{father_interface} once partitioned in
 @deftypefun void starpu_block_shadow_filter_func_vector (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
 Return in @code{*@var{child_interface}} the @var{id}th element of the
 vector represented by @var{father_interface} once partitioned in
-@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}
+@var{nparts} chunks of equal size with a shadow border @code{filter_arg_ptr}, thus getting a vector of size (n-2*shadow)/nparts+2*shadow
 
 The @code{filter_arg_ptr} field must be the shadow size casted into @code{void*}.
 
@@ -1180,11 +1391,107 @@ chunks of equal size, ignoring @var{nparts}.  Thus, @var{id} must be
 @end deftypefun
 
 
-@node Partitioning Block Data
-@subsubsection Partitioning Block Data
+@node Partitioning Matrix Data
+@subsubsection Partitioning Matrix Data
+
+@deftypefun void starpu_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the x dimension, thus getting (x/nparts,y)
+matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the x dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting ((x-2*shadow)/nparts+2*shadow,y)
+matrices. If nparts does not divide x-2*shadow, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow2d.c
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the y dimension, thus getting (x,y/nparts)
+matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_shadow_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a dense Matrix along the y dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (x,(y-2*shadow)/nparts+2*shadow)
+matrices. If nparts does not divide y-2*shadow, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+
+A usage example is available in examples/filters/shadow2d.c
+@end deftypefun
+
+@node Partitioning 3D Matrix Data
+@subsubsection Partitioning 3D Matrix Data
+
+A usage example is available in examples/filters/shadow3d.c
 
 @deftypefun void starpu_block_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a 3D matrix along the X axis.
+This partitions a 3D matrix along the X dimension, thus getting (x/nparts,y,z)
+3D matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_block_shadow_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the X dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting ((x-2*shadow)/nparts+2*shadow,y,z) 3D
+matrices. If nparts does not divide x, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Y dimension, thus getting (x,y/nparts,z)
+3D matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_shadow_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Y dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (x,(y-2*shadow)/nparts+2*shadow,z) 3D
+matrices. If nparts does not divide y, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+@end deftypefun
+
+@deftypefun void starpu_depth_block_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Z dimension, thus getting (x,y,z/nparts)
+3D matrices. If nparts does not divide z, the last submatrix contains the
+remainder.
+@end deftypefun
+
+@deftypefun void starpu_depth_block_shadow_filter_func_block (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a 3D matrix along the Z dimension, with a shadow border
+@code{filter_arg_ptr}, thus getting (x,y,(z-2*shadow)/nparts+2*shadow)
+3D matrices. If nparts does not divide z, the last submatrix contains the
+remainder.
+
+IMPORTANT: This can only be used for read-only access, as no coherency is
+enforced for the shadowed parts.
+@end deftypefun
+
+@node Partitioning BCSR Data
+@subsubsection Partitioning BCSR Data
+
+@deftypefun void starpu_canonical_block_filter_bcsr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a block-sparse matrix into dense matrices.
+@end deftypefun
+
+@deftypefun void starpu_vertical_block_filter_func_csr (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
+This partitions a block-sparse matrix into vertical block-sparse matrices.
 @end deftypefun
 
 @node Codelets and Tasks
@@ -1215,18 +1522,6 @@ processing unit.
 @defmac STARPU_CUDA
 This macro is used when setting the field @code{where} of a @code{struct
 starpu_codelet} to specify the codelet may be executed on a CUDA
-processing unit.
-@end defmac
-
-@defmac STARPU_SPU
-This macro is used when setting the field @code{where} of a @code{struct
-starpu_codelet} to specify the codelet may be executed on a SPU
-processing unit.
-@end defmac
-
-@defmac STARPU_GORDON
-This macro is used when setting the field @code{where} of a @code{struct
-starpu_codelet} to specify the codelet may be executed on a Cell
 processing unit.
 @end defmac
 
@@ -1267,17 +1562,19 @@ e.g. static storage case.
 @item @code{uint32_t where} (optional)
 Indicates which types of processing units are able to execute the
 codelet. The different values
-@code{STARPU_CPU}, @code{STARPU_CUDA}, @code{STARPU_SPU},
-@code{STARPU_GORDON}, @code{STARPU_OPENCL} can be combined to specify
+@code{STARPU_CPU}, @code{STARPU_CUDA},
+@code{STARPU_OPENCL} can be combined to specify
 on which types of processing units the codelet can be executed.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
-implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
-indicates that it is only available on Cell SPUs. If the field is
+implemented for both CPU cores and CUDA devices while @code{STARPU_OPENCL}
+indicates that it is only available on OpenCL devices. If the field is
 unset, its value will be automatically set based on the availability
 of the @code{XXX_funcs} fields defined below.
 
 @item @code{int (*can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)} (optional)
-Defines a function which should return 1 if the worker designated by @var{workerid} can execute the @var{nimpl}th implementation of the given@var{task}, 0 otherwise.
+Defines a function which should return 1 if the worker designated by
+@var{workerid} can execute the @var{nimpl}th implementation of the
+given @var{task}, 0 otherwise.
 
 @item @code{enum starpu_codelet_type type} (optional)
 The default is @code{STARPU_SEQ}, i.e. usual sequential implementation. Other
@@ -1329,17 +1626,6 @@ The functions prototype must be:
 If the @code{where} field is set, then the @code{opencl_funcs} field
 is ignored if @code{STARPU_OPENCL} does not appear in the @code{where}
 field, it must be non-null otherwise.
-
-@item @code{uint8_t gordon_func} (optional)
-This field has been made deprecated. One should use instead the
-@code{gordon_funcs} field.
-
-@item @code{uint8_t gordon_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
-Is an array of index of the Cell SPU implementations of the codelet within the
-Gordon library.
-It must be terminated by a NULL value.
-See Gordon documentation for more details on how to register a kernel and
-retrieve its index.
 
 @item @code{unsigned nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are
@@ -1449,17 +1735,17 @@ by the DSM.
 @item @code{void *cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
 of the codelet implementation (e.g. @code{cpu_func} or @code{cuda_func}).
-In the specific case of the Cell processor, see the @code{cl_arg_size}
-argument.
 
-@item @code{size_t cl_arg_size} (optional, Cell-specific)
-In the case of the Cell processor, the @code{cl_arg} pointer is not directly
-given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
-the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
-at address @code{cl_arg}. In this case, the argument given to the SPU codelet
-is therefore not the @code{cl_arg} pointer, but the address of the buffer in
-local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
-codelets, where the @code{cl_arg} pointer is given as such.
+@item @code{size_t cl_arg_size} (optional)
+For some specific drivers, the @code{cl_arg} pointer cannot not be directly
+given to the driver function. A buffer of size @code{cl_arg_size}
+needs to be allocated on the driver. This buffer is then filled with
+the @code{cl_arg_size} bytes starting at address @code{cl_arg}. In
+this case, the argument given to the codelet is therefore not the
+@code{cl_arg} pointer, but the address of the buffer in local store
+(LS) instead.
+This field is ignored for CPU, CUDA and OpenCL codelets, where the
+@code{cl_arg} pointer is given as such.
 
 @item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
@@ -1571,7 +1857,7 @@ submitted if it has not been properly initialized.
 Initialize @var{task} with default values. This function is implicitly
 called by @code{starpu_task_create}. By default, tasks initialized with
 @code{starpu_task_init} must be deinitialized explicitly with
-@code{starpu_task_deinit}. Tasks can also be initialized statically,
+@code{starpu_task_clean}. Tasks can also be initialized statically,
 using @code{STARPU_TASK_INITIALIZER} defined below.
 @end deftypefun
 
@@ -1592,11 +1878,14 @@ by the task have to be freed by calling
 @code{starpu_task_destroy}.
 @end deftypefun
 
-@deftypefun void starpu_task_deinit ({struct starpu_task} *@var{task})
+@deftypefun void starpu_task_clean ({struct starpu_task} *@var{task})
 Release all the structures automatically allocated to execute @var{task}, but
-not the task structure itself. It is thus useful for statically allocated tasks
-for instance.  It is called automatically by @code{starpu_task_destroy}.  It
-has to be called only after explicitly waiting for the task or after
+not the task structure itself and values set by the user remain unchanged.
+It is thus useful for statically allocated tasks for instance.
+It is also useful when the user wants to execute the same operation several
+times with as least overhead as possible.
+It is called automatically by @code{starpu_task_destroy}.
+It has to be called only after explicitly waiting for the task or after
 @code{starpu_shutdown} (waiting for the callback is not enough, since starpu
 still manipulates the task after calling the callback).
 @end deftypefun
@@ -1809,7 +2098,6 @@ OpenCL types range within STARPU_OPENCL_DEFAULT (GPU number 0), STARPU_OPENCL_DE
 @item @code{STARPU_CPU_DEFAULT}
 @item @code{STARPU_CUDA_DEFAULT}
 @item @code{STARPU_OPENCL_DEFAULT}
-@item @code{STARPU_GORDON_DEFAULT}
 @end table
 @end deftp
 
@@ -1863,7 +2151,7 @@ Used by @code{STARPU_HISTORY_BASED} and
 implementation number, and returns the size to be used as index for
 history and regression.
 
-@item @code{struct starpu_per_arch_perfmodel per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS]}
+@item @code{struct starpu_perfmodel_per_arch per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS]}
 Used by @code{STARPU_PER_ARCH}: array of @code{struct
 starpu_per_arch_perfmodel} structures.
 
@@ -1880,7 +2168,7 @@ Lock to protect concurrency between loading from disk (W), updating the values
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_regression_model}
+@deftp {Data Type} {struct starpu_perfmodel_regression_model}
 @table @asis
 @item @code{double sumlny} sum of ln(measured)
 @item @code{double sumlnx} sum of ln(size)
@@ -1897,7 +2185,7 @@ Lock to protect concurrency between loading from disk (W), updating the values
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_per_arch_perfmodel}
+@deftp {Data Type} {struct starpu_perfmodel_per_arch}
 contains information about the performance model of a given arch.
 
 @table @asis
@@ -1918,11 +2206,11 @@ case it depends on the architecture-specific implementation.
 @item @code{struct starpu_htbl32_node *history}
 The history of performance measurements.
 
-@item @code{struct starpu_history_list *list}
+@item @code{struct starpu_perfmodel_history_list *list}
 Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
 records all execution history measures.
 
-@item @code{struct starpu_regression_model regression}
+@item @code{struct starpu_perfmodel_regression_model regression}
 Used by @code{STARPU_HISTORY_REGRESION_BASED} and
 @code{STARPU_NL_REGRESSION_BASED}, contains the estimated factors of the
 regression.
@@ -1930,8 +2218,8 @@ regression.
 @end table
 @end deftp
 
-@deftypefun int starpu_load_history_debug ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
-loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{~/.starpu}.
+@deftypefun int starpu_perfmodel_load_symbol ({const char} *@var{symbol}, {struct starpu_perfmodel} *@var{model})
+loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{$STARPU_HOME/.starpu}.
 @end deftypefun
 
 @deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen}, unsigned nimpl)
@@ -1942,16 +2230,20 @@ returns the path to the debugging information for the performance model.
 returns the architecture name for @var{arch}.
 @end deftypefun
 
-@deftypefun void starpu_force_bus_sampling (void)
-forces sampling the bus performance model again.
-@end deftypefun
-
 @deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})
 returns the architecture type of a given worker.
 @end deftypefun
 
-@deftypefun int starpu_list_models ({FILE *}@var{output})
+@deftypefun int starpu_perfmodel_list ({FILE *}@var{output})
 prints a list of all performance models on @var{output}.
+@end deftypefun
+
+@deftypefun void starpu_perfmodel_print ({struct starpu_perfmodel *}@var{model}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl}, {char *}@var{parameter}, {uint32_t *}footprint, {FILE *}@var{output})
+todo
+@end deftypefun
+
+@deftypefun int starpu_perfmodel_print_all ({struct starpu_perfmodel *}@var{model}, {char *}@var{arch}, @var{char *}parameter, {uint32_t *}@var{footprint}, {FILE *}@var{output})
+todo
 @end deftypefun
 
 @deftypefun void starpu_bus_print_bandwidth ({FILE *}@var{f})
@@ -1960,6 +2252,18 @@ prints a matrix of bus bandwidths on @var{f}.
 
 @deftypefun void starpu_bus_print_affinity ({FILE *}@var{f})
 prints the affinity devices on @var{f}.
+@end deftypefun
+
+@deftypefun void starpu_topology_print ({FILE *}@var{f})
+prints a description of the topology on @var{f}.
+@end deftypefun
+
+@deftypefun void starpu_perfmodel_update_history ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{cpuid}, unsigned @var{nimpl}, double @var{measured});
+This feeds the performance model @var{model} with an explicit measurement
+@var{measured}, in addition to measurements done by StarPU itself. This can be
+useful when the application already has an existing set of measurements done
+in good conditions, that StarPU could benefit from instead of doing on-line
+measurements. And example of use can be see in @ref{Performance model example}.
 @end deftypefun
 
 @node Profiling API
@@ -1983,7 +2287,8 @@ Return the current profiling status or a negative value in case there was an err
 @end deftypefun
 
 @deftypefun void starpu_set_profiling_id (int @var{new_id})
-This function sets the ID used for profiling trace filename
+This function sets the ID used for profiling trace filename. It needs to be
+called before starpu_init.
 @end deftypefun
 
 @deftp {Data Type} {struct starpu_task_profiling_info}
@@ -2136,11 +2441,21 @@ Converts the given timespec @var{ts} into microseconds.
 @end deftypefun
 
 @deftypefun void starpu_bus_profiling_helper_display_summary (void)
-Displays statistics about the bus on stderr.
+Displays statistics about the bus on stderr. if the  environment
+variable @code{STARPU_BUS_STATS} is defined. The function is called
+automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
 @deftypefun void starpu_worker_profiling_helper_display_summary (void)
-Displays statistics about the workers on stderr.
+Displays statistics about the workers on stderr if the environment
+variable @code{STARPU_WORKER_STATS} is defined. The function is called
+automatically by @code{starpu_shutdown()}.
+@end deftypefun
+
+@deftypefun void starpu_memory_display_stats ()
+Display statistics about the current data handles registered within
+StarPU. StarPU must have been configured with the option
+@code{----enable-memory-stats} (@pxref{Memory feedback}).
 @end deftypefun
 
 @node CUDA extensions
@@ -2168,7 +2483,7 @@ This function returns a pointer to device properties for worker @var{workerid}
 (assumed to be a CUDA worker).
 @end deftypefun
 
-@deftypefun size_t starpu_cuda_get_global_mem_size (int @var{devid})
+@deftypefun size_t starpu_cuda_get_global_mem_size (unsigned @var{devid})
 Return the size of the global memory of CUDA device @var{devid}.
 @end deftypefun
 
@@ -2187,12 +2502,12 @@ Copy @var{ssize} bytes from the pointer @var{src_ptr} on
 The function first tries to copy the data asynchronous (unless
 @var{stream} is @code{NULL}. If the asynchronous copy fails or if
 @var{stream} is @code{NULL}, it copies the data synchronously.
-The function returns @code{-EAGAIN} if the asynchronous copy was
+The function returns @code{-EAGAIN} if the asynchronous launch was
 successfull. It returns 0 if the synchronous copy was successful, or
 fails otherwise.
 @end deftypefun
 
-@deftypefun void starpu_cuda_set_device (int @var{devid})
+@deftypefun void starpu_cuda_set_device (unsigned @var{devid})
 Calls @code{cudaSetDevice(devid)} or @code{cudaGLSetGLDevice(devid)}, according to
 whether @code{devid} is among the @code{cuda_opengl_interoperability} field of
 the @code{starpu_conf} structure.
@@ -2299,7 +2614,8 @@ use (e.g. different programs on the different OpenCL devices, for
 relocation purpose for instance).
 
 @deftp {Data Type} {struct starpu_opencl_program}
-Stores the OpenCL programs as compiled for the different OpenCL devices.
+Stores the OpenCL programs as compiled for the different OpenCL
+devices. The different fields are:
 @table @asis
 @item @code{cl_program programs[STARPU_MAXOPENCLDEVS]}
 Stores each program for each OpenCL device.
@@ -2320,10 +2636,11 @@ This function unloads an OpenCL compiled code.
 @end deftypefun
 
 @deftypefun void starpu_opencl_load_program_source ({const char *}@var{source_file_name}, char *@var{located_file_name}, char *@var{located_dir_name}, char *@var{opencl_program_source})
+@anchor{starpu_opencl_load_program_source}
 Store the contents of the file @var{source_file_name} in the buffer
 @var{opencl_program_source}. The file @var{source_file_name} can be
 located in the current directory, or in the directory specified by the
-environment variable @code{STARPU_OPENCL_PROGRAM_DIR}, or in the
+environment variable @code{STARPU_OPENCL_PROGRAM_DIR} (@pxref{STARPU_OPENCL_PROGRAM_DIR}), or in the
 directory @code{share/starpu/opencl} of the installation directory of
 StarPU, or in the source directory of StarPU.
 When the file is found, @code{located_file_name} is the full name of
@@ -2332,7 +2649,7 @@ the directory where it has been located. Otherwise, they are both set
 to the empty string.
 @end deftypefun
 
-@deftypefun int starpu_opencl_compile_opencl_from_file ({const char *}@var{source_file_name}, {const char*} @var{build_options})
+@deftypefun int starpu_opencl_compile_opencl_from_file ({const char *}@var{source_file_name}, {const char *} @var{build_options})
 Compile the OpenCL kernel stored in the file @code{source_file_name}
 with the given options @code{build_options} and stores the result in
 the directory @code{$STARPU_HOME/.starpu/opencl} with the same
@@ -2344,7 +2661,8 @@ device id of the OpenCL device.
 @deftypefun int starpu_opencl_compile_opencl_from_string ({const char *}@var{opencl_program_source}, {const char *}@var{file_name}, {const char* }@var{build_options})
 Compile the OpenCL kernel in the string @code{opencl_program_source}
 with the given options @code{build_options} and stores the result in
-the directory @code{$STARPU_HOME/.starpu/opencl} with the filename
+the directory @code{$STARPU_HOME/.starpu/opencl}
+with the filename
 @code{file_name}. The compilation is done for every
 OpenCL device, and the filename is suffixed with the vendor id and the
 device id of the OpenCL device.
@@ -2382,7 +2700,7 @@ collect statistics about the kernel execution (used cycles, consumed power).
 @node OpenCL utilities
 @subsection OpenCL utilities
 
-@deftypefun {const char *}starpu_opencl_error_string (cl_int @var{status})
+@deftypefun {const char *} starpu_opencl_error_string (cl_int @var{status})
 Return the error message in English corresponding to @var{status}, an
 OpenCL error code.
 @end deftypefun
@@ -2422,32 +2740,50 @@ valid combination of cl_mem_flags values.
 
 @deftypefun cl_int starpu_opencl_copy_ram_to_opencl ({void *}@var{ptr}, unsigned @var{src_node}, cl_mem @var{buffer}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes from the given @var{ptr} on
-@var{src_node} to the given @var{buffer} on @var{dst_node}.
+RAM @var{src_node} to the given @var{buffer} on OpenCL @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
 if @var{event} is NULL, the copy is synchronous, i.e the queue is
 synchronised before returning. If non NULL, @var{event} can be used
 after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous launch
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
 @deftypefun cl_int starpu_opencl_copy_opencl_to_ram (cl_mem @var{buffer}, unsigned @var{src_node}, void *@var{ptr}, unsigned @var{dst_node}, size_t @var{size}, size_t @var{offset}, {cl_event *}@var{event}, {int *}@var{ret})
 Copy @var{size} bytes asynchronously from the given @var{buffer} on
-@var{src_node} to the given @var{ptr} on @var{dst_node}.
+OpenCL @var{src_node} to the given @var{ptr} on RAM @var{dst_node}.
 @var{offset} is the offset, in bytes, in @var{buffer}.
 if @var{event} is NULL, the copy is synchronous, i.e the queue is
 synchronised before returning. If non NULL, @var{event} can be used
 after the call to wait for this particular copy to complete.
 This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
-otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous copy
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous launch
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
-@node Cell extensions
-@section Cell extensions
+@deftypefun cl_int starpu_opencl_copy_opencl_to_opencl (cl_mem @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, cl_mem @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {cl_event *}@var{event}, {int *}@var{ret})
+Copy @var{size} bytes asynchronously from byte offset @var{src_offset} of
+@var{src} on OpenCL @var{src_node} to byte offset @var{dst_offset} of @var{dst} on
+OpenCL @var{dst_node}.
+if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
+This function returns CL_SUCCESS if the copy was successful, or a valid OpenCL error code
+otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchronous launch
+was successful, or to 0 if event was NULL.
+@end deftypefun
 
-nothing yet.
+@deftypefun cl_int starpu_opencl_copy_async_sync (cl_mem @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, cl_mem @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {cl_event *}@var{event})
+Copy @var{size} bytes from byte offset @var{src_offset} of
+@var{src} on @var{src_node} to byte offset @var{dst_offset} of @var{dst} on
+@var{dst_node}. if @var{event} is NULL, the copy is synchronous, i.e the queue is
+synchronised before returning. If non NULL, @var{event} can be used
+after the call to wait for this particular copy to complete.
+The function returns @code{-EAGAIN} if the asynchronous launch was
+successfull. It returns 0 if the synchronous copy was successful, or
+fails otherwise.
+@end deftypefun
 
 @node Miscellaneous helpers
 @section Miscellaneous helpers
@@ -2477,4 +2813,3 @@ This function blocks until the function has been executed on every appropriate
 processing units, so that it may not be called from a callback function for
 instance.
 @end deftypefun
-

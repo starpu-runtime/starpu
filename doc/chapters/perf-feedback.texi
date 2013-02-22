@@ -2,22 +2,43 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
+* Task debugger::               Using the Temanejo task debugger
 * On-line::                     On-line performance feedback
 * Off-line::                    Off-line performance feedback
 * Codelet performance::         Performance of codelets
-* Theoretical lower bound on execution time API::  
+* Theoretical lower bound on execution time API::
+* Memory feedback::
+* Data statistics::
 @end menu
+
+@node Task debugger
+@section Using the Temanejo task debugger
+
+StarPU can connect to Temanejo (see
+@url{http://www.hlrs.de/temanejo}), to permit
+nice visual task debugging. To do so, build Temanejo's @code{libayudame.so},
+install @code{Ayudame.h} to e.g. @code{/usr/local/include}, apply the
+@code{tools/patch-ayudame} to it to fix C build, re-@code{./configure}, make
+sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
+to your application, any options you want to pass it, the path to libayudame.so.
+
+Make sure to specify at least the same number of CPUs in the dialog box as your
+machine has, otherwise an error will happen during execution. Future versions
+of Temanejo should be able to tell StarPU the number of CPUs to use.
+
+Tag numbers have to be below @code{4000000000000000000ULL} to be usable for
+Temanejo (so as to distinguish them from tasks).
 
 @node On-line
 @section On-line performance feedback
 
 @menu
-* Enabling monitoring::         Enabling on-line performance monitoring
+* Enabling on-line performance monitoring::
 * Task feedback::               Per-task feedback
 * Codelet feedback::            Per-codelet feedback
 * Worker feedback::             Per-worker feedback
@@ -25,7 +46,7 @@
 * StarPU-Top::                  StarPU-Top interface
 @end menu
 
-@node Enabling monitoring
+@node Enabling on-line performance monitoring
 @subsection Enabling on-line performance monitoring
 
 In order to enable online performance monitoring, the application can call
@@ -87,7 +108,7 @@ because there is no task to execute at all (@code{sleeping_time}), and the
 number of tasks that were executed while profiling was enabled.
 These values give an estimation of the proportion of time spent do real work,
 and the time spent either sleeping because there are not enough executable
-tasks or simply wasted in pure StarPU overhead. 
+tasks or simply wasted in pure StarPU overhead.
 
 Calling @code{starpu_worker_get_profiling_info} resets the profiling
 information associated to a worker.
@@ -98,7 +119,7 @@ generate a graphic showing the evolution of these values during the time, for
 the different workers.
 
 @node Bus feedback
-@subsection Bus-related feedback 
+@subsection Bus-related feedback
 
 TODO: ajouter STARPU_BUS_STATS
 
@@ -200,13 +221,13 @@ start the application itself (possibly on a remote machine). The SSH checkbox
 should be checked, and a command line provided, e.g.:
 
 @example
-ssh myserver STARPU_SCHED=heft ./application
+$ ssh myserver STARPU_SCHED=dmda ./application
 @end example
 
 If port 2011 of the remote machine can not be accessed directly, an ssh port bridge should be added:
 
 @example
-ssh -L 2011:localhost:2011 myserver STARPU_SCHED=heft ./application
+$ ssh -L 2011:localhost:2011 myserver STARPU_SCHED=dmda ./application
 @end example
 
 and "localhost" should be used as IP Address to connect to.
@@ -226,26 +247,26 @@ and "localhost" should be used as IP Address to connect to.
 @subsection Generating traces with FxT
 
 StarPU can use the FxT library (see
-@indicateurl{https://savannah.nongnu.org/projects/fkt/}) to generate traces
+@url{https://savannah.nongnu.org/projects/fkt/}) to generate traces
 with a limited runtime overhead.
 
 You can either get a tarball:
 @example
-% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.2.tar.gz
+$ wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.11.tar.gz
 @end example
 
 or use the FxT library from CVS (autotools are required):
 @example
-% cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
-% ./bootstrap
+$ cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
+$ ./bootstrap
 @end example
 
 Compiling and installing the FxT library in the @code{$FXTDIR} path is
 done following the standard procedure:
 @example
-% ./configure --prefix=$FXTDIR
-% make
-% make install
+$ ./configure --prefix=$FXTDIR
+$ make
+$ make install
 @end example
 
 In order to have StarPU to generate traces, StarPU should be configured with
@@ -270,11 +291,11 @@ the @code{STARPU_FXT_PREFIX} environment variable.
 When the FxT trace file @code{filename} has been generated, it is possible to
 generate a trace in the Paje format by calling:
 @example
-% starpu_fxt_tool -i filename
+$ starpu_fxt_tool -i filename
 @end example
 
 Or alternatively, setting the @code{STARPU_GENERATE_TRACE} environment variable
-to 1 before application execution will make StarPU do it automatically at
+to @code{1} before application execution will make StarPU do it automatically at
 application shutdown.
 
 This will create a @code{paje.trace} file in the current directory that
@@ -282,11 +303,18 @@ can be inspected with the @url{http://vite.gforge.inria.fr/, ViTE trace
 visualizing open-source tool}.  It is possible to open the
 @code{paje.trace} file with ViTE by using the following command:
 @example
-% vite paje.trace
+$ vite paje.trace
 @end example
 
 To get names of tasks instead of "unknown", fill the optional @code{name} field
 of the codelets, or use a performance model for them.
+
+In the MPI execution case, collect the trace files from the MPI nodes, and
+specify them all on the @code{starpu_fxt_tool} command, for instance:
+
+@smallexample
+$ starpu_fxt_tool -i filename1 -i filename2
+@end smallexample
 
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option @code{-c} to @code{starpu_fxt_tool}.
@@ -355,7 +383,7 @@ file: <starpu_slu_lu_model_12.hannibal>
 @end example
 
 Here, the codelets of the lu example are available. We can examine the
-performance of the 22 kernel (in micro-seconds):
+performance of the 22 kernel (in micro-seconds), which is history-based:
 
 @example
 $ starpu_perfmodel_display -s starpu_slu_lu_model_22
@@ -378,14 +406,67 @@ execution, the GPUs are about 20 times faster than the CPUs (numbers are in
 us). The standard deviation is extremely low for the GPUs, and less than 10% for
 CPUs.
 
-The @code{starpu_regression_display} tool does the same for regression-based
-performance models. It also writes a @code{.gp} file in the current directory,
-to be run in the @code{gnuplot} tool, which shows the corresponding curve.
+This tool can also be used for regression-based performance models. It will then
+display the regression formula, and in the case of non-linear regression, the
+same performance log as for history-based performance models:
+
+@example
+$ starpu_perfmodel_display -s non_linear_memset_regression_based.type
+performance model for cpu_impl_0
+	Regression : #sample = 1400
+	Linear: y = alpha size ^ beta
+		alpha = 1.335973e-03
+		beta = 8.024020e-01
+	Non-Linear: y = a size ^b + c
+		a = 5.429195e-04
+		b = 8.654899e-01
+		c = 9.009313e-01
+# hash		size		mean		stddev		n
+a3d3725e	4096           	4.763200e+00   	7.650928e-01   	100
+870a30aa	8192           	1.827970e+00   	2.037181e-01   	100
+48e988e9	16384          	2.652800e+00   	1.876459e-01   	100
+961e65d2	32768          	4.255530e+00   	3.518025e-01   	100
+...
+@end example
+
+The @code{starpu_perfmodel_plot} tool can be used to draw performance models.
+It writes a @code{.gp} file in the current directory, to be run in the
+@code{gnuplot} tool, which shows the corresponding curve.
 
 The same can also be achieved by using StarPU's library API, see
-@ref{Performance Model API} and notably the @code{starpu_load_history_debug}
+@ref{Performance Model API} and notably the @code{starpu_perfmodel_load_symbol}
 function. The source code of the @code{starpu_perfmodel_display} tool can be a
 useful example.
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+get a profiling of each codelet by calling:
+@example
+$ starpu_fxt_tool -i filename
+$ starpu_codelet_profile distrib.data codelet_name
+@end example
+
+This will create profiling data files, and a @code{.gp} file in the current
+directory, which draws the distribution of codelet time over the application
+execution, according to data input size.
+
+This is also available in the @code{starpu_perfmodel_plot} tool, by passing it
+the fxt trace:
+
+@example
+$ starpu_perfmodel_display -s non_linear_memset_regression_based.type -i /tmp/prof_file_foo_0
+@end example
+
+It willd produce a @code{.gp} file which contains both the performance model
+curves, and the profiling measurements.
+
+If you have the R statistical tool installed, you can additionally use
+
+@example
+$ starpu_codelet_histo_profile distrib.data
+@end example
+
+Which will create one pdf file per codelet and per input size, showing a
+histogram of the codelet execution time distribution.
 
 @node Theoretical lower bound on execution time API
 @section Theoretical lower bound on execution time
@@ -415,7 +496,7 @@ Print the DAG that was recorded
 @end deftypefun
 
 @deftypefun void starpu_bound_compute ({double *}@var{res}, {double *}@var{integer_res}, int @var{integer})
-Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script)
+Get theoretical upper bound (in ms) (needs glpk support detected by @code{configure} script). It returns 0 if some performance models are not calibrated.
 @end deftypefun
 
 @deftypefun void starpu_bound_print_lp ({FILE *}@var{output})
@@ -433,3 +514,108 @@ Emit statistics of actual execution vs theoretical upper bound. @var{integer}
 permits to choose between integer solving (which takes a long time but is
 correct), and relaxed solving (which provides an approximate solution).
 @end deftypefun
+
+@node Memory feedback
+@section Memory feedback
+
+It is possible to enable memory statistics. To do so, you need to pass the option
+@code{--enable-memory-stats} when running configure. It is then
+possible to call the function @code{starpu_display_memory_stats()} to
+display statistics about the current data handles registered within StarPU.
+
+Moreover, statistics will be displayed at the end of the execution on
+data handles which have not been cleared out. This can be disabled by
+setting the environment variable @code{STARPU_MEMORY_STATS} to 0.
+
+For example, if you do not unregister data at the end of the complex
+example, you will get something similar to:
+
+@example
+$ STARPU_MEMORY_STATS=0 ./examples/interface/complex
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 78.00 + 78.00 i
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 45.00 + 12.00 i
+@end example
+
+@example
+$ STARPU_MEMORY_STATS=1 ./examples/interface/complex
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 78.00 + 78.00 i
+Complex[0] = 45.00 + 12.00 i
+Complex[0] = 45.00 + 12.00 i
+
+#---------------------
+Memory stats:
+#-------
+Data on Node #3
+#-----
+Data : 0x553ff40
+Size : 16
+
+#--
+Data access stats
+/!\ Work Underway
+Node #0
+	Direct access : 4
+	Loaded (Owner) : 0
+	Loaded (Shared) : 0
+	Invalidated (was Owner) : 0
+
+Node #3
+	Direct access : 0
+	Loaded (Owner) : 0
+	Loaded (Shared) : 1
+	Invalidated (was Owner) : 0
+
+#-----
+Data : 0x5544710
+Size : 16
+
+#--
+Data access stats
+/!\ Work Underway
+Node #0
+	Direct access : 2
+	Loaded (Owner) : 0
+	Loaded (Shared) : 1
+	Invalidated (was Owner) : 1
+
+Node #3
+	Direct access : 0
+	Loaded (Owner) : 1
+	Loaded (Shared) : 0
+	Invalidated (was Owner) : 0
+@end example
+
+@node Data statistics
+@section Data statistics
+
+Different data statistics can be displayed at the end of the execution
+of the application. To enable them, you need to pass the option
+@code{--enable-stats} when calling @code{configure}. When calling
+@code{starpu_shutdown()} various statistics will be displayed,
+execution, MSI cache statistics, allocation cache statistics, and data
+transfer statistics. The display can be disabled by setting the
+environment variable @code{STARPU_STATS} to 0.
+
+@example
+$ ./examples/cholesky/cholesky_tag
+Computation took (in ms)
+518.16
+Synthetic GFlops : 44.21
+#---------------------
+MSI cache stats :
+TOTAL MSI stats	hit 1622 (66.23 %)	miss 827 (33.77 %)
+...
+@end example
+
+@example
+$ STARPU_STATS=0 ./examples/cholesky/cholesky_tag
+Computation took (in ms)
+518.16
+Synthetic GFlops : 44.21
+@end example
+
+@c TODO: data transfer stats are similar to the ones displayed when
+@c setting STARPU_BUS_STATS

@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define NTASKS	1000
 #else
 #define NTASKS	10000
@@ -35,8 +35,8 @@
 
 #define SYMBOL	"sleep"
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 
 static unsigned finished = 0;
 static unsigned cnt = NTASKS;
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 		task->callback_func = callback;
 		task->callback_arg = NULL;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

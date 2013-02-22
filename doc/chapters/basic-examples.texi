@@ -2,62 +2,27 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Compiling and linking options::  
-* Hello World::                 Submitting Tasks
-* Vector Scaling Using the C Extension::  
-* Vector Scaling Using StarPu's API::  
+* Hello World using the C Extension::
+* Hello World using StarPU's API::
+* Vector Scaling Using the C Extension::
+* Vector Scaling Using StarPU's API::
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 @end menu
 
-@node Compiling and linking options
-@section Compiling and linking options
-
-Let's suppose StarPU has been installed in the directory
-@code{$STARPU_DIR}. As explained in @ref{Setting flags for compiling and linking applications},
-the variable @code{PKG_CONFIG_PATH} needs to be set. It is also
-necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
-libraries at runtime.
-
-@example
-% PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-% LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
-@end example
-
-The Makefile could for instance contain the following lines to define which
-options must be given to the compiler and to the linker:
-
-@cartouche
-@example
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.0)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.0)
-@end example
-@end cartouche
-
-Make sure that @code{pkg-config --libs starpu-1.0} actually produces some output
-before going further: @code{PKG_CONFIG_PATH} has to point to the place where
-@code{starpu-1.0.pc} was installed during @code{make install}.
-
-Also pass the @code{--static} option if the application is to be linked statically.
-
-@node Hello World
-@section Hello World
+@node Hello World using the C Extension
+@section Hello World using the C Extension
 
 This section shows how to implement a simple program that submits a task
-to StarPU. You can either use the StarPU C extension (@pxref{C
-Extensions}) or directly use the StarPU's API.
-
-@menu
-* Hello World using the C Extension::  
-* Hello World using StarPU's API::  
-@end menu
-
-@node Hello World using the C Extension
-@subsection Hello World using the C Extension
+to StarPU using the StarPU C extension (@pxref{C
+Extensions})@footnote{The complete example, and additional examples,
+is available in the @file{gcc-plugin/examples} directory of the StarPU
+distribution.}. A similar example showing how to directly use the StarPU's API is shown
+in @ref{Hello World using StarPU's API}.
 
 GCC from version 4.5 permit to use the StarPU GCC plug-in (@pxref{C
 Extensions}). This makes writing a task both simpler and less error-prone.
@@ -68,10 +33,12 @@ has a single implementation for CPU:
 
 @cartouche
 @smallexample
-/* Task declaration.  */
+#include <stdio.h>
+
+/* @b{Task declaration.}  */
 static void my_task (int x) __attribute__ ((task));
 
-/* Definition of the CPU implementation of `my_task'.  */
+/* @b{Definition of the CPU implementation of `my_task'.}  */
 static void my_task (int x)
 @{
   printf ("Hello, world!  With x = %d\n", x);
@@ -79,16 +46,16 @@ static void my_task (int x)
 
 int main ()
 @{
-  /* Initialize StarPU.  */
+  /* @b{Initialize StarPU.}  */
 #pragma starpu initialize
 
-  /* Do an asynchronous call to `my_task'.  */
+  /* @b{Do an asynchronous call to `my_task'.}  */
   my_task (42);
 
-  /* Wait for the call to complete.  */
+  /* @b{Wait for the call to complete.}  */
 #pragma starpu wait
 
-  /* Terminate.  */
+  /* @b{Terminate.}  */
 #pragma starpu shutdown
 
   return 0;
@@ -101,29 +68,39 @@ The code can then be compiled and linked with GCC and the
 @code{-fplugin} flag:
 
 @example
-$ gcc hello-starpu.c \
+$ gcc `pkg-config starpu-1.0 --cflags` hello-starpu.c \
     -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
     `pkg-config starpu-1.0 --libs`
 @end example
 
-As can be seen above, basic use the C extensions allows programmers to
-use StarPU tasks while essentially annotating ``regular'' C code.
+The code can also be compiled without the StarPU C extension and will
+behave as a normal sequential code.
+
+@example
+$ gcc hello-starpu.c
+hello-starpu.c:33:1: warning: ‘task’ attribute directive ignored [-Wattributes]
+$ ./a.out
+Hello, world! With x = 42
+@end example
+
+As can be seen above, the C extensions allows programmers to
+use StarPU tasks by essentially annotating ``regular'' C code.
 
 @node Hello World using StarPU's API
-@subsection Hello World using StarPU's API
+@section Hello World using StarPU's API
 
-The remainder of this section shows how to achieve the same result using
-StarPU's standard C API.
+This section shows how to achieve the same result as in the previous
+section using StarPU's standard C API.
 
 @menu
-* Required Headers::            
-* Defining a Codelet::          
-* Submitting a Task::           
-* Execution of Hello World::    
+* Required Headers::
+* Defining a Codelet::
+* Submitting a Task::
+* Execution of Hello World::
 @end menu
 
 @node Required Headers
-@subsubsection Required Headers
+@subsection Required Headers
 
 The @code{starpu.h} header should be included in any code using StarPU.
 
@@ -135,11 +112,12 @@ The @code{starpu.h} header should be included in any code using StarPU.
 
 
 @node Defining a Codelet
-@subsubsection Defining a Codelet
+@subsection Defining a Codelet
 
 @cartouche
 @smallexample
-struct params @{
+struct params
+@{
     int i;
     float f;
 @};
@@ -161,7 +139,7 @@ struct starpu_codelet cl =
 
 A codelet is a structure that represents a computational kernel. Such a codelet
 may contain an implementation of the same kernel on different architectures
-(e.g. CUDA, Cell's SPU, x86, ...). For compatibility, make sure that the whole
+(e.g. CUDA, x86, ...). For compatibility, make sure that the whole
 structure is initialized to zero, either by using memset, or by letting the
 compiler implicitly do it as examplified above.
 
@@ -198,10 +176,10 @@ Be aware that this may be a pointer to a
 if the codelet modifies this buffer, there is no guarantee that the initial
 buffer will be modified as well: this for instance implies that the buffer
 cannot be used as a synchronization medium. If synchronization is needed, data
-has to be registered to StarPU, see @ref{Vector Scaling Using StarPu's API}.
+has to be registered to StarPU, see @ref{Vector Scaling Using StarPU's API}.
 
 @node Submitting a Task
-@subsubsection Submitting a Task
+@subsection Submitting a Task
 
 @cartouche
 @smallexample
@@ -274,7 +252,11 @@ callback function is always executed on a CPU. The @code{callback_arg}
 pointer is passed as an argument of the callback. The prototype of a callback
 function must be:
 
-@code{void (*callback_function)(void *);}
+@cartouche
+@example
+void (*callback_function)(void *);
+@end example
+@end cartouche
 
 If the @code{synchronous} field is non-zero, task submission will be
 synchronous: the @code{starpu_task_submit} function will not return until the
@@ -287,12 +269,12 @@ disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
 @code{starpu_data_set_sequential_consistency_flag}.
 
 @node Execution of Hello World
-@subsubsection Execution of Hello World
+@subsection Execution of Hello World
 
 @smallexample
-% make hello_world
+$ make hello_world
 cc $(pkg-config --cflags starpu-1.0)  $(pkg-config --libs starpu-1.0) hello_world.c -o hello_world
-% ./hello_world
+$ ./hello_world
 Hello world (params = @{1, 2.000000@} )
 Callback function (arg 42)
 @end smallexample
@@ -300,27 +282,22 @@ Callback function (arg 42)
 @node Vector Scaling Using the C Extension
 @section Vector Scaling Using the C Extension
 
-The previous example has shown how to submit tasks. In this section,
-we show how StarPU tasks can manipulate data. The version of this
-example using StarPU's API is given in the next sections.
-
-
 @menu
-* Adding an OpenCL Task Implementation::  
-* Adding a CUDA Task Implementation::  
+* Adding an OpenCL Task Implementation::
+* Adding a CUDA Task Implementation::
 @end menu
 
-The simplest way to get started writing StarPU programs is using the C
-language extensions provided by the GCC plug-in (@pxref{C Extensions}).
-These extensions map directly to StarPU's main concepts: tasks, task
-implementations for CPU, OpenCL, or CUDA, and registered data buffers.
+The previous example has shown how to submit tasks. In this section,
+we show how StarPU tasks can manipulate data.
 
-The example below is a vector-scaling program, that multiplies elements
-of a vector by a given factor@footnote{The complete example, and
+We will first show how to use the C language extensions provided by
+the GCC plug-in (@pxref{C Extensions})@footnote{The complete example, and
 additional examples, is available in the @file{gcc-plugin/examples}
-directory of the StarPU distribution.}.  For comparison, the standard C
-version that uses StarPU's standard C programming interface is given in
-the next section (@pxref{Vector Scaling Using StarPu's API, standard C
+directory of the StarPU distribution.}. These extensions map directly
+to StarPU's main concepts: tasks, task implementations for CPU,
+OpenCL, or CUDA, and registered data buffers. The standard C version
+that uses StarPU's standard C programming interface is given in the
+next section (@pxref{Vector Scaling Using StarPU's API, standard C
 version of the example}).
 
 First of all, the vector-scaling task and its simple CPU implementation
@@ -328,12 +305,12 @@ has to be defined:
 
 @cartouche
 @smallexample
-/* Declare the `vector_scal' task.  */
+/* @b{Declare the `vector_scal' task.}  */
 static void vector_scal (unsigned size, float vector[size],
                          float factor)
   __attribute__ ((task));
 
-/* Define the standard CPU implementation.  */
+/* @b{Define the standard CPU implementation.}  */
 static void
 vector_scal (unsigned size, float vector[size], float factor)
 @{
@@ -358,9 +335,8 @@ main (void)
 #define FACTOR 3.14
 
   @{
-    float vector[NX] __attribute__ ((heap_allocated));
-
-#pragma starpu register vector
+    float vector[NX]
+       __attribute__ ((heap_allocated, registered));
 
     size_t i;
     for (i = 0; i < NX; i++)
@@ -369,7 +345,7 @@ main (void)
     vector_scal (NX, vector, FACTOR);
 
 #pragma starpu wait
-  @} /* VECTOR is automatically freed here.  */
+  @} /* @b{VECTOR is automatically freed here.}  */
 
 #pragma starpu shutdown
 
@@ -416,7 +392,7 @@ The program can be compiled and linked with GCC and the @code{-fplugin}
 flag:
 
 @example
-$ gcc hello-starpu.c \
+$ gcc `pkg-config starpu-1.0 --cflags` vector_scal.c \
     -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
     `pkg-config starpu-1.0 --libs`
 @end example
@@ -438,10 +414,7 @@ in our C file like this:
 
 @cartouche
 @smallexample
-/* Include StarPU's OpenCL integration.  */
-#include <starpu_opencl.h>
-
-/* The OpenCL programs, loaded from `main' (see below).  */
+/* @b{The OpenCL programs, loaded from 'main' (see below).}  */
 static struct starpu_opencl_program cl_programs;
 
 static void vector_scal_opencl (unsigned size, float vector[size],
@@ -456,14 +429,14 @@ vector_scal_opencl (unsigned size, float vector[size], float factor)
   cl_command_queue queue;
   cl_event event;
 
-  /* VECTOR is GPU memory pointer, not a main memory pointer.  */
+  /* @b{VECTOR is GPU memory pointer, not a main memory pointer.}  */
   cl_mem val = (cl_mem) vector;
 
   id = starpu_worker_get_id ();
   devid = starpu_worker_get_devid (id);
 
-  /* Prepare to invoke the kernel.  In the future, this will be largely
-     automated.  */
+  /* @b{Prepare to invoke the kernel.  In the future, this will be largely
+     automated.}  */
   err = starpu_opencl_load_kernel (&kernel, &queue, &cl_programs,
                                    "vector_mult_opencl", devid);
   if (err != CL_SUCCESS)
@@ -485,7 +458,7 @@ vector_scal_opencl (unsigned size, float vector[size], float factor)
   starpu_opencl_collect_stats (event);
   clReleaseEvent (event);
 
-  /* Done with KERNEL.  */
+  /* @b{Done with KERNEL.}  */
   starpu_opencl_release_kernel (kernel);
 @}
 @end smallexample
@@ -532,11 +505,10 @@ the CUDA Kernel}).
 
 @cartouche
 @smallexample
-/* CUDA implementation of the `vector_scal' task, to be compiled
-   with `nvcc'.  */
+/* @b{CUDA implementation of the `vector_scal' task, to be compiled
+   with `nvcc'.}  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 #include <stdlib.h>
 
 static __global__ void
@@ -548,7 +520,7 @@ vector_mult_cuda (float *val, unsigned n, float factor)
     val[i] *= factor;
 @}
 
-/* Definition of the task implementation declared in the C file.   */
+/* @b{Definition of the task implementation declared in the C file.}   */
 extern "C" void
 vector_scal_cuda (size_t size, float vector[], float factor)
 @{
@@ -570,8 +542,8 @@ CPU task implementation can be added.
 For more details on the C extensions provided by StarPU's GCC plug-in,
 @xref{C Extensions}.
 
-@node Vector Scaling Using StarPu's API
-@section Vector Scaling Using StarPu's API
+@node Vector Scaling Using StarPU's API
+@section Vector Scaling Using StarPU's API
 
 This section shows how to achieve the same result as explained in the
 previous section using StarPU's standard C API.
@@ -581,7 +553,7 @@ this example is given in @ref{Full source code for the 'Scaling a
 Vector' example}.
 
 @menu
-* Source Code of Vector Scaling::  
+* Source Code of Vector Scaling::
 * Execution of Vector Scaling::  Running the program
 @end menu
 
@@ -657,17 +629,17 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
     unsigned i;
     float *factor = cl_arg;
 
-    /* length of the vector */
+    /* @b{length of the vector} */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* CPU copy of the vector pointer */
+    /* @b{CPU copy of the vector pointer} */
     float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
     for (i = 0; i < n; i++)
         val[i] *= *factor;
 @}
 
-struct starpu_codelet cl = @{
-    .where = STARPU_CPU,
+struct starpu_codelet cl =
+@{
     .cpu_funcs = @{ scal_cpu_func, NULL @},
     .nbuffers = 1,
     .modes = @{ STARPU_RW @}
@@ -693,9 +665,9 @@ constant factor from this pointer.
 @subsection Execution of Vector Scaling
 
 @smallexample
-% make vector_scal
+$ make vector_scal
 cc $(pkg-config --cflags starpu-1.0)  $(pkg-config --libs starpu-1.0)  vector_scal.c   -o vector_scal
-% ./vector_scal
+$ ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
@@ -706,10 +678,10 @@ Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 @menu
-* Definition of the CUDA Kernel::  
-* Definition of the OpenCL Kernel::  
-* Definition of the Main Code::  
-* Execution of Hybrid Vector Scaling::  
+* Definition of the CUDA Kernel::
+* Definition of the OpenCL Kernel::
+* Definition of the Main Code::
+* Execution of Hybrid Vector Scaling::
 @end menu
 
 @node Definition of the CUDA Kernel
@@ -724,7 +696,6 @@ call.
 @cartouche
 @smallexample
 #include <starpu.h>
-#include <starpu_cuda.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
@@ -738,14 +709,15 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
 @{
     float *factor = (float *)_args;
 
-    /* length of the vector */
+    /* @b{length of the vector} */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* CUDA copy of the vector pointer */
+    /* @b{CUDA copy of the vector pointer} */
     float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
     unsigned threads_per_block = 64;
     unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-@i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>(val, n, *factor);}
+@i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>}
+@i{                    (val, n, *factor);}
 
 @i{    cudaStreamSynchronize(starpu_cuda_get_local_stream());}
 @}
@@ -778,7 +750,6 @@ important when using partitioning, see @ref{Partitioning Data}.
 @cartouche
 @smallexample
 #include <starpu.h>
-@i{#include <starpu_opencl.h>}
 
 @i{extern struct starpu_opencl_program programs;}
 
@@ -790,9 +761,9 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    cl_command_queue queue;}
 @i{    cl_event event;}
 
-    /* length of the vector */
+    /* @b{length of the vector} */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* OpenCL copy of the vector pointer */
+    /* @b{OpenCL copy of the vector pointer} */
     cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
 @i{    id = starpu_worker_get_id();}
@@ -810,7 +781,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    @{}
 @i{        size_t global=n;}
 @i{        size_t local=1;}
-@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);}
+@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL,}
+@i{                                     &global, &local, 0, NULL, &event);}
 @i{        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 @i{    @}}
 
@@ -829,10 +801,10 @@ void scal_opencl_func(void *buffers[], void *_args)
 
 The CPU implementation is the same as in the previous section.
 
-Here is the source of the main application. You can notice the value of the
-field @code{where} for the codelet. We specify
-@code{STARPU_CPU|STARPU_CUDA|STARPU_OPENCL} to indicate to StarPU that the codelet
-can be executed either on a CPU or on a CUDA or an OpenCL device.
+Here is the source of the main application. You can notice that the fields
+@code{cuda_funcs} and @code{opencl_funcs} of the codelet are set to
+define the pointers to the CUDA and OpenCL implementations of the
+task.
 
 @cartouche
 @smallexample
@@ -845,11 +817,10 @@ extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
-static struct starpu_codelet cl = @{
-    .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU,} */
-                                     /* @b{on a CUDA device, or on an OpenCL device} */
+static struct starpu_codelet cl =
+@{
     .cuda_funcs = @{ scal_cuda_func, NULL @},
-    .cpu_funcs = @{ scal_cpu_func, NULL @},
+    .cpu_funcs = @{ scal_cpu_func, NULL @},
     .opencl_funcs = @{ scal_opencl_func, NULL @},
     .nbuffers = 1,
     .modes = @{ STARPU_RW @}
@@ -959,20 +930,20 @@ clean:
 @end cartouche
 
 @smallexample
-% make
+$ make
 @end smallexample
 
 and to execute it, with the default configuration:
 
 @smallexample
-% ./vector_scal
+$ ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
 or for example, by disabling CPU devices:
 
 @smallexample
-% STARPU_NCPU=0 ./vector_scal
+$ STARPU_NCPU=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
@@ -980,6 +951,6 @@ or by disabling CUDA devices (which may permit to enable the use of OpenCL,
 see @ref{Enabling OpenCL}):
 
 @smallexample
-% STARPU_NCUDA=0 ./vector_scal
+$ STARPU_NCUDA=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample

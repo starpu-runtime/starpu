@@ -14,10 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "socl.h"
+
 #ifndef SOCL_COMMANDS_H
 #define SOCL_COMMANDS_H
 
 typedef struct cl_command_t * cl_command;
+
+#define gc_entity_store_cmd(dest,cmd) gc_entity_store(dest, &cmd->_command)
+#define gc_entity_release_cmd(cmd) gc_entity_release(&cmd->_command)
 
 /**
  * Initialize a command structure
@@ -25,9 +30,11 @@ typedef struct cl_command_t * cl_command;
  * Command constructors for each kind of command use this method
  * Implicit and explicit dependencies must be passed as parameters
  */
-void command_init_ex(cl_command cmd, cl_command_type typ);
-#define command_init(cmd,typ) \
-	command_init_ex((cl_command)cmd,typ)
+void command_init_ex(cl_command cmd, cl_command_type typ, void (*cb)(void*));
+#define command_init(cmd,typ,cb) \
+	command_init_ex((cl_command)cmd,typ,cb)
+
+void command_release(cl_command cmd);
 
 /** Submit a command for execution */
 void command_submit_ex(cl_command cmd);
@@ -45,21 +52,27 @@ void command_graph_dump_ex(cl_command cmd);
  * OpenCL Commands
  **************************/
 struct cl_command_t {
+	CL_ENTITY;
 	cl_command_type	typ;	 	/* Command type */
 	cl_uint 	num_events;	/* Number of dependencies */
 	cl_event * 	events;		/* Dependencies */
 	cl_event  	event;		/* Event for this command */
-	cl_command_queue cq;		/* Command queue the command is enqueued in */
 	starpu_task	task;		/* Associated StarPU task, if any */
 	char		submitted;	/* True if the command has been submitted to StarPU */
+   void (*release_callback)(void*); /* Command specific destructor */
 };
 
 #define command_type_get(cmd) (((cl_command)cmd)->typ)
-#define command_event_get(cmd) (((cl_command)cmd)->event)
-#define command_num_events_get(cmd) (((cl_command)cmd)->num_events)
-#define command_events_get(cmd) (((cl_command)cmd)->events)
-#define command_task_get(cmd) (((cl_command)cmd)->task)
-#define command_cq_get(cmd) (((cl_command)cmd)->cq)
+
+cl_event command_event_get_ex(cl_command cmd);
+#define command_event_get(cmd) command_event_get_ex(&cmd->_command)
+
+#define command_num_events_get_ex(cmd) (cmd->num_events)
+#define command_num_events_get(cmd) ((cmd)->_command.num_events)
+#define command_events_get_ex(cmd) ((cmd)->events)
+#define command_events_get(cmd) ((cmd)->_command.events)
+#define command_task_get(cmd) ((cmd)->_command.task)
+#define command_cq_get(cmd) ((cmd)->_command.cq)
 
 #define CL_COMMAND struct cl_command_t _command;
 
@@ -67,6 +80,7 @@ typedef struct command_ndrange_kernel_t {
 	CL_COMMAND
 
 	cl_kernel        kernel;
+	struct starpu_codelet codelet;
 	cl_uint          work_dim;
 	const size_t *   global_work_offset;
 	const size_t *   global_work_size;
@@ -75,7 +89,6 @@ typedef struct command_ndrange_kernel_t {
 	size_t *	 arg_sizes;
 	enum kernel_arg_type * arg_types;
 	void **		 args;
-	struct starpu_codelet * codelet;
 	cl_uint		 num_buffers;
 	cl_mem *	 buffers;
 } * command_ndrange_kernel;
@@ -119,7 +132,6 @@ typedef struct command_map_buffer_t {
 	cl_map_flags map_flags;
 	size_t offset;
 	size_t cb;
-	cl_event event;
 } * command_map_buffer;
 
 
@@ -135,6 +147,10 @@ typedef struct command_marker_t {
 	CL_COMMAND
 } * command_marker;
 
+typedef struct command_barrier_t {
+	CL_COMMAND
+} * command_barrier;
+
 /*************************
  * Constructor functions
  *************************/
@@ -148,7 +164,7 @@ command_ndrange_kernel command_ndrange_kernel_create (
 
 command_ndrange_kernel command_task_create (cl_kernel kernel);
 
-command_marker command_barrier_create ();
+command_barrier command_barrier_create ();
 
 command_marker command_marker_create ();
 
@@ -156,8 +172,7 @@ command_map_buffer command_map_buffer_create(
 		cl_mem buffer,
 		cl_map_flags map_flags,
 		size_t offset,
-		size_t cb,
-		cl_event event);
+		size_t cb);
 
 command_unmap_mem_object command_unmap_mem_object_create(
 		cl_mem buffer,
@@ -192,6 +207,7 @@ cl_int command_copy_buffer_submit(command_copy_buffer cmd);
 cl_int command_map_buffer_submit(command_map_buffer cmd);
 cl_int command_unmap_mem_object_submit(command_unmap_mem_object cmd);
 cl_int command_marker_submit(command_marker cmd);
+cl_int command_barrier_submit(command_barrier cmd);
 
 
 #endif /* SOCL_COMMANDS_H */

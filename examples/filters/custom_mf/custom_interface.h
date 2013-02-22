@@ -26,7 +26,7 @@ struct custom_data_interface
 };
 
 void custom_data_register(starpu_data_handle_t *handle,
-				 uint32_t home_node,
+				 unsigned home_node,
 				 void *ptr,
 				 uint32_t nx,
 				 struct starpu_multiformat_data_interface_ops* ops);

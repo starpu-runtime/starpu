@@ -13,9 +13,22 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SUBDIRS = src tests examples
+SUBDIRS = src tests
+if BUILD_EXAMPLES
+SUBDIRS += examples
+endif
 
-EXTRA_DIST = COPYING README ChangeLog
+EXTRA_DIST =					\
+  COPYING					\
+  README					\
+  ChangeLog
+
+noinst_HEADERS =				\
+  include/starpu-gcc/opencl.h			\
+  include/starpu-gcc/tasks.h			\
+  include/starpu-gcc/utils.h			\
+  include/starpu-gcc/warn-unregistered.h
+
 
 showcheck:
 	for i in $(SUBDIRS) ; do \

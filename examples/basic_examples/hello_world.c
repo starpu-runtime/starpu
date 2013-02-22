@@ -87,6 +87,7 @@ int main(int argc, char **argv)
 	/* the codelet does not manipulate any data that is managed
 	 * by our DSM */
 	cl.nbuffers = 0;
+	cl.name="hello";
 
 	/* the task uses codelet "cl" */
 	task->cl = &cl;

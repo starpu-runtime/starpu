@@ -57,8 +57,7 @@ static void parse_args(int argc, char **argv)
 	else if (strcmp(argv[1], "-v") == 0 ||
 		 strcmp(argv[1], "--version") == 0)
 	{
-		(void) fprintf(stdout, "%s %d.%d\n",
-			PROGNAME, STARPU_MAJOR_VERSION, STARPU_MINOR_VERSION);
+	        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 		exit(EXIT_SUCCESS);
 	}
 	else
@@ -71,14 +70,19 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-#ifdef __MINGW32__
-	WSADATA wsadata;
-	WSAStartup(MAKEWORD(1,0), &wsadata);
-#endif
+	int ret;
+	struct starpu_conf conf;
 
 	parse_args(argc, argv);
 
-	starpu_force_bus_sampling();
+	starpu_conf_init(&conf);
+	conf.bus_calibrate = 1;
+
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return 77;
+	if (ret != 0) return ret;
+
+	starpu_shutdown();
 
 	return 0;
 }

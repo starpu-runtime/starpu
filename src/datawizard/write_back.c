@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@ static void wt_callback(void *arg)
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
-void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting_node,
+void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting_node,
 				uint32_t write_through_mask)
 {
 	if ((write_through_mask & ~(1<<requesting_node)) == 0)
@@ -38,7 +38,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, uint32_t requesting
 	}
 
 	/* first commit all changes onto the nodes specified by the mask */
-	uint32_t node, max;
+	unsigned node, max;
 	for (node = 0, max = starpu_memory_nodes_get_count(); node < max; node++)
 	{
 		if (write_through_mask & (1<<node))
@@ -78,6 +78,9 @@ void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask)
 	{
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
-			starpu_data_set_wt_mask(&handle->children[child], wt_mask);
+		{
+			starpu_data_handle_t handle_child = starpu_data_get_child(handle, child);
+			starpu_data_set_wt_mask(handle_child, wt_mask);
+		}
 	}
 }

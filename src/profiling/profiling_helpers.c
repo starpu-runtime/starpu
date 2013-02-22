@@ -20,7 +20,10 @@
 
 void starpu_bus_profiling_helper_display_summary(void)
 {
+	const char *stats;
 	int long long sum_transferred = 0;
+
+	if (!((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
 
 	fprintf(stderr, "\nData transfer statistics:\n");
 	fprintf(stderr,   "*************************\n");
@@ -51,19 +54,23 @@ void starpu_bus_profiling_helper_display_summary(void)
 
 void starpu_worker_profiling_helper_display_summary(void)
 {
+	const char *stats;
 	double sum_consumed = 0.;
 	int profiling = starpu_profiling_status_get();
-	fprintf(stderr, "\nWorker statistics:\n");
-	fprintf(stderr,   "******************\n");
 	double overall_time = 0;
-
 	int workerid;
 	int worker_cnt = starpu_worker_get_count();
+
+	if (!((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
+
+	fprintf(stderr, "\nWorker statistics:\n");
+	fprintf(stderr,   "******************\n");
+
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
 		struct starpu_worker_profiling_info info;
 		starpu_worker_get_profiling_info(workerid, &info);
-		char name[32];
+		char name[64];
 
 		starpu_worker_get_name(workerid, name, sizeof(name));
 

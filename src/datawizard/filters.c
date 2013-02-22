@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,8 @@
 
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
+#include <datawizard/interfaces/data_interface.h>
+#include <core/task.h>
 
 static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f);
 
@@ -39,7 +41,8 @@ static void map_filter(starpu_data_handle_t root_handle, struct starpu_data_filt
 		unsigned child;
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			map_filter(&root_handle->children[child], f);
+			starpu_data_handle_t handle_child = starpu_data_get_child(root_handle, child);
+			map_filter(handle_child, f);
 		}
 	}
 }
@@ -72,8 +75,7 @@ int starpu_data_get_nb_children(starpu_data_handle_t handle)
 
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)
 {
-	STARPU_ASSERT(i < handle->nchildren);
-
+	STARPU_ASSERT_MSG(i < handle->nchildren, "Invalid child index %u, maximum %u", i, handle->nchildren);
 	return &handle->children[i];
 }
 
@@ -102,7 +104,8 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
 
-		STARPU_ASSERT(next_child < current_handle->nchildren);
+		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data has to be partitioned before accessing children");
+		STARPU_ASSERT_MSG(next_child < current_handle->nchildren, "Bogus child number");
 
 		current_handle = &current_handle->children[next_child];
 	}
@@ -127,7 +130,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	else
 	  nparts = f->nchildren;
 
-	STARPU_ASSERT(nparts > 0);
+	STARPU_ASSERT_MSG(nparts > 0, "Partitioning in 0 piece does not make sense");
 
 	/* allocate the children */
 	starpu_data_create_children(initial_handle, nparts, f);
@@ -139,7 +142,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		if (initial_handle->per_node[node].state != STARPU_INVALID)
 			break;
 	}
-	if (node == STARPU_MAXNODES) {
+	if (node == STARPU_MAXNODES)
+	{
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
 		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[0], 0);
@@ -245,7 +249,6 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
-		child->data_size = child->ops->get_size(child);
 		child->footprint = _starpu_compute_data_footprint(child);
 
 		void *ptr;
@@ -266,7 +269,7 @@ void _starpu_empty_codelet_function(void *buffers[], void *args)
 	(void) args; // unused;
 }
 
-void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gathering_node)
+void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gathering_node)
 {
 	unsigned child;
 	unsigned node;
@@ -278,7 +281,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
-		struct _starpu_data_state *child_handle = &root_handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 
 		/* make sure the intermediate children is unpartitionned as well */
 		if (child_handle->nchildren > 0)
@@ -302,7 +305,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 			task->handles[0] = child_handle;
 			task->cl = &cl;
 			task->synchronous = 1;
-			if (starpu_task_submit(task) != 0)
+			if (_starpu_task_submit_internally(task) != 0)
 				_STARPU_ERROR("Could not submit the conversion task while unpartitionning\n");
 		}
 
@@ -316,7 +319,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		_starpu_spin_lock(&child_handle->header_lock);
 
-		_starpu_data_free_interfaces(&root_handle->children[child]);
+		_starpu_data_free_interfaces(child_handle);
+		_starpu_memory_stats_free(child_handle);
 		_starpu_data_requester_list_delete(child_handle->req_list);
 		_starpu_data_requester_list_delete(child_handle->reduction_req_list);
 	}
@@ -343,7 +347,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			struct _starpu_data_replicate *local = &root_handle->children[child].per_node[node];
+			starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
+			struct _starpu_data_replicate *local = &child_handle->per_node[node];
 
 			if (local->state == STARPU_INVALID)
 			{
@@ -353,7 +358,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 			if (local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
-				_starpu_request_mem_chunk_removal(&root_handle->children[child], node);
+#ifdef STARPU_DEVEL
+#warning FIXME!! this needs access to the child interface, which was freed above!
+#endif
+				_starpu_request_mem_chunk_removal(child_handle, node, 1);
 		}
 
 		if (!root_handle->per_node[node].allocated)
@@ -363,7 +371,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(root_handle, node);
+			_starpu_request_mem_chunk_removal(root_handle, node, 1);
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
@@ -384,8 +392,9 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, uint32_t gatherin
 
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
-		struct _starpu_data_state *child_handle = &root_handle->children[child];
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_spin_unlock(&child_handle->header_lock);
+		_starpu_spin_destroy(&child_handle->header_lock);
 	}
 
 	/* there is no child anymore */
@@ -403,16 +412,11 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 	handle->children = (struct _starpu_data_state *) calloc(nchildren, sizeof(struct _starpu_data_state));
 	STARPU_ASSERT(handle->children);
 
-	unsigned node;
-	unsigned worker;
 	unsigned child;
-
-	unsigned nworkers = starpu_worker_get_count();
 
 	for (child = 0; child < nchildren; child++)
 	{
-		starpu_data_handle_t handle_child = &handle->children[child];
-
+		starpu_data_handle_t handle_child;
 		struct starpu_data_interface_ops *ops;
 
 		/* what's this child's interface ? */
@@ -421,28 +425,43 @@ static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nc
 		else
 		  ops = handle->ops;
 
-		handle_child->ops = ops;
-
-		size_t interfacesize = ops->interface_size;
-
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			/* relaxed_coherency = 0 */
-			handle_child->per_node[node].handle = handle_child;
-			handle_child->per_node[node].data_interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_node[node].data_interface);
-		}
-
-		for (worker = 0; worker < nworkers; worker++)
-		{
-			handle_child->per_worker[worker].handle = handle_child;
-			handle_child->per_worker[worker].data_interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_worker[worker].data_interface);
-		}
-
-		handle_child->mf_node = handle->mf_node;
+		handle_child = &handle->children[child];
+		_starpu_data_handle_init(handle_child, ops, handle->mf_node);
 	}
 
 	/* this handle now has children */
 	handle->nchildren = nchildren;
+}
+
+/*
+ * Given an integer N, NPARTS the number of parts it must be divided in, ID the
+ * part currently considered, determines the CHUNK_SIZE and the OFFSET, taking
+ * into account the size of the elements stored in the data structure ELEMSIZE
+ * and LD, the leading dimension.
+ */
+void
+_starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+					     size_t elemsize, unsigned id,
+					     unsigned ld, unsigned *chunk_size,
+					     size_t *offset)
+{
+	*chunk_size = n/nparts;
+	unsigned remainder = n % nparts;
+	if (id < remainder)
+		(*chunk_size)++;
+	/*
+	 * Computing the total offset. The formula may not be really clear, but
+	 * it really just is:
+	 *
+	 * total = 0;
+	 * for (i = 0; i < id; i++)
+	 * {
+	 * 	total += n/nparts;
+	 * 	if (i < n%nparts)
+	 *		total++;
+	 * }
+	 * offset = total * elemsize * ld;
+	 */
+	if (offset != NULL)
+		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
 }

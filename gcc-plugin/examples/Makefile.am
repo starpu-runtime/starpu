@@ -16,7 +16,7 @@
 if STARPU_USE_CPU
 
 noinst_PROGRAMS =				\
-  matrix-mult stencil5 vector_scal/vector_scal
+  hello-starpu matrix-mult stencil5 vector_scal/vector_scal
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
@@ -24,8 +24,8 @@ noinst_PROGRAMS +=				\
 endif !NO_BLAS_LIB
 endif STARPU_USE_CPU
 
-AM_LDFLAGS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
-AM_LDFLAGS += $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
+AM_LDFLAGS = $(top_builddir)/src/@LIBSTARPU_LINK@
+AM_LDFLAGS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) 
 
 AM_CPPFLAGS =						\
   -I$(top_srcdir)/include				\

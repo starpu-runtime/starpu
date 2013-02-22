@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned nloops = 10;
+#else
 static unsigned nloops = 1000;
+#endif
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -65,9 +69,8 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&float_array_handle, 0, (uintptr_t)&foo, sizeof(foo));
 
         for (i = 0; i < nloops; i++)
-        {
+	{
 		struct starpu_task *task_cpu, *task_gpu;
-                int ret;
 
 		task_cpu = starpu_task_create();
 		task_gpu = starpu_task_create();

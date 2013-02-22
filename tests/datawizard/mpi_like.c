@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,9 +17,6 @@
 
 #include <config.h>
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <errno.h>
 #include <pthread.h>
 #include "../helper.h"
@@ -37,8 +34,8 @@ struct thread_data
 	starpu_data_handle_t handle;
 	pthread_t thread;
 
-	pthread_cond_t recv_cond;
-	pthread_mutex_t recv_mutex;
+	_starpu_pthread_cond_t recv_cond;
+	_starpu_pthread_mutex_t recv_mutex;
 	unsigned recv_flag; // set when a message is received
 	unsigned recv_buf;
 	struct thread_data *neighbour;

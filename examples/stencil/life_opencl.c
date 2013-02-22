@@ -21,7 +21,6 @@
 #include <stencil.h>
 #include <CL/cl.h>
 #include <starpu.h>
-#include <starpu_opencl.h>
 
 #define str(x) #x
 

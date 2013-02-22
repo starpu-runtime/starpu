@@ -19,7 +19,7 @@
 #include <limits.h>
 #include <starpu.h>
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned nblocks = 512;
 static unsigned entries_per_bock = 64;
 #else
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 		task->handles[0] = x_handles[block];
 		task->handles[1] = minmax_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret)
 		{
 			STARPU_ASSERT(ret == -ENODEV);

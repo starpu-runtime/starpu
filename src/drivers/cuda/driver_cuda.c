@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,28 +26,64 @@
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
+#ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
+#endif
+#include <datawizard/memory_manager.h>
+
+#ifdef STARPU_SIMGRID
+#include <core/simgrid.h>
+#endif
 
 /* the number of CUDA devices */
 static int ncudagpus;
 
+#ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
-static cudaStream_t transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t peer_transfer_streams[STARPU_NMAXWORKERS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
+#endif
 
-/* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
- * is launched. */
-static char *wasted_memory[STARPU_NMAXWORKERS];
-
-static void limit_gpu_mem_if_needed(int devid)
+void
+_starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
-	cudaError_t cures;
-	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
+	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
+#ifdef STARPU_SIMGRID
+	config->topology.nhwcudagpus = _starpu_simgrid_get_nbhosts("CUDA");
+#else
+	int cnt;
+	cudaError_t cures;
+
+	cures = cudaGetDeviceCount (&cnt);
+	if (STARPU_UNLIKELY(cures != cudaSuccess))
+		cnt = 0;
+	config->topology.nhwcudagpus = cnt;
+#endif
+}
+
+#ifdef STARPU_USE_CUDA
+/* In case we want to cap the amount of memory available on the GPUs by the
+ * mean of the STARPU_LIMIT_CUDA_MEM, we decrease the value of
+ * props[devid].totalGlobalMem which is the value returned by
+ * starpu_cuda_get_global_mem_size() to indicate how much memory can
+ * be allocated on the device
+ */
+static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
+{
+	int limit;
+	char name[30];
+
+	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
 	if (limit == -1)
 	{
-		wasted_memory[devid] = NULL;
+		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
+		limit = starpu_get_env_number(name);
+	}
+	if (limit == -1)
+	{
 		return;
 	}
 
@@ -59,40 +95,35 @@ static void limit_gpu_mem_if_needed(int devid)
 
 	props[devid].totalGlobalMem -= to_waste;
 
-	_STARPU_DEBUG("CUDA device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
 			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
-
-	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
-	cures = cudaMalloc((void **)&wasted_memory[devid], to_waste);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void unlimit_gpu_mem_if_needed(int devid)
-{
-	cudaError_t cures;
-
-	if (wasted_memory[devid])
-	{
-		cures = cudaFree(wasted_memory[devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-
-		wasted_memory[devid] = NULL;
-	}
-}
-
-size_t starpu_cuda_get_global_mem_size(int devid)
+size_t starpu_cuda_get_global_mem_size(unsigned devid)
 {
 	return (size_t)props[devid].totalGlobalMem;
 }
 
-cudaStream_t starpu_cuda_get_local_transfer_stream(void)
+cudaStream_t starpu_cuda_get_local_in_transfer_stream(void)
 {
 	int worker = starpu_worker_get_id();
 
-	return transfer_streams[worker];
+	return in_transfer_streams[worker];
+}
+
+cudaStream_t starpu_cuda_get_local_out_transfer_stream(void)
+{
+	int worker = starpu_worker_get_id();
+
+	return out_transfer_streams[worker];
+}
+
+cudaStream_t starpu_cuda_get_local_peer_transfer_stream(void)
+{
+	int worker = starpu_worker_get_id();
+
+	return peer_transfer_streams[worker];
 }
 
 cudaStream_t starpu_cuda_get_local_stream(void)
@@ -109,20 +140,33 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	return &props[devid];
 }
 
-void starpu_cuda_set_device(int devid)
+void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_SIMGRID
+	STARPU_ABORT();
+#else
 	cudaError_t cures;
 	struct starpu_conf *conf = _starpu_get_machine_config()->conf;
+#if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 	unsigned i;
+#endif
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (conf->n_cuda_opengl_interoperability) {
+	if (conf->n_cuda_opengl_interoperability)
+	{
 		fprintf(stderr, "OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
+		STARPU_ABORT();
+	}
+#elif !defined(HAVE_CUDA_GL_INTEROP_H)
+	if (conf->n_cuda_opengl_interoperability)
+	{
+		fprintf(stderr,"OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.");
 		STARPU_ABORT();
 	}
 #else
 	for (i = 0; i < conf->n_cuda_opengl_interoperability; i++)
-		if (conf->cuda_opengl_interoperability[i] == devid) {
+		if (conf->cuda_opengl_interoperability[i] == devid)
+		{
 			cures = cudaGLSetGLDevice(devid);
 			goto done;
 		}
@@ -130,22 +174,52 @@ void starpu_cuda_set_device(int devid)
 
 	cures = cudaSetDevice(devid);
 
+#if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 done:
+#endif
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
+#endif
 }
 
-static void init_context(int devid)
+#ifndef STARPU_SIMGRID
+static void init_context(unsigned devid)
 {
 	cudaError_t cures;
-	int workerid = starpu_worker_get_id();
+	int workerid;
+
+	/* TODO: cudaSetDeviceFlag(cudaDeviceMapHost) */
 
 	starpu_cuda_set_device(devid);
 
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") == 0)
+	{
+		int nworkers = starpu_worker_get_count();
+		for (workerid = 0; workerid < nworkers; workerid++)
+		{
+			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+			if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid)
+			{
+				int can;
+				cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
+				if (!cures && can)
+				{
+					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
+					if (!cures)
+						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
+				}
+			}
+		}
+	}
+#endif
+
 	/* force CUDA to initialize the context for real */
 	cures = cudaFree(0);
-	if (STARPU_UNLIKELY(cures)) {
-		if (cures == cudaErrorDevicesUnavailable) {
+	if (STARPU_UNLIKELY(cures))
+	{
+		if (cures == cudaErrorDevicesUnavailable)
+		{
 			fprintf(stderr,"All CUDA-capable devices are busy or unavailable\n");
 			exit(77);
 		}
@@ -156,44 +230,58 @@ static void init_context(int devid)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (props[devid].computeMode == cudaComputeModeExclusive) {
+	if (props[devid].computeMode == cudaComputeModeExclusive)
+	{
 		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 #endif
 
-	limit_gpu_mem_if_needed(devid);
+	workerid = starpu_worker_get_id();
 
 	cures = cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cures = cudaStreamCreate(&transfer_streams[workerid]);
+	cures = cudaStreamCreate(&in_transfer_streams[workerid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&out_transfer_streams[workerid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&peer_transfer_streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void deinit_context(int workerid, int devid)
+static void deinit_context(int workerid)
 {
 	cudaError_t cures;
 
 	cudaStreamDestroy(streams[workerid]);
-	cudaStreamDestroy(transfer_streams[workerid]);
-
-	unlimit_gpu_mem_if_needed(devid);
+	cudaStreamDestroy(in_transfer_streams[workerid]);
+	cudaStreamDestroy(out_transfer_streams[workerid]);
+	cudaStreamDestroy(peer_transfer_streams[workerid]);
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();
 	if (cures)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
+#endif /* !SIMGRID */
 
+#endif /* STARPU_USE_CUDA */
 
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXCUDADEVS */
 
 unsigned _starpu_get_cuda_device_count(void)
 {
+#ifdef STARPU_SIMGRID
+	return _starpu_simgrid_get_nbhosts("CUDA");
+#else
 	int cnt;
 
 	cudaError_t cures;
@@ -207,6 +295,7 @@ unsigned _starpu_get_cuda_device_count(void)
 		cnt = STARPU_MAXCUDADEVS;
 	}
 	return (unsigned)cnt;
+#endif
 }
 
 void _starpu_init_cuda(void)
@@ -219,7 +308,6 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 {
 	int ret;
 	uint32_t mask = 0;
-	cudaError_t cures;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -227,14 +315,10 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	struct timespec codelet_start, codelet_end;
 
 	int profiling = starpu_profiling_status_get();
-	unsigned calibrate_model = 0;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
-
-	if (cl->model && cl->model->benchmarking)
-		calibrate_model = 1;
 
 	ret = _starpu_fetch_task_input(j, mask);
 	if (ret != 0)
@@ -245,23 +329,21 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		return -EAGAIN;
 	}
 
-	if (calibrate_model)
-	{
-		cures = cudaStreamSynchronize(starpu_cuda_get_local_transfer_stream());
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-	}
-
 	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */
 	starpu_cuda_set_device(args->devid);
 #endif
 
 	starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT(func);
+
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_execute_job(j, args->perf_arch, NAN);
+#else
 	func(task->interfaces, task->cl_arg);
+#endif
 
 	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
 
@@ -275,13 +357,20 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 static struct _starpu_worker*
 _starpu_get_worker_from_driver(struct starpu_driver *d)
 {
-	int workers[d->id.cuda_id + 1];
-	int nworkers;
-	nworkers = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, workers, d->id.cuda_id+1);
-	if (nworkers >= 0 && (unsigned) nworkers < d->id.cuda_id)
-		return NULL; // No device was found.
-	
-	return _starpu_get_worker_struct(workers[d->id.cuda_id]);
+	unsigned nworkers = starpu_worker_get_count();
+	unsigned  workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		if (starpu_worker_get_type(workerid) == d->type)
+		{
+			struct _starpu_worker *worker;
+			worker = _starpu_get_worker_struct(workerid);
+			if (worker->devid == d->id.cuda_id)
+				return worker;
+		}
+	}
+
+	return NULL;
 }
 
 /* XXX Should this be merged with _starpu_init_cuda ? */
@@ -289,28 +378,28 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 {
 	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
 	STARPU_ASSERT(args);
+	unsigned devid = args->devid;
 
-	int devid = args->devid;
-	unsigned memory_node = args->memory_node;
+	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
 
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_register_thread(args->bindid);
-#endif
-	_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CUDA_KEY, devid, memory_node);
-
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
-
-	_starpu_set_local_memory_node_key(&args->memory_node);
-
-	_starpu_set_local_worker_key(args);
-
+#ifndef STARPU_SIMGRID
 	init_context(devid);
+#endif
+
+#ifdef STARPU_USE_CUDA
+	_starpu_cuda_limit_gpu_mem_if_needed(devid);
+#endif
+	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_CUDA_WORKER, args->devid, args->config);
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	args->status = STATUS_UNKNOWN;
 
+#ifdef STARPU_SIMGRID
+	const char *devname = "Simgrid";
+	snprintf(args->name, sizeof(args->name), "CUDA %u (%s TODO GiB)", devid, devname);
+#else
 	/* get the device's name */
 	char devname[128];
 	strncpy(devname, props[devid].name, 128);
@@ -319,15 +408,16 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #ifdef STARPU_HAVE_BUSID
 #ifdef STARPU_HAVE_DOMAINID
 	if (props[devid].pciDomainID)
-		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %04x:%02x:%02x.0)", args->devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 	else
 #endif
-		snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB %02x:%02x.0)", args->devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
-	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %.1f GiB)", args->devid, devname, size);
+	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", devid, devname, size);
 #endif
-	snprintf(args->short_name, sizeof(args->short_name), "CUDA %d", args->devid);
-	_STARPU_DEBUG("cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+#endif
+	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", devid);
+	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	_STARPU_TRACE_WORKER_INIT_END
 
@@ -352,31 +442,21 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 	_starpu_datawizard_progress(memnode, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(args->sched_mutex);
-
-	struct starpu_task *task = _starpu_pop_task(args);
+	struct starpu_task *task;
 	struct _starpu_job *j = NULL;
 
-	if (task == NULL)
-	{
-		if (_starpu_worker_can_block(memnode))
-			_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
+	task = _starpu_get_worker_task(args, workerid, memnode);
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
-
+	if (!task)
 		return 0;
-	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
-
-	STARPU_ASSERT(task);
 	j = _starpu_get_job_associated_to_task(task);
 
 	/* can CUDA do that task ? */
 	if (!_STARPU_CUDA_MAY_PERFORM(j))
 	{
 		/* this is neither a cuda or a cublas task */
-		_starpu_push_task(j);
+		_starpu_push_task_to_workers(task);
 		return 0;
 	}
 
@@ -394,7 +474,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 		{
 			case -EAGAIN:
 				_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-				_starpu_push_task(j);
+				_starpu_push_task_to_workers(task);
 				STARPU_ABORT();
 			default:
 				STARPU_ABORT();
@@ -421,7 +501,9 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
-	deinit_context(args->workerid, args->devid);
+#ifndef STARPU_SIMGRID
+	deinit_context(args->workerid);
+#endif
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 
@@ -431,10 +513,11 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 void *_starpu_cuda_worker(void *arg)
 {
 	struct _starpu_worker* args = arg;
-	struct starpu_driver d = {
-		.type       = STARPU_CUDA_WORKER,
-		.id.cuda_id = args->devid
-	};
+	struct starpu_driver d =
+		{
+			.type       = STARPU_CUDA_WORKER,
+			.id.cuda_id = args->devid
+		};
 
 	_starpu_cuda_driver_init(&d);
 	while (_starpu_machine_is_running())
@@ -444,6 +527,7 @@ void *_starpu_cuda_worker(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_CUDA
 void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
 {
 	char *errormsg;
@@ -474,32 +558,75 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, cu
 			errormsg = "unknown error";
 			break;
 	}
-	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	fprintf(stderr, "oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+	STARPU_ABORT();
 }
 
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+	STARPU_ABORT();
 }
 
-int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
+int
+starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
+			    void *dst_ptr, unsigned dst_node,
+			    size_t ssize, cudaStream_t stream,
+			    enum cudaMemcpyKind kind)
 {
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	int peer_copy = 0;
+	int src_dev = -1, dst_dev = -1;
+#endif
 	cudaError_t cures = 0;
+
+	if (kind == cudaMemcpyDeviceToDevice && src_node != dst_node)
+	{
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		peer_copy = 1;
+		src_dev = _starpu_memory_node_get_devid(src_node);
+		dst_dev = _starpu_memory_node_get_devid(dst_node);
+#else
+		STARPU_ABORT();
+#endif
+	}
 
 	if (stream)
 	{
-	     _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-	     cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
-	     _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		if (peer_copy)
+		{
+			cures = cudaMemcpyPeerAsync((char *) dst_ptr, dst_dev,
+						    (char *) src_ptr, src_dev,
+						    ssize, stream);
+		}
+		else
+#endif
+		{
+			cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
+		}
+		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	}
+
 	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
 	if (stream == NULL || cures)
 	{
 		/* do it in a synchronous fashion */
-		cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		if (peer_copy)
+		{
+			cures = cudaMemcpyPeer((char *) dst_ptr, dst_dev,
+					       (char *) src_ptr, src_dev,
+					       ssize);
+		}
+		else
+#endif
+		{
+			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+		}
+
 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
@@ -514,15 +641,11 @@ int _starpu_run_cuda(struct starpu_driver *d)
 {
 	STARPU_ASSERT(d && d->type == STARPU_CUDA_WORKER);
 
-	int workers[d->id.cuda_id + 1];
-	int nworkers;
-	nworkers = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, workers, d->id.cuda_id+1);
-	if (nworkers >= 0 && (unsigned) nworkers < d->id.cuda_id)
-		return -ENODEV;
-	
-	_STARPU_DEBUG("Running cuda %d from the application\n", d->id.cuda_id);
+	int workerid = starpu_worker_get_by_devid(STARPU_CUDA_WORKER, d->id.cuda_id);
 
-	struct _starpu_worker *workerarg = _starpu_get_worker_struct(workers[d->id.cuda_id]);
+	_STARPU_DEBUG("Running cuda %u from the application\n", d->id.cuda_id);
+
+	struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
 
 	workerarg->set = NULL;
 	workerarg->worker_is_initialized = 0;
@@ -536,3 +659,5 @@ int _starpu_run_cuda(struct starpu_driver *d)
 
 	return 0;
 }
+
+#endif /* STARPU_USE_CUDA */

@@ -31,6 +31,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 					enum starpu_perf_archtype perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling);
 
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
+struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode);
 
 #endif // __DRIVER_COMMON_H__

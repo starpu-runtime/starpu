@@ -26,7 +26,7 @@ static void release_callback_memobject(void * e) {
   mem_object_release(mem);
 
   /* Destruct object */
-  starpu_data_unregister_no_coherency(mem->handle);
+  starpu_data_unregister_submit(mem->handle);
 
   if (!(mem->flags & CL_MEM_USE_HOST_PTR))
     free(mem->ptr);
@@ -54,6 +54,8 @@ soclCreateBuffer(cl_context   context,
                void *       host_ptr,
                cl_int *     errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
+   cl_mem mem;
+
    if (errcode_ret != NULL)
       *errcode_ret = CL_SUCCESS;
 
@@ -81,68 +83,61 @@ soclCreateBuffer(cl_context   context,
       return NULL;
    }
 
-   {
-      cl_mem mem;
 
-      //Alloc cl_mem structure
-      mem = (cl_mem)gc_entity_alloc(sizeof(struct _cl_mem), release_callback_memobject);
-      if (mem == NULL) {
+   //Alloc cl_mem structure
+   mem = (cl_mem)gc_entity_alloc(sizeof(struct _cl_mem), release_callback_memobject, "buffer");
+   if (mem == NULL) {
+      if (errcode_ret != NULL)
+         *errcode_ret = CL_OUT_OF_HOST_MEMORY;
+      return NULL;
+   }
+   
+   mem->ptr = NULL;
+   mem->map_count = 0;
+   gc_entity_store(&mem->context, context);
+   mem->flags = flags;
+   mem->size = size;
+   mem->host_ptr = host_ptr;
+
+   #ifdef DEBUG
+   static int id = 0;
+   mem->id = id++;
+   #endif
+
+   mem_object_store(mem);
+
+   //TODO: we shouldn't allocate the buffer ourselves. StarPU allocates it if a NULL pointer is given
+
+   // If not MEM_USE_HOST_PTR, we need to alloc the buffer ourselves
+   if (!(flags & CL_MEM_USE_HOST_PTR)) {
+      mem->ptr = valloc(size);
+      if (mem->ptr == NULL) {
          if (errcode_ret != NULL)
-            *errcode_ret = CL_OUT_OF_HOST_MEMORY;
+            *errcode_ret = CL_MEM_OBJECT_ALLOCATION_FAILURE;
+         free(mem);
          return NULL;
       }
-      
-      mem->ptr = NULL;
-      mem->map_count = 0;
-      gc_entity_store(&mem->context, context);
-      mem->flags = flags;
-      mem->size = size;
-      mem->host_ptr = host_ptr;
-
-      #ifdef DEBUG
-      static int id = 0;
-      mem->id = id++;
-      #endif
-
-      mem_object_store(mem);
-
-      //TODO: we shouldn't allocate the buffer ourselves. StarPU allocates it if a NULL pointer is given
-
-      // If not MEM_USE_HOST_PTR, we need to alloc the buffer ourselves
-      if (!(flags & CL_MEM_USE_HOST_PTR)) {
-         mem->ptr = valloc(size);
-         if (mem->ptr == NULL) {
-            if (errcode_ret != NULL)
-               *errcode_ret = CL_MEM_OBJECT_ALLOCATION_FAILURE;
-            free(mem);
-            return NULL;
-         }
-         //The buffer doesn't contain meaningful data
-         mem->scratch = 1;
-      }
-      else {
-         //The buffer may contain meaningful data
-         mem->scratch = 0;
-         mem->ptr = host_ptr;
-      }
-
-      // Access mode
-      if (flags & CL_MEM_READ_ONLY)
-         mem->mode = CL_MEM_READ_ONLY;
-      else if (flags & CL_MEM_WRITE_ONLY)
-         mem->mode = CL_MEM_WRITE_ONLY;
-      else
-         mem->mode = CL_MEM_READ_WRITE;
-
-      // Perform data copy if necessary
-      if (flags & CL_MEM_COPY_HOST_PTR)
-         memcpy(mem->ptr, host_ptr, size);
-      
-      // Create StarPU buffer (on home node? what's this?)
-      starpu_variable_data_register(&mem->handle, 0, (uintptr_t)mem->ptr, size); 
-
-      DEBUG_MSG("[Buffer %d] Initialized (cl_mem %p handle %p)\n", mem->id, mem, mem->handle);
-      
-      return mem;
+      //The buffer doesn't contain meaningful data
+      mem->scratch = 1;
    }
+   else {
+      //The buffer may contain meaningful data
+      mem->scratch = 0;
+      mem->ptr = host_ptr;
+   }
+
+   // Access mode
+   mem->mode = flags & CL_MEM_READ_ONLY  ? CL_MEM_READ_ONLY :
+               flags & CL_MEM_WRITE_ONLY ? CL_MEM_WRITE_ONLY : CL_MEM_READ_WRITE;
+
+   // Perform data copy if necessary
+   if (flags & CL_MEM_COPY_HOST_PTR)
+      memcpy(mem->ptr, host_ptr, size);
+   
+   // Create StarPU buffer (on home node? what's this?)
+   starpu_variable_data_register(&mem->handle, 0, (uintptr_t)mem->ptr, size); 
+
+   DEBUG_MSG("[Buffer %d] Initialized (cl_mem %p handle %p)\n", mem->id, mem, mem->handle);
+   
+   return mem;
 }

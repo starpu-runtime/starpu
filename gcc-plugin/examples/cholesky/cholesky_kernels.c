@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,9 +51,10 @@ static inline void chol_common_cpu_codelet_update_u22(const float *left, const f
 					-1.0f, left, ld21, right, ld12,
 					 1.0f, center, ld22);
 			st = cublasGetError();
-			STARPU_ASSERT(!st);
+			if (STARPU_UNLIKELY(st != CUBLAS_STATUS_SUCCESS))
+				STARPU_CUBLAS_REPORT_ERROR(st);
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -99,7 +100,7 @@ static inline void chol_common_codelet_update_u21(const float *sub11, float *sub
 #ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			break;
 #endif
 		default:
@@ -170,15 +171,15 @@ static inline void chol_common_codelet_update_u11(float *sub11, unsigned nx, uns
 					fprintf(stderr, "Error in Magma: %d\n", ret);
 					STARPU_ABORT();
 				}
-				cudaError_t cures = cudaThreadSynchronize();
+				cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
 				STARPU_ASSERT(!cures);
 			}
 #else
 			for (z = 0; z < nx; z++)
 			{
 				float lambda11;
-				cudaMemcpy(&lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
-				cudaStreamSynchronize(0);
+				cudaMemcpyAsync(&lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				STARPU_ASSERT(lambda11 != 0.0f);
 
@@ -193,7 +194,7 @@ static inline void chol_common_codelet_update_u11(float *sub11, unsigned nx, uns
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif
 			break;
 #endif

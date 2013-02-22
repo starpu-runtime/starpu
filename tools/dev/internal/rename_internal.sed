@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,17 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+s/\b_starpu_register_memory_node\b/_starpu_memory_node_register/g
+s/\b_starpu_memory_node_worker_add\b/_starpu_memory_node_add_nworkers/g
+s/\b_starpu_memory_node_workers\b/_starpu_memory_node_get_nworkers/g
+s/\b_starpu_memory_node_to_devid\b/_starpu_memory_node_get_devid/g
+s/\b_starpu_init_memory_nodes\b/_starpu_memory_nodes_init/g
+s/\b_starpu_deinit_memory_nodes\b/_starpu_memory_nodes_deinit/g
+s/\bstruct _starpu_mem_node_descr\b/struct _starpu_memory_node_descr/g
+s/\b_starpu_set_local_memory_node_key\b/_starpu_memory_node_set_local_key/g
+s/\b_starpu_get_local_memory_node\b/_starpu_memory_node_get_local_key/g
+s/\b_starpu_get_memory_node_description\b/_starpu_memory_node_get_description/g
 
 s/\bheft_policy\b/_starpu_sched_heft_policy/g
 s/\bstruct starpu_priority_taskq_s\b/struct _starpu_priority_taskq/g

@@ -15,6 +15,7 @@
  */
 
 #include "socl.h"
+#include "event.h"
 
 
 void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
@@ -23,6 +24,10 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
    cl_command_queue cq;
    int wid;
    cl_int err;
+
+  cl_event ev = command_event_get(cmd);
+  ev->prof_start = _socl_nanotime();
+  gc_entity_release(ev);
 
    wid = starpu_worker_get_id();
    starpu_opencl_get_queue(wid, &cq);
@@ -72,49 +77,12 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
 	   if (cmd->local_work_size != NULL)
 		   DEBUG_MSG("Local work size: %ld %ld %ld\n", cmd->local_work_size[0],
 				   (cmd->work_dim > 1 ? cmd->local_work_size[1] : 1), (cmd->work_dim > 2 ? cmd->local_work_size[2] : 1)); 
-	   ERROR_MSG("Aborting.\n");
-	   exit(1);
    }
-
-   /* Waiting for kernel to terminate */
-   clWaitForEvents(1, &event);
-}
-
-static void cleaning_task_callback(void *args) {
-	command_ndrange_kernel cmd = (command_ndrange_kernel)args;
-
-	free(cmd->arg_sizes);
-	free(cmd->arg_types);
-
-	unsigned int i;
-	for (i=0; i<cmd->num_args; i++) {
-		free(cmd->args[i]);
-	}
-	free(cmd->args);
-
-	for (i=0; i<cmd->num_buffers; i++)
-		gc_entity_unstore(&cmd->buffers[i]);
-
-	free(cmd->buffers);
-
-	free(cmd->codelet);
-	cmd->codelet = NULL;
-
-	if (cmd->global_work_offset != NULL) {
-	  free((void*)cmd->global_work_offset);
-	  cmd->global_work_offset = NULL;
-	}
-
-	if (cmd->global_work_size != NULL) {
-	  free((void*)cmd->global_work_size);
-	  cmd->global_work_size = NULL;
-	}
-
-	if (cmd->local_work_size != NULL) {
-	  free((void*)cmd->local_work_size);
-	  cmd->local_work_size = NULL;
-	}
-
+   else {
+      /* Waiting for kernel to terminate */
+      clWaitForEvents(1, &event);
+      clReleaseEvent(event);
+   }
 }
 
 /**
@@ -123,11 +91,18 @@ static void cleaning_task_callback(void *args) {
 cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	starpu_task task = task_create();
-	task->cl = cmd->codelet;
+	task->cl = &cmd->codelet;
+	task->cl->model = cmd->kernel->perfmodel;
 	task->cl_arg = cmd;
 	task->cl_arg_size = sizeof(cmd);
 
-	struct starpu_codelet * codelet = cmd->codelet;
+	/* Execute the task on a specific worker? */
+	if (cmd->_command.event->cq->device != NULL) {
+	  task->execute_on_a_specific_worker = 1;
+	  task->workerid = cmd->_command.event->cq->device->worker_id;
+	}
+
+	struct starpu_codelet * codelet = task->cl;
 
 	/* We need to detect which parameters are OpenCL's memory objects and
 	 * we retrieve their corresponding StarPU buffers */
@@ -168,13 +143,6 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd) {
 
 	task_submit(task, cmd);
 
-	/* Enqueue a cleaning task */
-	//FIXME: execute this in the callback?
-	starpu_task cleaning_task = task_create_cpu(cleaning_task_callback, cmd,0);
-	cl_event ev = command_event_get(cmd);
-	task_depends_on(cleaning_task, 1, &ev);
-	task_submit(cleaning_task, cmd);
-
 	return CL_SUCCESS;
 }
 
@@ -190,12 +158,71 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 		const cl_event * events,
 		cl_event *       event) CL_API_SUFFIX__VERSION_1_1
 {
-	command_ndrange_kernel cmd = command_ndrange_kernel_create(kernel, work_dim,
-			global_work_offset, global_work_size, local_work_size);
 
-	command_queue_enqueue(cq, cmd, num_events, events);
+   if (kernel->split_func != NULL && !pthread_mutex_trylock(&kernel->split_lock)) {
 
-	RETURN_EVENT(cmd, event);
+      cl_event beforeEvent, afterEvent, totalEvent;
+
+      totalEvent = event_create();
+      totalEvent->prof_start = _socl_nanotime();
+      totalEvent->prof_submit = totalEvent->prof_start;
+      totalEvent->prof_queued = totalEvent->prof_start;
+      gc_entity_store(&totalEvent->cq, cq);
+
+      command_marker cmd = command_marker_create();
+      beforeEvent = command_event_get(cmd);
+      command_queue_enqueue(cq, cmd, num_events, events);
+   
+      cl_uint iter = 1;
+      cl_uint split_min = CL_UINT_MAX;
+      cl_uint split_min_iter = 1;
+      while (kernel->split_perfs[iter] != 0 && iter < kernel->split_space) {
+         if (kernel->split_perfs[iter] < split_min) {
+            split_min = kernel->split_perfs[iter];
+            split_min_iter = iter;
+         }
+         iter++;
+      }
+
+      if (iter == kernel->split_space) {
+         iter = split_min_iter;
+      }
+
+      cl_int ret = kernel->split_func(cq, iter, kernel->split_data, beforeEvent, &afterEvent);
+
+      if (ret == CL_SUCCESS) {
+         //FIXME: blocking call
+         soclWaitForEvents(1, &afterEvent);
+
+         /* Store perf */
+         cl_ulong start,end;
+         soclGetEventProfilingInfo(beforeEvent, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &start, NULL);
+         soclGetEventProfilingInfo(afterEvent, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &end, NULL);
+         soclReleaseEvent(afterEvent);
+
+         kernel->split_perfs[iter] = end-start;
+
+         pthread_mutex_unlock(&kernel->split_lock);
+
+         event_complete(totalEvent);
+         RETURN_EVENT(totalEvent,event);
+      } else {
+         soclReleaseEvent(totalEvent);
+      }
+
+      return ret;
+   }
+   else {
+
+      command_ndrange_kernel cmd = command_ndrange_kernel_create(kernel, work_dim,
+            global_work_offset, global_work_size, local_work_size);
+
+      cl_event ev = command_event_get(cmd);
+
+      command_queue_enqueue(cq, cmd, num_events, events);
+
+      RETURN_EVENT(ev, event);
+   }
 
 	return CL_SUCCESS;
 }

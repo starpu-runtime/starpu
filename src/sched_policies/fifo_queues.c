@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -52,19 +52,82 @@ int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo)
 	return fifo->ntasks == 0;
 }
 
-/* TODO: revert front/back? */
-int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
+int
+_starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	struct starpu_task_list *list = &fifo_queue->taskq;
 
-	_STARPU_TRACE_JOB_PUSH(task, 0);
-	/* TODO: if prio, put at back */
-	starpu_task_list_push_front(&fifo_queue->taskq, task);
+	if (list->head == NULL)
+	{
+		list->head = task;
+		list->tail = task;
+		task->prev = NULL;
+		task->next = NULL;
+	}
+	else
+	{
+		struct starpu_task *current = list->head;
+		struct starpu_task *prev = NULL;
+
+		while (current)
+		{
+			if (current->priority >= task->priority)
+				break;
+
+			prev = current;
+			current = current->next;
+		}
+
+		if (prev == NULL)
+		{
+			/* Insert at the front of the list */
+			list->head->prev = task;
+			task->prev = NULL;
+			task->next = list->head;
+			list->head = task;
+		}
+		else
+		{
+			if (current)
+			{
+				/* Insert between prev and current */
+				task->prev = prev;
+				prev->next = task;
+				task->next = current;
+				current->prev = task;
+			}
+			else
+			{
+				/* Insert at the tail of the list */
+				list->tail->next = task;
+				task->next = NULL;
+				task->prev = list->tail;
+				list->tail = task;
+			}
+		}
+	}
+
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
-	_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	return 0;
+}
+
+/* TODO: revert front/back? */
+int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
+{
+
+	if (task->priority > 0)
+	{
+		_starpu_fifo_push_sorted_task(fifo_queue, task);
+	}
+	else
+	{
+		starpu_task_list_push_front(&fifo_queue->taskq, task);
+
+		fifo_queue->ntasks++;
+		fifo_queue->nprocessed++;
+	}
 
 	return 0;
 }
@@ -94,16 +157,31 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 	return NULL;
 }
 
+/* This is the same as _starpu_fifo_pop_task, but without checking that the
+ * worker will be able to execute this task. This is useful when the scheduler
+ * has already checked it. */
+struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_queue)
+{
+	struct starpu_task *task = NULL;
+
+	if (!starpu_task_list_empty(&fifo_queue->taskq))
+	{
+		task = starpu_task_list_pop_back(&fifo_queue->taskq);
+		fifo_queue->ntasks--;
+		_STARPU_TRACE_JOB_POP(task, 0);
+	}
+
+	return task;
+}
+
 /* pop every task that can be executed on the calling driver */
-struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, pthread_mutex_t *sched_mutex, int workerid)
+struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task_list *old_list;
 	unsigned size;
 
 	struct starpu_task *new_list = NULL;
 	struct starpu_task *new_list_tail = NULL;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	size = fifo_queue->ntasks;
 
@@ -152,8 +230,6 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 
 		fifo_queue->ntasks -= new_list_size;
 	}
-
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;
 }

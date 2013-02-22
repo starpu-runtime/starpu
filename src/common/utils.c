@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,7 @@
 #include <common/utils.h>
 #include <libgen.h>
 #include <errno.h>
+#include <unistd.h>
 
 #ifdef __MINGW32__
 #include <io.h>
@@ -87,7 +88,7 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 		{
 			fprintf(stderr,"Error making StarPU directory %s:\n", path);
 			perror("mkdir");
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 
 		/* make sure that it is actually a directory */
@@ -96,15 +97,15 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 		if (!S_ISDIR(sb.st_mode))
 		{
 			fprintf(stderr,"Error: %s is not a directory:\n", path);
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 	}
 }
 
-int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
+int _starpu_check_mutex_deadlock(_starpu_pthread_mutex_t *mutex)
 {
 	int ret;
-	ret = pthread_mutex_trylock(mutex);
+	ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(mutex);
 	if (!ret)
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
@@ -119,7 +120,7 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
 	return 1;
 }
 
-char *_starpu_get_home_path()
+char *_starpu_get_home_path(void)
 {
 	char *path = getenv("XDG_CACHE_HOME");
 	if (!path)
@@ -131,4 +132,23 @@ char *_starpu_get_home_path()
 	if (!path)
 		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
 	return path;
+}
+
+void _starpu_gethostname(char *hostname, size_t size)
+{
+	char *forced_hostname = getenv("STARPU_HOSTNAME");
+	if (forced_hostname && forced_hostname[0])
+	{
+		snprintf(hostname, size-1, "%s", forced_hostname);
+		hostname[size-1] = 0;
+	}
+	else
+	{
+		char *c;
+		gethostname(hostname, size-1);
+		hostname[size-1] = 0;
+		c = strchr(hostname, '.');
+		if (c)
+			*c = 0;
+	}
 }

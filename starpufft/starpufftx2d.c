@@ -57,9 +57,11 @@ STARPUFFT(fft1_2d_plan_gpu)(void *args)
 	cufftResult cures;
 
 	cures = cufftPlan2d(&plan->plans[workerid].plan1_cuda, n2, m2, _CUFFT_C2C);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 	cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 }
 
 static void
@@ -83,7 +85,8 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 	task_per_worker[workerid]++;
 
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 
 	/* synchronization is done after the twiddling */
 	STARPUFFT(cuda_twiddle_2d_host)(out, roots0, roots1, n2, m2, i, j);
@@ -104,9 +107,11 @@ STARPUFFT(fft2_2d_plan_gpu(void *args))
 	int workerid = starpu_worker_get_id();
 
 	cures = cufftPlan2d(&plan->plans[workerid].plan2_cuda, n1, m1, _CUFFT_C2C);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 	cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 }
 
 static void
@@ -132,7 +137,8 @@ STARPUFFT(fft2_2d_kernel_gpu)(void *descr[], void *_args)
 
 	for (n = 0; n < n3*m3; n++) {
 		cures = _cufftExecC2C(plan->plans[workerid].plan2_cuda, in + n * n1*m1, out + n * n1*m1, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		if (cures != CUFFT_SUCCESS)
+			STARPU_CUFFT_REPORT_ERROR(cures);
 	}
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
@@ -398,9 +404,11 @@ STARPUFFT(fft_2d_plan_gpu)(void *args)
 	int workerid = starpu_worker_get_id();
 
 	cures = cufftPlan2d(&plan->plans[workerid].plan_cuda, n, m, _CUFFT_C2C);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 	cufftSetStream(plan->plans[workerid].plan_cuda, starpu_cuda_get_local_stream());
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 }
 
 static void
@@ -417,7 +425,8 @@ STARPUFFT(fft_2d_kernel_gpu)(void *descr[], void *args)
 	task_per_worker[workerid]++;
 
 	cures = _cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	if (cures != CUFFT_SUCCESS)
+		STARPU_CUFFT_REPORT_ERROR(cures);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
@@ -780,24 +789,31 @@ STARPUFFT(start2dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data
 if (PARALLEL) {
 	for (z=0; z < plan->totsize1; z++) {
 		ret = starpu_task_submit(plan->twist1_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		ret = starpu_task_submit(plan->fft1_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	ret = starpu_task_submit(plan->join_task);
+	if (ret == -ENODEV) return NULL;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	for (z=0; z < plan->totsize3; z++) {
 		ret = starpu_task_submit(plan->twist2_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		ret = starpu_task_submit(plan->fft2_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		ret = starpu_task_submit(plan->twist3_tasks[z]);
+		if (ret == -ENODEV) return NULL;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	ret = starpu_task_submit(plan->end_task);
+	if (ret == -ENODEV) return NULL;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	return plan->end_task;
@@ -813,6 +829,7 @@ if (PARALLEL) {
 	task->cl_arg = plan;
 
 	ret = starpu_task_submit(task);
+	if (ret == -ENODEV) return NULL;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return task;
 }

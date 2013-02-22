@@ -175,15 +175,15 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 
 static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	struct starpu_task *entry_task = NULL;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -230,10 +230,10 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	starpu_data_unpartition(dataA, 0);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
@@ -254,6 +254,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	starpu_helper_cublas_init();
 
+#ifndef STARPU_SIMGRID
 	if (pinned)
 	{
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
@@ -262,6 +263,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	{
 		*A = malloc(dim*dim*sizeof(float));
 	}
+#endif
 	return 0;
 }
 
@@ -318,10 +320,11 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	float *mat;
+	float *mat = NULL;
 	int ret = initialize_system(&mat, size, pinned);
 	if (ret) return ret;
 
+#ifndef STARPU_SIMGRID
 	unsigned i,j;
 	for (i = 0; i < size; i++)
 	{
@@ -331,6 +334,7 @@ int main(int argc, char **argv)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
+#endif
 
 
 #ifdef CHECK_OUTPUT

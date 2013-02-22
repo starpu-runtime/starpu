@@ -736,7 +736,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
 	STARPU_ASSERT(task->handles[2] != STARPU_POISON_PTR);
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
+	if (!no_prio && (i == k + 1) && (j == k +1) ) {
 		task->priority = STARPU_MAX_PRIO;
 	}
 

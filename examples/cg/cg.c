@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	i_max = 16;
 #endif
 

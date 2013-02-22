@@ -51,7 +51,7 @@ void scal_cpu_func(void *buffers[], void *_args)
 static struct starpu_perfmodel vector_scal_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale_parallel"
+	.symbol = "vector_scal_parallel"
 };
 
 static struct starpu_codelet cl =

@@ -15,8 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_profiling.h>
-
 #include "../helper.h"
 
 /*
@@ -25,7 +23,7 @@
  * 	- cpu_task is cheduled on a CPU.
  * 	- gpu_task is scheduled on a GPU.
  *
- * Applies to : heft, XXX : and to what other schedulers ?
+ * Applies to : dmda and to what other schedulers ?
  */
 
 
@@ -106,7 +104,7 @@ init_perfmodels(void)
 		model_cpu_task.per_arch[i][0].cost_function = cpu_task_cpu;
 		model_gpu_task.per_arch[i][0].cost_function = gpu_task_cpu;
 	}
-	for (i = STARPU_CUDA_DEFAULT; i < STARPU_GORDON_DEFAULT; i++)
+	for (i = STARPU_CUDA_DEFAULT; i < STARPU_NARCH_VARIATIONS; i++)
 	{
 		model_cpu_task.per_arch[i][0].cost_function = cpu_task_gpu;
 		model_gpu_task.per_arch[i][0].cost_function = gpu_task_gpu;
@@ -191,14 +189,13 @@ extern struct starpu_sched_policy _starpu_sched_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_random_policy;
 extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy _starpu_sched_eager_policy;
 extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
+extern struct starpu_sched_policy _starpu_sched_peager_policy;
 */
-extern struct starpu_sched_policy _starpu_sched_heft_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_policy;
 
 /* XXX: what policies are we interested in ? */
 static struct starpu_sched_policy *policies[] =
@@ -206,14 +203,13 @@ static struct starpu_sched_policy *policies[] =
 	//&_starpu_sched_ws_policy,
 	//&_starpu_sched_prio_policy,
 	//&_starpu_sched_dm_policy,
-	//&_starpu_sched_dmda_policy,
-	&_starpu_sched_heft_policy,
+	&_starpu_sched_dmda_policy,
 	//&_starpu_sched_dmda_ready_policy,
 	//&_starpu_sched_dmda_sorted_policy,
 	//&_starpu_sched_random_policy,
 	//&_starpu_sched_eager_policy,
 	//&_starpu_sched_parallel_heft_policy,
-	//&_starpu_sched_pgreedy_policy
+	//&_starpu_sched_peager_policy
 };
 
 int

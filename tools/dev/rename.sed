@@ -14,9 +14,18 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+s/\bstruct starpu_per_arch_perfmodel\b/struct starpu_perfmodel_per_arch/g
+s/\bstruct starpu_regression_model\b/struct starpu_perfmodel_regression_model/g
+s/\bstruct starpu_history_table\b/struct starpu_perfmodel_history_table/g
+s/\bstruct starpu_history_entry\b/struct starpu_perfmodel_history_entry/g
+s/\bstruct starpu_history_list\b/struct starpu_perfmodel_history_list/g
+s/\bstarpu_list_models\b/starpu_perfmodel_list/g
+s/\bstruct starpu_model_list\b/struct _starpu_perfmodel_list/g
+s/\bstarpu_load_history_debug\b/starpu_perfmodel_load_symbol/g
 s/\bstarpu_access_mode\b/enum starpu_access_mode/g
 s/\bstruct starpu_codelet_t\b/struct starpu_codelet/g
 s/\bstarpu_codelet\b/struct starpu_codelet/g
+s/\bstarpu_codelet_t\b/struct starpu_codelet/g
 s/\bstarpu_data_handle\b/starpu_data_handle_t/g
 s/\bstarpu_block_interface_t\b/struct starpu_block_interface/g
 s/\bstarpu_matrix_interface_t\b/struct starpu_matrix_interface/g
@@ -141,3 +150,4 @@ s/\bstarpu_get_handle_interface_id\b/starpu_handle_get_interface_id/g
 s/\bstarpu_get_current_task\b/starpu_task_get_current/g
 s/\bstarpu_pack_cl_args\b/starpu_codelet_pack_args/g
 s/\bstarpu_unpack_cl_args\b/starpu_codelet_unpack_args/g
+s/\bstarpu_task_deinit\b/starpu_task_clean/g

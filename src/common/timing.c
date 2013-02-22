@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,25 @@
 #include <common/config.h>
 #include <profiling/profiling.h>
 #include <common/timing.h>
+#include <math.h>
 
-#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#endif
+
+#ifdef STARPU_SIMGRID
+void _starpu_timing_init(void)
+{
+}
+
+void _starpu_clock_gettime(struct timespec *ts)
+{
+	double now = MSG_get_clock();
+	ts->tv_sec = floor(now);
+	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
+}
+
+#elif defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
 #include <time.h>
 #ifndef _POSIX_C_SOURCE
 /* for clock_gettime */
@@ -88,14 +105,14 @@ void _starpu_clock_gettime(struct timespec *ts)
 #if defined(__i386__) || defined(__pentium__) || defined(__pentiumpro__) || defined(__i586__) || defined(__i686__) || defined(__k6__) || defined(__k7__) || defined(__x86_64__)
 union starpu_u_tick
 {
-  uint64_t tick;
+	uint64_t tick;
 
-  struct
-  {
-    uint32_t low;
-    uint32_t high;
-  }
-  sub;
+	struct
+	{
+		uint32_t low;
+		uint32_t high;
+	}
+		sub;
 };
 
 #define STARPU_GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
@@ -110,36 +127,36 @@ static int _starpu_inited = 0;
 
 void _starpu_timing_init(void)
 {
-  static union starpu_u_tick t1, t2;
-  int i;
+	static union starpu_u_tick t1, t2;
+	int i;
 
-  if (_starpu_inited) return;
+	if (_starpu_inited) return;
 
-  _starpu_residual = (unsigned long long)1 << 63;
+	_starpu_residual = (unsigned long long)1 << 63;
 
-  for(i = 0; i < 20; i++)
-    {
-      STARPU_GET_TICK(t1);
-      STARPU_GET_TICK(t2);
-      _starpu_residual = STARPU_MIN(_starpu_residual, STARPU_TICK_RAW_DIFF(t1, t2));
-    }
+	for(i = 0; i < 20; i++)
+	{
+		STARPU_GET_TICK(t1);
+		STARPU_GET_TICK(t2);
+		_starpu_residual = STARPU_MIN(_starpu_residual, STARPU_TICK_RAW_DIFF(t1, t2));
+	}
 
-  {
-    struct timeval tv1,tv2;
+	{
+		struct timeval tv1,tv2;
 
-    STARPU_GET_TICK(t1);
-    gettimeofday(&tv1,0);
-    usleep(500000);
-    STARPU_GET_TICK(t2);
-    gettimeofday(&tv2,0);
-    _starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
-		     (tv1.tv_sec*1e6 + tv1.tv_usec)) /
-      (double)(STARPU_TICK_DIFF(t1, t2));
-  }
+		STARPU_GET_TICK(t1);
+		gettimeofday(&tv1,0);
+		usleep(500000);
+		STARPU_GET_TICK(t2);
+		gettimeofday(&tv2,0);
+		_starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
+				 (tv1.tv_sec*1e6 + tv1.tv_usec)) /
+			(double)(STARPU_TICK_DIFF(t1, t2));
+	}
 
-  STARPU_GET_TICK(_starpu_reference_start_tick);
+	STARPU_GET_TICK(_starpu_reference_start_tick);
 
-  _starpu_inited = 1;
+	_starpu_inited = 1;
 }
 
 void _starpu_clock_gettime(struct timespec *ts)
@@ -193,8 +210,12 @@ double starpu_timing_timespec_to_us(struct timespec *ts)
 
 double starpu_timing_now(void)
 {
+#ifdef STARPU_SIMGRID
+	return MSG_get_clock()*1000000;
+#else
 	struct timespec now;
 	_starpu_clock_gettime(&now);
 
 	return starpu_timing_timespec_to_us(&now);
+#endif
 }

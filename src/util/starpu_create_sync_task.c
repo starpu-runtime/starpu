@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <core/task.h>
 
 /* This creates (and submits) an empty task that unlocks a tag once all its
  * dependencies are fulfilled. */
@@ -39,6 +40,6 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 	/* This task does nothing */
 	sync_task->cl = NULL;
 
-	int sync_ret = starpu_task_submit(sync_task);
+	int sync_ret = _starpu_task_submit_internally(sync_task);
 	STARPU_ASSERT(!sync_ret);
 }

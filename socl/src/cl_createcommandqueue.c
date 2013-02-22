@@ -44,7 +44,7 @@ soclCreateCommandQueue(cl_context                   context,
    cl_command_queue cq;
 
    cq = (cl_command_queue)gc_entity_alloc(sizeof(struct _cl_command_queue),
-                                          release_callback_command_queue);
+                                          release_callback_command_queue, "command_queue");
    if (cq == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;
@@ -53,7 +53,11 @@ soclCreateCommandQueue(cl_context                   context,
 
    cq->properties = properties;
    gc_entity_store(&cq->context, context);
-   cq->device = device;
+
+   char * fd = getenv("SOCL_FORCE_DYNAMIC");
+   int force_dynamic = fd == NULL ? 0 : atoi(fd);
+
+   cq->device = force_dynamic ? NULL : device;
 
    #ifdef DEBUG
    static int id = 0;

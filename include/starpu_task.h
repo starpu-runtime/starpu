@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,8 +36,6 @@ extern "C"
 
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
-#define	STARPU_SPU	((1ULL)<<4),
-#define	STARPU_GORDON	((1ULL)<<5)
 #define STARPU_OPENCL	((1ULL)<<6)
 
 /* Codelet types */
@@ -51,6 +50,7 @@ enum starpu_codelet_type
 enum starpu_task_status
 {
 	STARPU_TASK_INVALID,
+#define STARPU_TASK_INVALID 0
 	STARPU_TASK_BLOCKED,
 	STARPU_TASK_READY,
 	STARPU_TASK_RUNNING,
@@ -65,12 +65,10 @@ typedef uint64_t starpu_tag_t;
 typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
 typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
 typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
-typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
 
 #define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
 #define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
 #define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
-#define STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS 255
 
 /*
  * A codelet describes the various function
@@ -89,12 +87,10 @@ struct starpu_codelet
 	starpu_cuda_func_t cuda_func STARPU_DEPRECATED;
 	starpu_cpu_func_t cpu_func STARPU_DEPRECATED;
 	starpu_opencl_func_t opencl_func STARPU_DEPRECATED;
-	uint8_t gordon_func STARPU_DEPRECATED;
 
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
-	starpu_gordon_func_t gordon_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
@@ -138,8 +134,7 @@ struct starpu_task
 
 	/* options for the task execution */
 	unsigned synchronous; /* if set, a call to push is blocking */
-	int priority; /* STARPU_MAX_PRIO = most important
-        		: STARPU_MIN_PRIO = least important */
+	int priority; /* STARPU_MAX_PRIO = most important; STARPU_MIN_PRIO = least important */
 
 	/* in case the task has to be executed on a specific worker */
 	unsigned execute_on_a_specific_worker;
@@ -192,7 +187,25 @@ struct starpu_task
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
+
+	/* the magic field is set when initialising the task.
+	 * starpu_task_submit will fail if the field does not have the
+	 * right value. This will hence avoid submitting tasks which
+	 * have not been properly initialised.
+	 */
 	int magic;
+
+	/* Scheduling context */
+	unsigned sched_ctx;
+
+  /* Helps the hypervisor monitor the execution of this task */
+	int hypervisor_tag;
+
+	/* Number of flops computed by this tag, used by resource reallocation for contexts */
+	double flops;
+
+	/* Whether the scheduler has pushed the task on some queue */
+	unsigned scheduled;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.
@@ -218,8 +231,12 @@ struct starpu_task
 	.predicted = -1.0,				\
 	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL,				\
-	.magic = 42                  			\
-};
+	.magic = 42,                  			\
+	.sched_ctx = 0,					\
+	.hypervisor_tag = 0,				\
+	.flops = 0.0,					\
+		.scheduled = 0				\
+}
 
 /*
  * handle task dependencies: it is possible to associate a task with a unique
@@ -266,9 +283,11 @@ void starpu_task_init(struct starpu_task *task);
 
 /* Release all the structures automatically allocated to execute the task. This
  * is called implicitely by starpu_task_destroy, but the task structure itself
- * is not freed. This should be used for statically allocated tasks for
- * instance. */
-void starpu_task_deinit(struct starpu_task *task);
+ * is not freed. Values previously set by the user remain unchanged.
+ * This should be used for statically allocated tasks for instance.
+ * It should also be used for submitting the same task several times.
+ */
+void starpu_task_clean(struct starpu_task *task);
 
 /* Allocate a task structure and initialize it with default values. Tasks
  * allocated dynamically with starpu_task_create are automatically freed when
@@ -284,6 +303,7 @@ struct starpu_task *starpu_task_create(void);
  * allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
 /* This function blocks until the task was executed. It is not possible to
  * synchronize with a task more than once. It is not possible to wait
@@ -295,6 +315,8 @@ int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 /* This function waits until all the tasks that were already submitted have
  * been executed. */
 int starpu_task_wait_for_all(void);
+
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
 
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);

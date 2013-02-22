@@ -22,7 +22,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#define NLOOPS	128
+#ifdef STARPU_QUICK_CHECK
+  #define NLOOPS	4
+#else
+  #define NLOOPS	128
+#endif
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -51,10 +55,6 @@ int main(int argc, char **argv)
 {
 	int ret;
 	unsigned loop, nloops=NLOOPS;
-
-#ifdef STARPU_SLOW_MACHINE
-	nloops /= 8;
-#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

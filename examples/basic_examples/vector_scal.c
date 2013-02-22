@@ -24,7 +24,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -42,13 +41,13 @@ extern void scal_opencl_func(void *buffers[], void *_args);
 static struct starpu_perfmodel vector_scal_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale"
+	.symbol = "vector_scal"
 };
 
 static struct starpu_perfmodel vector_scal_power_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale_power"
+	.symbol = "vector_scal_power"
 };
 
 static struct starpu_codelet cl =
@@ -88,8 +87,15 @@ struct starpu_opencl_program opencl_program;
 
 static int approximately_equal(float a, float b)
 {
+#ifdef STARPU_HAVE_NEARBYINTF
 	int ai = (int) nearbyintf(a * 1000.0);
 	int bi = (int) nearbyintf(b * 1000.0);
+#elif defined(STARPU_HAVE_RINTF)
+	int ai = (int) rintf(a * 1000.0);
+	int bi = (int) rintf(b * 1000.0);
+#else
+#error "Please define either nearbyintf or rintf."
+#endif
 	return ai == bi;
 }
 

@@ -29,48 +29,6 @@ extern "C"
 {
 #endif
 
-#define STARPU_POISON_PTR	((void *)0xdeadbeef)
-
-#define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
-#define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
-
-#ifdef STARPU_NO_ASSERT
-#define STARPU_ASSERT(x)		do { (void) (x);} while(0)
-#define STARPU_ASSERT_MSG(x, msg)	do { (void) (x);} while(0)
-#else
-#  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
-#    define STARPU_ASSERT(x)		do { if (!(x)) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); *(int*)NULL = 0; }} while(0)
-#  else
-#    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg)	do { if (!(x)) { fprintf(stderr, "%s\n", msg); } ; assert(x); } while(0)
-
-#  endif
-#endif
-
-#define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "%s:%d %s\n", __FILE__, __LINE__, __func__); \
-	abort();                                                     \
-} while(0)
-
-#if defined(STARPU_HAVE_STRERROR_R)
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err != 0) { \
-			char xmessage[256]; strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
-			STARPU_ASSERT(0); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
-			char xmessage[256]; strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
-			STARPU_ASSERT(0); }}
-#else
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (err != 0) {		\
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
-			STARPU_ASSERT(0); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (err != value) { \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
-			STARPU_ASSERT(0); }}
-#endif /* STARPU_HAVE_STRERROR_R */
-
 /* Return true (non-zero) if GCC version MAJ.MIN or later is being used
  * (macro taken from glibc.)  */
 #if defined __GNUC__ && defined __GNUC_MINOR__
@@ -103,6 +61,48 @@ extern "C"
 #else
 #define STARPU_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
+
+#define STARPU_POISON_PTR	((void *)0xdeadbeef)
+
+#define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
+#define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
+
+#ifdef STARPU_NO_ASSERT
+#define STARPU_ASSERT(x)		do { (void) (x);} while(0)
+#define STARPU_ASSERT_MSG(x, msg, ...)	do { (void) (x);} while(0)
+#else
+#  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
+#  else
+#    define STARPU_ASSERT(x)		assert(x)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); } ; assert(x); } while(0)
+
+#  endif
+#endif
+
+#define STARPU_ABORT() do {                                          \
+	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __func__); \
+	abort();                                                     \
+} while(0)
+
+#if defined(STARPU_HAVE_STRERROR_R)
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (STARPU_UNLIKELY(err != 0)) { \
+			char xmessage[256]; strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			STARPU_ABORT(); }}
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (STARPU_UNLIKELY(err != value)) { \
+			char xmessage[256]; strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			STARPU_ABORT(); }}
+#else
+#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (STARPU_UNLIKELY(err != 0)) {		\
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+			STARPU_ABORT(); }}
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (STARPU_UNLIKELY(err != value)) { \
+			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+			STARPU_ABORT(); }}
+#endif /* STARPU_HAVE_STRERROR_R */
 
 #if defined(__i386__) || defined(__x86_64__)
 
@@ -172,6 +172,20 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
+#if defined(__i386__)
+#define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
+#elif defined(__x86_64__)
+#define STARPU_RMB() __asm__ __volatile__("lfence" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
+#elif defined(__ppc__) || defined(__ppc64__)
+#define STARPU_RMB() __asm__ __volatile__("sync" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
+#else
+#define STARPU_RMB() STARPU_SYNCHRONIZE()
+#define STARPU_WMB() STARPU_SYNCHRONIZE()
+#endif
+
 #ifdef __cplusplus
 }
 #endif
@@ -197,7 +211,10 @@ static __inline int starpu_get_env_number(const char *str)
 		char *check;
 
 		val = (int)strtol(strval, &check, 10);
-		STARPU_ASSERT(strcmp(check, "\0") == 0);
+		if (*check) {
+			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
+			STARPU_ABORT();
+		}
 
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
 		return val;
@@ -213,10 +230,6 @@ static __inline int starpu_get_env_number(const char *str)
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
 
-/* Some helper functions for application using CUBLAS kernels */
-void starpu_helper_cublas_init(void);
-void starpu_helper_cublas_shutdown(void);
-
 /* Call func(arg) on every worker matching the "where" mask (eg.
  * STARPU_CUDA|STARPU_CPU to execute the function on every CPU and every CUDA
  * device). This function is synchronous, but the different workers may execute
@@ -224,10 +237,14 @@ void starpu_helper_cublas_shutdown(void);
  * */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
-/* This creates (and submits) an empty task that unlocks a tag once all its
- * dependencies are fulfilled. */
-void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
-				void (*callback)(void *), void *callback_arg);
+/* Same as starpu_execute_on_each_worker, except that the task name is specified in the "name" parameter. */
+void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char * name);
+
+/* Call func(arg) on every worker in the "workers" array. "num_workers"
+ * indicates the number of workers in this array.  This function is
+ * synchronous, but the different workers may execute the function in parallel.
+ * */
+void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char * name);
 
 /* Copy the content of the src_handle into the dst_handle handle.  The
  * asynchronous parameter indicates whether the function should block or not.
@@ -237,26 +254,6 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
  * not NULL, this callback function is executed after the handle has been
  * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
-
-/* Constants used by the starpu_insert_task helper to determine the different types of argument */
-#define STARPU_VALUE		(1<<4)	/* Pointer to a constant value */
-#define STARPU_CALLBACK		(1<<5)	/* Callback function */
-#define STARPU_CALLBACK_WITH_ARG	(1<<6)	/* Callback function */
-#define STARPU_CALLBACK_ARG	(1<<7)	/* Argument of the callback function (of type void *) */
-#define STARPU_PRIORITY		(1<<8)	/* Priority associated to the task */
-#define STARPU_EXECUTE_ON_NODE	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
-#define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
-
-/* Wrapper to create a task. */
-int starpu_insert_task(struct starpu_codelet *cl, ...);
-
-/* Retrieve the arguments of type STARPU_VALUE associated to a task
- * automatically created using starpu_insert_task. */
-void starpu_codelet_unpack_args(void *cl_arg, ...);
-
-/* Pack arguments of type STARPU_VALUE into a buffer which can be
- * given to a codelet and later unpacked with starpu_codelet_unpack_args */
-void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }

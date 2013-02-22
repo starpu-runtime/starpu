@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,7 +104,7 @@ static void parse_args(int argc, char **argv)
 			ticks = atoi(argv[++i]);
 		}
 
-		if (strcmp(argv[i], "-h") == 0)
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			 fprintf(stderr, "Usage : %s [options...]\n", argv[0]);
 			 fprintf(stderr, "\n");
@@ -152,7 +152,7 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
  */
 
 struct timeval start;
-struct timeval end;
+double begin, end;
 double timing; 
 
 void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
@@ -242,11 +242,13 @@ int main(int argc, char **argv)
 
 	gettimeofday(&start, NULL);
 
+	begin = starpu_timing_now();
+
 	starpu_tag_notify_from_apps(TAG_INIT_TASK);
 
 	wait_end_tasks(rank);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 #ifdef STARPU_USE_MPI
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
@@ -264,7 +266,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* timing in us */
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	timing = end - begin;
 
 	double min_timing = timing;
 	double max_timing = timing;

@@ -674,9 +674,7 @@ void CommunicationManager::parseInitDevMessage(QString messageString)
                         _inMessageStrings.key(COM_MSG_IN_DEV_CUDA))
                 == 0 || deviceTypeString.compare(
                         _inMessageStrings.key(COM_MSG_IN_DEV_OPENCL)) == 0
-                || deviceTypeString.compare(
-                        _inMessageStrings.key(COM_MSG_IN_DEV_GORDON))
-                == 0,
+		,
                 "CommunicationManager::parseInitDevMessage()",
                 "Bogus message received in INIT DEV");
 
@@ -694,11 +692,6 @@ void CommunicationManager::parseInitDevMessage(QString messageString)
                 _inMessageStrings.key(COM_MSG_IN_DEV_OPENCL)) == 0)
         {
             deviceType = SERVERDEVICE_OPENCL;
-        }
-        else if (deviceTypeString.compare(
-                _inMessageStrings.key(COM_MSG_IN_DEV_GORDON)) == 0)
-        {
-            deviceType = SERVERDEVICE_GORDON;
         }
 
         starpu_top_device device;
@@ -1517,7 +1510,6 @@ void CommunicationManager::initInMessageStrings()
     _inMessageStrings.insert("CPU", COM_MSG_IN_DEV_CPU);
     _inMessageStrings.insert("GPU", COM_MSG_IN_DEV_CUDA);
     _inMessageStrings.insert("OPENCL", COM_MSG_IN_DEV_OPENCL);
-    _inMessageStrings.insert("GORDON", COM_MSG_IN_DEV_GORDON);
     _beginEndMessageStrings.insert("DEV");
     _beginEndMessageStrings.insert("/DEV");
     // Server ready

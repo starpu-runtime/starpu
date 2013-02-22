@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,8 @@
 
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) -no-undefined
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/socl/src
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) -no-undefined
 
 SUBDIRS =
 
@@ -28,14 +28,24 @@ noinst_HEADERS =				\
   command_list.h				\
   command_queue.h				\
   debug.h					\
-  devices.h					\
   event.h					\
   gc.h						\
   getinfo.h					\
   mem_objects.h					\
+  ocl_icd.h					\
   socl.h					\
   task.h					\
-  util.h
+  util.h					\
+  init.h					\
+  CL/cl_d3d10.h					\
+  CL/cl_ext.h					\
+  CL/cl.h					\
+  CL/cl_d3d11.h					\
+  CL/cl_gl_ext.h				\
+  CL/cl_platform.h				\
+  CL/cl_dx9_media_sharing.h			\
+  CL/cl_gl.h					\
+  CL/opencl.h
 
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
   -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
@@ -45,7 +55,6 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   command_list.c \
   command_queue.c \
   debug.c \
-  devices.c \
   event.c \
   gc.c \
   init.c \
@@ -117,8 +126,11 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_enqueuetask.c \
   cl_enqueuendrangekernel.c \
   cl_enqueuenativekernel.c \
+  cl_enqueuemarkerwithwaitlist.c \
+  cl_enqueuebarrierwithwaitlist.c \
   cl_geteventprofilinginfo.c \
-  cl_getextensionfunctionaddress.c
+  cl_getextensionfunctionaddress.c \
+  cl_icdgetplatformidskhr.c
 
 
 

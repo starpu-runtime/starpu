@@ -18,7 +18,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	32
+#else
+#  define NITER	2048
+#endif
 
 unsigned token = 42;
 starpu_data_handle_t token_handle;
@@ -75,8 +79,8 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
 
@@ -93,7 +97,7 @@ int main(int argc, char **argv)
 		if (loop == 0 && rank == 0)
 		{
 			token = 0;
-			FPRINTF(stdout, "Start with token value %d\n", token);
+			FPRINTF(stdout, "Start with token value %u\n", token);
 		}
 		else
 		{
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
 		if (loop == last_loop && rank == last_rank)
 		{
 			starpu_data_acquire(token_handle, STARPU_R);
-			FPRINTF(stdout, "Finished : token value %d\n", token);
+			FPRINTF(stdout, "Finished : token value %u\n", token);
 			starpu_data_release(token_handle);
 		}
 		else
@@ -115,6 +119,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	starpu_data_unregister(token_handle);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

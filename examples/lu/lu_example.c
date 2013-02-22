@@ -21,8 +21,6 @@
 #include <time.h>
 #include <math.h>
 #include <starpu.h>
-#include <starpu_profiling.h>
-#include <starpu_bound.h>
 #include "xlu.h"
 #include "xlu_kernels.h"
 
@@ -54,46 +52,51 @@ static void parse_args(int argc, char **argv)
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0)
+		else if (strcmp(argv[i], "-nblocks") == 0)
 		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0)
+		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-piv") == 0)
+		else if (strcmp(argv[i], "-piv") == 0)
 		{
 			pivot = 1;
 		}
 
-		if (strcmp(argv[i], "-no-stride") == 0)
+		else if (strcmp(argv[i], "-no-stride") == 0)
 		{
 			no_stride = 1;
 		}
 
-		if (strcmp(argv[i], "-profile") == 0)
+		else if (strcmp(argv[i], "-profile") == 0)
 		{
 			profile = 1;
 		}
 
-		if (strcmp(argv[i], "-bound") == 0)
+		else if (strcmp(argv[i], "-bound") == 0)
 		{
 			bound = 1;
 		}
-		if (strcmp(argv[i], "-bounddeps") == 0)
+		else if (strcmp(argv[i], "-bounddeps") == 0)
 		{
 			bound = 1;
 			bounddeps = 1;
 		}
-		if (strcmp(argv[i], "-bounddepsprio") == 0)
+		else if (strcmp(argv[i], "-bounddepsprio") == 0)
 		{
 			bound = 1;
 			bounddeps = 1;
 			boundprio = 1;
+		}
+		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+		{
+			fprintf(stderr,"usage: lu [-size n] [-nblocks b] [-piv] [-no-stride] [-profile] [-bound] [-bounddeps] [-bounddepsprio]\n");
+			exit(0);
 		}
 	}
 }
@@ -297,7 +300,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	size /= 4;
 	nblocks /= 4;
 #endif

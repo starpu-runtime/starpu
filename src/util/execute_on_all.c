@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,8 +32,78 @@ static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
 	args->func(args->arg);
 }
 
+/**
+ * Execute func(arg) on the given workers.
+ */
+void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char * name)
+{
+	int ret;
+	unsigned w;
+	struct starpu_task *tasks[STARPU_NMAXWORKERS];
+
+	/* create a wrapper codelet */
+	struct starpu_codelet wrapper_cl =
+	{
+		.where = 0xFF,
+		.cuda_funcs = {wrapper_func, NULL},
+		.cpu_funcs = {wrapper_func, NULL},
+		.opencl_funcs = {wrapper_func, NULL},
+		/* XXX we do not handle Cell .. */
+		.nbuffers = 0,
+		.name = name
+	};
+
+	struct wrapper_func_args args =
+	{
+		.func = func,
+		.arg = arg
+	};
+
+
+	for (w = 0; w < num_workers; w++)
+	{
+		unsigned worker = workers[w];
+		tasks[w] = starpu_task_create();
+
+		tasks[w]->cl = &wrapper_cl;
+		tasks[w]->cl_arg = &args;
+
+		tasks[w]->execute_on_a_specific_worker = 1;
+		tasks[w]->workerid = worker;
+
+		tasks[w]->detach = 0;
+		tasks[w]->destroy = 0;
+
+#ifdef STARPU_USE_FXT
+		_starpu_get_job_associated_to_task(tasks[w])->model_name = name;
+#endif
+
+		_starpu_exclude_task_from_dag(tasks[w]);
+
+		ret = starpu_task_submit(tasks[w]);
+		if (ret == -ENODEV)
+		{
+			/* if the worker is not able to execute this tasks, we
+			 * don't insist as this means the worker is not
+			 * designated by the "where" bitmap */
+			starpu_task_destroy(tasks[w]);
+			tasks[w] = NULL;
+		}
+	}
+
+	for (w= 0; w < num_workers; w++)
+	{
+		if (tasks[w])
+		{
+			ret = starpu_task_wait(tasks[w]);
+			STARPU_ASSERT(!ret);
+			starpu_task_destroy(tasks[w]);
+		}
+	}
+}
+
 /* execute func(arg) on each worker that matches the "where" flag */
-void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
+void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char * name)
 {
 	int ret;
 	unsigned worker;
@@ -47,8 +117,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		.cuda_funcs = {wrapper_func, NULL},
 		.cpu_funcs = {wrapper_func, NULL},
 		.opencl_funcs = {wrapper_func, NULL},
-		/* XXX we do not handle Cell .. */
-		.nbuffers = 0
+		.nbuffers = 0,
+		.name = (name != NULL ? name : "execute_on_all_wrapper")
 	};
 
 	struct wrapper_func_args args =
@@ -56,6 +126,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		.func = func,
 		.arg = arg
 	};
+
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -71,16 +142,15 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		tasks[worker]->destroy = 0;
 
 #ifdef STARPU_USE_FXT
-                struct _starpu_job *job = _starpu_get_job_associated_to_task(tasks[worker]);
-                job->model_name = "execute_on_all_wrapper";
+		_starpu_get_job_associated_to_task(tasks[worker])->model_name = wrapper_cl.name;
 #endif
 
 		_starpu_exclude_task_from_dag(tasks[worker]);
 
-		ret = starpu_task_submit(tasks[worker]);
+		ret = _starpu_task_submit_internally(tasks[worker]);
 		if (ret == -ENODEV)
 		{
-			/* if the worker is not able to execute this tasks, we
+			/* if the worker is not able to execute this task, we
 			 * don't insist as this means the worker is not
 			 * designated by the "where" bitmap */
 			starpu_task_destroy(tasks[worker]);
@@ -97,4 +167,9 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 			starpu_task_destroy(tasks[worker]);
 		}
 	}
+}
+
+void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
+{
+	starpu_execute_on_each_worker_ex(func, arg, where, NULL);
 }

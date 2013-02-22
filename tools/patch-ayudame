@@ -1,0 +1,48 @@
+--- Ayudame.h	2012-10-31 10:29:19.000000000 -0600
++++ Ayudame.h	2012-11-16 17:34:04.963495624 -0700
+@@ -14,6 +14,7 @@
+ 
+ #include <stdint.h>
+ #include <unistd.h>
++#include <stdbool.h>
+ 
+ //#define _REENTRANT // defined by default by gcc
+ 
+@@ -68,7 +69,7 @@
+ // ---
+ 
+ 
+-const size_t AYU_buf_size=8;       // size of message buffer
++#define AYU_buf_size ((size_t)8)       // size of message buffer
+ extern unsigned long AYU_n_threads;       // current number of threads
+ extern unsigned long AYU_max_threads;     // maximum number of threads
+ 
+@@ -202,7 +203,9 @@
+ };
+ /******/
+ 
++#ifdef __cplusplus
+ extern "C" {
++#endif
+ 
+   /****f* AYUDAME/AYU_event
+    *  NAME
+@@ -224,7 +227,7 @@
+    *    void
+    *  SOURCE
+    */
+-  void AYU_event(ayu_event_t event, const int64_t taskId, void *p)
++  void AYU_event(enum ayu_event_t event, const int64_t taskId, void *p)
+     __attribute__ ((weak));
+   /******/
+ 
+@@ -342,7 +345,9 @@
+   void AYU_registerTask(void*) __attribute__ ((weak));
+   /******/
+ 
++#ifdef __cplusplus
+ }
++#endif
+ 
+ #ifndef AYU_MASTER_TASKID
+ #define AYU_MASTER_TASKID 0

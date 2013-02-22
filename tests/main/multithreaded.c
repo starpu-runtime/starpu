@@ -27,14 +27,18 @@
 
 pthread_t threads[16];
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 65536;
+#endif
 static unsigned nthreads = 2;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_func, NULL},
@@ -56,8 +60,8 @@ void *thread_func(void *arg __attribute__((unused)))
 		task->cl_arg = NULL;
 		task->callback_func = NULL;
 		task->callback_arg = NULL;
-		
-		int ret = starpu_task_submit(task);
+
+		ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 
@@ -105,10 +109,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_SLOW_MACHINE
-	ntasks /= 10;
-#endif
-
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
@@ -116,13 +116,13 @@ int main(int argc, char **argv)
 	unsigned t;
 	for (t = 0; t < nthreads; t++)
 	{
-		int ret = pthread_create(&threads[t], NULL, thread_func, NULL);
+		ret = pthread_create(&threads[t], NULL, thread_func, NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 
 	for (t = 0; t < nthreads; t++)
 	{
-		int ret = pthread_join(threads[t], NULL);
+		ret = pthread_join(threads[t], NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 

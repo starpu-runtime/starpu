@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,9 +26,9 @@
 #include <profiling/bound.h>
 #include <core/jobs.h>
 
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 
 /* TODO: output duration between starpu_bound_start and starpu_bound_stop */
 
@@ -49,7 +49,7 @@ struct bound_task_pool
 {
 	/* Which codelet has been executed */
 	struct starpu_codelet *cl;
-	/* Task footprint key */
+	/* Task footprint key (for history-based perfmodel) */
 	uint32_t footprint;
 	/* Number of tasks of this kind */
 	unsigned long n;
@@ -75,9 +75,13 @@ struct bound_task_pool
  * - For each task pair and each worker, if both tasks are executed by that worker,
  *   one is started after the other's completion.
  */
-/* Note: only task-task, implicit data dependencies or task-tag dependencies
- * are taken into account. Tags released in a callback or something like this
- * is not taken into account, only tags associated with a task are. */
+struct task_dep
+{
+	/* Task this depends on */
+	struct bound_task *dep;
+	/* Data transferred between tasks (i.e. implicit data dep size) */
+	size_t size;
+};
 struct bound_task
 {
 	/* Unique ID */
@@ -92,7 +96,7 @@ struct bound_task
 	/* Task priority */
 	int priority;
 	/* Tasks this one depends on */
-	struct bound_task **deps;
+	struct task_dep *deps;
 	int depsn;
 
 	/* Estimated duration */
@@ -116,8 +120,9 @@ int _starpu_bound_recording;
 static int recorddeps;
 static int recordprio;
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
+/* Initialization */
 void starpu_bound_start(int deps, int prio)
 {
 	struct bound_task_pool *tp;
@@ -142,16 +147,29 @@ void starpu_bound_start(int deps, int prio)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	for ( ; tp; tp = tp->next)
+	while (tp != NULL)
+	{
+		struct bound_task_pool *next = tp->next;
 		free(tp);
+		tp = next;
+	}
 
-	for ( ; t; t = t->next)
+	while (t != NULL)
+	{
+		struct bound_task *next = t->next;
 		free(t);
+		t = next;
+	}
 
-	for ( ; td; td = td->next)
+	while (td != NULL)
+	{
+		struct bound_tag_dep *next = td->next;
 		free(td);
+		td = next;
+	}
 }
 
+/* Whether we will include it in the computation */
 static int good_job(struct _starpu_job *j)
 {
 	/* No codelet, nothing to measure */
@@ -163,11 +181,14 @@ static int good_job(struct _starpu_job *j)
 	if (!j->task->cl->model)
 		return 0;
 	/* Only support history based */
-	if (j->task->cl->model->type != STARPU_HISTORY_BASED)
+	if (j->task->cl->model->type != STARPU_HISTORY_BASED
+	 && j->task->cl->model->type != STARPU_NL_REGRESSION_BASED)
 		return 0;
 	return 1;
 }
 
+/* Create a new task (either because it has just been submitted, or a
+ * dependency was added before submission) */
 static void new_task(struct _starpu_job *j)
 {
 	struct bound_task *t;
@@ -190,6 +211,7 @@ static void new_task(struct _starpu_job *j)
 	tasks = t;
 }
 
+/* A new task was submitted, record it */
 void _starpu_bound_record(struct _starpu_job *j)
 {
 	if (!_starpu_bound_recording)
@@ -240,6 +262,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
+/* A tag dependency was emitted, record it */
 void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 {
 	struct bound_tag_dep *td;
@@ -263,9 +286,11 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
+/* A task dependency was emitted, record it */
 void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 {
 	struct bound_task *t;
+	int i;
 
 	if (!_starpu_bound_recording || !recorddeps)
 		return;
@@ -284,11 +309,20 @@ void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 	new_task(j);
 	new_task(dep_j);
 	t = j->bound_task;
-	t->deps = (struct bound_task **) realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
-	t->deps[t->depsn-1] = dep_j->bound_task;
+	for (i = 0; i < t->depsn; i++)
+		if (t->deps[i].dep == dep_j->bound_task)
+			break;
+	if (i == t->depsn)
+	{
+		/* Not already there, add */
+		t->deps = (struct task_dep *) realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
+		t->deps[t->depsn-1].dep = dep_j->bound_task;
+		t->deps[t->depsn-1].size = 0; /* We don't have data information in that case */
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
+/* Look for job with id ID among our tasks */
 static struct bound_task *find_job(unsigned long id)
 {
 	struct bound_task *t;
@@ -299,9 +333,11 @@ static struct bound_task *find_job(unsigned long id)
 	return NULL;
 }
 
-void _starpu_bound_job_id_dep(struct _starpu_job *j, unsigned long id)
+/* Job J depends on previous job of id ID (which is already finished) */
+void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j, unsigned long id)
 {
 	struct bound_task *t, *dep_t;
+	int i;
 
 	if (!_starpu_bound_recording || !recorddeps)
 		return;
@@ -326,8 +362,20 @@ void _starpu_bound_job_id_dep(struct _starpu_job *j, unsigned long id)
 		return;
 	}
 	t = j->bound_task;
-	t->deps = (struct bound_task **) realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
-	t->deps[t->depsn-1] = dep_t;
+	for (i = 0; i < t->depsn; i++)
+		if (t->deps[i].dep == dep_t)
+		{
+			/* Found, just add size */
+			t->deps[i].size += _starpu_data_get_size(handle);
+			break;
+		}
+	if (i == t->depsn)
+	{
+		/* Not already there, add */
+		t->deps = (struct task_dep *) realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
+		t->deps[t->depsn-1].dep = dep_t;
+		t->deps[t->depsn-1].size = _starpu_data_get_size(handle);
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
@@ -338,6 +386,7 @@ void starpu_bound_stop(void)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
+/* Compute all tasks times on all workers */
 static void _starpu_get_tasks_times(int nw, int nt, double *times)
 {
 	struct bound_task_pool *tp;
@@ -361,19 +410,21 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times)
 	}
 }
 
+/* Return whether PARENT is an ancestor of CHILD */
 static int ancestor(struct bound_task *child, struct bound_task *parent)
 {
 	int i;
 	for (i = 0; i < child->depsn; i++)
 	{
-		if (parent == child->deps[i])
+		if (parent == child->deps[i].dep)
 			return 1;
-		if (ancestor(child->deps[i], parent))
+		if (ancestor(child->deps[i].dep, parent))
 			return -1;
 	}
 	return 0;
 }
 
+/* Print bound recording in .dot format */
 void starpu_bound_print_dot(FILE *output)
 {
 	struct bound_task *t;
@@ -388,9 +439,9 @@ void starpu_bound_print_dot(FILE *output)
 	fprintf(output, "strict digraph bounddeps {\n");
 	for (t = tasks; t; t = t->next)
 	{
-		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, t->cl->name);
+		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, _starpu_codelet_get_model_name(t->cl));
 		for (i = 0; i < t->depsn; i++)
-			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i]->id, t->id);
+			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i].dep->id, t->id);
 	}
 	for (td = tag_deps; td; td = td->next)
 		fprintf(output, "\"tag%lu\" -> \"tag%lu\";\n", (unsigned long) td->dep_tag, (unsigned long) td->tag);
@@ -398,7 +449,7 @@ void starpu_bound_print_dot(FILE *output)
 }
 
 /*
- * lp_solve format
+ * Print bound system in lp_solve format
  *
  * When dependencies are enabled, you can check the set of tasks and deps that
  * were recorded by using tools/lp2paje and vite.
@@ -407,7 +458,9 @@ void starpu_bound_print_lp(FILE *output)
 {
 	int nt; /* Number of different kinds of tasks */
 	int nw; /* Number of different workers */
-	int t, w;
+	int t;
+	int w, w2; /* worker */
+	unsigned n, n2;
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nw = starpu_worker_get_count();
@@ -421,6 +474,11 @@ void starpu_bound_print_lp(FILE *output)
 		nt = 0;
 		for (t1 = tasks; t1; t1 = t1->next)
 		{
+			if (t1->cl->model->type != STARPU_HISTORY_BASED &&
+			    t1->cl->model->type != STARPU_NL_REGRESSION_BASED)
+				/* TODO: */
+				fprintf(stderr, "Warning: task %s uses a perf model which is neither history nor non-linear regression-based, support for such model is not implemented yet, system will not be solvable.\n", _starpu_codelet_get_model_name(t1->cl));
+
 			struct _starpu_job j =
 			{
 				.footprint = t1->footprint,
@@ -466,7 +524,7 @@ void starpu_bound_print_lp(FILE *output)
 		fprintf(output, "/* According to where the task is indeed executed */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 		{
-			fprintf(output, "/* %s %x */\tc%lu = s%lu", t1->cl->name, (unsigned) t1->footprint, t1->id, t1->id);
+			fprintf(output, "/* %s %x */\tc%lu = s%lu", _starpu_codelet_get_model_name(t1->cl), (unsigned) t1->footprint, t1->id, t1->id);
 			for (w = 0; w < nw; w++)
 			{
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
@@ -476,13 +534,60 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, ";\n");
 		}
 
-		fprintf(output, "\n/* Each task starts after all its task dependencies finish. */\n");
+		fprintf(output, "\n/* Each task starts after all its task dependencies finish and data is transferred. */\n");
 		fprintf(output, "/* Note that the dependency finish time depends on the worker where it's working */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 			for (i = 0; i < t1->depsn; i++)
-				fprintf(output, "s%lu >= c%lu;\n", t1->id, t1->deps[i]->id);
+			{
+				fprintf(output, "/* %lu bytes transferred */\n", (unsigned long) t1->deps[i].size);
+				fprintf(output, "s%lu >= c%lu", t1->id, t1->deps[i].dep->id);
+				/* Transfer time: pick up one source node and a worker on it */
+				for (n = 0; n < starpu_memory_nodes_get_count(); n++)
+				for (w = 0; w < nw; w++)
+				if (starpu_worker_get_memory_node(w) == n)
+				{
+					/* pick up another destination node and a worker on it */
+					for (n2 = 0; n2 < starpu_memory_nodes_get_count(); n2++)
+					if (n2 != n)
+					{
+						for (w2 = 0; w2 < nw; w2++)
+						if (starpu_worker_get_memory_node(w2) == n2)
+						{
+							/* If predecessor is on worker w and successor
+							 * on worker w2 on different nodes, we need to
+							 * transfer the data. */
+							fprintf(output, " + d_t%luw%ut%luw%u", t1->deps[i].dep->id, w, t1->id, w2);
 
-		fprintf(output, "\n/* Each tag finishes when its corresponding task finishes */");
+						}
+					}
+				}
+				fprintf(output, ";\n");
+				/* Transfer time: pick up one source node and a worker on it */
+				for (n = 0; n < starpu_memory_nodes_get_count(); n++)
+				for (w = 0; w < nw; w++)
+				if (starpu_worker_get_memory_node(w) == n)
+				{
+					/* pick up another destination node and a worker on it */
+					for (n2 = 0; n2 < starpu_memory_nodes_get_count(); n2++)
+					if (n2 != n)
+					{
+						for (w2 = 0; w2 < nw; w2++)
+						if (starpu_worker_get_memory_node(w2) == n2)
+						{
+							/* The data transfer is at least 0ms */
+							fprintf(output, "d_t%luw%ut%luw%u >= 0;\n", t1->deps[i].dep->id, w, t1->id, w2);
+							/* The data transfer from w to w2 only happens if tasks run there */
+							fprintf(output, "d_t%luw%ut%luw%u >= %f - 2e5 + 1e5 t%luw%u + 1e5 t%luw%u;\n",
+									t1->deps[i].dep->id, w, t1->id, w2,
+									_starpu_predict_transfer_time(n, n2, t1->deps[i].size)/1000.,
+									t1->deps[i].dep->id, w, t1->id, w2);
+						}
+					}
+				}
+			}
+
+
+		fprintf(output, "\n/* Each tag finishes when its corresponding task finishes */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 			if (t1->use_tag)
 			{
@@ -555,7 +660,7 @@ void starpu_bound_print_lp(FILE *output)
 
 							for (i = 0; i < t1->depsn; i++)
 							{
-								fprintf(output, "c%lu - s%lu >= ", t1->deps[i]->id, t2->id);
+								fprintf(output, "c%lu - s%lu >= ", t1->deps[i].dep->id, t2->id);
 								if (t1->depsn > 1)
 									/* Only checks this when it's this dependency that is chosen */
 									fprintf(output, "-2e5 + 1e5 t%lut%lud%d", t2->id, t1->id, i);
@@ -584,7 +689,7 @@ void starpu_bound_print_lp(FILE *output)
 
 							for (i = 0; i < t2->depsn; i++)
 							{
-								fprintf(output, "c%lu - s%lu >= ", t2->deps[i]->id, t1->id);
+								fprintf(output, "c%lu - s%lu >= ", t2->deps[i].dep->id, t1->id);
 								if (t2->depsn > 1)
 									/* Only checks this when it's this dependency that is chosen */
 									fprintf(output, "-1e5 + 1e5 t%lut%lud%d", t1->id, t2->id, i);
@@ -661,11 +766,21 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 			{
-				fprintf(output, "/* task %s key %x */\n0", tp->cl->name, (unsigned) tp->footprint);
+				int got_one = 0;
+				fprintf(output, "/* task %s key %x */\n0", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
-					if (!isnan(times[w*nt+t]))
+				{
+					if (isnan(times[w*nt+t]))
+						fprintf(stderr, "Warning: task %s has no performance measurement for worker %d.\n", _starpu_codelet_get_model_name(tp->cl), w);
+					else
+					{
+						got_one = 1;
 						fprintf(output, "\t+w%dt%dn", w, t);
+					}
+				}
 				fprintf(output, " = %lu;\n", tp->n);
+				if (!got_one)
+					fprintf(stderr, "Warning: task %s has no performance measurement for any worker, system will not be solvable!\n", _starpu_codelet_get_model_name(tp->cl));
 				/* Show actual values */
 				fprintf(output, "/*");
 				for (w = 0; w < nw; w++)
@@ -693,7 +808,7 @@ void starpu_bound_print_lp(FILE *output)
 }
 
 /*
- * MPS output format
+ * Print bound system in MPS output format
  */
 void starpu_bound_print_mps(FILE *output)
 {
@@ -738,7 +853,7 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
-			fprintf(output, "* task %s key %x\n", tp->cl->name, (unsigned) tp->footprint);
+			fprintf(output, "* task %s key %x\n", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			fprintf(output, " E  T%d\n", t);
 		}
 
@@ -773,9 +888,9 @@ void starpu_bound_print_mps(FILE *output)
 }
 
 /*
- * GNU Linear Programming Kit backend
+ * Solve bound system thanks to GNU Linear Programming Kit backend
  */
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 static glp_prob *_starpu_bound_glp_resolve(int integer)
 {
 	struct bound_task_pool * tp;
@@ -869,7 +984,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 		{
 			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
-			snprintf(title, sizeof(title), "task %s key %x", tp->cl->name, (unsigned) tp->footprint);
+			snprintf(title, sizeof(title), "task %s key %x", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			glp_set_row_name(lp, nw+t+1, title);
 			for (w = 0; w < nw; w++)
 			{
@@ -906,11 +1021,12 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 
 	return lp;
 }
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 
+/* Print the computed bound as well as the optimized distribution of tasks */
 void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 {
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 	if (recorddeps)
 	{
 		fprintf(output, "Not supported\n");
@@ -937,7 +1053,7 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
-			fprintf(output, "%s key %x\n", tp->cl->name, (unsigned) tp->footprint);
+			fprintf(output, "%s key %x\n", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
 				if (integer)
 					fprintf(output, "\tw%dt%dn %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
@@ -953,14 +1069,15 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 		fprintf(stderr, "Simplex failed\n");
 	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-#else /* HAVE_GLPK_H */
+#else /* STARPU_HAVE_GLPK_H */
 	fprintf(output, "Please rebuild StarPU with glpk installed.\n");
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 }
 
+/* Compute and return the bound */
 void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unused)), int integer __attribute__ ((unused)))
 {
-#ifdef HAVE_GLPK_H
+#ifdef STARPU_HAVE_GLPK_H
 	double ret;
 
 	if (recorddeps)
@@ -982,7 +1099,7 @@ void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unuse
 		ret = 0.;
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	*res = ret;
-#else /* HAVE_GLPK_H */
+#else /* STARPU_HAVE_GLPK_H */
 	*res = 0.;
-#endif /* HAVE_GLPK_H */
+#endif /* STARPU_HAVE_GLPK_H */
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,14 +42,15 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event);
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event);
+static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
+static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
+static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 #endif
 
 static struct starpu_data_copy_methods matrix_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
-	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
@@ -59,32 +60,34 @@ static struct starpu_data_copy_methods matrix_copy_data_methods_s =
 #ifdef NO_STRIDE
 	.cuda_to_cuda_async = copy_cuda_to_cuda_async,
 #endif
+#else
+#ifdef STARPU_SIMGRID
+#ifdef NO_STRIDE
+	/* Enable GPU-GPU transfers in simgrid */
+	.cuda_to_cuda_async = 1,
+#endif
+#endif
 #endif
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl = copy_ram_to_opencl,
 	.opencl_to_ram = copy_opencl_to_ram,
+	.opencl_to_opencl = copy_opencl_to_opencl,
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
+	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu = NULL
 };
 
-static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface);
-static void *matrix_handle_to_pointer(starpu_data_handle_t data_handle, uint32_t node);
-static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node);
-static void free_matrix_buffer_on_node(void *data_interface, uint32_t node);
+static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void *matrix_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
+static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
+static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
-#ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
-#endif
 
-struct starpu_data_interface_ops _starpu_interface_matrix_ops =
+struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
@@ -94,33 +97,12 @@ struct starpu_data_interface_ops _starpu_interface_matrix_ops =
 	.get_size = matrix_interface_get_size,
 	.footprint = footprint_matrix_interface_crc32,
 	.compare = matrix_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon = convert_matrix_to_gordon,
-#endif
 	.interfaceid = STARPU_MATRIX_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_matrix_interface),
 	.display = display_matrix_interface,
 };
 
-#ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)
-{
-	size_t elemsize = GET_MATRIX_ELEMSIZE(interface);
-	uint32_t nx = STARPU_MATRIX_GET_NX(interface);
-	uint32_t ny = STARPU_MATRIX_GET_NY(interface);
-	uint32_t ld = STARPU_MATRIX_GET_LD(interface);
-
-	*ptr = STARPU_MATRIX_GET_PTR(interface);
-
-	/* The gordon_stride_init function may use a contiguous buffer
- 	 * in case nx = ld (in that case, (*ss).size = elemsize*nx*ny */
-	*ss = gordon_stride_init(ny, nx*elemsize, ld*elemsize);
-
-	return 0;
-}
-#endif
-
-static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
@@ -151,7 +133,7 @@ static void register_matrix_handle(starpu_data_handle_t handle, uint32_t home_no
 	}
 }
 
-static void *matrix_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+static void *matrix_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -163,7 +145,7 @@ static void *matrix_handle_to_pointer(starpu_data_handle_t handle, uint32_t node
 
 
 /* declare a new data with the matrix interface */
-void starpu_matrix_data_register(starpu_data_handle_t *handleptr, uint32_t home_node,
+void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
@@ -178,7 +160,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, uint32_t home_
                 .offset = 0
 	};
 
-	starpu_data_register(handleptr, home_node, &matrix_interface, &_starpu_interface_matrix_ops);
+	starpu_data_register(handleptr, home_node, &matrix_interface, &starpu_interface_matrix_ops);
 }
 
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle)
@@ -236,7 +218,7 @@ uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -249,7 +231,7 @@ uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_get_local_memory_node();
+	node = _starpu_memory_node_get_local_key();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -270,15 +252,9 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the matrix interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node)
+static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
-	uintptr_t addr = 0, handle = 0;
-	unsigned fail = 0;
-	ssize_t allocated_memory;
-
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
+	uintptr_t addr = 0, handle;
 
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface_;
 
@@ -287,100 +263,35 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 	uint32_t ld = nx; // by default
 	size_t elemsize = matrix_interface->elemsize;
 
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
+	ssize_t allocated_memory;
 
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			handle = addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
-			if (!addr)
-				fail = 1;
+	handle = starpu_allocate_buffer_on_node(dst_node, nx*ny*elemsize);
 
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			status = cudaMalloc((void **)&addr, (size_t)nx*ny*elemsize);
-			if (!addr || status != cudaSuccess)
-			{
-				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					 STARPU_CUDA_REPORT_ERROR(status);
+	if (!handle)
+		return -ENOMEM;
 
-				fail = 1;
-			}
-			handle = addr;
+	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		addr = handle;
 
-			ld = nx;
+	allocated_memory = (size_t)nx*ny*elemsize;
 
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	        case STARPU_OPENCL_RAM:
-			{
-                                int ret;
-				cl_mem mem;
-                                ret = starpu_opencl_allocate_memory(&mem, nx*ny*elemsize, CL_MEM_READ_WRITE);
-				handle = (uintptr_t)mem;
-				if (ret)
-				{
-					fail = 1;
-				}
-				break;
-			}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-
-	if (!fail)
-	{
-		/* allocation succeeded */
-		allocated_memory = (size_t)nx*ny*elemsize;
-
-		/* update the data properly in consequence */
-		matrix_interface->ptr = addr;
-		matrix_interface->dev_handle = handle;
-                matrix_interface->offset = 0;
-		matrix_interface->ld = ld;
-	}
-	else
-	{
-		/* allocation failed */
-		allocated_memory = -ENOMEM;
-	}
+	/* update the data properly in consequence */
+	matrix_interface->ptr = addr;
+	matrix_interface->dev_handle = handle;
+	matrix_interface->offset = 0;
+	matrix_interface->ld = ld;
 
 	return allocated_memory;
 }
 
-static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
+static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
+	uint32_t nx = matrix_interface->nx;
+	uint32_t ny = matrix_interface->ny;
+	size_t elemsize = matrix_interface->elemsize;
 
-#ifdef STARPU_USE_CUDA
-	cudaError_t status;
-#endif
-
-	enum starpu_node_kind kind = starpu_node_get_kind(node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			free((void*)matrix_interface->ptr);
-			break;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			status = cudaFree((void*)matrix_interface->ptr);
-			if (STARPU_UNLIKELY(status))
-				STARPU_CUDA_REPORT_ERROR(status);
-
-			break;
-#endif
-#ifdef STARPU_USE_OPENCL
-                case STARPU_OPENCL_RAM:
-			clReleaseMemObject((void *)matrix_interface->dev_handle);
-                        break;
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	starpu_free_buffer_on_node(node, matrix_interface->ptr, nx*ny*elemsize);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -448,8 +359,8 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	size_t elemsize = src_matrix->elemsize;
 	cudaError_t cures;
 
-	int src_dev = _starpu_memory_node_to_devid(src_node);
-	int dst_dev = _starpu_memory_node_to_devid(dst_node);
+	int src_dev = _starpu_memory_node_get_devid(src_node);
+	int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
 
 #if 0
@@ -513,7 +424,7 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	cures = cudaMemcpy3DPeerAsync(&p, stream);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(stream);
 
 	if (is_async)
 	{
@@ -597,43 +508,37 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event)
+static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 {
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
-        int err,ret;
+        int ret;
 
 	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
-	err = starpu_opencl_copy_ram_to_opencl((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
-					       src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-					       dst_matrix->offset, (cl_event*)_event, &ret);
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	ret = starpu_opencl_copy_async_sync(src_matrix->dev_handle, src_node, src_matrix->offset,
+					    dst_matrix->dev_handle, dst_node, dst_matrix->offset,
+					    src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+					    event);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
 
 	return ret;
 }
 
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *_event)
+static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 {
-	struct starpu_matrix_interface *src_matrix = src_interface;
-	struct starpu_matrix_interface *dst_matrix = dst_interface;
-        int err, ret;
+	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
+}
 
-	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
+static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
+{
+	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
+}
 
-        err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
-					       src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-					       src_matrix->offset, (cl_event*)_event, &ret);
-
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
-
-	return ret;
+static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
+{
+	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
 }
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
@@ -644,6 +549,11 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTR
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
         return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
+}
+
+static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+{
+	return copy_opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
 #endif

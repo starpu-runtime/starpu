@@ -1,6 +1,8 @@
 static void
 foo(void)
 {
+	pthread_create(&th, NULL, f, &arg);
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_lock(&mutex);
 	pthread_mutex_unlock(&mutex);

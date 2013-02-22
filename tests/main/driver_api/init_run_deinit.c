@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 
 #include "../../helper.h"
 
@@ -53,6 +52,8 @@ run(struct starpu_task *task, struct starpu_driver *d)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_driver_run_once(d);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_run_once");
+	ret = starpu_task_wait(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 }
 
 static void
@@ -68,7 +69,7 @@ deinit_driver(struct starpu_driver *d)
 static int
 test_cpu(void)
 {
-	int var = 0, ret;
+	int var = 0, ret, ncpu;
 	struct starpu_conf conf;
 
 	ret = starpu_conf_init(&conf);
@@ -87,7 +88,17 @@ test_cpu(void)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No CPU worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
+
+	ncpu = starpu_cpu_worker_get_count();
+	if (ncpu == 0)
+	{
+		FPRINTF(stderr, "WARNING: No CPU worker found\n");
+		return STARPU_TEST_SKIPPED;
+	}
 
 	init_driver(&d);
 	int i;
@@ -98,6 +109,7 @@ test_cpu(void)
 		cl.where = STARPU_CPU;
 		task->cl = &cl;
 		task->cl_arg = &var;
+		task->detach = 0;
 
 		run(task, &d);
 	}
@@ -106,7 +118,7 @@ test_cpu(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	FPRINTF(stderr, "[CPU] Var is %d\n", var);
+	FPRINTF(stderr, "[CPU] Var is %d (expected value: %d)\n", var, NTASKS);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_CPU */
@@ -136,11 +148,17 @@ test_cuda(void)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	ncuda = starpu_cuda_worker_get_count();
 	if (ncuda == 0)
+	{
+		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	init_driver(&d);
 	int i;
@@ -151,6 +169,7 @@ test_cuda(void)
 		cl.where = STARPU_CUDA;
 		task->cl = &cl;
 		task->cl_arg = &var;
+		task->detach = 0;
 
 		run(task, &d);
 	}
@@ -159,7 +178,7 @@ test_cuda(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	FPRINTF(stderr, "[CUDA] Var is %d\n", var);
+	FPRINTF(stderr, "[CUDA] Var is %d (expected value: %d)\n", var, NTASKS);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_CUDA */
@@ -176,13 +195,21 @@ test_opencl(void)
         err = clGetPlatformIDs(1, &platform, &dummy);
         if (err != CL_SUCCESS)
         {
+		FPRINTF(stderr, "WARNING: No OpenCL platform found\n");
 		return STARPU_TEST_SKIPPED;
 	}
 
+	cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+	if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+		device_type |= CL_DEVICE_TYPE_CPU;
+	if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+		device_type = CL_DEVICE_TYPE_CPU;
+
 	cl_device_id device_id;
-        err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+        err = clGetDeviceIDs(platform, device_type, 1, &device_id, NULL);
         if (err != CL_SUCCESS)
         {
+		FPRINTF(stderr, "WARNING: No GPU devices found on OpenCL platform\n");
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -206,11 +233,17 @@ test_opencl(void)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	nopencl = starpu_opencl_worker_get_count();
 	if (nopencl == 0)
+	{
+		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
 		return STARPU_TEST_SKIPPED;
+	}
 
 	init_driver(&d);
 	int i;
@@ -221,6 +254,7 @@ test_opencl(void)
 		cl.where = STARPU_OPENCL;
 		task->cl = &cl;
 		task->cl_arg = &var;
+		task->detach = 0;
 
 		run(task, &d);
 	}
@@ -230,7 +264,7 @@ test_opencl(void)
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
-	FPRINTF(stderr, "[OpenCL] Var is %d\n", var);
+	FPRINTF(stderr, "[OpenCL] Var is %d (expected value: %d)\n", var, NTASKS);
 	return !!(var != NTASKS);
 }
 #endif /* STARPU_USE_OPENCL */

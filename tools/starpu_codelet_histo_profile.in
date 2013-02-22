@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+# 
+# Copyright (C) 2009, 2010, 2013  Université de Bordeaux 1
+# Copyright (C) 2010, 2013  Centre National de la Recherche Scientifique
+# 
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+# 
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+PROGNAME=$0
+
+usage()
+{
+	echo "Offline tool to draw codelet profile histogram over a traced execution"
+	echo ""
+	echo "Usage: $PROGNAME distrib.data"
+	echo ""
+	echo "Options:"
+	echo "	-h, --help          display this help and exit"
+	echo "	-v, --version       output version information and exit"
+	echo ""
+	echo "Report bugs to <@PACKAGE_BUGREPORT@>"
+	exit 1
+}
+
+if [ "$1" = "-v" ] || [ "$1" = "--version" ] ; then
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+    exit 0
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ] ; then
+    usage
+fi
+
+create_histograms()
+{
+
+inputfile=$1
+
+R --no-save > /dev/null << EOF
+
+handle_hash <- function (codelet, arch, hash)
+{
+
+mytable <- table
+mytable <- mytable[mytable[,1]==codelet,]
+mytable <- mytable[mytable[,2]==arch,]
+mytable <- mytable[mytable[,4]==hash,]
+
+val <- mytable[,5]
+
+
+# there is certainly a better way to do this !
+size <- unique(mytable[,3])
+
+pdf(paste("$inputfile", codelet, arch, hash, size, "pdf", sep="."));
+
+h <- hist(val[val > quantile(val,0.01) & val<quantile(val,0.99)], col="red", breaks=50, density=10)
+
+dev.off()
+
+}
+
+table <- read.table("$inputfile")
+
+codeletlist <- unique(table[,1])
+
+for (codelet in codeletlist)
+{
+	archlist <- unique(table[table[,1]==codelet,2])
+
+	for (arch in archlist)
+	{
+		hashlist <- unique(table[table[,2]==arch,4])
+
+		for (hash in hashlist)
+		{
+			print(codelet)
+			print(arch)
+			print(hash)
+			handle_hash(codelet, arch, hash)
+		}
+	}
+}
+
+EOF
+
+}
+
+for inputfile in $@
+do
+	create_histograms $inputfile 
+done

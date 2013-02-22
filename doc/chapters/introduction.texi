@@ -2,13 +2,16 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
 * Motivation::                  Why StarPU ?
 * StarPU in a Nutshell::        The Fundamentals of StarPU
+* Application taskification::   How to taskify an application
+* Glossary::
+* Research Papers::
 @end menu
 
 @node Motivation
@@ -70,22 +73,22 @@ policies in a portable fashion (@pxref{Scheduling Policy API}).
 The remainder of this section describes the main concepts used in StarPU.
 
 @menu
-* Codelet and Tasks::           
-* StarPU Data Management Library::  
-* Glossary::
-* Research Papers::
+* Codelet and Tasks::
+* StarPU Data Management Library::
 @end menu
 
 @c explain the notion of codelet and task (i.e. g(A, B)
 @node Codelet and Tasks
 @subsection Codelet and Tasks
 
+@cindex codelet
 One of the StarPU primary data structures is the @b{codelet}. A codelet describes a
 computational kernel that can possibly be implemented on multiple architectures
-such as a CPU, a CUDA device or a Cell's SPU.
+such as a CPU, a CUDA device or an OpenCL device.
 
 @c TODO insert illustration f: f_spu, f_cpu, ...
 
+@cindex task
 Another important data structure is the @b{task}. Executing a StarPU task
 consists in applying a codelet on a data set, on one of the architectures on
 which the codelet is implemented. A task thus describes the codelet that it
@@ -97,6 +100,7 @@ called once StarPU has properly executed the task. It also contains optional
 fields that the application may use to give hints to the scheduler (such as
 priority levels).
 
+@cindex tag
 By default, task dependencies are inferred from data dependency (sequential
 coherence) by StarPU. The application can however disable sequential coherency
 for some data, and dependencies be expressed by hand.
@@ -121,8 +125,21 @@ where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
 several processing units as long as it is not modified.
 
+@node Application taskification
+@section Application taskification
+
+TODO
+
+@c TODO: section describing what taskifying an application means: before
+@c porting to StarPU, turn the program into:
+@c "pure" functions, which only access data from their passed parameters
+@c a main function which just calls these pure functions
+@c
+@c and then it's trivial to use StarPU or any other kind of task-based library:
+@c simply replace calling the function with submitting a task.
+
 @node Glossary
-@subsection Glossary
+@section Glossary
 
 A @b{codelet} records pointers to various implementations of the same
 theoretical function.
@@ -147,7 +164,7 @@ A @b{worker} execute tasks. There is typically one per CPU computation core and
 one per accelerator (for which a whole CPU core is dedicated).
 
 A @b{driver} drives a given kind of workers. There are currently CPU, CUDA,
-OpenCL and Gordon drivers. They usually start several workers to actually drive
+and OpenCL drivers. They usually start several workers to actually drive
 them.
 
 A @b{performance model} is a (dynamic or static) model of the performance of a
@@ -175,10 +192,10 @@ unregister it.
 
 
 @node Research Papers
-@subsection Research Papers
+@section Research Papers
 
 Research papers about StarPU can be found at
-@indicateurl{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}.
+@url{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}.
 
 A good overview is available in the research report at
-@indicateurl{http://hal.archives-ouvertes.fr/inria-00467677}.
+@url{http://hal.archives-ouvertes.fr/inria-00467677}.

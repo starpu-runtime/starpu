@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
-   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2011, 2012 Inria
    Copyright (C) 2010 Sylvain Gault
 
    StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 #ifndef STARPU_GCC_PLUGIN
 # error must be compiled with the StarPU GCC plug-in
 #endif
+
+/* Convenience macro.  */
+#define __heap __attribute__ ((__heap_allocated__))
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -163,11 +166,9 @@ main (int argc, char **argv)
 
   gettimeofday (&start_all, NULL);
 
-  float *A, *B, *C;
-
-  A = malloc (zdim * ydim * sizeof *A);
-  B = malloc (xdim * zdim * sizeof *B);
-  C = malloc (xdim * ydim * sizeof *C);
+  float A[zdim * ydim] __heap;
+  float B[xdim * zdim] __heap;
+  float C[xdim * ydim] __heap;
 
   srand (time (NULL));
   for (i = 0; i < zdim * ydim; i++)

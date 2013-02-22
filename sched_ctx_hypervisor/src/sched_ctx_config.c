@@ -1,0 +1,266 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011, 2012  INRIA
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+#include <sched_ctx_hypervisor_intern.h>
+
+static struct sched_ctx_hypervisor_policy_config* _create_config(void)
+{
+	struct sched_ctx_hypervisor_policy_config *config = (struct sched_ctx_hypervisor_policy_config *)malloc(sizeof(struct sched_ctx_hypervisor_policy_config));
+	config->min_nworkers = -1;
+	config->max_nworkers = -1;
+	config->new_workers_max_idle = -1.0;
+	config->ispeed_ctx_sample = 0.0;
+
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		config->granularity = -1;
+		config->priority[i] = -1;
+		config->fixed_workers[i] = -1;
+		config->max_idle[i] = -1.0;
+		config->empty_ctx_max_idle[i] = -1.0;
+		config->min_working[i] = -1.0;
+		config->ispeed_w_sample[i] = 0.0;
+	}
+
+	return config;
+}
+
+static void _update_config(struct sched_ctx_hypervisor_policy_config *old, struct sched_ctx_hypervisor_policy_config* new)
+{
+	old->min_nworkers = new->min_nworkers != -1 ? new->min_nworkers : old->min_nworkers ;
+	old->max_nworkers = new->max_nworkers != -1 ? new->max_nworkers : old->max_nworkers ;
+	old->new_workers_max_idle = new->new_workers_max_idle != -1.0 ? new->new_workers_max_idle : old->new_workers_max_idle;
+	old->granularity = new->granularity != -1 ? new->granularity : old->granularity;
+
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		old->priority[i] = new->priority[i] != -1 ? new->priority[i] : old->priority[i];
+		old->fixed_workers[i] = new->fixed_workers[i] != -1 ? new->fixed_workers[i] : old->fixed_workers[i];
+		old->max_idle[i] = new->max_idle[i] != -1.0 ? new->max_idle[i] : old->max_idle[i];
+		old->empty_ctx_max_idle[i] = new->empty_ctx_max_idle[i] != -1.0 ? new->empty_ctx_max_idle[i] : old->empty_ctx_max_idle[i];
+		old->min_working[i] = new->min_working[i] != -1.0 ? new->min_working[i] : old->min_working[i];
+	}
+}
+
+void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
+{
+	if(hypervisor.sched_ctx_w[sched_ctx].config != NULL && config != NULL)
+	{
+		_update_config(hypervisor.sched_ctx_w[sched_ctx].config, config);
+	}
+	else
+	{
+		hypervisor.sched_ctx_w[sched_ctx].config = config;
+	}
+
+	return;
+}
+
+void _add_config(unsigned sched_ctx)
+{
+	struct sched_ctx_hypervisor_policy_config *config = _create_config();
+	config->min_nworkers = 0;
+	config->max_nworkers = STARPU_NMAXWORKERS;
+	config->new_workers_max_idle = MAX_IDLE_TIME;
+
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		config->granularity = 1;
+		config->priority[i] = 0;
+		config->fixed_workers[i] = 0;
+		config->max_idle[i] = MAX_IDLE_TIME;
+		config->empty_ctx_max_idle[i] = MAX_IDLE_TIME;
+		config->min_working[i] = MIN_WORKING_TIME;
+	}
+
+	sched_ctx_hypervisor_set_config(sched_ctx, config);
+}
+
+void _remove_config(unsigned sched_ctx)
+{
+	sched_ctx_hypervisor_set_config(sched_ctx, NULL);
+}
+
+struct sched_ctx_hypervisor_policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx)
+{
+	return hypervisor.sched_ctx_w[sched_ctx].config;
+}
+
+static struct sched_ctx_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
+{
+	struct sched_ctx_hypervisor_policy_config *config = NULL;
+
+	if(later)
+		config = _create_config();
+	else
+		config = sched_ctx_hypervisor_get_config(sched_ctx);
+
+	assert(config != NULL);
+
+	int arg_type;
+	int i;
+	int *workerids;
+	int nworkers;
+
+	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL)
+	{
+		switch(arg_type)
+		{
+		case HYPERVISOR_MAX_IDLE:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+			double max_idle = va_arg(varg_list, double);
+			for(i = 0; i < nworkers; i++)
+				config->max_idle[workerids[i]] = max_idle;
+
+			break;
+
+		case HYPERVISOR_EMPTY_CTX_MAX_IDLE:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+			double empty_ctx_max_idle = va_arg(varg_list, double);
+
+			for(i = 0; i < nworkers; i++)
+				config->empty_ctx_max_idle[workerids[i]] = empty_ctx_max_idle;
+
+			break;
+
+		case HYPERVISOR_MIN_WORKING:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+			double min_working = va_arg(varg_list, double);
+
+			for(i = 0; i < nworkers; i++)
+				config->min_working[workerids[i]] = min_working;
+
+			break;
+
+		case HYPERVISOR_PRIORITY:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+			int priority = va_arg(varg_list, int);
+
+			for(i = 0; i < nworkers; i++)
+				config->priority[workerids[i]] = priority;
+			break;
+
+		case HYPERVISOR_MIN_WORKERS:
+			config->min_nworkers = va_arg(varg_list, unsigned);
+			break;
+
+		case HYPERVISOR_MAX_WORKERS:
+			config->max_nworkers = va_arg(varg_list, unsigned);
+			break;
+
+		case HYPERVISOR_GRANULARITY:
+			config->granularity = va_arg(varg_list, unsigned);
+			break;
+
+		case HYPERVISOR_FIXED_WORKERS:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+
+			for(i = 0; i < nworkers; i++)
+				config->fixed_workers[workerids[i]] = 1;
+			break;
+
+		case HYPERVISOR_NEW_WORKERS_MAX_IDLE:
+			config->new_workers_max_idle = va_arg(varg_list, double);
+			break;
+
+		case HYPERVISOR_ISPEED_W_SAMPLE:
+			workerids = va_arg(varg_list, int*);
+			nworkers = va_arg(varg_list, int);
+			double sample = va_arg(varg_list, double);
+
+			for(i = 0; i < nworkers; i++)
+				config->ispeed_w_sample[workerids[i]] = sample;
+			break;
+
+		case HYPERVISOR_ISPEED_CTX_SAMPLE:
+			config->ispeed_ctx_sample = va_arg(varg_list, double);
+			break;
+
+/* not important for the strateg, needed just to jump these args in the iteration of the args */
+		case HYPERVISOR_TIME_TO_APPLY:
+			va_arg(varg_list, int);
+			break;
+
+		case HYPERVISOR_MIN_TASKS:
+			va_arg(varg_list, int);
+			break;
+
+		}
+	}
+
+	va_end(varg_list);
+
+	return later ? config : NULL;
+}
+
+
+void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
+{
+	va_list varg_list;
+	va_start(varg_list, sched_ctx);
+
+	int arg_type;
+	int stop = 0;
+	int task_tag = -1;
+
+	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL)
+	{
+		switch(arg_type)
+		{
+		case HYPERVISOR_TIME_TO_APPLY:
+			task_tag = va_arg(varg_list, int);
+			stop = 1;
+			break;
+
+		case HYPERVISOR_MIN_TASKS:
+			hypervisor.min_tasks = va_arg(varg_list, int);
+			hypervisor.check_min_tasks[sched_ctx] = 1;
+			break;
+
+		}
+		if(stop) break;
+	}
+
+	va_end(varg_list);
+	va_start(varg_list, sched_ctx);
+
+	/* if config not null => save hypervisor configuration and consider it later */
+	struct sched_ctx_hypervisor_policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
+	if(config != NULL)
+	{
+		struct configuration_entry *entry;
+
+		entry = malloc(sizeof *entry);
+		STARPU_ASSERT(entry != NULL);
+
+		entry->task_tag = task_tag;
+		entry->configuration = config;
+
+		pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
+		HASH_ADD_INT(hypervisor.configurations[sched_ctx], task_tag, entry);
+		pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
+	}
+
+	return;
+}

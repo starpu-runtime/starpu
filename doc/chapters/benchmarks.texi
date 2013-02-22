@@ -1,0 +1,47 @@
+@c -*-texinfo-*-
+
+@c This file is part of the StarPU Handbook.
+@c Copyright (C) 2012  University of Bordeaux
+@c See the file starpu.texi for copying conditions.
+
+@menu
+* Task size overhead::           Overhead of tasks depending on their size
+* Data transfer latency::        Latency of data transfers
+* Gemm::                         Matrix-matrix multiplication
+* Cholesky::                     Cholesky factorization
+* LU::                           LU factorization
+@end menu
+
+Some interesting benchmarks are installed among examples in
+/usr/lib/starpu/examples . Make sure to try various schedulers, for instance
+STARPU_SCHED=dmda
+
+@node Task size overhead
+@section Task size overhead
+
+This benchmark gives a glimpse into how big a size should be for StarPU overhead
+to be low enough.  Run @code{tasks_size_overhead.sh}, it will generate a plot
+of the speedup of tasks of various sizes, depending on the number of CPUs being
+used.
+
+@node Data transfer latency
+@section Data transfer latency
+
+@code{local_pingpong} performs a ping-pong between the first two CUDA nodes, and
+prints the measured latency.
+
+@node Gemm
+@section Matrix-matrix multiplication
+
+@code{sgemm} and @code{dgemm} perform a blocked matrix-matrix
+multiplication using BLAS and cuBLAS. They output the obtained GFlops.
+
+@node Cholesky
+@section Cholesky factorization
+
+@code{cholesky*} perform a Cholesky factorization (single precision). They use different dependency primitives.
+
+@node LU
+@section LU factorization
+
+@code{lu*} perform an LU factorization. They use different dependency primitives.

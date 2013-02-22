@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,33 +35,42 @@ typedef unsigned long long uint64_t;
 #include <windows.h>
 #endif
 
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#include <starpu_opencl.h>
+#endif
+
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>
 #include <starpu_data_filters.h>
 #include <starpu_perfmodel.h>
+#include <starpu_worker.h>
 #include <starpu_task.h>
 #include <starpu_task_list.h>
+#ifdef BUILDING_STARPU
+#include <util/starpu_task_list_inline.h>
+#endif
+#include <starpu_task_util.h>
 #include <starpu_scheduler.h>
+#include <starpu_sched_ctx.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
+#include <starpu_cuda.h>
+#include <starpu_cublas.h>
+#include <starpu_bound.h>
+#include <starpu_hash.h>
+#include <starpu_profiling.h>
+#include <starpu_top.h>
+#include <starpu_fxt.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-#include <starpu_opencl.h>
+#ifdef STARPU_SIMGRID
+#define main starpu_main
 #endif
-
-enum starpu_archtype
-{
-	STARPU_CPU_WORKER,    /* CPU core */
-	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER, /* OpenCL device */
-	STARPU_GORDON_WORKER  /* Cell SPU */
-};
 
 struct starpu_driver
 {
@@ -72,9 +81,11 @@ struct starpu_driver
 		unsigned cuda_id;
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 		cl_device_id opencl_id;
+#elif defined(STARPU_SIMGRID)
+		unsigned opencl_id;
 #endif
 		/*
-		 * TODO: handle CPUs:
+		 * HOWTO: add a new kind of device to the starpu_driver structure.
 		 * 1) Add a member to this union.
 		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
 		 *    not always launched.
@@ -101,8 +112,6 @@ struct starpu_conf
 	int ncuda;
 	/* number of GPU OpenCL device workers (-1 for default) */
 	int nopencl;
-	/* number of Cell's SPUs (-1 for default) */
-	int nspus;
 
 	unsigned use_explicit_workers_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
@@ -113,22 +122,34 @@ struct starpu_conf
 	unsigned use_explicit_workers_opencl_gpuid;
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
+	/* calibrate bus (-1 for default) */
+	int bus_calibrate;
+
 	/* calibrate performance models, if any (-1 for default) */
 	int calibrate;
 
 	/* Create only one combined worker, containing all CPU workers */
 	int single_combined_worker;
 
-        /* indicate if the asynchronous copies should be disabled */
+	/* indicate if all asynchronous copies should be disabled */
 	int disable_asynchronous_copy;
 
+	/* indicate if asynchronous copies to CUDA devices should be disabled */
+	int disable_asynchronous_cuda_copy;
+
+	/* indicate if asynchronous copies to OpenCL devices should be disabled */
+	int disable_asynchronous_opencl_copy;
+
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
-	int *cuda_opengl_interoperability;
+	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;
 
 	/* A driver that the application will run in one of its own threads. */
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
+
+	/* Specifies the buffer size for tracing */
+	unsigned trace_buffer_size;
 };
 
 /* Initialize a starpu_conf structure with default values. */
@@ -143,65 +164,15 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
  * shutdown */
 void starpu_shutdown(void);
 
-/* This function returns the number of workers (ie. processing units executing
- * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
-unsigned starpu_worker_get_count(void);
-unsigned starpu_combined_worker_get_count(void);
+/* Print topology configuration */
+void starpu_topology_print(FILE *f);
 
-unsigned starpu_cpu_worker_get_count(void);
-unsigned starpu_cuda_worker_get_count(void);
-unsigned starpu_spu_worker_get_count(void);
-unsigned starpu_opencl_worker_get_count(void);
+int starpu_asynchronous_copy_disabled(void);
+int starpu_asynchronous_cuda_copy_disabled(void);
+int starpu_asynchronous_opencl_copy_disabled(void);
 
-int starpu_asynchronous_copy_disabled();
-
-/* Return the identifier of the thread in case this is associated to a worker.
- * This will return -1 if this function is called directly from the application
- * or if it is some SPU worker where a single thread controls different SPUs. */
-int starpu_worker_get_id(void);
-
-int starpu_combined_worker_get_id(void);
-int starpu_combined_worker_get_size(void);
-int starpu_combined_worker_get_rank(void);
-
-
-/* This function returns the type of worker associated to an identifier (as
- * returned by the starpu_worker_get_id function). The returned value indicates
- * the architecture of the worker: STARPU_CPU_WORKER for a CPU core,
- * STARPU_CUDA_WORKER for a CUDA device, and STARPU_GORDON_WORKER for a Cell
- * SPU. The value returned for an invalid identifier is unspecified.  */
-enum starpu_archtype starpu_worker_get_type(int id);
-
-/* Returns the number of workers of the type indicated by the argument. A
- * positive (or null) value is returned in case of success, -EINVAL indicates
- * that the type is not valid otherwise. */
-int starpu_worker_get_count_by_type(enum starpu_archtype type);
-
-/* Fill the workerids array with the identifiers of the workers that have the
- * type indicated in the first argument. The maxsize argument indicates the
- * size of the workids array. The returned value gives the number of
- * identifiers that were put in the array. -ERANGE is returned is maxsize is
- * lower than the number of workers with the appropriate type: in that case,
- * the array is filled with the maxsize first elements. To avoid such
- * overflows, the value of maxsize can be chosen by the means of the
- * starpu_worker_get_count_by_type function, or by passing a value greater or
- * equal to STARPU_NMAXWORKERS. */
-int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
-
-/* StarPU associates a unique human readable string to each processing unit.
- * This function copies at most the "maxlen" first bytes of the unique
- * string associated to a worker identified by its identifier "id" into
- * the "dst" buffer. The caller is responsible for ensuring that the
- * "dst" is a valid pointer to a buffer of "maxlen" bytes at least.
- * Calling this function on an invalid identifier results in an unspecified
- * behaviour. */
-void starpu_worker_get_name(int id, char *dst, size_t maxlen);
-
-/* This functions returns the device id of the worker associated to an
- *  identifier (as returned by the starpu_worker_get_id() function)
- */
-int starpu_worker_get_devid(int id);
-
+void starpu_profiling_init();
+void starpu_display_stats();
 int starpu_driver_run(struct starpu_driver *d);
 void starpu_drivers_request_termination(void);
 

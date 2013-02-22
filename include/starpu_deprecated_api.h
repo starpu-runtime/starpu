@@ -46,13 +46,15 @@ typedef struct starpu_multiformat_interface starpu_multiformat_interface_t;
 
 typedef struct starpu_buffer_descr starpu_buffer_descr;
 typedef struct starpu_codelet starpu_codelet;
+typedef struct starpu_codelet starpu_codelet_t;
 typedef enum starpu_access_mode starpu_access_mode;
 
 #define starpu_print_bus_bandwidth     starpu_bus_print_bandwidth
 #define starpu_get_handle_interface_id starpu_handle_get_interface_id
 #define starpu_get_current_task        starpu_task_get_current
 #define starpu_unpack_cl_args          starpu_codelet_unpack_args
-#define starpu_pack_cl_args            starpu_codelet_pack_args
+#define starpu_pack_cl_args   	       starpu_codelet_pack_args
+#define starpu_task_deinit	       starpu_task_clean
 
 #ifdef __cplusplus
 }

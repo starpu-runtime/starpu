@@ -39,21 +39,17 @@ static void soclCreateProgramWithSource_task(void *data) {
 
 }
 
-static void rp_task(void *data) {
-   cl_program program = (cl_program)data;
-
-   int range = starpu_worker_get_range();
-
-   cl_int err = clReleaseProgram(program->cl_programs[range]);
-   if (err != CL_SUCCESS)
-      DEBUG_CL("clReleaseProgram", err);
-}
-
 static void release_callback_program(void * e) {
   cl_program program = (cl_program)e;
 
-  /* Destruct object */
-  starpu_execute_on_each_worker(rp_task, program, STARPU_OPENCL);
+  unsigned int i;
+  for (i=0; i<socl_device_count; i++) {
+     if (program->cl_programs[i] != NULL) {
+        cl_int err = clReleaseProgram(program->cl_programs[i]);
+        if (err != CL_SUCCESS)
+           DEBUG_CL("clReleaseProgram", err);
+     }
+  }
 
   /* Release references */
   gc_entity_unstore(&program->context);
@@ -74,14 +70,10 @@ soclCreateProgramWithSource(cl_context      context,
 {
    cl_program p;
    struct cpws_data *data;
-   int device_count;
+   unsigned int i;
 
    if (errcode_ret != NULL)
       *errcode_ret = CL_SUCCESS;
-
-   device_count = starpu_opencl_worker_get_count();
-   assert(device_count > 0);
-   DEBUG_MSG("Worker count: %d\n", device_count);
 
    /* Check arguments */
    if (count == 0 || strings == NULL) {
@@ -91,7 +83,7 @@ soclCreateProgramWithSource(cl_context      context,
    }
 
    /* Alloc cl_program structure */
-   p = (cl_program)gc_entity_alloc(sizeof(struct _cl_program), release_callback_program);
+   p = (cl_program)gc_entity_alloc(sizeof(struct _cl_program), release_callback_program, "program");
    if (p == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;
@@ -107,7 +99,7 @@ soclCreateProgramWithSource(cl_context      context,
    #endif
 
 
-   p->cl_programs = (cl_program*)malloc(sizeof(cl_program) * device_count);
+   p->cl_programs = (cl_program*)malloc(sizeof(cl_program) * socl_device_count);
    if (p->cl_programs == NULL) {
       if (errcode_ret != NULL)
          *errcode_ret = CL_OUT_OF_HOST_MEMORY;
@@ -115,8 +107,7 @@ soclCreateProgramWithSource(cl_context      context,
    }
 
    {
-      int i;
-      for (i=0; i<device_count; i++)
+      for (i=0; i<socl_device_count; i++)
          p->cl_programs[i] = NULL;
    }
 
@@ -132,15 +123,22 @@ soclCreateProgramWithSource(cl_context      context,
    data->strings = (char**)strings;
    data->lengths = (size_t*)lengths;
 
-   data->errcodes = (cl_int*)malloc(sizeof(cl_int) * device_count);
+   data->errcodes = (cl_int*)malloc(sizeof(cl_int) * socl_device_count);
+   for (i=0; i<socl_device_count; i++) {
+      data->errcodes[i] = CL_SUCCESS;
+   }
+
 
    /* Init real cl_program for each OpenCL device */
-   starpu_execute_on_each_worker(soclCreateProgramWithSource_task, data, STARPU_OPENCL);
+   unsigned workers[context->num_devices];
+   for (i=0; i<context->num_devices; i++) {
+      workers[i] = context->devices[i]->worker_id;
+   }
+   starpu_execute_on_specific_workers(soclCreateProgramWithSource_task, data, context->num_devices, workers, "SOCL_CREATE_PROGRAM");
 
    if (errcode_ret != NULL) {
-      int i;
       *errcode_ret = CL_SUCCESS;
-      for (i=0; i<device_count; i++) {
+      for (i=0; i<socl_device_count; i++) {
          if (data->errcodes[i] != CL_SUCCESS) {
             DEBUG_MSG("Worker [%d] failed\n", i);
             DEBUG_CL("clCreateProgramWithSource", data->errcodes[i]);

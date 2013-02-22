@@ -29,9 +29,9 @@ SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/->/ {p
 
 for sched in $SCHEDULERS
 do
-    # XXX pgreedy often hangs, we have to fix it.
+    # XXX peager often hangs, we have to fix it.
     # Let's just disable it for now.
-    if [ "$sched" == "pgreedy" ] ; then
+    if [ "$sched" = "peager" ] ; then
         continue
     fi
     echo "cholesky.$sched"

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #include <starpu_top.h>
 #include <core/sched_policy.h>
 #include <top/starpu_top_core.h>
+#include <core/debug.h>
 
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
 {
@@ -50,6 +51,9 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 
 	if (rank == 0)
 	{
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_RUNTASK, j->job_id, NULL);
+#endif
 		cl->per_worker_stats[workerid]++;
 
 		profiling_info = task->profiling_info;
@@ -78,13 +82,16 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 
 	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch);
 
-	if (cl->model && cl->model->benchmarking)
+	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
 	if (rank == 0)
 	{
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 			_starpu_clock_gettime(codelet_end);
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
+#endif
 	}
 
 	if (starpu_top)
@@ -104,8 +111,10 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	int calibrate_model = 0;
 	int updated = 0;
 
+#ifndef STARPU_SIMGRID
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
+#endif
 
 	if ((profiling && profiling_info) || calibrate_model)
 	{
@@ -127,7 +136,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 		}
 
 		if (calibrate_model)
-
 			_starpu_update_perfmodel_history(j, j->task->cl->model,  perf_arch, worker_args->devid, measured,j->nimpl);
 
 
@@ -142,29 +150,67 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
-/* Workers may block when there is no work to do at all. We assume that the
- * mutex is hold when that function is called. */
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex)
+/* Workers may block when there is no work to do at all. */
+struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
-	struct timespec start_time, end_time;
+	struct starpu_task *task;
 
-	_STARPU_TRACE_WORKER_SLEEP_START
-	_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+	_STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+	task = _starpu_pop_task(args);
 
-	_starpu_clock_gettime(&start_time);
-	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
-
-	_STARPU_PTHREAD_COND_WAIT(cond, mutex);
-
-	_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
-	_STARPU_TRACE_WORKER_SLEEP_END
-	_starpu_clock_gettime(&end_time);
-
-	int profiling = starpu_profiling_status_get();
-	if (profiling)
+	if (task == NULL)
 	{
-		struct timespec sleeping_time;
-		starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
-		_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
+		/* Note: we need to keep the sched condition mutex all along the path
+		 * from popping a task from the scheduler to blocking. Otherwise the
+		 * driver may go block just after the scheduler got a new task to be
+		 * executed, and thus hanging. */
+
+		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+		{
+			_STARPU_TRACE_WORKER_SLEEP_START
+			_starpu_worker_restart_sleeping(workerid);
+			_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+		}
+
+		if (_starpu_worker_can_block(memnode))
+			_STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
+#ifdef STARPU_SIMGRID
+		else
+		{
+			if (_starpu_machine_is_running())
+			{
+				static int warned;
+				if (!warned)
+				{
+					warned = 1;
+					_STARPU_DISP("Has to make simgrid spin for progression hooks\n");
+				}
+				MSG_process_sleep(0.000010);
+			}
+		}
+#endif
+
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+
+		return NULL;
 	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	{
+		_STARPU_TRACE_WORKER_SLEEP_END
+		_starpu_worker_stop_sleeping(workerid);
+		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
+	}
+
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event)
+	{
+		int id = workerid;
+		AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(task)->job_id, &id);
+	}
+#endif
+
+	return task;
 }

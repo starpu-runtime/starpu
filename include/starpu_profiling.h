@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -100,6 +100,10 @@ int starpu_profiling_status_set(int status);
 /* Return the current profiling status or a negative value in case there was an
  * error. */
 int starpu_profiling_status_get(void);
+#ifdef BUILDING_STARPU
+extern int _starpu_profiling;
+#define starpu_profiling_status_get() _starpu_profiling
+#endif
 
 /* Get the profiling info associated to a worker, and reset the profiling
  * measurements. If worker_info is NULL, we only reset the counters. */
@@ -150,8 +154,8 @@ static inline void starpu_timespec_accumulate(struct timespec *result,
 }
 
 /* Computes result = a - b */
-static inline void starpu_timespec_sub(struct timespec *a,
-					struct timespec *b,
+static inline void starpu_timespec_sub(const struct timespec *a,
+					const struct timespec *b,
 					struct timespec *result)
 {
 	result->tv_sec = a->tv_sec - b->tv_sec;

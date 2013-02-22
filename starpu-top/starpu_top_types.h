@@ -116,8 +116,7 @@ enum starpu_top_device_type
 {
     SERVERDEVICE_CPU = 0,
     SERVERDEVICE_CUDA = 1,
-    SERVERDEVICE_OPENCL = 2,
-    SERVERDEVICE_GORDON = 3,
+    SERVERDEVICE_OPENCL = 2
 };
 
 // Server devices
@@ -232,7 +231,6 @@ enum CommunicationInMessageType
     COM_MSG_IN_DEV_CPU = 32,
     COM_MSG_IN_DEV_CUDA = 33,
     COM_MSG_IN_DEV_OPENCL = 34,
-    COM_MSG_IN_DEV_GORDON = 35,
 
     COM_MSG_IN_READY = 40,
 

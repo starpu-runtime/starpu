@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -21,15 +21,165 @@ New features:
   * OpenGL interoperability support.
   * Capability to store compiled OpenCL kernels on the file system
   * Capability to load compiled OpenCL kernels
+  * Performance models measurements can now be provided explicitly by
+    applications.
+  * Capability to emit communication statistics when running MPI code
+  * Add starpu_unregister_submit, starpu_data_acquire_on_node and
+    starpu_data_invalidate_submit
+  * New functionnality to wrapper starpu_insert_task to pass a array of
+	data_handles via the parameter STARPU_DATA_ARRAY
+  * Enable GPU-GPU direct transfers.
+  * GCC plug-in
+	- Add `registered' attribute
+	- A new pass was added that warns about the use of possibly
+	  unregistered memory buffers.
+  * SOCL
+        - Manual mapping of commands on specific devices is now
+	  possible
+        - SOCL does not require StarPU CPU tasks anymore. CPU workers
+          are automatically disabled to enhance performance of OpenCL
+          CPU devices
+  * New interface: COO matrix.
+  * Data interfaces: The pack operation of user-defined data interface
+    defines a new parameter count which should be set to the size of
+    the buffer created by the packing of the data.
+  * MPI:
+        - Communication statistics for MPI can only be enabled at
+	  execution time by defining the environment variable
+	  STARPU_COMM_STATS
+        - Communication cache mechanism is enabled by default, and can
+	  only be disabled at execution time by setting the
+	  environment variable STARPU_MPI_CACHE to 0.
+        - Initialisation functions starpu_mpi_initialize_extended()
+  	  and starpu_mpi_initialize() have been made deprecated. One
+	  should now use starpu_mpi_init(int *, char ***, int). The
+	  last parameter indicates if MPI should be initialised.
+        - Collective detached operations have new parameters, a
+	  callback function and a argument. This is to be consistent
+	  with the detached point-to-point communications.
+        - When exchanging user-defined data interfaces, the size of
+	  the data is the size returned by the pack operation, i.e
+	  data with dynamic size can now be exchanged with StarPU-MPI.
+        - New functionality starpu_mpi_irecv_probe_detached which
+  	  first tests if the message is available before calling MPI_Recv.
+  * Add experimental simgrid support, to simulate execution with various
+    number of CPUs, GPUs, amount of memory, etc.
+  * Add support for OpenCL simulators (which provide simulated execution time)
+  * Add support for Temanejo, a task graph debugger
+  * Theoretical bound lp output now includes data transfer time.
+  * Update OpenCL driver to only enable CPU devices (the environment
+        variable STARPU_OPENCL_ONLY_ON_CPUS must be set to a positive
+	value when executing an application)
+  * Add Scheduling contexts to separate computation resources
+    	- Scheduling policies take into account the set of resources corresponding
+	to the context it belongs to
+	- Add support to dynamically change scheduling contexts
+	(Create and Delete a context, Add Workers to a context, Remove workers from a context)
+	- Add support to indicate to which contexts the tasks are submitted
+  * Add the Hypervisor to manage the Scheduling Contexts automatically
+    	- The Contexts can be registered to the Hypervisor
+	- Only the registered contexts are managed by the Hypervisor
+	- The Hypervisor can detect the initial distribution of resources of 
+	a context and constructs it consequently (the cost of execution is required)
+    	- Several policies can adapt dynamically the distribution of resources
+	in contexts if the initial one was not appropriate
+	- Add a platform to implement new policies of redistribution
+	of resources
+  * Implement a memory manager which checks the global amount of
+    memory available on devices, and checks there is enough memory
+    before doing an allocation on the device.
+  * Discard environment variable STARPU_LIMIT_GPU_MEM and define
+    instead STARPU_LIMIT_CUDA_MEM and STARPU_LIMIT_OPENCL_MEM
+  * Introduce new variables STARPU_LIMIT_CUDA_devid_MEM and
+    STARPU_LIMIT_OPENCL_devid_MEM to limit memory per specific device
 
 Changes:
+  * Fix the block filter functions.
+  * Fix StarPU-MPI on Darwin.
   * The FxT code can now be used on systems other than Linux.
+  * Keep only one hashtable implementation common/uthash.h
   * The cache of starpu_mpi_insert_task is fixed and thus now enabled by
     default.
+  * Improve starpu_machine_display output.
+  * Standardize objects name in the performance model API
+  * SOCL
+    - Virtual SOCL device has been removed
+    - Automatic scheduling still available with command queues not
+      assigned to any device
+    - Remove modified OpenCL headers. ICD is now the only supported
+      way to use SOCL.
+    - SOCL test suite is only run when environment variable
+      SOCL_OCL_LIB_OPENCL is defined. It should contain the location
+      of the libOpenCL.so file of the OCL ICD implementation.
+  * Fix main memory leak on multiple unregister/re-register.
+  * Improve hwloc detection by configure
+  * Cell:
+    - It is no longer possible to enable the cell support via the
+      gordon driver
+    - Data interfaces no longer define functions to copy to and from
+      SPU devices
+    - Codelet no longer define pointer for Gordon implementations
+    - Gordon workers are no longer enabled
+    - Gordon performance models are no longer enabled
+  * Fix data transfer arrows in paje traces
+  * The "heft" scheduler no longer exists. Users should now pick "dmda"
+    instead.
+  * StarPU can now use poti to generate paje traces.
+  * Rename scheduling policy "parallel greedy" to "parallel eager"
+
+Small features:
+  * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
+  * Add starpu_fxt_stop_profiling/starpu_fxt_start_profiling which permits to
+  pause trace recording.
+  * Add trace_buffer_size configuration field to permit to specify the tracing
+  buffer size.
+  * Add starpu_codelet_profile and starpu_codelet_histo_profile, tools which draw
+  the profile of a codelet.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
 	still available for compatibility reasons.
+  * include/starpu.h includes all include/starpu_*.h files, applications
+	therefore only need to have #include <starpu.h>
+  * Active task wait is now included in blocked time.
+  * Fix GCC plugin linking issues starting with GCC 4.7.
+  * Fix forcing calibration of never-calibrated archs.
+  * CUDA applications are no longer compiled with the "-arch sm_13"
+    option. It is specifically added to applications which need it.
+
+StarPU 1.0.3 (svn revision 7379)
+==============================================
+
+Changes:
+  * Several bug fixes in the build system
+  * Bug fixes in source code for non-Linux systems
+  * Fix generating FXT traces bigger than 64MiB.
+  * Improve ENODEV error detections in StarPU FFT
+
+StarPU 1.0.2 (svn revision xxx)
+==============================================
+
+Changes:
+  * Add starpu_block_shadow_filter_func_vector and an example.
+  * Add tag dependency in trace-generated DAG.
+  * Fix CPU binding for optimized CPU-GPU transfers.
+  * Fix parallel tasks CPU binding and combined worker generation.
+  * Fix generating FXT traces bigger than 64MiB.
+
+StarPU 1.0.1 (svn revision 6659)
+==============================================
+
+Changes:
+  * hwloc support. Warn users when hwloc is not found on the system and
+	produce error when not explicitely disabled.
+  * Several bug fixes
+  * GCC plug-in
+	- Add `#pragma starpu release'
+	- Fix bug when using `acquire' pragma with function parameters
+	- Slightly improve test suite coverage
+	- Relax the GCC version check
+  * Update SOCL to use new API
+  * Documentation improvement.
 
 StarPU 1.0.0 (svn revision 6306)
 ==============================================
@@ -230,3 +380,9 @@ Changes:
    - transparent data coherency management
    - High-level expressive interface
 
+
+# Local Variables:
+# mode: text
+# coding: utf-8
+# ispell-local-dictionary: "american"
+# End:

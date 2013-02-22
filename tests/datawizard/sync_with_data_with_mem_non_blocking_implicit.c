@@ -66,8 +66,8 @@ int use_handle(starpu_data_handle_t handle)
 	return ret;
 }
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 static unsigned n_synced_buffers;
 
 void callback_sync_data(void *arg __attribute__ ((unused)))
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	nbuffers /= 4;
 	niter /= 4;
 	vectorsize /= 8;

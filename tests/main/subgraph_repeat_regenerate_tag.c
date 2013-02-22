@@ -21,7 +21,11 @@
 
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned niter = 64;
+#else
 static unsigned niter = 16384;
+#endif
 
 #define TAG_START 0
 #define TAG_A 1
@@ -48,8 +52,8 @@ static struct starpu_task taskA, taskB, taskC, taskD;
 
 static unsigned loop_cnt = 0;
 static unsigned check_cnt = 0;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -156,10 +160,10 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
-	starpu_task_deinit(&taskA);
-	starpu_task_deinit(&taskB);
-	starpu_task_deinit(&taskC);
-	starpu_task_deinit(&taskD);
+	starpu_task_clean(&taskA);
+	starpu_task_clean(&taskB);
+	starpu_task_clean(&taskC);
+	starpu_task_clean(&taskD);
 
 	return EXIT_SUCCESS;
 

@@ -50,3 +50,5 @@
 #define CPU_IAMAX	ICAMAX
 
 #define PIVOT_THRESHHOLD	10e-5
+
+#define CAN_EXECUTE

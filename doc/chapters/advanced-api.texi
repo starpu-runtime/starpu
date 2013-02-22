@@ -2,20 +2,292 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Defining a new data interface::  
-* Multiformat Data Interface::  
-* Task Bundles::                
-* Task Lists::                  
-* Using Parallel Tasks::        
-* Defining a new scheduling policy::  
+* Insert Task::
+* Tracing support::
+* MPI Interface::
+* Defining a new data interface::
+* Multiformat Data Interface::
+* Task Bundles::
+* Task Lists::
+* Using Parallel Tasks::
+* Scheduling Contexts::
+* Defining a new scheduling policy::
 * Running drivers::
-* Expert mode::                 
+* Expert mode::
 @end menu
+
+@node Insert Task
+@section Insert Task
+
+@deftypefun int starpu_insert_task (struct starpu_codelet *@var{cl}, ...)
+Create and submit a task corresponding to @var{cl} with the following
+arguments.  The argument list must be zero-terminated.
+
+The arguments following the codelets can be of the following types:
+
+@itemize
+@item
+@code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
+@item
+@code{STARPU_DATA_ARRAY} followed by an array of data handles and its number of elements;
+@item
+the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
+@code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
+@code{STARPU_PRIORITY}, @code{STARPU_TAG}, followed by the appropriated objects
+as defined below.
+@end itemize
+
+When using @code{STARPU_DATA_ARRAY}, the access mode of the data
+handles is not defined.
+
+Parameters to be passed to the codelet implementation are defined
+through the type @code{STARPU_VALUE}. The function
+@code{starpu_codelet_unpack_args} must be called within the codelet
+implementation to retrieve them.
+@end deftypefun
+
+@defmac STARPU_VALUE
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a pointer to a constant value and the size of the constant
+@end defmac
+
+@defmac STARPU_CALLBACK
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a pointer to a callback function
+@end defmac
+
+@defmac STARPU_CALLBACK_ARG
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a pointer to be given as an argument to the callback
+function
+@end defmac
+
+@defmac  STARPU_CALLBACK_WITH_ARG
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by two pointers: one to a callback function, and the other to
+be given as an argument to the callback function; this is equivalent
+to using both @code{STARPU_CALLBACK} and
+@code{STARPU_CALLBACK_WITH_ARG}
+@end defmac
+
+@defmac STARPU_PRIORITY
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a integer defining a priority level
+@end defmac
+
+@defmac STARPU_TAG
+this macro is used when calling @code{starpu_insert_task}, and must be
+followed by a tag.
+@end defmac
+
+@deftypefun void starpu_codelet_pack_args ({char **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
+Pack arguments of type @code{STARPU_VALUE} into a buffer which can be
+given to a codelet and later unpacked with the function
+@code{starpu_codelet_unpack_args} defined below.
+@end deftypefun
+
+@deftypefun void starpu_codelet_unpack_args ({void *}@var{cl_arg}, ...)
+Retrieve the arguments of type @code{STARPU_VALUE} associated to a
+task automatically created using the function
+@code{starpu_insert_task} defined above.
+@end deftypefun
+
+@node Tracing support
+@section Tracing support
+
+@deftypefun void starpu_fxt_start_profiling (void)
+Start recording the trace. The trace is by default started from
+@code{starpu_init()} call, but can be paused by using
+@code{starpu_fxt_stop_profiling}, in which case
+@code{starpu_fxt_start_profiling} should be called to specify when to resume
+recording events.
+@end deftypefun
+
+@deftypefun void starpu_fxt_stop_profiling (void)
+Stop recording the trace. The trace is by default stopped at
+@code{starpu_shutdown()} call. @code{starpu_fxt_stop_profiling} can however be
+used to stop it earlier. @code{starpu_fxt_start_profiling} can then be called to
+start recording it again, etc.
+@end deftypefun
+
+
+@node MPI Interface
+@section MPI Interface
+
+@menu
+* Initialisation::
+* Communication::
+* Communication cache::
+@end menu
+
+@node Initialisation
+@subsection Initialisation
+
+@deftypefun int starpu_mpi_init (int *@var{argc}, char ***@var{argv}, int initialize_mpi)
+Initializes the starpumpi library. @code{initialize_mpi} indicates if
+MPI should be initialized or not by StarPU. If the value is not @code{0},
+MPI will be initialized by calling @code{MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)}.
+@end deftypefun
+
+@deftypefun int starpu_mpi_initialize (void)
+This function has been made deprecated. One should use instead the
+function @code{starpu_mpi_init()} defined above.
+This function does not call @code{MPI_Init}, it should be called beforehand.
+@end deftypefun
+
+@deftypefun int starpu_mpi_initialize_extended (int *@var{rank}, int *@var{world_size})
+This function has been made deprecated. One should use instead the
+function @code{starpu_mpi_init()} defined above.
+MPI will be initialized by starpumpi by calling @code{MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)}.
+@end deftypefun
+
+@deftypefun int starpu_mpi_shutdown (void)
+Cleans the starpumpi library. This must be called between calling
+@code{starpu_mpi} functions and @code{starpu_shutdown()}.
+@code{MPI_Finalize()} will be called if StarPU-MPI has been initialized
+by @code{starpu_mpi_init()}.
+@end deftypefun
+
+@deftypefun void starpu_mpi_comm_amounts_retrieve (size_t *@var{comm_amounts})
+Retrieve the current amount of communications from the current node in
+the array @code{comm_amounts} which must have a size greater or equal
+to the world size. Communications statistics must be enabled
+(@pxref{STARPU_COMM_STATS}).
+@end deftypefun
+
+@node Communication
+@subsection Communication
+
+The standard point to point communications of MPI have been
+implemented. The semantic is similar to the MPI one, but adapted to
+the DSM provided by StarPU. A MPI request will only be submitted when
+the data is available in the main memory of the node submitting the
+request.
+
+There is two types of asynchronous communications: the classic
+asynchronous communications and the detached communications. The
+classic asynchronous communications (@code{starpu_mpi_isend} and
+@code{starpu_mpi_irecv}) need to be followed by a call to
+@code{starpu_mpi_wait} or to @code{starpu_mpi_test} to wait for or to
+test the completion of the communication. Waiting for or testing the
+completion of detached communications is not possible, this is done
+internally by StarPU-MPI, on completion, the resources are
+automatically released. This mechanism is similar to the pthread
+detach state attribute which determines whether a thread will be
+created in a joinable or a detached state.
+
+@deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
+Performs a standard-mode, blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}.
+@end deftypefun
+
+@deftypefun int starpu_mpi_recv (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, MPI_Status *@var{status})
+Performs a standard-mode, blocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}.
+@end deftypefun
+
+@deftypefun int starpu_mpi_isend (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
+Posts a standard-mode, non blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. After the call, the pointer to the request
+@var{req} can be used to test or to wait for the completion of the communication.
+@end deftypefun
+
+@deftypefun int starpu_mpi_irecv (starpu_data_handle_t @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
+Posts a nonblocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. After the call, the pointer to the request
+@var{req} can be used to test or to wait for the completion of the communication.
+@end deftypefun
+
+@deftypefun int starpu_mpi_isend_detached (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
+Posts a standard-mode, non blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, the @var{callback} function is
+called with the argument @var{arg}. Similarly to the pthread detached
+functionality, when a detached communication completes, its resources
+are automatically released back to the system, there is no need to
+test or to wait for the completion of the request.
+@end deftypefun
+
+@deftypefun int starpu_mpi_irecv_detached (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
+Posts a nonblocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, the @var{callback} function is
+called with the argument @var{arg}. Similarly to the pthread detached
+functionality, when a detached communication completes, its resources
+are automatically released back to the system, there is no need to
+test or to wait for the completion of the request.
+@end deftypefun
+
+@deftypefun int starpu_mpi_wait (starpu_mpi_req *@var{req}, MPI_Status *@var{status})
+Returns when the operation identified by request @var{req} is complete.
+@end deftypefun
+
+@deftypefun int starpu_mpi_test (starpu_mpi_req *@var{req}, int *@var{flag}, MPI_Status *@var{status})
+If the operation identified by @var{req} is complete, set @var{flag}
+to 1. The @var{status} object is set to contain information on the
+completed operation.
+@end deftypefun
+
+@deftypefun int starpu_mpi_barrier (MPI_Comm @var{comm})
+Blocks the caller until all group members of the communicator
+@var{comm} have called it.
+@end deftypefun
+
+@deftypefun int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag_t @var{tag})
+Posts a standard-mode, non blocking send of @var{data_handle} to the
+node @var{dest} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, @var{tag} is unlocked.
+@end deftypefun
+
+@deftypefun int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle_t @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, starpu_tag_t @var{tag})
+Posts a nonblocking receive in @var{data_handle} from the
+node @var{source} using the message tag @code{mpi_tag} within the
+communicator @var{comm}. On completion, @var{tag} is unlocked.
+@end deftypefun
+
+@deftypefun int starpu_mpi_isend_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{dest}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
+Posts @var{array_size} standard-mode, non blocking send. Each post
+sends the n-th data of the array @var{data_handle} to the n-th node of
+the array @var{dest}
+using the n-th message tag of the array @code{mpi_tag} within the n-th
+communicator of the array
+@var{comm}. On completion of the all the requests, @var{tag} is unlocked.
+@end deftypefun
+
+@deftypefun int starpu_mpi_irecv_array_detached_unlock_tag (unsigned @var{array_size}, starpu_data_handle_t *@var{data_handle}, int *@var{source}, int *@var{mpi_tag}, MPI_Comm *@var{comm}, starpu_tag_t @var{tag})
+Posts @var{array_size} nonblocking receive. Each post receives in the
+n-th data of the array @var{data_handle} from the n-th
+node of the array @var{source} using the n-th message tag of the array
+@code{mpi_tag} within the n-th communicator of the array @var{comm}.
+On completion of the all the requests, @var{tag} is unlocked.
+@end deftypefun
+
+@node Communication cache
+@subsection Communication cache
+
+@deftypefun void starpu_mpi_cache_flush (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle})
+Clear the send and receive communication cache for the data
+@var{data_handle}. The function has to be called synchronously by all
+the MPI nodes.
+The function does nothing if the cache mechanism is disabled (@pxref{STARPU_MPI_CACHE}).
+@end deftypefun
+
+@deftypefun void starpu_mpi_cache_flush_all_data (MPI_Comm @var{comm})
+Clear the send and receive communication cache for all data. The
+function has to be called synchronously by all the MPI nodes.
+The function does nothing if the cache mechanism is disabled (@pxref{STARPU_MPI_CACHE}).
+@end deftypefun
 
 @node Defining a new data interface
 @section Defining a new data interface
@@ -33,19 +305,19 @@
 Per-interface data transfer methods.
 
 @table @asis
-@item @code{void (*register_data_handle)(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)}
+@item @code{void (*register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)}
 Register an existing interface into a data handle.
 
-@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node)}
+@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node)}
 Allocate data for the interface on a given node.
 
-@item @code{ void (*free_data_on_node)(void *data_interface, uint32_t node)}
+@item @code{ void (*free_data_on_node)(void *data_interface, unsigned node)}
 Free data of the interface on a given node.
 
 @item @code{ const struct starpu_data_copy_methods *copy_methods}
-ram/cuda/spu/opencl synchronous and asynchronous transfer methods.
+ram/cuda/opencl synchronous and asynchronous transfer methods.
 
-@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, uint32_t node)}
+@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node)}
 Return the current pointer (if any) for the handle on the given node.
 
 @item @code{ size_t (*get_size)(starpu_data_handle_t handle)}
@@ -60,14 +332,23 @@ Compare the data size of two interfaces.
 @item @code{ void (*display)(starpu_data_handle_t handle, FILE *f)}
 Dump the sizes of a handle to a file.
 
-@item @code{ int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss)}
-Convert the data size to the spu size format. If no SPUs are used, this field can be seto NULL.
-
 @item @code{enum starpu_data_interface_id interfaceid}
 An identifier that is unique to each interface.
 
 @item @code{size_t interface_size}
 The size of the interface data descriptor.
+
+@item @code{int is_multiformat}
+todo
+
+@item @code{struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface)}
+todo
+
+@item @code{int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)}
+Pack the data handle into a contiguous buffer at the address @code{ptr} and set the size of the newly created buffer in @code{count}
+
+@item @code{int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)}
+Unpack the data handle from the contiguous buffer at the address @code{ptr} of size @var{count}
 
 @end table
 @end deftp
@@ -75,8 +356,8 @@ The size of the interface data descriptor.
 @deftp {Data Type} {struct starpu_data_copy_methods}
 Defines the per-interface methods.
 @table @asis
-@item @code{int @{ram,cuda,opencl,spu@}_to_@{ram,cuda,opencl,spu@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
-These 16 functions define how to copy data from the @var{src_interface}
+@item @code{int @{ram,cuda,opencl@}_to_@{ram,cuda,opencl@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+These 12 functions define how to copy data from the @var{src_interface}
 interface on the @var{src_node} node to the @var{dst_interface} interface
 on the @var{dst_node} node. They return 0 on success.
 
@@ -141,7 +422,7 @@ future CRC computation. This is used for computing data size footprint.
 @node An example of data interface
 @subsection An example of data interface
 
-@deftypefun int starpu_data_interface_get_next_id ()
+@deftypefun int starpu_data_interface_get_next_id (void)
 Returns the next available id for a newly created data interface.
 @end deftypefun
 
@@ -167,7 +448,7 @@ described below.
 @cartouche
 @smallexample
 void starpu_complex_data_register(starpu_data_handle_t *handle,
-     uint32_t home_node, double *real, double *imaginary, int nx)
+     unsigned home_node, double *real, double *imaginary, int nx)
 @{
         struct starpu_complex_interface complex =
         @{
@@ -302,7 +583,7 @@ pointer to a codelet which converts from CUDA to CPU
 @end table
 @end deftp
 
-@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, uint32_t @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops})
+@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops})
 Register a piece of data that can be represented in different ways, depending upon
 the processing unit that manipulates it. It allows the programmer, for instance, to
 use an array of structures when working on a CPU, and a structure of arrays when
@@ -464,28 +745,6 @@ Get the description of a combined worker
 Variant of starpu_worker_can_execute_task compatible with combined workers
 @end deftypefun
 
-
-@node Defining a new scheduling policy
-@section Defining a new scheduling policy
-
-TODO
-
-A full example showing how to define a new scheduling policy is available in
-the StarPU sources in the directory @code{examples/scheduler/}.
-
-@menu
-* Scheduling Policy API:: Scheduling Policy API
-* Source code::
-@end menu
-
-@node Scheduling Policy API
-@subsection Scheduling Policy API
-
-While StarPU comes with a variety of scheduling policies (@pxref{Task
-scheduling policy}), it may sometimes be desirable to implement custom
-policies to address specific problems.  The API described below allows
-users to write their own scheduling policy.
-
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
 @item @code{unsigned nworkers}
@@ -521,9 +780,6 @@ Actual number of CUDA workers used by StarPU.
 @item @code{unsigned nopenclgpus}
 Actual number of OpenCL workers used by StarPU.
 
-@item @code{unsigned ngordon_spus}
-Actual number of Gordon workers used by StarPU.
-
 @item @code{unsigned workers_bindid[STARPU_NMAXWORKERS]}
 Indicates the successive cpu identifier that should be used to bind the
 workers. It is either filled according to the user's explicit
@@ -543,9 +799,118 @@ driver.  It is either filled according to the user's explicit parameters (from
 starpu_conf) or according to the STARPU_WORKERS_OPENCLID env. variable. Otherwise,
 they are taken in ID order.
 
+@end table
+@end deftp
+
+@node Scheduling Contexts
+@section Scheduling Contexts
+StarPU permits on one hand grouping workers in combined workers in order to execute a parallel task and on the other hand grouping tasks in bundles that will be executed by a single specified worker.
+In contrast when we group workers in scheduling contexts we submit starpu tasks to them and we schedule them with the policy assigned to the context.
+Scheduling contexts can be created, deleted and modified dynamically.
+
+@deftypefun unsigned starpu_sched_ctx_create (const char *@var{policy_name}, int *@var{workerids_ctx}, int @var{nworkers_ctx}, const char *@var{sched_ctx_name})
+This function creates a scheduling context which uses the scheduling policy indicated in the first argument and assigns the workers indicated in the second argument to execute the tasks submitted to it.
+The return value represents the identifier of the context that has just been created. It will be further used to indicate the context the tasks will be submitted to. The return value should be at most @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_delete (unsigned @var{sched_ctx_id})
+Delete scheduling context @var{sched_ctx_id} and transfer remaining workers to the inheritor scheduling context.
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_add_workers ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx_id})
+This function adds dynamically the workers indicated in the first argument to the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_remove_workers ({int *}@var{workerids_ctx}, int @var{nworkers_ctx}, unsigned @var{sched_ctx_id})
+This function removes the workers indicated in the first argument from the context indicated in the last argument. The last argument cannot be greater than  @code{STARPU_NMAX_SCHED_CTXS}.
+@end deftypefun
+
+A scheduling context manages a collection of workers that can be memorized using different data structures. Thus, a generic structure is available in order to simplify the choice of its type.
+Only the list data structure is available but further data structures(like tree) implementations are foreseen.
+
+@deftp {Data Type} {struct starpu_sched_ctx_worker_collection}
+@table @asis
+@item @code{void *workerids}
+The workerids managed by the collection
+@item @code{unsigned nworkers}
+The number of workerids
+@item @code{pthread_key_t cursor_key} (optional)
+The cursor needed to iterate the collection (depending on the data structure)
+@item @code{int type}
+The type of structure (currently STARPU_WORKER_LIST is the only one available)
+@item @code{unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers)}
+Checks if there is a next worker
+@item @code{int (*get_next)(struct starpu_sched_ctx_worker_collection *workers)}
+Gets the next worker
+@item @code{int (*add)(struct starpu_sched_ctx_worker_collection *workers, int worker)}
+Adds a worker to the collection
+@item @code{int (*remove)(struct starpu_sched_ctx_worker_collection *workers, int worker)}
+Removes a worker from the collection
+@item @code{void* (*init)(struct starpu_sched_ctx_worker_collection *workers)}
+Initialize the collection
+@item @code{void (*deinit)(struct starpu_sched_ctx_worker_collection *workers)}
+Deinitialize the colection
+@item @code{void (*init_cursor)(struct starpu_sched_ctx_worker_collection *workers)} (optional)
+Initialize the cursor if there is one
+@item @code{void (*deinit_cursor)(struct starpu_sched_ctx_worker_collection *workers)} (optional)
+Deinitialize the cursor if there is one
 
 @end table
 @end deftp
+
+@deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
+Create a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_delete_worker_collection (unsigned @var{sched_ctx_id})
+Delete the worker collection of the specified scheduling context
+@end deftypefun
+
+@deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection (unsigned @var{sched_ctx_id})
+Return the worker collection managed by the indicated context
+@end deftypefun
+
+@deftypefun pthread_mutex_t* starpu_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
+TODO
+@end deftypefun
+
+@deftypefun void starpu_task_set_context (unsigned *@var{sched_ctx_id})
+Set the scheduling context the subsequent tasks will be submitted to
+@end deftypefun
+
+@deftypefun unsigned starpu_task_get_context (void)
+Return the scheduling context the tasks are currently submitted to
+@end deftypefun
+
+@deftypefun unsigned starpu_sched_ctx_get_nworkers (unsigned @var{sched_ctx_id})
+Return the number of workers managed by the specified contexts
+(Usually needed to verify if it manages any workers or if it should be blocked)
+@end deftypefun
+
+@deftypefun unsigned starpu_sched_ctx_get_nshared_workers (unsigned @var{sched_ctx_id}, unsigned @var{sched_ctx_id2})
+Return the number of workers shared by two contexts
+@end deftypefun
+
+@node Defining a new scheduling policy
+@section Defining a new scheduling policy
+
+TODO
+
+A full example showing how to define a new scheduling policy is available in
+the StarPU sources in the directory @code{examples/scheduler/}.
+
+@menu
+* Scheduling Policy API:: Scheduling Policy API
+* Source code::
+@end menu
+
+@node Scheduling Policy API
+@subsection Scheduling Policy API
+
+While StarPU comes with a variety of scheduling policies (@pxref{Task
+scheduling policy}), it may sometimes be desirable to implement custom
+policies to address specific problems.  The API described below allows
+users to write their own scheduling policy.
 
 @deftp {Data Type} {struct starpu_sched_policy}
 This structure contains all the methods that implement a scheduling policy.  An
@@ -554,10 +919,10 @@ field of the @code{starpu_conf} structure passed to the @code{starpu_init}
 function. The different fields are:
 
 @table @asis
-@item @code{void (*init_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *)}
+@item @code{void (*init_sched)(unsigned sched_ctx_id)}
 Initialize the scheduling policy.
 
-@item @code{void (*deinit_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *)}
+@item @code{void (*deinit_sched)(unsigned sched_ctx_id)}
 Cleanup the scheduling policy.
 
 @item @code{int (*push_task)(struct starpu_task *)}
@@ -570,24 +935,30 @@ is about to be executed by the worker. This method therefore permits to keep
 the state of of the scheduler coherent even when StarPU bypasses the scheduling
 strategy.
 
-@item @code{struct starpu_task *(*pop_task)(void)} (optional)
+@item @code{struct starpu_task *(*pop_task)(unsigned sched_ctx_id)} (optional)
 Get a task from the scheduler. The mutex associated to the worker is already
 taken when this method is called. If this method is defined as @code{NULL}, the
 worker will only execute tasks from its local queue. In this case, the
 @code{push_task} method should use the @code{starpu_push_local_task} method to
 assign tasks to the different workers.
 
-@item @code{struct starpu_task *(*pop_every_task)(void)}
+@item @code{struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id)}
 Remove all available tasks from the scheduler (tasks are chained by the means
 of the prev and next fields of the starpu_task structure). The mutex associated
 to the worker is already taken when this method is called. This is currently
-only used by the Gordon driver.
+not used.
 
 @item @code{void (*pre_exec_hook)(struct starpu_task *)} (optional)
 This method is called every time a task is starting.
 
 @item @code{void (*post_exec_hook)(struct starpu_task *)} (optional)
 This method is called every time a task has been executed.
+
+@item @code{void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers)}
+Initialize scheduling structures corresponding to each worker used by the policy.
+
+@item @code{void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers)}
+Deinitialize scheduling structures corresponding to each worker used by the policy.
 
 @item @code{const char *policy_name} (optional)
 Name of the policy.
@@ -597,8 +968,12 @@ Description of the policy.
 @end table
 @end deftp
 
-@deftypefun void starpu_worker_set_sched_condition (int @var{workerid}, pthread_cond_t *@var{sched_cond}, pthread_mutex_t *@var{sched_mutex})
-This function specifies the condition variable associated to a worker
+@deftypefun {struct starpu_sched_policy **} starpu_sched_get_predefined_policies ()
+Return an NULL-terminated array of all the predefined scheduling policies.
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_set_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_mutex_t *@var{sched_mutex}, {pthread_cond_t *}@var{sched_cond})
+This function specifies the condition variable associated to a worker per context
 When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
 associated mutex) should be used to block (and to wake up) a worker. Note that
@@ -607,6 +982,20 @@ of a scheduling strategy with a single task queue, the same condition variable
 would be used to block and wake up all workers.
 The initialization method of a scheduling strategy (@code{init_sched}) must
 call this function once per worker.
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_get_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, {pthread_mutex_t **}@var{sched_mutex}, {pthread_cond_t **}@var{sched_cond})
+This function returns the condition variables associated to a worker in a context
+It is used in the policy to access to the local queue of the worker
+@end deftypefun
+
+@deftypefun void starpu_sched_ctx_set_policy_data (unsigned @var{sched_ctx_id}, {void *} @var{policy_data})
+Each scheduling policy uses some specific data (queues, variables, additional condition variables).
+It is memorize through a local structure. This function assigns it to a scheduling context.
+@end deftypefun
+
+@deftypefun void* starpu_sched_ctx_get_policy_data (unsigned @var{sched_ctx_id})
+Returns the policy data previously assigned to a context
 @end deftypefun
 
 @deftypefun void starpu_sched_set_min_priority (int @var{min_prio})
@@ -660,7 +1049,7 @@ Returns expected task duration in µs
 Returns an estimated speedup factor relative to CPU speed
 @end deftypefun
 
-@deftypefun double starpu_task_expected_data_transfer_time (uint32_t @var{memory_node}, {struct starpu_task *}@var{task})
+@deftypefun double starpu_task_expected_data_transfer_time (unsigned @var{memory_node}, {struct starpu_task *}@var{task})
 Returns expected data transfer time in µs
 @end deftypefun
 
@@ -684,6 +1073,8 @@ Returns expected conversion time in ms (multiformat interface only)
 static struct starpu_sched_policy dummy_sched_policy = @{
     .init_sched = init_dummy_sched,
     .deinit_sched = deinit_dummy_sched,
+    .add_workers = dummy_sched_add_workers,
+    .remove_workers = dummy_sched_remove_workers,
     .push_task = push_task_dummy,
     .push_prio_task = NULL,
     .pop_task = pop_task_dummy,
@@ -706,14 +1097,18 @@ static struct starpu_sched_policy dummy_sched_policy = @{
 @node Driver API
 @subsection Driver API
 
-@deftypefun int starpu_driver_init (struct starpu_driver *@var{d})
-Initialize the given driver. Returns 0 on success, -EINVAL if
-@code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
-STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
+@deftypefun int starpu_driver_run ({struct starpu_driver *}@var{d})
+Initialize the given driver, run it until it receives a request to terminate,
+deinitialize it and return 0 on success. It returns -EINVAL if @code{d->type}
+is not a valid StarPU device type (STARPU_CPU_WORKER, STARPU_CUDA_WORKER or
+STARPU_OPENCL_WORKER). This is the same as using the following
+functions: calling @code{starpu_driver_init()}, then calling
+@code{starpu_driver_run_once()} in a loop, and eventually
+@code{starpu_driver_deinit()}.
 @end deftypefun
 
-@deftypefun int starpu_driver_run ({struct starpu_driver *}@var{d})
-Run the driver until it receives a request to terminate, then returns 0 on success, -EINVAL if
+@deftypefun int starpu_driver_init (struct starpu_driver *@var{d})
+Initialize the given driver. Returns 0 on success, -EINVAL if
 @code{d->type} is not a valid StarPU device type (STARPU_CPU_WORKER,
 STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
 @end deftypefun
@@ -773,4 +1168,3 @@ Register a progression hook, to be called when workers are idle.
 @deftypefun void starpu_progression_hook_deregister (int @var{hook_id})
 Unregister a given progression hook.
 @end deftypefun
-

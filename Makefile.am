@@ -18,17 +18,23 @@ ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 SUBDIRS = src
-SUBDIRS += tools tests doc
+SUBDIRS += tools tests
+
+if BUILD_DOC
+SUBDIRS += doc
+endif
 
 if USE_MPI
 SUBDIRS += mpi
 endif
 
+if BUILD_EXAMPLES
+SUBDIRS += examples
+endif
+
 if BUILD_SOCL
 SUBDIRS += socl
 endif
-
-SUBDIRS += examples
 
 if BUILD_GCC_PLUGIN
 SUBDIRS += gcc-plugin
@@ -36,6 +42,10 @@ endif
 
 if BUILD_STARPUFFT
 SUBDIRS += starpufft
+endif
+
+if STARPU_BUILD_SCHED_CTX_HYPERVISOR
+SUBDIRS += sched_ctx_hypervisor
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -46,9 +56,11 @@ versinclude_HEADERS = 				\
 	include/starpu.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
+	include/starpu_worker.h			\
 	include/starpu_task.h			\
 	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
+	include/starpu_task_util.h		\
 	include/starpu_data.h			\
 	include/starpu_perfmodel.h		\
 	include/starpu_util.h			\
@@ -59,10 +71,12 @@ versinclude_HEADERS = 				\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
+	include/starpu_sched_ctx.h		\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\
-	include/starpu_rand.h
+	include/starpu_rand.h			\
+	include/starpu_cublas.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
@@ -109,3 +123,30 @@ showcheck:
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \
 	done
+
+ctags-local:
+	$(CTAGS) -R -I LIST_TYPE
+
+
+# Cyclomatic complexity reports.
+
+# The pmccabe tool, see <http://www.parisc-linux.org/~bame/pmccabe/>.
+PMCCABE = pmccabe
+
+VC_URL = "https://gforge.inria.fr/scm/viewvc.php/trunk/%FILENAME%?view=markup&root=starpu"
+
+# Generate a cyclomatic complexity report.  Note that examples and tests are
+# excluded because they're not particularly relevant, and more importantly
+# they all have a function called `main', which clobbers the report.
+cyclomatic-complexity.html:
+	$(PMCCABE)								\
+	  `find \( -name examples -o -name tests -o -path ./tools/dev/experimental \) -prune -o -name \*.c` \
+	  | sort -nr								\
+	  | $(AWK) -f ${top_srcdir}/build-aux/pmccabe2html			\
+		   -v lang=html -v name="$(PACKAGE_NAME)"			\
+		   -v vcurl=$(VC_URL)						\
+		   -v url="$(PACKAGE_URL)"					\
+		   -v css=${top_srcdir}/build-aux/pmccabe.css			\
+		   -v cut_dir=${top_srcdir}/					\
+		   > $@-tmp
+	mv $@-tmp $@

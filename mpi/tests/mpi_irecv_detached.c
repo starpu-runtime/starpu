@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,14 +19,18 @@
 #include <common/utils.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
 #define SIZE	16
 
 float *tab;
 starpu_data_handle_t tab_handle;
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 
 void callback(void *arg __attribute__((unused)))
 {
@@ -47,10 +51,10 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	if (size != 2)
+	if (size%2 != 0)
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need exactly 2 processes.\n");
+			FPRINTF(stderr, "We need a even number of processes.\n");
 
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -58,8 +62,8 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	tab = malloc(SIZE*sizeof(float));
 
@@ -67,12 +71,11 @@ int main(int argc, char **argv)
 
 	unsigned nloops = NITER;
 	unsigned loop;
-
-	int other_rank = (rank + 1)%2;
+	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		if (rank == 0)
+		if ((loop % 2) == (rank%2))
 		{
 			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
 		}

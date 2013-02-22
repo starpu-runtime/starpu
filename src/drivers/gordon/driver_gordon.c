@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,8 +31,8 @@ static unsigned progress_thread_is_inited = 0;
 
 pthread_t progress_thread;
 
-pthread_cond_t progress_cond;
-pthread_mutex_t progress_mutex;
+_starpu_pthread_cond_t progress_cond;
+_starpu_pthread_mutex_t progress_mutex;
 
 struct gordon_task_wrapper_s
 {
@@ -80,7 +80,7 @@ void *gordon_worker_progress(void *arg)
 	return NULL;
 }
 
-static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_job_s *gordon_job, uint32_t memory_node)
+static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_job_s *gordon_job, unsigned memory_node)
 {
 	unsigned buffer;
 	unsigned nin = 0, ninout = 0, nout = 0;
@@ -204,6 +204,7 @@ static void gordon_callback_list_func(void *arg)
 	{
 		struct _starpu_job *j = _starpu_job_list_pop_back(wrapper_list);
 
+#ifndef STARPU_SIMGRID
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
 		struct starpu_perfmodel *model = j->task->cl->model;
 		if (model && model->benchmarking)
@@ -213,6 +214,7 @@ static void gordon_callback_list_func(void *arg)
 
 			_starpu_update_perfmodel_history(j, j->task->cl->model, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
+#endif
 
 		_starpu_push_task_output(j, 0);
 		_starpu_handle_job_termination(j);
@@ -420,7 +422,7 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 				}
 				else
 				{
-					_starpu_push_task(j);
+					_starpu_push_task_to_workers(task);
 				}
 			}
 #endif
@@ -464,7 +466,8 @@ void *_starpu_gordon_worker(void *arg)
 	_STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 
-	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
+	_STARPU_PTHREAD_CREATE("Gordon progress", &progress_thread, NULL,
+			       gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);

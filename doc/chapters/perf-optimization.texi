@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -14,13 +14,16 @@ TODO: improve!
 * Task submission::
 * Task priorities::
 * Task scheduling policy::
+* Task scheduling contexts::
 * Performance model calibration::
 * Task distribution vs Data transfer::
 * Data prefetch::
 * Power-based scheduling::
+* Static scheduling::
 * Profiling::
 * CUDA-specific optimizations::
 * Performance debugging::
+* Simulated performance::
 @end menu
 
 Simply encapsulating application kernels into tasks already permits to
@@ -79,16 +82,61 @@ In the same vein, accumulation of results in the same data can become a
 bottleneck. The use of the @code{STARPU_REDUX} mode permits to optimize such
 accumulation (@pxref{Data reduction}).
 
+Applications often need a data just for temporary results.  In such a case,
+registration can be made without an initial value, for instance this produces a vector data:
+
+@cartouche
+@smallexample
+starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
+@end smallexample
+@end cartouche
+
+StarPU will then allocate the actual buffer only when it is actually needed,
+e.g. directly on the GPU without allocating in main memory.
+
+In the same vein, once the temporary results are not useful any more, the
+data should be thrown away. If the handle is not to be reused, it can be
+unregistered:
+
+@cartouche
+@smallexample
+starpu_unregister_submit(handle);
+@end smallexample
+@end cartouche
+
+actual unregistration will be done after all tasks working on the handle
+terminate.
+
+If the handle is to be reused, instead of unregistering it, it can simply be invalidated:
+
+@cartouche
+@smallexample
+starpu_invalidate_submit(handle);
+@end smallexample
+@end cartouche
+
+the buffers containing the current value will then be freed, and reallocated
+only when another task writes some value to the handle.
+
 @node Task granularity
 @section Task granularity
 
 Like any other runtime, StarPU has some overhead to manage tasks. Since
 it does smart scheduling and data management, that overhead is not always
 neglectable. The order of magnitude of the overhead is typically a couple of
-microseconds. The amount of work that a task should do should thus be somewhat
+microseconds, which is actually quite smaller than the CUDA overhead itself. The
+amount of work that a task should do should thus be somewhat
 bigger, to make sure that the overhead becomes neglectible. The offline
 performance feedback can provide a measure of task length, which should thus be
-checked if bad performance are observed.
+checked if bad performance are observed. To get a grasp at the scalability
+possibility according to task size, one can run
+@code{tests/microbenchs/tasks_size_overhead.sh} which draws curves of the
+speedup of independent tasks of very small sizes.
+
+The choice of scheduler also has impact over the overhead: for instance, the
+@code{dmda} scheduler takes time to make a decision, while @code{eager} does
+not. @code{tasks_size_overhead.sh} can again be used to get a grasp at how much
+impact that has on the target machine.
 
 @node Task submission
 @section Task submission
@@ -149,13 +197,47 @@ buffers.
 The @b{dmdas} (deque model data aware sorted) scheduler is similar to dmda, it
 also supports arbitrary priority values.
 
-The @b{heft} (heterogeneous earliest finish time) scheduler is similar to dmda, it also supports task bundles.
+The @b{heft} (heterogeneous earliest finish time) scheduler is deprecated. It
+is now just an alias for @b{dmda}.
 
 The @b{pheft} (parallel HEFT) scheduler is similar to heft, it also supports
 parallel tasks (still experimental).
 
-The @b{pgreedy} (parallel greedy) scheduler is similar to greedy, it also
+The @b{peager} (parallel eager) scheduler is similar to eager, it also
 supports parallel tasks (still experimental).
+
+@node Task scheduling contexts
+@section Task scheduling contexts
+Task scheduling contexts represent abstracts sets of workers that allow the programmers to control the distribution of computational resources (i.e. CPUs and
+GPUs) to concurrent parallel kernels. The main goal is to minimize interferences between the execution of multiple parallel kernels, by partitioning the underlying pool of workers using contexts.
+
+By default, the application submits tasks to an initial context, which disposes of all the computation ressources available to StarPU (all the workers). 
+If the application programmer plans to launch several parallel kernels simultaneusly, by default these kernels will be executed within this initial context, using a single scheduler policy(@pxref{Task scheduling policy}).
+Meanwhile, if the application programmer is aware of the demands of these kernels and of the specificity of the machine used to execute them, the workers can be divided between several contexts. 
+These scheduling contexts will isolate the execution of each kernel and they will permit the use of a scheduling policy proper to each one of them.
+In order to create the contexts, you have to know the indentifiers of the workers running within StarPU. 
+By passing a set of workers together with the scheduling policy to the function @code{starpu_sched_ctx_create}, you will get an identifier of the context created which you will use to indicate the context you want to submit the tasks to.
+
+@cartouche
+@smallexample
+/* @b{the list of ressources the context will manage} */
+int workerids[3] = @{1, 3, 10@};
+
+/* @b{indicate the scheduling policy to be used within the context, the list of 
+   workers assigned to it, the number of workers, the name of the context} */
+int id_ctx = starpu_sched_ctx_create("heft", workerids, 3, "my_ctx");
+
+/* @b{let StarPU know that the folowing tasks will be submitted to this context} */
+starpu_task_set_context(id);
+
+/* @b{submit the task to StarPU} */
+starpu_task_submit(task);
+
+@end smallexample
+@end cartouche
+
+Note: Parallel greedy and parallel heft scheduling policies do not support the existence of several disjoint contexts on the machine. 
+Combined workers are constructed depending on the entire topology of the machine, not only the one belonging to a context.
 
 @node Performance model calibration
 @section Performance model calibration
@@ -166,7 +248,7 @@ to configure a performance model for the codelets of the application (see
 @ref{Performance model example} for instance). History-based performance models
 use on-line calibration.  StarPU will automatically calibrate codelets
 which have never been calibrated yet, and save the result in
-@code{~/.starpu/sampling/codelets}.
+@code{$STARPU_HOME/.starpu/sampling/codelets}.
 The models are indexed by machine name. To share the models between machines (e.g. for a homogeneous cluster), use @code{export STARPU_HOSTNAME=some_global_name}. To force continuing calibration, use
 @code{export STARPU_CALIBRATE=1} . This may be necessary if your application
 has not-so-stable performance. StarPU will force calibration (and thus ignore
@@ -195,7 +277,7 @@ A graph can be drawn by using the @code{starpu_perfmodel_plot}:
 
 @example
 $ starpu_perfmodel_plot -s starpu_dlu_lu_model_22
-98304 393216 1572864 
+98304 393216 1572864
 $ gnuplot starpu_starpu_dlu_lu_model_22.gp
 $ gv starpu_starpu_dlu_lu_model_22.eps
 @end example
@@ -209,6 +291,50 @@ calibration mode needs to disable asynchronous data transfers. Calibration thus
 disables data transfer / computation overlapping, and should thus not be used
 for eventual benchmarks. Note 2: history-based performance models get calibrated
 only if a performance-model-based scheduler is chosen.
+
+The history-based performance models can also be explicitly filled by the
+application without execution, if e.g. the application already has a series of
+measurements. This can be done by using @code{starpu_perfmodel_update_history},
+for instance:
+
+@cartouche
+@smallexample
+static struct starpu_perfmodel perf_model = @{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "my_perfmodel",
+@};
+
+struct starpu_codelet cl = @{
+    .where = STARPU_CUDA,
+    .cuda_funcs = @{ cuda_func1, cuda_func2, NULL @},
+    .nbuffers = 1,
+    .modes = @{STARPU_W@},
+    .model = &perf_model
+@};
+
+void feed(void) @{
+    struct my_measure *measure;
+    struct starpu_task task;
+    starpu_task_init(&task);
+
+    task.cl = &cl;
+
+    for (measure = &measures[0]; measure < measures[last]; measure++) @{
+        starpu_data_handle_t handle;
+	starpu_vector_data_register(&handle, -1, 0, measure->size, sizeof(float));
+	task.handles[0] = handle;
+	starpu_perfmodel_update_history(&perf_model, &task,
+	                                STARPU_CUDA_DEFAULT + measure->cudadev, 0,
+	                                measure->implementation, measure->time);
+	starpu_task_clean(&task);
+	starpu_data_unregister(handle);
+    @}
+@}
+@end smallexample
+@end cartouche
+
+Measurement has to be provided in milliseconds for the completion time models,
+and in Joules for the energy consumption models.
 
 @node Task distribution vs Data transfer
 @section Task distribution vs Data transfer
@@ -268,15 +394,42 @@ be obtained from the machine power supplier.
 The power actually consumed by the total execution can be displayed by setting
 @code{export STARPU_PROFILING=1 STARPU_WORKER_STATS=1} .
 
+On-line task consumption measurement is currently only supported through the
+@code{CL_PROFILING_POWER_CONSUMED} OpenCL extension, implemented in the MoviSim
+simulator. Applications can however provide explicit measurements by using the
+@code{starpu_perfmodel_update_history} function (examplified in @ref{Performance
+model example} with the @code{power_model} performance model. Fine-grain
+measurement is often not feasible with the feedback provided by the hardware, so
+the user can for instance run a given task a thousand times, measure the global
+consumption for that series of tasks, divide it by a thousand, repeat for
+varying kinds of tasks and task sizes, and eventually feed StarPU
+with these manual measurements through @code{starpu_perfmodel_update_history}.
+
+@node Static scheduling
+@section Static scheduling
+
+In some cases, one may want to force some scheduling, for instance force a given
+set of tasks to GPU0, another set to GPU1, etc. while letting some other tasks
+be scheduled on any other device. This can indeed be useful to guide StarPU into
+some work distribution, while still letting some degree of dynamism. For
+instance, to force execution of a task on CUDA0:
+
+@cartouche
+@smallexample
+task->execute_on_a_specific_worker = 1;
+task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+@end smallexample
+@end cartouche
+
 @node Profiling
 @section Profiling
 
-A quick view of how many tasks each worker has executed can be obtained by setting 
+A quick view of how many tasks each worker has executed can be obtained by setting
 @code{export STARPU_WORKER_STATS=1} This is a convenient way to check that
 execution did happen on accelerators without penalizing performance with
 the profiling overhead.
 
-A quick view of how much data transfers have been issued can be obtained by setting 
+A quick view of how much data transfers have been issued can be obtained by setting
 @code{export STARPU_BUS_STATS=1} .
 
 More detailed profiling information can be enabled by using @code{export STARPU_PROFILING=1} or by
@@ -315,7 +468,8 @@ detailed in the next chapter. The various informations should be checked for.
 @itemize
 @item What does the Gantt diagram look like? (see @ref{Gantt diagram})
 @itemize
-  @item If it's mostly green (running tasks), then the machine is properly
+  @item If it's mostly green (tasks running in the initial context) or context specific 
+  color prevailing, then the machine is properly
   utilized, and perhaps the codelets are just slow. Check their performance, see
   @ref{Codelet performance}.
   @item If it's mostly purple (FetchingInput), tasks keep waiting for data
@@ -333,3 +487,108 @@ detailed in the next chapter. The various informations should be checked for.
   greedy algorithm which thus performs badly.
 @end itemize
 @end itemize
+
+You can also use the Temanejo task debugger (see @ref{Task debugger}) to
+visualize the task graph more easily.
+
+@node Simulated performance
+@section Simulated performance
+
+StarPU can use Simgrid in order to simulate execution on an arbitrary
+platform.
+
+@subsection Calibration
+
+The idea is to first compile StarPU normally, and run the application,
+so as to automatically benchmark the bus and the codelets.
+
+@smallexample
+$ ./configure && make
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult
+   is not calibrated, forcing calibration for this run. Use the
+   STARPU_CALIBRATE environment variable to control this.
+$ ...
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+TEST PASSED
+@end smallexample
+
+Note that we force to use the dmda scheduler to generate performance
+models for the application. The application may need to be run several
+times before the model is calibrated.
+
+@subsection Simulation
+
+Then, recompile StarPU, passing @code{--enable-simgrid} to @code{./configure}, and re-run the
+application:
+
+@smallexample
+$ ./configure --enable-simgrid && make
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+TEST FAILED !!!
+@end smallexample
+
+It is normal that the test fails: since the computation are not actually done
+(that is the whole point of simgrid), the result is wrong, of course.
+
+If the performance model is not calibrated enough, the following error
+message will be displayed
+
+@smallexample
+$ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
+[starpu][_starpu_load_history_based_model] Warning: model matvecmult
+    is not calibrated, forcing calibration for this run. Use the
+    STARPU_CALIBRATE environment variable to control this.
+[starpu][_starpu_simgrid_execute_job][assert failure] Codelet
+    matvecmult does not have a perfmodel, or is not calibrated enough
+@end smallexample
+
+The number of devices can be chosen as usual with @code{STARPU_NCPU},
+@code{STARPU_NCUDA}, and @code{STARPU_NOPENCL}.  For now, only the number of
+cpus can be arbitrarily chosen. The number of CUDA and OpenCL devices have to be
+lower than the real number on the current machine.
+
+The Simgrid default stack size is small; to increase it use the
+parameter @code{--cfg=contexts/stack_size}, for example:
+
+@smallexample
+$ ./example --cfg=contexts/stack_size:8192
+TEST FAILED !!!
+@end smallexample
+
+Note: of course, if the application uses @code{gettimeofday} to make its
+performance measurements, the real time will be used, which will be bogus. To
+get the simulated time, it has to use @code{starpu_timing_now} which returns the
+virtual timestamp in ms.
+
+@subsection Simulation on another machine
+
+The simgrid support even permits to perform simulations on another machine, your
+desktop, typically. To achieve this, one still needs to perform the Calibration
+step on the actual machine to be simulated, then copy them to your desktop
+machine (the @code{$STARPU_HOME/.starpu} directory). One can then perform the
+Simulation step on the desktop machine, by setting the @code{STARPU_HOSTNAME}
+environment variable to the name of the actual machine, to make StarPU use the
+performance models of the simulated machine even on the desktop machine.
+
+If the desktop machine does not have CUDA or OpenCL, StarPU is still able to
+use simgrid to simulate execution with CUDA/OpenCL devices, but the application
+source code will probably disable the CUDA and OpenCL codelets in that
+case. Since during simgrid execution, the functions of the codelet are actually
+not called, one can use dummy functions such as the following to still permit
+CUDA or OpenCL execution:
+
+@smallexample
+static struct starpu_codelet cl11 =
+@{
+	.cpu_funcs = @{chol_cpu_codelet_update_u11, NULL@},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = @{chol_cublas_codelet_update_u11, NULL@},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = @{(void*)1, NULL@},
+#endif
+	.nbuffers = 1,
+	.modes = @{STARPU_RW@},
+	.model = &chol_model_11
+@};
+@end smallexample

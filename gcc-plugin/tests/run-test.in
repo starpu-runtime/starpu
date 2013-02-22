@@ -233,14 +233,28 @@ pairs."
           (else
            (loop (read-char port) directives)))))
 
-(define (diagnostic-matches-directive? diagnostic directive location)
+(define (diagnostic-matches-directive? diagnostic directive location
+                                       cflags ldflags)
   "Return #t if DIAGNOSTIC matches DIRECTIVE, which is at LOCATION."
-  (and (location? (diagnostic-location diagnostic))
-       (location=? (diagnostic-location diagnostic) location)
-       (match directive
-         ((kind message)
-          (and (eq? kind (diagnostic-kind diagnostic))
-               (string-match message (diagnostic-message diagnostic)))))))
+  (define optimizing?
+    (let ((opt (find (cut string-prefix? "-O" <>) cflags)))
+      (match opt
+        ((or #f "-O0") #f)
+        (_ #t))))
+
+  (let loop ((directive directive))
+    (match directive
+      (('if 'optimizing? directive)
+       (or (not optimizing?)
+           (loop directive)))
+      (('unless 'optimizing? directive)
+       (or optimizing?
+           (loop directive)))
+      ((kind message)
+       (and (eq? kind (diagnostic-kind diagnostic))
+            (location? (diagnostic-location diagnostic))
+            (location=? (diagnostic-location diagnostic) location)
+            (string-match message (diagnostic-message diagnostic)))))))
 
 
 ;;;
@@ -260,7 +274,8 @@ unsatisfied directives."
           (values status diagnostics unsatisfied)
           (let* ((dir  (car directives))
                  (diag (find (cute diagnostic-matches-directive?
-                                   <> (cdr dir) (car dir))
+                                   <> (cdr dir) (car dir)
+                                   cflags ldflags)
                              diagnostics)))
             (if diag
                 (loop (delq diag diagnostics)

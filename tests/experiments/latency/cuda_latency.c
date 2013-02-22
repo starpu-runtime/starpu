@@ -25,8 +25,8 @@
 static pthread_t thread[2];
 static unsigned thread_is_initialized[2];
 
-static pthread_cond_t cond;
-static pthread_mutex_t mutex;
+static _starpu_pthread_cond_t cond;
+static _starpu_pthread_mutex_t mutex;
 
 static size_t buffer_size = 4;
 static void *cpu_buffer;
@@ -38,8 +38,8 @@ static unsigned nready_gpu = 0;
 
 static unsigned niter = 250000;
 
-static pthread_cond_t cond_gpu;
-static pthread_mutex_t mutex_gpu;
+static _starpu_pthread_cond_t cond_gpu;
+static _starpu_pthread_mutex_t mutex_gpu;
 static unsigned data_is_available[2];
 
 static cudaStream_t stream[2];
@@ -96,7 +96,7 @@ void recv_data(unsigned src, unsigned dst)
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice, stream[dst]);
 	STARPU_ASSERT(!cures);
-	cures = cudaThreadSynchronize();
+	cures = cudaStreamSynchronize(stream[dst]);
 	STARPU_ASSERT(!cures);
 #else
 	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);

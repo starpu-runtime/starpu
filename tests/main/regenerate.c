@@ -22,12 +22,16 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 64;
+#else
 static unsigned ntasks = 65536;
+#endif
 static unsigned cnt = 0;
 
 static unsigned completed = 0;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
 
 static void callback(void *arg __attribute__ ((unused)))
 {
@@ -121,7 +125,7 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
-	starpu_task_deinit(&task);
+	starpu_task_clean(&task);
 
 	return EXIT_SUCCESS;
 

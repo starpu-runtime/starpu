@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,6 @@
 
 #include <common/blas.h>
 #include <starpu.h>
-#include <starpu_bound.h>
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define NMAXBLOCKS	32
@@ -59,10 +58,16 @@
 static unsigned size = 4*1024;
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
-static unsigned pinned = 0;
+static unsigned pinned = 1;
 static unsigned noprio = 0;
 static unsigned check = 0;
 static unsigned bound = 0;
+static unsigned bound_deps = 0;
+static unsigned bound_lp = 0;
+static unsigned with_ctxs = 0;
+static unsigned with_noctxs = 0;
+static unsigned chole1 = 0;
+static unsigned chole2 = 0;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
@@ -83,6 +88,29 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 	int i;
 	for (i = 1; i < argc; i++)
 	{
+		if (strcmp(argv[i], "-with_ctxs") == 0) 
+		{
+			with_ctxs = 1;
+			break;
+		}
+		if (strcmp(argv[i], "-with_noctxs") == 0) 
+		{
+			with_noctxs = 1;
+			break;
+		}
+		
+		if (strcmp(argv[i], "-chole1") == 0) 
+		{
+			chole1 = 1;
+			break;
+		}
+
+		if (strcmp(argv[i], "-chole2") == 0) 
+		{
+			chole2 = 1;
+			break;
+		}
+
 		if (strcmp(argv[i], "-size") == 0)
 		{
 		        char *argptr;
@@ -101,9 +129,9 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0)
+		if (strcmp(argv[i], "-no-pin") == 0)
 		{
-			pinned = 1;
+			pinned = 0;
 		}
 
 		if (strcmp(argv[i], "-no-prio") == 0)
@@ -116,14 +144,25 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			bound = 1;
 		}
 
+		if (strcmp(argv[i], "-bound-lp") == 0)
+		{
+			bound_lp = 1;
+		}
+
+		if (strcmp(argv[i], "-bound-deps") == 0)
+		{
+			bound_deps = 1;
+		}
+
 		if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-h") == 0)
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0)
 		{
-			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
+			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] [-check]\n", argv[0]);
+			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
 		}
 	}
 }

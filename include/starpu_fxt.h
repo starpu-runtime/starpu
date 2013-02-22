@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,11 @@
 #define __STARPU_FXT_H__
 
 #include <starpu_perfmodel.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #define STARPU_FXT_MAX_FILES	64
 
@@ -54,7 +59,7 @@ struct starpu_fxt_options
 	 *	Output parameters
 	 */
 
-	char worker_names[STARPU_NMAXWORKERS][256]; 
+	char worker_names[STARPU_NMAXWORKERS][256];
 	enum starpu_perf_archtype worker_archtypes[STARPU_NMAXWORKERS];
 	int nworkers;
 
@@ -65,5 +70,11 @@ struct starpu_fxt_options
 
 void starpu_fxt_options_init(struct starpu_fxt_options *options);
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
+void starpu_fxt_start_profiling(void);
+void starpu_fxt_stop_profiling(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __STARPU_FXT_H__ */

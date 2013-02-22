@@ -37,11 +37,22 @@
 #define REALSIZE (SIZE * sizeof(TYPE))
 
 const char * kernel_src = "__kernel void add(__global float*s1, __global float*s2, __global float*d) { \
-   size_t x = get_global_id(0);\
-   size_t y = get_global_id(1);\
-   size_t w = get_global_size(0); \
-   int idx = y*w+x; \
-   d[idx] = s1[idx] + s2[idx];\
+   size_t x = get_global_id(0);\n\
+   size_t y = get_global_id(1);\n\
+   size_t w = get_global_size(0); \n\
+   int idx = y*w+x; \n\
+#ifdef SOCL_DEVICE_TYPE_GPU \n\
+   d[idx] = s1[idx] + s2[idx];\n\
+#endif \n\
+#ifdef SOCL_DEVICE_TYPE_CPU \n\
+   d[idx] = s1[idx] + 2* s2[idx];\n\
+#endif \n\
+#ifdef SOCL_DEVICE_TYPE_ACCELERATOR \n\
+   d[idx] = s1[idx] + 3 * s2[idx];\n\
+#endif \n\
+#ifdef SOCL_DEVICE_TYPE_UNKNOWN \n\
+   d[idx] = s1[idx] + 4 * s2[idx];\n\
+#endif \n\
 }";
 
 
@@ -57,11 +68,11 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    cl_mem s1m, s2m, dm;
    cl_command_queue cq;
    cl_int err;
+   unsigned int i;
 
    TYPE s1[SIZE],s2[SIZE],d[SIZE];
 
    {
-      int i;
       for (i=0; i<SIZE; i++) {
          s1[i] = 2.0;
          s2[i] = 7.0;
@@ -75,19 +86,33 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       printf("No OpenCL platform found.\n");
       exit(77);
    }
+
    err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
    check(err, "clGetPlatformIDs");
 
+   unsigned int platform_idx = -1;
+   for (i=0; i<num_platforms;i++) {
+    char vendor[256];
+    clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+    if (strcmp(vendor, "INRIA") ==  0) {
+      platform_idx = i;
+    }
+  }
+
+  if (platform_idx == -1) {
+      printf("SOCL platform not found.\n");
+      exit(77);
+  }
+
+
    printf("Querying devices...\n");
-   unsigned int platform_idx;
-   for (platform_idx=0; platform_idx<num_platforms; platform_idx++) {
-      err = clGetDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, sizeof(devices)/sizeof(cl_device_id), devices, &num_devices);
-      check(err, "clGetDeviceIDs");
-      if (num_devices != 0)
-         break;
+   err = clGetDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_ALL, sizeof(devices)/sizeof(cl_device_id), devices, &num_devices);
+   check(err, "clGetDeviceIDs");
+
+   if (num_devices == 0) {
+      printf("No OpenCL device found\n");
+      exit(77);
    }
-   if (num_devices == 0)
-      error("No OpenCL device found\n");
 
    printf("Creating context...\n");
    cl_context_properties properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[platform_idx], 0};
@@ -117,11 +142,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    printf("Creating command queue...\n");
    cl_event eventW1, eventW2, eventK, eventR;
 
-#ifdef PROFILING
-   cq = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, &err);
-#else
-   cq = clCreateCommandQueue(context, devices[0], 0, &err);
-#endif
+   cq = clCreateCommandQueue(context, NULL, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE, &err);
    check(err, "clCreateCommandQueue");
 
    printf("Enqueueing WriteBuffers...\n");
@@ -146,7 +167,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    check(err, "clEnqueueNDRangeKernel");
 
    printf("Enqueueing ReadBuffer...\n");
-   err = clEnqueueReadBuffer(cq, dm, CL_FALSE, 0, REALSIZE, d, 0, NULL, &eventR);
+   err = clEnqueueReadBuffer(cq, dm, CL_FALSE, 0, REALSIZE, d, 1, &eventK, &eventR);
    check(err, "clEnqueueReadBuffer");
 
    printf("Finishing queue...\n");
@@ -161,7 +182,6 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       printf("\n");
    }
 
-#ifdef PROFILING
    #define DURATION(event,label) do { \
       cl_ulong t0,t1; \
       err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &t0, NULL);\
@@ -175,15 +195,13 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    DURATION(eventW2, "second buffer writing");
    DURATION(eventK, "kernel execution");
    DURATION(eventR, "result buffer reading");
-#endif
-
 
    printf("Releasing events...\n");
    err = clReleaseEvent(eventW1);
    err |= clReleaseEvent(eventW2);
    err |= clReleaseEvent(eventK);
    err |= clReleaseEvent(eventR);
-   check(err, "clReleaseCommandQueue");
+   check(err, "clReleaseEvents");
 
    printf("Releasing command queue...\n");
    err = clReleaseCommandQueue(cq);
@@ -208,6 +226,15 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    printf("Releasing context...\n");
    err = clReleaseContext(context);
    check(err, "clReleaseContext");
+
+#ifdef HAVE_CLGETEXTENSIONFUNCTIONADDRESSFORPLATFORM
+   void (*clShutdown)(void) = clGetExtensionFunctionAddressForPlatform(platforms[platform_idx], "clShutdown");
+
+   if (clShutdown != NULL) {
+	   printf("Calling clShutdown :)\n");
+	   clShutdown();
+   }
+#endif
 
    return 0;
 }

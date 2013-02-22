@@ -90,8 +90,8 @@ struct _starpu_cg
 		struct
 		{
 			unsigned completed;
-			pthread_mutex_t cg_mutex;
-			pthread_cond_t cg_cond;
+			_starpu_pthread_mutex_t cg_mutex;
+			_starpu_pthread_cond_t cg_cond;
 		} succ_apps;
 	} succ;
 };

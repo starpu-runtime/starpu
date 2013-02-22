@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 ///#define VERBOSE_KERNELS	1
 
 /*
- *   U22 
+ * U22
  */
 
 static inline void STARPU_PLU(common_u22)(void *descr[],
@@ -55,7 +55,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 
 	switch (s) {
 		case 0:
-			CPU_GEMM("N", "N", dy, dx, dz, 
+			CPU_GEMM("N", "N", dy, dx, dz,
 				(TYPE)-1.0, right, ld21, left, ld12,
 				(TYPE)1.0, center, ld22);
 			break;
@@ -68,9 +68,9 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -129,7 +129,7 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	TYPE *sub11;
 	TYPE *sub12;
 
-	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);	
+	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub12 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 
 	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
@@ -173,9 +173,9 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
+			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
@@ -227,7 +227,7 @@ struct starpu_codelet STARPU_PLU(cl12) = {
 };
 
 
-/* 
+/*
  * U21
  */
 
@@ -245,7 +245,7 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 
 	unsigned nx21 = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NY(descr[1]);
-	
+
 #ifdef VERBOSE_KERNELS
 	struct debug_info *info = _args;
 
@@ -280,9 +280,9 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ABORT();
+				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			cudaThreadSynchronize();
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -311,7 +311,7 @@ static void STARPU_PLU(cublas_u21)(void *descr[], void *_args)
 {
 	STARPU_PLU(common_u21)(descr, 1, _args);
 }
-#endif 
+#endif
 
 static struct starpu_perfmodel STARPU_PLU(model_21) = {
 	.type = STARPU_HISTORY_BASED,
@@ -345,7 +345,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 {
 	TYPE *sub11;
 
-	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
@@ -367,9 +367,9 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 				TYPE pivot;
 				pivot = sub11[z+z*ld];
 				STARPU_ASSERT(pivot != 0.0);
-		
+
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
-		
+
 				CPU_GER(nx - z - 1, nx - z - 1, -1.0,
 						&sub11[(z+1)+z*ld], 1,
 						&sub11[z+(z+1)*ld], ld,
@@ -381,20 +381,20 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
-				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
-				cudaStreamSynchronize(0);
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				STARPU_ASSERT(pivot != 0.0);
-				
+
 				CUBLAS_SCAL(nx - z - 1, 1.0/pivot, &sub11[z+(z+1)*ld], ld);
-				
+
 				CUBLAS_GER(nx - z - 1, nx - z - 1, -1.0,
 						&sub11[(z+1)+z*ld], 1,
 						&sub11[z+(z+1)*ld], ld,
 						&sub11[(z+1) + (z+1)*ld],ld);
 			}
-			
-			cudaThreadSynchronize();
+
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 			break;
 #endif
@@ -440,5 +440,3 @@ struct starpu_codelet STARPU_PLU(cl11) = {
 	.modes = {STARPU_RW},
 	.model = &STARPU_PLU(model_11)
 };
-
-

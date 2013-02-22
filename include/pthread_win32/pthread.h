@@ -54,9 +54,6 @@ extern "C" {
 #define winPthreadAssertPthread(expr) do { int ret = (expr); if (ret) return ret; } while (0)
 #define winPthreadAssert(expr) do { if (!(expr)) return EIO; } while (0)
 #endif
-#if 0
-#else
-#endif
 
 /***********
  * threads *
@@ -137,7 +134,7 @@ static inline int pthread_cancel (pthread_t thread) {
 }
 
 static inline void pthread_exit (void *res) {
-  ExitThread((DWORD_PTR) (DWORD) res);
+  ExitThread((DWORD) (DWORD_PTR) res);
 }
 
 static inline int pthread_join (pthread_t thread, void **res) {

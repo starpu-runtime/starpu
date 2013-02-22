@@ -1,0 +1,15 @@
+{
+   libnuma error
+   Memcheck:Cond
+   ...
+   fun:numa_node_size64
+   ...
+}
+
+{
+   libnuma error
+   Memcheck:Value8
+   ...
+   fun:numa_node_size64
+   ...
+}

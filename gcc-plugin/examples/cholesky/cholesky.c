@@ -25,7 +25,8 @@
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
-static void dw_cholesky(unsigned nblocks, unsigned size, unsigned ld, float *matA[nblocks][nblocks])
+static void dw_cholesky(unsigned nblocks, unsigned size, unsigned ld,
+			float matA[nblocks][nblocks][size/nblocks * size/nblocks])
 {
 	struct timeval start;
 	struct timeval end;
@@ -36,7 +37,7 @@ static void dw_cholesky(unsigned nblocks, unsigned size, unsigned ld, float *mat
 
         for(x = 0; x < nblocks ;  x++) {
                 for (y = 0; y < nblocks; y++) {
-#pragma starpu register matA[x][y] size/nblocks*size/nblocks
+#pragma starpu register matA[x][y]
 		}
         }
 
@@ -106,20 +107,19 @@ int main(int argc, char **argv)
 #endif
 //	struct starpu_conf conf;
 //	starpu_conf_init(&conf);
-//	conf.sched_policy_name = "heft";
+//	conf.sched_policy_name = "dmda";
 //	conf.calibrate = 1;
 #pragma starpu initialize
 
         starpu_helper_cublas_init();
 
-	float *bmat[nblocks][nblocks] __heap;
+	float bmat[nblocks][nblocks][BLOCKSIZE * BLOCKSIZE] __heap;
 
 	unsigned i,j,x,y;
         for(x=0 ; x<nblocks ; x++)
 	{
                 for(y=0 ; y<nblocks ; y++)
 		{
-                        starpu_malloc((void **)&bmat[x][y], BLOCKSIZE*BLOCKSIZE*sizeof(float));
 			for (i = 0; i < BLOCKSIZE; i++)
 			{
 				for (j = 0; j < BLOCKSIZE; j++)
@@ -246,14 +246,6 @@ int main(int argc, char **argv)
                                 }
 		}
         }
-
-        for(x=0 ; x<nblocks ; x++)
-	{
-                for(y=0 ; y<nblocks ; y++)
-		{
-                        starpu_free((void *)bmat[x][y]);
-		}
-	}
 
         starpu_helper_cublas_shutdown();
 #pragma starpu shutdown

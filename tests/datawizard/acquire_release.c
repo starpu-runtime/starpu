@@ -17,12 +17,9 @@
 
 #include <config.h>
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 10;
 #else
 static unsigned ntasks = 10000;
@@ -59,7 +56,7 @@ static struct starpu_codelet increment_cl =
 unsigned token = 0;
 starpu_data_handle_t token_handle;
 
-int increment_token()
+int increment_token(void)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();

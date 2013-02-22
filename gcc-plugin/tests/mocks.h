@@ -293,10 +293,18 @@ struct data_register_arguments expected_register_arguments;
 
 void
 starpu_vector_data_register (starpu_data_handle_t *handle,
-			     uint32_t home_node, uintptr_t ptr,
+			     unsigned home_node, uintptr_t ptr,
 			     uint32_t count, size_t elemsize)
 {
-  assert ((void *) ptr == expected_register_arguments.pointer);
+  /* Sometimes tests cannot tell what the pointer will be (for instance, for
+     the `registered' attribute), and thus pass NULL as the expected
+     pointer.  */
+  if (expected_register_arguments.pointer != NULL)
+    assert ((void *) ptr == expected_register_arguments.pointer);
+  else
+    /* Allow users to check the pointer afterward.  */
+    expected_register_arguments.pointer = (void *) ptr;
+
   assert (count == expected_register_arguments.elements);
   assert (elemsize == expected_register_arguments.element_size);
 

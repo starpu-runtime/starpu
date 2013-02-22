@@ -33,47 +33,37 @@ int event_unique_id() {
  */
 cl_event event_create(void) {
    cl_event ev;
-   ev = gc_entity_alloc(sizeof(struct _cl_event), release_callback_event);
+   ev = gc_entity_alloc(sizeof(struct _cl_event), release_callback_event, "event");
 
    ev->id = event_unique_id();
    ev->status = CL_SUBMITTED;
    ev->command = NULL;
-   ev->profiling_info = NULL;
+   ev->prof_queued = 0L;
+   ev->prof_submit = 0L;
+   ev->prof_start = 0L;
+   ev->prof_end = 0L;
    ev->cq = NULL;
 
    return ev;
 }
 
+void event_complete(cl_event ev) {
+  ev->status = CL_COMPLETE;
+  
+  ev->prof_end = _socl_nanotime();
+
+  /* Trigger the tag associated to the command event */
+  DEBUG_MSG("Trigger event %d\n", ev->id);
+  starpu_tag_notify_from_apps(ev->id);
+}
+
 static void release_callback_event(void * e) {
   cl_event event = (cl_event)e;
 
-  cl_command_queue cq = event->cq;
-  cl_command cmd = event->command;
-
-  /* Remove from command queue */
-  if (cq != NULL) {
-    /* Lock command queue */
-    pthread_mutex_lock(&cq->mutex);
-
-    /* Remove barrier if applicable */
-    if (cq->barrier == event->command)
-      cq->barrier = NULL;
-
-    /* Remove from the list of out-of-order commands */
-    cq->commands = command_list_remove(cq->commands, cmd);
-
-    /* Unlock command queue */
-    pthread_mutex_unlock(&cq->mutex);
-
-    gc_entity_unstore(&cq);
-  }
-
-  free(cmd->events);
-  cmd->events = NULL;
-  cmd->num_events = 0;
+  gc_entity_unstore(&event->cq);
 
   /* Destruct object */
-  //FIXME: we cannot release tag because it makes StarPU crash
+  //FIXME
   //starpu_tag_remove(event->id);
 }
 

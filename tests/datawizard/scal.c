@@ -16,7 +16,6 @@
 
 #include <config.h>
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "scal.h"
 #include "helper.h"
 

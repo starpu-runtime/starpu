@@ -20,14 +20,16 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <stdlib.h>
 #include "../helper.h"
 
-#define NLOOPS		128
-#define VECTORSIZE	1024
+#ifdef STARPU_QUICK_CHECK
+#  define NLOOPS		8
+#  define VECTORSIZE		128
+#else
+#  define NLOOPS		128
+#  define VECTORSIZE		1024
+#endif
 
 static unsigned *A;
 starpu_data_handle_t A_handle, B_handle;
@@ -126,7 +128,7 @@ int main(int argc, char **argv)
 	{
 		if (A[i] != NLOOPS)
 		{
-			FPRINTF(stderr, "Error: Incorrect value A[%d] = %u != %d\n", i, A[i], NLOOPS);
+			FPRINTF(stderr, "Error: Incorrect value A[%u] = %u != %d\n", i, A[i], NLOOPS);
 			ret = EXIT_FAILURE;
 			break;
 		}

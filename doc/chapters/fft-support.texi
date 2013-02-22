@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
@@ -48,8 +48,8 @@ The flags required to compile or link against the FFT library are accessible
 with the following commands:
 
 @example
-% pkg-config --cflags starpufft-1.0  # options for the compiler
-% pkg-config --libs starpufft-1.0    # options for the linker
+$ pkg-config --cflags starpufft-1.0  # options for the compiler
+$ pkg-config --libs starpufft-1.0    # options for the linker
 @end example
 
 Also pass the @code{--static} option if the application is to be linked statically.

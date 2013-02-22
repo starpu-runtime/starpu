@@ -268,7 +268,7 @@ STARPUFFT(start_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_da
 	return STARPUFFT(start1dC2C)(plan, in, out);
 }
 
-void
+int
 STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 {
 	int ret;
@@ -280,22 +280,28 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 
 	struct starpu_task *task = STARPUFFT(start)(plan, in, out);
 	gettimeofday(&submit_tasks, NULL);
-	ret = starpu_task_wait(task);
-	STARPU_ASSERT(ret == 0);
+	if (task)
+	{
+	     ret = starpu_task_wait(task);
+	     STARPU_ASSERT(ret == 0);
+	}
 
 	STARPUFFT(cleanup)(plan);
 
 	gettimeofday(&end, NULL);
+	return (task == NULL ? -1 : 0);
 }
 
-void
+int
 STARPUFFT(execute_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
 	int ret;
 
 	struct starpu_task *task = STARPUFFT(start_handle)(plan, in, out);
+	if (!task) return -1;
 	ret = starpu_task_wait(task);
 	STARPU_ASSERT(ret == 0);
+	return 0;
 }
 
 /* Destroy FFTW plans, unregister and free buffers, and free tags */
@@ -458,3 +464,50 @@ STARPUFFT(showstats)(FILE *out)
 		}
 	}
 }
+
+#ifdef STARPU_USE_CUDA
+void
+STARPUFFT(report_error)(const char *func, const char *file, int line, cufftResult status)
+{
+	char *errormsg;
+	switch (status)
+	{
+	case CUFFT_SUCCESS:
+		errormsg = "success"; /* It'd be weird to get here. */
+		break;
+	case CUFFT_INVALID_PLAN:
+		errormsg = "invalid plan";
+		break;
+	case CUFFT_ALLOC_FAILED:
+		errormsg = "alloc failed";
+		break;
+	case CUFFT_INVALID_TYPE:
+		errormsg = "invalid type";
+		break;
+	case CUFFT_INVALID_VALUE:
+		errormsg = "invalid value";
+		break;
+	case CUFFT_INTERNAL_ERROR:
+		errormsg = "internal error";
+		break;
+	case CUFFT_EXEC_FAILED:
+		errormsg = "exec failed";
+		break;
+	case CUFFT_SETUP_FAILED:
+		errormsg = "setup failed";
+		break;
+	case CUFFT_INVALID_SIZE:
+		errormsg = "invalid size";
+		break;
+	case CUFFT_UNALIGNED_DATA:
+		errormsg = "unaligned data";
+		break;
+	default:
+		errormsg = "unknown error";
+		break;
+	}
+	fprintf(stderr, "oops in %s (%s:%d)... %d: %s\n",
+			func, file, line, status, errormsg);
+	STARPU_ABORT();
+}
+#endif /* !STARPU_USE_CUDA */

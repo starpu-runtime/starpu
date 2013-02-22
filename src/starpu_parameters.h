@@ -40,6 +40,5 @@
 #define _STARPU_CPU_ALPHA	1.0f
 #define _STARPU_CUDA_ALPHA	13.33f
 #define _STARPU_OPENCL_ALPHA	12.22f
-#define _STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
 #endif /* _STARPU_PARAMETERS_H */

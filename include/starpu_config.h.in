@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,8 @@
 #undef STARPU_USE_CPU
 #undef STARPU_USE_CUDA
 #undef STARPU_USE_OPENCL
-#undef STARPU_USE_GORDON
+
+#undef STARPU_SIMGRID
 
 #undef STARPU_HAVE_ICC
 
@@ -69,11 +70,15 @@
 #undef STARPU_MAXCUDADEVS
 #undef STARPU_MAXOPENCLDEVS
 #undef STARPU_NMAXWORKERS
+#undef STARPU_NMAX_SCHED_CTXS
 #undef STARPU_MAXIMPLEMENTATIONS
+#undef STARPU_USE_SCHED_CTX_HYPERVISOR
+#undef STARPU_HAVE_GLPK_H
 
 #undef STARPU_HAVE_LIBNUMA
 
 #undef STARPU_HAVE_WINDOWS
+#undef STARPU_HAVE_UNSETENV
 
 #ifdef _MSC_VER
 typedef long starpu_ssize_t;
@@ -84,8 +89,11 @@ typedef ssize_t starpu_ssize_t;
 #define __starpu_func__ __func__
 #endif
 
-#undef STARPU_SLOW_MACHINE
+#undef STARPU_QUICK_CHECK
 #undef STARPU_USE_DRAND48
 #undef STARPU_USE_ERAND48_R
+#undef STARPU_HAVE_NEARBYINTF
+#undef STARPU_HAVE_RINTF
+#undef STARPU_USE_TOP
 
 #endif

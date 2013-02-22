@@ -157,12 +157,12 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				/* Need to atomically test submitted and check
 				 * dependencies, since this is concurrent with
 				 * _starpu_submit_job */
-				if (j->submitted && job_successors->ndeps == ndeps_completed)
+				if (j->submitted && job_successors->ndeps == ndeps_completed &&
+					j->task->status == STARPU_TASK_BLOCKED_ON_TASK)
 				{
-					/* Note that this also ensures that tag deps are
-					 * fulfilled. This counter is reseted only when the
-					 * dependencies are are all fulfilled) */
-					_starpu_enforce_deps_and_schedule(j);
+					/* That task has already passed tag checks,
+					 * do not do them again since the tag has been cleared! */
+					_starpu_enforce_deps_starting_from_task(j);
 				} else
 					_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 

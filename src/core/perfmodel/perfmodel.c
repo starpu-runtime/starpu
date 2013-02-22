@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -99,14 +99,9 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	{
 		return _STARPU_CUDA_ALPHA;
 	}
-	else if (perf_archtype < STARPU_GORDON_DEFAULT)
-	{
-		return _STARPU_OPENCL_ALPHA;
-	}
 	else if (perf_archtype < STARPU_NARCH_VARIATIONS)
 	{
-		/* Gordon value */
-		return _STARPU_GORDON_ALPHA;
+		return _STARPU_OPENCL_ALPHA;
 	}
 
 	STARPU_ABORT();
@@ -155,14 +150,15 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 	switch (model->type)
 	{
 		case STARPU_PER_ARCH:
-		case STARPU_COMMON:
+			_starpu_load_per_arch_based_model(model);
 			break;
-
+		case STARPU_COMMON:
+			_starpu_load_common_based_model(model);
+			break;
 		case STARPU_HISTORY_BASED:
 		case STARPU_NL_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 1);
 			break;
-
 		case STARPU_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 0);
 			break;
@@ -223,40 +219,8 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 					    unsigned nimpl)
 {
 	unsigned i;
-	int err;
 	double sum = 0.0;
-	int node;
-
-	/* We need to get one node per archtype. This is kinda ugly,
-	 * but it does the job.
-	 * XXX : Should we return 0 if there are no devices ?
-	 * (err != 1 && err != -ERANGE)
-	 */
-#ifdef STARPU_USE_CPU
-	int cpu_worker, cpu_node;
-	err = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER,
-					    &cpu_worker, 1);
-	if (err != 1 && err != -ERANGE)
-		return 0.0;
-	cpu_node = starpu_worker_get_memory_node(cpu_worker);
-#endif
-#ifdef STARPU_USE_CUDA
-	int cuda_worker, cuda_node;
-	err = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
-					    &cuda_worker, 1);
-	if (err != 1 && err != -ERANGE)
-		return 0.0;
-	cuda_node = starpu_worker_get_memory_node(cuda_worker);
-#endif
-#ifdef STARPU_USE_OPENCL
-	int opencl_worker, opencl_node;
-	err = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
-					    &opencl_worker, 1);
-	if (err != 1 && err != -ERANGE)
-		return 0.0;
-
-	opencl_node = starpu_worker_get_memory_node(opencl_worker);
-#endif
+	enum starpu_node_kind node_kind;
 
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
@@ -267,32 +231,23 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
-		node = -EINVAL;
-#ifdef STARPU_USE_CPU
 		if (arch < STARPU_CUDA_DEFAULT)
-			node = cpu_node;
-#endif
-#ifdef STARPU_USE_CUDA
-		if (arch >= STARPU_CUDA_DEFAULT && arch < STARPU_OPENCL_DEFAULT)
-			node = cuda_node;
-#endif
-#ifdef STARPU_USE_OPENCL
-		if (arch >= STARPU_OPENCL_DEFAULT && arch < STARPU_GORDON_DEFAULT)
-			node = opencl_node;
-#endif
-		if (node == -EINVAL)
-			STARPU_ASSERT(0);
+			node_kind = STARPU_CPU_RAM;
+		else if (arch < STARPU_OPENCL_DEFAULT)
+			node_kind = STARPU_CUDA_RAM;
+		else
+			node_kind = STARPU_OPENCL_RAM;
 
-		if (!_starpu_handle_needs_conversion_task(handle, node))
+		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
 
-		conversion_task = _starpu_create_conversion_task(handle, node);
+		conversion_task = _starpu_create_conversion_task_for_arch(handle, node_kind);
 		sum += starpu_task_expected_length(conversion_task, arch, nimpl);
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
 		_starpu_spin_unlock(&handle->header_lock);
-		starpu_task_deinit(conversion_task);
+		starpu_task_clean(conversion_task);
 		free(conversion_task);
 	}
 
@@ -318,12 +273,12 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	if (size == 0)
 		return 0.0;
 
-	uint32_t src_node = _starpu_select_src_node(handle, memory_node);
+	unsigned src_node = _starpu_select_src_node(handle, memory_node);
 	return _starpu_predict_transfer_time(src_node, memory_node, size);
 }
 
 /* Data transfer performance modeling */
-double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task)
+double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task)
 {
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;
@@ -354,13 +309,16 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 
 	while (entry)
 	{
-		double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
-
-		/* In case the task is not calibrated, we consider the task
-		 * ends immediately. */
-		if (task_length > 0.0)
-			expected_length += task_length;
-
+		if(!entry->task->scheduled)
+		{
+			double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
+			
+			/* In case the task is not calibrated, we consider the task
+			 * ends immediately. */
+			if (task_length > 0.0)
+				expected_length += task_length;
+		}
+			
 		entry = entry->next;
 	}
 

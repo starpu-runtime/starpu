@@ -56,7 +56,11 @@ int main(int argc, char **argv)
 	/* initialize the resource */
 	starpu_vector_data_register(&book_handle, 0, (uintptr_t)&book, 1, sizeof(unsigned));
 
+#ifdef STARPU_QUICK_CHECK
+	unsigned ntasks = 16;
+#else
 	unsigned ntasks = 16*1024;
+#endif
 
 	unsigned t;
 	for (t = 0; t < ntasks; t++)
@@ -73,7 +77,7 @@ int main(int argc, char **argv)
 		else
 			task->cl = &r_cl;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

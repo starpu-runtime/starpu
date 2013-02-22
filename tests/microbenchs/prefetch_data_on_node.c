@@ -23,7 +23,7 @@
 #include <pthread.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 #define N		100
 #else
 #define N		1000
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 			task->cl = select_codelet_with_random_mode();
 			task->synchronous = 1;
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 			task->synchronous = 0;
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}

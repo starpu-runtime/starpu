@@ -15,11 +15,7 @@
  */
 
 #include <unistd.h>
-
 #include <starpu.h>
-#include <starpu_profiling.h>
-
-
 #include "../helper.h"
 
 /*
@@ -87,45 +83,19 @@ enodev:
 	return -ENODEV;
 }
 
-extern struct starpu_sched_policy _starpu_sched_ws_policy;
-extern struct starpu_sched_policy _starpu_sched_prio_policy;
-extern struct starpu_sched_policy _starpu_sched_random_policy;
-extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
-extern struct starpu_sched_policy _starpu_sched_heft_policy;
-
-static struct starpu_sched_policy *policies[] =
-{
-	&_starpu_sched_ws_policy,
-	&_starpu_sched_prio_policy,
-	&_starpu_sched_dm_policy,
-	&_starpu_sched_dmda_policy,
-	&_starpu_sched_heft_policy,
-	&_starpu_sched_dmda_ready_policy,
-	&_starpu_sched_dmda_sorted_policy,
-	&_starpu_sched_random_policy,
-	&_starpu_sched_eager_policy,
-	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_pgreedy_policy
-};
-
 int
 main(void)
 {
-	int i;
-	int n_policies = sizeof(policies)/sizeof(policies[0]);
-	for (i = 0; i < n_policies; ++i)
+	struct starpu_sched_policy **policies;
+	struct starpu_sched_policy **policy;
+
+	policies = starpu_sched_get_predefined_policies();
+	for(policy=policies ; *policy!=NULL ; policy++)
 	{
-		struct starpu_sched_policy *policy = policies[i];
-		FPRINTF(stdout, "Running with policy %s.\n",
-			policy->policy_name);
 		int ret;
-		ret = run(policy);
+
+		FPRINTF(stderr, "Running with policy %s.\n", (*policy)->policy_name);
+		ret = run(*policy);
 		if (ret == -ENODEV)
 			return STARPU_TEST_SKIPPED;
 		if (ret == 1)

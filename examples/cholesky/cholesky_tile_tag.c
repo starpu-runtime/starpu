@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,17 +42,10 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-#ifdef SPU_FUNC_POTRF
-	.gordon_func = SPU_FUNC_POTRF,
-#else
-#warning SPU_FUNC_POTRF is not available
-#endif
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
@@ -84,17 +77,10 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 static struct starpu_codelet cl21 =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-#ifdef SPU_FUNC_STRSM
-	.gordon_func = SPU_FUNC_STRSM,
-#else
-#warning SPU_FUNC_STRSM is not available
-#endif
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
@@ -135,17 +121,10 @@ static int create_task_21(unsigned k, unsigned j)
 static struct starpu_codelet cl22 =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
-#endif
-#ifdef STARPU_USE_GORDON
-#ifdef SPU_FUNC_SGEMM
-	.gordon_func = SPU_FUNC_SGEMM,
-#else
-#warning SPU_FUNC_SGEMM is not available
-#endif
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22
@@ -195,8 +174,8 @@ static int cholesky_no_stride(void)
 {
 	int ret;
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	struct starpu_task *entry_task = NULL;
 
@@ -234,7 +213,7 @@ static int cholesky_no_stride(void)
 	}
 
 	/* schedule the codelet */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	ret = starpu_task_submit(entry_task);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -242,9 +221,9 @@ static int cholesky_no_stride(void)
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
@@ -257,7 +236,6 @@ static int cholesky_no_stride(void)
 int main(int argc, char **argv)
 {
 	unsigned x, y;
-	unsigned i, j;
 	int ret;
 
 	parse_args(argc, argv);
@@ -275,6 +253,7 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_init();
 
+#ifndef STARPU_SIMGRID
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
@@ -297,6 +276,7 @@ int main(int argc, char **argv)
 	for (x = 0; x < nblocks; x++)
 	if (x <= y)
 	{
+		unsigned i, j;
 		for (i = 0; i < BLOCKSIZE; i++)
 		for (j = 0; j < BLOCKSIZE; j++)
 		{
@@ -308,6 +288,7 @@ int main(int argc, char **argv)
 				A[y][x][i*BLOCKSIZE + j] += (float)(2*size);
 		}
 	}
+#endif
 
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)

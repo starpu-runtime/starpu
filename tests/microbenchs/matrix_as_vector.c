@@ -46,11 +46,10 @@ void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float sum = cublasSasum(nx, matrix, 1);
-	cudaThreadSynchronize();
 	sum /= nx;
 
-	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -78,11 +77,10 @@ void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 
 	float sum = cublasSasum(nx*ny, matrix, 1);
-	cudaThreadSynchronize();
 	sum /= nx*ny;
 
-	cudaMemcpy(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -90,41 +88,47 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 {
 	float *matrix, mean;
 	starpu_data_handle_t vector_handle, matrix_handle;
-	int ret, i, loop;
+	int ret, i, loop, maxloops;
 	double vector_timing, matrix_timing;
 	struct timeval start;
 	struct timeval end;
 
 	matrix = malloc(nx*sizeof(matrix[0]));
+	maxloops = LOOPS;
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+		/* computations are skipped when running on valgrind, there is no need to have several loops */
+		maxloops=1;
+#endif /* STARPU_HAVE_VALGRIND_H */
 
 	gettimeofday(&start, NULL);
-	for(loop=1 ; loop<=LOOPS ; loop++)
+	for(loop=1 ; loop<=maxloops ; loop++)
 	{
 		for(i=0 ; i<nx ; i++) matrix[i] = i;
 		starpu_vector_data_register(&vector_handle, 0, (uintptr_t)matrix, nx, sizeof(matrix[0]));
 		ret = starpu_insert_task(vector_codelet, STARPU_RW, vector_handle, 0);
 		starpu_data_unregister(vector_handle);
-		if (ret == -ENODEV) return ret;
+		if (ret == -ENODEV) goto end;
 	}
 	gettimeofday(&end, NULL);
 
 	vector_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	vector_timing /= LOOPS;
+	vector_timing /= maxloops;
 	mean = matrix[0];
 
 	gettimeofday(&start, NULL);
-	for(loop=1 ; loop<=LOOPS ; loop++)
+	for(loop=1 ; loop<=maxloops ; loop++)
 	{
 		for(i=0 ; i<nx ; i++) matrix[i] = i;
 		starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix, nx/2, nx/2, 2, sizeof(matrix[0]));
 		ret = starpu_insert_task(matrix_codelet, STARPU_RW, matrix_handle, 0);
 		starpu_data_unregister(matrix_handle);
-		if (ret == -ENODEV) return ret;
+		if (ret == -ENODEV) goto end;
 	}
 	gettimeofday(&end, NULL);
 
 	matrix_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	matrix_timing /= LOOPS;
+	matrix_timing /= maxloops;
 
 	if (mean == matrix[0])
 	{
@@ -144,13 +148,16 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 			}
 		}
 
-		return EXIT_SUCCESS;
+		ret = EXIT_SUCCESS;
 	}
 	else
 	{
 		FPRINTF(stderr, "Incorrect result nx=%7d --> mean=%7f != %7f\n", nx, matrix[0], mean);
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
 	}
+end:
+	free(matrix);
+	return ret;
 }
 
 #define NX_MIN 1024
@@ -184,8 +191,7 @@ int check_size_on_device(uint32_t where, char *device_name)
 		if (ret != EXIT_SUCCESS) break;
 	}
 	return ret;
-
-};
+}
 
 int main(int argc, char **argv)
 {
@@ -195,6 +201,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	starpu_helper_cublas_init();
 
 	devices = starpu_cpu_worker_get_count();
 	if (devices)
@@ -205,9 +212,7 @@ int main(int argc, char **argv)
 	devices = starpu_cuda_worker_get_count();
 	if (devices)
 	{
-		starpu_helper_cublas_init();
 		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
-		starpu_helper_cublas_shutdown();
 		if (ret) goto error;
 	}
 	devices = starpu_opencl_worker_get_count();
@@ -219,6 +224,7 @@ int main(int argc, char **argv)
 
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
+	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }

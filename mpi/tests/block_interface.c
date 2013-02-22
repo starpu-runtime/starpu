@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,23 +35,16 @@ int main(int argc, char **argv)
 	if (size < 2)
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need at least processes.\n");
+			FPRINTF(stderr, "We need at least 2 processes.\n");
 
-		MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
-	}
-
-	/* We only use 2 nodes for that test */
-	if (rank >= 2)
-	{
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	/* Node 0 will allocate a big block and only register an inner part of
 	 * it as the block data, Node 1 will allocate a block of small size and
@@ -79,7 +72,7 @@ int main(int argc, char **argv)
 			(uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}
-	else /* rank == 1 */
+	else if (rank == 1)
 	{
 		block = calloc(SIZE*SIZE*SIZE, sizeof(float));
 		assert(block);
@@ -112,7 +105,7 @@ int main(int argc, char **argv)
 		starpu_data_release(block_handle);
 
 	}
-	else /* rank == 1 */
+	else if (rank == 1)
 	{
 		MPI_Status status;
 		ret = starpu_mpi_recv(block_handle, 0, 0x42, MPI_COMM_WORLD, &status);
@@ -139,6 +132,11 @@ int main(int argc, char **argv)
 	FPRINTF(stdout, "Rank %d is done\n", rank);
 	fflush(stdout);
 
+	if (rank == 0 || rank == 1)
+	{
+		starpu_data_unregister(block_handle);
+		free(block);
+	}
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

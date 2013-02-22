@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,15 +23,15 @@
 
 StarPU is a runtime system that offers support for heterogeneous multicore
 machines. While many efforts are devoted to design efficient computation kernels
-for those architectures (e.g. to implement BLAS kernels on GPUs or on Cell's
-SPUs), StarPU not only takes care of offloading such kernels (and implementing
-data coherency across the machine), but it also makes sure the kernels are
-executed as efficiently as possible.
+for those architectures (e.g. to implement BLAS kernels on GPUs),
+StarPU not only takes care of offloading such kernels (and
+implementing data coherency across the machine), but it also makes
+sure the kernels are executed as efficiently as possible.
 
 +------------------------
 | I.b. What StarPU is not
 
-StarPU is not a new language, and it does not extends existing languages either.
+StarPU is not a new language, and it does not extend existing languages either.
 StarPU does not help to write computation kernels.
 
 +---------------------------------
@@ -76,11 +76,13 @@ advantage of their specificities in a portable fashion.
    units according to the machine topology. For more details on hwloc, see
    http://www.open-mpi.org/projects/hwloc/ .
 
- * To build the StarPU-Top tool the following are also required:
-   * libqt4 >= 4.7
+ * To build the StarPU-Top tool the following packages (along with
+   their development files) are also required:
+   * libqt4-dev >= 4.7
    * libqt4-network
    * libqt4-opengl
    * libqt4-sql
+   * qt4-qmake
 
 ++=====================++
 || III. Getting StarPU ||

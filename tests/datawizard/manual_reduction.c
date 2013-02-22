@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,13 +18,6 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
-
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#endif
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 
 #define INIT_VALUE	42
 #define NTASKS		10000
@@ -125,9 +118,11 @@ static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	unsigned h_val;
-	cudaMemcpy(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	h_val++;
-	cudaMemcpy(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice);
+	cudaMemcpyAsync(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -207,7 +202,7 @@ int main(int argc, char **argv)
 		task->execute_on_a_specific_worker = 1;
 		task->workerid = (unsigned)workerid;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -222,7 +217,7 @@ int main(int argc, char **argv)
 		task->handles[0] = variable_handle;
 		task->handles[1] = per_worker_handle[worker];
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -248,9 +243,6 @@ int main(int argc, char **argv)
 			clReleaseMemObject((void*)per_worker[worker]);
 			break;
 #endif /* !STARPU_USE_OPENCL */
-#ifdef STARPU_USE_GORDON
-		case STARPU_GORDON_WORKER: /* Not supported */	
-#endif /* ! STARPU_USE_GORDON */
 		default:
 			STARPU_ABORT();
 		}

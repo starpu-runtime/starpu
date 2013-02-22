@@ -17,16 +17,22 @@
 #ifndef __COMMON_BARRIER_H__
 #define __COMMON_BARRIER_H__
 
+#ifdef STARPU_SIMGRID
+/* Force using our implementation of barriers, so it can be simgridish */
+#undef PTHREAD_BARRIER_SERIAL_THREAD
+#endif
+
 #include <pthread.h>
+#include <common/utils.h>
 
 struct _starpu_barrier
 {
 	int count;
 	int reached_start;
 	int reached_exit;
-	pthread_mutex_t mutex;
-	pthread_mutex_t mutex_exit;
-	pthread_cond_t cond;
+	_starpu_pthread_mutex_t mutex;
+	_starpu_pthread_mutex_t mutex_exit;
+	_starpu_pthread_cond_t cond;
 };
 
 int _starpu_barrier_init(struct _starpu_barrier *barrier, int count);

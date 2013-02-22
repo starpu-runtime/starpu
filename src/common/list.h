@@ -28,10 +28,10 @@
  *      + pour les listes : FOO_list
  *      + pour les itérateurs : FOO
  *  - déclare les accesseurs suivants :
- *     * création d'une cellule 
- *   FOO_t      FOO_new(void);  
+ *     * création d'une cellule
+ *   FOO_t      FOO_new(void);
  *     * suppression d'une cellule
- *   void       FOO_delete(FOO_t); 
+ *   void       FOO_delete(FOO_t);
  *     * création d'une liste (vide)
  *   FOO_list_t FOO_list_new(void);
  *     * suppression d'une liste
@@ -171,5 +171,3 @@
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
       i=i->_next;} return 1; }
-
-

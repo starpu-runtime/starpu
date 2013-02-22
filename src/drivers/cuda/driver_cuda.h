@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,10 +40,17 @@
 
 unsigned _starpu_get_cuda_device_count(void);
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
-cudaStream_t starpu_cuda_get_local_transfer_stream(void);
+#else
+#  define _starpu_cuda_discover_devices(config) ((void) config)
+#endif
+#ifdef STARPU_USE_CUDA
+cudaStream_t starpu_cuda_get_local_in_transfer_stream(void);
+cudaStream_t starpu_cuda_get_local_out_transfer_stream(void);
+cudaStream_t starpu_cuda_get_local_peer_transfer_stream(void);
 
 int _starpu_run_cuda(struct starpu_driver *);
 int _starpu_cuda_driver_init(struct starpu_driver *);

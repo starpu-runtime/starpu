@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include "../helper.h"
 #include "scal.h"
 
@@ -70,7 +69,8 @@ int main(int argc, char **argv)
 
 	starpu_data_partition(handle, &f);
 
-	for (i = 0; i < f.nchildren; i++) {
+	for (i = 0; i < f.nchildren; i++)
+	{
 		ret = starpu_insert_task(&mycodelet,
 					 STARPU_W,
 					 starpu_data_get_sub_data(handle, 1, i),

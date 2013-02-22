@@ -14,12 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <math.h>
-#include <unistd.h>
-
 #include <starpu.h>
-#include <starpu_profiling.h>
-
+#include <core/jobs.h>
 #include "../helper.h"
 
 /*
@@ -28,56 +24,29 @@
  */
 
 #define NTASKS           8
-#define TASK_DURATION    1e6 /* In microseconds */
-
-extern struct starpu_sched_policy _starpu_sched_ws_policy;
-extern struct starpu_sched_policy _starpu_sched_prio_policy;
-extern struct starpu_sched_policy _starpu_sched_random_policy;
-extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
-extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
-extern struct starpu_sched_policy _starpu_sched_pgreedy_policy;
-extern struct starpu_sched_policy _starpu_sched_heft_policy;
-
-static struct starpu_sched_policy *policies[] =
-{
-	&_starpu_sched_ws_policy,
-	&_starpu_sched_prio_policy,
-	&_starpu_sched_dm_policy,
-	&_starpu_sched_dmda_policy,
-	&_starpu_sched_heft_policy,
-	&_starpu_sched_dmda_ready_policy,
-	&_starpu_sched_dmda_sorted_policy,
-	&_starpu_sched_random_policy,
-	&_starpu_sched_eager_policy,
-	&_starpu_sched_parallel_heft_policy,
-	&_starpu_sched_pgreedy_policy
-};
 
 static void
 dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-
-	usleep(TASK_DURATION);
 }
 
 static int
 run(struct starpu_sched_policy *p)
 {
 	int ret;
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+
+	(void) starpu_conf_init(&conf);
+	conf.sched_policy = p;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 
-	starpu_profiling_status_set(1);
-
 	struct starpu_task *tasks[NTASKS] = { NULL };
-	struct starpu_codelet cl = 
+	struct starpu_codelet cl =
 	{
 		.cpu_funcs    = {dummy, NULL},
 		.cuda_funcs   = {dummy, NULL},
@@ -100,38 +69,39 @@ run(struct starpu_sched_policy *p)
 
 	starpu_task_wait_for_all();
 
+	ret = 0;
 	for (i = 0; i < NTASKS; i++)
 	{
-		struct starpu_task_profiling_info *pi;
-		double task_len;
-
-		pi = tasks[i]->profiling_info;
-		task_len = starpu_timing_timespec_delay_us(&pi->start_time, &pi->end_time);
-		if (task_len < TASK_DURATION/2)
+		struct _starpu_job *j = tasks[i]->starpu_private;
+		if (j == NULL || j->terminated == 0)
 		{
-			FPRINTF(stderr, "Failed with task length: %fµs\n", task_len);
-			return 1;
+			FPRINTF(stderr, "Error with policy %s.\n", p->policy_name);
+			ret = 1;
+			break;
 		}
+	}
 
+	for (i = 0; i < NTASKS; i++)
+	{
 		starpu_task_destroy(tasks[i]);
 	}
 
 	starpu_shutdown();
-	return 0;
+	return ret;
 }
 
 int
 main(void)
 {
-	int i;
-	int n_policies = sizeof(policies)/sizeof(policies[0]);
-	for (i = 0; i < n_policies; ++i)
+	struct starpu_sched_policy **policies;
+	struct starpu_sched_policy **policy;
+
+	policies = starpu_sched_get_predefined_policies();
+	for(policy=policies ; *policy!=NULL ; policy++)
 	{
-		struct starpu_sched_policy *policy = policies[i];
-		FPRINTF(stdout, "Running with policy %s.\n",
-			policy->policy_name);
+		FPRINTF(stderr, "Running with policy %s.\n", (*policy)->policy_name);
 		int ret;
-		ret = run(policy);
+		ret = run(*policy);
 		if (ret == 1)
 			return EXIT_FAILURE;
 	}

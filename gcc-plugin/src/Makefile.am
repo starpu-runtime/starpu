@@ -17,21 +17,36 @@
 # requires a name prefixed by `lib'.
 gccplugin_LTLIBRARIES = starpu.la
 
-starpu_la_SOURCES = starpu.c c-expr.y
+starpu_la_SOURCES =				\
+  c-expr.y					\
+  opencl.c					\
+  starpu.c					\
+  tasks.c					\
+  utils.c
+
+if HAVE_PTR_DEREFS_MAY_ALIAS_P
+
+# Only for GCC >= 4.6.
+starpu_la_SOURCES += warn-unregistered.c
+
+endif
 
 # Use the Yacc-compatibility mode so that Bison doesn't error out upon
 # reduce/reduce conflicts.
 AM_YFLAGS = -y
 
 AM_CPPFLAGS =						\
+  -I$(top_builddir)/gcc-plugin/include			\
+  -I$(top_srcdir)/gcc-plugin/include			\
   -I$(top_srcdir)/include				\
-  -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1 \
+  -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1	\
   $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 
-AM_LDFLAGS = -module --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
+AM_LDFLAGS = -module
 
 # Use either `gcc' or `g++', whichever is appropriate to build
 # plug-ins for this version of GCC.
+AM_LIBTOOLFLAGS = --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
 CC = $(GCC_FOR_PLUGIN)
 
 showcheck:

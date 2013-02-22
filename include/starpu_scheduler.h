@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@ struct starpu_machine_topology
 
 	unsigned ncombinedworkers;
 
+	unsigned nsched_ctxs;
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t hwtopology;
 #else
@@ -49,13 +50,12 @@ struct starpu_machine_topology
 #endif
 
 	unsigned nhwcpus;
-        unsigned nhwcudagpus;
-        unsigned nhwopenclgpus;
+	unsigned nhwcudagpus;
+	unsigned nhwopenclgpus;
 
 	unsigned ncpus;
 	unsigned ncudagpus;
 	unsigned nopenclgpus;
-	unsigned ngordon_spus;
 
 	/* Where to bind workers ? */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
@@ -73,10 +73,10 @@ struct starpu_machine_topology
 struct starpu_sched_policy
 {
 	/* Initialize the scheduling policy. */
-	void (*init_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *);
+	void (*init_sched)(unsigned sched_ctx_id);
 
 	/* Cleanup the scheduling policy. */
-	void (*deinit_sched)(struct starpu_machine_topology *, struct starpu_sched_policy *);
+	void (*deinit_sched)(unsigned sched_ctx_id);
 
 	/* Insert a task into the scheduler. */
 	int (*push_task)(struct starpu_task *);
@@ -86,23 +86,29 @@ struct starpu_sched_policy
 	 * task is explicitely assigned to a worker. This method therefore
 	 * permits to keep the timing state of the scheduler coherent even
 	 * when StarPU bypasses the scheduling strategy. */
-	void (*push_task_notify)(struct starpu_task *, int workerid);
+	void (*push_task_notify)(struct starpu_task *, int workerid, unsigned sched_ctx_id);
 
 	/* Get a task from the scheduler. The mutex associated to the worker is
 	 * already taken when this method is called. */
-	struct starpu_task *(*pop_task)(void);
+	struct starpu_task *(*pop_task)(unsigned sched_ctx_id);
 
 	 /* Remove all available tasks from the scheduler (tasks are chained by
 	  * the means of the prev and next fields of the starpu_task
 	  * structure). The mutex associated to the worker is already taken
 	  * when this method is called. */
-	struct starpu_task *(*pop_every_task)(void);
+	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
 	/* This method is called every time a task is starting. (optional) */
 	void (*pre_exec_hook)(struct starpu_task *);
 
 	/* This method is called every time a task has been executed. (optional) */
 	void (*post_exec_hook)(struct starpu_task *);
+
+	/* Initialize scheduling structures corresponding to each worker. */
+	void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+
+	/* Deinitialize scheduling structures corresponding to each worker. */
+	void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
 	/* Name of the policy (optionnal) */
 	const char *policy_name;
@@ -111,15 +117,16 @@ struct starpu_sched_policy
 	const char *policy_description;
 };
 
+struct starpu_sched_policy **starpu_sched_get_predefined_policies();
+
 /* When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
 associated mutex) should be used to block (and to wake up) a worker. Note that
 multiple workers may use the same condition variable. For instance, in the case
 of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.  The initialization method of a
-scheduling strategy (init_sched) must call this function once per worker. */
-#if !defined(_MSC_VER)
-void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
+would be used to block and wake up all workers.   */
+#if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
+void starpu_worker_get_sched_condition(int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
 #endif
 
 /* Check if the worker specified by workerid can execute the codelet. */
@@ -168,29 +175,29 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 /* Whether STARPU_PREFETCH was set */
 int starpu_get_prefetch_flag(void);
 /* Prefetch data for a given task on a given node */
-int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 /*
  *	Performance predictions
  */
 
-/* Return the current date */
+/* Return the current date in us */
 double starpu_timing_now(void);
-/* Returns expected task duration in µs */
+/* Returns expected task duration in us */
 double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns an estimated speedup factor relative to CPU speed */
 double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
-/* Returns expected data transfer time in µs */
-double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task);
-/* Predict the transfer time (in µs) to move a handle to a memory node */
+/* Returns expected data transfer time in us */
+double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
+/* Predict the transfer time (in us) to move a handle to a memory node */
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_access_mode mode);
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected conversion time in ms (multiformat interface only) */
 double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the expected duration of the entire task bundle in �s. */
+/* Return the expected duration of the entire task bundle in us. */
 double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
-/* Return the time (in µs) expected to transfer all data used within the bundle */
+/* Return the time (in us) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
 /* Return the expected power consumption of the entire task bundle in J. */
 double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);

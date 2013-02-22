@@ -22,9 +22,10 @@
 
 #define NUM_THREADS 5
 
-void *launch_starpu(void *id)
+void *launch_starpu(void *unused)
 {
 	int ret;
+	(void) unused;
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);

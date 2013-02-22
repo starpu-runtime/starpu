@@ -48,7 +48,7 @@ struct test_config matrix_config =
 #endif
 	.handle        = &matrix_handle,
 	.dummy_handle  = &matrix2_handle,
-	.copy_failed   = 0,
+	.copy_failed   = SUCCESS,
 	.name          = "matrix_interface"
 };
 
@@ -105,7 +105,7 @@ test_matrix_cpu_func(void *buffers[], void *args)
 	{
 		if (val[i] != i * factor)
 		{
-			matrix_config.copy_failed = 1;
+			matrix_config.copy_failed = FAILURE;
 			return;
 		}
 		val[i] *= -1;

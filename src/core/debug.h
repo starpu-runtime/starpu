@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,10 @@
 #include <common/config.h>
 #include <core/workers.h>
 
+#ifdef HAVE_AYUDAME_H
+#include <Ayudame.h>
+#endif
+
 /* Create a file that will contain StarPU's log */
 void _starpu_open_debug_logfile(void);
 
@@ -36,5 +40,8 @@ void _starpu_print_to_logfile(const char *format, ...);
 
 /* Tell gdb whether FXT is compiled in or not */
 extern int _starpu_use_fxt;
+
+/* Get an Ayudame id for CL */
+int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl);
 
 #endif // __DEBUG_H__

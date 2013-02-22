@@ -28,15 +28,20 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
-#include <starpu_cuda.h>
 #endif
 
-static unsigned niter = 100;
+static unsigned niter = 10;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
+#ifdef STARPU_QUICK_CHECK
 static unsigned xdim = 256;
 static unsigned ydim = 256;
 static unsigned zdim = 64;
+#else
+static unsigned xdim = 1024;
+static unsigned ydim = 1024;
+static unsigned zdim = 1024;
+#endif
 static unsigned check = 0;
 
 static TYPE *A, *B, *C;
@@ -71,6 +76,7 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
+#ifndef STARPU_SIMGRID
 	starpu_malloc((void **)&A, zdim*ydim*sizeof(TYPE));
 	starpu_malloc((void **)&B, xdim*zdim*sizeof(TYPE));
 	starpu_malloc((void **)&C, xdim*ydim*sizeof(TYPE));
@@ -99,6 +105,7 @@ static void init_problem_data(void)
 			C[j+i*ydim] = (TYPE)(0);
 		}
 	}
+#endif
 }
 
 static void partition_mult_data(void)
@@ -219,63 +226,69 @@ static void parse_args(int argc, char **argv)
 			nslicesy = nslicesx;
 		}
 
-		if (strcmp(argv[i], "-nblocksx") == 0)
+		else if (strcmp(argv[i], "-nblocksx") == 0)
 		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocksy") == 0)
+		else if (strcmp(argv[i], "-nblocksy") == 0)
 		{
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-x") == 0)
+		else if (strcmp(argv[i], "-x") == 0)
 		{
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-y") == 0)
+		else if (strcmp(argv[i], "-y") == 0)
 		{
 			char *argptr;
 			ydim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-z") == 0)
+		else if (strcmp(argv[i], "-z") == 0)
 		{
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-iter") == 0)
+		else if (strcmp(argv[i], "-iter") == 0)
 		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0)
+		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-spmd") == 0)
+		else if (strcmp(argv[i], "-spmd") == 0)
 		{
 			cl.type = STARPU_SPMD;
+		}
+
+		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+		{
+			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-z z] [-iter iter] [-check] [-spmd]\n", argv[0]);
+			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
+			exit(EXIT_SUCCESS);
 		}
 	}
 }
 
 int main(int argc, char **argv)
 {
-	struct timeval start;
-	struct timeval end;
+	double start, end;
 	int ret;
 
 	parse_args(argc, argv);
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	niter /= 10;
 #endif
 
@@ -289,7 +302,7 @@ int main(int argc, char **argv)
 	init_problem_data();
 	partition_mult_data();
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	unsigned x, y, iter;
 	for (iter = 0; iter < niter; iter++)
@@ -305,7 +318,7 @@ int main(int argc, char **argv)
 			task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
 			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
 
-			int ret = starpu_task_submit(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV)
 			{
 			     ret = 77;
@@ -318,8 +331,9 @@ int main(int argc, char **argv)
 	}
 
 
-	gettimeofday(&end, NULL);
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+
+	double timing = end - start;
 
 	FPRINTF(stderr, "Time: %2.2f ms\n", timing/1000.0);
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,10 +24,6 @@
 #include <signal.h>
 
 #include <starpu.h>
-
-#ifdef STARPU_USE_GORDON
-#include <gordon/null.h>
-#endif
 
 #define Nrolls	4
 #define SLEEP 1
@@ -129,14 +125,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_SLOW_MACHINE
+#ifdef STARPU_QUICK_CHECK
 	ni /= 4;
 	nk /= 16;
-#endif
-
-#ifdef STARPU_USE_GORDON
-	/* load an empty kernel and get its identifier */
-	unsigned gordon_null_kernel = load_gordon_null_kernel();
 #endif
 
 	parse_args(argc, argv);
@@ -144,9 +135,6 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.cpu_funcs[0] = cpu_codelet;
 	cl.cuda_funcs[0] = cpu_codelet;
 	cl.opencl_funcs[0] = cpu_codelet;
-#ifdef STARPU_USE_GORDON
-	cl.gordon_func = gordon_null_kernel;
-#endif
 	cl.nbuffers = 0;
 
 	FPRINTF(stderr, "ITER : %u\n", nk);

@@ -33,7 +33,8 @@ void dummy(void *buffers[], void *cl_arg)
 	float *v = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	printf("Codelet running\n");
-	cudaMemset(v, 0, STARPU_VECTOR_GET_NX(buffers[0]) * sizeof(float));
+	cudaMemsetAsync(v, 0, STARPU_VECTOR_GET_NX(buffers[0]) * sizeof(float), starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	printf("Codelet done\n");
 }
 
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* And run the driver, which will run the task */
+	/* And run the driver inside main, which will run the task */
 	printf("running the driver\n");
 	starpu_driver_run(&drivers[0]);
 	printf("finished running the driver\n");

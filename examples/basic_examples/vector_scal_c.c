@@ -26,7 +26,6 @@
  */
 
 #include <starpu.h>
-#include <starpu_opencl.h>
 #include <stdio.h>
 
 
@@ -36,7 +35,7 @@ extern void scal_cuda_func(void *buffers[], void *_args);
 static struct starpu_perfmodel vector_scal_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale_model"
+	.symbol = "vector_scal_model"
 };
 
 static struct starpu_codelet cl =

@@ -24,10 +24,12 @@ soclEnqueueTask(cl_command_queue cq,
               cl_event *        event) CL_API_SUFFIX__VERSION_1_0
 {
 	command_ndrange_kernel cmd = command_task_create(kernel);
+
+   cl_event ev = command_event_get(cmd);
 	
 	command_queue_enqueue(cq, cmd, num_events, events);
 
-	RETURN_EVENT(cmd, event);
+	RETURN_EVENT(ev, event);
 
 	return CL_SUCCESS;
 }

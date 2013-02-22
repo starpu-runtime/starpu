@@ -14,20 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #include <starpu.h>
-#include <starpu_hash.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include "custom_interface.h"
 #include "custom_types.h"
 
-static int copy_ram_to_ram(void *src_interface, unsigned src_node,
-			   void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
-static int copy_ram_to_cuda(void *src_interface, unsigned src_node,
-			    void *dst_interface, unsigned dst_node);
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node,
-			    void *dst_interface, unsigned dst_node);
 static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node,
 				  void *dst_interface, unsigned dst_node,
 				  cudaStream_t stream);
@@ -50,19 +40,18 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 				 void *dst_interface, unsigned dst_node);
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event);
+				    cl_event *event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event);
+				    cl_event *event);
 #endif /* !STARPU_USE_OPENCL */
 
 static struct starpu_data_copy_methods custom_copy_data_methods_s =
 {
-	.ram_to_ram = copy_ram_to_ram,
-	.ram_to_spu = NULL,
+	.ram_to_ram = NULL,
 #ifdef STARPU_USE_CUDA
-	.ram_to_cuda        = copy_ram_to_cuda,
-	.cuda_to_ram        = copy_cuda_to_ram,
+	.ram_to_cuda        = NULL,
+	.cuda_to_ram        = NULL,
 	.ram_to_cuda_async  = copy_ram_to_cuda_async,
 	.cuda_to_ram_async  = copy_cuda_to_ram_async,
 	.cuda_to_cuda       = copy_cuda_to_cuda,
@@ -75,23 +64,18 @@ static struct starpu_data_copy_methods custom_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
-	.cuda_to_spu = NULL,
-	.spu_to_ram  = NULL,
-	.spu_to_cuda = NULL,
-	.spu_to_spu  = NULL
 };
 
 static void     register_custom_handle(starpu_data_handle_t handle,
-				       uint32_t home_node,
+				       unsigned home_node,
 				       void *data_interface);
 static ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
-					       uint32_t dst_node);
+					       unsigned dst_node);
 static void*    custom_handle_to_pointer(starpu_data_handle_t data_handle,
-					 uint32_t node);
-static void     free_custom_buffer_on_node(void *data_interface, uint32_t node);
+					 unsigned node);
+static void     free_custom_buffer_on_node(void *data_interface, unsigned node);
 static size_t   custom_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle);
-static int      custom_compare(void *data_interface_a, void *data_interface_b);
 static void     display_custom_interface(starpu_data_handle_t handle, FILE *f);
 static uint32_t custom_get_nx(starpu_data_handle_t handle);
 
@@ -113,10 +97,7 @@ static struct starpu_data_interface_ops interface_custom_ops =
 	.copy_methods          = &custom_copy_data_methods_s,
 	.get_size              = custom_interface_get_size,
 	.footprint             = footprint_custom_interface_crc32,
-	.compare               = custom_compare,
-#ifdef STARPU_USE_GORDON
-	.convert_to_gordon     = NULL,
-#endif
+	.compare               = NULL,
 	.interfaceid           = -1,
 	.interface_size        = sizeof(struct custom_data_interface),
 	.display               = display_custom_interface,
@@ -125,7 +106,7 @@ static struct starpu_data_interface_ops interface_custom_ops =
 };
 
 static void
-register_custom_handle(starpu_data_handle_t handle, uint32_t home_node, void *data_interface)
+register_custom_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct custom_data_interface *custom_interface;
 	custom_interface = (struct custom_data_interface *) data_interface;
@@ -162,135 +143,65 @@ register_custom_handle(starpu_data_handle_t handle, uint32_t home_node, void *da
 	}
 }
 
-static ssize_t allocate_custom_buffer_on_node(void *data_interface, uint32_t node)
+static ssize_t allocate_custom_buffer_on_node(void *data_interface, unsigned node)
 {
 	ssize_t size = 0;
 	struct custom_data_interface *custom_interface;
 	custom_interface = (struct custom_data_interface *) data_interface;
 
-	switch(starpu_node_get_kind(node))
-	{
-	case STARPU_CPU_RAM:
-		size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		custom_interface->cpu_ptr = (void*) malloc(size);
-		if (!custom_interface->cpu_ptr)
-			return -ENOMEM;
+	size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
+	custom_interface->cpu_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	if (!custom_interface->cpu_ptr)
+		goto fail_cpu;
 #ifdef STARPU_USE_CUDA
-		custom_interface->cuda_ptr = (void *) malloc(size);
-		if (!custom_interface->cuda_ptr)
-		{
-			free(custom_interface->cpu_ptr);
-			custom_interface->cpu_ptr = NULL;
-			return -ENOMEM;
-		}
-#endif /* !STARPU_USE_CUDA */
-#ifdef STARPU_USE_OPENCL
-		custom_interface->opencl_ptr = malloc(size);
-		if (custom_interface->cuda_ptr == NULL)
-		{
-			free(custom_interface->cpu_ptr);
-#ifdef STARPU_USE_CUDA
-			free(custom_interface->cuda_ptr);
-#endif /* !STARPU_USE_CUDA */
-			return -ENOMEM;
-		}
-#endif /* !STARPU_USE_OPENCL */
-			
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-	{
-		cudaError_t err;
-		size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		err = cudaMalloc(&custom_interface->cuda_ptr, size);
-		if (err != cudaSuccess)
-			return -ENOMEM;
-
-		err = cudaMalloc(&custom_interface->cpu_ptr, size);
-		if (err != cudaSuccess)
-		{
-			cudaFree(custom_interface->cuda_ptr);
-			return -ENOMEM;
-		}
-		break;
-	}
+	custom_interface->cuda_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	if (!custom_interface->cuda_ptr)
+		goto fail_cuda;
 #endif
 #ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int err;
-		cl_mem memory;
-		ssize_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-		err = starpu_opencl_allocate_memory(&memory, size, CL_MEM_READ_WRITE);
-		if (err != CL_SUCCESS)
-			STARPU_OPENCL_REPORT_ERROR(err);
+	custom_interface->opencl_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	if (!custom_interface->opencl_ptr)
+		goto fail_opencl;
+#endif
 
-		custom_interface->opencl_ptr = memory;
-
-		break;
-	}
-#endif /* !STARPU_USE_OPENCL */
-	default:
-		assert(0);
-	}
-
-	/* XXX We may want to return cpu_size + cuda_size + ... */
-	return size;
+	return size
+#ifdef STARPU_USE_CUDA
+		+size
+#endif
+#ifdef STARPU_USE_OPENCL
+		+size
+#endif
+		;
+#ifdef STARPU_USE_OPENCL
+fail_opencl:
+#ifdef STARPU_USE_CUDA
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+#endif
+#endif
+#ifdef STARPU_USE_CUDA
+fail_cuda:
+#endif
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
+fail_cpu:
+	return -ENOMEM;
 }
 
-static void free_custom_buffer_on_node(void *data_interface, uint32_t node)
+static void free_custom_buffer_on_node(void *data_interface, unsigned node)
 {
-	struct custom_data_interface *custom_interface;
-	custom_interface = (struct custom_data_interface *) data_interface;
+	struct custom_data_interface *custom_interface = (struct custom_data_interface *) data_interface;
+	size_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
 
-	switch(starpu_node_get_kind(node))
-	{
-	case STARPU_CPU_RAM:
-		if (custom_interface->cpu_ptr != NULL)
-		{
-			free(custom_interface->cpu_ptr);
-			custom_interface->cpu_ptr = NULL;
-		}
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
 #ifdef STARPU_USE_CUDA
-		if (custom_interface->cuda_ptr != NULL)
-		{
-			free(custom_interface->cuda_ptr);
-			custom_interface->cuda_ptr = NULL;
-		}
-#endif /* !STARPU_USE_CUDA */
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+#endif
 #ifdef STARPU_USE_OPENCL
-		if (custom_interface->opencl_ptr != NULL)
-		{
-			free(custom_interface->opencl_ptr);
-			custom_interface->opencl_ptr = NULL;
-		}
-#endif /* !STARPU_USE_OPENCL */
-		break;
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-		if (custom_interface->cpu_ptr != NULL)
-		{
-			cudaError_t err;
-			err = cudaFree(custom_interface->cpu_ptr);
-			if (err != cudaSuccess)
-				fprintf(stderr, "cudaFree failed...\n");
-		}
-		if (custom_interface->cuda_ptr != NULL)
-		{
-			cudaError_t err;
-			err = cudaFree(custom_interface->cuda_ptr);
-			if (err != cudaSuccess)
-				fprintf(stderr, "cudaFree failed...\n");
-		}
-		break;
-#endif /* !STARPU_USE_CUDA */
-	default:
-		assert(0);
-	}
+	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->opencl_ptr, size);
+#endif
 }
 
 static void*
-custom_handle_to_pointer(starpu_data_handle_t handle, uint32_t node)
+custom_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	struct custom_data_interface *data_interface =
 		(struct custom_data_interface *) starpu_data_get_interface_on_node(handle, node);
@@ -329,16 +240,11 @@ static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle)
 	return starpu_crc32_be(custom_get_nx(handle), 0);
 }
 
-static int custom_compare(void *data_interface_a, void *data_interface_b)
-{
-	/* TODO */
-	assert(0);
-}
-
 static void display_custom_interface(starpu_data_handle_t handle, FILE *f)
 {
-	/* TODO */
-	assert(0);
+	struct custom_data_interface *ci = (struct custom_data_interface *)
+		starpu_data_get_interface_on_node(handle, 0);
+	fprintf(f, "Custom interface of size %d", ci->nx);
 }
 
 static uint32_t
@@ -352,12 +258,11 @@ custom_get_nx(starpu_data_handle_t handle)
 
 
 void custom_data_register(starpu_data_handle_t *handle,
-				 uint32_t home_node,
+				 unsigned home_node,
 				 void *ptr,
 				 uint32_t nx,
 				 struct starpu_multiformat_data_interface_ops *format_ops)
 {
-	/* XXX Deprecated fields ? */
 	struct custom_data_interface custom =
 	{
 		.cpu_ptr = ptr,
@@ -377,26 +282,7 @@ void custom_data_register(starpu_data_handle_t *handle,
 	starpu_data_register(handle, home_node, &custom, &interface_custom_ops);
 }
 
-static int copy_ram_to_ram(void *src_interface, unsigned src_node,
-			   void *dst_interface, unsigned dst_node)
-{
-	/* TODO */
-	assert(0);
-}
 #ifdef STARPU_USE_CUDA
-static int copy_ram_to_cuda(void *src_interface, unsigned src_node,
-			    void *dst_interface, unsigned dst_node)
-{
-	/* TODO */
-	assert(0);
-}
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node,
-			    void *dst_interface, unsigned dst_node)
-{
-	/* TODO */
-	assert(0);
-}
-
 static int
 copy_cuda_common_async(void *src_interface, unsigned src_node,
 		       void *dst_interface, unsigned dst_node,
@@ -513,7 +399,7 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event)
+				    cl_event *event)
 {
 	ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
@@ -556,7 +442,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
-				    void *event)
+				    cl_event *event)
 {
 	ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;

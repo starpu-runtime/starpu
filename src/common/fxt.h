@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <starpu.h>
 
 /* some key to identify the worker kind */
@@ -106,10 +107,22 @@
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
 
+/* Some versions of FxT do not include the declaration of the function */
+#ifdef HAVE_ENABLE_FUT_FLUSH
+#if !HAVE_DECL_ENABLE_FUT_FLUSH
+void enable_fut_flush();
+#endif
+#endif
+#ifdef HAVE_FUT_SET_FILENAME
+#if !HAVE_DECL_FUT_SET_FILENAME
+void fut_set_filename(char *filename);
+#endif
+#endif
+
 long _starpu_gettid(void);
 
 /* Initialize the FxT library. */
-void _starpu_start_fxt_profiling(void);
+void _starpu_init_fxt_profiling(unsigned trace_buffer_size);
 
 /* Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
@@ -123,6 +136,7 @@ void _starpu_fxt_register_thread(unsigned);
  * by a string. */
 #define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)			\
 do {									\
+    if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 3)*sizeof(unsigned long));\
@@ -136,10 +150,12 @@ do {									\
 	*(futargs++) = (unsigned long)(P3);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+    }									\
 } while (0);
 
 #define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
 do {									\
+    if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long));\
@@ -154,10 +170,12 @@ do {									\
 	*(futargs++) = (unsigned long)(P4);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+    }									\
 } while (0);
 
 #define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
 do {									\
+    if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 5)*sizeof(unsigned long));\
@@ -173,6 +191,7 @@ do {									\
 	*(futargs++) = (unsigned long)(P5);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+    }									\
 } while (0);
 
 
@@ -181,22 +200,22 @@ do {									\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
 	FUT_DO_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
 
-#define _STARPU_TRACE_WORKER_INIT_START(workerkind, devid, memnode)	\
-	FUT_DO_PROBE4(_STARPU_FUT_WORKER_INIT_START, workerkind, devid, memnode, _starpu_gettid());
+#define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode)	\
+	FUT_DO_PROBE5(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_INIT_END				\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid());
 
 #define _STARPU_TRACE_START_CODELET_BODY(job)				\
 do {									\
-        const char *model_name = _starpu_get_model_name((job));         \
+        const char *model_name = _starpu_job_get_model_name((job));         \
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
-		_STARPU_FUT_DO_PROBE3STR(_STARPU_FUT_START_CODELET_BODY, (job), _starpu_gettid(), 1, model_name); \
+		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, _starpu_gettid(), 1, model_name); \
 	}								\
 	else {                                                          \
-		FUT_DO_PROBE3(_STARPU_FUT_START_CODELET_BODY, (job), _starpu_gettid(), 0); \
+		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, _starpu_gettid(), 0); \
 	}								\
 } while(0);
 
@@ -249,7 +268,7 @@ do {									\
 #define _STARPU_TRACE_TASK_DONE(job)						\
 do {										\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
-        const char *model_name = _starpu_get_model_name((job));                       \
+        const char *model_name = _starpu_job_get_model_name((job));                       \
 	if (model_name)					                        \
 	{									\
 		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
@@ -262,7 +281,7 @@ do {										\
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
         struct _starpu_job *job = (tag)->job;                                  \
-        const char *model_name = _starpu_get_model_name((job));                       \
+        const char *model_name = _starpu_job_get_model_name((job));                       \
 	if (model_name)                                                         \
 	{									\
           _STARPU_FUT_DO_PROBE3STR(_STARPU_FUT_TAG_DONE, (tag)->id, _starpu_gettid(), 1, model_name); \
@@ -285,7 +304,7 @@ do {										\
 	FUT_DO_PROBE2(_STARPU_FUT_START_DRIVER_COPY_ASYNC, src_node, dst_node)
 
 #define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node)	\
-	FUT_DO_PROBE2(_STARPU_FUT_END_DRIVER_COPY, src_node, dst_node)
+	FUT_DO_PROBE2(_STARPU_FUT_END_DRIVER_COPY_ASYNC, src_node, dst_node)
 
 #define _STARPU_TRACE_WORK_STEALING(empty_q, victim_q)		\
 	FUT_DO_PROBE2(_STARPU_FUT_WORK_STEALING, empty_q, victim_q)

@@ -4,6 +4,7 @@
 /autom4te.cache
 /libtool
 /aclocal.m4
+/build
 /build-aux
 /GPATH
 /GRTAGS
@@ -23,12 +24,12 @@ Makefile.in
 .dirstamp
 stamp-h[0-9]*
 starpu.log
-/gcc-plugin/src/starpu-gcc-config.h
+/gcc-plugin/include/starpu-gcc/config.h
 /gcc-plugin/tests/*.c.[0-9]*.*
 /tests/datawizard/handle_to_pointer
 /tests/datawizard/data_lookup
 /doc/stamp-vti
-/doc/version.texi
+/doc/chapters/version.texi
 /examples/basic_examples/block
 /examples/basic_examples/hello_world
 /examples/basic_examples/mult
@@ -143,7 +144,7 @@ starpu.log
 /tests/parallel_tasks/explicit_combined_worker
 /tests/parallel_tasks/parallel_kernels
 /tests/parallel_tasks/parallel_kernels_spmd
-/tests/parallel_tasks/spmd_pgreedy
+/tests/parallel_tasks/spmd_peager
 /tests/perfmodels/non_linear_regression_based
 /tests/perfmodels/regression_based
 /tools/cbc2paje
@@ -287,3 +288,6 @@ starpu.log
 /tests/datawizard/interfaces/copy_interfaces
 /gcc-plugin/tests/release
 /gcc-plugin/tests/opencl
+/gcc-plugin/tests/registered
+/gcc-plugin/tests/warn-unregistered
+/cyclomatic-complexity.html

@@ -32,7 +32,6 @@ int
 main(void) {
    cl_int err;
    cl_uint num_platforms;
-   cl_platform_id *platforms;
 
    // Plaform info
    err = clGetPlatformIDs(0, NULL, &num_platforms);
@@ -42,10 +41,9 @@ main(void) {
    }
    checkErr(err, "Unable to get platform count");
 
-   platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id)*num_platforms);
+   cl_platform_id platforms[num_platforms];
    err = clGetPlatformIDs(num_platforms, platforms, NULL);
    checkErr(err, "Unable to get platform list");
-
 
    // Iteratate over platforms
    printf("Number of platforms:\t\t\t\t %d\n", num_platforms);
@@ -53,7 +51,7 @@ main(void) {
    {
       unsigned int i;
       for (i=0; i<num_platforms; i++) {
-         char str[256];
+         char str[4096];
          err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, sizeof(str), str, NULL);
          checkErr(err, "clGetPlatformInfo(CL_PLATFORM_PROFILE)");
          printf("  Plaform Profile:\t\t\t\t %s\n", str);
@@ -82,8 +80,7 @@ main(void) {
    {
       unsigned int i;
       for (i=0; i<num_platforms; i++) {
-         char str[256];
-         cl_device_id * devices;
+         char str[4096];
          cl_uint num_devices;
 
          err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), &str, NULL);
@@ -92,7 +89,12 @@ main(void) {
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
          checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
-         devices = (cl_device_id*)malloc(sizeof(cl_device_id)*num_devices);
+         if (num_devices == 0) {
+            printf("  No devices found\n");
+            continue;
+         }
+
+         cl_device_id devices[num_devices];
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
          checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
@@ -134,12 +136,11 @@ main(void) {
 
                {
                   cl_uint dims;
-                  size_t *sizes;
                   err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(dims), &dims, NULL);
                   checkErr(err, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS)");
                   printf("  Max work item dimensions:\t\t\t %d\n", dims);
 
-                  sizes = (size_t*)malloc(dims * sizeof(size_t));
+                  size_t sizes[dims];
                   err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(size_t)*dims, sizes, NULL);
                   checkErr(err, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES)");
                   printf("  Max work item dimensions:\t\t\t %d\n", dims);
@@ -287,9 +288,9 @@ main(void) {
 
                GET_STRING(CL_DEVICE_NAME, "  Name:\t\t\t\t\t\t %s\n", 256);
                GET_STRING(CL_DEVICE_VENDOR, "  Vendor:\t\t\t\t\t %s\n", 256);
-               GET_STRING(CL_DRIVER_VERSION, "  Driver version:\t\t\t\t %s\n", 10);
-               GET_STRING(CL_DEVICE_PROFILE, "  Profile:\t\t\t\t\t %s\n", 30);
-               GET_STRING(CL_DEVICE_VERSION, "  Version:\t\t\t\t\t %s\n", 50);
+               GET_STRING(CL_DRIVER_VERSION, "  Driver version:\t\t\t\t %s\n", 256);
+               GET_STRING(CL_DEVICE_PROFILE, "  Profile:\t\t\t\t\t %s\n", 256);
+               GET_STRING(CL_DEVICE_VERSION, "  Version:\t\t\t\t\t %s\n", 256);
                GET_STRING(CL_DEVICE_EXTENSIONS, "  Extensions:\t\t\t\t\t %s\n", 4096);
 
                printf("\n");

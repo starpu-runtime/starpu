@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #include <starpu.h>
-#include <starpu_cuda.h>
 #include "multiformat_types.h"
 #include "../../../helper.h"
 

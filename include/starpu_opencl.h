@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,13 +18,14 @@
 #ifndef __STARPU_OPENCL_H__
 #define __STARPU_OPENCL_H__
 
+#include <starpu_config.h>
 #ifdef STARPU_USE_OPENCL
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #else
 #include <CL/cl.h>
 #endif
-#include <starpu_config.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -39,7 +40,7 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 static inline void starpu_opencl_report_error(const char *func, const char *file, int line, const char *msg, cl_int status)
 {
 	starpu_opencl_display_error(func, file, line, msg, status);
-        assert(0);
+	assert(0);
 }
 #define STARPU_OPENCL_REPORT_ERROR(status)			\
 	starpu_opencl_report_error(__starpu_func__, __FILE__, __LINE__, NULL, status)
@@ -49,7 +50,7 @@ static inline void starpu_opencl_report_error(const char *func, const char *file
 
 struct starpu_opencl_program
 {
-        cl_program programs[STARPU_MAXOPENCLDEVS];
+	cl_program programs[STARPU_MAXOPENCLDEVS];
 };
 
 size_t starpu_opencl_get_global_mem_size(int devid);
@@ -60,7 +61,7 @@ void starpu_opencl_get_current_context(cl_context *context);
 void starpu_opencl_get_current_queue(cl_command_queue *queue);
 
 void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source);
-int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char* build_options);
+int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char *build_options);
 int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char* build_options);
 
 int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs);
@@ -104,6 +105,10 @@ cl_int starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags fla
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
+
+cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t src_offset, cl_mem dst, unsigned dst_node, size_t dst_offset, size_t size, cl_event *event, int *ret);
+
+cl_int starpu_opencl_copy_async_sync(uintptr_t src, unsigned src_node, size_t src_offset, uintptr_t dst, unsigned dst_node, size_t dst_offset, size_t size, cl_event *event);
 
 #ifdef __cplusplus
 }

@@ -19,4 +19,8 @@
 #define STARPU_TEST_SKIPPED 77
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF_MPI(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
+    						int _disp_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_disp_rank);       \
+                                                fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , _disp_rank, __func__ ,##args); \
+                                                fflush(stderr); }} while(0);
 

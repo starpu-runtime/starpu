@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 #include <numaif.h>
 #endif
 
-static unsigned long size = 16384;
+static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;
 static unsigned p = 1;
@@ -301,7 +301,7 @@ static void init_matrix(int rank)
 		allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 	}
 #endif
-	
+
 	for (k = 0; k < nblocks; k++)
 	{
 #ifdef SINGLE_TMP1221
@@ -333,7 +333,7 @@ static void init_matrix(int rank)
 			starpu_malloc((void **)&tmp_12_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[i][k]);
-	
+
 			starpu_matrix_data_register(&tmp_12_block_handles[i][k], 0,
 				(uintptr_t)tmp_12_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
@@ -344,7 +344,7 @@ static void init_matrix(int rank)
 			starpu_malloc((void **)&tmp_21_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[i][k]);
-	
+
 			starpu_matrix_data_register(&tmp_21_block_handles[i][k], 0,
 				(uintptr_t)tmp_21_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
@@ -381,7 +381,7 @@ static void display_grid(int rank, unsigned nblocks)
 	//if (rank == 0)
 	{
 		fprintf(stderr, "2D grid layout (Rank %d): \n", rank);
-		
+
 		unsigned i, j;
 		for (j = 0; j < nblocks; j++)
 		{
@@ -402,7 +402,6 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 
-#if 0
 	/*
 	 *	Initialization
 	 */
@@ -415,10 +414,9 @@ int main(int argc, char **argv)
 		fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
 	if (thread_support < MPI_THREAD_FUNNELED)
 		fprintf(stderr,"Warning: MPI does not have thread support!\n");
-	
+
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-#endif
 
 	starpu_srand48((long int)time(NULL));
 
@@ -430,7 +428,7 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_mpi_initialize_extended(&rank, &world_size);
+	starpu_mpi_init(NULL, NULL, 0);
 
 	STARPU_ASSERT(p*q == world_size);
 
@@ -446,9 +444,9 @@ int main(int argc, char **argv)
 	init_matrix(rank);
 
 	fprintf(stderr, "Rank %d: allocated (%d + %d) MB = %d MB\n", rank,
-                        (int)allocated_memory/(1024*1024),
-			(int)allocated_memory_extra/(1024*1024),
-                        (int)(allocated_memory+allocated_memory_extra)/(1024*1024));
+                        (int)(allocated_memory/(1024*1024)),
+			(int)(allocated_memory_extra/(1024*1024)),
+                        (int)((allocated_memory+allocated_memory_extra)/(1024*1024)));
 
 	display_grid(rank, nblocks);
 
@@ -536,7 +534,7 @@ int main(int argc, char **argv)
 
 		y2 = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(y);
-		
+
 		if (rank == 0)
 		{
 			for (ind = 0; ind < size; ind++)
@@ -548,13 +546,13 @@ int main(int argc, char **argv)
 		STARPU_PLU(compute_lux)(size, x, y2, nblocks, rank);
 
 		/* Compute y2 = y2 - y */
-	        CPU_AXPY(size, -1.0, y, 1, y2, 1);
-	
-	        TYPE err = CPU_ASUM(size, y2, 1);
-	        int max = CPU_IAMAX(size, y2, 1);
-	
-	        fprintf(stderr, "(A - LU)X Avg error : %e\n", err/(size*size));
-	        fprintf(stderr, "(A - LU)X Max error : %e\n", y2[max]);
+		CPU_AXPY(size, -1.0, y, 1, y2, 1);
+
+		TYPE err = CPU_ASUM(size, y2, 1);
+		int max = CPU_IAMAX(size, y2, 1);
+
+		fprintf(stderr, "(A - LU)X Avg error : %e\n", err/(size*size));
+		fprintf(stderr, "(A - LU)X Max error : %e\n", y2[max]);
 #endif
 	}
 

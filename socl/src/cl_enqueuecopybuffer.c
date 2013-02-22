@@ -16,51 +16,52 @@
 
 #include "socl.h"
 
-struct arg_copybuffer {
-   size_t src_offset, dst_offset;
-   cl_mem src_buffer, dst_buffer;
-   size_t cb;
-};
-
 static void soclEnqueueCopyBuffer_opencl_task(void *descr[], void *args) {
-   struct arg_copybuffer *arg;
    int wid;
    cl_command_queue cq;
    cl_event ev;
+   command_copy_buffer cmd = (command_copy_buffer)args;;
 
-   arg = (struct arg_copybuffer*)args;
+  cl_event event = command_event_get(cmd);
+  event->prof_start = _socl_nanotime();
+  gc_entity_release(event);
+
    wid = starpu_worker_get_id();
    starpu_opencl_get_queue(wid, &cq);
 
    cl_mem src = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
    cl_mem dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-   clEnqueueCopyBuffer(cq, src,dst, arg->src_offset, arg->dst_offset, arg->cb, 0, NULL, &ev);
+   clEnqueueCopyBuffer(cq, src,dst, cmd->src_offset, cmd->dst_offset, cmd->cb, 0, NULL, &ev);
    clWaitForEvents(1, &ev);
    clReleaseEvent(ev);
 
-   gc_entity_unstore(&arg->src_buffer);
-   gc_entity_unstore(&arg->dst_buffer);
-
-   free(arg);
+   gc_entity_release_cmd(cmd);
 }
 
 static void soclEnqueueCopyBuffer_cpu_task(void *descr[], void *args) {
-   struct arg_copybuffer *arg;
-   arg = (struct arg_copybuffer*)args;
+   command_copy_buffer cmd = (command_copy_buffer)args;;
+
+  cl_event ev = command_event_get(cmd);
+  ev->prof_start = _socl_nanotime();
+  gc_entity_release(ev);
+
    void * src = (void*)STARPU_VARIABLE_GET_PTR(descr[0]);
    void * dst = (void*)STARPU_VARIABLE_GET_PTR(descr[1]);
-   memcpy(dst+arg->dst_offset, src+arg->src_offset, arg->cb);
 
-   gc_entity_unstore(&arg->src_buffer);
-   gc_entity_unstore(&arg->dst_buffer);
+   memcpy(dst+cmd->dst_offset, src+cmd->src_offset, cmd->cb);
 
-   free(arg);
+   gc_entity_release_cmd(cmd);
 }
+
+static struct starpu_perfmodel copy_buffer_perfmodel = {
+  .type = STARPU_HISTORY_BASED,
+  .symbol = "SOCL_COPY_BUFFER"
+};
 
 static struct starpu_codelet codelet_copybuffer = {
    .where = STARPU_CPU | STARPU_OPENCL,
-   .model = NULL,
+   .model = &copy_buffer_perfmodel,
    .cpu_funcs = { &soclEnqueueCopyBuffer_cpu_task, NULL },
    .opencl_funcs = { &soclEnqueueCopyBuffer_opencl_task, NULL },
    .modes = {STARPU_R, STARPU_RW},
@@ -68,32 +69,23 @@ static struct starpu_codelet codelet_copybuffer = {
 };
 
 cl_int command_copy_buffer_submit(command_copy_buffer cmd) {
-	/* Aliases */
-	cl_mem src_buffer = cmd->src_buffer;
-	cl_mem dst_buffer = cmd->dst_buffer;
-	size_t src_offset = cmd->src_offset;
-	size_t dst_offset = cmd->dst_offset;
-	size_t cb = cmd->cb;
 
-	struct starpu_task *task;
-	struct arg_copybuffer *arg;
+	struct starpu_task * task = task_create(CL_COMMAND_COPY_BUFFER);
 
-	task = task_create(CL_COMMAND_COPY_BUFFER);
-
-	task->handles[0] = src_buffer->handle;
-	task->handles[1] = dst_buffer->handle;
+	task->handles[0] = cmd->src_buffer->handle;
+	task->handles[1] = cmd->dst_buffer->handle;
 	task->cl = &codelet_copybuffer;
 
-	arg = (struct arg_copybuffer*)malloc(sizeof(struct arg_copybuffer));
-	arg->src_offset = src_offset;
-	arg->dst_offset = dst_offset;
-	arg->cb = cb;
-	gc_entity_store(&arg->src_buffer, src_buffer);
-	gc_entity_store(&arg->dst_buffer, dst_buffer);
-	task->cl_arg = arg;
-	task->cl_arg_size = sizeof(struct arg_copybuffer);
+	/* Execute the task on a specific worker? */
+	if (cmd->_command.event->cq->device != NULL) {
+	  task->execute_on_a_specific_worker = 1;
+	  task->workerid = cmd->_command.event->cq->device->worker_id;
+	}
 
-	dst_buffer->scratch = 0;
+	gc_entity_store_cmd(&task->cl_arg, cmd);
+	task->cl_arg_size = sizeof(*cmd);
+
+	cmd->dst_buffer->scratch = 0;
 
 	task_submit(task, cmd);
 
@@ -114,9 +106,11 @@ soclEnqueueCopyBuffer(cl_command_queue  cq,
 {
 	command_copy_buffer cmd = command_copy_buffer_create(src_buffer, dst_buffer, src_offset, dst_offset, cb);
 
+   cl_event ev = command_event_get(cmd);
+
 	command_queue_enqueue(cq, cmd, num_events, events);
 
-	RETURN_EVENT(cmd, event);
+	RETURN_EVENT(ev, event);
 
 	return CL_SUCCESS;
 }

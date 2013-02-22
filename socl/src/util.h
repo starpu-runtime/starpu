@@ -17,6 +17,7 @@
 #ifndef SOCL_UTIL_H
 #define SOCL_UTIL_H
 
+int starpu_worker_get_range_by_id(int id);
 int starpu_worker_get_range();
 
 /**
@@ -42,5 +43,7 @@ void ** memdup_deep_safea(const void **p, unsigned n, size_t size);
 void ** memdup_deep_varsize_safea(const void **p, unsigned n, size_t * size);
 
 #define memdup_deep_varsize_safe(p,n,size) ((typeof(p))memdup_deep_varsize_safea((const void **)p,n,size))
+
+cl_ulong _socl_nanotime();
 
 #endif /* SOCL_UTIL_H */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,7 +65,7 @@ static void display_all_combined_workers(void)
 
 	unsigned nworkers = starpu_worker_get_count();
 
-	fprintf(stdout, "\t%d Combined workers\n", ncombined_workers);
+	fprintf(stdout, "\t%u Combined workers\n", ncombined_workers);
 
 	unsigned i;
 	for (i = 0; i < ncombined_workers; i++)
@@ -96,7 +96,7 @@ Usage: %s [OPTION]                                            \n	\
 Options:                                                      \n	\
 	-h, --help       display this help and exit           \n	\
 	-v, --version    output version information and exit  \n	\
-        -f, --force      force bus sampling                   \n	\
+	-f, --force      force bus sampling and show measures \n	\
                                                               \n	\
 Report bugs to <" PACKAGE_BUGREPORT ">.\n",
 PROGNAME);
@@ -104,8 +104,7 @@ PROGNAME);
 		}
 		else if (strncmp(argv[i], "--version", 9) == 0 || strncmp(argv[i], "-v", 2) == 0)
 		{
-			(void) fprintf(stderr, "%s %d.%d\n",
-				       PROGNAME, STARPU_MAJOR_VERSION, STARPU_MINOR_VERSION);
+			fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			exit(EXIT_FAILURE);
 		}
 		else
@@ -118,17 +117,22 @@ PROGNAME);
 
 int main(int argc, char **argv)
 {
+	int ret;
 	int force = 0;
+	struct starpu_conf conf;
 
 	parse_args(argc, argv, &force);
 
+	starpu_conf_init(&conf);
+	if (force)
+		conf.bus_calibrate = 1;
+
 	/* Even if starpu_init returns -ENODEV, we should go on : we will just
 	 * print that we found no device. */
-	(void) starpu_init(NULL);
-
-	if (force)
+	ret = starpu_init(&conf);
+	if (ret != 0 && ret != -ENODEV)
 	{
-		starpu_force_bus_sampling();
+		return ret;
 	}
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
@@ -137,22 +141,22 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "StarPU has found :\n");
 
-	fprintf(stdout, "\t%d CPU cores\n", ncpu);
+	fprintf(stdout, "\t%u CPU cores\n", ncpu);
 	display_worker_names(STARPU_CPU_WORKER);
 
-	fprintf(stdout, "\t%d CUDA devices\n", ncuda);
+	fprintf(stdout, "\t%u CUDA devices\n", ncuda);
 	display_worker_names(STARPU_CUDA_WORKER);
 
-	fprintf(stdout, "\t%d OpenCL devices\n", nopencl);
+	fprintf(stdout, "\t%u OpenCL devices\n", nopencl);
 	display_worker_names(STARPU_OPENCL_WORKER);
 
 	display_all_combined_workers();
 
+	fprintf(stdout, "\ntopology ...\n");
+	starpu_topology_print(stdout);
+
 	fprintf(stdout, "\nbandwidth ...\n");
 	starpu_bus_print_bandwidth(stdout);
-
-	fprintf(stdout, "\naffinity ...\n");
-	starpu_bus_print_affinity(stdout);
 
 	starpu_shutdown();
 

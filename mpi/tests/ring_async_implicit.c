@@ -18,7 +18,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	32
+#else
+#  define NITER	2048
+#endif
 
 unsigned token = 42;
 starpu_data_handle_t token_handle;
@@ -59,16 +63,12 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 
-#if 0
-	MPI_Init(NULL, NULL);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-#endif
-
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_initialize_extended(&rank, &size);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
+	ret = starpu_mpi_init(NULL, NULL, 1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	if (size < 2)
 	{
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		if (loop == 0 && rank == 0)
 		{
 			token = 0;
-			FPRINTF(stdout, "Start with token value %d\n", token);
+			FPRINTF(stdout, "Start with token value %u\n", token);
 		}
 		else
 		{
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		if (loop == last_loop && rank == last_rank)
 		{
 			starpu_data_acquire(token_handle, STARPU_R);
-			FPRINTF(stdout, "Finished : token value %d\n", token);
+			FPRINTF(stdout, "Finished : token value %u\n", token);
 			starpu_data_release(token_handle);
 		}
 		else
@@ -118,15 +118,14 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
+	starpu_data_unregister(token_handle);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-        //MPI_Finalize();
-
 	if (rank == last_rank)
 	{
-                FPRINTF(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
-                STARPU_ASSERT(token == nloops*size);
+		FPRINTF(stderr, "[%d] token = %u == %u * %d ?\n", rank, token, nloops, size);
+		STARPU_ASSERT(token == nloops*size);
 	}
 
 	return 0;

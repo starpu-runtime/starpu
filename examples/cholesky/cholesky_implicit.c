@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -17,7 +17,7 @@
  */
 
 #include "cholesky.h"
-
+#include "../sched_ctx_utils/sched_ctx_utils.h"
 /*
  *	Create the codelets
  */
@@ -29,6 +29,8 @@ static struct starpu_codelet cl11 =
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -42,6 +44,8 @@ static struct starpu_codelet cl21 =
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -56,6 +60,8 @@ static struct starpu_codelet cl22 =
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
@@ -75,17 +81,17 @@ static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	unsigned i,j,k;
 
 	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	if (bound)
-		starpu_bound_start(0, 0);
+		starpu_bound_start(bound_deps, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -135,21 +141,32 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	if (bound)
 		starpu_bound_stop();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	FPRINTF(stderr, "Computation took (in ms)\n");
-	FPRINTF(stdout, "%2.2f\n", timing/1000);
-
+	double timing = end - start;
 	unsigned long n = starpu_matrix_get_nx(dataA);
 
 	double flop = (1.0f*n*n*n)/3.0f;
-	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
-	if (bound)
+
+	if(with_ctxs || with_noctxs || chole1 || chole2)
+		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
+	else
 	{
-		double res;
-		starpu_bound_compute(&res, NULL, 0);
-		FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+		FPRINTF(stderr, "Computation took (in ms)\n");
+		FPRINTF(stdout, "%2.2f\n", timing/1000);
+	
+		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+		if (bound_lp)
+		{
+			FILE *f = fopen("cholesky.lp", "w");
+			starpu_bound_print_lp(f);
+		}
+		if (bound)
+		{
+			double res;
+			starpu_bound_compute(&res, NULL, 0);
+			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+		}
 	}
 	return 0;
 }
@@ -184,28 +201,14 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	return ret;
 }
 
-int main(int argc, char **argv)
+static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	int ret;
-
-	/* create a simple definite positive symetric matrix example
-	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
-	 * */
-
-	parse_args(argc, argv);
-
-	ret = starpu_init(NULL);
-	if (ret == -ENODEV)
-		return 77;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	starpu_helper_cublas_init();
-
-	float *mat;
-	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
-
+	float *mat = NULL;
 	unsigned i,j;
+
+#ifndef STARPU_SIMGRID
+	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 	for (i = 0; i < size; i++)
 	{
 		for (j = 0; j < size; j++)
@@ -214,6 +217,7 @@ int main(int argc, char **argv)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
+#endif
 
 /* #define PRINT_OUTPUT */
 #ifdef PRINT_OUTPUT
@@ -314,9 +318,45 @@ int main(int argc, char **argv)
 	        }
 		free(test_mat);
 	}
+	starpu_free(mat);
+}
+
+int main(int argc, char **argv)
+{
+	/* create a simple definite positive symetric matrix example
+	 *
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
+	 * */
+
+	parse_args(argc, argv);
+
+	if(with_ctxs || with_noctxs || chole1 || chole2)
+		parse_args_ctx(argc, argv);
+
+	int ret;
+	ret = starpu_init(NULL);
+
+	if (ret == -ENODEV)
+                return 77;
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_helper_cublas_init();
+
+	if(with_ctxs)
+	{
+		construct_contexts(execute_cholesky);
+		start_2benchs(execute_cholesky);
+	}
+	else if(with_noctxs)
+		start_2benchs(execute_cholesky);
+	else if(chole1)
+		start_1stbench(execute_cholesky);
+	else if(chole2)
+		start_2ndbench(execute_cholesky);
+	else
+		execute_cholesky(size, nblocks);
 
 	starpu_helper_cublas_shutdown();
-	starpu_free(mat);
 	starpu_shutdown();
 
 	return ret;

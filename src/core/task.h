@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,10 +52,14 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
  * to a task). */
 struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task);
 
-struct starpu_task *_starpu_create_task_alias(struct starpu_task *task);
+/* Submits starpu internal tasks to the initial context */
+int _starpu_task_submit_internally(struct starpu_task *task);
 
 int _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 					 unsigned int node);
+int
+_starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
+				     enum starpu_node_kind node_kind);
 
 int _starpu_task_uses_multiformat_handles(struct starpu_task *task);
 
@@ -67,6 +72,5 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl);
 starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
-starpu_gordon_func_t _starpu_task_get_gordon_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 
 #endif // __CORE_TASK_H__

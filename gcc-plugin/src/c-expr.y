@@ -23,7 +23,7 @@
 %debug
 
 %{
-  #include <starpu-gcc-config.h>
+  #include <starpu-gcc/config.h>
 
   #include <gcc-plugin.h>
   #include <plugin.h>
@@ -41,6 +41,8 @@
   #elif HAVE_C_PRAGMA_H
   # include <c-pragma.h>
   #endif
+
+  #include <diagnostic.h>
 
   #if !HAVE_DECL_BUILD_ARRAY_REF
   /* This declaration is missing in GCC 4.6.1.  */

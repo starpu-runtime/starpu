@@ -39,14 +39,14 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 #define STARPU_CUDA_REPORT_ERROR(status) \
 	starpu_cuda_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
-size_t starpu_cuda_get_global_mem_size(int devid);
+size_t starpu_cuda_get_global_mem_size(unsigned devid);
 cudaStream_t starpu_cuda_get_local_stream(void);
 
 const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid);
 
 int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind);
 
-void starpu_cuda_set_device(int devid);
+void starpu_cuda_set_device(unsigned devid);
 
 #ifdef __cplusplus
 }

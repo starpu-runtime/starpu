@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,28 +28,7 @@
 #include <profiling/bound.h>
 #include <starpu_top.h>
 #include <top/starpu_top_core.h>
-
-size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)
-{
-	struct starpu_task *task = j->task;
-
-	if (model && model->per_arch[arch][nimpl].size_base) {
-		return model->per_arch[arch][nimpl].size_base(task, arch, nimpl);
-	} else if (model && model->size_base) {
-		return model->size_base(task, nimpl);
-	} else {
-		unsigned nbuffers = task->cl->nbuffers;
-		size_t size = 0;
-
-		unsigned buffer;
-		for (buffer = 0; buffer < nbuffers; buffer++)
-		{
-			starpu_data_handle_t handle = task->handles[buffer];
-			size += _starpu_data_get_size(handle);
-		}
-		return size;
-	}
-}
+#include <core/debug.h>
 
 /* we need to identify each task to generate the DAG. */
 static unsigned job_cnt = 0;
@@ -68,33 +48,35 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 
 	job = _starpu_job_new();
 
-	job->nimpl =0; /* best implementation */
+	/* As most of the fields must be initialized at NULL, let's put 0
+	 * everywhere */
+	memset(job, 0, sizeof(*job));
+
 	job->task = task;
 
-	job->footprint_is_computed = 0;
-	job->submitted = 0;
-	job->terminated = 0;
-
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get())
+	if (_starpu_bound_recording || _starpu_top_status_get()
+#ifdef HAVE_AYUDAME_H
+		|| AYU_event
 #endif
+			)
+#endif
+	{
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
-#ifdef STARPU_USE_FXT
-	/* display all tasks by default */
-        job->model_name = NULL;
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event)
+		{
+			/* Declare task to Ayudame */
+			int64_t AYU_data[2] = {_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
+		}
 #endif
-	job->exclude_from_dag = 0;
-
-	job->reduction_task = 0;
+	}
 
 	_starpu_cg_list_init(&job->job_successors);
 
-	job->implicit_dep_handle = NULL;
-
 	_STARPU_PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&job->sync_cond, NULL);
-
-	job->bound_task = NULL;
 
 	/* By default we have sequential tasks */
 	job->task_size = 1;
@@ -149,7 +131,7 @@ void _starpu_wait_job(struct _starpu_job *j)
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-
+	unsigned sched_ctx = task->sched_ctx;
 	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
@@ -161,6 +143,20 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	j->terminated = 1;
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	/* We release handle reference count */
+	if (task->cl)
+	{
+		unsigned i;
+		for (i=0; i<task->cl->nbuffers; i++)
+		{
+			starpu_data_handle_t handle = task->handles[i];
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count--;
+			if (!_starpu_data_check_not_busy(handle))
+				_starpu_spin_unlock(&handle->header_lock);
+		}
+	}
 
 	/* Tell other tasks that we don't exist any more, thus no need for
 	 * implicit dependencies any more.  */
@@ -209,8 +205,15 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* If the job was executed on a combined worker there is no need for the
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
-	if (j->task_size == 1)
+	/* control task should not execute post_exec_hook */
+	if(j->task_size == 1 && task->cl != NULL && !j->exclude_from_dag)
+	{
 		_starpu_sched_post_exec_hook(task);
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+		int workerid = starpu_worker_get_id();
+		starpu_call_poped_task_cb(workerid, task->sched_ctx, task->flops);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+	}
 
 	_STARPU_TRACE_TASK_DONE(j);
 
@@ -229,6 +232,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	j->terminated = 2;
 	_STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 
+#ifdef HAVE_AYUDAME_H
+	if (AYU_event) AYU_event(AYU_REMOVETASK, j->job_id, NULL);
+#endif
+
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	if (detach)
@@ -243,7 +250,15 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	if (regenerate)
 	{
-		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached, and not have detroy=1 or synchronous=1");
+		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
+
+#ifdef HAVE_AYUDAME_H
+		if (AYU_event)
+		{
+			int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
+		}
+#endif
 
 		/* We reuse the same job structure */
 		int ret = _starpu_submit_job(j);
@@ -251,6 +266,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	}
 	_starpu_decrement_nsubmitted_tasks();
 	_starpu_decrement_nready_tasks();
+
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
 }
 
 /* This function is called when a new task is submitted to StarPU
@@ -270,6 +287,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	struct _starpu_cg_list *tag_successors = &tag->tag_successors;
 
 	_starpu_spin_lock(&tag->lock);
+	STARPU_ASSERT_MSG(tag->is_assigned == 1 || !tag_successors->ndeps, "a tag can be assigned only one task to wake");
 
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
@@ -332,29 +350,29 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	if (_starpu_not_all_tag_deps_are_fulfilled(j))
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-                _STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
+		_STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
-        }
+	}
 
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-                _STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
+		_STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
-        }
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
 	if (_starpu_submit_job_enforce_data_deps(j))
 	{
-                _STARPU_LOG_OUT_TAG("enforce_data_deps");
+		_STARPU_LOG_OUT_TAG("enforce_data_deps");
 		return 0;
-        }
+	}
 
 	ret = _starpu_push_task(j);
 
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return ret;
 }
 
@@ -363,7 +381,6 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 {
 	unsigned ret;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	/* enfore task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
@@ -399,36 +416,16 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	if (back)
 		starpu_task_list_push_back(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
-	_STARPU_PTHREAD_COND_BROADCAST(worker->sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
+	_STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	_starpu_push_task_end(task);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 	return 0;
-}
-
-const char *_starpu_get_model_name(struct _starpu_job *j)
-{
-	if (!j)
-		return NULL;
-
-	struct starpu_task *task = j->task;
-        if (task && task->cl) {
-            if (task->cl->model && task->cl->model->symbol)
-                return task->cl->model->symbol;
-	    else
-		return task->cl->name;
-	} else
-	{
-#ifdef STARPU_USE_FXT
-                return j->model_name;
-#else
-                return NULL;
-#endif
-        }
 }

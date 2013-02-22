@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,6 +41,7 @@ soclGetPlatformInfo(cl_platform_id   platform,
 	INFO_CASE_STRING(CL_PLATFORM_NAME,    SOCL_PLATFORM_NAME);
 	INFO_CASE_STRING(CL_PLATFORM_VENDOR,  SOCL_VENDOR);
 	INFO_CASE_STRING(CL_PLATFORM_EXTENSIONS, SOCL_PLATFORM_EXTENSIONS);
+	INFO_CASE_STRING(CL_PLATFORM_ICD_SUFFIX_KHR, SOCL_PLATFORM_ICD_SUFFIX_KHR);
    default:
          return CL_INVALID_VALUE;
    }

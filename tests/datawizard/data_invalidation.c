@@ -20,17 +20,13 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
-#include <starpu_cuda.h>
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
 #include <stdlib.h>
 #include "../helper.h"
 
-#ifdef STARPU_SLOW_MACHINE
-#define NLOOPS		100
+#ifdef STARPU_QUICK_CHECK
+#  define NLOOPS		100
 #else
-#define NLOOPS		1000
+#  define NLOOPS		1000
 #endif
 #define VECTORSIZE	1024
 
@@ -178,6 +174,30 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 		starpu_data_invalidate(v_handle);
+	}
+
+	for (loop = 0; loop < NLOOPS; loop++)
+	{
+		struct starpu_task *memset_task;
+		struct starpu_task *check_content_task;
+
+		memset_task = starpu_task_create();
+		memset_task->cl = &memset_cl;
+		memset_task->handles[0] = v_handle;
+
+		ret = starpu_task_submit(memset_task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		check_content_task = starpu_task_create();
+		check_content_task->cl = &check_content_cl;
+		check_content_task->handles[0] = v_handle;
+
+		ret = starpu_task_submit(check_content_task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		starpu_data_invalidate_submit(v_handle);
 	}
 
 	/* this should get rid of automatically allocated buffers */

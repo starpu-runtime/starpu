@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,23 +15,24 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(HWLOC_LIBS) @LIBS@
+AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) -Werror=implicit
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/scal.h			\
-	microbenchs/null_kernel_gordon.c	\
+	microbenchs/tasks_size_overhead.sh	\
+	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
-	datawizard/sync_and_notify_data_gordon_kernels.c \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
 	coverage/coverage.sh			\
 	datawizard/acquire_release_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
+	datawizard/interfaces/coo/coo_opencl_kernel.cl \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl \
 	datawizard/interfaces/variable/variable_opencl_kernel.cl \
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
@@ -44,12 +45,12 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo		\
-	microbenchs/null_kernel_gordon.spuelf	\
-	datawizard/sync_and_notify_data_gordon_kernels.spuelf
+	*.gcno *.gcda *.linkinfo
 
 BUILT_SOURCES =
 SUBDIRS =
+
+examplebindir = $(libdir)/starpu/examples
 
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA =
@@ -60,7 +61,7 @@ if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/include $(HWLOC_CFLAGS)
+NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`
@@ -69,24 +70,6 @@ NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src 
 .cu.o:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
-
-endif
-
-if STARPU_USE_GORDON
-
-SPU_CC ?= spu-gcc
-SPU_LD ?= spu-ld
-
-.c.spuo:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_CC) -c -fpic $< -o $@
-
-.spuo.spuelf:
-	$(MKDIR_P) `dirname $@`
-	$(SPU_LD) $< -o $@
-
-#BUILT_SOURCES +=
-#	microbenchs/null_kernel_gordon.spuelf
 
 endif
 
@@ -100,7 +83,13 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
+
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER		=	$(LOADER_BIN)
+else
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
 endif
 
 TESTS = $(noinst_PROGRAMS)
@@ -109,10 +98,7 @@ if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
 
-starpu_machine_display_SOURCES	=	../tools/starpu_machine_display.c
-
 noinst_PROGRAMS =				\
-	starpu_machine_display			\
 	main/deprecated_func			\
 	main/deprecated_buffer			\
 	main/driver_api/init_run_deinit         \
@@ -120,6 +106,8 @@ noinst_PROGRAMS =				\
 	main/restart				\
 	main/execute_on_a_specific_worker	\
 	main/insert_task			\
+	main/insert_task_nullcodelet			\
+	main/insert_task_array			\
 	main/multithreaded			\
 	main/multithreaded_init			\
 	main/starpu_task_bundle			\
@@ -165,7 +153,6 @@ noinst_PROGRAMS =				\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
 	datawizard/user_interaction_implicit	\
-	datawizard/reclaim			\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
@@ -181,6 +168,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \
+	datawizard/interfaces/coo/coo_interface \
 	datawizard/interfaces/csr/csr_interface \
 	datawizard/interfaces/matrix/matrix_interface \
 	datawizard/interfaces/multiformat/multiformat_interface \
@@ -209,6 +197,7 @@ noinst_PROGRAMS =				\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
+	microbenchs/tasks_size_overhead		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
@@ -218,11 +207,26 @@ noinst_PROGRAMS =				\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	perfmodels/regression_based		\
-	perfmodels/non_linear_regression_based  \
+	perfmodels/non_linear_regression_based	\
+	perfmodels/feed				\
+	perfmodels/valid_model			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
+
+if STARPU_LONG_CHECK
+noinst_PROGRAMS +=				\
+	main/tag_task_data_deps			\
+	datawizard/reclaim
+endif
+
+examplebin_PROGRAMS = \
+	microbenchs/tasks_size_overhead		\
+	microbenchs/local_pingpong
+examplebin_SCRIPTS = \
+	microbenchs/tasks_size_overhead.gp \
+	microbenchs/tasks_size_overhead.sh
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
@@ -360,15 +364,8 @@ datawizard_wt_host_SOURCES =			\
 datawizard_wt_broadcast_SOURCES =		\
 	datawizard/wt_broadcast.c
 
-if STARPU_USE_GORDON
-datawizard_sync_and_notify_data_SOURCES +=	\
-	datawizard/sync_and_notify_data_gordon_kernels.c
-datawizard_sync_and_notify_data_implicit_SOURCES +=	\
-	datawizard/sync_and_notify_data_gordon_kernels.c
-BUILT_SOURCES += 						\
-	datawizard/sync_and_notify_data_gordon_kernels.spuelf	\
-	microbenchs/null_kernel_gordon.spuelf
-endif
+main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
 ###################
 # Block interface #
@@ -406,6 +403,25 @@ datawizard_interfaces_bcsr_bcsr_interface_SOURCES+= \
 	datawizard/interfaces/bcsr/bcsr_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl
+endif
+
+#################
+# COO interface #
+#################
+datawizard_interfaces_coo_coo_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c \
+	datawizard/interfaces/coo/coo_interface.c 
+
+if STARPU_USE_CUDA
+datawizard_interfaces_coo_coo_interface_SOURCES+= \
+	datawizard/interfaces/coo/coo_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_coo_coo_interface_SOURCES+= \
+	datawizard/interfaces/coo/coo_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/coo/coo_opencl_kernel.cl
 endif
 
 #################
@@ -549,6 +565,9 @@ if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
 endif
+
+perfmodels_feed_SOURCES=\
+	perfmodels/feed.c
 
 sched_policies_execute_all_tasks_LDFLAGS = -lm
 

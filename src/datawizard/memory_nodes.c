@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,20 +19,21 @@
 #include <common/config.h>
 #include <core/sched_policy.h>
 #include <datawizard/datastats.h>
+#include <datawizard/memory_manager.h>
 #include <common/fxt.h>
 #include "copy_driver.h"
 #include "memalloc.h"
 
-static struct _starpu_mem_node_descr descr;
-static pthread_key_t memory_node_key;
+static struct _starpu_memory_node_descr descr;
+static _starpu_pthread_key_t memory_node_key;
 
-void _starpu_init_memory_nodes(void)
+void _starpu_memory_nodes_init(void)
 {
 	/* there is no node yet, subsequent nodes will be
-	 * added using _starpu_register_memory_node */
+	 * added using _starpu_memory_node_register */
 	descr.nnodes = 0;
 
-	pthread_key_create(&memory_node_key, NULL);
+	_STARPU_PTHREAD_KEY_CREATE(&memory_node_key, NULL);
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -43,28 +44,29 @@ void _starpu_init_memory_nodes(void)
 
 	_starpu_init_mem_chunk_lists();
 	_starpu_init_data_request_lists();
+	_starpu_memory_manager_init();
 
-	pthread_rwlock_init(&descr.conditions_rwlock, NULL);
+	_STARPU_PTHREAD_RWLOCK_INIT(&descr.conditions_rwlock, NULL);
 	descr.total_condition_count = 0;
 }
 
-void _starpu_deinit_memory_nodes(void)
+void _starpu_memory_nodes_deinit(void)
 {
 	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
-	pthread_key_delete(memory_node_key);
+	_STARPU_PTHREAD_KEY_DELETE(memory_node_key);
 }
 
-void _starpu_set_local_memory_node_key(unsigned *node)
+void _starpu_memory_node_set_local_key(unsigned *node)
 {
-	pthread_setspecific(memory_node_key, node);
+	_STARPU_PTHREAD_SETSPECIFIC(memory_node_key, node);
 }
 
-unsigned _starpu_get_local_memory_node(void)
+unsigned _starpu_memory_node_get_local_key(void)
 {
 	unsigned *memory_node;
-	memory_node = (unsigned *) pthread_getspecific(memory_node_key);
+	memory_node = (unsigned *) _STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
 
 	/* in case this is called by the programmer, we assume the RAM node
 	   is the appropriate memory node ... so we return 0 XXX */
@@ -74,27 +76,27 @@ unsigned _starpu_get_local_memory_node(void)
 	return *memory_node;
 }
 
-void _starpu_memory_node_worker_add(unsigned node)
+void _starpu_memory_node_add_nworkers(unsigned node)
 {
 	descr.nworkers[node]++;
 }
 
-unsigned _starpu_memory_node_workers(unsigned node)
+unsigned _starpu_memory_node_get_nworkers(unsigned node)
 {
 	return descr.nworkers[node];
 }
 
-struct _starpu_mem_node_descr *_starpu_get_memory_node_description(void)
+struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
 {
 	return &descr;
 }
 
-enum starpu_node_kind starpu_node_get_kind(uint32_t node)
+enum starpu_node_kind starpu_node_get_kind(unsigned node)
 {
 	return descr.nodes[node];
 }
 
-int _starpu_memory_node_to_devid(unsigned node)
+int _starpu_memory_node_get_devid(unsigned node)
 {
 	return descr.devid[node];
 }
@@ -104,7 +106,7 @@ unsigned starpu_memory_nodes_get_count(void)
 	return descr.nnodes;
 }
 
-unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid)
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */
@@ -121,10 +123,22 @@ unsigned _starpu_register_memory_node(enum starpu_node_kind kind, int devid)
 	return (nnodes-1);
 }
 
+#ifdef STARPU_SIMGRID
+void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host)
+{
+	descr.host[node] = host;
+}
+
+msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
+{
+	return descr.host[node];
+}
+#endif
+
 /* TODO move in a more appropriate file  !! */
 /* Register a condition variable associated to worker which is associated to a
  * memory node itself. */
-void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned nodeid)
+void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned nodeid)
 {
 	unsigned cond_id;
 	unsigned nconds_total, nconds;
@@ -182,7 +196,7 @@ unsigned starpu_worker_get_memory_node(unsigned workerid)
 
 	/* We have a combined worker */
 	unsigned ncombinedworkers = config->topology.ncombinedworkers;
-	STARPU_ASSERT(workerid < ncombinedworkers + nworkers);
+	STARPU_ASSERT_MSG(workerid < ncombinedworkers + nworkers, "Bad workerid %u, maximum %u", workerid, ncombinedworkers + nworkers);
 	return config->combined_workers[workerid - nworkers].memory_node;
 
 }
