@@ -321,6 +321,9 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
 /* This function waits until there is no more ready task. */
 int starpu_task_wait_for_no_ready(void);
 
+int starpu_task_nready(void);
+int starpu_task_nsubmitted(void);
+
 void starpu_codelet_init(struct starpu_codelet *cl);
 
 void starpu_display_codelet_stats(struct starpu_codelet *cl);

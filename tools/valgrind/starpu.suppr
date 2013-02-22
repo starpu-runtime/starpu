@@ -64,7 +64,21 @@
 {
    This is racy, but since we'll always put the same values, this is not a problem.
    Helgrind:Race
-   fun:  _starpu_codelet_check_deprecated_fields
+   fun: _starpu_codelet_check_deprecated_fields
+   ...
+}
+
+{
+   This is racy, but we don't care, it's only a statistic
+   Helgrind:Race
+   fun: starpu_task_nsubmitted
+   ...
+}
+
+{
+   This is racy, but we don't care, it's only a statistic
+   Helgrind:Race
+   fun: starpu_task_nready
    ...
 }
 

@@ -1939,6 +1939,18 @@ This function blocks until all the tasks that were submitted are terminated. It
 does not destroy these tasks.
 @end deftypefun
 
+@deftypefun int starpu_task_nready (void)
+@end deftypefun
+
+@deftypefun int starpu_task_nsubmitted (void)
+Return the number of submitted tasks which have not completed yet.
+@end deftypefun
+
+@deftypefun int starpu_task_nready (void)
+Return the number of submitted tasks which are ready for execution are already
+executing. It thus does not include tasks waiting for dependencies.
+@end deftypefun
+
 @deftypefun {struct starpu_task *} starpu_task_get_current (void)
 This function returns the task currently executed by the worker, or
 NULL if it is called either from a thread that is not a task or simply

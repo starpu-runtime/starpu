@@ -745,6 +745,11 @@ static void _starpu_increment_nsubmitted_tasks(void)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
+int starpu_task_nsubmitted(void)
+{
+	return nsubmitted;
+}
+
 void _starpu_increment_nready_tasks(void)
 {
 	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
@@ -763,6 +768,11 @@ void _starpu_decrement_nready_tasks(void)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
+}
+
+int starpu_task_nready(void)
+{
+	return nready;
 }
 
 void _starpu_initialize_current_task_key(void)
