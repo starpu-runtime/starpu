@@ -111,7 +111,7 @@ static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
 			unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 			void *dst_interface STARPU_ATTRIBUTE_UNUSED,
 			unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-			void *async_data)
+			void *async_data STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
