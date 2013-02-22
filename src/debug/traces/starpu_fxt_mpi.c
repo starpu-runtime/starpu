@@ -229,13 +229,13 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 				snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
 				snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
 				char mpi_container[STARPU_POTI_STR_LEN];
-				snprintf(mpi_container, sizeof(mpi_container), "%d_p", /* XXX */src);
-				poti_StartLink(start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key);
-				snprintf(mpi_container, sizeof(mpi_container), "%d_p", /* XXX */dst);
-				poti_EndLink(end_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key);
+				snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", /* XXX */src);
+				poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+				snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", /* XXX */dst);
+				poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
 #else
-				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%ld	%d_p	mpicom_%lu\n", start_date, size, /* XXX */src, id);
-				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%ld	%d_p	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%ld	%d_mpict	mpicom_%lu\n", start_date, size, /* XXX */src, id);
+				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%ld	%d_mpict	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
 #endif
 			}
 		}

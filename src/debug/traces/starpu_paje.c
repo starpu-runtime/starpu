@@ -138,6 +138,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineContainerType("Mn", "P", "Memory Node");
 	poti_DefineContainerType("T", "Mn", "Thread");
 	poti_DefineContainerType("W", "T", "Worker");
+	poti_DefineContainerType("MPICt", "T", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 
 	/* Types for the memory node */
@@ -162,6 +163,18 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineEntityValue("Sl", "S", "Sleeping", ".9 .1 .0");
 	poti_DefineEntityValue("P", "S", "Progressing", ".4 .1 .6");
 
+	/* Types for the MPI Communication Thread of the Memory Node */
+	poti_DefineEventType("MPIev", "MPICt", "MPI event type");
+	poti_DefineStateType("CtS", "MPICt", "Communication Thread State");
+	poti_DefineEntityValue("P", "CtS", "Processing", "0 0 0");
+	poti_DefineEntityValue("Sl", "CtS", "Sleeping", ".9 .1 .0");
+	poti_DefineEntityValue("UT", "CtS", "UserTesting", ".2 .1 .6");
+	poti_DefineEntityValue("UW", "CtS", "UserWaiting", ".4 .1 .3");
+	poti_DefineEntityValue("SdS", "CtS", "SendSubmitted", "1.0 .1 1.0");
+	poti_DefineEntityValue("RvS", "CtS", "RecieveSubmitted", "0.1 1.0 1.0");
+	poti_DefineEntityValue("SdC", "CtS", "SendCompleted", "1.0 .5 1.0");
+	poti_DefineEntityValue("RvC", "CtS", "RecieveCompleted", "0.5 1.0 1.0");
+
 	for (i=1; i<=10; i++)
 	{
 		char inctx[8];
@@ -182,7 +195,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineVariableType("ntask", "Sc", "Number of tasks", "0 0 0");
 
 	/* Link types */
-	poti_DefineLinkType("MPIL", "MPIP", "P", "P", "Links between two MPI programs");
+	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "Links between two MPI Communication Threads");
 	poti_DefineLinkType("L", "P", "Mn", "Mn", "Links between two Memory Nodes");
 
 	/* Creating the MPI Program */
@@ -194,9 +207,12 @@ void _starpu_fxt_write_paje_header(FILE *file)
 1       Mn      P       \"Memory Node\"                         \n\
 1       T      Mn       \"Thread\"                               \n\
 1       W      T       \"Worker\"                               \n\
+1       MPICt   T       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       event   T       \"event type\"				\n\
-3       S       T       \"Thread State\"                        \n");
+2       MPIev   MPICt    \"MPI event type\"			\n\
+3       S       T       \"Thread State\"                        \n\
+3       CtS     MPICt    \"Communication Thread State\"          \n");
 	for (i=1; i<=10; i++)
 		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
@@ -211,6 +227,15 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       B       S       Blocked         \".9 .1 .0\"		\n\
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
 6       P       S       Progressing         \".4 .1 .6\"		\n");
+	fprintf(file, "\
+6       P       CtS       Processing         \"0 0 0\"		\n\
+6       Sl       CtS      Sleeping         \".9 .1 .0\"		\n\
+6       UT       CtS      UserTesting        \".2 .1 .6\"	\n\
+6       UW       CtS      UserWaiting        \".4 .1 .3\"	\n\
+6       SdS       CtS      SendSubmitted     \"1.0 .1 1.0\"	\n\
+6       RvS       CtS      RecieveSubmitted  \"0.1 1.0 1.0\"	\n\
+6       SdC       CtS      SendCompleted     \"1.0 .5 1.0\"	\n\
+6       RvC       CtS      RecieveCompleted  \"0.5 1.0 1.0\"	\n");
 	for (i=1; i<=10; i++)
 		fprintf(file, "\
 6       I       Ctx%u      Initializing       \"0.0 .7 1.0\"            \n\
@@ -229,7 +254,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       Co       MS     DriverCopy         \".3 .5 .1\"		\n\
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
-5       MPIL     MPIP	P	P      MPIL\n\
+5       MPIL     P	MPICt	MPICt   MPIL			\n\
 5       L       P	Mn	Mn      L\n");
 
 	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
