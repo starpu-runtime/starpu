@@ -407,6 +407,12 @@ thus permit data transfer and computation overlapping. The allocated buffer must
 be freed thanks to the @code{starpu_free} function.
 @end deftypefun
 
+@deftypefun void starpu_malloc_set_align (size_t @var{align})
+This functions sets an alignment constraints for @code{starpu_malloc}
+allocations. @var{align} must be a power of two. This is for instance called
+automatically by the OpenCL driver to specify its own alignment constraints.
+@end deftypefun
+
 @deftypefun int starpu_free (void *@var{A})
 This function frees memory which has previously allocated with
 @code{starpu_malloc}.

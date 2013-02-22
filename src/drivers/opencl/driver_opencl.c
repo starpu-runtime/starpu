@@ -158,6 +158,7 @@ void starpu_opencl_get_current_context(cl_context *context)
 cl_int _starpu_opencl_init_context(int devid)
 {
 	cl_int err;
+	cl_uint uint;
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 
@@ -167,6 +168,11 @@ cl_int _starpu_opencl_init_context(int devid)
 	err = 0;
         contexts[devid] = clCreateContext(NULL, 1, &devices[devid], NULL, NULL, &err);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clGetDeviceInfo(devices[devid], CL_DEVICE_MEM_BASE_ADDR_ALIGN, sizeof(uint), &uint, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+	starpu_malloc_set_align(uint/8);
 
         // Create execution queue for the given device
         queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
