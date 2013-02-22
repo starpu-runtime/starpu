@@ -713,7 +713,6 @@ static void _starpu_mpi_test_detached_requests(void)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		//_STARPU_MPI_DEBUG("Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
-
 		if (req->request_type == PROBE_REQ)
 		{
 			req->ret = MPI_Iprobe(req->srcdst, req->mpi_tag, req->comm, &flag, &status);
@@ -755,6 +754,7 @@ static void _starpu_mpi_test_detached_requests(void)
 			_starpu_mpi_req_list_erase(detached_requests, req);
 			free(req);
 		}
+
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
