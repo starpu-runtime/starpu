@@ -680,7 +680,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
 		/* this is not a OpenCL task */
-		_starpu_push_task(j);
+		_starpu_push_task_to_workers(task);
 		return 0;
 	}
 
@@ -698,7 +698,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 		{
 			case -EAGAIN:
 				_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-				_starpu_push_task(j);
+				_starpu_push_task_to_workers(task);
 				STARPU_ABORT();
 				return 0;
 			default:

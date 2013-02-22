@@ -454,7 +454,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 	if (!_STARPU_CUDA_MAY_PERFORM(j))
 	{
 		/* this is neither a cuda or a cublas task */
-		_starpu_push_task(j);
+		_starpu_push_task_to_workers(task);
 		return 0;
 	}
 
@@ -472,7 +472,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 		{
 			case -EAGAIN:
 				_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-				_starpu_push_task(j);
+				_starpu_push_task_to_workers(task);
 				STARPU_ABORT();
 			default:
 				STARPU_ABORT();

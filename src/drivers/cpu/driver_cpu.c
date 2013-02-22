@@ -243,7 +243,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	if (!_STARPU_CPU_MAY_PERFORM(j))
 	{
 		/* put it and the end of the queue ... XXX */
-		_starpu_push_task(j);
+		_starpu_push_task_to_workers(task);
 		return 0;
 	}
 
@@ -288,7 +288,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 		switch (res)
 		{
 		case -EAGAIN:
-			_starpu_push_task(j);
+			_starpu_push_task_to_workers(task);
 			return 0;
 		default:
 			STARPU_ABORT();
