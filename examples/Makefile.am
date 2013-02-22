@@ -189,11 +189,11 @@ examplebin_PROGRAMS +=				\
 if !STARPU_SIMGRID
 examplebin_PROGRAMS +=				\
 	scheduler/dummy_sched
-endif
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
 	basic_examples/vector_scal_fortran
+endif
 endif
 
 if !NO_BLAS_LIB
