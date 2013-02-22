@@ -386,7 +386,9 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	init_context(devid);
 #endif
 
+#ifdef STARPU_USE_CUDA
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
+#endif
 	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_CUDA_WORKER, args->devid, args->config);
 
 	/* one more time to avoid hacks from third party lib :) */
