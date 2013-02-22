@@ -250,6 +250,21 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
 		}
 		break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
+		/* STARPU_OPENCL_RAM -> STARPU_OPENCL_RAM */
+		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node || _starpu_memory_node_get_local_key() == src_node);
+		STARPU_ASSERT(copy_methods->opencl_to_opencl);
+		if (!req || !copy_methods->opencl_to_opencl_async)
+		{
+			/* this is not associated to a request so it's synchronous */
+			copy_methods->opencl_to_opencl(src_interface, src_node, dst_interface, dst_node);
+		}
+		else
+		{
+			req->async_channel.type = STARPU_OPENCL_RAM;
+			ret = copy_methods->opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
+		}
+		break;
 #endif
 	default:
 		STARPU_ABORT();
