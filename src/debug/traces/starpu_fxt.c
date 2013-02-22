@@ -207,6 +207,12 @@ static char *worker_container_alias(char *output, int len, const char *prefix, l
 	return output;
 }
 
+static char *mpicommthread_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%smpict", prefix);
+	return output;
+}
+
 static char *program_container_alias(char *output, int len, const char *prefix)
 {
 	snprintf(output, len, "%sp", prefix);
@@ -239,6 +245,17 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 	poti_SetState(time, container, "S", name);
 #else
 	fprintf(out_paje_file, "10	%.9f	%st%"PRIu64"	S	%s\n", time, prefix, workerid, name);
+#endif
+}
+
+static void mpicommthread_set_state(double time, const char *prefix, const char *name)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
+	poti_SetState(time, container, "CtS", name);
+#else
+	fprintf(out_paje_file, "10	%.9f	%smpict	CtS 	%s\n", time, prefix, name);
 #endif
 }
 
@@ -960,23 +977,182 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	}
 }
 
-static void handle_mpi_isend(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	char *prefix = options->file_prefix;
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char program_container[STARPU_POTI_STR_LEN];
+		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
+		char new_mpicommthread_container_alias[STARPU_POTI_STR_LEN], new_mpicommthread_container_name[STARPU_POTI_STR_LEN];
+		mpicommthread_container_alias(new_mpicommthread_container_alias, STARPU_POTI_STR_LEN, prefix);
+		snprintf(new_memnode_container_name, STARPU_POTI_STR_LEN, "%smpict", prefix);
+		poti_CreateContainer(date, new_mpicommthread_container_alias, "MPICt", program_container, new_mpicommthread_container_name);
+#else
+		fprintf(out_paje_file, "7	%.9f	%smpict		MPICt	%sp	%smpict\n", date, prefix, prefix, prefix);
+#endif
+		mpicommthread_set_state(date, prefix, "Sl");
+	}
+}
+
+static void handle_mpi_stop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	char *prefix = options->file_prefix;
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char mpicommthread_container[STARPU_POTI_STR_LEN];
+		mpicommthread_container_alias(mpicommthread_container, STARPU_POTI_STR_LEN, prefix);
+		poti_DestroyContainer(date, "MPICt", mpicommthread_container);
+#else
+		fprintf(out_paje_file, "8	%.9f	%smpict		MPICt\n",
+			date, prefix);
+#endif
+	}
+}
+
+static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "SdS");
+}
+
+static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int dest = ev->param[0];
 	int mpi_tag = ev->param[1];
 	size_t size = ev->param[2];
 	double date = get_event_time_stamp(ev, options);
 
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+
 	_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
 }
 
-static void handle_mpi_irecv_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "RvS");
+}
+
+static void handle_mpi_irecv_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_isend_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "SdC");
+}
+
+static void handle_mpi_isend_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int src = ev->param[0];
 	int mpi_tag = ev->param[1];
 	double date = get_event_time_stamp(ev, options);
 
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "RvC");
+
 	_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
+}
+
+static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "Sl");
+}
+
+static void handle_mpi_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_dtesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "DT");
+}
+
+static void handle_mpi_dtesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_utesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "UT");
+}
+
+static void handle_mpi_utesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_uwait_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "UW");
+}
+
+static void handle_mpi_uwait_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1251,16 +1427,80 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				handle_user_event(&ev, options);
 				break;
 
+			case FUT_MPI_START:
+				handle_mpi_start(&ev, options);
+				break;
+
+			case FUT_MPI_STOP:
+				handle_mpi_stop(&ev, options);
+				break;
+
 			case FUT_MPI_BARRIER:
 				handle_mpi_barrier(&ev, options);
 				break;
 
-			case FUT_MPI_ISEND:
-				handle_mpi_isend(&ev, options);
+			case FUT_MPI_ISEND_SUBMIT_BEGIN:
+				handle_mpi_isend_submit_begin(&ev, options);
 				break;
 
-			case FUT_MPI_IRECV_END:
-				handle_mpi_irecv_end(&ev, options);
+			case FUT_MPI_ISEND_SUBMIT_END:
+				handle_mpi_isend_submit_end(&ev, options);
+				break;
+
+			case FUT_MPI_IRECV_SUBMIT_BEGIN:
+				handle_mpi_irecv_submit_begin(&ev, options);
+				break;
+
+			case FUT_MPI_IRECV_SUBMIT_END:
+				handle_mpi_irecv_submit_end(&ev, options);
+				break;
+
+			case FUT_MPI_ISEND_COMPLETE_BEGIN:
+				handle_mpi_isend_complete_begin(&ev, options);
+				break;
+
+			case FUT_MPI_ISEND_COMPLETE_END:
+				handle_mpi_isend_complete_end(&ev, options);
+				break;
+
+			case FUT_MPI_IRECV_COMPLETE_BEGIN:
+				handle_mpi_irecv_complete_begin(&ev, options);
+				break;
+
+			case FUT_MPI_IRECV_COMPLETE_END:
+				handle_mpi_irecv_complete_end(&ev, options);
+				break;
+
+			case FUT_MPI_SLEEP_BEGIN:
+				handle_mpi_sleep_begin(&ev, options);
+				break;
+
+			case FUT_MPI_SLEEP_END:
+				handle_mpi_sleep_end(&ev, options);
+				break;
+
+			case FUT_MPI_DTESTING_BEGIN:
+				handle_mpi_dtesting_begin(&ev, options);
+				break;
+
+			case FUT_MPI_DTESTING_END:
+				handle_mpi_dtesting_end(&ev, options);
+				break;
+
+			case FUT_MPI_UTESTING_BEGIN:
+				handle_mpi_utesting_begin(&ev, options);
+				break;
+
+			case FUT_MPI_UTESTING_END:
+				handle_mpi_utesting_end(&ev, options);
+				break;
+
+			case FUT_MPI_UWAIT_BEGIN:
+				handle_mpi_uwait_begin(&ev, options);
+				break;
+
+			case FUT_MPI_UWAIT_END:
+				handle_mpi_uwait_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_SET_PROFILING:
