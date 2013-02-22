@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -75,6 +75,7 @@ int starpu_malloc(void **A, size_t dim)
 {
 #ifdef STARPU_DEVEL
 #warning TODO: we need to request _starpu_memory_manager_can_allocate_size()
+#warning TODO: if it fails, we should reclaim memory
 #endif
 
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
