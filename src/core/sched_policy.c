@@ -391,8 +391,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 	_starpu_profiling_set_task_push_start_time(task);
 
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-
 	int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
