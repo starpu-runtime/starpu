@@ -63,7 +63,9 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
  * mean of the STARPU_LIMIT_OPENCL_MEM, we allocate a big buffer when the driver
  * is launched. */
 static cl_mem wasted_memory[STARPU_MAXOPENCLDEVS];
-
+#ifdef STARPU_DEVEL
+#warning get rid off wasted_memory (see driver cuda)
+#endif
 static void limit_gpu_mem_if_needed(int devid)
 {
 	cl_int err;
