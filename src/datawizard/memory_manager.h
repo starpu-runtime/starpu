@@ -18,8 +18,6 @@
 #define __MEMORY_MANAGER_H__
 
 #include <starpu.h>
-#include <common/config.h>
-#include <core/workers.h>
 
 /**
  * Initialises the memory manager
@@ -27,10 +25,16 @@
 int _starpu_memory_manager_init();
 
 /**
- * Initialises the global memory for the given node
+ * Initialises the global memory size for the given node
  *
  */
-void _starpu_memory_manager_init_global_memory(unsigned node, enum starpu_archtype type, int devid, struct _starpu_machine_config *config);
+void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size);
+
+/**
+ * Gets the global memory size for the given node
+ *
+ */
+size_t _starpu_memory_manager_get_global_memory_size(unsigned node);
 
 /**
  * Indicates if memory can be allocated on the given node

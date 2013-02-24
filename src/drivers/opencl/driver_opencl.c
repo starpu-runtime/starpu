@@ -112,7 +112,7 @@ static void unlimit_gpu_mem_if_needed(int devid)
 }
 #endif
 
-size_t starpu_opencl_get_global_mem_size(int devid)
+static size_t _starpu_opencl_get_global_mem_size(int devid)
 {
 	cl_int err;
 	cl_ulong totalGlobalMem;
@@ -631,7 +631,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
-	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_OPENCL_WORKER, args->devid, args->config);
+	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
 	args->status = STATUS_UNKNOWN;
 

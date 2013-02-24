@@ -68,7 +68,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_CUDA_MEM, we decrease the value of
  * props[devid].totalGlobalMem which is the value returned by
- * starpu_cuda_get_global_mem_size() to indicate how much memory can
+ * _starpu_cuda_get_global_mem_size() to indicate how much memory can
  * be allocated on the device
  */
 static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
@@ -100,7 +100,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
 }
 
-size_t starpu_cuda_get_global_mem_size(unsigned devid)
+static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 {
 	return (size_t)props[devid].totalGlobalMem;
 }
@@ -389,7 +389,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 #ifdef STARPU_USE_CUDA
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
 #endif
-	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_CUDA_WORKER, args->devid, args->config);
+	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_cuda_get_global_mem_size(devid));
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);

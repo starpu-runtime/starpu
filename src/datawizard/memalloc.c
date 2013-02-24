@@ -723,42 +723,6 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 }
 
-static size_t _starpu_get_global_mem_size(int dst_node)
-{
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
-	size_t global_mem_size;
-
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-		{
-			/* We should probably never get here : if there is no
- 			 * space left in RAM, the operating system should swap
-			 * to disk for us. */
-			STARPU_ABORT();
-		}
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-		{
-			int devid = _starpu_memory_node_get_devid(dst_node);
-			global_mem_size = starpu_cuda_get_global_mem_size(devid);
-			break;
-		}
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-		{
-			int devid = _starpu_memory_node_get_devid(dst_node);
-			global_mem_size = starpu_opencl_get_global_mem_size(devid);
-			break;
-		}
-#endif
-		default:
-			STARPU_ABORT();
-	}
-	return global_mem_size;
-}
-
 #ifdef STARPU_SIMGRID
 static _starpu_pthread_mutex_t cuda_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 static _starpu_pthread_mutex_t opencl_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -964,7 +928,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 
 		if (allocated_memory == -ENOMEM)
 		{
-			size_t reclaim = 0.25*_starpu_get_global_mem_size(dst_node);
+			size_t reclaim = 0.25*_starpu_memory_manager_get_global_memory_size(dst_node);
 			size_t handle_size = handle->ops->get_size(handle);
 			if (starpu_memstrategy_data_size_coefficient*handle_size > reclaim)
 				reclaim = starpu_memstrategy_data_size_coefficient*handle_size;

@@ -2501,10 +2501,6 @@ This function returns a pointer to device properties for worker @var{workerid}
 (assumed to be a CUDA worker).
 @end deftypefun
 
-@deftypefun size_t starpu_cuda_get_global_mem_size (unsigned @var{devid})
-Return the size of the global memory of CUDA device @var{devid}.
-@end deftypefun
-
 @deftypefun void starpu_cuda_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, cudaError_t @var{status})
 Report a CUDA error.
 @end deftypefun
@@ -2571,10 +2567,6 @@ OpenCL as shown in @ref{Full source code for the 'Scaling a Vector' example}.
 
 @node Writing OpenCL kernels
 @subsection Writing OpenCL kernels
-
-@deftypefun size_t starpu_opencl_get_global_mem_size (int @var{devid})
-Return the size of global device memory in bytes.
-@end deftypefun
 
 @deftypefun void starpu_opencl_get_context (int @var{devid}, {cl_context *}@var{context})
 Places the OpenCL context of the device designated by @var{devid} into @var{context}.

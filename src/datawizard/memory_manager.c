@@ -15,10 +15,8 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
+#include <common/utils.h>
 #include <datawizard/memory_manager.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
 
 static size_t global_size[STARPU_MAXNODES];
 static size_t used_size[STARPU_MAXNODES];
@@ -35,41 +33,17 @@ int _starpu_memory_manager_init()
 	return 0;
 }
 
-void _starpu_memory_manager_init_global_memory(unsigned node, enum starpu_archtype type, int devid, struct _starpu_machine_config *config)
+void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size)
 {
-	switch (type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-	{
-		/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
-		global_size[node] = _starpu_cpu_get_global_mem_size(node, config);
-		break;
-	}
-#endif
-
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-	{
-		global_size[node] = starpu_cuda_get_global_mem_size(devid);
-		break;
-	}
-#endif /* STARPU_USE_CUDA */
-
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-	{
-		global_size[node] = starpu_opencl_get_global_mem_size(devid);
-		break;
-	}
-#endif /* STARPU_USE_OPENCL */
-
-	default:
-		STARPU_ABORT();
-	}
-
-	_STARPU_DEBUG("Global size for node %d (%d) is %ld\n", node, type, (long)global_size[node]);
+	global_size[node] = size;
+	_STARPU_DEBUG("Global size for node %d is %ld\n", node, (long)global_size[node]);
 }
+
+size_t _starpu_memory_manager_get_global_memory_size(unsigned node)
+{
+	return global_size[node];
+}
+
 
 int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 {

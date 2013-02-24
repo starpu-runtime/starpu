@@ -42,6 +42,4 @@ void _starpu_cpu_discover_devices(struct _starpu_machine_config *config);
 } while (0)
 #endif /* !STARPU_USE_CPU */
 
-size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config);
-
 #endif //  __DRIVER_CPU_H__
