@@ -39,14 +39,13 @@
 static int ncudagpus;
 
 static size_t global_mem[STARPU_NMAXWORKERS];
-
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t peer_transfer_streams[STARPU_NMAXWORKERS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
-#endif
+#endif /* STARPU_USE_CUDA */
 
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
@@ -100,7 +99,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	to_waste = totalGlobalMem - global_mem[devid];
 
 	props[devid].totalGlobalMem -= to_waste;
-#endif
+#endif /* STARPU_USE_CUDA */
 
 	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (long) to_waste/(1024*1024), (long) limit, (long) totalGlobalMem/(1024*1024),
@@ -142,6 +141,7 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	unsigned devid = config->workers[workerid].devid;
 	return &props[devid];
 }
+#endif /* STARPU_USE_CUDA */
 
 void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
@@ -274,8 +274,6 @@ static void deinit_context(int workerid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 #endif /* !SIMGRID */
-
-#endif /* STARPU_USE_CUDA */
 
 static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 {
@@ -574,7 +572,9 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ABORT();
 }
+#endif /* STARPU_USE_CUDA */
 
+#ifdef STARPU_USE_CUDA
 int
 starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 			    void *dst_ptr, unsigned dst_node,
@@ -642,6 +642,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	return -EAGAIN;
 }
+#endif /* STARPU_USE_CUDA */
 
 int _starpu_run_cuda(struct starpu_driver *d)
 {
@@ -665,5 +666,3 @@ int _starpu_run_cuda(struct starpu_driver *d)
 
 	return 0;
 }
-
-#endif /* STARPU_USE_CUDA */
