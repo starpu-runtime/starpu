@@ -84,15 +84,15 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 			switch (arch)
 			{
 			case STARPU_CPU_WORKER:
-				if (task->cl->cpu_funcs[i] != NULL)
+				if (task->cl->cpu_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
 			case STARPU_CUDA_WORKER:
-				if (task->cl->cuda_funcs[i] != NULL)
+				if (task->cl->cuda_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
 			case STARPU_OPENCL_WORKER:
-				if (task->cl->opencl_funcs[i] != NULL)
+				if (task->cl->opencl_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
 			default:
