@@ -548,6 +548,11 @@ The number of devices can be chosen as usual with @code{STARPU_NCPU},
 cpus can be arbitrarily chosen. The number of CUDA and OpenCL devices have to be
 lower than the real number on the current machine.
 
+The amount of simulated GPU memory is for now unbound by default, but
+it can be chosen by hand through the @code{STARPU_LIMIT_CUDA_MEM},
+@code{STARPU_LIMIT_CUDA_devid_MEM}, @code{STARPU_LIMIT_OPENCL_MEM}, and
+@code{STARPU_LIMIT_OPENCL_devid_MEM} environment variables.
+
 The Simgrid default stack size is small; to increase it use the
 parameter @code{--cfg=contexts/stack_size}, for example:
 
