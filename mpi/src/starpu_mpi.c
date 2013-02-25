@@ -846,7 +846,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	     MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 	     TRACE_MPI_START(rank, worldsize);
+#ifdef STARPU_USE_FXT
+	     starpu_set_profiling_id(rank);
+#endif //STARPU_USE_FXT
 	}
+
 
 	/* notify the main thread that the progression thread is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -980,10 +984,6 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	while (!running)
 		_STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-#ifdef STARPU_USE_FXT
-	starpu_set_profiling_id(rank);
-#endif //STARPU_USE_FXT
 
 #ifdef USE_STARPU_ACTIVITY
 	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
