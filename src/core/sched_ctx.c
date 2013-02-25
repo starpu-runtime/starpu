@@ -716,6 +716,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int finished = _starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier);
+/*when finished decrementing the tasks if the user signaled he will not submit tasks anymore
+  we can move all its workers to the inheritor context */
 	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
 	{
 		_STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
@@ -723,6 +725,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 		{
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
 
+			/* take care the context is not deleted or changed at the same time */
 			_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx->id]);
 			int *workerids = NULL;
 			unsigned nworkers = _get_workers_list(sched_ctx, &workerids);

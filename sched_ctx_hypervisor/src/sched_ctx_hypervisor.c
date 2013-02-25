@@ -619,11 +619,11 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 			   whatever the application says */
 			if(!((hypervisor.resize[sender_sched_ctx] == 0 || hypervisor.resize[receiver_sched_ctx] == 0) && imposed_resize))
 			{
-				int j;
-				printf("remove after ack from ctx %d:", sender_sched_ctx);
-				for(j = 0; j < nmoved_workers; j++)
-					printf(" %d", moved_workers[j]);
-				printf("\n");
+/* 				int j; */
+/* 				printf("remove after ack from ctx %d:", sender_sched_ctx); */
+/* 				for(j = 0; j < nmoved_workers; j++) */
+/* 					printf(" %d", moved_workers[j]); */
+/* 				printf("\n"); */
 
 				starpu_sched_ctx_remove_workers(moved_workers, nmoved_workers, sender_sched_ctx);
 

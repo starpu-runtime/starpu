@@ -413,8 +413,8 @@ static void ispeed_lp_end_ctx(unsigned sched_ctx)
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	int worker;
-	for(worker = 0; worker < 12; worker++)
-		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]);
+/* 	for(worker = 0; worker < 12; worker++) */
+/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]); */
 
 	return;
 }
