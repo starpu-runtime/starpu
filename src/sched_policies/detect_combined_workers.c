@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2011, 2012       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -233,6 +233,9 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 	int ncpus = 0;
 	struct _starpu_worker *worker;
 	int i;
+	int min;
+	int max;
+
 	for (i = 0; i < nworkers; i++)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);
@@ -241,7 +244,14 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 			cpu_workers[ncpus++] = workerids[i];
 	}
 
-	for (i = 1; i <= ncpus; i++)
+	min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+	if (min < 1)
+		min = 1;
+	max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
+	if (max == -1 || max > ncpus)
+		max = ncpus;
+
+	for (i = min; i <= max; i++)
 	{
 		int newworkerid;
 		newworkerid = starpu_combined_worker_assign_workerid(i, cpu_workers);
