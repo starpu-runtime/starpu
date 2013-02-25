@@ -39,6 +39,8 @@ static int init_done = 0;
 
 static _starpu_pthread_mutex_t big_lock = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 
+static size_t global_mem[STARPU_MAXOPENCLDEVS];
+
 #ifdef STARPU_USE_OPENCL
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
@@ -57,19 +59,11 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 	config->topology.nhwopenclgpus = nb_devices;
 }
 
-#ifdef STARPU_USE_OPENCL
-#ifndef STARPU_SIMGRID
-/* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_OPENCL_MEM, we allocate a big buffer when the driver
- * is launched. */
-static cl_mem wasted_memory[STARPU_MAXOPENCLDEVS];
-#ifdef STARPU_DEVEL
-#warning get rid off wasted_memory (see driver cuda)
-#endif
-static void limit_gpu_mem_if_needed(int devid)
+static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 {
-	cl_int err;
-	int limit;
+	ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
 	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
@@ -80,40 +74,29 @@ static void limit_gpu_mem_if_needed(int devid)
 	}
 	if (limit == -1)
 	{
-		wasted_memory[devid] = NULL;
 		return;
 	}
 
+	global_mem[devid] = limit * 1024*1024;
+
+#ifdef STARPU_USE_OPENCL
 	/* Request the size of the current device's memory */
-	cl_ulong totalGlobalMem;
+	cl_int err;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* How much memory to waste ? */
-	size_t to_waste = (size_t)totalGlobalMem - (size_t)limit*1024*1024;
+	to_waste = totalGlobalMem - global_mem[devid];
+#endif
 
 	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
                       devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
                       (size_t)(totalGlobalMem - to_waste)/(1024*1024));
 
-	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
-	wasted_memory[devid] = clCreateBuffer(contexts[devid], CL_MEM_READ_WRITE, to_waste, NULL, &err);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 
-static void unlimit_gpu_mem_if_needed(int devid)
-{
-	if (wasted_memory[devid])
-	{
-		cl_int err = clReleaseMemObject(wasted_memory[devid]);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		wasted_memory[devid] = NULL;
-	}
-}
-#endif
-
+#ifdef STARPU_USE_OPENCL
 void starpu_opencl_get_context(int devid, cl_context *context)
 {
         *context = contexts[devid];
@@ -181,8 +164,6 @@ cl_int _starpu_opencl_init_context(int devid)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 
-	limit_gpu_mem_if_needed(devid);
-
 	return CL_SUCCESS;
 }
 
@@ -193,8 +174,6 @@ cl_int _starpu_opencl_deinit_context(int devid)
 	_STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
-
-	unlimit_gpu_mem_if_needed(devid);
 
         err = clReleaseContext(contexts[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
@@ -454,19 +433,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
 
 static size_t _starpu_opencl_get_global_mem_size(int devid)
 {
-#ifdef STARPU_USE_OPENCL
-	cl_int err;
-	cl_ulong totalGlobalMem;
-
-	/* Request the size of the current device's memory */
-	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	return (size_t)totalGlobalMem;
-#else
-	return 0;
-#endif
+	return global_mem[devid];
 }
 
 void _starpu_opencl_init(void)
@@ -637,6 +604,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
+	_starpu_opencl_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
 	args->status = STATUS_UNKNOWN;
