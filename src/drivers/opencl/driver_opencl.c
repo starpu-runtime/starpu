@@ -114,19 +114,6 @@ static void unlimit_gpu_mem_if_needed(int devid)
 }
 #endif
 
-static size_t _starpu_opencl_get_global_mem_size(int devid)
-{
-	cl_int err;
-	cl_ulong totalGlobalMem;
-
-	/* Request the size of the current device's memory */
-	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	return (size_t)totalGlobalMem;
-}
-
 void starpu_opencl_get_context(int devid, cl_context *context)
 {
         *context = contexts[devid];
@@ -464,6 +451,23 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
 }
 #endif
 #endif /* STARPU_USE_OPENCL */
+
+static size_t _starpu_opencl_get_global_mem_size(int devid)
+{
+#ifdef STARPU_USE_OPENCL
+	cl_int err;
+	cl_ulong totalGlobalMem;
+
+	/* Request the size of the current device's memory */
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	return (size_t)totalGlobalMem;
+#else
+	return 0;
+#endif
+}
 
 void _starpu_opencl_init(void)
 {

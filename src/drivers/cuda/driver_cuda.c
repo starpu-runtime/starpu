@@ -100,11 +100,6 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
 }
 
-static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
-{
-	return (size_t)props[devid].totalGlobalMem;
-}
-
 cudaStream_t starpu_cuda_get_local_in_transfer_stream(void)
 {
 	int worker = starpu_worker_get_id();
@@ -273,6 +268,16 @@ static void deinit_context(int workerid)
 #endif /* !SIMGRID */
 
 #endif /* STARPU_USE_CUDA */
+
+static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
+{
+#ifdef STARPU_USE_CUDA
+	return (size_t)props[devid].totalGlobalMem;
+#else
+	return 0;
+#endif
+}
+
 
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXCUDADEVS */
