@@ -46,7 +46,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    cl_event *event);
 #endif /* !STARPU_USE_OPENCL */
 
-static struct starpu_data_copy_methods custom_copy_data_methods_s =
+static const struct starpu_data_copy_methods custom_copy_data_methods_s =
 {
 	.ram_to_ram = NULL,
 #ifdef STARPU_USE_CUDA

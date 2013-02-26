@@ -104,7 +104,7 @@ struct starpu_data_interface_ops
 	/* Free data of the interface on a given node. */
 	void (*free_data_on_node)(void *data_interface, unsigned node);
 	/* ram/cuda/opencl synchronous and asynchronous transfer methods */
-	struct starpu_data_copy_methods *copy_methods;
+	const struct starpu_data_copy_methods *copy_methods;
 	/* Return the current pointer (if any) for the handle on the given node. */
 	void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node);
 	/* Return an estimation of the size of data, for performance models */

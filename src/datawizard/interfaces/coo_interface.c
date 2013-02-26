@@ -57,7 +57,7 @@ copy_any_to_any(void *src_interface, unsigned src_node,
 	return ret;
 }
 
-static struct starpu_data_copy_methods coo_copy_data_methods =
+static const struct starpu_data_copy_methods coo_copy_data_methods =
 {
 	.any_to_any          = copy_any_to_any,
 };

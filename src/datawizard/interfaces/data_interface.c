@@ -290,41 +290,6 @@ void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
 
-	int asynchronous_copy_disabled = starpu_asynchronous_copy_disabled();
-	if (STARPU_UNLIKELY(asynchronous_copy_disabled))
-	{
-#ifdef STARPU_USE_CUDA
-		ops->copy_methods->ram_to_cuda_async = NULL;
-		ops->copy_methods->cuda_to_ram_async = NULL;
-		ops->copy_methods->cuda_to_cuda_async = NULL;
-#endif
-#ifdef STARPU_USE_OPENCL
-		ops->copy_methods->ram_to_opencl_async = NULL;
-		ops->copy_methods->opencl_to_ram_async = NULL;
-		ops->copy_methods->opencl_to_opencl_async = NULL;
-#endif
-	}
-
-#ifdef STARPU_USE_CUDA
-	int asynchronous_cuda_copy_disabled = starpu_asynchronous_cuda_copy_disabled();
-	if (STARPU_UNLIKELY(asynchronous_cuda_copy_disabled))
-	{
-		ops->copy_methods->ram_to_cuda_async = NULL;
-		ops->copy_methods->cuda_to_ram_async = NULL;
-		ops->copy_methods->cuda_to_cuda_async = NULL;
-	}
-#endif
-
-#ifdef STARPU_USE_OPENCL
-	int asynchronous_opencl_copy_disabled = starpu_asynchronous_opencl_copy_disabled();
-	if (STARPU_UNLIKELY(asynchronous_opencl_copy_disabled))
-	{
-		ops->copy_methods->ram_to_opencl_async = NULL;
-		ops->copy_methods->opencl_to_ram_async = NULL;
-		ops->copy_methods->opencl_to_opencl_async = NULL;
-	}
-#endif
-
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
 	ops->register_data_handle(handle, home_node, data_interface);

@@ -27,7 +27,7 @@
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
-static struct starpu_data_copy_methods vector_copy_data_methods_s =
+static const struct starpu_data_copy_methods vector_copy_data_methods_s =
 {
 	.any_to_any = copy_any_to_any,
 };
