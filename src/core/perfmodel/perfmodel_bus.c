@@ -1402,14 +1402,14 @@ void starpu_bus_print_bandwidth(FILE *f)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
-		int ncpus = _starpu_topology_get_nhwcpu(config);
-		int cpu;
+		unsigned config_ncpus = _starpu_topology_get_nhwcpu(config);
+		unsigned cpu;
 
 #ifdef STARPU_USE_CUDA
 		if (src <= ncuda)
 		{
 			fprintf(f, "CUDA %d\t", src-1);
-			for (cpu = 0; cpu < ncpus; cpu++)
+			for (cpu = 0; cpu < config_ncpus; cpu++)
 			{
 				timing = &cudadev_timing_per_cpu[src*STARPU_MAXCPUS+cpu];
 				if (timing->timing_htod)
@@ -1425,7 +1425,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #ifdef STARPU_USE_OPENCL
 		{
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
-			for (cpu = 0; cpu < ncpus; cpu++)
+			for (cpu = 0; cpu < config_ncpus; cpu++)
 			{
 				timing = &opencldev_timing_per_cpu[(src-ncuda)*STARPU_MAXCPUS+cpu];
 				if (timing->timing_htod)
