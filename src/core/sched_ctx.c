@@ -40,9 +40,9 @@ static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_w
 	unsigned worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker, sched_ctx_id);
 	/* the worker was planning to go away in another ctx but finally he changed his mind & 
 	   he's staying */
-	if(worker_sched_ctx_id  == STARPU_NMAX_SCHED_CTXS)
+	if (worker_sched_ctx_id  == STARPU_NMAX_SCHED_CTXS)
 	{
-		unsigned worker_sched_ctx_id = _starpu_worker_get_first_free_sched_ctx(worker);
+		worker_sched_ctx_id = _starpu_worker_get_first_free_sched_ctx(worker);
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 		/* add context to worker */
 		worker->sched_ctx[worker_sched_ctx_id] = sched_ctx;

@@ -340,14 +340,14 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 
 }
 
-static void _starpu_launch_drivers(struct _starpu_machine_config *config)
+static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 {
-	config->running = 1;
-	config->submitting = 1;
+	pconfig->running = 1;
+	pconfig->submitting = 1;
 
 	_STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
-	unsigned nworkers = config->topology.nworkers;
+	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
 	unsigned cpu = 0, cuda = 0;
@@ -368,9 +368,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct _starpu_worker *workerarg = &config->workers[worker];
+		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 
-		workerarg->config = config;
+		workerarg->config = pconfig;
 
 		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
 
@@ -388,7 +388,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		workerarg->run_by_starpu = 1;
 		workerarg->worker_is_running = 0;
 		workerarg->worker_is_initialized = 0;
-		
+
 		int ctx;
 		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
 			workerarg->removed_from_ctx[ctx] = 0;
@@ -419,7 +419,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_CPU_WORKER:
 				workerarg->set = NULL;
 				driver.id.cpu_id = cpu;
-				if (_starpu_may_launch_driver(config->conf, &driver))
+				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					_STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
@@ -446,7 +446,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				driver.id.cuda_id = cuda;
-				if (_starpu_may_launch_driver(config->conf, &driver))
+				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					_STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
@@ -473,7 +473,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				if (!_starpu_may_launch_driver(config->conf, &driver))
+				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					workerarg->run_by_starpu = 0;
 					break;
@@ -504,7 +504,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 	cuda = 0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct _starpu_worker *workerarg = &config->workers[worker];
+		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 		struct starpu_driver driver;
 		driver.type = workerarg->arch;
 
@@ -512,7 +512,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 		{
 			case STARPU_CPU_WORKER:
 				driver.id.cpu_id = cpu;
-				if (!_starpu_may_launch_driver(config->conf, &driver))
+				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					cpu++;
 					break;
@@ -526,7 +526,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 				break;
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = cuda;
-				if (!_starpu_may_launch_driver(config->conf, &driver))
+				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					cuda++;
 					break;
@@ -542,7 +542,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *config)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				if (!_starpu_may_launch_driver(config->conf, &driver))
+				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
 					break;
 #endif
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
@@ -817,19 +817,19 @@ void starpu_profiling_init()
  * Handle runtime termination
  */
 
-static void _starpu_terminate_workers(struct _starpu_machine_config *config)
+static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 {
 	int status STARPU_ATTRIBUTE_UNUSED;
 	unsigned workerid;
 
-	for (workerid = 0; workerid < config->topology.nworkers; workerid++)
+	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
 	{
 		starpu_wake_all_blocked_workers();
 
 		_STARPU_DEBUG("wait for worker %u\n", workerid);
 
-		struct _starpu_worker_set *set = config->workers[workerid].set;
-		struct _starpu_worker *worker = &config->workers[workerid];
+		struct _starpu_worker_set *set = pconfig->workers[workerid].set;
+		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
@@ -914,10 +914,10 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
-static void _starpu_kill_all_workers(struct _starpu_machine_config *config)
+static void _starpu_kill_all_workers(struct _starpu_machine_config *pconfig)
 {
 	/* set the flag which will tell workers to stop */
-	config->running = 0;
+	pconfig->running = 0;
 	/* running is just protected by a memory barrier */
 	STARPU_WMB();
 	starpu_wake_all_blocked_workers();

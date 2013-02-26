@@ -233,7 +233,6 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		unsigned node = starpu_worker_get_memory_node(workerid);
 		if (_starpu_task_uses_multiformat_handles(task))
 		{
-			unsigned i;
 			for (i = 0; i < task->cl->nbuffers; i++)
 			{
 				struct starpu_task *conversion_task;
@@ -269,24 +268,24 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 		int ret = 0;
 
-		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-		j->task_size = worker_size;
-		j->combined_workerid = workerid;
-		j->active_task_alias_count = 0;
+		struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+		job->task_size = worker_size;
+		job->combined_workerid = workerid;
+		job->active_task_alias_count = 0;
 
-		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+		_STARPU_PTHREAD_BARRIER_INIT(&job->before_work_barrier, NULL, worker_size);
+		_STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, worker_size);
 
 		/* Note: we have to call that early, or else the task may have
 		 * disappeared already */
 		_starpu_push_task_end(task);
 
-		int i;
-		for (i = 0; i < worker_size; i++)
+		int j;
+		for (j = 0; j < worker_size; j++)
 		{
 			struct starpu_task *alias = _starpu_create_task_alias(task);
 
-			worker = _starpu_get_worker_struct(combined_workerid[i]);
+			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
 
