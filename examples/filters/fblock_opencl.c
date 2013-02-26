@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,13 +17,13 @@
 
 #include <starpu.h>
 
-#define CHECK_CL_SET_KERNEL_ARG(kernel, n, size, ptr)       \
-do                                                          \
-{							    \
-	int err;                                            \
-	err = clSetKernelArg(kernel, n, size, ptr);         \
-	if (err != CL_SUCCESS)                              \
-       		STARPU_OPENCL_REPORT_ERROR(err);            \
+#define CHECK_CL_SET_KERNEL_ARG(kernel, n, size, ptr)       	\
+do                                                          	\
+{								\
+	int check_err;                           	        \
+	check_err = clSetKernelArg(kernel, n, size, ptr);       \
+	if (check_err != CL_SUCCESS)                            \
+       		STARPU_OPENCL_REPORT_ERROR(check_err);          \
 } while (0)
 
 extern struct starpu_opencl_program opencl_program;
