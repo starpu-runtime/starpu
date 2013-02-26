@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -56,8 +56,8 @@ typedef enum
 struct block_description
 {
 	/* Which MPI node should process that block ? */
-	unsigned mpi_node;
-	
+	int mpi_node;
+
 	unsigned preferred_worker;
 
 	unsigned bz;
@@ -101,7 +101,7 @@ void check(int rank);
 
 void display_memory_consumption(int rank);
 
-unsigned get_block_mpi_node(int z);
+int get_block_mpi_node(int z);
 unsigned get_block_size(int z);
 unsigned get_bind_tasks(void);
 
@@ -111,8 +111,8 @@ unsigned get_ticks(void);
 
 unsigned global_workerid(unsigned local_workerid);
 
-void create_task_update(unsigned iter, unsigned z, unsigned local_rank);
-void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank);
+void create_task_update(unsigned iter, unsigned z, int local_rank);
+void create_task_save(unsigned iter, unsigned z, int dir, int local_rank);
 
 extern int starpu_mpi_initialize(void);
 extern int starpu_mpi_shutdown(void);

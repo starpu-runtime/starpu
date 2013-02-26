@@ -72,10 +72,9 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 	struct timeval start;
 	struct timeval end;
 	starpu_data_handle_t **data_handles;
-	int x, y;
+	unsigned x,y,i,j,k;
 
 	/* create all the DAG nodes */
-	unsigned i,j,k;
 
 	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
 	for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle_t));

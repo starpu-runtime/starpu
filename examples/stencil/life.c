@@ -20,7 +20,7 @@
 
 void life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
 {
-	unsigned x, y, z, num, alive;
+	int x, y, z, num, alive;
 
 	for (z = iter; z < nz - iter; z++)
 	{

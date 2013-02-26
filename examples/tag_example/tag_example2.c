@@ -76,7 +76,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned iter)
 
 static int create_task_grid(unsigned iter)
 {
-	int i;
+	unsigned i;
 	int ret;
 
 /*	FPRINTF(stderr, "start iter %d ni %d...\n", iter, ni); */

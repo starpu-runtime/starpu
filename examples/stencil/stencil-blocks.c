@@ -121,7 +121,7 @@ struct block_description *get_block_description(int z)
 	return &blocks[z];
 }
 
-unsigned get_block_mpi_node(int z)
+int get_block_mpi_node(int z)
 {
 	z = (z + nbz)%nbz;
 	return blocks[z].mpi_node;
@@ -277,7 +277,7 @@ void allocate_memory_on_node(int rank)
 	{
 		struct block_description *block = get_block_description(bz);
 
-		unsigned node = block->mpi_node;
+		int node = block->mpi_node;
 
 		unsigned size_bz = block_sizes_z[bz];
 	
@@ -301,7 +301,7 @@ void allocate_memory_on_node(int rank)
 		}
 
 		/* Boundary blocks : Top */
-		unsigned top_node = block->boundary_blocks[T]->mpi_node;
+		int top_node = block->boundary_blocks[T]->mpi_node;
 		if ((node == rank) || (top_node == rank))
 		{
 			allocate_block_on_node(&block->boundaries_handle[T][0], &block->boundaries[T][0],
@@ -311,7 +311,7 @@ void allocate_memory_on_node(int rank)
 		} 
 
 		/* Boundary blocks : Bottom */
-		unsigned bottom_node = block->boundary_blocks[B]->mpi_node;
+		int bottom_node = block->boundary_blocks[B]->mpi_node;
 		if ((node == rank) || (bottom_node == rank))
 		{
 			allocate_block_on_node(&block->boundaries_handle[B][0], &block->boundaries[B][0],
@@ -330,7 +330,7 @@ void check(int rank)
 	{
 		struct block_description *block = get_block_description(bz);
 
-		unsigned node = block->mpi_node;
+		int node = block->mpi_node;
 
 		/* Main blocks */
 		if (node == rank)

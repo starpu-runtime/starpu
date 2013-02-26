@@ -23,8 +23,7 @@ int main(int argc, char **argv)
 	unsigned *foo;
 	starpu_data_handle_t handle;
 	int ret;
-	int n, i, size;
-	unsigned j;
+	unsigned n, i, size;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -62,14 +61,14 @@ int main(int argc, char **argv)
 
 	starpu_data_partition(handle, &f);
 
-	for (j = 0; j < f.nchildren; j++)
+	for (i = 0; i < f.nchildren; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->handles[0] = starpu_data_get_sub_data(handle, 1, j);
+		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
 		task->cl = &scal_codelet;
 		task->execute_on_a_specific_worker = 1;
-		task->workerid = j;
+		task->workerid = i;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
@@ -88,7 +87,7 @@ int main(int argc, char **argv)
 	{
 		if (foo[i] != i*2)
 		{
-			FPRINTF(stderr,"value %d is %u instead of %d\n", i, foo[i], 2*i);
+			FPRINTF(stderr,"value %u is %u instead of %u\n", i, foo[i], 2*i);
 			ret = EXIT_FAILURE;
 		}
 	}
