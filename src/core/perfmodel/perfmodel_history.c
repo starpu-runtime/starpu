@@ -956,7 +956,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 			char *symbol2 = strdup(symbol);
 			symbol2[dot-symbol] = '\0';
 			int ret;
-			fprintf(stderr,"note: loading history from %s instead of %s\n", symbol2, symbol);
+			_STARPU_DISP("note: loading history from %s instead of %s\n", symbol2, symbol);
 			ret = starpu_perfmodel_load_symbol(symbol2,model);
 			free(symbol2);
 			return ret;
