@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
 #  define NITER	2048
 #endif
 
-unsigned token = 42;
+int token = 42;
 starpu_data_handle_t token_handle;
 
 #ifdef STARPU_USE_CUDA
@@ -33,7 +33,7 @@ extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 
 void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *tokenptr = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
+	int *tokenptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	(*tokenptr)++;
 }
 
@@ -82,13 +82,13 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
+	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(token));
 
-	unsigned nloops = NITER;
-	unsigned loop;
+	int nloops = NITER;
+	int loop;
 
-	unsigned last_loop = nloops - 1;
-	unsigned last_rank = size - 1;
+	int last_loop = nloops - 1;
+	int last_rank = size - 1;
 
 	for (loop = 0; loop < nloops; loop++)
 	{
