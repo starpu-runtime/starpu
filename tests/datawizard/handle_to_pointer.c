@@ -30,7 +30,7 @@ static void cpu_task(void **buffers, void *args)
 	numbers = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args (args, &size);
 
-	for(i = 0; i < size; i++)
+	for(i = 0; i < (int)size; i++)
 	{
 		numbers[i] = i;
 	}
@@ -46,7 +46,7 @@ static void cuda_task(void **buffers, void *args)
 	numbers = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args (args, &size);
 
-	for(i = 0; i < size; i++)
+	for(i = 0; i < (int)size; i++)
 	{
 		cudaMemcpyAsync(&numbers[i], &i, sizeof(int), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	}

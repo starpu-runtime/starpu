@@ -45,7 +45,8 @@ int main(int argc, char **argv)
 	unsigned *foo;
 	starpu_data_handle_t handle;
 	int ret;
-	int n, i, size;
+	int n, size;
+	unsigned i;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

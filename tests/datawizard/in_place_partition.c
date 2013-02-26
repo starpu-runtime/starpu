@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 	int ret;
 	int n, i, size;
+	unsigned j;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -61,14 +62,14 @@ int main(int argc, char **argv)
 
 	starpu_data_partition(handle, &f);
 
-	for (i = 0; i < f.nchildren; i++)
+	for (j = 0; j < f.nchildren; j++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
+		task->handles[0] = starpu_data_get_sub_data(handle, 1, j);
 		task->cl = &scal_codelet;
 		task->execute_on_a_specific_worker = 1;
-		task->workerid = i;
+		task->workerid = j;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;

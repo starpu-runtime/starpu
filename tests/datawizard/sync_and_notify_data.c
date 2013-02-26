@@ -27,8 +27,8 @@
 #define N_DEF	100
 #define K_DEF	256
 
-static int n=N_DEF;
-static int k=K_DEF;
+static unsigned n=N_DEF;
+static unsigned k=K_DEF;
 
 /*
  * In this test, we maintain a vector v = (a,b,c).

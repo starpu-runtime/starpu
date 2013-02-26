@@ -52,7 +52,8 @@ int main(int argc, char **argv)
 {
         float foo;
 	starpu_data_handle_t float_array_handle;
-        int i, ret;
+        unsigned i;
+	int ret;
 
         ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

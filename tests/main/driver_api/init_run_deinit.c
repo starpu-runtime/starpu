@@ -189,10 +189,10 @@ test_opencl(void)
 {
         cl_int err;
         cl_platform_id platform;
-        cl_uint dummy;
+        cl_uint pdummy;
 	int nopencl;
 
-        err = clGetPlatformIDs(1, &platform, &dummy);
+        err = clGetPlatformIDs(1, &platform, &pdummy);
         if (err != CL_SUCCESS)
         {
 		FPRINTF(stderr, "WARNING: No OpenCL platform found\n");

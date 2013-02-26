@@ -66,7 +66,7 @@ static int
 check_result(unsigned *t, size_t size)
 {
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < (int)size; i++)
 	{
 		if (t[i] != i*2)
 		{

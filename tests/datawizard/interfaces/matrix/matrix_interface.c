@@ -94,7 +94,7 @@ test_matrix_cpu_func(void *buffers[], void *args)
 	int *val;
 	int factor;
 	int i;
-	unsigned int nx, ny;
+	int nx, ny;
 
 	nx = STARPU_MATRIX_GET_NX(buffers[0]);
 	ny = STARPU_MATRIX_GET_NY(buffers[0]);
