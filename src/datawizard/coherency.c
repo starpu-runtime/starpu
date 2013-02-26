@@ -458,6 +458,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			}
 		}
 		else
+			/* The last request will perform the callback after termination */
 			_starpu_data_request_append_callback(r, callback_func, callback_arg);
 
 
