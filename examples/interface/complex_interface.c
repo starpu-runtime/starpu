@@ -152,16 +152,18 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
-	int ret;
+	int ret = 0;
 
-	ret = starpu_interface_copy((uintptr_t) src_complex->real, 0, src_node,
+	if (starpu_interface_copy((uintptr_t) src_complex->real, 0, src_node,
 				    (uintptr_t) dst_complex->real, 0, dst_node,
 				     src_complex->nx*sizeof(src_complex->real[0]),
-				     async_data);
-	ret = starpu_interface_copy((uintptr_t) src_complex->imaginary, 0, src_node,
+				     async_data))
+		ret = -EAGAIN;
+	if (starpu_interface_copy((uintptr_t) src_complex->imaginary, 0, src_node,
 				    (uintptr_t) dst_complex->imaginary, 0, dst_node,
 				     src_complex->nx*sizeof(src_complex->imaginary[0]),
-				     async_data);
+				     async_data))
+		ret = -EAGAIN;
 	return ret;
 }
 
