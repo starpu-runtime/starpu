@@ -19,7 +19,7 @@
 #include <starpu_config.h>
 
 unsigned imposed_resize = 0;
-struct starpu_performance_counters* perf_counters = NULL;
+struct starpu_sched_ctx_performance_counters* perf_counters = NULL;
 
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
 static void notify_pushed_task(unsigned sched_ctx, int worker);
@@ -125,7 +125,7 @@ static struct sched_ctx_hypervisor_policy *_select_hypervisor_policy(struct sche
 
 
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
-struct starpu_performance_counters* sched_ctx_hypervisor_init(struct sched_ctx_hypervisor_policy *hypervisor_policy)
+struct starpu_sched_ctx_performance_counters* sched_ctx_hypervisor_init(struct sched_ctx_hypervisor_policy *hypervisor_policy)
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
@@ -168,7 +168,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct sched_ctx_h
 	struct sched_ctx_hypervisor_policy *selected_hypervisor_policy = _select_hypervisor_policy(hypervisor_policy);
 	_load_hypervisor_policy(selected_hypervisor_policy);
 
-	perf_counters = (struct starpu_performance_counters*)malloc(sizeof(struct starpu_performance_counters));
+	perf_counters = (struct starpu_sched_ctx_performance_counters*)malloc(sizeof(struct starpu_sched_ctx_performance_counters));
 	perf_counters->notify_idle_cycle = notify_idle_cycle;
 	perf_counters->notify_pushed_task = notify_pushed_task;
 	perf_counters->notify_poped_task = notify_poped_task;
@@ -176,7 +176,7 @@ struct starpu_performance_counters* sched_ctx_hypervisor_init(struct sched_ctx_h
 	perf_counters->notify_idle_end = notify_idle_end;
 	perf_counters->notify_submitted_job = notify_submitted_job;
 
-	starpu_notify_hypervisor_exists();
+	starpu_sched_ctx_notify_hypervisor_exists();
 
 	return perf_counters;
 }
@@ -347,7 +347,7 @@ int sched_ctx_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archty
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 

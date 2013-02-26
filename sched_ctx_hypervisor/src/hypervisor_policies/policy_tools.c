@@ -28,7 +28,7 @@ static int _compute_priority(unsigned sched_ctx)
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
@@ -113,7 +113,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 	int worker;
 	int considered = 0;
 
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
@@ -181,7 +181,7 @@ unsigned _get_potential_nworkers(struct sched_ctx_hypervisor_policy_config *conf
 	unsigned potential_workers = 0;
 	int worker;
 
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
@@ -304,7 +304,7 @@ static double _get_best_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w,
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
         int worker;
 
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
 
@@ -330,7 +330,7 @@ static double _get_ispeed_sample_for_type_of_worker(struct sched_ctx_hypervisor_
 
 	double avg = 0.0;
 	int n = 0;
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
 
@@ -356,7 +356,7 @@ static double _get_ispeed_sample_for_sched_ctx(unsigned sched_ctx)
         
 	int worker;
 	double ispeed_sample = 0.0;
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 
 	if(workers->init_iterator)
                 workers->init_iterator(workers, &it);

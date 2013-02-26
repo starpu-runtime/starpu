@@ -219,7 +219,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-		starpu_call_poped_task_cb(workerid, task->sched_ctx, task->flops, data_size);
+		starpu_sched_ctx_call_poped_task_cb(workerid, task->sched_ctx, task->flops, data_size);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 	}
 

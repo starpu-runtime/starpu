@@ -76,7 +76,7 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
@@ -110,7 +110,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	/* if the context has no workers return */
-	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
 	
@@ -137,7 +137,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	unsigned worker = 0;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
@@ -215,7 +215,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		unsigned worker = 0;
 		struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-		struct starpu_iterator it;
+		struct starpu_sched_ctx_iterator it;
 		if(workers->init_iterator)
 			workers->init_iterator(workers, &it);
 		

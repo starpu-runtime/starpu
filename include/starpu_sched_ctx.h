@@ -24,12 +24,8 @@ extern "C"
 {
 #endif
 
-#ifdef STARPU_DEVEL
-#  warning rename all objects to start with starpu_sched_ctx
-#endif
-
-//struct starpu_iterator;
-struct starpu_iterator
+//struct starpu_sched_ctx_iterator;
+struct starpu_sched_ctx_iterator
 {
 	int cursor;
 };
@@ -42,12 +38,12 @@ struct starpu_sched_ctx_worker_collection
 	void *workerids;
 	/* the number of workers in the collection */
 	unsigned nworkers;
-	/* the type of structure (STARPU_WORKER_LIST,...) */
+	/* the type of structure (STARPU_SCHED_CTX_WORKER_LIST,...) */
 	int type;
 	/* checks if there is another element in collection */
-	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
+	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	/* return the next element in the collection */
-	int (*get_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
+	int (*get_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	/* add a new element in the collection */
 	int (*add)(struct starpu_sched_ctx_worker_collection *workers, int worker);
 	/* remove an element from the collection */
@@ -57,13 +53,13 @@ struct starpu_sched_ctx_worker_collection
 	/* free the structure */
 	void (*deinit)(struct starpu_sched_ctx_worker_collection *workers);
 	/* initialize the cursor if there is one */
-	void (*init_iterator)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_iterator *it);
+	void (*init_iterator)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 };
 
 /* types of structures the worker collection can implement */
-#define STARPU_WORKER_LIST 0
+#define STARPU_SCHED_CTX_WORKER_LIST 0
 
-struct starpu_performance_counters
+struct starpu_sched_ctx_performance_counters
 {
 	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
 	void (*notify_idle_end)(unsigned sched_ctx_id, int worker);
@@ -74,9 +70,9 @@ struct starpu_performance_counters
 };
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-void starpu_set_perf_counters(unsigned sched_ctx_id, struct starpu_performance_counters *perf_counters);
-void starpu_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops, size_t data_size);
-void starpu_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
+void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters);
+void starpu_sched_ctx_call_poped_task_cb(int workerid, unsigned sched_ctx_id, double flops, size_t data_size);
+void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name);
@@ -102,16 +98,16 @@ void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
 
 #if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
-pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
+pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
 #endif
 
-void starpu_task_set_context(unsigned *sched_ctx_id);
+void starpu_sched_ctx_set_task_context(unsigned *sched_ctx_id);
 
-unsigned starpu_task_get_context(void);
+unsigned starpu_sched_ctx_get_task_context(void);
 
-void starpu_notify_hypervisor_exists(void);
+void starpu_sched_ctx_notify_hypervisor_exists(void);
 
-unsigned starpu_check_if_hypervisor_exists(void);
+unsigned starpu_sched_ctx_check_if_hypervisor_exists(void);
 
 unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 
@@ -121,13 +117,13 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 
-unsigned starpu_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
+unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
 
-void starpu_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
+void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
 
-double starpu_get_max_time_worker_on_ctx(void);
+double starpu_sched_ctx_get_max_time_worker_on_ctx(void);
 
-void starpu_stop_task_submission(void);
+void starpu_sched_ctx_stop_task_submission(void);
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
 

@@ -225,7 +225,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	}
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
-	starpu_call_pushed_task_cb(workerid, task->sched_ctx);
+	starpu_sched_ctx_call_pushed_task_cb(workerid, task->sched_ctx);
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	if (is_basic_worker)
@@ -298,14 +298,14 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 	int worker = -1, nworkers = 0;
 	struct starpu_sched_ctx_worker_collection *workers = sched_ctx->workers;
 
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_is_ctxs_turn(worker, sched_ctx->id))
+		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_sched_ctx_is_ctxs_turn(worker, sched_ctx->id))
 			nworkers++;
 	}
 
@@ -604,7 +604,7 @@ pick:
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	struct starpu_performance_counters *perf_counters = NULL;
+	struct starpu_sched_ctx_performance_counters *perf_counters = NULL;
 	int j;
 	for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
 	{

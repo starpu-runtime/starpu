@@ -36,7 +36,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
         int worker;
-	struct starpu_iterator it;
+	struct starpu_sched_ctx_iterator it;
         if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
 
@@ -84,7 +84,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 static int random_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_get_changing_ctx_mutex(sched_ctx_id);
+	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
         int ret_val = -1;
 
@@ -103,7 +103,7 @@ static int random_push_task(struct starpu_task *task)
 
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
 	starpu_srand48(time(NULL));
 }
 

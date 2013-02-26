@@ -48,7 +48,7 @@ int tag = 1;
 void* start_thread(void *arg)
 {
 	unsigned sched_ctx = *((unsigned*)arg);
-	starpu_task_set_context(&sched_ctx);
+	starpu_sched_ctx_set_task_context(&sched_ctx);
 
 	struct starpu_task *task[10];
 	struct params params[10];
@@ -115,8 +115,8 @@ int main()
 	policy.name = "app_driven";
 	void *perf_counters = sched_ctx_hypervisor_init(&policy);
 
-	starpu_set_perf_counters(sched_ctx1, (struct starpu_performance_counters*)perf_counters);
-	starpu_set_perf_counters(sched_ctx2, (struct starpu_performance_counters*)perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx1, (struct starpu_sched_ctx_performance_counters*)perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx2, (struct starpu_sched_ctx_performance_counters*)perf_counters);
 	sched_ctx_hypervisor_register_ctx(sched_ctx1, 0.0);
 	sched_ctx_hypervisor_register_ctx(sched_ctx2, 0.0);
 

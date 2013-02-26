@@ -27,7 +27,7 @@ Basic strategies of resizing scheduling contexts already exist but a platform fo
 @section Managing the hypervisor
 There is a single hypervisor that is in charge of resizing contexts and the resizing strategy is chosen at the initialization of the hypervisor. A single resize can be done at a time.
 
-@deftypefun {struct starpu_performance_counters *} sched_ctx_hypervisor_init ({struct sched_ctx_hypervisor_policy *} @var{policy})
+@deftypefun {struct starpu_sched_ctx_performance_counters *} sched_ctx_hypervisor_init ({struct sched_ctx_hypervisor_policy *} @var{policy})
 Initializes the hypervisor to use the strategy provided as parameter and creates the performance counters (see @pxref{Performance Counters}).
 These performance counters represent actually some callbacks that will be used by the contexts to notify the information needed by the hypervisor.
 @end deftypefun
@@ -210,8 +210,8 @@ starpu_insert_task(&codelet,
 
 The Scheduling Context Hypervisor Plugin provides a series of performance counters to StarPU. By incrementing them, StarPU can help the hypervisor in the resizing decision making process.
 
-@deftp {Data Type} {struct starpu_performance_counters}
-@anchor{struct starpu_performance_counters}
+@deftp {Data Type} {struct starpu_sched_ctx_performance_counters}
+@anchor{struct starpu_sched_ctx_performance_counters}
 
 @table @asis
 @item @code{void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time)}

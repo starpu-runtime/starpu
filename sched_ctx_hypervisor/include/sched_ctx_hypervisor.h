@@ -171,7 +171,7 @@ struct sched_ctx_hypervisor_policy
 	void (*end_ctx)(unsigned sched_ctx);
 };
 
-struct starpu_performance_counters *sched_ctx_hypervisor_init(struct sched_ctx_hypervisor_policy *policy);
+struct starpu_sched_ctx_performance_counters *sched_ctx_hypervisor_init(struct sched_ctx_hypervisor_policy *policy);
 
 void sched_ctx_hypervisor_shutdown(void);
 
