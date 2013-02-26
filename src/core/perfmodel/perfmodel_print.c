@@ -230,7 +230,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		nmatched = sscanf(arch, "cuda_%d", &gpuid);
 		if (nmatched == 1)
 		{
-			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
+			int archid = STARPU_CUDA_DEFAULT+ gpuid;
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 				starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, output);
