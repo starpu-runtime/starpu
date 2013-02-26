@@ -583,7 +583,8 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 	_starpu_data_unregister(handle, 0);
 }
 
-void starpu_data_unregister_submit(starpu_data_handle_t handle) {
+void starpu_data_unregister_submit(starpu_data_handle_t handle)
+{
 	_starpu_spin_lock(&handle->header_lock);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data must not be unregistered twice");
 	handle->lazy_unregister = 1;
