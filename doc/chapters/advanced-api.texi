@@ -165,24 +165,6 @@ to the world size. Communications statistics must be enabled
 @node Communication
 @subsection Communication
 
-The standard point to point communications of MPI have been
-implemented. The semantic is similar to the MPI one, but adapted to
-the DSM provided by StarPU. A MPI request will only be submitted when
-the data is available in the main memory of the node submitting the
-request.
-
-There is two types of asynchronous communications: the classic
-asynchronous communications and the detached communications. The
-classic asynchronous communications (@code{starpu_mpi_isend} and
-@code{starpu_mpi_irecv}) need to be followed by a call to
-@code{starpu_mpi_wait} or to @code{starpu_mpi_test} to wait for or to
-test the completion of the communication. Waiting for or testing the
-completion of detached communications is not possible, this is done
-internally by StarPU-MPI, on completion, the resources are
-automatically released. This mechanism is similar to the pthread
-detach state attribute which determines whether a thread will be
-created in a joinable or a detached state.
-
 @deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 Performs a standard-mode, blocking send of @var{data_handle} to the
 node @var{dest} using the message tag @code{mpi_tag} within the
