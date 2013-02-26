@@ -1328,11 +1328,15 @@ IS_SUPPORTED_CFLAG(-W)
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
-AC_SUBST(GLOBAL_AM_CFLAGS)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
+	IS_SUPPORTED_CFLAG(-Wunused)
+	IS_SUPPORTED_CFLAG(-Wundef)
+	IS_SUPPORTED_CFLAG(-Wshadow)
 fi
+
+AC_SUBST(GLOBAL_AM_CFLAGS)
 
 # Same value as Automake's, for use in other places.
 pkglibdir="\${libdir}/$PACKAGE"
