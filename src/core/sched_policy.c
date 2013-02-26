@@ -562,7 +562,7 @@ pick:
 	{
 		struct _starpu_sched_ctx *sched_ctx;
 
-		unsigned lucky_ctx = STARPU_NMAX_SCHED_CTXS;
+		//unsigned lucky_ctx = STARPU_NMAX_SCHED_CTXS;
 
 		int been_here[STARPU_NMAX_SCHED_CTXS];
 		int i;
@@ -581,7 +581,7 @@ pick:
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
-					lucky_ctx = sched_ctx->id;
+					//lucky_ctx = sched_ctx->id;
 				}
 			}
 
