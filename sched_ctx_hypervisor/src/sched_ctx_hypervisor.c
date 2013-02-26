@@ -419,7 +419,7 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 	{
 		_print_current_time();
 		int j;
-		printf("resize ctx %d with", sender_sched_ctx);
+		printf("resize ctx %d with %d workers", sender_sched_ctx, nworkers_to_move);
 		for(j = 0; j < nworkers_to_move; j++)
 			printf(" %d", workers_to_move[j]);
 		printf("\n");

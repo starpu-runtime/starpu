@@ -726,17 +726,19 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
 
 			/* take care the context is not deleted or changed at the same time */
-			_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx->id]);
-			int *workerids = NULL;
-			unsigned nworkers = _get_workers_list(sched_ctx, &workerids);
-
-			if(nworkers > 0)
+			_STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
-				starpu_sched_ctx_add_workers(workerids, nworkers, sched_ctx->inheritor);
-				free(workerids);
+				int *workerids = NULL;
+				unsigned nworkers = _get_workers_list(sched_ctx, &workerids);
+				
+				if(nworkers > 0)
+				{
+					starpu_sched_ctx_add_workers(workerids, nworkers, sched_ctx->inheritor);
+					free(workerids);
+				}
 			}
-
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
 			return;
 		}

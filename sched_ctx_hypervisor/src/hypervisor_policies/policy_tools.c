@@ -169,7 +169,6 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 		}
 	}
 
-
 	return curr_workers;
 }
 

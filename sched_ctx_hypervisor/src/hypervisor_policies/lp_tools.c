@@ -369,6 +369,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 				int nw_add = 0;
 
 				int w;
+				int j = 0, k = 0;
 				for(w = 0; w < nw; w++)
 				{
 					enum starpu_archtype arch = STARPU_ANY_WORKER;
@@ -381,7 +382,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 					if( nw_needed > 0 && tmp_nw_move[w] > 0)
 					{
 						nw_move += nw_needed >= tmp_nw_move[w] ? tmp_nw_move[w] : nw_needed;
-						int i = 0, j = 0;
+						int i = 0;
 						for(i = 0; i < STARPU_NMAXWORKERS; i++)
 						{
 							if(tmp_workers_move[w][i] != -1)
@@ -401,14 +402,14 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 					if(diff > 0.3 && tmp_nw_add[w] != 0)
 					{
 						nw_add = tmp_nw_add[w];
-						int i = 0, j = 0;
+						int i = 0;
 						for(i = 0; i < STARPU_NMAXWORKERS; i++)
 						{
 							if(tmp_workers_add[w][i] != -1)
 							{
-								workers_add[j++] = tmp_workers_add[w][i];
+								workers_add[k++] = tmp_workers_add[w][i];
 								tmp_workers_add[w][i] = -1;
-								if(j == nw_add)
+								if(k == nw_add)
 									break;
 							}
 						}
