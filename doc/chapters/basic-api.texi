@@ -2784,7 +2784,7 @@ otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchro
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_async_sync (cl_mem @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, cl_mem @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {cl_event *}@var{event})
+@deftypefun cl_int starpu_opencl_copy_async_sync (uintptr_t @var{src}, size_t @var{src_offset}, unsigned @var{src_node}, uintptr_t @var{dst}, size_t @var{dst_offset}, unsigned @var{dst_node}, size_t @var{size}, {cl_event *}@var{event})
 Copy @var{size} bytes from byte offset @var{src_offset} of
 @var{src} on @var{src_node} to byte offset @var{dst_offset} of @var{dst} on
 @var{dst_node}. if @var{event} is NULL, the copy is synchronous, i.e the queue is

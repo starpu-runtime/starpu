@@ -394,7 +394,7 @@ transfer is still ongoing), and return 0 otherwise.
 @end table
 @end deftp
 
-@deftypefun int starpu_interface_copy (uintptr_t @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, uintptr_t @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {void *}@var{async_data})
+@deftypefun int starpu_interface_copy (uintptr_t @var{src}, size_t @var{src_offset}, unsigned @var{src_node}, uintptr_t @var{dst}, size_t @var{dst_offset}, unsigned @var{dst_node}, size_t @var{size}, {void *}@var{async_data})
 Copy @var{size} bytes from byte offset @var{src_offset} of @var{src} on
 @var{src_node} to byte offset @var{dst_offset} of @var{dst} on @var{dst_node}.
 This is to be used in the @var{any_to_any} copy method, which is provided with
@@ -879,11 +879,11 @@ Return the worker collection managed by the indicated context
 TODO
 @end deftypefun
 
-@deftypefun void starpu_sched_ctx_set_task_context (unsigned *@var{sched_ctx_id})
+@deftypefun void starpu_sched_ctx_set_context (unsigned *@var{sched_ctx_id})
 Set the scheduling context the subsequent tasks will be submitted to
 @end deftypefun
 
-@deftypefun unsigned starpu_sched_ctx_get_task_context (void)
+@deftypefun unsigned starpu_sched_ctx_get_context (void)
 Return the scheduling context the tasks are currently submitted to
 @end deftypefun
 
