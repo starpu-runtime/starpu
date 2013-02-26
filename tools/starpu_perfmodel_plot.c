@@ -35,14 +35,12 @@
 
 #define PROGNAME "starpu_perfmodel_plot"
 
-static struct starpu_perfmodel model;
-
 /* display all available models */
 static int list = 0;
 /* what kernel ? */
 static char *symbol = NULL;
 /* which architecture ? (NULL = all)*/
-static char *arch = NULL;
+static char *archname = NULL;
 /* Unless a FxT file is specified, we just display the model */
 static int no_fxt_file = 1;
 
@@ -59,7 +57,7 @@ static char data_file_name[256];
 static char avg_file_name[256];
 static char gnuplot_file_name[256];
 
-static void usage(char **argv)
+static void usage()
 {
 	fprintf(stderr, "Draw a graph corresponding to the execution time of a \
 given perfmodel\n");
@@ -95,13 +93,16 @@ static void parse_args(int argc, char **argv)
 	unsigned reading_input_filenames = 0;
 
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-s") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-s") == 0)
+		{
 			symbol = argv[++i];
 			continue;
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 			reading_input_filenames = 1;
 #ifdef STARPU_USE_FXT
 			options.filenames[options.ninputfiles++] = argv[++i];
@@ -112,19 +113,22 @@ static void parse_args(int argc, char **argv)
 			continue;
 		}
 
-		if (strcmp(argv[i], "-l") == 0) {
+		if (strcmp(argv[i], "-l") == 0)
+		{
 			list = 1;
 			continue;
 		}
 
-		if (strcmp(argv[i], "-a") == 0) {
-			arch = argv[++i];
+		if (strcmp(argv[i], "-a") == 0)
+		{
+			archname = argv[++i];
 			continue;
 		}
 
 		if (strcmp(argv[i], "-h") == 0 ||
-		    strcmp(argv[i], "--help") == 0) {
-			usage(argv);
+		    strcmp(argv[i], "--help") == 0)
+		{
+			usage();
 			exit(EXIT_SUCCESS);
 		}
 
@@ -162,7 +166,8 @@ static void print_comma(FILE *gnuplot_file, int *first)
 	{
 		*first = 0;
 	}
-	else {
+	else
+	{
 		fprintf(gnuplot_file, ",\\\n\t");
 	}
 }
@@ -190,7 +195,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 	if (arch_model->regression.valid && !arch_model->regression.nl_valid)
 	{
 		print_comma(gnuplot_file, first);
-	
+
 		fprintf(stderr, "\tLinear: y = alpha size ^ beta\n");
 		fprintf(stderr, "\t\talpha = %e\n", arch_model->regression.alpha * 0.001);
 		fprintf(stderr, "\t\tbeta = %e\n", arch_model->regression.beta);
@@ -202,7 +207,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 	if (arch_model->regression.nl_valid)
 	{
 		print_comma(gnuplot_file, first);
-	
+
 		fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
 		fprintf(stderr, "\t\ta = %e\n", arch_model->regression.a * 0.001);
 		fprintf(stderr, "\t\tb = %e\n", arch_model->regression.b);
@@ -219,9 +224,9 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	FILE *datafile;
 	unsigned arch;
 	struct starpu_perfmodel_history_list *ptr;
-	char archname[32];
+	char arch_name[32];
 	int col;
-	int len;
+	size_t len;
 	unsigned long last, minimum = 0;
 
 	len = 10 + strlen(avg_file_name) + 1;
@@ -231,30 +236,36 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 	col = 2;
 	unsigned implid;
-	for (arch = arch1; arch < arch2; arch++) {
-		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
+	for (arch = arch1; arch < arch2; arch++)
+	{
+		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+		{
 			struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
-			starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, archname, 32, implid);
+			starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, arch_name, 32, implid);
 
 			//ptrs[arch-arch1][implid] = ptr[arch-arch1][implid] = arch_model->list;
 
-			if (arch_model->list) {
+			if (arch_model->list)
+			{
 				print_comma(gnuplot_file, first);
-				fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", avg_file_name, col, col+1, archname);
+				fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", avg_file_name, col, col+1, arch_name);
 				col += 2;
 			}
 		}
 	}
 
-	while (1) {
+	while (1)
+	{
 		last = minimum;
 
 		minimum = ULONG_MAX;
 		/* Get the next minimum */
 		for (arch = arch1; arch < arch2; arch++)
-			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+			{
 				struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
-				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
+				for (ptr = arch_model->list; ptr; ptr = ptr->next)
+				{
 					unsigned long size = ptr->entry->size;
 					if (size > last && size < minimum)
 						minimum = size;
@@ -265,12 +276,16 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 		fprintf(stderr, "%lu ", minimum);
 		fprintf(datafile, "%-15lu ", minimum);
-		for (arch = arch1; arch < arch2; arch++) {
-			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
+		for (arch = arch1; arch < arch2; arch++)
+		{
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+			{
 				struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
-				for (ptr = arch_model->list; ptr; ptr = ptr->next) {
+				for (ptr = arch_model->list; ptr; ptr = ptr->next)
+				{
 					struct starpu_perfmodel_history_entry *entry = ptr->entry;
-					if (entry->size == minimum) {
+					if (entry->size == minimum)
+					{
 						fprintf(datafile, "\t%-15le\t%-15le", 0.001*entry->mean, 0.001*entry->deviation);
 						break;
 					}
@@ -290,8 +305,10 @@ static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *mod
 {
 	unsigned arch;
 	unsigned implid;
-	for (arch = arch1; arch < arch2; arch++) {
-		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) {
+	for (arch = arch1; arch < arch2; arch++)
+	{
+		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+		{
 			display_perf_model(gnuplot_file, model, (enum starpu_perf_archtype) arch, first,
 implid);
 		}
@@ -308,7 +325,8 @@ static void dump_data_file(FILE *data_file)
 	for (i = 0; i < options.dumped_codelets_count; i++)
 	{
 		/* Dump only if the symbol matches user's request */
-		if (strncmp(dumped_codelets[i].symbol, symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0) {
+		if (strncmp(dumped_codelets[i].symbol, symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
+		{
 			enum starpu_perf_archtype archtype = dumped_codelets[i].archtype;
 			archtype_is_found[archtype] = 1;
 
@@ -344,15 +362,18 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	int first = 1;
 	fprintf(gnuplot_file, "plot\t");
 
-	if (arch == NULL)
+	if (archname == NULL)
 	{
 		/* display all architectures */
 		display_perf_models(gnuplot_file, model, (enum starpu_perf_archtype) 0, (enum starpu_perf_archtype) STARPU_NARCH_VARIATIONS, &first);
 	}
-	else {
-		if (strcmp(arch, "cpu") == 0) {
+	else
+	{
+		if (strcmp(archname, "cpu") == 0)
+		{
 			unsigned impl;
-			for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++) {
+			for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+			{
 				display_perf_model(gnuplot_file, model,
 							STARPU_CPU_DEFAULT,
 							&first, impl);
@@ -361,7 +382,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 		}
 
 		int k;
-		if (sscanf(arch, "cpu:%d", &k) == 1)
+		if (sscanf(archname, "cpu:%d", &k) == 1)
 		{
 			/* For combined CPU workers */
 			if ((k < 1) || (k > STARPU_MAXCPUS))
@@ -374,7 +395,8 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 			return;
 		}
 
-		if (strcmp(arch, "cuda") == 0) {
+		if (strcmp(archname, "cuda") == 0)
+		{
 			display_perf_models(gnuplot_file, model, STARPU_CUDA_DEFAULT, (enum starpu_perf_archtype) (STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS), &first);
 			return;
 		}
@@ -382,10 +404,10 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 		/* There must be a cleaner way ! */
 		int gpuid;
 		int nmatched;
-		nmatched = sscanf(arch, "cuda_%d", &gpuid);
+		nmatched = sscanf(archname, "cuda_%d", &gpuid);
 		if (nmatched == 1)
 		{
-			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
+			int archid = STARPU_CUDA_DEFAULT+ gpuid;
 			display_perf_models(gnuplot_file, model, (enum starpu_perf_archtype) archid, (enum starpu_perf_archtype) (archid + 1), &first);
 			return;
 		}
@@ -398,6 +420,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 int main(int argc, char **argv)
 {
 	int ret;
+	struct starpu_perfmodel model;
 
 #ifdef __MINGW32__
 	WSADATA wsadata;
@@ -406,9 +429,11 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-        if (list) {
-                int ret = starpu_perfmodel_list(stdout);
-                if (ret) {
+        if (list)
+	{
+                ret = starpu_perfmodel_list(stdout);
+                if (ret)
+		{
                         fprintf(stderr, "The performance model directory is invalid\n");
                         return 1;
                 }
@@ -463,6 +488,8 @@ int main(int argc, char **argv)
 		perror("chmod");
 		STARPU_ABORT();
 	}
+
+	_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
 
 	return 0;
 }
