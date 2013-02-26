@@ -101,9 +101,9 @@ struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collectio
 pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
 #endif
 
-void starpu_sched_ctx_set_task_context(unsigned *sched_ctx_id);
+void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
 
-unsigned starpu_sched_ctx_get_task_context(void);
+unsigned starpu_sched_ctx_get_context(void);
 
 void starpu_sched_ctx_notify_hypervisor_exists(void);
 

@@ -365,7 +365,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->exclude_from_dag)
 	{
-		set_sched_ctx = starpu_sched_ctx_get_task_context();
+		set_sched_ctx = starpu_sched_ctx_get_context();
 		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			task->sched_ctx = set_sched_ctx;
 	}
@@ -633,7 +633,7 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl)
 int starpu_task_wait_for_all(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
-	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_task_context();
+	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_context();
 
 	/* if there is no indication about which context to wait,
 	   we wait for all tasks submitted to starpu */

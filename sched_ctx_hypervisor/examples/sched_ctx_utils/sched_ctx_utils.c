@@ -97,7 +97,7 @@ void* start_bench(void *val)
 	pthread_setspecific(key, &p->id);
 
 	if(p->ctx != 0)
-		starpu_sched_ctx_set_task_context(&p->ctx);
+		starpu_sched_ctx_set_context(&p->ctx);
 
 	for(i = 0; i < NSAMPLES; i++)
 		p->bench(p->mat[i], p->size, p->nblocks);

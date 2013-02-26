@@ -130,6 +130,9 @@ struct sched_ctx_hypervisor_wrapper
 	/* data quantity executed on each worker in this ctx */
 	size_t elapsed_data[STARPU_NMAXWORKERS];
 
+	/* nr of tasks executed on each worker in this ctx */
+	int elapsed_tasks[STARPU_NMAXWORKERS];
+
 	/* the average speed of workers when they belonged to this context */
 	double ref_velocity[STARPU_NMAXWORKERS];
 

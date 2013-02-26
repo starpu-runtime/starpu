@@ -410,13 +410,12 @@ double _get_slowest_ctx_exec_time(void)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
 
-/*                 double elapsed_time = curr_time - sc_w->start_time; */
-/* 		if(elapsed_time > slowest_time) */
-/* 			slowest_time = elapsed_time; */
-
-//		double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
-		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
-                double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/_get_ctx_velocity(sc_w);
+		double elapsed_time  = (curr_time - sc_w->start_time)/1000000;
+/* 		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx); */
+/* 		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/_get_ctx_velocity(sc_w); */
+/* 		double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w); */
+/* 		double velocity = _get_ctx_velocity(sc_w); */
+/*                 double elapsed_time = (elapsed_flops/1000000000.0)/velocity; */
 		if(elapsed_time > slowest_time)
 			slowest_time = elapsed_time;
 
@@ -440,8 +439,11 @@ double _get_fastest_ctx_exec_time(void)
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
 
 		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
-                double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/_get_ctx_velocity(sc_w);
-
+		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/_get_ctx_velocity(sc_w);
+/* 		double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);		 */
+/* 		double velocity = _get_ctx_velocity(sc_w); */
+/*                 double elapsed_time = (elapsed_flops/1000000000.0)/velocity; */
+		
 		if(elapsed_time < fastest_time)
 			fastest_time = elapsed_time;
 
@@ -458,6 +460,7 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 
         double elapsed_flops = sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
 	size_t elapsed_data_used = sc_w->elapsed_data[worker];
+	int elapsed_tasks = sc_w->elapsed_tasks[worker];
 	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sc_w->sched_ctx);
 	double sample = config->ispeed_w_sample[worker] / 1000000000.0; /*in gflops */
 
@@ -480,12 +483,16 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
- 		enum starpu_archtype arch = starpu_worker_get_type(worker);
-		if(arch == STARPU_CUDA_WORKER)
-		{	
-			double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-			elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ;
-		}
+/*  		enum starpu_archtype arch = starpu_worker_get_type(worker); */
+/* 		if(arch == STARPU_CUDA_WORKER) */
+/* 		{	 */
+/* 			double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker); */
+/* 			elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ; */
+/* 			double latency = starpu_get_latency_RAM_CUDA(worker); */
+/* //			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks); */
+/* 			elapsed_time += (elapsed_tasks * latency)/1000000; */
+/* //			printf("elapsed time after %lf \n", elapsed_time); */
+/* 		} */
 			
                 double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
 		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 0.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 

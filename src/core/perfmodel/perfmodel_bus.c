@@ -1349,6 +1349,11 @@ double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
 	return bandwidth_matrix[0][cudadev+1];
 }
 
+double starpu_get_latency_RAM_CUDA(unsigned cudadev)
+{
+	return latency_matrix[0][cudadev+1];
+}
+
 void starpu_bus_print_bandwidth(FILE *f)
 {
 	unsigned src, dst, maxnode;
