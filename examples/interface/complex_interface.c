@@ -289,7 +289,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.copy_methods = &complex_copy_methods,
 	.get_size = complex_get_size,
 	.footprint = complex_footprint,
-	.interfaceid = -1,
+	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_complex_interface),
 	.handle_to_pointer = complex_handle_to_pointer,
 	.pack_data = complex_pack_data,
@@ -305,7 +305,7 @@ void starpu_complex_data_register(starpu_data_handle_t *handleptr, unsigned home
 		.nx = nx
 	};
 
-	if (interface_complex_ops.interfaceid == -1)
+	if (interface_complex_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
 	}

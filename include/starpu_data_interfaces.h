@@ -81,6 +81,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 
 enum starpu_data_interface_id
 {
+	STARPU_UNKNOWN_INTERFACE_ID = -1,
 	STARPU_MATRIX_INTERFACE_ID=0,
 	STARPU_BLOCK_INTERFACE_ID=1,
 	STARPU_VECTOR_INTERFACE_ID=2,

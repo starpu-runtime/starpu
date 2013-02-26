@@ -98,7 +98,7 @@ static struct starpu_data_interface_ops interface_custom_ops =
 	.get_size              = custom_interface_get_size,
 	.footprint             = footprint_custom_interface_crc32,
 	.compare               = NULL,
-	.interfaceid           = -1,
+	.interfaceid           = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size        = sizeof(struct custom_data_interface),
 	.display               = display_custom_interface,
 	.is_multiformat        = 1,
@@ -276,7 +276,8 @@ void custom_data_register(starpu_data_handle_t *handle,
 		.ops = format_ops
 	};
 
-	if (interface_custom_ops.interfaceid == -1) {
+	if (interface_custom_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
+	{
 		interface_custom_ops.interfaceid = starpu_data_interface_get_next_id();
 	}
 	starpu_data_register(handle, home_node, &custom, &interface_custom_ops);
