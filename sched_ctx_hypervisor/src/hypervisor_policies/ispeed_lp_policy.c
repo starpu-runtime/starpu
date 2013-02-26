@@ -32,8 +32,9 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
 	int w,s;
-	struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
 
+	struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
+	double total_flops = 0.0;
 	for(s = 0; s < ns; s++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
@@ -56,23 +57,18 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
 			}
 			
-			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
+//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
 		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
-//		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
-		flops[s] = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w)/1000000000.0; // in gflops 
-		printf("%d: elapsed flops %lf\n", sched_ctxs[s], flops[s]);
+		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
 	}
-
-
+	
 	/* take the exec time of the slowest ctx 
 	   as starting point and then try to minimize it
 	   as increasing it a little for the faster ctxs */
 	double tmax = _get_slowest_ctx_exec_time();
-/* 	double smallest_tmax = _get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; */
-	double smallest_tmax = tmax - 0.5*tmax;
-
-	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
+ 	double smallest_tmax = _get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; 
+//	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
 
 	double res = 1.0;
 	unsigned has_sol = 0;
@@ -154,7 +150,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 	int w, s;
 	glp_prob *lp;
 
-	printf("try with tmax %lf\n", tmax);
+//	printf("try with tmax %lf\n", tmax);
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
 	glp_set_obj_dir(lp, GLP_MAX);
@@ -336,7 +332,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*ns+colnum(w, s));
 			else
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*ns+colnum(w,s));
-			printf("w_in_s[s%d][w%d] = %lf flops[s%d][w%d] = %lf \n", s, w, w_in_s[s][w], s, w, flops_on_w[s][w]);
+//			printf("w_in_s[s%d][w%d] = %lf flops[s%d][w%d] = %lf \n", s, w, w_in_s[s][w], s, w, flops_on_w[s][w]);
 		}
 
 	glp_delete_prob(lp);
@@ -401,15 +397,13 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker)
 						}
 					}
 				}
-				for(s = 0; s < ns; s++)
-					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0],
-					       nworkers_rounded[s][1], nworkers_rounded[s][0]);
+/* 				for(s = 0; s < ns; s++) */
+/* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
+/* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 
 				_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
 
 			}
-			else
-				printf("no sol\n");
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
