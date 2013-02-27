@@ -1849,6 +1849,11 @@ A pointer to the next task. This should only be used by StarPU.
 This is only used for tasks that use multiformat handle. This should only be
 used by StarPU.
 
+@item @code{double flops}
+This can be set to the number of floating points operations that the task
+will have to achieve. This is useful for easily getting GFlops curves from
+@code{starpu_perfmodel_plot}, and for the hypervisor load balancing.
+
 @item @code{void *starpu_private}
 This is private to StarPU, do not modify. If the task is allocated by hand
 (without starpu_task_create), this field should be set to NULL.
@@ -1857,6 +1862,7 @@ This is private to StarPU, do not modify. If the task is allocated by hand
 This field is set when initializing a task. It prevents a task from being
 submitted if it has not been properly initialized.
 @end table
+
 @end deftp
 
 @deftypefun void starpu_task_init ({struct starpu_task} *@var{task})

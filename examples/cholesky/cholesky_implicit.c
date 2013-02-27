@@ -85,6 +85,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	double end;
 
 	unsigned i,j,k;
+	unsigned long n = starpu_matrix_get_nx(dataA);
+	unsigned long nn = n/nblocks;
 
 	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
@@ -101,6 +103,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					 STARPU_PRIORITY, prio_level,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
+					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 0);
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
@@ -113,6 +116,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
+						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 0);
 			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
@@ -129,6 +133,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
 								 STARPU_RW, sdataij,
+								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 								 0);
 					if (ret == -ENODEV) return 77;
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
@@ -144,9 +149,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	end = starpu_timing_now();
 
 	double timing = end - start;
-	unsigned long n = starpu_matrix_get_nx(dataA);
 
-	double flop = (1.0f*n*n*n)/3.0f;
+	double flop = FLOPS_SPOTRF(n);
 
 	if(with_ctxs || with_noctxs || chole1 || chole2)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));

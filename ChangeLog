@@ -103,6 +103,7 @@ Small features:
     the profile of a codelet.
   * File STARPU-REVISION --- containing the SVN revision number from which
     StarPU was compiled --- is installed in the share/doc/starpu directory
+  * starpu_perfmodel_plot can now directly draw GFlops curves.
 
 Changes:
   * Fix the block filter functions.

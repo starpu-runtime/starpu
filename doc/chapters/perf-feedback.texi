@@ -411,7 +411,7 @@ display the regression formula, and in the case of non-linear regression, the
 same performance log as for history-based performance models:
 
 @example
-$ starpu_perfmodel_display -s non_linear_memset_regression_based.type
+$ starpu_perfmodel_display -s non_linear_memset_regression_based
 performance model for cpu_impl_0
 	Regression : #sample = 1400
 	Linear: y = alpha size ^ beta
@@ -429,14 +429,24 @@ a3d3725e	4096           	4.763200e+00   	7.650928e-01   	100
 ...
 @end example
 
-The @code{starpu_perfmodel_plot} tool can be used to draw performance models.
-It writes a @code{.gp} file in the current directory, to be run in the
-@code{gnuplot} tool, which shows the corresponding curve.
-
 The same can also be achieved by using StarPU's library API, see
 @ref{Performance Model API} and notably the @code{starpu_perfmodel_load_symbol}
 function. The source code of the @code{starpu_perfmodel_display} tool can be a
 useful example.
+
+The @code{starpu_perfmodel_plot} tool can be used to draw performance models.
+It writes a @code{.gp} file in the current directory, to be run in the
+@code{gnuplot} tool, which shows the corresponding curve.
+
+When the @code{flops} field of tasks is set, @code{starpu_perfmodel_plot} can
+directly draw a GFlops curve, by simply adding the @code{-f} option:
+
+@example
+$ starpu_perfmodel_display -f -s chol_model_11
+@end example
+
+This will however disable displaying the regression model, for which we can not
+compute GFlops.
 
 When the FxT trace file @code{filename} has been generated, it is possible to
 get a profiling of each codelet by calling:
@@ -453,10 +463,10 @@ This is also available in the @code{starpu_perfmodel_plot} tool, by passing it
 the fxt trace:
 
 @example
-$ starpu_perfmodel_display -s non_linear_memset_regression_based.type -i /tmp/prof_file_foo_0
+$ starpu_perfmodel_plot -s non_linear_memset_regression_based -i /tmp/prof_file_foo_0
 @end example
 
-It willd produce a @code{.gp} file which contains both the performance model
+It will produce a @code{.gp} file which contains both the performance model
 curves, and the profiling measurements.
 
 If you have the R statistical tool installed, you can additionally use

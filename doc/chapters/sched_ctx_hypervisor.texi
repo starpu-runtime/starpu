@@ -200,7 +200,7 @@ or
 @smallexample
 starpu_insert_task(&codelet,
                     ...,
-                    STARPU_FLOPS, 100,
+                    STARPU_FLOPS, (double) 100,
                     0);
 @end smallexample
 @end cartouche

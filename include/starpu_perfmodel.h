@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -102,6 +102,8 @@ struct starpu_perfmodel_history_entry
 #else
 	size_t size; /* in bytes */
 #endif
+
+	double flops; /* Provided by the application */
 };
 
 struct starpu_perfmodel_history_list

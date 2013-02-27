@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -71,6 +71,9 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
+	int n = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_SPOTRF(n);
+
 	return task;
 }
 
@@ -112,6 +115,9 @@ static int create_task_21(unsigned k, unsigned j)
 	{
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
+
+	int n = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_STRSM(n, n);
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -159,6 +165,9 @@ static int create_task_22(unsigned k, unsigned i, unsigned j)
 	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
+
+	int n = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_SGEMM(n, n, n);
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

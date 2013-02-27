@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -68,6 +68,9 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 		starpu_tag_declare_deps(TAG11_AUX(k, reclevel), 1, TAG22_AUX(k-1, k, k, reclevel));
 	}
 
+	int n = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_SPOTRF(n);
+
 	return task;
 }
 
@@ -109,6 +112,9 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 	{
 		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 1, TAG11_AUX(k, reclevel));
 	}
+
+	int n = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_STRSM(n, n);
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -156,6 +162,9 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	{
 		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 2, TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
 	}
+
+	int n = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_SGEMM(n, n, n);
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
