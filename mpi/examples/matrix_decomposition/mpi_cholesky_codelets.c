@@ -64,7 +64,7 @@ static struct starpu_codelet cl22 =
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
-void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, int rank, int nodes, double *timing, double *flops)
+void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
 {
 	struct timeval start;
 	struct timeval end;
@@ -166,7 +166,7 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 	}
 }
 
-void dw_cholesky_check_computation(float ***matA, unsigned size, int rank, int nodes, int *correctness, double *flops)
+void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops)
 {
 	unsigned i,j,x,y;
 	float *rmat = malloc(size*size*sizeof(float));

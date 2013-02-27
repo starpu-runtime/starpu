@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
 	matrix_init(&bmat, rank, nodes, 0);
 
-	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
+	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
 
