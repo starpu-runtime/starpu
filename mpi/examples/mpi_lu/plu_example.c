@@ -117,16 +117,16 @@ unsigned STARPU_PLU(display_flag)(void)
 	return display;
 }
 
-static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nblocks)
+static void fill_block_with_random(TYPE *blockptr, unsigned psize, unsigned pnblocks)
 {
-	const unsigned block_size = (size/nblocks);
+	const unsigned block_size = (psize/pnblocks);
 
 	unsigned i, j;
 	for (i = 0; i < block_size; i++)
-	for (j = 0; j < block_size; j++)
-	{
-		blockptr[j+i*block_size] = (TYPE)starpu_drand48();
-	}
+	     for (j = 0; j < block_size; j++)
+	     {
+		  blockptr[j+i*block_size] = (TYPE)starpu_drand48();
+	     }
 }
 
 #ifdef SINGLE_TMP11
@@ -163,15 +163,15 @@ starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
 }
 #endif
 
-static unsigned tmp_11_block_is_needed(int rank, unsigned nblocks, unsigned k)
+static unsigned tmp_11_block_is_needed(int rank, unsigned pnblocks, unsigned k)
 {
 	return 1;
 }
 
-static unsigned tmp_12_block_is_needed(int rank, unsigned nblocks, unsigned j)
+static unsigned tmp_12_block_is_needed(int rank, unsigned pnblocks, unsigned j)
 {
 	unsigned i;
-	for (i = 1; i < nblocks; i++)
+	for (i = 1; i < pnblocks; i++)
 	{
 		if (get_block_rank(i, j) == rank)
 			return 1;
@@ -180,10 +180,10 @@ static unsigned tmp_12_block_is_needed(int rank, unsigned nblocks, unsigned j)
 	return 0;
 }
 
-static unsigned tmp_21_block_is_needed(int rank, unsigned nblocks, unsigned i)
+static unsigned tmp_21_block_is_needed(int rank, unsigned pnblocks, unsigned i)
 {
 	unsigned j;
-	for (j = 1; j < nblocks; j++)
+	for (j = 1; j < pnblocks; j++)
 	{
 		if (get_block_rank(i, j) == rank)
 			return 1;
@@ -373,7 +373,7 @@ starpu_data_handle_t STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 	return dataA_handles[j+i*nblocks];
 }
 
-static void display_grid(int rank, unsigned nblocks)
+static void display_grid(int rank, unsigned pnblocks)
 {
 	if (!display)
 		return;
@@ -383,9 +383,9 @@ static void display_grid(int rank, unsigned nblocks)
 		fprintf(stderr, "2D grid layout (Rank %d): \n", rank);
 
 		unsigned i, j;
-		for (j = 0; j < nblocks; j++)
+		for (j = 0; j < pnblocks; j++)
 		{
-			for (i = 0; i < nblocks; i++)
+			for (i = 0; i < pnblocks; i++)
 			{
 				TYPE *blockptr = STARPU_PLU(get_block)(i, j);
 				starpu_data_handle_t handle = STARPU_PLU(get_block_handle)(i, j);
