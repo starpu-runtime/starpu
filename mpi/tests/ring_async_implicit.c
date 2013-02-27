@@ -39,7 +39,6 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet increment_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda, NULL},
 #endif

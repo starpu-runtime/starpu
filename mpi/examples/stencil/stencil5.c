@@ -31,7 +31,6 @@ void stencil5_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 
 struct starpu_codelet stencil5_cl =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {stencil5_cpu, NULL},
 	.nbuffers = 5,
 	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}

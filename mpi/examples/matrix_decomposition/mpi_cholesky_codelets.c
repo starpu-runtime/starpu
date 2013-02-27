@@ -29,7 +29,6 @@
 
 static struct starpu_codelet cl11 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
@@ -41,7 +40,6 @@ static struct starpu_codelet cl11 =
 
 static struct starpu_codelet cl21 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
@@ -53,7 +51,6 @@ static struct starpu_codelet cl21 =
 
 static struct starpu_codelet cl22 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
