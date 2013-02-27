@@ -31,7 +31,6 @@ extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
 static struct starpu_codelet cl = {
-    .where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
     /* CPU implementation of the codelet */
     .cpu_funcs = {scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
