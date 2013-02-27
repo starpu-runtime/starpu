@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL;
         cl.cpu_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_CUDA
         cl.cuda_funcs[0] = cuda_codelet;

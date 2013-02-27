@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -77,7 +77,6 @@ static struct starpu_perfmodel pipeline_model_x =
 
 static struct starpu_codelet pipeline_codelet_x =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {pipeline_cpu_x, NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
@@ -113,11 +112,6 @@ static struct starpu_perfmodel pipeline_model_axpy =
 
 static struct starpu_codelet pipeline_codelet_axpy =
 {
-	.where = STARPU_CPU
-#ifdef STARPU_USE_CUDA
-		| STARPU_CUDA
-#endif
-		,
 	.cpu_funcs = {pipeline_cpu_axpy, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {pipeline_cublas_axpy, NULL},
@@ -160,11 +154,6 @@ static struct starpu_perfmodel pipeline_model_sum =
 
 static struct starpu_codelet pipeline_codelet_sum =
 {
-	.where = STARPU_CPU
-#ifdef STARPU_USE_CUDA
-		| STARPU_CUDA
-#endif
-		,
 	.cpu_funcs = {pipeline_cpu_sum, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {pipeline_cublas_sum, NULL},

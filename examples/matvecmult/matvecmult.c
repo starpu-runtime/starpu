@@ -129,7 +129,6 @@ static struct starpu_perfmodel starpu_matvecmult_model =
 
 static struct starpu_codelet cl =
 {
-	.where = STARPU_OPENCL,
 #ifdef STARPU_USE_OPENCL
         .opencl_funcs[0] = opencl_codelet,
 #endif

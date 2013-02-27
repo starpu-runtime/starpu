@@ -50,7 +50,6 @@ int main(int argc, char **argv)
 
 	struct starpu_codelet cl =
 	{
-		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 		.cpu_funcs = {sleep_codelet, NULL},
 		.cuda_funcs = {sleep_codelet, NULL},
 		.opencl_funcs = {sleep_codelet, NULL},

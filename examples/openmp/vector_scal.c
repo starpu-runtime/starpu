@@ -57,7 +57,6 @@ static struct starpu_perfmodel vector_scal_model =
 static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU,
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {scal_cpu_func, NULL},

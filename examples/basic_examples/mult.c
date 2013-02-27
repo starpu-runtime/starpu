@@ -263,7 +263,6 @@ static struct starpu_perfmodel mult_perf_model =
 static struct starpu_codelet cl =
 {
         /* we can only execute that kernel on a CPU yet */
-        .where = STARPU_CPU,
         /* CPU implementation of the codelet */
         .cpu_funcs = {cpu_mult, NULL},
         /* the codelet manipulates 3 buffers that are managed by the

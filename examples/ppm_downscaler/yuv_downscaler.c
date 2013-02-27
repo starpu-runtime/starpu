@@ -86,7 +86,6 @@ static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 
 static struct starpu_codelet ds_codelet =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {ds_kernel_cpu, NULL},
 	.nbuffers = 2, /* input -> output */
 	.modes = {STARPU_R, STARPU_W},

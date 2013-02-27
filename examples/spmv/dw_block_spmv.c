@@ -147,7 +147,6 @@ unsigned totaltasks;
 
 struct starpu_codelet cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = { cpu_block_spmv, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_block_spmv, NULL},
