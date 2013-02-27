@@ -68,6 +68,9 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 {
 	int i;
 	int nworkers = starpu_worker_get_count();
+
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
 	for (i = 0; i < nworkers; i++)
 	{
 		if (starpu_worker_get_type(i) != arch)
@@ -114,6 +117,8 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
    that may execute the task or not */
 uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
 	if (!(task->cl->where & config.worker_mask))
 		return 0;
 
