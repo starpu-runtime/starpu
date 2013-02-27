@@ -24,7 +24,6 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static struct starpu_codelet codelet_R_R =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -33,7 +32,6 @@ static struct starpu_codelet codelet_R_R =
 
 static struct starpu_codelet codelet_R_W =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -42,7 +40,6 @@ static struct starpu_codelet codelet_R_W =
 
 static struct starpu_codelet codelet_R_RW =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -51,7 +48,6 @@ static struct starpu_codelet codelet_R_RW =
 
 static struct starpu_codelet codelet_W_R =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -60,7 +56,6 @@ static struct starpu_codelet codelet_W_R =
 
 static struct starpu_codelet codelet_W_W =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -69,7 +64,6 @@ static struct starpu_codelet codelet_W_W =
 
 static struct starpu_codelet codelet_W_RW =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -78,7 +72,6 @@ static struct starpu_codelet codelet_W_RW =
 
 static struct starpu_codelet codelet_RW_R =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -87,7 +80,6 @@ static struct starpu_codelet codelet_RW_R =
 
 static struct starpu_codelet codelet_RW_W =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,
@@ -96,7 +88,6 @@ static struct starpu_codelet codelet_RW_W =
 
 static struct starpu_codelet codelet_RW_RW =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = { dummy_func, NULL },
         .model = NULL,
         .nbuffers = 2,

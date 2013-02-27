@@ -32,7 +32,6 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static struct starpu_codelet dummy_codelet = 
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
@@ -52,7 +51,6 @@ static void callback(void *arg __attribute__ ((unused)))
 
 static struct starpu_codelet callback_submit_codelet = 
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
@@ -74,7 +72,6 @@ static void task_submit_func(void *descr[] __attribute__ ((unused)), void *arg _
 
 static struct starpu_codelet task_submit_codelet = 
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {task_submit_func, NULL},
 	.cuda_funcs = {task_submit_func, NULL},
 	.opencl_funcs = {task_submit_func, NULL},

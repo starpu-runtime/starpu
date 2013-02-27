@@ -46,7 +46,6 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {codelet_null, NULL},

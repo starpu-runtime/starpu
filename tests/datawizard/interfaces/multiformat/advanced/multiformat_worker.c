@@ -35,7 +35,6 @@ static int opencl_worker;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static struct starpu_codelet cl =
 {
-	.where = STARPU_CUDA|STARPU_OPENCL,
 	.modes = { STARPU_RW },
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { cuda_func, NULL },

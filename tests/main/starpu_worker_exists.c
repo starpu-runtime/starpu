@@ -48,7 +48,6 @@ static void fake(void *buffers[], void *args)
 
 static struct starpu_codelet cl =
 {
-	.where        = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
 	.cpu_funcs    = { fake, NULL},
 	.cuda_funcs   = { fake, NULL},
 	.opencl_funcs = { fake, NULL},

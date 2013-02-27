@@ -20,14 +20,7 @@
 
 struct starpu_codelet mycodelet =
 {
-        .where = STARPU_CPU
-#ifdef STARPU_USE_CUDA
-		| STARPU_CUDA
-#endif
-#ifdef STARPU_USE_OPENCL
-		| STARPU_OPENCL
-#endif
-		,
+		
 	.cpu_funcs = { scal_func_cpu, NULL },
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { scal_func_opencl, NULL },

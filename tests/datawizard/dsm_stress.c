@@ -87,7 +87,6 @@ static enum starpu_access_mode select_random_mode(void)
 
 static struct starpu_codelet cl_r_r =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -97,7 +96,6 @@ static struct starpu_codelet cl_r_r =
 
 static struct starpu_codelet cl_r_w =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -107,7 +105,6 @@ static struct starpu_codelet cl_r_w =
 
 static struct starpu_codelet cl_r_rw =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -117,7 +114,6 @@ static struct starpu_codelet cl_r_rw =
 
 static struct starpu_codelet cl_w_r =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -127,7 +123,6 @@ static struct starpu_codelet cl_w_r =
 
 static struct starpu_codelet cl_w_w =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -137,7 +132,6 @@ static struct starpu_codelet cl_w_w =
 
 static struct starpu_codelet cl_w_rw =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -147,7 +141,6 @@ static struct starpu_codelet cl_w_rw =
 
 static struct starpu_codelet cl_rw_r =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -157,7 +150,6 @@ static struct starpu_codelet cl_rw_r =
 
 static struct starpu_codelet cl_rw_w =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
@@ -167,7 +159,6 @@ static struct starpu_codelet cl_rw_w =
 
 static struct starpu_codelet cl_rw_rw =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
