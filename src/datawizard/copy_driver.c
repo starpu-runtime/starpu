@@ -149,8 +149,11 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				!(copy_methods->cuda_to_ram_async || copy_methods->any_to_any))
 		{
 			/* this is not associated to a request so it's synchronous */
-			STARPU_ASSERT(copy_methods->cuda_to_ram);
-			copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
+			STARPU_ASSERT(copy_methods->cuda_to_ram || copy_methods->any_to_any);
+			if (copy_methods->cuda_to_ram)
+				copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		}
 		else
 		{
@@ -181,8 +184,11 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				!(copy_methods->ram_to_cuda_async || copy_methods->any_to_any))
 		{
 			/* this is not associated to a request so it's synchronous */
-			STARPU_ASSERT(copy_methods->ram_to_cuda);
-			copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
+			STARPU_ASSERT(copy_methods->ram_to_cuda || copy_methods->any_to_any);
+			if (copy_methods->ram_to_cuda)
+				copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		}
 		else
 		{
@@ -210,9 +216,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
 				!(copy_methods->cuda_to_cuda_async || copy_methods->any_to_any))
 		{
-			STARPU_ASSERT(copy_methods->cuda_to_cuda);
+			STARPU_ASSERT(copy_methods->cuda_to_cuda || copy_methods->any_to_any);
 			/* this is not associated to a request so it's synchronous */
-			copy_methods->cuda_to_cuda(src_interface, src_node, dst_interface, dst_node);
+			if (copy_methods->cuda_to_cuda)
+				copy_methods->cuda_to_cuda(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		}
 		else
 		{
@@ -241,9 +250,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
 				!(copy_methods->opencl_to_ram_async || copy_methods->any_to_any))
 		{
-			STARPU_ASSERT(copy_methods->opencl_to_ram);
+			STARPU_ASSERT(copy_methods->opencl_to_ram || copy_methods->any_to_any);
 			/* this is not associated to a request so it's synchronous */
-			copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
+			if (copy_methods->opencl_to_ram)
+				copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		}
 		else
 		{
@@ -263,9 +275,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
 				!(copy_methods->ram_to_opencl_async || copy_methods->any_to_any))
 		{
-			STARPU_ASSERT(copy_methods->ram_to_opencl);
+			STARPU_ASSERT(copy_methods->ram_to_opencl || copy_methods->any_to_any);
 			/* this is not associated to a request so it's synchronous */
-			copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
+			if (copy_methods->ram_to_opencl)
+				copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		}
 		else
 		{
@@ -285,9 +300,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
 				!(copy_methods->opencl_to_opencl_async || copy_methods->any_to_any))
 		{
-			STARPU_ASSERT(copy_methods->opencl_to_opencl);
+			STARPU_ASSERT(copy_methods->opencl_to_opencl || copy_methods->any_to_any);
 			/* this is not associated to a request so it's synchronous */
-			copy_methods->opencl_to_opencl(src_interface, src_node, dst_interface, dst_node);
+			if (copy_methods->opencl_to_opencl)
+				copy_methods->opencl_to_opencl(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		}
 		else
 		{
