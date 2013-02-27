@@ -59,7 +59,6 @@ void* start_thread(void *arg)
 		for(j = 0; j < 1000; j++);
 		task[i] = starpu_task_create();
 
-		cl.where = STARPU_CPU;
 		cl.cpu_funcs[0] = cpu_func;
 		cl.nbuffers = 0;
 

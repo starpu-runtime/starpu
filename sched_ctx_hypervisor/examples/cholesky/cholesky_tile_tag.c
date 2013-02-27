@@ -42,7 +42,6 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
@@ -77,7 +76,6 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 static struct starpu_codelet cl21 =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
@@ -120,7 +118,6 @@ static void create_task_21(unsigned k, unsigned j)
 static struct starpu_codelet cl22 =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
