@@ -93,6 +93,17 @@ New features:
   * Introduce new variables STARPU_LIMIT_CUDA_devid_MEM and
     STARPU_LIMIT_OPENCL_devid_MEM to limit memory per specific device
 
+Small features:
+  * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
+  * Add starpu_fxt_stop_profiling/starpu_fxt_start_profiling which permits to
+    pause trace recording.
+  * Add trace_buffer_size configuration field to permit to specify the tracing
+    buffer size.
+  * Add starpu_codelet_profile and starpu_codelet_histo_profile, tools which draw
+    the profile of a codelet.
+  * File STARPU-REVISION --- containing the SVN revision number from which
+    StarPU was compiled --- is installed in the share/doc/starpu directory
+
 Changes:
   * Fix the block filter functions.
   * Fix StarPU-MPI on Darwin.
@@ -126,15 +137,6 @@ Changes:
     instead.
   * StarPU can now use poti to generate paje traces.
   * Rename scheduling policy "parallel greedy" to "parallel eager"
-
-Small features:
-  * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
-  * Add starpu_fxt_stop_profiling/starpu_fxt_start_profiling which permits to
-  pause trace recording.
-  * Add trace_buffer_size configuration field to permit to specify the tracing
-  buffer size.
-  * Add starpu_codelet_profile and starpu_codelet_histo_profile, tools which draw
-  the profile of a codelet.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

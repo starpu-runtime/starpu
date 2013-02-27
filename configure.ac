@@ -81,6 +81,21 @@ AC_C_RESTRICT
 # Check if bash is available
 AC_CHECK_PROGS([BASH], [bash])
 
+# Check whether subversion is installed
+AC_PATH_PROG(svnversioncommand, svnversion)
+
+# use svnversion to record the current repository revision only if
+# subversion is installed and we are in a working copy
+if test "$svnversioncommand" = "" || test `LC_ALL=C $svnversioncommand -n $srcdir` = "exported" ; then
+   if test -f $srcdir/STARPU-REVISION ; then
+      cp $srcdir/STARPU-REVISION .
+   else
+      echo "unknown" > ./STARPU-REVISION
+   fi
+else
+   LC_ALL=C svnversion $srcdir > ./STARPU-REVISION
+fi
+
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
